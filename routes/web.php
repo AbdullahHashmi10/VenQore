@@ -2,148 +2,440 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\ProductAttributeController;
+use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\FundController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use Carbon\Carbon;
 use Inertia\Inertia;
 
-Route::get('/debug-pos', function () {
-    $output = [
-        'cash_accounts' => \App\Models\BankAccount::where('account_type', 'cash')->get(),
-        'all_bank_accounts' => \App\Models\BankAccount::get(),
-        'recent_payments' => \App\Models\Payment::latest()->take(5)->get(),
-        'recent_purchases' => \App\Models\Invoice::where('type','purchase')->latest()->take(2)->get(),
-        'payments_stats' => [ // checking stats
-            'today_in' => \App\Models\Payment::where('type', 'in')->whereDate('date', \Carbon\Carbon::today())->sum('amount'),
-            'today_out' => \App\Models\Payment::where('type', 'out')->whereDate('date', \Carbon\Carbon::today())->sum('amount'),
-            'month_in' => \App\Models\Payment::where('type', 'in')->whereMonth('date', \Carbon\Carbon::today()->month)->sum('amount'),
-            'month_out' => \App\Models\Payment::where('type', 'out')->whereMonth('date', \Carbon\Carbon::today()->month)->sum('amount'),
-        ]
-    ];
-    return response()->json($output);
+// ═══════════════════════════════════════════════════════════════════════
+// DEFINITIVE PLAN ROUTES — VenQore SaaS Multi-Store Architecture
+// ═══════════════════════════════════════════════════════════════════════
+
+// ── Public Marketing Pages ──────────────────────────────────────────────
+Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
+Route::get('/pricing',  fn() => Inertia::render('Marketing/Pricing'))->name('marketing.pricing');
+Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marketing.about');
+Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
+Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->name('marketing.contact.submit');
+
+
+// Blog Routes
+Route::get('/blog',              [\App\Http\Controllers\Marketing\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController::class, 'show'])->name('blog.show');
+
+Route::get('/terms',   fn() => Inertia::render('Legal/Terms'))->name('terms');
+Route::get('/privacy', fn() => Inertia::render('Legal/Privacy'))->name('privacy');
+Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhookController::class, 'handle'])
+    ->name('webhooks.lemon-squeezy');
+
+// ── Demo Sandbox Routes ───────────────────────────────────────────────
+Route::get('/demo', [\App\Http\Controllers\DemoController::class, 'landing'])->name('demo.landing');
+Route::post('/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
+Route::post('/demo/logout', [\App\Http\Controllers\DemoController::class, 'logout'])->name('demo.logout');
+
+
+
+// ── Auth (no store context) ──────────────────────────────────────────────
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Store hub (shown to users with 2+ stores)
+    Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
+    Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
+
+    // Create / Join store
+    Route::get('/start',     [\App\Http\Controllers\StoreController::class, 'createOrJoin'])->name('store.create-or-join');
+    Route::get('/new-store', [\App\Http\Controllers\StoreController::class, 'create'])->name('store.create');
+    Route::post('/new-store',[\App\Http\Controllers\StoreController::class, 'store'])->name('store.store');
+
+    // Join by store code
+    Route::get('/join',  [\App\Http\Controllers\StaffController::class, 'joinForm'])->name('store.join');
+    Route::post('/join', [\App\Http\Controllers\StaffController::class, 'joinWithCode'])->name('store.join.submit');
+
+    // ── V1 Staff Invite: Magic Link (Path A) ─────────────────
+    Route::get('/invite/accept',          [\App\Http\Controllers\StaffInvitationController::class, 'acceptByToken'])->name('invite.accept');
+    Route::post('/invite/accept',         [\App\Http\Controllers\StaffInvitationController::class, 'accept'])->name('invite.submit');
+    Route::post('/invite/decline',        [\App\Http\Controllers\StaffInvitationController::class, 'declineByToken'])->name('invite.decline');
+
+    // ── V1 Staff Invite: Code Validation (Path B — Hub) ───────────
+    Route::post('/invite/validate-code',  [\App\Http\Controllers\StaffInvitationController::class, 'validateCode'])->name('invite.validate-code');
+
+    // Global account settings (not store-specific)
+    Route::get('/account',   [ProfileController::class, 'edit'])->name('account.edit');
+    Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
 });
 
-Route::get('/fix-payments-db', function () {
-    \App\Models\Payment::where('type', 'received')->update(['type' => 'in']);
-    \App\Models\Payment::where('type', 'sent')->update(['type' => 'out']);
-    
-    // Also fix any null dates to created_at
-    $payments = \App\Models\Payment::whereNull('date')->get();
-    foreach($payments as $p) {
-        $p->date = $p->created_at->toDateString();
-        $p->save();
-    }
-    return "OK";
-});
+// ── Store Context Routes ─────────────────────────────────────────────────
+// All routes under /s/{store_slug}/ require auth + valid store membership
+Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddleware::class])
+    ->prefix('s/{store_slug}')
+    ->name('store.')
+    ->group(function () {
+        Route::get('/', fn($store_slug) => \redirect()->route('store.pos', ['store_slug' => $store_slug]));
 
-Route::get('/repair-inventory-value', function () {
-    $products = \App\Models\Product::all();
-    $fixedC = 0;
-    foreach ($products as $product) {
-        // The TRUE stock quantity is already correct in the stocks table.
-        $actualStock = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
-        
-        // ─── DO FULL FIFO BATCH REPAIR HERE ────────────────────────────────
-        // Distribute actual stock across the product's individual inventory_batches in FIFO order.
-        $batches = \Illuminate\Support\Facades\DB::table('inventory_batches')
-            ->where('product_id', $product->id)
-            ->whereNull('deleted_at')
-            ->orderBy('created_at', 'asc') // FIFO: oldest first (wait, usually we want to keep newest batches if old ones were sold. If we are backfilling existing stock, the stock currently ON HAND is the NEWEST stock. So we fill the batches from NEWEST to OLDEST.)
-            ->orderBy('id', 'asc') // tie breaker
-            ->get();
+        // Setup wizard (no plan gate — always accessible)
+        Route::get('/setup',  [\App\Http\Controllers\SetupController::class, 'index'])->name('setup');
+        Route::post('/setup', [\App\Http\Controllers\SetupController::class, 'complete'])->name('setup.complete');
+
+        // POS (on-demand API, no full catalog pre-load)
+        Route::get('/pos',                     [\App\Http\Controllers\PosController::class, 'index'])->name('pos');
+        // GAP 1 FIX: Dead route removed. POS sales go through V3/SaleController via Route::post('sales', ...) at line ~1165.
+        // Route::post('/pos/sale', ...) was wired to PosController::completeSale() which does not exist.
+        Route::get('/pos/products',            [\App\Http\Controllers\Api\PosSearchController::class, 'search'])->name('pos.search');
+        Route::get('/pos/products/featured',   [\App\Http\Controllers\Api\PosSearchController::class, 'featured'])->name('pos.featured');
+        Route::get('/pos/categories',          [\App\Http\Controllers\Api\PosSearchController::class, 'categories'])->name('pos.categories');
+        Route::get('/pos/barcode/{code}',      [\App\Http\Controllers\Api\PosSearchController::class, 'findByBarcode'])->name('pos.barcode');
+        Route::post('/pos/open-session',       [\App\Http\Controllers\PosController::class, 'openSession'])->name('pos.open');
+        Route::post('/pos/close-session',      [\App\Http\Controllers\PosController::class, 'closeSession'])->name('pos.close');
+
+        // Staff management (within this store)
+        Route::get('/staff',              [\App\Http\Controllers\StaffController::class, 'index'])->name('staff');
+        Route::post('/staff/invite',      [\App\Http\Controllers\StaffController::class, 'invite'])->name('staff.invite');
+        Route::patch('/staff/{member}',   [\App\Http\Controllers\StaffController::class, 'update'])->name('staff.update');
+        Route::delete('/staff/{member}',  [\App\Http\Controllers\StaffController::class, 'remove'])->name('staff.remove');
+
+        // Store billing
+        Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
+        Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
+        Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
+
+        // Store settings
+        Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings');
+        Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+
+        // Trial expired landing (within store context)
+        Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
+
+        // ── Plan Change Notifications ────────────────────────────────────
+        Route::group(['prefix' => 'notifications/plan', 'as' => 'notifications.plan.'], function () {
+            Route::get('/unread',         [\App\Http\Controllers\PlanNotificationController::class, 'unread'])->name('unread');
+            Route::post('/mark-all-read', [\App\Http\Controllers\PlanNotificationController::class, 'markAllRead'])->name('markAllRead');
+            Route::post('/{id}/read',     [\App\Http\Controllers\PlanNotificationController::class, 'markRead'])->name('read');
+        });
+
+        // ── Store Admin Panel (Restored Legacy Experience) ──────────────────
+        Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
+            Route::get('/',            [\App\Http\Controllers\AdminController::class, 'index'])->name('home');
+            Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+            Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
+            Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
+            Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
+            Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
+            Route::get('/staff',       [\App\Http\Controllers\AdminController::class, 'staffSummaries'])->name('staff');
+
+            // ── V1 Staff Invitation System ─────────────────────────────────
+            Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->name('invitations.store');
+            Route::post('/invitations/{invitation}/approve',   [\App\Http\Controllers\StaffInvitationController::class, 'approve'])->name('invitations.approve');
+            Route::post('/invitations/{invitation}/decline',   [\App\Http\Controllers\StaffInvitationController::class, 'decline'])->name('invitations.decline');
+            Route::post('/invitations/{invitation}/revoke',    [\App\Http\Controllers\StaffInvitationController::class, 'revoke'])->name('invitations.revoke');
+            Route::post('/invitations/{invitation}/resend',    [\App\Http\Controllers\StaffInvitationController::class, 'resend'])->name('invitations.resend');
+            Route::get('/attendance',  [\App\Http\Controllers\Admin\StoreAdminController::class, 'attendance'])->name('attendance');
             
-        // WAIT: If we have 100 on hand, and bought 50 last week and 50 yesterday.
-        // The stock remaining is the 50 from yesterday and 50 from last week.
-        // If we bought 150 but sold 50, we sold the OLDEST 50. So the Remaining should be filled from the NEWEST batches down to the oldest.
-        $batches = \Illuminate\Support\Facades\DB::table('inventory_batches')
-            ->where('product_id', $product->id)
-            ->whereNull('deleted_at')
-            ->orderBy('created_at', 'desc') // NEWEST first, because leftover stock is the most recent purchases!
-            ->get();
-        
-        $poolRemaining = $actualStock;
-        
-        foreach ($batches as $batch) {
-            $originalQty = (float) $batch->original_qty;
-            $assignQty   = min($originalQty, max(0, $poolRemaining));
+            Route::get('/logs',        [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
+
+            // Data & Disaster Recovery
+            Route::get('/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('data');
+            Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->name('data.export');
+            Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->name('data.import');
             
-            if (abs((float)$batch->remaining_qty - $assignQty) > 0.0001) {
-                \Illuminate\Support\Facades\DB::table('inventory_batches')
-                    ->where('id', $batch->id)
-                    ->update([
-                        'remaining_qty' => $assignQty,
-                        'updated_at'    => now(),
-                    ]);
+            // OVERRIDE: Removed. Raw SQL Backup/Restore strictly locked to Platform Admin.
+            // Route::get('/backups',             [\App\Http\Controllers\BackupController::class, 'index'])->name('backups');
+            // Route::post('/backups',            [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+            // Route::get('/backups/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+            // Route::delete('/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+            // Route::post('/backups/email/{filename}', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
+            // Route::post('/backups/restore',    [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+
+            // Recycle Bin
+            Route::get('/recycle-bin',         [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
+            Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
+            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.force-delete');
+        });
+    });
+
+// ── Platform Owner ───────────────────────────────────────────────────────────
+Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
+    ->prefix('VenQore')
+    ->name('platform.')
+    ->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('dashboard');
+
+        Route::get('/run-migrations', function () {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            return 'Migrations ran successfully! Output: ' . nl2br(e(\Illuminate\Support\Facades\Artisan::output()));
+        });
+
+        Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
+        Route::get('/users',              [\App\Http\Controllers\Admin\SuperAdminController::class, 'users'])->name('users');
+        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
+        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
+        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
+        
+        // Trash Management
+        Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->name('store.destroy');
+        Route::post('/stores/bulk-destroy',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyStores'])->name('stores.bulk-destroy');
+        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->name('store.restore');
+        Route::delete('/stores/{id}/purge',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeStore'])->name('store.purge');
+        
+        Route::delete('/users/{user}/destroy',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyUser'])->name('user.destroy');
+        Route::post('/users/bulk-destroy',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyUsers'])->name('users.bulk-destroy');
+        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
+        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
+
+        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+
+        // ── V1 Support Inbox ──────────────────────────────────────────────
+        Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
+        Route::get('/tickets/{ticket}',                     [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('ticket.show');
+        Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->name('ticket.reply');
+        Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('ticket.status');
+
+        // ── Webhook Logs ──────────────────────────────────────────────────
+        Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
+
+        // ── Feature Flags (per-store overrides) ───────────────────────────
+        Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
+
+        // ── System Health & Monitoring ────────────────────────────────────
+        Route::get('/health/errors',                         [\App\Http\Controllers\Admin\SuperAdminController::class, 'errorLogs'])->name('health.errors');
+        Route::post('/health/errors/resolve-all',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveAllErrors'])->name('health.errors.resolve-all');
+        Route::post('/health/errors/detect-fixes',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'detectFixes'])->name('health.errors.detect-fixes');
+        Route::post('/health/errors/{error}/resolve',        [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveError'])->name('health.errors.resolve');
+        Route::get('/health/contacts',                       [\App\Http\Controllers\Admin\SuperAdminController::class, 'contactSubmissions'])->name('health.contacts');
+        Route::post('/health/contacts/{contact}/read',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'readContact'])->name('health.contacts.read');
+
+
+        // ── Impersonation ─────────────────────────────────────────────────
+        Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
+        Route::post('/impersonate/end',                     [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonate.end');
+
+        // ── Platform Owner Security & Profile ─────────────────────────────
+        Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('set-passcode');
+        Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('clear-passcode');
+        Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('change-password');
+
+        // ── Monetization — Plans & Platforms ──────────────────────────────
+        Route::prefix('plans')->name('plans.')->group(function () {
+            Route::get('/',                  [\App\Http\Controllers\SuperAdmin\PlanController::class, 'index'])->name('index');
+            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\PlanController::class, 'store'])->name('store');
+            Route::put('/{plan}',            [\App\Http\Controllers\SuperAdmin\PlanController::class, 'update'])->name('update');
+            Route::post('/{plan}/duplicate', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'duplicate'])->name('duplicate');
+            Route::delete('/{plan}',         [\App\Http\Controllers\SuperAdmin\PlanController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('platforms')->name('platforms.')->group(function () {
+            Route::get('/',           [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'index'])->name('index');
+            Route::post('/',          [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'store'])->name('store');
+            Route::put('/{platform}', [\App\Http\Controllers\SuperAdmin\PlatformController::class, 'update'])->name('update');
+        });
+
+        Route::prefix('coupons')->name('coupons.')->group(function () {
+            Route::get('/',         [\App\Http\Controllers\SuperAdmin\CouponController::class, 'index'])->name('index');
+            Route::post('/',        [\App\Http\Controllers\SuperAdmin\CouponController::class, 'store'])->name('store');
+            Route::put('/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'update'])->name('update');
+        });
+
+        // ── Monetization — Tenant Overrides ───────────────────────────────
+        Route::prefix('tenant-overrides')->name('tenants.')->group(function () {
+            Route::get('/',              [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'index'])->name('overrides');
+            Route::get('/{tenant}',      [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'show'])->name('overrides.show');
+            Route::post('/{tenant}',     [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'apply'])->name('overrides.apply');
+            Route::delete('/{tenant}/{override}', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'remove'])->name('overrides.remove');
+        });
+
+        // Added Category D Platform Admin Routes
+        Route::post('/admin/migration/analyze', fn() => \abort(501, 'Not yet implemented'))->name('admin.migration.analyze');
+
+        // ── DEBUG & REPAIR ROUTES (Secured) ───────────────────────────────────
+        Route::get('/debug-pos', function () {
+            $output = [
+                'cash_accounts' => \App\Models\BankAccount::where('account_type', 'cash')->get(),
+                'all_bank_accounts' => \App\Models\BankAccount::get(),
+                'recent_payments' => \App\Models\Payment::latest()->take(5)->get(),
+                'recent_purchases' => \App\Models\Invoice::where('type','purchase')->latest()->take(2)->get(),
+                'payments_stats' => [ // checking stats
+                    'today_in' => \App\Models\Payment::where('type', 'in')->where('date', \Carbon\Carbon::today()->toDateString())->sum('amount'),
+                    'today_out' => \App\Models\Payment::where('type', 'out')->where('date', \Carbon\Carbon::today()->toDateString())->sum('amount'),
+                    'month_in' => \App\Models\Payment::where('type', 'in')->whereMonth('date', \Carbon\Carbon::today()->month)->sum('amount'),
+                    'month_out' => \App\Models\Payment::where('type', 'out')->whereMonth('date', \Carbon\Carbon::today()->month)->sum('amount'),
+                ]
+            ];
+            return \response()->json($output);
+        });
+
+        Route::get('/fix-payments-db', function () {
+            \App\Models\Payment::where('type', 'received')->update(['type' => 'in']);
+            \App\Models\Payment::where('type', 'sent')->update(['type' => 'out']);
+            
+            // Also fix any null dates to created_at
+            $payments = \App\Models\Payment::whereNull('date')->get();
+            foreach($payments as $p) {
+                /** @var \App\Models\Payment $p */
+                $p->date = $p->created_at->toDateString();
+                $p->save();
             }
-            $poolRemaining -= $assignQty;
-        }
-        
-        // If there's STILL stock remaining but no batches to hold it, we must create a catch-all batch
-        if ($poolRemaining > 0.0001) {
-            \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
-                'id'            => (string) \Illuminate\Support\Str::orderedUuid(),
-                'product_id'    => $product->id,
-                'warehouse_id'  => \App\Models\Warehouse::first()?->id ?? 1,
-                'original_qty'  => $poolRemaining,
-                'remaining_qty' => $poolRemaining,
-                'unit_cost'     => $product->cost_price ?? 0,
-                'notes'         => 'Auto-healer fallback batch',
-                'created_at'    => now(),
-                'updated_at'    => now(),
+            return "OK";
+        });
+
+        Route::get('/repair-inventory-value', function () {
+            $products = \App\Models\Product::all();
+            $fixedC = 0;
+            foreach ($products as $product) {
+                // The TRUE stock quantity is already correct in the stocks table.
+                $actualStock = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
+                
+                // ─── DO FULL FIFO BATCH REPAIR HERE ────────────────────────────────
+                // Distribute actual stock across the product's individual inventory_batches in FIFO order.
+                $batches = \Illuminate\Support\Facades\DB::table('inventory_batches')
+                    ->where('product_id', $product->id)
+                    ->whereNull('deleted_at')
+                    ->orderBy('created_at', 'desc') // NEWEST first, because leftover stock is the most recent purchases!
+                    ->get();
+                
+                $poolRemaining = $actualStock;
+                
+                foreach ($batches as $batch) {
+                    $originalQty = (float) $batch->original_qty;
+                    $assignQty   = min($originalQty, max(0, $poolRemaining));
+                    
+                    if (abs((float)$batch->remaining_qty - $assignQty) > 0.0001) {
+                        \Illuminate\Support\Facades\DB::table('inventory_batches')
+                            ->where('id', $batch->id)
+                            ->update([
+                                'remaining_qty' => $assignQty,
+                                'updated_at'    => Carbon::now(),
+                            ]);
+                    }
+                    $poolRemaining -= $assignQty;
+                }
+                
+                // If there's STILL stock remaining but no batches to hold it, we must create a catch-all batch
+                if ($poolRemaining > 0.0001) {
+                    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+                        'id'            => (string) \Illuminate\Support\Str::orderedUuid(),
+                        'product_id'    => $product->id,
+                        'warehouse_id'  => \App\Models\Warehouse::first()?->id ?? 1,
+                        'original_qty'  => $poolRemaining,
+                        'remaining_qty' => $poolRemaining,
+                        'unit_cost'     => $product->cost_price ?? 0,
+                        'notes'         => 'Auto-healer fallback batch',
+                        'created_at'    => Carbon::now(),
+                        'updated_at'    => Carbon::now(),
+                    ]);
+                }
+                $fixedC++;
+            }
+            
+            // Calculate new total value to display it immediately
+            $totalValue = \Illuminate\Support\Facades\DB::table('inventory_batches')
+                ->whereNull('deleted_at')
+                ->sum(\Illuminate\Support\Facades\DB::raw('remaining_qty * unit_cost'));
+                
+            return \response()->json([
+                'message' => "Successfully rebuilt FIFO batches for {$fixedC} products.",
+                'new_inventory_valuation' => number_format($totalValue, 2)
             ]);
-        }
-        $fixedC++;
-    }
-    
-    // Calculate new total value to display it immediately
-    $totalValue = \Illuminate\Support\Facades\DB::table('inventory_batches')
-        ->whereNull('deleted_at')
-        ->sum(\Illuminate\Support\Facades\DB::raw('remaining_qty * unit_cost'));
+        });
         
-    return response()->json([
-        'message' => "Successfully rebuilt FIFO batches for {$fixedC} products.",
-        'new_inventory_valuation' => number_format($totalValue, 2)
-    ]);
-});
+        Route::get('/run-migrations', function () {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            return 'Migrations ran successfully! Output: ' . nl2br(e(\Illuminate\Support\Facades\Artisan::output()));
+        });
+    });
+
 Route::get('/', function () {
     // 1. Check Database Connection First
     try {
         \Illuminate\Support\Facades\DB::connection()->getPdo();
     } catch (\Exception $e) {
         // If DB fails, redirect to installer (which allows setting it up)
-        return redirect()->route('installer.index');
+        return \redirect()->route('installer.index');
     }
 
     // 2. Check if Installed (Table exists)
     if (!file_exists(storage_path('installed')) || !\Illuminate\Support\Facades\Schema::hasTable('settings')) {
-        return redirect()->route('installer.index');
+        return \redirect()->route('installer.index');
     }
 
-    // 3. Normal Flow
-    if (auth()->check()) {
-        return redirect()->route('dashboard');
+    // 3. Auto-logout demo users when they navigate back to the main site.
+    // Demo accounts use the pattern demo-{role}@venqore-demo.internal.
+    // Rather than bouncing them to /hub (which is confusing), we cleanly
+    // end their session so they land on the marketing page as a visitor.
+    if (Auth::check()) {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+
+        if (str_ends_with($user->email, '@venqore-demo.internal')) {
+            \Illuminate\Support\Facades\Cache::decrement('demo_visit_live');
+            Auth::logout();
+            request()->session()->invalidate();
+            request()->session()->regenerateToken();
+            // Fall through to render the landing page below
+        } elseif ($user->isPlatformAdmin()) {
+            return \redirect()->route('platform.dashboard');
+        } else {
+            return \redirect()->route('hub');
+        }
     }
 
-    // 4. Welcome Logic - Redirect to Login if ANY user exists AND setup is not completed
-    if (\App\Models\User::count() > 0 && !\App\Models\Setting::where('key', 'setup_completed')->exists()) {
-        return redirect()->route('login');
-    }
-
-    return Inertia::render('Welcome');
+    // 4. Show the marketing landing page to unauthenticated visitors
+    // On subdomain tenant installs, this still shows the setup welcome — see TenantMiddleware
+    return Inertia::render('LandingPage');
 })->name('welcome');
 
 
 
+// Post-setup welcome splash (internal, not a marketing page)
+Route::get('/welcome-splash', function () {
+    return Inertia::render('Welcome');
+})->middleware('auth')->name('welcome-splash');
+
+
+
+// ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
+// Public routes — no auth required (buyers arrive from AppSumo email)
+Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
+Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('redeem.submit');
+
+// Public informational pages (required by AppSumo before campaign approval)
+Route::get('/what-is-included', function () {
+    return Inertia::render('WhatIsIncluded');
+})->name('what-is-included');
+
+Route::get('/refund-policy', function () {
+    return Inertia::render('RefundPolicy');
+})->name('refund-policy');
+
+Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
+Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
+
+// ── Pre-Launch §14: Health Check ─────────────────────────────────────────────
+// Public — no auth. Checks DB, Redis, cache, storage, and Horizon queue health.
+// Returns HTTP 200 (all ok) or HTTP 503 (any component failing).
+// Monitor this with UptimeRobot every 5 minutes.
+Route::get('/health', \App\Http\Controllers\HealthController::class)->name('health');
 
 
 // Image Fallback Route (for Shared Hosting limits)
 Route::get('/storage/{path}', function ($path) {
     $filePath = storage_path('app/public/' . $path);
     if (!file_exists($filePath)) {
-        abort(404);
+        \abort(404);
     }
     $mimeType = File::mimeType($filePath);
-    return response()->file($filePath, ['Content-Type' => $mimeType]);
+    return \response()->file($filePath, ['Content-Type' => $mimeType]);
 })->where('path', '.*');
 
 // --- INSTALLER ROUTES ---
@@ -225,7 +517,7 @@ Route::prefix('api/installer')->middleware(\App\Http\Middleware\InstallerLock::c
             $results['log_tail'] = 'No log file found';
         }
 
-        return response()->json($results, 200, [], JSON_PRETTY_PRINT);
+        return \response()->json($results, 200, [], JSON_PRETTY_PRINT);
     });
 });
 
@@ -233,12 +525,12 @@ Route::prefix('api/installer')->middleware(\App\Http\Middleware\InstallerLock::c
 Route::get('/refresh-csrf', [\App\Http\Controllers\CsrfController::class, 'refresh'])->name('csrf.refresh');
 
 // --- UPDATER ROUTES ---
-// Page (auth + super_admin only)
+// Page (auth + platform_admin only)
 Route::get('/updater', [\App\Http\Controllers\UpdaterController::class, 'index'])
     ->middleware(['auth', \App\Http\Middleware\UpdaterLock::class])
     ->name('updater.index');
 
-// API (auth + super_admin only, no InstallerLock — app must be installed)
+// API (auth + platform_admin only, no InstallerLock — app must be installed)
 Route::prefix('api/updater')
     ->middleware(['auth', \App\Http\Middleware\UpdaterLock::class])
     ->group(function () {
@@ -246,33 +538,54 @@ Route::prefix('api/updater')
         Route::post('/run', [\App\Http\Controllers\UpdaterController::class, 'run']);
     });
 
-Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', function() {
+    /** @var \App\Models\User $user */
+    $user = Auth::user();
+    if ($user->isPlatformAdmin()) {
+        return \redirect()->route('platform.dashboard');
+    }
+    return \redirect()->route('hub');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+// Error Reporting API
+Route::post('/api/report-error', [\App\Http\Controllers\Api\ErrorReporterController::class, 'store'])->name('api.report-error');
 
 // Placeholder for future routes
-Route::get('/ping', fn() => response()->json(['ok' => true]));
+Route::get('/ping', fn() => \response()->json(['ok' => true]));
+
 
 // ═══════════════════════════════════════════════════════════
 // LEGACY ROUTE MAPPINGS — SEALED 2026-03-07
 // ═══════════════════════════════════════════════════════════
 Route::middleware([])->group(function () {
     // Stock Legacy Routing
-    Route::any('/stock-operations/{any}',    fn() => redirect('/stock-operations'))->where('any', '.+');
+    Route::any('/stock-operations/{any}',    fn() => \redirect('/stock-operations'))->where('any', '.+');
     Route::any('/stock-transfers/{any?}',    [\App\Http\Controllers\StockTransferController::class, 'store'])->where('any', '.*');
-    Route::any('/stock-audit/{any?}',        fn() => response()->json(['message' => 'Use stock-take module'], 404))->where('any', '.*');
-    Route::any('/batches',                   fn() => response()->json(['message' => 'Managed internally by FifoService'], 404));
-    Route::any('/serials',                   fn() => response()->json(['message' => 'Managed internally by FifoService'], 404));
+    Route::any('/stock-audit/{any?}',        fn() => \response()->json(['message' => 'Use stock-take module'], 404))->where('any', '.*');
+    Route::any('/batches',                   fn() => \response()->json(['message' => 'Managed internally by FifoService'], 404));
+    Route::any('/serials',                   fn() => \response()->json(['message' => 'Managed internally by FifoService'], 404));
 
     // Reports are mostly mapped, but let's keep the block for anything that didn't match the specific ones
-    Route::any('/reports/{any?}',            fn() => abort(403, 'DEPRECATED: Use /v3/reports/*'))
-         ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-item-category|item-category-wise-profit-loss|item-wise-discount|sale-order-items|stock-aging|sale-purchase-by-party-group)).*');
+    Route::any('/reports/{any}',            fn() => \abort(403, 'DEPRECATED: Use /v3/reports/*'))
+         ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
+Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddleware::class])
+    ->prefix('s/{store_slug}')
+    ->group(function () {
+        // Compatibility Aliases for POS & AJAX (Resolves Ziggy 'route not found' while keeping URL isolation)
+        Route::get('/inventory/search', [InventoryController::class, 'search'])->name('inventory.search');
+        Route::get('/customers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('customers.search');
+        Route::get('/api/pos/categories', [\App\Http\Controllers\PosController::class, 'getCategories'])->name('api.categories');
+        Route::get('/sales/parked', [\App\Http\Controllers\SaleController::class, 'getParkedSales'])->name('sales.parked');
+        Route::get('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'recall'])->name('sales.recall');
+        Route::delete('/sales/parked/{id}', [\App\Http\Controllers\SaleController::class, 'deleteParked'])->name('sales.parked.delete');
+        Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'parkBill'])->name('sales.park');
 
-    // Setup Wizard
-    Route::get('/setup', [\App\Http\Controllers\SetupController::class, 'index'])->name('setup.index');
-    Route::post('/setup', [\App\Http\Controllers\SetupController::class, 'store'])->name('setup.store');
+        Route::name('store.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
+    Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
 
     Route::get('/pos', function () {
         return Inertia::render('Pos', [
@@ -294,6 +607,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventory/{id}', [InventoryController::class, 'update'])->name('inventory.update');
     Route::delete('/inventory/{id}', [InventoryController::class, 'destroy'])->name('inventory.destroy');
 
+
     // Stock Operations
     Route::get('/stock-operations', [\App\Http\Controllers\StockOperationsController::class, 'index'])->name('stock-operations');
     Route::post('/stock-operations/transfer', [\App\Http\Controllers\StockOperationsController::class, 'transfer'])->name('stock-operations.transfer');
@@ -302,13 +616,22 @@ Route::middleware('auth')->group(function () {
     Route::post('/stock-operations/warehouse', [\App\Http\Controllers\StockOperationsController::class, 'storeWarehouse'])->name('stock-operations.warehouse.store');
     Route::put('/stock-operations/warehouse/{id}', [\App\Http\Controllers\StockOperationsController::class, 'updateWarehouse'])->name('stock-operations.warehouse.update');
 
-    // Recycle Bin
-    Route::get('/recycle-bin', [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
-    Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
-    Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.force-delete');
 
     // Activity Log
     Route::get('/activity-log', [\App\Http\Controllers\ActivityLogController::class, 'index'])->middleware('permission:audit')->name('activity-log.index');
+
+    // Background Sync API (Internal)
+    Route::prefix('api')->name('api.')->group(function () {
+        Route::get('/sync/users', [\App\Http\Controllers\Api\SyncController::class, 'users'])->name('sync.users');
+        Route::get('/sync/products', [\App\Http\Controllers\Api\SyncController::class, 'products'])->name('sync.products');
+        Route::get('/sync/customers', [\App\Http\Controllers\Api\SyncController::class, 'customers'])->name('sync.customers');
+        Route::get('/sync/suppliers', [\App\Http\Controllers\Api\SyncController::class, 'suppliers'])->name('sync.suppliers');
+        Route::get('/sync/inventory', [\App\Http\Controllers\Api\SyncController::class, 'inventory'])->name('sync.inventory');
+        Route::get('/sync/taxes', [\App\Http\Controllers\Api\SyncController::class, 'taxes'])->name('sync.taxes');
+        Route::post('/sync/orders/batch', [\App\Http\Controllers\Api\SyncController::class, 'batchOrders'])->name('sync.orders.batch');
+        Route::post('/heartbeat', [\App\Http\Controllers\Api\HeartbeatController::class, 'store'])->name('heartbeat');
+        Route::get('/check-connection', [\App\Http\Controllers\Api\SyncController::class, 'checkConnection'])->name('check-connection');
+    });
 
     // Suppliers
 
@@ -385,6 +708,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/sale-order-items', [\App\Http\Controllers\ReportController::class, 'saleOrderItems'])->name('reports.sale-order-items');
         Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->name('reports.stock-aging');
         Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->name('reports.sale-purchase-by-party-group');
+        Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
     });
 
     // Cookbook
@@ -429,26 +753,26 @@ Route::middleware('auth')->group(function () {
     Route::delete('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'destroy'])->middleware('permission:inventory')->name('variants.destroy');
 
     // Attributes
-    Route::get('/attributes', [\App\Http\Controllers\ProductAttributeController::class, 'index'])->middleware('permission:inventory')->name('attributes.index');
-    Route::post('/attributes', [\App\Http\Controllers\ProductAttributeController::class, 'store'])->middleware('permission:inventory')->name('attributes.store');
-    Route::put('/attributes/{attribute}', [\App\Http\Controllers\ProductAttributeController::class, 'update'])->middleware('permission:inventory')->name('attributes.update');
-    Route::delete('/attributes/{attribute}', [\App\Http\Controllers\ProductAttributeController::class, 'destroy'])->middleware('permission:inventory')->name('attributes.destroy');
+    Route::get('/attributes', [ProductAttributeController::class, 'index'])->middleware('permission:inventory')->name('attributes.index');
+    Route::post('/attributes', [ProductAttributeController::class, 'store'])->middleware('permission:inventory')->name('attributes.store');
+    Route::put('/attributes/{attribute}', [ProductAttributeController::class, 'update'])->middleware('permission:inventory')->name('attributes.update');
+    Route::delete('/attributes/{attribute}', [ProductAttributeController::class, 'destroy'])->middleware('permission:inventory')->name('attributes.destroy');
 
     // Categories (Phase 1 - Unification)
-    Route::get('/inventory/categories', [\App\Http\Controllers\InventoryController::class, 'categories'])->middleware('permission:inventory')->name('categories.index');
-    Route::post('/categories', [\App\Http\Controllers\InventoryController::class, 'storeCategory'])->middleware('permission:inventory')->name('categories.store');
-    Route::put('/categories/{category}', [\App\Http\Controllers\InventoryController::class, 'updateCategory'])->middleware('permission:inventory')->name('categories.update');
-    Route::delete('/categories/{category}', [\App\Http\Controllers\InventoryController::class, 'destroyCategory'])->middleware('permission:inventory')->name('categories.destroy');
+    Route::get('/inventory/categories', [InventoryController::class, 'categories'])->middleware('permission:inventory')->name('categories.index');
+    Route::post('/categories', [InventoryController::class, 'storeCategory'])->middleware('permission:inventory')->name('categories.store');
+    Route::put('/categories/{category}', [InventoryController::class, 'updateCategory'])->middleware('permission:inventory')->name('categories.update');
+    Route::delete('/categories/{category}', [InventoryController::class, 'destroyCategory'])->middleware('permission:inventory')->name('categories.destroy');
 
     // Stock Levels
-    Route::get('/inventory/stock-levels', [\App\Http\Controllers\InventoryController::class, 'stockLevels'])->name('inventory.stock-levels');
+    Route::get('/inventory/stock-levels', [InventoryController::class, 'stockLevels'])->name('inventory.stock-levels');
 
     // Bank Accounts (Phase 1 - Unification)
-    Route::get('/bank-accounts', [\App\Http\Controllers\FinanceController::class, 'bankAccounts'])->name('bank-accounts.index');
-    Route::post('/bank-accounts', [\App\Http\Controllers\FinanceController::class, 'storeBankAccount'])->name('bank-accounts.store');
-    Route::put('/bank-accounts/{bankAccount}', [\App\Http\Controllers\FinanceController::class, 'updateBankAccount'])->name('bank-accounts.update');
-    Route::delete('/bank-accounts/{bankAccount}', [\App\Http\Controllers\FinanceController::class, 'destroyBankAccount'])->name('bank-accounts.destroy');
-    Route::get('/bank-accounts/{bankAccount}/transactions', [\App\Http\Controllers\FinanceController::class, 'bankAccountTransactions'])->name('bank-accounts.transactions');
+    Route::get('/bank-accounts', [FinanceController::class, 'bankAccounts'])->name('bank-accounts.index');
+    Route::post('/bank-accounts', [FinanceController::class, 'storeBankAccount'])->name('bank-accounts.store');
+    Route::put('/bank-accounts/{bankAccount}', [FinanceController::class, 'updateBankAccount'])->name('bank-accounts.update');
+    Route::delete('/bank-accounts/{bankAccount}', [FinanceController::class, 'destroyBankAccount'])->name('bank-accounts.destroy');
+    Route::get('/bank-accounts/{bankAccount}/transactions', [FinanceController::class, 'bankAccountTransactions'])->name('bank-accounts.transactions');
 
     // ============================================
     // PHASE 2 - Party & Transaction Management
@@ -496,7 +820,7 @@ Route::middleware('auth')->group(function () {
     // ============================================
 
     // Stock Levels
-    Route::get('/inventory/stock', [\App\Http\Controllers\InventoryController::class, 'stockLevels'])->name('inventory.stock');
+    Route::get('/inventory/stock', [InventoryController::class, 'stockLevels'])->name('inventory.stock');
 
     // Sales Orders
     Route::get('/sales/pre-sales', [\App\Http\Controllers\SalesOrderController::class, 'index'])->name('pre-sales.index');
@@ -597,38 +921,40 @@ Route::middleware('auth')->group(function () {
 
     // Categories API
     Route::get('/api/categories', function () {
-        return response()->json(\App\Models\Category::all());
+        return \response()->json(\App\Models\Category::all());
     })->name('api.categories.general');
 
     Route::get('/api/warehouses', function () {
-        return response()->json(\App\Models\Warehouse::all());
+        return \response()->json(\App\Models\Warehouse::all());
     })->name('api.warehouses');
 
     // Finance Routes
-    Route::get('/finance', [\App\Http\Controllers\FinanceController::class, 'index'])->middleware('permission:finance')->name('finance');
-    Route::get('/finance/receivables', [\App\Http\Controllers\FinanceController::class, 'receivables'])->name('finance.receivables');
-    Route::get('/finance/payables', [\App\Http\Controllers\FinanceController::class, 'payables'])->name('finance.payables');
+    Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance')->name('finance');
+    Route::get('/finance/receivables', [FinanceController::class, 'receivables'])->name('finance.receivables');
+    Route::get('/finance/payables', [FinanceController::class, 'payables'])->name('finance.payables');
 
     // Fund Management (Owner Capital, Transfers, Adjustments)
-    Route::get('/funds', [\App\Http\Controllers\FundController::class, 'index'])->middleware('permission:finance')->name('funds.index');
-    Route::post('/funds/add', [\App\Http\Controllers\FundController::class, 'addFunds'])->name('funds.add');
-    Route::post('/funds/remove', [\App\Http\Controllers\FundController::class, 'removeFunds'])->name('funds.remove');
-    Route::post('/funds/transfer', [\App\Http\Controllers\FundController::class, 'transfer'])->name('funds.transfer');
-    Route::post('/funds/adjust', [\App\Http\Controllers\FundController::class, 'adjust'])->name('funds.adjust');
-    Route::get('/funds/cash-history', [\App\Http\Controllers\FundController::class, 'history'])->name('funds.history.ledger');
-    Route::get('/funds/api/history', [\App\Http\Controllers\FundController::class, 'getCashHistory'])->name('funds.cash-history');
+    Route::get('/funds', [FundController::class, 'index'])->middleware('permission:finance')->name('funds.index');
+    Route::post('/funds/add', [FundController::class, 'addFunds'])->name('funds.add');
+    Route::post('/funds/remove', [FundController::class, 'removeFunds'])->name('funds.remove');
+    Route::post('/funds/transfer', [FundController::class, 'transfer'])->name('funds.transfer');
+    Route::post('/funds/adjust', [FundController::class, 'adjust'])->name('funds.adjust');
+    Route::get('/funds/cash-history', [FundController::class, 'history'])->name('funds.history.ledger');
+    Route::get('/funds/api/history', [FundController::class, 'getCashHistory'])->name('funds.cash-history');
 
     // Custom Charges
     Route::get('/api/custom-charges', function () {
-        return response()->json(\App\Models\CustomCharge::active()->get());
+        return \response()->json(\App\Models\CustomCharge::active()->get());
     })->name('api.custom-charges');
 
     Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
 
-    // Settings Route
+    // Settings Route — DEPRECATED at bare /settings
+    // Store settings now live at /s/{store_slug}/settings
+    // Redirect to hub — the hub will route them into the correct store
     Route::get('/settings', function () {
-        return redirect()->route('admin.settings');
-    })->middleware('permission:settings')->name('settings');
+        return \redirect()->route('hub');
+    })->name('settings');
     Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/charges', [\App\Http\Controllers\SettingsController::class, 'storeCharge'])->name('settings.charges.store');
     Route::put('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'updateCharge'])->name('settings.charges.update');
@@ -654,19 +980,21 @@ Route::middleware('auth')->group(function () {
     // Reports Dashboard
     Route::get('/reports/dashboard', [\App\Http\Controllers\ReportController::class, 'dashboard'])->name('reports.dashboard');
 
-    // Admin Panel (Hub)
-    Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->middleware('permission:users,settings')->name('admin.home');
+    // Admin Panel (Hub) — DEPRECATED
+    // The old /admin-panel is now the Store Admin at /s/{slug}/staff and /s/{slug}/settings
+    // This route is kept as a redirect safety net to prevent broken bookmarks from panicking
+    Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.panel');
 
     // Data Management (Import/Export)
-    Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('admin.data');
-    Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->name('admin.data.export');
-    Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('admin.data.import');
-    Route::get('/admin-panel/data/upload-mapping', function () { return redirect()->route('admin.data'); });
-    Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('admin.data.upload-mapping');
-    Route::get('/admin-panel/data/process-import', function () { return redirect()->route('admin.data'); });
-    Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('admin.data.process-import');
-    Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('admin.data.validate-import');
-    Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('admin.data.template');
+    Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('legacy.admin.data');
+    Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->name('legacy.admin.data.export');
+    Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('legacy.admin.data.import');
+    Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('admin.data'); });
+    Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('legacy.admin.data.upload-mapping');
+    Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('admin.data'); });
+    Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('legacy.admin.data.process-import');
+    Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('legacy.admin.data.validate-import');
+    Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('legacy.admin.data.template');
 
     // Backups
     Route::get('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
@@ -678,21 +1006,21 @@ Route::middleware('auth')->group(function () {
     Route::delete('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
     Route::post('/admin-panel/backups/{filename}/email', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
 
-    Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('legacy.admin.dashboard');
     // Migration / Backup Import
-    Route::get('/admin-panel/migration', [\App\Http\Controllers\MigrationController::class, 'index'])->name('admin.migration.index');
-    Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->name('admin.migration.analyze');
-    Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('admin.migration.execute');
+    Route::get('/admin-panel/migration', [\App\Http\Controllers\MigrationController::class, 'index'])->name('legacy.admin.migration.index');
+    Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->name('legacy.admin.migration.analyze');
+    Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('legacy.admin.migration.execute');
 
-    Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:users')->name('admin.users');
-    Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('admin.users.store');
-    Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->name('admin.users.update');
-    Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('admin.users.destroy');
-    Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:settings')->name('admin.settings');
-    Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('admin.settings.update');
-    Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:audit')->name('admin.logs');
-    Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:settings')->name('admin.database');
-    Route::get('/admin-panel/staff', [\App\Http\Controllers\AdminController::class, 'staffSummaries'])->middleware('permission:users')->name('admin.staff');
+    Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:users')->name('legacy.admin.users');
+    Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('legacy.admin.users.store');
+    Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->name('legacy.admin.users.update');
+    Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('legacy.admin.users.destroy');
+    Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:settings')->name('legacy.admin.settings');
+    Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
+    Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:audit')->name('legacy.admin.logs');
+    Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:settings')->name('legacy.admin.database');
+    Route::get('/admin-panel/staff', [\App\Http\Controllers\AdminController::class, 'staffSummaries'])->middleware('permission:users')->name('legacy.admin.staff');
 
     // Staff Attendance
     Route::get('/staff-attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
@@ -701,7 +1029,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/staff-attendance/reject-gap/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'rejectGap'])->name('staff-attendance.reject-gap');
 
 
-    // Loyalty Points
+
+
     Route::middleware('permission:pos')->group(function () {
         Route::get('/api/loyalty/{partyId}', [\App\Http\Controllers\GrowthEngineController::class, 'customerLoyalty'])->name('loyalty.info');
         Route::post('/api/loyalty/award', [\App\Http\Controllers\GrowthEngineController::class, 'awardPoints'])->name('loyalty.award');
@@ -727,15 +1056,19 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::post('/profile/passcode', [ProfileController::class, 'updatePasscode'])->name('profile.passcode');
+    Route::post('/profile/security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'updateSecurityPin'])->name('profile.security-pin');
+    Route::post('/profile/verify-security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifySecurityPin'])->name('profile.verify-security-pin');
     // ============================================
     // NEW FEATURES ROUTES (Returns, StockOps, etc)
     // ============================================
 
-    // Returns History
-    Route::get('/returns-history', [\App\Http\Controllers\ReturnController::class, 'index'])->name('returns-history.index');
-    Route::get('/returns/create', [\App\Http\Controllers\ReturnController::class, 'create'])->name('returns.create');
-    Route::post('/returns', [\App\Http\Controllers\ReturnController::class, 'store'])->name('returns.store');
-    Route::get('/returns-history/{id}', [\App\Http\Controllers\ReturnController::class, 'show'])->name('returns-history.show');
+    // Returns History — PROBLEM 10 FIX: Permission middleware added
+    // returns.create/store: requires 'returns' (owner, admin, manager, cashier)
+    // returns-history: requires 'returns' or 'sales_view' (accountant read-only)
+    Route::get('/returns-history', [\App\Http\Controllers\ReturnController::class, 'index'])->name('returns-history.index')->middleware('permission:returns,sales_view');
+    Route::get('/returns/create', [\App\Http\Controllers\ReturnController::class, 'create'])->name('returns.create')->middleware('permission:returns');
+    Route::post('/returns', [\App\Http\Controllers\ReturnController::class, 'store'])->name('returns.store')->middleware('permission:returns');
+    Route::get('/returns-history/{id}', [\App\Http\Controllers\ReturnController::class, 'show'])->name('returns-history.show')->middleware('permission:returns,sales_view');
 
     // Recurring Invoices
     Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');
@@ -808,11 +1141,58 @@ Route::middleware('auth')->group(function () {
     // System Reset (Admin Only)
     Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->name('system.reset');
     Route::post('/api/system/reset/{entity}', [\App\Http\Controllers\Admin\SystemResetController::class, 'deleteEntity'])->name('system.delete-entity');
+
+    // Added Category D Store Routes
+    Route::get('/finance/accounts', fn() => \abort(501, 'Implement finance.accounts'))->name('finance.accounts');
+    Route::get('/finance/journal', fn() => \abort(501, 'Implement finance.journal'))->name('finance.journal');
+    Route::get('/payments/in/create', fn() => \abort(501, 'Implement payment-in.create'))->name('payment-in.create');
+    Route::get('/payments/out/create', fn() => \abort(501, 'Implement payment-out.create'))->name('payment-out.create');
+    Route::get('/sales/pre-sales/{order}/print', fn() => \abort(501, 'Implement pre-sales.print'))->name('pre-sales.print');
+    Route::get('/debit-notes/{id}/print', fn() => \abort(501, 'Implement debit-notes.print'))->name('debit-notes.print');
+    Route::put('/debit-notes/{id}', fn() => \abort(501, 'Implement debit-notes.update'))->name('debit-notes.update');
+    Route::get('/purchases/{purchase}/print', fn() => \abort(501, 'Implement purchases.print'))->name('purchases.print');
+    Route::get('/sales/create', fn() => \abort(501, 'Implement sales.create'))->name('sales.create');
+    Route::get('/inventory/production/{run}/edit', fn() => \abort(501, 'Implement production.edit'))->name('production.edit');
+    Route::get('/reports/discount-report', fn() => \abort(501, 'Implement reports.discount-report'))->name('reports.discount-report');
+    Route::get('/reports/inventory-valuation', fn() => \abort(501, 'Implement reports.inventory-valuation'))->name('reports.inventory-valuation');
+    });
 });
 
 Route::post('/woocommerce/webhook', [\App\Http\Controllers\WooCommerceController::class, 'webhook']);
 
-Route::prefix('v3')->name('v3.')->middleware(['auth'])->group(function () {
+// ── Phase 4.3 & 4.4: Billing + Plan Usage ─────────────────────────────────
+// MIGRATED: Added to tenant specific block above to prevent 403 context loss.
+
+// Plan Usage API (read current tenant resource usage vs plan limits)
+// Used by: React Billing page, upgrade modal, near-limit warnings
+Route::middleware(['auth', 'throttle:api'])->get(
+    '/api/plan/usage',
+    [\App\Http\Controllers\Api\PlanUsageController::class, 'usage']
+)->name('api.plan.usage');
+
+
+
+// ── Phase 5.3: Platform Super-Admin Routes ─────────────────────────────────
+// These routes are for the VenQore platform operator ONLY (you).
+// Protected by 'superadmin' middleware: user->role === 'platform_admin' + no tenant_id.
+// Prefix: /superadmin (distinct from per-tenant /admin-panel)
+Route::prefix('superadmin')
+    ->name('superadmin.')
+    ->middleware(['auth', 'superadmin'])
+    ->group(function () {
+        Route::get('/dashboard', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'index'])
+            ->name('dashboard');
+        Route::get('/tenants', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'tenants'])
+            ->name('tenants');
+        Route::post('/tenants/{tenant}/suspend',    [\App\Http\Controllers\Admin\AdminDashboardController::class, 'suspend'])
+            ->name('tenants.suspend');
+        Route::post('/tenants/{tenant}/reactivate', [\App\Http\Controllers\Admin\AdminDashboardController::class, 'reactivate'])
+            ->name('tenants.reactivate');
+        Route::post('/tenants/{tenant}/upgrade',    [\App\Http\Controllers\Admin\AdminDashboardController::class, 'upgradePlan'])
+            ->name('tenants.upgrade');
+    });
+
+Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::resource('products', \App\Http\Controllers\V3\ProductController::class);
     Route::resource('warehouses', \App\Http\Controllers\V3\WarehouseController::class);
     Route::resource('purchases', \App\Http\Controllers\V3\PurchaseController::class)
@@ -905,21 +1285,21 @@ Route::prefix('v3')->name('v3.')->middleware(['auth'])->group(function () {
     Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->name('fiscal-year.close');
 
     // Reports
-    Route::get('reports/trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance']);
-    Route::get('reports/profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss']);
-    Route::get('reports/balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet']);
-    Route::get('reports/cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow']);
-    Route::get('reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables']);
-    Route::get('reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables']);
-    Route::get('reports/sales', [\App\Http\Controllers\V3\ReportController::class, 'sales']);
-    Route::get('reports/purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases']);
-    Route::get('reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation']);
-    Route::get('reports/cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs']);
-    Route::get('reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit']);
-    Route::get('reports/tax', [\App\Http\Controllers\V3\ReportController::class, 'tax']);
-    Route::get('reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger']);
-    Route::get('reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement']);
-    Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export']);
+    Route::get('reports/trial-balance', [\App\Http\Controllers\V3\ReportController::class, 'trialBalance'])->name('reports.trial-balance');
+    Route::get('reports/profit-loss', [\App\Http\Controllers\V3\ReportController::class, 'profitAndLoss'])->name('reports.profit-loss');
+    Route::get('reports/balance-sheet', [\App\Http\Controllers\V3\ReportController::class, 'balanceSheet'])->name('reports.balance-sheet');
+    Route::get('reports/cash-flow', [\App\Http\Controllers\V3\ReportController::class, 'cashFlow'])->name('reports.cash-flow');
+    Route::get('reports/aged-receivables', [\App\Http\Controllers\V3\ReportController::class, 'agedReceivables'])->name('reports.aged-receivables');
+    Route::get('reports/aged-payables', [\App\Http\Controllers\V3\ReportController::class, 'agedPayables'])->name('reports.aged-payables');
+    Route::get('reports/sales', [\App\Http\Controllers\V3\ReportController::class, 'sales'])->name('reports.sales');
+    Route::get('reports/purchases', [\App\Http\Controllers\V3\ReportController::class, 'purchases'])->name('reports.purchases');
+    Route::get('reports/inventory-valuation', [\App\Http\Controllers\V3\ReportController::class, 'inventoryValuation'])->name('reports.inventory-valuation');
+    Route::get('reports/cogs', [\App\Http\Controllers\V3\ReportController::class, 'cogs'])->name('reports.cogs');
+    Route::get('reports/gross-profit', [\App\Http\Controllers\V3\ReportController::class, 'grossProfit'])->name('reports.gross-profit');
+    Route::get('reports/tax', [\App\Http\Controllers\V3\ReportController::class, 'tax'])->name('reports.tax');
+    Route::get('reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
+    Route::get('reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('reports.inventory-movement');
+    Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->name('reports.export');
 
     // Dashboard
     Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index']);
@@ -931,10 +1311,10 @@ require __DIR__ . '/auth.php';
 Route::get('/api/app-version', function () {
     $manifestPath = public_path('build/manifest.json');
     if (file_exists($manifestPath)) {
-        return response()->json(['version' => filemtime($manifestPath)]);
+        return \response()->json(['version' => filemtime($manifestPath)]);
     }
 // Change every 5 mins in dev for testing
-    return response()->json(['version' => 'dev-' . floor(time() / 300)]);
+    return \response()->json(['version' => 'dev-' . floor(time() / 300)]);
 });
 
 if (app()->environment('local')) {
@@ -978,7 +1358,7 @@ if (app()->environment('local')) {
             }
         }
 
-        return response()->json([
+        return \response()->json([
             'message' => 'Cache rescue complete. You can now run the updater.',
             'cleared' => $cleared,
             'errors' => $errors,
@@ -990,7 +1370,7 @@ if (app()->environment('local')) {
         // 1. Fix old purchases that never generated Journal Entries
         $user = \App\Models\User::first();
         if ($user) {
-            \Illuminate\Support\Facades\Auth::login($user);
+            Auth::login($user);
         }
         
         $accounting = app(\App\Services\AccountingService::class);
@@ -1036,7 +1416,7 @@ if (app()->environment('local')) {
                 }
             }
         }
-        return response()->json(['message' => "Patched $fixedC missing purchase journal entries for older data!"]);
+        return \response()->json(['message' => "Patched $fixedC missing purchase journal entries for older data!"]);
     });
 
     Route::get('/fix-timestamps', function() {
@@ -1047,6 +1427,7 @@ if (app()->environment('local')) {
 
         $returns = \App\Models\Sale::where('status', 'returned')->get();
         foreach ($returns as $ret) {
+            /** @var \App\Models\Sale $ret */
             // UUID v7: first 48 bits (12 hex chars) = milliseconds since epoch
             $hexTimestamp = str_replace('-', '', substr($ret->id, 0, 13));
             $hexTimestamp = substr($hexTimestamp, 0, 12);
@@ -1072,7 +1453,7 @@ if (app()->environment('local')) {
             }
         }
 
-        return response()->json([
+        return \response()->json([
             'message' => "Fixed $fixed backdated return timestamps using UUID v7 real creation time.",
             'details' => $details,
         ]);
@@ -1083,7 +1464,7 @@ if (app()->environment('local')) {
         $products = \App\Models\Product::all(['id', 'name', 'stock_quantity', 'cost_price', 'price']);
         try { $stocks = \Illuminate\Support\Facades\DB::table('stocks')->get(); } catch (\Exception $e) { $stocks = 'TABLE NOT FOUND'; }
         try { $movements = \Illuminate\Support\Facades\DB::table('stock_movements')->get(); } catch (\Exception $e) { $movements = 'TABLE NOT FOUND'; }
-        return response()->json([
+        return \response()->json([
             'inventory_batches' => $batches,
             'products' => $products,
             'stocks' => $stocks,
@@ -1123,7 +1504,7 @@ if (app()->environment('local')) {
             if ($batch && (float)$batch->remaining_qty != $correctStock) {
                 \Illuminate\Support\Facades\DB::table('inventory_batches')
                     ->where('id', $batch->id)
-                    ->update(['remaining_qty' => max(0, $correctStock), 'updated_at' => now()]);
+                    ->update(['remaining_qty' => max(0, $correctStock), 'updated_at' => Carbon::now()]);
                 $details[] = [
                     'product' => $product->name,
                     'batch_was' => (float)$batch->remaining_qty,
@@ -1139,8 +1520,8 @@ if (app()->environment('local')) {
                     'original_qty' => $correctStock,
                     'remaining_qty' => $correctStock,
                     'unit_cost' => $product->cost_price ?? 0,
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
                 ]);
                 $details[] = [
                     'product' => $product->name,
@@ -1151,7 +1532,7 @@ if (app()->environment('local')) {
             }
         }
 
-        return response()->json([
+        return \response()->json([
             'message' => "Fixed $fixed product inventory batches.",
             'details' => $details,
         ]);
@@ -1219,11 +1600,17 @@ if (app()->environment('local')) {
             }
         }
 
-        return response()->json([
+        return \response()->json([
             'message' => "Fixed $fixedCount products based on movement history (source of truth).",
             'details' => $details,
         ]);
     });
 }
 
-// Updater Test Version v1.17 - Harmless comment to force file change and verify updater rollout.
+// Updater Test Version v1.18 - Routing Fix Applied.
+
+// ── FALLBACK: 404 for any URL not matched above ────────────────────────────
+// This is the last line of defense. Every URL that doesn't match a route
+// above returns a clean 404 — no redirect, no hint that anything exists.
+// This means /admin-panel, /reports, /inventory (bare) all 404 for guessers.
+Route::fallback(fn() => \abort(404));

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\HeartbeatController;
+use App\Http\Controllers\LemonSqueezyWebhookController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -14,12 +15,34 @@ use App\Http\Controllers\Api\SyncController;
 
 Route::get('/check-connection', [SyncController::class, 'checkConnection']);
 
-Route::get('/sync/users', [SyncController::class, 'users']);
-Route::get('/sync/products', [SyncController::class, 'products']);
-Route::get('/sync/customers', [SyncController::class, 'customers']);
-Route::get('/sync/suppliers', [SyncController::class, 'suppliers']);
-Route::get('/sync/inventory', [SyncController::class, 'inventory']);
-Route::get('/sync/taxes', [SyncController::class, 'taxes']);
-Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/sync/users', [SyncController::class, 'users']);
+    Route::get('/sync/products', [SyncController::class, 'products']);
+    Route::get('/sync/customers', [SyncController::class, 'customers']);
+    Route::get('/sync/suppliers', [SyncController::class, 'suppliers']);
+    Route::get('/sync/inventory', [SyncController::class, 'inventory']);
+    Route::get('/sync/taxes', [SyncController::class, 'taxes']);
+    Route::post('/sync/orders/batch', [SyncController::class, 'batchOrders']);
+});
+
+// ── Phase 2.1: Lemon Squeezy Billing Webhooks ──────────────────────────────
+// Verified via HMAC-SHA256 signature (VerifyLemonSqueezySignature middleware)
+// Excluded from CSRF — this is a server-to-server POST from Lemon Squeezy
+Route::post('/webhooks/lemon-squeezy', [LemonSqueezyWebhookController::class, 'handle'])
+    ->middleware('lemon-squeezy.signature');
+
+// ── Phase 3.1: POS Product Search API ─────────────────────────────────────
+// Replaces the Product::get() timebomb in PosController.
+// Rate-limited to 300 requests/min per tenant (config in bootstrap/app.php).
+use App\Http\Controllers\Api\PosSearchController;
+
+Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(function () {
+    Route::get('/search',           [PosSearchController::class, 'search']);
+    Route::get('/featured',         [PosSearchController::class, 'featured']);
+    Route::get('/categories',       [PosSearchController::class, 'categories']);
+    Route::get('/barcode/{code}',   [PosSearchController::class, 'findByBarcode']);
+});
+
+
 
 
