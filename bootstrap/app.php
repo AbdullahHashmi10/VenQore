@@ -13,6 +13,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->trustProxies(at: '*');
+        
         // Run our flawless custom updater lock on ALL requests first
         $middleware->append(\App\Http\Middleware\PreventAccessDuringUpdate::class);
 
