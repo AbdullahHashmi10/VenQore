@@ -181,7 +181,5 @@ class RepairInventoryBatches extends Command
         }
         $this->info('══════════════════════════════════════════════════════');
         $this->info('');
-
-        return Command::SUCCESS;
     }
 }
