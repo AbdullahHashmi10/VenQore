@@ -26,8 +26,7 @@ import {
     Search,
     Monitor,
     ShoppingCart,
-    LayoutGrid,
-    Minus
+    LayoutGrid
 } from 'lucide-react';
 import {
     PieChart,
@@ -337,7 +336,7 @@ export default function AdminDashboard({
                                 </div>
                             </div>
                             <div className="flex-1 min-h-[120px] w-full">
-                                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                     <AreaChart data={profitData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                         <defs>
                                             <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -386,7 +385,7 @@ export default function AdminDashboard({
                             <div className="flex-1 min-h-[140px] relative -mt-4">
                                 {/* Chart with z-10 to stay above icon */}
                                 <div className="absolute inset-0 z-10 text-[10px]">
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                         <PieChart>
                                             <Pie
                                                 data={pieData.length > 0 ? pieData : [{ name: 'No Data', value: 1, color: '#334155' }]}
@@ -446,7 +445,7 @@ export default function AdminDashboard({
                             <div className="flex-1 min-h-[120px] relative">
                                 {/* Chart Z-10 */}
                                 <div className="absolute inset-0 z-10 text-[10px]">
-                                    <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                         <PieChart>
                                             <Pie
                                                 data={paymentMethods.length > 0 ? paymentMethods : [{ name: 'No Data', value: 1, color: '#334155' }]}
@@ -505,7 +504,7 @@ export default function AdminDashboard({
                                 <div className="h-full w-[45%] relative">
                                     {/* Z-10 for Chart */}
                                     <div className="absolute inset-0 z-10 text-[10px]">
-                                        <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                             <PieChart>
                                                 <Pie
                                                     data={finalExpenseData}

@@ -1,11 +1,8 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { BarChart3 } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
 
 export default function ItemCategoryWiseProfitLoss({ categories }) {
-    const { store } = usePage().props;
     return (
         <ReportPage
             title="Category-wise Profit & Loss"
@@ -29,9 +26,9 @@ export default function ItemCategoryWiseProfitLoss({ categories }) {
                             return (
                                 <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{cat.name}</td>
-                                    <td className="px-6 py-4 text-right text-sm text-slate-600 dark:text-slate-400">{formatCurrency(cat.revenue)}</td>
-                                    <td className="px-6 py-4 text-right text-sm text-slate-600 dark:text-slate-400">{formatCurrency(cat.cost)}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-black text-emerald-600 dark:text-emerald-400">{formatCurrency(cat.profit)}</td>
+                                    <td className="px-6 py-4 text-right text-sm text-slate-600 dark:text-slate-400">Rs {cat.revenue.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-right text-sm text-slate-600 dark:text-slate-400">Rs {cat.cost.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-right text-sm font-black text-emerald-600 dark:text-emerald-400">Rs {cat.profit.toLocaleString()}</td>
                                     <td className="px-6 py-4 text-right">
                                         <span className={`px-2 py-1 rounded-lg text-xs font-bold ${margin > 20 ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
                                             {margin.toFixed(1)}%

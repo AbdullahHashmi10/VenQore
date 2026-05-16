@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
-import { usePage, Head, Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import {
     BookOpen,
@@ -25,7 +24,6 @@ import {
 } from 'lucide-react';
 
 export default function ChartOfAccounts({ accounts = [] }) {
-    const { store } = usePage().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [typeFilter, setTypeFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: 'code', direction: 'asc' });
@@ -83,7 +81,7 @@ export default function ChartOfAccounts({ accounts = [] }) {
         return configs[type] || { label: type, color: 'bg-slate-100 text-slate-700', icon: BookOpen };
     };
 
-
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val).replace('PKR', 'Rs');
 
     return (
         <ReportsLayout title="Chart of Accounts">

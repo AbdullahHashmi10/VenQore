@@ -31,7 +31,6 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
         currency_code: 'PKR',
         dial_code: '+92',
         country_iso: 'PK',
-        timezone: 'Asia/Karachi',
         industry_group: '',
         industry_key: '',
         logo_style: 'minimal',
@@ -41,15 +40,15 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
     });
 
     const countries = [
-        { code: 'PK', name: 'Pakistan', dial_code: '+92', currency_code: 'PKR', currency_symbol: 'Rs', flag: '🇵🇰', timezone: 'Asia/Karachi' },
-        { code: 'US', name: 'United States', dial_code: '+1', currency_code: 'USD', currency_symbol: '$', flag: '🇺🇸', timezone: 'America/New_York' },
-        { code: 'GB', name: 'United Kingdom', dial_code: '+44', currency_code: 'GBP', currency_symbol: '£', flag: '🇬🇧', timezone: 'Europe/London' },
-        { code: 'AE', name: 'UAE', dial_code: '+971', currency_code: 'AED', currency_symbol: 'AED', flag: '🇦🇪', timezone: 'Asia/Dubai' },
-        { code: 'SA', name: 'Saudi Arabia', dial_code: '+966', currency_code: 'SAR', currency_symbol: 'SAR', flag: '🇸🇦', timezone: 'Asia/Riyadh' },
-        { code: 'IN', name: 'India', dial_code: '+91', currency_code: 'INR', currency_symbol: '₹', flag: '🇮🇳', timezone: 'Asia/Kolkata' },
-        { code: 'CA', name: 'Canada', dial_code: '+1', currency_code: 'CAD', currency_symbol: '$', flag: '🇨🇦', timezone: 'America/Toronto' },
-        { code: 'AU', name: 'Australia', dial_code: '+61', currency_code: 'AUD', currency_symbol: '$', flag: '🇦🇺', timezone: 'Australia/Sydney' },
-        { code: 'DE', name: 'Germany', dial_code: '+49', currency_code: 'EUR', currency_symbol: '€', flag: '🇩🇪', timezone: 'Europe/Berlin' },
+        { code: 'PK', name: 'Pakistan', dial_code: '+92', currency_code: 'PKR', currency_symbol: 'Rs', flag: '🇵🇰' },
+        { code: 'US', name: 'United States', dial_code: '+1', currency_code: 'USD', currency_symbol: '$', flag: '🇺🇸' },
+        { code: 'GB', name: 'United Kingdom', dial_code: '+44', currency_code: 'GBP', currency_symbol: '£', flag: '🇬🇧' },
+        { code: 'AE', name: 'UAE', dial_code: '+971', currency_code: 'AED', currency_symbol: 'AED', flag: '🇦🇪' },
+        { code: 'SA', name: 'Saudi Arabia', dial_code: '+966', currency_code: 'SAR', currency_symbol: 'SAR', flag: '🇸🇦' },
+        { code: 'IN', name: 'India', dial_code: '+91', currency_code: 'INR', currency_symbol: '₹', flag: '🇮🇳' },
+        { code: 'CA', name: 'Canada', dial_code: '+1', currency_code: 'CAD', currency_symbol: '$', flag: '🇨🇦' },
+        { code: 'AU', name: 'Australia', dial_code: '+61', currency_code: 'AUD', currency_symbol: '$', flag: '🇦🇺' },
+        { code: 'DE', name: 'Germany', dial_code: '+49', currency_code: 'EUR', currency_symbol: '€', flag: '🇩🇪' },
     ];
 
     const currencies = countries.map(c => ({
@@ -185,8 +184,7 @@ export default function SetupWizard({ industries, userEmail, initialStoreName, s
                                                                 dial_code: country.dial_code,
                                                                 country_iso: country.code,
                                                                 currency_code: country.currency_code,
-                                                                currency_symbol: country.currency_symbol,
-                                                                timezone: country.timezone
+                                                                currency_symbol: country.currency_symbol
                                                             }));
                                                         }
                                                     }}

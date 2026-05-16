@@ -1,12 +1,9 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Layers } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
 import OfflineWarningBanner from '@/Components/OfflineWarningBanner';
-import { formatCurrency } from '@/Utils/format';
 
 export default function StockSummaryByCategory({ categories }) {
-    const { store } = usePage().props;
     const totalValue = categories.reduce((sum, cat) => sum + cat.value, 0);
     const totalProducts = categories.reduce((sum, cat) => sum + cat.products, 0);
 
@@ -27,7 +24,7 @@ export default function StockSummaryByCategory({ categories }) {
                     </div>
                     <div className="col-span-2 bg-indigo-600 p-4 rounded-xl shadow-lg shadow-indigo-500/20">
                         <p className="text-[10px] font-bold text-indigo-100 uppercase tracking-widest mb-1">Total Inventory Value</p>
-                        <p className="text-lg font-black text-white">{formatCurrency(totalValue)}</p>
+                        <p className="text-lg font-black text-white">Rs {totalValue.toLocaleString()}</p>
                     </div>
                 </>
             }
@@ -50,7 +47,7 @@ export default function StockSummaryByCategory({ categories }) {
                                 <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{cat.name}</td>
                                     <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">{cat.products}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-bold text-slate-800 dark:text-white">{formatCurrency(cat.value)}</td>
+                                    <td className="px-6 py-4 text-right text-sm font-bold text-slate-800 dark:text-white">Rs {cat.value.toLocaleString()}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-3">
                                             <div className="w-24 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">

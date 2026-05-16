@@ -26,7 +26,7 @@ export default function Redeem({ app_name = 'VenQore' }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('redeem.submit'));
+        post(route('appsumo.redeem'));
     };
 
     const planTiers = [

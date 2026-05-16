@@ -1,11 +1,8 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Tag } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
 
 export default function ItemWiseDiscount({ items }) {
-    const { store } = usePage().props;
     return (
         <ReportPage
             title="Item-wise Discount Report"
@@ -26,7 +23,7 @@ export default function ItemWiseDiscount({ items }) {
                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{item.product?.name || 'N/A'}</td>
                                 <td className="px-6 py-4 text-sm text-slate-500">{item.product?.sku || 'N/A'}</td>
-                                <td className="px-6 py-4 text-right text-sm font-black text-red-600 dark:text-red-400">{formatCurrency(item.total_discount)}</td>
+                                <td className="px-6 py-4 text-right text-sm font-black text-red-600 dark:text-red-400">Rs {item.total_discount.toLocaleString()}</td>
                             </tr>
                         ))}
                     </tbody>

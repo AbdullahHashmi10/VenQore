@@ -61,7 +61,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
 
                         {/* Create store */}
                         <Link
-                            href={route('store.create')}
+                            href={route('store.create', { store_slug: store.slug })}
                             className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-indigo-500/8 hover:border-indigo-500/40 p-8 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/10"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center mb-6 group-hover:bg-indigo-500/25 transition-colors">
@@ -101,7 +101,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
 
                         {/* Join store */}
                         <Link
-                            href={route('store.join')}
+                            href={route('store.join', { store_slug: store.slug })}
                             className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-emerald-500/5 hover:border-emerald-500/30 p-8 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/10"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">

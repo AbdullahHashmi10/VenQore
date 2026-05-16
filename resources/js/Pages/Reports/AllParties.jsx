@@ -1,11 +1,8 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Users } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
 
 export default function AllParties({ parties }) {
-    const { store } = usePage().props;
     return (
         <ReportPage
             title="All Parties Report"
@@ -40,7 +37,7 @@ export default function AllParties({ parties }) {
                                 <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{party.phone || 'N/A'}</td>
                                 <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{party.email || 'N/A'}</td>
                                 <td className="px-6 py-4 text-sm font-bold text-slate-800 dark:text-white">
-                                    {formatCurrency(party.balance || 0, store)}
+                                    Rs {parseFloat(party.balance || 0).toLocaleString()}
                                 </td>
                             </tr>
                         ))}

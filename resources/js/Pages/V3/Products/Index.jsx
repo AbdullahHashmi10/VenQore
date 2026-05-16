@@ -1,5 +1,4 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
 
 export default function ProductIndex({ products }) {
     const { store } = usePage().props;
@@ -41,7 +40,7 @@ export default function ProductIndex({ products }) {
                             <td className="border border-gray-200 px-4 py-2">{product.name}</td>
                             <td className="border border-gray-200 px-4 py-2">{product.base_unit}</td>
                             <td className="border border-gray-200 px-4 py-2 text-right">
-                                {formatCurrency(product.sale_price, store)}
+                                {window.amdSettings?.currency_symbol || ''} {product.sale_price.toLocaleString()}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-right">
                                 {product.tax_rate}%

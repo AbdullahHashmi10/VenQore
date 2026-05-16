@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { Head, router, Link, usePage } from '@inertiajs/react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import ProductModal from '@/Components/ProductModal';
@@ -13,7 +12,7 @@ import {
     Edit,
     Trash2,
     Package,
-    AlertTriangle as AlertTriangleIcon,
+    AlertTriangle,
     DollarSign,
     Box,
     Upload,
@@ -311,7 +310,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangleIcon size={16} />
+                                <AlertTriangle size={16} />
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Low Stock</p>
                         </div>
@@ -325,7 +324,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Inventory Value</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.inventory_value || 0, store)}</p>
+                        <p className="text-base font-black text-emerald-600">Rs {Number(stats?.inventory_value || 0).toLocaleString('en-PK')}</p>
                     </div>
                 </div>
 
@@ -492,9 +491,9 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                                 </div>
                                                             );
                                                         case 'cost_price':
-                                                            return formatCurrency(row.cost_price || 0, store);
+                                                            return String(Number(row.cost_price || 0).toLocaleString());
                                                         case 'price':
-                                                            return <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>;
+                                                            return <span className="font-bold"> {Number(row.price).toLocaleString()}</span>;
                                                         case 'status':
                                                             return (
                                                                 <span className={`

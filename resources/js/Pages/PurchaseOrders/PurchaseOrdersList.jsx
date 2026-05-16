@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
@@ -25,7 +24,6 @@ import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import axios from 'axios';
 
 export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
-    const { store } = usePage().props;
     // Infinite Scroll State
     const [allOrders, setAllOrders] = useState(orders.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(orders.next_page_url);
@@ -177,6 +175,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
     };
 
     // Formatters
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val || 0);
     const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
     // Calculate stats from data (use server stats if possible, or local)
@@ -229,7 +228,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Value</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(totalValue, store)}</p>
+                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(totalValue)}</p>
                     </div>
                 </div>
 
@@ -348,7 +347,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                             <span className="font-bold">{row.items?.length || 0}</span>
                                         </td>
                                         <td className="p-4 text-sm">
-                                            <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(row.total_amount, store)}</span>
+                                            <span className="font-bold text-slate-900 dark:text-white">{formatCurrency(row.total_amount)}</span>
                                         </td>
                                         <td className="p-4 text-sm">
                                             {(() => {
@@ -454,7 +453,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                 </div>
                                 <div className="bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 p-3 rounded-xl border border-purple-200 dark:border-purple-800">
                                     <p className="text-[10px] font-bold text-purple-600 uppercase mb-1">Total</p>
-                                    <p className="font-black text-purple-600 text-lg">{formatCurrency(quickViewItem.total_amount, store)}</p>
+                                    <p className="font-black text-purple-600 text-lg">{formatCurrency(quickViewItem.total_amount)}</p>
                                 </div>
                             </div>
 
@@ -485,9 +484,9 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                                             <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                         </td>
                                                         <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
+                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0)}</td>
                                                         <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                            {formatCurrency(item.quantity * (item.price || item.unit_price || 0), store)}
+                                                            {formatCurrency(item.quantity * (item.price || item.unit_price || 0))}
                                                         </td>
                                                     </tr>
                                                 ))
@@ -506,7 +505,7 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                                     <div className="flex justify-end">
                                         <div className="text-right">
                                             <p className="text-[10px] text-purple-600 uppercase font-bold">Grand Total</p>
-                                            <p className="font-black text-lg text-purple-600">{formatCurrency(quickViewItem.total_amount, store)}</p>
+                                            <p className="font-black text-lg text-purple-600">{formatCurrency(quickViewItem.total_amount)}</p>
                                         </div>
                                     </div>
                                 </div>

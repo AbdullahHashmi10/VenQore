@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { usePage } from '@inertiajs/react';
 import {
     Search, Plus, Check, Edit2, Package, User, Loader2, ArrowUp, ArrowDown,
     Star, AlertTriangle, TrendingUp, Clock, ShoppingBag, Truck, CreditCard,
@@ -32,7 +31,6 @@ const SmartCombobox = ({
     disableLocalFiltering = false,
     hideCostAndMargin = false
 }) => {
-    const { store, settings } = usePage().props;
     const [isOpen, setIsOpen] = useState(false);
     const [internalQuery, setInternalQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -250,7 +248,7 @@ const SmartCombobox = ({
         return (
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold border ${colorClass}`}>
                 {icon}
-                {label}: {formatCurrency(Math.abs(balance), store || settings)}
+                {label}: {formatCurrency(Math.abs(balance))}
             </span>
         );
     };
@@ -327,7 +325,7 @@ const SmartCombobox = ({
 
         return (
             <span className="text-[10px] text-slate-400">
-                Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
+                Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin)}</span>
                 <span className="text-slate-300 ml-1">({marginPercent}%)</span>
             </span>
         );
@@ -523,7 +521,7 @@ const SmartCombobox = ({
                                             )}
                                             {item.price !== undefined && (
                                                 <span className="font-black text-lg text-emerald-600 dark:text-emerald-400 ml-auto shrink-0">
-                                                    {formatCurrency(item.price, store || settings)}
+                                                    {formatCurrency(item.price)}
                                                 </span>
                                             )}
                                         </div>
@@ -580,7 +578,7 @@ const SmartCombobox = ({
                                             <div className="flex items-center gap-3">
                                                 {item.cost !== undefined && (
                                                     <span className="text-[11px] text-slate-400">
-                                                        Cost: <span className="text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(item.cost, store || settings)}</span>
+                                                        Cost: <span className="text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(item.cost)}</span>
                                                     </span>
                                                 )}
                                                 {getProfitMargin(item)}

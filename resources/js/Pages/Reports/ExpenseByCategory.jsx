@@ -1,11 +1,8 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { PieChart } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
 
 export default function ExpenseByCategory({ expenses }) {
-    const { store } = usePage().props;
     const total = expenses.reduce((sum, exp) => sum + exp.total, 0);
 
     return (
@@ -25,7 +22,7 @@ export default function ExpenseByCategory({ expenses }) {
                                     <div key={idx} className="space-y-1">
                                         <div className="flex justify-between text-sm">
                                             <span className="font-bold text-slate-800 dark:text-white">{exp.category || 'Uncategorized'}</span>
-                                            <span className="text-slate-500">{formatCurrency(exp.total, store)} ({percentage.toFixed(1)}%)</span>
+                                            <span className="text-slate-500">Rs {exp.total.toLocaleString()} ({percentage.toFixed(1)}%)</span>
                                         </div>
                                         <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                                             <div
@@ -44,7 +41,7 @@ export default function ExpenseByCategory({ expenses }) {
                             <PieChart size={40} />
                         </div>
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Expenses</p>
-                        <p className="text-4xl font-black text-slate-900 dark:text-white">{formatCurrency(total, store)}</p>
+                        <p className="text-4xl font-black text-slate-900 dark:text-white">Rs {total.toLocaleString()}</p>
                     </div>
                 </div>
             </div>

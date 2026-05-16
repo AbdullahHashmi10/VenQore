@@ -10,23 +10,10 @@ import { useGlobalShortcuts } from '@/Hooks/useGlobalShortcuts';
 import KeyboardShortcutsModal from '@/Components/KeyboardShortcutsModal';
 
 import { usePage } from '@inertiajs/react';
-import { ThemeProvider } from '@/Contexts/ThemeContext';
 
 export default function GlobalProviderLayout({ children }) {
     const { props } = usePage();
     const settings = props.settings || {};
-    
-    return (
-        <ThemeProvider>
-            <InnerGlobalLayout settings={settings}>
-                {children}
-            </InnerGlobalLayout>
-        </ThemeProvider>
-    );
-}
-
-function InnerGlobalLayout({ children, settings }) {
-    const { props } = usePage();
     const [showExitModal, setShowExitModal] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
     // const [settings, setSettings] = useState({ admin_passcode: '123456' }); // Removed hardcoded

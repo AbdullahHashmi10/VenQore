@@ -8,7 +8,6 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
 
 export default function SaleOrderItems({ items = [], filters = {} }) {
     const {
@@ -147,6 +146,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
         }, { preserveState: true, preserveScroll: true });
     };
 
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     return (
         <ReportsLayout title="Order Items Report">
@@ -242,13 +242,13 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                     />
                     <StatCard
                         title="Total Revenue"
-                        value={formatCurrency(stats.totalRevenue, store)}
+                        value={formatCurrency(stats.totalRevenue)}
                         icon={<DollarSign size={18} />}
                         color="emerald"
                     />
                     <StatCard
                         title="Avg Unit Price"
-                        value={formatCurrency(stats.avgPrice, store)}
+                        value={formatCurrency(stats.avgPrice)}
                         icon={<Tag size={18} />}
                         color="blue"
                     />
@@ -314,10 +314,10 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                                     {item.quantity}
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-xs text-slate-500 font-mono">
-                                                    {formatCurrency(item.price, store)}
+                                                    {formatCurrency(item.price)}
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-sm font-bold text-slate-700 dark:text-slate-300 font-mono">
-                                                    {formatCurrency(item.quantity * item.price, store)}
+                                                    {formatCurrency(item.quantity * item.price)}
                                                 </td>
                                             </tr>
                                         )
@@ -377,7 +377,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                             <RechartsTooltip
                                                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                                                 itemStyle={{ color: '#fff' }}
-                                                formatter={(val) => formatCurrency(val, store)}
+                                                formatter={(val) => formatCurrency(val)}
                                             />
                                             <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '11px', paddingTop: '4px' }} />
                                         </PieChart>

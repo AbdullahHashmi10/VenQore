@@ -1,5 +1,4 @@
-﻿import React from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Printer, ArrowLeft, Mail, Phone, MapPin, ArrowLeftRight, ShoppingCart, FileText, Edit } from 'lucide-react';
@@ -196,8 +195,8 @@ export default function ProposalShow({ proposal }) {
                                                     <p className="font-bold text-slate-800 dark:text-white">{item.product?.name || item.product_name || 'Unknown Item'}</p>
                                                 </td>
                                                 <td className="py-4 text-center text-slate-600 dark:text-slate-300">{item.quantity}</td>
-                                                <td className="py-4 text-right text-slate-600 dark:text-slate-300">{getCurrencySymbol()} {parseFloat(item.unit_price || 0).toLocaleString()}</td>
-                                                <td className="py-4 text-right font-medium text-slate-800 dark:text-white">{getCurrencySymbol()} {parseFloat(item.total || 0).toLocaleString()}</td>
+                                                <td className="py-4 text-right text-slate-600 dark:text-slate-300">Rs {parseFloat(item.unit_price || 0).toLocaleString()}</td>
+                                                <td className="py-4 text-right font-medium text-slate-800 dark:text-white">Rs {parseFloat(item.total || 0).toLocaleString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -210,12 +209,12 @@ export default function ProposalShow({ proposal }) {
                                     <div className="h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
                                     <div className="flex justify-between text-xl font-bold text-indigo-600 dark:text-indigo-400">
                                         <span>Total</span>
-                                        <span>{getCurrencySymbol()} {parseFloat(proposal.total_amount || 0).toLocaleString()}</span>
+                                        <span>Rs {parseFloat(proposal.total_amount || 0).toLocaleString()}</span>
                                     </div>
                                     {proposal.expected_margin > 0 && (
                                         <div className="flex justify-between text-sm text-slate-500">
                                             <span>Expected Margin</span>
-                                            <span className="font-medium text-emerald-600">{getCurrencySymbol()} {parseFloat(proposal.expected_margin || 0).toLocaleString()}</span>
+                                            <span className="font-medium text-emerald-600">Rs {parseFloat(proposal.expected_margin || 0).toLocaleString()}</span>
                                         </div>
                                     )}
                                 </div>

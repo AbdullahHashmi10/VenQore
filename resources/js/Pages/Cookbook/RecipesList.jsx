@@ -1,5 +1,4 @@
-﻿import React, { useState } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -10,7 +9,7 @@ import Modal from '@/Components/Modal';
 import { BookOpen, Plus, ChefHat, Edit, Trash2, DollarSign, Clock, Package, Flame, Users, PlayCircle, CheckCircle, XCircle, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 
-export default function CookbookIndex({ recipes = [], store }) {
+export default function CookbookIndex({ recipes = [] }) {
     const [simulatorOpen, setSimulatorOpen] = useState(false);
     const [selectedRecipe, setSelectedRecipe] = useState(null);
     const [simQty, setSimQty] = useState(1);
@@ -133,7 +132,7 @@ export default function CookbookIndex({ recipes = [], store }) {
                                                 <DollarSign size={16} className="mx-auto text-emerald-500 mb-1" />
                                                 <p className="text-xs text-slate-500">COGM</p>
                                                 <p className="font-bold text-emerald-600 dark:text-emerald-400">
-                                                    {getCurrencySymbol()} {parseFloat(recipe.total_cost || 0).toLocaleString()}
+                                                    Rs {parseFloat(recipe.total_cost || 0).toLocaleString()}
                                                 </p>
                                             </div>
                                             <div className="text-center p-2 bg-slate-50 dark:bg-slate-800 rounded-xl">
@@ -149,13 +148,13 @@ export default function CookbookIndex({ recipes = [], store }) {
                                                 {recipe.labor_cost > 0 && (
                                                     <span className="flex items-center gap-1 px-2 py-1 bg-purple-50 dark:bg-purple-900/20 text-purple-600 rounded-lg">
                                                         <Users size={12} />
-                                                        Labor: {getCurrencySymbol()} {parseFloat(recipe.labor_cost).toLocaleString()}
+                                                        Labor: Rs {parseFloat(recipe.labor_cost).toLocaleString()}
                                                     </span>
                                                 )}
                                                 {recipe.overhead_cost > 0 && (
                                                     <span className="flex items-center gap-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-600 rounded-lg">
                                                         <Flame size={12} />
-                                                        Overhead: {getCurrencySymbol()} {parseFloat(recipe.overhead_cost).toLocaleString()}
+                                                        Overhead: Rs {parseFloat(recipe.overhead_cost).toLocaleString()}
                                                     </span>
                                                 )}
                                             </div>

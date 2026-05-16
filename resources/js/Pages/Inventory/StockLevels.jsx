@@ -1,9 +1,8 @@
 import React, { useState, useMemo } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
-import { usePage, Head, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
-import { Package, Warehouse, AlertTriangle as AlertTriangleIcon, TrendingUp, TrendingDown, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
+import { Package, Warehouse, AlertTriangle, TrendingUp, TrendingDown, Search, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 
 export default function StockLevels({ products = [], warehouses = [], stats = {} }) {
@@ -13,9 +12,13 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
     const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'asc' });
 
     // Format currency
-    const { props } = usePage();
-    const store = props.store || {};
-
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-PK', {
+            style: 'currency',
+            currency: 'PKR',
+            minimumFractionDigits: 0
+        }).format(value || 0);
+    };
 
     // Filter and search products
     const filteredProducts = useMemo(() => {
@@ -117,12 +120,12 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Stock Value</p>
                         </div>
-                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.total_value, store)}</p>
+                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.total_value)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangleIcon size={16} />
+                                <AlertTriangle size={16} />
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Low Stock</p>
                         </div>
@@ -304,8 +307,8 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                                         }`}>
                                                         {row.total_stock || 0}
                                                     </span>
-                                                    {isLow && <AlertTriangleIcon size={14} className="text-amber-500" />}
-                                                    {isOut && <AlertTriangleIcon size={14} className="text-red-500" />}
+                                                    {isLow && <AlertTriangle size={14} className="text-amber-500" />}
+                                                    {isOut && <AlertTriangle size={14} className="text-red-500" />}
                                                 </div>
                                             </td>
                                             <td className="p-3">
@@ -326,7 +329,7 @@ export default function StockLevels({ products = [], warehouses = [], stats = {}
                                             </td>
                                             <td className="p-3">
                                                 <span className="font-semibold text-sm text-emerald-600">
-                                                    {formatCurrency((row.total_stock || 0) * (row.cost_price || 0), store)}
+                                                    {formatCurrency((row.total_stock || 0) * (row.cost_price || 0))}
                                                 </span>
                                             </td>
                                         </tr>

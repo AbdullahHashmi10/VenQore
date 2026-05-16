@@ -81,15 +81,8 @@ export default function UpgradeModal() {
         ],
     };
 
-    const upgradeTo = (currentPlan === 'starter' || currentPlan === 'ltd_1') ? 'growth'
-                     : (currentPlan === 'growth'  || currentPlan === 'ltd_2') ? 'business'
-                     : 'business';
+    const upgradeTo = currentPlan === 'starter' ? 'growth' : 'business';
     const upgradePerks = planPerks[upgradeTo] || planPerks.growth;
-
-    // LTD-specific logic: show AppSumo stacking CTA instead of subscription CTA
-    const isLtd       = currentPlan?.startsWith('ltd_');
-    const ltdTier     = isLtd ? parseInt(currentPlan.replace('ltd_', '')) : 0;
-    const canStackMore = isLtd && ltdTier < 3;
 
     const featureLabels = {
         sku_limit:     { icon: '📦', label: 'Product Limit' },
@@ -174,47 +167,20 @@ export default function UpgradeModal() {
 
                     {/* ── CTA Buttons ── */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {/* Primary: Upgrade CTA — LTD-aware */}
-                        {isLtd ? (
-                            canStackMore ? (
-                                // LTD user who can still stack more codes
-                                <a
-                                    href="https://appsumo.com/products/venqore"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-900/20 hover:shadow-amber-900/40"
-                                >
-                                    <Sparkles size={16} />
-                                    Stack Another AppSumo Code
-                                    <ArrowRight size={14} />
-                                </a>
-                            ) : (
-                                // LTD user at max tier (ltd_3) — must move to subscription
-                                <a
-                                    href={upgradeUrl}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 transition-all shadow-lg shadow-indigo-900/30"
-                                >
-                                    <Sparkles size={16} />
-                                    Upgrade to Subscription
-                                    <ArrowRight size={14} />
-                                </a>
-                            )
-                        ) : (
-                            // Regular subscription user
-                            <a
-                                href={upgradeUrl}
-                                className={`
-                                    flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all shadow-lg
-                                    ${upgradeTo === 'business'
-                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-amber-900/20 hover:shadow-amber-900/40'
-                                        : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-indigo-900/30 hover:shadow-indigo-900/50'}
-                                `}
-                            >
-                                <Sparkles size={16} />
-                                Upgrade to {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
-                                <ArrowRight size={14} />
-                            </a>
-                        )}
+                        {/* Primary: Upgrade */}
+                        <a
+                            href={upgradeUrl}
+                            className={`
+                                flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all shadow-lg
+                                ${upgradeTo === 'business'
+                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-amber-900/20 hover:shadow-amber-900/40'
+                                    : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-indigo-900/30 hover:shadow-indigo-900/50'}
+                            `}
+                        >
+                            <Sparkles size={16} />
+                            Upgrade to {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
+                            <ArrowRight size={14} />
+                        </a>
 
                         {/* Secondary: View Billing */}
                         <a

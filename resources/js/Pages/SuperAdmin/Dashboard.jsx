@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useContext, createContext } from 'react';
 import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
-import { formatCurrency as globalFormatCurrency } from '@/Utils/format';
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -13,25 +12,12 @@ import {
     MoreVertical, Eye, Pause, Play, ChevronDown, Package,
     Newspaper, BarChart2, Ticket, Rss, UserCog, Sparkles,
     CalendarClock, Star, AlertCircle, Info, Lock, KeyRound, EyeOff,
-    ShieldCheck, Hash, Menu, Trash2, RotateCcw,
-    MoreHorizontal, Layers, Database
+    ShieldCheck, Hash, Menu, Trash2, RotateCcw
 } from 'lucide-react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { useTheme as useGlobalTheme } from '@/Contexts/ThemeContext';
 
-// ─── Constants & Utils ───────────────────────────────────────────────────
-
-const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 2,
-    }).format(val || 0);
-};
-
-// ─── Dashboard-Specific Design Tokens Context ────────────────────────────
-const DashboardThemeCtx = createContext({});
-const useDashboardTheme = () => useContext(DashboardThemeCtx);
+// ─── Theme Context (consumed by all sub-components) ────────────────────────
+const ThemeCtx = createContext({});
+const useTheme = () => useContext(ThemeCtx);
 
 // ─────────────────────────────────────────────────────────────────────────
 // Constants
@@ -89,56 +75,39 @@ function Pill({ children, color = '#6366f1', icon: Icon }) {
 }
 
 function KpiCard({ label, value, sub, Icon, color, trend, onClick }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     return (
         <div
             onClick={onClick}
-            style={{ 
+            style={{
                 background: T.bgCard,
-                borderRadius: 24,
-                padding: '24px',
                 border: `1px solid ${T.border}`,
-                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                height: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                backdropFilter: 'blur(12px)',
+                borderRadius: 16,
+                padding: '20px 24px',
+                cursor: onClick ? 'pointer' : 'default',
                 position: 'relative',
                 overflow: 'hidden',
-                cursor: onClick ? 'pointer' : 'default',
+                transition: 'border-color 0.2s, transform 0.2s, box-shadow 0.2s',
+                boxShadow: T.isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.06)',
             }}
-            onMouseEnter={e => { 
-                e.currentTarget.style.borderColor = color + '35'; 
-                e.currentTarget.style.transform = 'translateY(-4px)';
-                e.currentTarget.style.boxShadow = `0 12px 40px ${color}10`;
-            }}
-            onMouseLeave={e => { 
-                e.currentTarget.style.borderColor = T.border; 
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = 'none';
-            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = color + '50'; e.currentTarget.style.boxShadow = T.isDark ? 'none' : `0 4px 16px ${color}18`; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.boxShadow = T.isDark ? 'none' : '0 1px 4px rgba(0,0,0,0.06)'; }}
         >
-            <div style={{ position: 'absolute', top: -40, right: -40, width: 140, height: 140, background: `radial-gradient(circle, ${color}18 0%, transparent 70%)`, filter: 'blur(30px)', zIndex: 0 }} />
-            
-            <div style={{ position: 'relative', zIndex: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: 14, background: color + '15', border: `1px solid ${color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon size={20} color={color} />
+            <div style={{ position: 'absolute', top: -30, right: -30, width: 100, height: 100, background: color + '14', borderRadius: '50%', filter: 'blur(20px)' }} />
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12, position: 'relative' }}>
+                <div style={{ width: 40, height: 40, borderRadius: 12, background: color + '15', border: `1px solid ${color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Icon size={18} color={color} />
+                </div>
+                {trend != null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: trend >= 0 ? '#10b981' : '#ef4444', fontSize: 12, fontWeight: 600 }}>
+                        {trend >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
                     </div>
-                    {trend != null && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: trend >= 0 ? '#10b981' : '#ef4444', fontSize: 13, fontWeight: 800, background: (trend >= 0 ? '#10b981' : '#ef4444') + '15', padding: '4px 8px', borderRadius: 8 }}>
-                            {trend >= 0 ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-                            {Math.abs(trend)}%
-                        </div>
-                    )}
-                </div>
-                
-                <div>
-                    <div style={{ fontSize: 32, fontWeight: 900, color: T.text, lineHeight: 1, letterSpacing: '-0.03em' }}>{value}</div>
-                    <div style={{ fontSize: 12, color: T.textMuted, marginTop: 8, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
-                    {sub && <div style={{ fontSize: 11, color: T.textSub, marginTop: 6, fontWeight: 500 }}>{sub}</div>}
-                </div>
+                )}
+            </div>
+            <div style={{ position: 'relative' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: T.text, lineHeight: 1 }}>{value}</div>
+                <div style={{ fontSize: 12, color: T.textSub, marginTop: 4, fontWeight: 500 }}>{label}</div>
+                {sub && <div style={{ fontSize: 11, color: T.textMuted, marginTop: 6 }}>{sub}</div>}
             </div>
         </div>
     );
@@ -146,7 +115,7 @@ function KpiCard({ label, value, sub, Icon, color, trend, onClick }) {
 
 function StoreRow({ store, onSuspend, onActivate, onExtend, onImpersonate }) {
     const [open, setOpen] = useState(false);
-    const T = useDashboardTheme();
+    const T = useTheme();
     const status = STATUS_CONFIG[store.status] || STATUS_CONFIG.trial;
     const plan   = PLAN_CONFIG[store.plan]    || PLAN_CONFIG.trial;
     const StatusIcon = status.Icon;
@@ -156,14 +125,14 @@ function StoreRow({ store, onSuspend, onActivate, onExtend, onImpersonate }) {
             onMouseEnter={e => e.currentTarget.style.background = T.bgCardHover}
             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
         >
-            <td style={{ padding: '16px 20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-                    <div style={{ width: 40, height: 40, borderRadius: 12, background: plan.color + '15', border: `1px solid ${plan.color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+            <td style={{ padding: '14px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: plan.color + '18', border: `1px solid ${plan.color}28`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 }}>
                         {plan.emoji}
                     </div>
                     <div>
-                        <div style={{ fontWeight: 700, color: '#f8fafc', fontSize: 14, letterSpacing: '-0.01em' }}>{store.name}</div>
-                        <div style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>{store.slug}</div>
+                        <div style={{ fontWeight: 600, color: '#f1f5f9', fontSize: 13 }}>{store.name}</div>
+                        <div style={{ fontSize: 11, color: '#64748b' }}>{store.slug}</div>
                     </div>
                 </div>
             </td>
@@ -215,7 +184,7 @@ function StoreRow({ store, onSuspend, onActivate, onExtend, onImpersonate }) {
 }
 
 function StoreCard({ store, onSuspend, onActivate, onExtend, onImpersonate }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const [open, setOpen] = useState(false);
     const status = STATUS_CONFIG[store.status] || STATUS_CONFIG.trial;
     const plan   = PLAN_CONFIG[store.plan]    || PLAN_CONFIG.trial;
@@ -295,136 +264,72 @@ function StoreCard({ store, onSuspend, onActivate, onExtend, onImpersonate }) {
 // ─────────────────────────────────────────────────────────────────────────
 
 function OverviewTab({ stats, store_trend, plan_distribution, recent_stores, expiring_stores }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const totalPct = stats.total_stores > 0;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
-            {/* Consolidated Command Grid */}
+            {/* KPI Row */}
             <div className="hq-grid-4">
-                {/* 1. Store & Subscription Health */}
-                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Store Health</p>
-                            <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.total_stores}</h3>
-                        </div>
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1' }}>
-                            <Building2 size={20} />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                        <div>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase' }}>Active</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.active_stores}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: '#f59e0b', textTransform: 'uppercase' }}>Susp.</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.suspended_stores}</p>
-                        </div>
-                        <div>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Churn</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.churned_stores}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. Trial Pipeline */}
-                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Trial Pipeline</p>
-                            <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.trial_stores}</h3>
-                        </div>
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6' }}>
-                            <Clock size={20} />
-                        </div>
-                    </div>
-                    <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                        <p style={{ fontSize: 12, fontWeight: 600, color: T.textSub }}>
-                            <span style={{ color: '#10b981' }}>{stats.conversion_rate}% Conv.</span> · {stats.expiring_soon} ending soon
-                        </p>
-                    </div>
-                </div>
-
-                {/* 3. Users & Recovery */}
-                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Accounts</p>
-                            <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.total_users}</h3>
-                        </div>
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(14,165,233,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0ea5e9' }}>
-                            <Users size={20} />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                        <div style={{ cursor: 'pointer' }} onClick={() => router.get(window.route('platform.stores'), { trashed: true })}>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase' }}>Trash Stores</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: '#ef4444' }}>{stats.total_deleted_stores}</p>
-                        </div>
-                        <div style={{ cursor: 'pointer' }} onClick={() => router.get(window.route('platform.users'), { trashed: true })}>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase' }}>Trash Users</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: '#ef4444' }}>{stats.deleted_users}</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 4. Action Center */}
-                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                        <div>
-                            <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Action Center</p>
-                            <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{ (stats.open_errors + stats.new_contacts) || 0 }</h3>
-                        </div>
-                        <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(239,68,68,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
-                            <Bell size={20} className={ (stats.open_errors + stats.new_contacts) > 0 ? 'animate-pulse' : ''} />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                        <div style={{ cursor: 'pointer' }} onClick={() => router.visit(window.route('platform.health.errors'))}>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Sys Errors</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.open_errors || 0}</p>
-                        </div>
-                        <div style={{ cursor: 'pointer' }} onClick={() => router.visit(window.route('platform.health.contacts'))}>
-                            <p style={{ fontSize: 10, fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase' }}>Messages</p>
-                            <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.new_contacts || 0}</p>
-                        </div>
-                    </div>
-                </div>
+                <KpiCard label="Monthly Recurring Revenue" value={`$${stats.mrr.toLocaleString()}`} sub={`$${(stats.arr || 0).toLocaleString()} ARR projected`} Icon={DollarSign} color="#10b981" trend={1} />
+                <KpiCard label="Total Stores" value={stats.total_stores} sub={`+${stats.new_today} today · +${stats.new_this_month} this month`} Icon={Building2} color="#6366f1" trend={1} />
+                <KpiCard label="Active Trials" value={stats.trial_stores} sub={`Conversion rate: ${stats.conversion_rate}%`} Icon={Clock} color="#8b5cf6" trend={stats.conversion_rate > 20 ? 1 : -1} />
+                <KpiCard label="Expiring Soon" value={stats.expiring_soon} sub="Trials ending in 7 days" Icon={AlertTriangle} color="#ef4444" trend={-1} />
             </div>
 
-            {/* Plan Distribution & Secondary Insights */}
-            <div className="hq-grid-chart" style={{ gridTemplateColumns: '1fr' }}>
-                {/* Plan Distribution (Now Full Width and Elegant) */}
-                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+            {/* Second KPI Row */}
+            <div className="hq-grid-4">
+                <KpiCard label="Active Paid" value={stats.active_stores} sub="Paying subscribers" Icon={CheckCircle2} color="#10b981" />
+                <KpiCard label="Suspended" value={stats.suspended_stores} sub={`${stats.cancelled_last_30} cancelled last 30d`} Icon={Pause} color="#f59e0b" />
+                <KpiCard label="Total Users" value={stats.total_users} sub={`${stats.store_users} store users`} Icon={Users} color="#0ea5e9" />
+                <KpiCard label="Trash (Stores)" value={stats.total_deleted_stores} sub="Deleted stores available to restore" Icon={Trash2} color="#ef4444" onClick={() => router.get(route('admin.stores'), { trashed: true })} />
+            </div>
+
+            <div className="hq-grid-4">
+                 <KpiCard label="Trash (Users)" value={stats.deleted_users} sub="Deleted users available to restore" Icon={Trash2} color="#f87171" onClick={() => router.get(route('store.admin.users', { store_slug: store.slug }), { trashed: true })} />
+                 <KpiCard label="Churned" value={stats.churned_stores} sub="Cancelled all-time" Icon={Ban} color="#ef4444" />
+                 <div style={{ gridColumn: 'span 2' }}></div>
+            </div>
+
+            {/* Charts Row */}
+            <div className="hq-grid-chart">
+                {/* Store Growth Chart */}
+                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
                         <div>
-                            <div style={{ fontWeight: 800, color: '#f1f5f9', fontSize: 16 }}>Platform Plan Distribution</div>
-                            <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>Breakdown of stores across subscription tiers</div>
+                            <div style={{ fontWeight: 700, color: '#f1f5f9', fontSize: 15 }}>Store Growth</div>
+                            <div style={{ color: '#64748b', fontSize: 12, marginTop: 2 }}>New registrations per month</div>
                         </div>
-                        <div style={{ display: 'flex', gap: 24 }}>
-                            {[
-                                { label: 'Active', value: stats.active_stores, color: '#10b981' },
-                                { label: 'Trial',  value: stats.trial_stores,  color: '#6366f1' },
-                                { label: 'Susp.',  value: stats.suspended_stores, color: '#f59e0b' },
-                                { label: 'Churned', value: stats.churned_stores, color: '#ef4444' },
-                            ].map(m => (
-                                <div key={m.label} style={{ textAlign: 'right' }}>
-                                    <div style={{ fontSize: 18, fontWeight: 900, color: m.color }}>{m.value}</div>
-                                    <div style={{ fontSize: 10, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{m.label}</div>
-                                </div>
-                            ))}
-                        </div>
+                        <span style={{ fontSize: 22, fontWeight: 800, color: '#6366f1' }}>+{stats.new_this_month}</span>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+                    <ResponsiveContainer width="100%" height={160}>
+                        <AreaChart data={store_trend} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                            <defs>
+                                <linearGradient id="storeGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                            <XAxis dataKey="month" tick={{ fill: '#64748b', fontSize: 10 }} axisLine={false} tickLine={false} padding={{ left: 10, right: 10 }} />
+                            <YAxis width={30} tick={{ fill: '#64748b', fontSize: 10 }} axisLine={true} tickLine={false} allowDecimals={false} stroke="rgba(255,255,255,0.2)" />
+                            <Tooltip contentStyle={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f1f5f9', fontSize: 12 }} />
+                            <Area type="monotone" dataKey="stores" stroke="#6366f1" fill="url(#storeGrad)" strokeWidth={2} dot={false} />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </div>
+
+                {/* Plan Distribution */}
+                <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 16, padding: 20 }}>
+                    <div style={{ fontWeight: 700, color: '#f1f5f9', fontSize: 15, marginBottom: 20 }}>Plan Distribution</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                         {plan_distribution.map(p => {
                             const cfg = PLAN_CONFIG[p.plan] || PLAN_CONFIG.trial;
                             const pct = stats.total_stores > 0 ? Math.round((p.count / stats.total_stores) * 100) : 0;
                             return (
-                                <div key={p.plan} style={{ background: 'rgba(255,255,255,0.02)', padding: '16px', borderRadius: 16, border: '1px solid rgba(255,255,255,0.05)' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-                                        <span style={{ fontSize: 13, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700 }}>
+                                <div key={p.plan}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                                        <span style={{ fontSize: 13, color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: 6, fontWeight: 600 }}>
                                             <span>{cfg.emoji}</span>{cfg.label}
                                         </span>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -439,99 +344,18 @@ function OverviewTab({ stats, store_trend, plan_distribution, recent_stores, exp
                             );
                         })}
                     </div>
-                </div>
-            </div>
-
-            {/* Monetization Engine Quick Links */}
-            <div>
-                <h3 style={{ fontSize: 16, fontWeight: 800, color: '#f1f5f9', marginBottom: 16 }}>Monetization Engine</h3>
-                <div className="hq-grid-4">
-                    <div onClick={() => router.visit(window.route('platform.plans.index'))} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#6366f1'; e.currentTarget.style.transform = 'translateY(-2px)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = 'none' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Plans & Limits</p>
-                                <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.monetization?.total_plans || 0}</h3>
+                    <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.07)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        {[
+                            { label: 'Active', value: stats.active_stores, color: '#10b981' },
+                            { label: 'Trial',  value: stats.trial_stores,  color: '#6366f1' },
+                            { label: 'Susp.',  value: stats.suspended_stores, color: '#f59e0b' },
+                            { label: 'Churned', value: stats.churned_stores, color: '#ef4444' },
+                        ].map(m => (
+                            <div key={m.label} style={{ textAlign: 'center' }}>
+                                <div style={{ fontSize: 20, fontWeight: 800, color: m.color }}>{m.value}</div>
+                                <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{m.label}</div>
                             </div>
-                            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(99,102,241,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6366f1' }}>
-                                <Layers size={20} />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase' }}>Website</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.website_plans || 0}</p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase' }}>AppSumo</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.appsumo_plans || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div onClick={() => router.visit(window.route('platform.platforms.index'))} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.transform = 'translateY(-2px)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = 'none' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Platforms</p>
-                                <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.monetization?.total_platforms || 0}</h3>
-                            </div>
-                            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(139,92,246,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#8b5cf6' }}>
-                                <Database size={20} />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase' }}>Active</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.active_platforms || 0}</p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Inactive</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.inactive_platforms || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div onClick={() => router.visit(window.route('platform.coupons.index'))} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#f59e0b'; e.currentTarget.style.transform = 'translateY(-2px)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = 'none' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Coupons</p>
-                                <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.monetization?.total_coupons || 0}</h3>
-                            </div>
-                            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(245,158,11,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
-                                <Ticket size={20} />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase' }}>Active</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.active_coupons || 0}</p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Inactive</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.inactive_coupons || 0}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div onClick={() => router.visit(window.route('platform.tenants.overrides'))} style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 24, padding: 24, backdropFilter: 'blur(12px)', cursor: 'pointer', transition: 'all 0.2s' }} onMouseEnter={e => { e.currentTarget.style.borderColor = '#10b981'; e.currentTarget.style.transform = 'translateY(-2px)' }} onMouseLeave={e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = 'none' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div>
-                                <p style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Overrides</p>
-                                <h3 style={{ fontSize: 32, fontWeight: 900, color: T.text, margin: '8px 0' }}>{stats.monetization?.total_overrides || 0}</h3>
-                            </div>
-                            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
-                                <Zap size={20} />
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 12, marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase' }}>Active</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.active_overrides || 0}</p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', textTransform: 'uppercase' }}>Expired</p>
-                                <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.expired_overrides || 0}</p>
-                            </div>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -602,7 +426,7 @@ function OverviewTab({ stats, store_trend, plan_distribution, recent_stores, exp
 // ─────────────────────────────────────────────────────────────────────────
 
 function StoresTab({ stores, onSuspend, onActivate, onExtend, onImpersonate }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const [search, setSearch] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
 
@@ -671,7 +495,7 @@ function StoresTab({ stores, onSuspend, onActivate, onExtend, onImpersonate }) {
 // ─────────────────────────────────────────────────────────────────────────
 
 function PlatformUsersTab({ platform_users }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
     return (
@@ -761,14 +585,14 @@ function PlatformUsersTab({ platform_users }) {
 // ─────────────────────────────────────────────────────────────────────────
 
 function RevenueTab({ stats }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 16 }}>
-                <KpiCard label="Monthly Recurring Revenue" value={formatCurrency(stats.mrr)} sub="Live estimate from plan data" Icon={DollarSign} color="#10b981" />
-                <KpiCard label="Annual Recurring Revenue" value={formatCurrency(stats.arr || 0)} sub="MRR × 12 projected" Icon={TrendingUp} color="#6366f1" />
+                <KpiCard label="Monthly Recurring Revenue" value={`$${stats.mrr.toLocaleString()}`} sub="Live estimate from plan data" Icon={DollarSign} color="#10b981" />
+                <KpiCard label="Annual Recurring Revenue" value={`$${(stats.arr || 0).toLocaleString()}`} sub="MRR × 12 projected" Icon={TrendingUp} color="#6366f1" />
                 <KpiCard label="Churned This Month" value={stats.cancelled_last_30} sub="Cancelled subscriptions" Icon={Ban} color="#ef4444" trend={-1} />
             </div>
 
@@ -809,7 +633,7 @@ const TICKET_STATUS = {
 };
 
 function SupportTab({ tickets = [], open_count = 0, tickets_total = 0, active_filter = 'open' }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const [selected, setSelected] = useState(null);
     const [reply, setReply] = useState('');
     const [filter, setFilter] = useState(active_filter);
@@ -817,13 +641,13 @@ function SupportTab({ tickets = [], open_count = 0, tickets_total = 0, active_fi
 
     function sendReply() {
         if (!reply.trim() || !selected) return;
-        router.post(window.route('platform.ticket.reply', { ticket: selected.id }), { body: reply }, {
+        router.post(`/admin/tickets/${selected.id}/reply`, { body: reply }, {
             onSuccess: () => { setReply(''); setSelected(null); },
         });
     }
 
     function setStatus(ticket, status) {
-        router.post(window.route('platform.ticket.status', { ticket: ticket.id }), { status }, {
+        router.post(`/admin/tickets/${ticket.id}/status`, { status }, {
             onSuccess: () => setSelected(null),
         });
     }
@@ -937,7 +761,7 @@ function SupportTab({ tickets = [], open_count = 0, tickets_total = 0, active_fi
 // ─────────────────────────────────────────────────────────────────────────
 
 function FeedTab({ activity_feed }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const colorMap = { indigo: '#6366f1', amber: '#f59e0b', red: '#ef4444', emerald: '#10b981', sky: '#0ea5e9' };
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
@@ -981,7 +805,7 @@ function FeedTab({ activity_feed }) {
 // ─────────────────────────────────────────────────────────────────────────
 
 function SecuritySection() {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const { props } = usePage();
     const flash = props.flash || {};
 
@@ -1048,7 +872,7 @@ function SecuritySection() {
                     </div>
                 </div>
 
-                <form onSubmit={e => { e.preventDefault(); pwForm.post(route('platform.change-password'), { onSuccess: () => pwForm.reset() }); }}
+                <form onSubmit={e => { e.preventDefault(); pwForm.post(route('admin.platform.change-password'), { onSuccess: () => pwForm.reset() }); }}
                     style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
                         <label style={labelStyle}>Current Password</label>
@@ -1113,7 +937,7 @@ function SecuritySection() {
                     </div>
                 </div>
 
-                <form onSubmit={e => { e.preventDefault(); pinForm.post(route('platform.set-passcode'), { onSuccess: () => pinForm.reset() }); }}
+                <form onSubmit={e => { e.preventDefault(); pinForm.post(route('admin.platform.set-passcode'), { onSuccess: () => pinForm.reset() }); }}
                     style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                     <div>
                         <label style={labelStyle}>Confirm with Current Password</label>
@@ -1148,7 +972,7 @@ function SecuritySection() {
                             style={{ ...btnStyle, background: 'rgba(239,68,68,0.12)', color: '#ef4444', boxShadow: 'none', border: '1px solid rgba(239,68,68,0.2)' }}
                             onClick={() => {
                                 if (!clearPw) { alert('Enter your password below the buttons first.'); return; }
-                                router.post(route('platform.clear-passcode'), { current_password: clearPw }, {
+                                router.post(route('admin.platform.clear-passcode'), { current_password: clearPw }, {
                                     onSuccess: () => setClearPw(''),
                                 });
                             }}>
@@ -1168,7 +992,7 @@ function SecuritySection() {
 }
 
 function SettingsTab({ stores = [], webhooks = [] }) {
-    const T = useDashboardTheme();
+    const T = useTheme();
     const [activeSection, setActiveSection] = useState('security');
     const [selectedStore, setSelectedStore] = useState(null);
 
@@ -1183,7 +1007,7 @@ function SettingsTab({ stores = [], webhooks = [] }) {
     const WEBHOOK_STATUS = { received: '#6366f1', processed: '#10b981', failed: '#ef4444' };
 
     function toggle(tenant, feature, currentValue) {
-        router.post(route('platform.store.feature-flag', tenant.id), {
+        router.post(route('admin.store.feature-flag', tenant.id), {
             feature, enabled: !currentValue
         }, { preserveScroll: true });
     }
@@ -1312,49 +1136,40 @@ export default function PlatformOwnerDashboard({
     open_count,
     active_filter,
     webhooks,
-    tab: initialTab, // Prop from controller
 }) {
     const { auth } = usePage().props;
-    const { isDarkMode: isDark } = useGlobalTheme();
-
-    const [activeTab, setActiveTab] = useState(() => {
-        if (typeof window === 'undefined') return initialTab || 'overview';
-        const params = new URLSearchParams(window.location.search);
-        const urlTab = params.get('tab');
-        if (urlTab && TABS.some(t => t.id === urlTab)) return urlTab;
-        if (initialTab && TABS.some(t => t.id === initialTab)) return initialTab;
-        return 'overview';
-    });
+    const [activeTab, setActiveTab] = useState('overview');
     const [flash, setFlash] = useState(null);
+    const [theme, setTheme] = useState(() => {
+        if (typeof window !== 'undefined') return localStorage.getItem('hq-theme') || 'dark';
+        return 'dark';
+    });
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        if (typeof window !== 'undefined') return window.innerWidth > 768;
+        return true;
+    });
 
-    // Sync activeTab with URL params for sidebar consistency
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const tab = params.get('tab') || 'overview';
-        if (tab !== activeTab) {
-            setActiveTab(tab);
-        }
-    }, [window.location.search]);
+    const isDark = theme === 'dark';
 
-
-    // Theme logic handled by context
+    const toggleTheme = () => {
+        const next = isDark ? 'light' : 'dark';
+        setTheme(next);
+        localStorage.setItem('hq-theme', next);
+    };
 
     // Design tokens
     const T = isDark ? {
-        bg: '#020617',
-        bgCard: 'rgba(15, 23, 42, 0.45)', // Deep glass
-        bgCardHover: 'rgba(30, 41, 59, 0.6)',
-        border: 'rgba(255, 255, 255, 0.05)',
-        borderAccent: 'rgba(99, 102, 241, 0.35)',
-        navBg: 'rgba(2, 6, 23, 0.95)',
-        text: '#f8fafc',
-        textSub: '#cbd5e1',
-        textMuted: '#64748b',
-        textHero: '#ffffff',
-        bgHero: 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%)',
-        bgHeroCard: 'rgba(255,255,255,0.03)',
-        tabActive: { bg: 'rgba(99,102,241,0.15)', border: 'rgba(99,102,241,0.4)', color: '#c7d2fe' },
-        tabInactive: { bg: 'transparent', border: 'transparent', color: '#94a3b8' },
+        bg: '#080c14',
+        bgCard: 'rgba(255,255,255,0.03)',
+        bgCardHover: 'rgba(255,255,255,0.05)',
+        border: 'rgba(255,255,255,0.07)',
+        borderAccent: 'rgba(99,102,241,0.35)',
+        navBg: 'rgba(8,12,20,0.92)',
+        text: '#f1f5f9',
+        textSub: '#94a3b8',
+        textMuted: '#475569',
+        tabActive: { bg: 'rgba(99,102,241,0.12)', border: 'rgba(99,102,241,0.35)', color: '#a5b4fc' },
+        tabInactive: { bg: 'transparent', border: 'transparent', color: '#64748b' },
         isDark: true,
     } : {
         bg: '#f0f4f8',
@@ -1365,10 +1180,7 @@ export default function PlatformOwnerDashboard({
         navBg: 'rgba(255,255,255,0.97)',
         text: '#0f172a',
         textSub: '#374151',
-        textMuted: '#64748b',
-        textHero: '#0f172a',
-        bgHero: 'linear-gradient(135deg, rgba(99,102,241,0.05) 0%, rgba(139,92,246,0.03) 100%)',
-        bgHeroCard: 'rgba(0,0,0,0.03)',
+        textMuted: '#6b7280',
         tabActive: { bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.4)', color: '#4f46e5' },
         tabInactive: { bg: 'transparent', border: 'transparent', color: '#6b7280' },
         isDark: false,
@@ -1379,29 +1191,28 @@ export default function PlatformOwnerDashboard({
         suspended_stores: 0, churned_stores: 0, new_today: 0,
         new_this_month: 0, cancelled_last_30: 0, expiring_soon: 0,
         conversion_rate: 0, total_users: 0, platform_admins: 1,
-        store_users: 0, mrr: 0, arr: 0, total_volume: 0,
-        growth_rate: 0, uptime: 100,
+        store_users: 0, mrr: 0, arr: 0,
         ...(stats || {}),
     };
 
     function handleSuspend(tenantId) {
-        router.post(window.route('platform.store.suspend', { tenant: tenantId }), {}, {
+        router.post(`/VenQore/stores/${tenantId}/suspend`, {}, {
             onSuccess: () => setFlash({ type: 'success', msg: 'Store suspended.' }),
         });
     }
     function handleActivate(tenantId) {
-        router.post(window.route('platform.store.activate', { tenant: tenantId }), {}, {
+        router.post(`/VenQore/stores/${tenantId}/activate`, {}, {
             onSuccess: () => setFlash({ type: 'success', msg: 'Store activated.' }),
         });
     }
     function handleExtend(tenantId, days) {
-        router.post(window.route('platform.store.extend-trial', { tenant: tenantId }), { days }, {
+        router.post(`/VenQore/stores/${tenantId}/extend-trial`, { days }, {
             onSuccess: () => setFlash({ type: 'success', msg: `Trial extended by ${days} days.` }),
         });
     }
     function handleImpersonate(userId) {
         if (!confirm('Start impersonation session for this store owner?')) return;
-        router.post(window.route('platform.impersonate.start', { user: userId }));
+        router.post(`/VenQore/impersonate/${userId}`);
     }
 
     useEffect(() => {
@@ -1412,198 +1223,191 @@ export default function PlatformOwnerDashboard({
     const hour = new Date().getHours();
     const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-    // Map tab ID to Sidebar Item Name for highlighting
-    const activeMenuNameMap = {
-        'overview': 'Overview',
-        'stores': 'Stores',
-        'users': 'Platform Users',
-        'revenue': 'Revenue',
-        'support': 'Support',
-        'feed': 'Activity Feed',
-        'settings': 'Settings'
-    };
-
-    const requestParams = new URLSearchParams(window.location.search);
-    const period = requestParams.get('period') || 'all';
-
     return (
-        <DashboardThemeCtx.Provider value={T}>
-            <OneGlanceLayout 
-                title={TABS.find(t => t.id === activeTab)?.label || "Platform HQ"} 
-                mode="admin" 
-                activeMenu={activeMenuNameMap[activeTab]}
-            >
-                <Head title="VenQore — Platform HQ" />
+        <ThemeCtx.Provider value={T}>
+        <>
+            <Head title="VenQore — Platform HQ" />
+            <style>{`
+                @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+                * { box-sizing: border-box; }
+                ::-webkit-scrollbar { width: 6px; height: 6px; }
+                ::-webkit-scrollbar-track { background: transparent; }
+                ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+                ::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.5); }
+                @keyframes flash-slide-in {
+                    from { opacity: 0; transform: translateX(20px); }
+                    to { opacity: 1; transform: translateX(0); }
+                }
+                @keyframes theme-fade { from { opacity: 0.7; } to { opacity: 1; } }
+                .hq-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+                .hq-grid-chart { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+
+            `}</style>
+            
+            <style>{`
+                .hq-sidebar { flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s; z-index: 1000; }
+                .hq-sidebar-open { width: 260px; transform: translateX(0); }
+                .hq-sidebar-closed { width: 74px; align-items: center; transform: translateX(0); }
+                .hq-sidebar-closed .hq-sidebar-text, .hq-sidebar-closed .hq-sidebar-logo-text { display: none; }
                 
-                <style>{`
-                    .hq-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-                    .hq-grid-chart { display: grid; grid-template-columns: 1fr 380px; gap: 20px; min-width: 0; }
-                    @media (max-width: 768px) {
-                        .hq-grid-4 { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
-                        .hq-grid-chart { grid-template-columns: 1fr !important; gap: 16px !important; }
-                    }
-                    @keyframes shimmer {
-                        0% { background-position: -200% 0; }
-                        100% { background-position: 200% 0; }
-                    }
-                    .shimmer {
-                        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.03), transparent);
-                        background-size: 200% 100%;
-                        animation: shimmer 2s infinite;
-                    }
-                    @keyframes aurora {
-                        0% { transform: scale(1) translate(0,0); opacity: 0.3; }
-                        50% { transform: scale(1.1) translate(10px, 10px); opacity: 0.5; }
-                        100% { transform: scale(1) translate(0,0); opacity: 0.3; }
-                    }
-                    .aurora-pulse {
-                        animation: aurora 8s infinite ease-in-out;
-                    }
-                `}</style>
+                .hq-main-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; height: 100vh; min-width: 0; }
+                .hq-layout-root { display: flex; flex-direction: row; min-height: 100vh; width: 100vw; overflow: hidden; }
+                .mobile-only { display: none !important; }
+                
+                @media (max-width: 768px) {
+                    .mobile-only { display: flex !important; }
+                    .hq-sidebar { position: fixed !important; top: 0; left: 0; height: 100vh; background: ${isDark ? '#080c14' : '#fff'} !important; box-shadow: 20px 0 50px rgba(0,0,0,0.3); width: 280px !important; }
+                    .hq-sidebar-closed { transform: translateX(-100%) !important; }
+                    .hq-sidebar-open { transform: translateX(0) !important; }
+                    .hq-sidebar-text, .hq-sidebar-logo-text { display: flex !important; }
 
-                {/* --- REVENUE INTELLIGENCE: HERO COMMAND SECTION --- */}
-                {activeTab === 'overview' && (
-                    <div style={{ padding: '0 32px 40px' }}>
-                        <div style={{ 
-                            background: T.bgHero,
-                            borderRadius: 32,
-                            border: `1px solid ${T.border}`,
-                            padding: '40px',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.2)' : '0 10px 30px rgba(99,102,241,0.05)'
+                    .hq-grid-4 { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+                    .hq-grid-chart { grid-template-columns: 1fr !important; gap: 16px !important; }
+                    
+                    .hq-page-padding { padding: 16px 12px 100px !important; width: 100% !important; box-sizing: border-box !important; margin: 0 !important; }
+                    .hq-nav-padding { padding: 16px 12px !important; min-height: 120px; }
+                    .hq-greeting-area { padding: 16px 12px !important; min-height: 120px; }
+                    .hq-right-date { display: none !important; }
+
+                    .sidebar-overlay { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+                    .sidebar-overlay-active { opacity: 1; pointer-events: auto; }
+                    
+                    main.hq-main-content { overflow-x: hidden !important; width: 100vw !important; }
+                }
+            `}</style>
+
+            <div className="hq-layout-root" style={{ background: T.bg, color: T.text, fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", transition: 'background 0.3s ease, color 0.3s ease', animation: 'theme-fade 0.3s ease' }}>
+
+                {/* Mobile Drawer Overlay */}
+                <div className={`sidebar-overlay ${sidebarOpen ? 'sidebar-overlay-active' : ''}`} onClick={() => setSidebarOpen(false)} />
+
+                {/* ── Sidebar ── */}
+                <aside className={`hq-sidebar ${sidebarOpen ? 'hq-sidebar-open' : 'hq-sidebar-closed'}`} style={{
+                    background: T.navBg,
+                    borderRight: `1px solid ${T.border}`,
+                }}>
+                    <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${T.border}` }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <img src="/images/logo.png" style={{ width: 34, height: 34, objectFit: 'contain', flexShrink: 0 }} onError={e => { e.target.style.display='none'; e.target.parentElement.innerHTML += `<span style="color:${isDark ? '#6366f1' : '#4f46e5'};font-weight:900;font-size:24px">V</span>`; }} />
+                            <div className="hq-sidebar-logo-text">
+                                <div style={{ fontWeight: 800, fontSize: 16, letterSpacing: '-0.02em', color: T.text, lineHeight: 1 }}>VenQore</div>
+                                <div style={{ fontSize: 10, color: isDark ? '#6366f1' : '#7c3aed', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: 2 }}>Platform HQ</div>
+                            </div>
+                        </div>
+                        {typeof window !== 'undefined' && window.innerWidth <= 768 && (
+                            <button onClick={() => setSidebarOpen(false)} style={{ background: 'transparent', border: 'none', color: T.textSub, cursor: 'pointer', padding: 8 }}>
+                                <AlertCircle size={20} />
+                            </button>
+                        )}
+                    </div>
+
+                    <div style={{ padding: '20px 12px', display: 'flex', flexDirection: 'column', gap: 4, flex: 1 }}>
+                        <div className="hq-sidebar-text" style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '0 12px', marginBottom: 8 }}>Menu</div>
+                        {TABS.map(tab => {
+                            const isActive = activeTab === tab.id;
+                            const TabIcon = tab.Icon;
+                            return (
+                                <button key={tab.id} onClick={() => setActiveTab(tab.id)} className="hq-sidebar-btn" style={{
+                                    display: 'flex', alignItems: 'center', gap: 12,
+                                    padding: '10px 16px', borderRadius: 10,
+                                    border: `1px solid ${isActive ? T.tabActive.border : 'transparent'}`,
+                                    background: isActive ? T.tabActive.bg : 'transparent',
+                                    color: isActive ? T.tabActive.color : T.textSub,
+                                    fontSize: 14, fontWeight: isActive ? 700 : 500,
+                                    cursor: 'pointer', transition: 'all 0.15s',
+                                    textAlign: 'left', width: '100%',
+                                }}>
+                                    <TabIcon size={18} style={{ flexShrink: 0 }} />
+                                    <span className="hq-sidebar-text">{tab.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div style={{ padding: '20px 16px', borderTop: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                        <button onClick={toggleTheme} className="hq-sidebar-btn" style={{
+                            width: '100%', padding: '12px 16px', borderRadius: 10,
+                            border: `1px solid ${T.border}`, background: T.bgCard,
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12,
+                            color: T.textSub, transition: 'all 0.2s', textAlign: 'left'
                         }}>
-                            {/* Nebula Background Elements */}
-                            <div className="aurora-pulse" style={{ position: 'absolute', top: -50, right: -50, width: 300, height: 300, background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', filter: 'blur(60px)', zIndex: 0 }}></div>
-                            <div className="aurora-pulse" style={{ position: 'absolute', bottom: -50, left: 100, width: 250, height: 250, background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)', filter: 'blur(50px)', zIndex: 0, animationDelay: '-2s' }}></div>
-                            
-                            <div style={{ position: 'relative', zIndex: 10 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 32 }}>
-                                    <div>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#818cf8', fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.15em' }}>
-                                            <TrendingUp size={16} /> Revenue Intelligence
-                                        </div>
-                                        <h2 style={{ fontSize: 32, fontWeight: 900, color: T.textHero, margin: '8px 0 0', letterSpacing: '-0.02em' }}>Platform Global Alpha</h2>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: 8, background: T.bgHeroCard, padding: 4, borderRadius: 16 }}>
-                                        {['today', 'month', 'year', 'all'].map(p => {
-                                            const isActive = period === p;
-                                            return (
-                                                <button 
-                                                    key={p} 
-                                                    onClick={() => router.get(window.route('platform.dashboard'), { period: p }, { preserveScroll: true, preserveState: true })}
-                                                    style={{ 
-                                                        padding: '8px 20px', 
-                                                        borderRadius: 12, 
-                                                        fontSize: 12, 
-                                                        fontWeight: 700, 
-                                                        textTransform: 'capitalize',
-                                                        transition: 'all 0.2s',
-                                                        background: isActive ? T.tabActive.bg : 'transparent',
-                                                        color: isActive ? T.textHero : T.textMuted,
-                                                        border: `1px solid ${isActive ? T.tabActive.border : 'transparent'}`
-                                                    }}
-                                                >
-                                                    {p}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
+                            <Sparkles size={16} />
+                            <span className="hq-sidebar-text">{isDark ? 'Light Mode' : 'Dark Mode'}</span>
+                        </button>
+                        
+                        {typeof window !== 'undefined' && window.innerWidth > 768 && (
+                            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="hq-sidebar-btn" style={{
+                                width: '100%', padding: '12px 16px', borderRadius: 10,
+                                border: 'none', background: 'transparent',
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 12,
+                                color: T.textMuted, transition: 'all 0.2s', textAlign: 'left'
+                            }}>
+                                <ChevronRight size={18} style={{ transform: sidebarOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                                <span className="hq-sidebar-text">Collapse</span>
+                            </button>
+                        )}
+
+                        <Link href={route('logout')} method="post" as="button" className="hq-sidebar-btn" style={{
+                            width: '100%', padding: '12px 16px', borderRadius: 10,
+                            border: `1px solid ${T.border}`, background: T.isDark ? 'rgba(239,68,68,0.05)' : '#fff5f5',
+                            cursor: 'pointer', color: '#ef4444', transition: 'all 0.2s',
+                            display: 'flex', alignItems: 'center', gap: 12, textAlign: 'left'
+                        }}>
+                            <LogOut size={18} />
+                            <span className="hq-sidebar-text">Sign Out</span>
+                        </Link>
+                    </div>
+                </aside>
+
+                {/* ── Main Content Area ── */}
+                <main className="hq-main-content">
+                    {/* ── Flash Notification ── */}
+                    {flash && (
+                        <div style={{ position: 'fixed', top: 20, right: 24, zIndex: 200, padding: '12px 20px', borderRadius: 12, background: flash.type === 'success' ? (isDark ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.12)') : (isDark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.12)'), border: `1px solid ${flash.type === 'success' ? 'rgba(16,185,129,0.35)' : 'rgba(239,68,68,0.35)'}`, color: flash.type === 'success' ? '#10b981' : '#ef4444', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.2)', animation: 'flash-slide-in 0.3s ease' }}>
+                            <CheckCircle2 size={14} /> {flash.msg}
+                        </div>
+                    )}
+
+                    {/* ── Greeting Banner ── */}
+                    <div style={{ background: isDark ? 'linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(139,92,246,0.05) 100%)' : 'linear-gradient(135deg, rgba(99,102,241,0.06) 0%, rgba(139,92,246,0.04) 100%)', borderBottom: `1px solid ${T.border}`, padding: '24px 32px', position: 'relative' }} className="hq-greeting-area hq-nav-padding">
+                        {typeof window !== 'undefined' && (
+                            <button className="mobile-only" onClick={() => setSidebarOpen(true)} style={{ background: 'rgba(99,102,241,0.1)', border: `1px solid rgba(99,102,241,0.2)`, borderRadius: 10, padding: 8, color: '#6366f1', position: 'absolute', top: 16, right: 12, zIndex: 10, cursor: 'pointer' }}>
+                                <Menu size={22} />
+                            </button>
+                        )}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                    <Sparkles size={16} color="#8b5cf6" />
+                                    <span style={{ fontSize: 13, color: isDark ? '#8b5cf6' : '#7c3aed', fontWeight: 600 }}>{greeting}, Abdullah 👋</span>
                                 </div>
-
-                                {/* 1. Trend Analysis Row */}
-                                <div style={{ marginBottom: 40, paddingBottom: 40, borderBottom: `1px solid ${T.border}`, display: 'grid', gridTemplateColumns: '1fr 300px', gap: 40 }}>
-                                    <div style={{ height: 180 }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-                                            <span style={{ fontSize: 12, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Platform Growth Trend</span>
-                                            <span style={{ fontSize: 12, color: '#6366f1', fontWeight: 700 }}>+{safeStats.new_this_month} Registrations this month</span>
-                                        </div>
-                                        <ResponsiveContainer width="100%" height={160} minWidth={100} minHeight={100}>
-                                            <AreaChart data={store_trend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                                                <defs>
-                                                    <linearGradient id="heroStoreGrad" x1="0" y1="0" x2="0" y2="1">
-                                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                                    </linearGradient>
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" stroke={T.border} vertical={false} />
-                                                <XAxis dataKey="month" axisLine={true} tickLine={true} tick={{ fill: T.textMuted, fontSize: 10, fontWeight: 600 }} dy={10} stroke={T.border} />
-                                                <YAxis axisLine={true} tickLine={true} tick={{ fill: T.textMuted, fontSize: 10, fontWeight: 600 }} stroke={T.border} />
-                                                <Tooltip contentStyle={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 10, color: T.text, fontSize: 12 }} />
-                                                <Area type="monotone" dataKey="stores" stroke="#6366f1" fill="url(#heroStoreGrad)" strokeWidth={3} dot={{ fill: '#6366f1', r: 4, strokeWidth: 2, stroke: T.bg }} activeDot={{ r: 6, strokeWidth: 0 }} />
-                                            </AreaChart>
-                                        </ResponsiveContainer>
+                                <h1 style={{ fontSize: 24, fontWeight: 800, color: T.text, margin: '6px 0 0', letterSpacing: '-0.02em' }}>Platform Command Center</h1>
+                                <p style={{ fontSize: 13, color: T.textMuted, margin: '6px 0 0' }}>{safeStats.total_stores} stores · {safeStats.active_stores} active · ${safeStats.mrr.toLocaleString()}/mo revenue</p>
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }} className="hq-right-date">
+                                {safeStats.expiring_soon > 0 && (
+                                    <div style={{ padding: '8px 14px', borderRadius: 10, background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#ef4444', fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <AlertTriangle size={13} /> {safeStats.expiring_soon} trials expiring
                                     </div>
-
-                                    <div style={{ background: T.bgHeroCard, borderRadius: 20, padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 16 }}>
-                                         <div>
-                                            <p style={{ fontSize: 10, fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Conversion Peak</p>
-                                            <div style={{ fontSize: 24, fontWeight: 900, color: T.textHero, marginTop: 4 }}>{safeStats.conversion_rate}%</div>
-                                         </div>
-                                         <div>
-                                            <p style={{ fontSize: 10, fontWeight: 900, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Expansion Velocity</p>
-                                            <div style={{ fontSize: 24, fontWeight: 900, color: '#6366f1', marginTop: 4 }}>+{(safeStats.new_this_month / 30).toFixed(1)} <span style={{ fontSize: 13, color: T.textMuted }}>stores / day</span></div>
-                                         </div>
-                                    </div>
-                                </div>
-
-                                {/* 2. Financial Metrics Row */}
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 60 }}>
-                                    <div style={{ flex: 1 }}>
-                                        <p style={{ fontSize: 11, fontWeight: 800, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Platform Volume</p>
-                                        <div style={{ fontSize: 64, fontWeight: 900, color: T.textHero, letterSpacing: '-0.04em', margin: '8px 0' }}>
-                                            {formatCurrency(safeStats.total_volume)}
-                                        </div>
-                                        {safeStats.growth_rate !== 0 && (
-                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: safeStats.growth_rate > 0 ? '#10b981' : '#ef4444', fontSize: 14, fontWeight: 700 }}>
-                                                {safeStats.growth_rate > 0 ? <ArrowUpRight size={18} /> : <ArrowDownRight size={18} />} 
-                                                {safeStats.growth_rate > 0 ? '+' : ''}{safeStats.growth_rate}% 
-                                                <span style={{ color: T.textMuted, fontWeight: 500 }}>vs last period</span>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div style={{ width: 1, height: '80%', background: T.border }}></div>
-
-                                    {/* Intelligence Grid */}
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
-                                        <div>
-                                            <p style={{ fontSize: 10, fontWeight: 900, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Monthly (MRR)</p>
-                                            <p style={{ fontSize: 20, fontWeight: 800, color: T.textHero, margin: '4px 0' }}>{formatCurrency(safeStats.mrr)}</p>
-                                            <div style={{ width: '100%', height: 4, background: T.bgHeroCard, borderRadius: 2, marginTop: 8 }}>
-                                                <div style={{ width: '70%', height: '100%', background: '#6366f1', borderRadius: 2 }}></div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p style={{ fontSize: 10, fontWeight: 900, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Yearly (ARR)</p>
-                                            <p style={{ fontSize: 20, fontWeight: 800, color: '#10b981', margin: '4px 0' }}>{formatCurrency(safeStats.arr || safeStats.mrr * 12)}</p>
-                                            <div style={{ width: '100%', height: 4, background: T.bgHeroCard, borderRadius: 2, marginTop: 8 }}>
-                                                <div style={{ width: '100%', height: '100%', background: '#10b981', borderRadius: 2, opacity: 0.3 }}></div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p style={{ fontSize: 10, fontWeight: 900, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Forecast</p>
-                                            <p style={{ fontSize: 20, fontWeight: 800, color: T.textHero, margin: '4px 0' }}>{formatCurrency((safeStats.arr || safeStats.mrr * 12) * 1.5)}</p>
-                                            <div style={{ width: '100%', height: 4, background: T.bgHeroCard, borderRadius: 2, marginTop: 8 }}>
-                                                <div style={{ width: '45%', height: '100%', background: '#8b5cf6', borderRadius: 2 }}></div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <p style={{ fontSize: 10, fontWeight: 900, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.1em' }}>Uptime</p>
-                                            <p style={{ fontSize: 20, fontWeight: 800, color: '#10b981', margin: '4px 0' }}>{safeStats.uptime}%</p>
-                                            <div style={{ width: '100%', height: 4, background: T.bgHeroCard, borderRadius: 2, marginTop: 8 }}>
-                                                <div style={{ width: `${safeStats.uptime}%`, height: '100%', background: '#10b981', borderRadius: 2 }}></div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                )}
+                                <div style={{ padding: '8px 14px', borderRadius: 10, background: T.bgCard, border: `1px solid ${T.border}`, fontSize: 12, fontWeight: 600, color: T.textSub }}>
+                                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                                 </div>
                             </div>
                         </div>
                     </div>
-                )}
 
                 {/* ── Page Content ── */}
-                <div style={{ maxWidth: 1400, margin: '0 auto', padding: '0 32px' }}>
+                <div style={{ maxWidth: 1400, margin: '0 auto', padding: '28px 32px 80px' }} className="hq-page-padding">
+
+                    {/* Tab header */}
+                    <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {React.createElement(TABS.find(t => t.id === activeTab)?.Icon || LayoutDashboard, { size: 18, color: '#6366f1' })}
+                        <h2 style={{ fontSize: 18, fontWeight: 800, color: T.text, margin: 0, letterSpacing: '-0.01em' }}>
+                            {TABS.find(t => t.id === activeTab)?.label}
+                        </h2>
+                    </div>
+
                     {/* Tab Content */}
                     {activeTab === 'overview' && (
                         <OverviewTab
@@ -1641,8 +1445,10 @@ export default function PlatformOwnerDashboard({
                         />
                     )}
                 </div>
-            </OneGlanceLayout>
-        </DashboardThemeCtx.Provider>
+                </main>
+            </div>
+        </>
+        </ThemeCtx.Provider>
     );
 }
 

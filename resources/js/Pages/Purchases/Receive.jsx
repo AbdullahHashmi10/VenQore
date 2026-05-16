@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -28,7 +27,13 @@ export default function ReceivePurchase({ purchase = {}, products = [] }) {
     const [notes, setNotes] = useState('');
     const [errors, setErrors] = useState({});
 
-    const formatCurrency = (val) => (val < 0 ? '-' : '') + (window.amdSettings?.currency_symbol || 'Rs') + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(val) || 0);
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-PK', {
+            style: 'currency',
+            currency: 'PKR',
+            minimumFractionDigits: 0
+        }).format(value || 0);
+    };
 
     const updateItem = (index, field, value) => {
         const newItems = [...receivedItems];
@@ -111,7 +116,7 @@ export default function ReceivePurchase({ purchase = {}, products = [] }) {
                         </div>
                         <div>
                             <p className="text-slate-500">Total</p>
-                            <p className="font-semibold text-emerald-600">{formatCurrency(purchase.total_amount, store)}</p>
+                            <p className="font-semibold text-emerald-600">{formatCurrency(purchase.total_amount)}</p>
                         </div>
                     </div>
                 </div>

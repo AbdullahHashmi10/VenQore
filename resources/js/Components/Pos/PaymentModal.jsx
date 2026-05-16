@@ -144,9 +144,7 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                                 </div>
                                 <div className="flex-[1.5]">
                                      <div className="relative">
-                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
-                                             {usePage().props.store?.currency_symbol || 'Rs'}
-                                         </span>
+                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{currency}</span>
                                          <input
                                              type="number"
                                              value={payment.amount}

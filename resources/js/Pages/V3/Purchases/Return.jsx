@@ -1,8 +1,6 @@
-import { useForm, Link, usePage } from '@inertiajs/react'
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format'
+import { useForm, Link } from '@inertiajs/react'
 
 export default function PurchaseReturn({ purchase, items }) {
-    const { store } = usePage().props;
     const { data, setData, post, processing, errors } = useForm({
         return_date: new Date().toISOString().slice(0, 10),
         reason: '',
@@ -59,7 +57,7 @@ export default function PurchaseReturn({ purchase, items }) {
 
             <div className="bg-white rounded mb-6">
                 <p className="mb-2"><strong>Supplier:</strong> {purchase.supplier_name}</p>
-                <p><strong>Original Total:</strong> {formatCurrency(purchase.total, store)}</p>
+                <p><strong>Original Total:</strong> {window.amdSettings?.currency_symbol || ''} {parseFloat(purchase.total).toLocaleString()}</p>
             </div>
 
             <form onSubmit={submit} className="space-y-6">
@@ -118,7 +116,7 @@ export default function PurchaseReturn({ purchase, items }) {
                                             {item.remaining_qty} {item.base_unit}
                                         </td>
                                         <td className="border border-gray-200 px-3 py-2 text-sm text-right">
-                                            {getCurrencySymbol(store)} {item.unit_cost.toFixed(4)}
+                                            {window.amdSettings?.currency_symbol || ''} {item.unit_cost.toFixed(4)}
                                         </td>
                                         <td className="border border-gray-200 px-2 py-1">
                                             <input
@@ -136,7 +134,7 @@ export default function PurchaseReturn({ purchase, items }) {
                                             }
                                         </td>
                                         <td className="border border-gray-200 px-3 py-2 text-sm text-right font-medium">
-                                            {getCurrencySymbol(store)} {returnValue.toFixed(2)}
+                                            {window.amdSettings?.currency_symbol || ''} {returnValue.toFixed(2)}
                                         </td>
                                         <td className="border border-gray-200 px-2 py-1 text-center">
                                             <button
@@ -157,7 +155,7 @@ export default function PurchaseReturn({ purchase, items }) {
                                     Total Return Value:
                                 </td>
                                 <td className="border border-gray-200 px-3 py-2 text-right font-bold text-lg">
-                                    {formatCurrency(grandTotal, store)}
+                                    {window.amdSettings?.currency_symbol || ''} {grandTotal.toFixed(2)}
                                 </td>
                                 <td></td>
                             </tr>
@@ -178,7 +176,7 @@ export default function PurchaseReturn({ purchase, items }) {
                         disabled={processing || grandTotal === 0}
                         className="bg-blue-600 text-white px-8 py-2 rounded hover:bg-blue-700 disabled:opacity-50 font-medium"
                     >
-                        {processing ? 'Processing...' : `Confirm Return — ${formatCurrency(grandTotal, store)}`}
+                        {processing ? 'Processing...' : `Confirm Return — ${window.amdSettings?.currency_symbol || ''} ${grandTotal.toFixed(2)}`}
                     </button>
                     <Link
                         href={route('store.v3.purchases.show', purchase.id)}

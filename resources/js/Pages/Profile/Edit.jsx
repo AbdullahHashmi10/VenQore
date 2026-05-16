@@ -52,17 +52,6 @@ export default function Edit({ mustVerifyEmail, status }) {
     const [passcodeSaving, setPasscodeSaving] = useState(false);
     const [showPasscode, setShowPasscode] = useState(false);
 
-    // Security PIN form (for sensitive operations)
-    const [securityPinData, setSecurityPinData] = useState({
-        enable_security_pin: user.security_pin ? true : false,
-        security_pin: '',
-        confirm_security_pin: '',
-    });
-    const [securityPinError, setSecurityPinError] = useState('');
-    const [securityPinSaved, setSecurityPinSaved] = useState(false);
-    const [securityPinSaving, setSecurityPinSaving] = useState(false);
-    const [showSecurityPin, setShowSecurityPin] = useState(false);
-
     // Delete account
     const { delete: destroy, processing: deleteProcessing } = useForm({
         password: '',
@@ -121,41 +110,6 @@ export default function Edit({ mustVerifyEmail, status }) {
             });
         } finally {
             setPasscodeSaving(false);
-        }
-    };
-
-    const submitSecurityPin = async (e) => {
-        e.preventDefault();
-        setSecurityPinError('');
-
-        if (securityPinData.enable_security_pin) {
-            if (!securityPinData.security_pin || securityPinData.security_pin.length !== 6) {
-                setSecurityPinError('Security PIN must be exactly 6 digits');
-                return;
-            }
-            if (securityPinData.security_pin !== securityPinData.confirm_security_pin) {
-                setSecurityPinError('Security PINs do not match');
-                return;
-            }
-        }
-
-        setSecurityPinSaving(true);
-        try {
-            await router.post(route('store.profile.security-pin', { store_slug: store.slug }), {
-                security_pin: securityPinData.enable_security_pin ? securityPinData.security_pin : null,
-            }, {
-                preserveScroll: true,
-                onSuccess: () => {
-                    setSecurityPinSaved(true);
-                    setSecurityPinData(prev => ({ ...prev, security_pin: '', confirm_security_pin: '' }));
-                    setTimeout(() => setSecurityPinSaved(false), 3000);
-                },
-                onError: (errors) => {
-                    setSecurityPinError(errors.security_pin || 'Failed to update security PIN');
-                }
-            });
-        } finally {
-            setSecurityPinSaving(false);
         }
     };
 
@@ -451,114 +405,6 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 >
                                     <Key size={18} />
                                     {passcodeSaving ? 'Saving...' : (passcodeData.enable_passcode ? 'Save Passcode' : 'Disable Passcode')}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    {/* Security Passcode Card (6 Digits) */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden" id="security-pin-section">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-violet-50/30 dark:bg-violet-900/10">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <Shield size={20} className="text-violet-600" />
-                                Security Passcode (Transaction PIN)
-                            </h2>
-                            <p className="text-sm text-slate-500 mt-1">Set up a mandatory 6-digit PIN for sensitive tasks like adding capital, deleting records, or changing settings.</p>
-                        </div>
-
-                        <form onSubmit={submitSecurityPin} className="p-6 space-y-6">
-                            {securityPinSaved && (
-                                <div className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-emerald-700 dark:text-emerald-400">
-                                    <CheckCircle size={20} />
-                                    <span className="text-sm font-medium">Security PIN updated successfully!</span>
-                                </div>
-                            )}
-
-                            {securityPinError && (
-                                <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400">
-                                    <AlertTriangle size={20} />
-                                    <span className="text-sm font-medium">{securityPinError}</span>
-                                </div>
-                            )}
-
-                            {/* Enable Security PIN Toggle */}
-                            <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-900/30 flex items-center justify-center">
-                                        <Lock size={20} className="text-violet-600" />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-800 dark:text-white">Enable Transaction Security</p>
-                                        <p className="text-xs text-slate-500">
-                                            {user.security_pin ? 'Security PIN is currently active.' : 'Security PIN is not set yet.'}
-                                        </p>
-                                    </div>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => setSecurityPinData(prev => ({ ...prev, enable_security_pin: !prev.enable_security_pin }))}
-                                    className={`relative w-14 h-7 rounded-full transition-all duration-300 ${securityPinData.enable_security_pin ? 'bg-violet-600 shadow-lg shadow-violet-500/30' : 'bg-slate-300 dark:bg-slate-600'}`}
-                                >
-                                    <div className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow-sm transition-all duration-300 ${securityPinData.enable_security_pin ? 'left-8' : 'left-1'}`} />
-                                </button>
-                            </div>
-
-                            {securityPinData.enable_security_pin && (
-                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
-                                                New Security PIN (Exactly 6 digits)
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showSecurityPin ? "text" : "password"}
-                                                    value={securityPinData.security_pin}
-                                                    onChange={(e) => setSecurityPinData(prev => ({ ...prev, security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                    className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
-                                                    placeholder="••••••"
-                                                    maxLength={6}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowSecurityPin(!showSecurityPin)}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                                                >
-                                                    {showSecurityPin ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">
-                                                Confirm Security PIN
-                                            </label>
-                                            <input
-                                                type={showSecurityPin ? "text" : "password"}
-                                                value={securityPinData.confirm_security_pin}
-                                                onChange={(e) => setSecurityPinData(prev => ({ ...prev, confirm_security_pin: e.target.value.replace(/\D/g, '').slice(0, 6) }))}
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all font-mono tracking-[0.5em] text-center text-lg"
-                                                placeholder="••••••"
-                                                maxLength={6}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="p-4 bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800 rounded-2xl">
-                                        <p className="text-sm text-violet-700 dark:text-violet-300">
-                                            <strong>Safety First:</strong> This PIN is separate from your login code. It provides an extra layer of protection for your business capital and sensitive records.
-                                        </p>
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={securityPinSaving}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-lg shadow-violet-500/30 transition-all disabled:opacity-50"
-                                >
-                                    <Shield size={18} />
-                                    {securityPinSaving ? 'Saving...' : (securityPinData.enable_security_pin ? 'Save Security PIN' : 'Disable Security PIN')}
                                 </button>
                             </div>
                         </form>

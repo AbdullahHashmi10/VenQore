@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
@@ -73,7 +72,7 @@ export default function Receivables({ parties = [] }) {
         }));
     };
 
-
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val).replace('PKR', 'Rs');
 
     return (
         <OneGlanceLayout title="Accounts Receivable" activeMenu="Money">
@@ -91,7 +90,7 @@ export default function Receivables({ parties = [] }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Receivable</p>
                         </div>
-                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.totalReceivable, store)}</p>
+                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.totalReceivable)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -109,7 +108,7 @@ export default function Receivables({ parties = [] }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Avg Balance</p>
                         </div>
-                        <p className="text-lg font-black text-blue-600">{formatCurrency(stats.avgReceivable, store)}</p>
+                        <p className="text-lg font-black text-blue-600">{formatCurrency(stats.avgReceivable)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -119,7 +118,7 @@ export default function Receivables({ parties = [] }) {
                             <p className="text-xs font-bold text-slate-500 uppercase">Highest Balance</p>
                         </div>
                         <div className="flex flex-col items-end">
-                            <p className="text-lg font-black text-red-600 leading-none">{formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0), store)}</p>
+                            <p className="text-lg font-black text-red-600 leading-none">{formatCurrency(parseFloat(stats.largestDebtor.balance ?? stats.largestDebtor.current_balance ?? 0))}</p>
                             {stats.largestDebtor.name && (
                                 <p className="text-[10px] font-bold text-slate-400 truncate max-w-[100px] mt-0.5">{stats.largestDebtor.name}</p>
                             )}
@@ -218,7 +217,7 @@ export default function Receivables({ parties = [] }) {
                                             <p className="text-xs text-slate-500">{new Date(party.updated_at || party.created_at).toLocaleDateString()}</p>
                                         </td>
                                         <td className="p-3 text-right">
-                                            <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>
+                                            <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0))}</p>
                                         </td>
                                         <td className="p-3 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity">

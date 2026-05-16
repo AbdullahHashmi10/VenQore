@@ -81,7 +81,7 @@ function InviteModal({ storeId, onClose }) {
 
     function submit(e) {
         e.preventDefault();
-        post(route('store.staff.invite', { store_slug: usePage().props.store_slug }), {
+        post(route('store.staff.invite', { store_slug: storeSlug }), {
             onSuccess: () => { reset(); onClose(); },
         });
     }
@@ -201,7 +201,7 @@ function EditMemberModal({ member, storeId, onClose }) {
 
     function submit(e) {
         e.preventDefault();
-        patch(route('store.staff.update', { store_slug: usePage().props.store_slug, member: member.id }), {
+        patch(route('store.staff.update', { store_slug: storeSlug, member: member.id }), {
             onSuccess: onClose,
         });
     }
@@ -263,7 +263,7 @@ function MemberRow({ member, storeId, canManage, myRole }) {
 
     function remove() {
         if (!confirm(`Remove ${member.name} from the store? They will lose all access immediately.`)) return;
-        router.delete(route('store.staff.remove', { store_slug: usePage().props.store_slug, member: member.id }), { preserveScroll: true });
+        router.delete(route('store.staff.remove', { store_slug: storeSlug, member: member.id }), { preserveScroll: true });
         setMenuOpen(false);
     }
 

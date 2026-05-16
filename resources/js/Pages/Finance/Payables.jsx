@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
@@ -70,7 +69,7 @@ export default function Payables({ parties = [] }) {
         }));
     };
 
-
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(val)).replace('PKR', 'Rs');
 
     return (
         <OneGlanceLayout title="Accounts Payable" activeMenu="Money">
@@ -88,7 +87,7 @@ export default function Payables({ parties = [] }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Payable</p>
                         </div>
-                        <p className="text-lg font-black text-red-600">{formatCurrency(stats.totalPayable, store)}</p>
+                        <p className="text-lg font-black text-red-600">{formatCurrency(stats.totalPayable)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -106,7 +105,7 @@ export default function Payables({ parties = [] }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Avg Balance</p>
                         </div>
-                        <p className="text-lg font-black text-blue-600">{formatCurrency(stats.avgPayable, store)}</p>
+                        <p className="text-lg font-black text-blue-600">{formatCurrency(stats.avgPayable)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -116,7 +115,7 @@ export default function Payables({ parties = [] }) {
                             <p className="text-xs font-bold text-slate-500 uppercase">Highest Creditor</p>
                         </div>
                         <div className="flex flex-col items-end">
-                            <p className="text-lg font-black text-rose-600 leading-none">{formatCurrency(parseFloat(stats.largestCreditor.balance ?? stats.largestCreditor.current_balance ?? 0), store)}</p>
+                            <p className="text-lg font-black text-rose-600 leading-none">{formatCurrency(parseFloat(stats.largestCreditor.balance ?? stats.largestCreditor.current_balance ?? 0))}</p>
                             {stats.largestCreditor.name && (
                                 <p className="text-[10px] font-bold text-slate-400 truncate max-w-[100px] mt-0.5">{stats.largestCreditor.name}</p>
                             )}
@@ -215,7 +214,7 @@ export default function Payables({ parties = [] }) {
                                             <p className="text-xs text-slate-500">{new Date(party.updated_at || party.created_at).toLocaleDateString()}</p>
                                         </td>
                                         <td className="p-3 text-right">
-                                            <p className="font-mono font-bold text-rose-600 dark:text-rose-400">{formatCurrency(party.balance ?? party.current_balance ?? 0, store)}</p>
+                                            <p className="font-mono font-bold text-rose-600 dark:text-rose-400">{formatCurrency(party.balance ?? party.current_balance ?? 0)}</p>
                                         </td>
                                         <td className="p-3 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity">

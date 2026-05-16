@@ -10,7 +10,6 @@ import {
     PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer,
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
 
 export default function ProfitLoss({ stats = {}, filters = {} }) {
     const {
@@ -46,6 +45,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
     ].filter(d => d.value > 0);
 
     // --- formatters ---
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     // --- Handlers ---
     const handleRangeChange = (r) => {
@@ -170,21 +170,21 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                     <RatioCard
                         title="Net Profit"
-                        value={formatCurrency(netProfit, store)}
+                        value={formatCurrency(netProfit)}
                         subtitle={`${netMargin}% of Revenue`}
                         color={netProfit >= 0 ? "emerald" : "rose"}
                         icon={<DollarSign />}
                     />
                     <RatioCard
                         title="Gross Profit"
-                        value={formatCurrency(grossProfit, store)}
+                        value={formatCurrency(grossProfit)}
                         subtitle={`${grossMargin}% Margin`}
                         color="blue"
                         icon={<TrendingUp />}
                     />
                     <RatioCard
                         title="Total Expenses"
-                        value={formatCurrency(expenses, store)}
+                        value={formatCurrency(expenses)}
                         subtitle={`${expenseRatio}% of Revenue`}
                         color="rose"
                         icon={<TrendingDown />}
@@ -226,7 +226,6 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                         percent={100}
                                         info="Total income from goods sold before any deductions."
                                         isHeader
-                                        store={store}
                                     />
                                     <StatementRow
                                         label="Cost of Goods Sold (COGS)"
@@ -234,7 +233,6 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                         percent={cogsRatio}
                                         info="Direct costs attributable to the production of the goods sold (e.g., material cost)."
                                         isNegative
-                                        store={store}
                                         action={() => props.meta?.cogs_account_id && router.visit(route("store.reports.account-ledger", {
                                             store_slug: store.slug,
                                             account_id: props.meta.cogs_account_id,
@@ -247,7 +245,6 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                         amount={grossProfit}
                                         type="subtotal"
                                         info="Revenue minus COGS. Indicates how efficiently you produce goods."
-                                        store={store}
                                     />
                                     <StatementRow
                                         label="Operating Expenses"
@@ -255,14 +252,12 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                         percent={expenseRatio}
                                         info="Expenses incurred in normal business operations (Rent, Utilities, Salaries)."
                                         isNegative
-                                        store={store}
                                     />
                                     <SummaryRow
                                         label="Net Profit / (Loss)"
                                         amount={netProfit}
                                         type="total"
                                         info="The 'Bottom Line'. Total earnings after subtracting all expenses and costs."
-                                        store={store}
                                     />
                                 </tbody>
                             </table>
@@ -292,7 +287,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                             ))}
                                         </Pie>
                                         <RechartsTooltip
-                                            formatter={(val) => formatCurrency(val, store)}
+                                            formatter={(val) => formatCurrency(val)}
                                             contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                                             itemStyle={{ color: '#fff' }}
                                         />
@@ -367,7 +362,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                     </h4>
                                     <p className="text-[11px] text-slate-300 leading-relaxed">
                                         Increasing your average ticket size by just <strong>10%</strong> would add
-                                        <strong className="text-white ml-1">{formatCurrency(revenue * 0.1, store)}</strong> to your revenue without new customers.
+                                        <strong className="text-white ml-1">{formatCurrency(revenue * 0.1)}</strong> to your revenue without new customers.
                                     </p>
                                 </div>
 
@@ -491,7 +486,8 @@ function RatioCard({ title, value, subtitle, color, icon }) {
     );
 }
 
-function StatementRow({ label, amount, percent, info, isHeader, isNegative, action, store }) {
+function StatementRow({ label, amount, percent, info, isHeader, isNegative, action }) {
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     return (
         <tr className={`group transition-colors ${action ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer' : ''}`} onClick={action}>
@@ -511,7 +507,7 @@ function StatementRow({ label, amount, percent, info, isHeader, isNegative, acti
                 {action && <p className="text-[10px] text-indigo-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
             </td>
             <td className={`px-6 py-4 text-right font-bold ${isNegative ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
-                {formatCurrency(amount, store)}
+                {formatCurrency(amount)}
             </td>
             <td className="px-6 py-4 text-right">
                 <div className="flex items-center justify-end gap-2">
@@ -525,7 +521,8 @@ function StatementRow({ label, amount, percent, info, isHeader, isNegative, acti
     );
 }
 
-function SummaryRow({ label, amount, type, info, store }) {
+function SummaryRow({ label, amount, type, info }) {
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
     const isTotal = type === 'total';
     const isLoss = amount < 0;
 
@@ -546,7 +543,7 @@ function SummaryRow({ label, amount, type, info, store }) {
                 </div>
             </td>
             <td className={`px-6 py-4 text-right ${isTotal ? 'text-xl font-black' : 'text-lg font-bold'} ${isLoss ? 'text-rose-600' : 'text-emerald-600'}`}>
-                {formatCurrency(amount, store)}
+                {formatCurrency(amount)}
             </td>
             <td className="px-6 py-4 text-right"></td>
         </tr>

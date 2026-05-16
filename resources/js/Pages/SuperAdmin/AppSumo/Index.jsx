@@ -43,18 +43,18 @@ export default function AppSumoIndex({ codes, filters, stats }) {
     };
 
     return (
-        <OneGlanceLayout title="AppSumo Code Bank" mode="admin">
+        <OneGlanceLayout title="AppSumo Code Bank">
             <Head title="AppSumo Code Bank" />
 
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
                 {/* Header Actions */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                        <h1 className="text-2xl font-black text-white flex items-center gap-3">
                             <Ticket className="text-indigo-400" />
                             AppSumo Code Bank
                         </h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                        <p className="text-slate-400 text-sm mt-1">
                             Manage one-time redemption codes for the AppSumo LTD campaign.
                         </p>
                     </div>
@@ -67,7 +67,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                         </button>
                         <button 
                             onClick={() => setShowImport(true)}
-                            className="bg-slate-200 dark:bg-white/5 hover:bg-slate-300 dark:hover:bg-white/10 text-slate-800 dark:text-white px-4 py-2 rounded-xl text-sm font-bold border border-slate-300 dark:border-white/10 flex items-center gap-2 transition-all"
+                            className="bg-white/5 hover:bg-white/10 text-white px-4 py-2 rounded-xl text-sm font-bold border border-white/10 flex items-center gap-2 transition-all"
                         >
                             <Upload size={16} /> Import CSV
                         </button>
@@ -88,9 +88,9 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                 {/* Quick Stats */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 p-6 rounded-3xl">
+                    <div className="bg-white/5 border border-white/10 p-6 rounded-3xl">
                         <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mb-1">Total Codes</p>
-                        <p className="text-3xl font-black text-slate-900 dark:text-white">{stats.total.toLocaleString()}</p>
+                        <p className="text-3xl font-black text-white">{stats.total.toLocaleString()}</p>
                     </div>
                     <div className="bg-emerald-500/5 border border-emerald-500/10 p-6 rounded-3xl">
                         <p className="text-emerald-500/60 text-xs font-bold uppercase tracking-widest mb-1">Available</p>
@@ -144,16 +144,16 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     <th className="px-6 py-4 text-right">Added</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-200 dark:divide-white/5">
+                            <tbody className="divide-y divide-white/5">
                                 {codes.data.length > 0 ? codes.data.map((item) => (
-                                    <tr key={item.id} className="hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group">
+                                    <tr key={item.id} className="hover:bg-white/5 transition-colors group">
                                         <td className="px-6 py-4">
-                                            <code className="text-slate-900 dark:text-white font-mono font-bold bg-slate-200 dark:bg-white/10 px-2 py-1 rounded text-sm">
+                                            <code className="text-white font-mono font-bold bg-white/10 px-2 py-1 rounded text-sm">
                                                 {item.code}
                                             </code>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-slate-600 dark:text-slate-300 text-sm">{item.plan_tier}</span>
+                                            <span className="text-slate-300 text-sm">{item.plan_tier}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             {item.is_redeemed ? (
@@ -201,9 +201,9 @@ export default function AppSumoIndex({ codes, filters, stats }) {
 
                 {/* Modals */}
                 {showGenerate && (
-                    <div className="fixed inset-0 bg-slate-900/60 dark:bg-[#020010]/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
-                        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
-                            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+                    <div className="fixed inset-0 bg-[#020010]/95 backdrop-blur-md z-[100] flex items-center justify-center p-6">
+                        <div className="bg-slate-900 border border-white/10 rounded-[2.5rem] max-w-md w-full p-8 shadow-2xl animate-in zoom-in-95 duration-300">
+                            <h2 className="text-2xl font-black text-white mb-6 flex items-center gap-3">
                                 <Plus className="text-indigo-400" />
                                 Bulk Generate Codes
                             </h2>
@@ -214,7 +214,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                         type="number" 
                                         value={data.count}
                                         onChange={e => setData('count', e.target.value)}
-                                        className="w-full bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white px-5 py-3 focus:ring-indigo-500"
+                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-indigo-500"
                                         autoFocus
                                     />
                                 </div>
@@ -223,7 +223,7 @@ export default function AppSumoIndex({ codes, filters, stats }) {
                                     <select 
                                         value={data.tier}
                                         onChange={e => setData('tier', e.target.value)}
-                                        className="w-full bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl text-slate-900 dark:text-white px-5 py-3 focus:ring-indigo-500"
+                                        className="w-full bg-white/5 border-white/10 rounded-2xl text-white px-5 py-3 focus:ring-indigo-500"
                                     >
                                         <option value="Tier 1">Tier 1 (Single Store)</option>
                                         <option value="Tier 2">Tier 2 (3 Stores)</option>

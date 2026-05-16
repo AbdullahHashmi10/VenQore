@@ -27,7 +27,6 @@ export default function StockTakeIndex({ stockTakes = [], warehouses = [] }) {
     const [warehouseFilter, setWarehouseFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });
     const { showConfirm } = useAlert();
-    const { store } = usePage().props;
 
     // Filter stock takes
     const filteredStockTakes = useMemo(() => {

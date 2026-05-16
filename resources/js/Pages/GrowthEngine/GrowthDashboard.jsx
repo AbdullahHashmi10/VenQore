@@ -1,5 +1,4 @@
-﻿import React, { useState } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head } from '@inertiajs/react';
 import { Sparkles, TrendingUp, AlertTriangle, RefreshCcw, ArrowRight, Filter, CheckCircle, Search, Info } from 'lucide-react';
@@ -92,7 +91,7 @@ export default function GrowthEngineIndex({ recommendations, stats, filters }) {
                     <div className="flex gap-4">
                         <div className="text-center p-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10">
                             <p className="text-sm text-indigo-200 uppercase tracking-widest font-bold">Potential Revenue</p>
-                            <p className="text-2xl font-bold mt-1">{getCurrencySymbol()} {hasData ? (stats?.potential_revenue || 0).toLocaleString() : '45,000'}</p>
+                            <p className="text-2xl font-bold mt-1">{window.amdSettings?.currency_symbol || ''} {hasData ? (stats?.potential_revenue || 0).toLocaleString() : '45,000'}</p>
                         </div>
                         <div className="text-center p-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/10">
                             <p className="text-sm text-indigo-200 uppercase tracking-widest font-bold">Actions Pending</p>

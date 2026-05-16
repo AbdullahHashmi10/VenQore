@@ -79,7 +79,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <StatCard
                                 title="Sales Today"
-                                value={formatCurrency(Number(stats.sales_today || 0), store)}
+                                value={formatCurrency(Number(stats.sales_today || 0))}
                                 icon={DollarSign}
                                 color="bg-emerald-500"
                                 subValue={`${stats.orders_today || 0} Orders`}
@@ -87,7 +87,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                             />
                             <StatCard
                                 title="Monthly Revenue"
-                                value={formatCurrency(Number(stats.sales_month || 0), store)}
+                                value={formatCurrency(Number(stats.sales_month || 0))}
                                 icon={Calendar}
                                 color="bg-indigo-500"
                                 subValue={`${stats.orders_month || 0} Orders`}
@@ -95,7 +95,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                             />
                             <StatCard
                                 title="Avg. Order Value"
-                                value={formatCurrency(Number(stats.avg_order_value || 0), store)}
+                                value={formatCurrency(Number(stats.avg_order_value || 0))}
                                 icon={TrendingUp}
                                 color="bg-blue-500"
                                 trend={stats.avg_order_growth}
@@ -140,7 +140,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="font-bold text-sm text-slate-800 dark:text-white">{formatCurrency(Number(item.revenue || 0), store)}</p>
+                                                        <p className="font-bold text-sm text-slate-800 dark:text-white">{formatCurrency(Number(item.revenue || 0))}</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -167,7 +167,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                         <div key={idx} className="space-y-1">
                                             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
                                                 <span className="text-slate-500">{method.payment_method}</span>
-                                                <span className="text-slate-800 dark:text-white">{formatCurrency(Number(method.total || 0), store)}</span>
+                                                <span className="text-slate-800 dark:text-white">{formatCurrency(Number(method.total || 0))}</span>
                                             </div>
                                             <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                                                 <div
@@ -227,7 +227,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                                                     {sale.party ? sale.party.name : 'Walk-in Customer'}
                                                 </td>
                                                 <td className="px-6 py-3 text-right font-black text-slate-800 dark:text-white text-xs">
-                                                    {formatCurrency(Number(sale.total), store)}
+                                                    {formatCurrency(Number(sale.total))}
                                                 </td>
                                                 <td className="px-6 py-3 text-right">
                                                     <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-tighter

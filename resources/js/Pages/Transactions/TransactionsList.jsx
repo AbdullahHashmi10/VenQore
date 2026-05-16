@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { Head, Link, router } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import {
@@ -31,7 +30,7 @@ import {
     ChevronRight
 } from 'lucide-react';
 
-export default function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {}, store }) {
+export default function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {} }) {
     // Infinite Scroll State
     const [allTransactions, setAllTransactions] = useState(transactions.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(transactions.next_page_url);
@@ -138,6 +137,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(val).replace('PKR', 'Rs');
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     const SortIcon = ({ columnKey }) => {
@@ -185,7 +185,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Sales</p>
                         </div>
-                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.total_debit || 0, store)}</p>
+                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.total_debit || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -194,7 +194,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Received</p>
                         </div>
-                        <p className="text-lg font-black text-blue-600">{formatCurrency(stats.total_credit || 0, store)}</p>
+                        <p className="text-lg font-black text-blue-600">{formatCurrency(stats.total_credit || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -203,7 +203,7 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Unpaid / Due</p>
                         </div>
-                        <p className="text-lg font-black text-red-600">{formatCurrency(stats.total_balance_due || 0, store)}</p>
+                        <p className="text-lg font-black text-red-600">{formatCurrency(stats.total_balance_due || 0)}</p>
                     </div>
                 </div>
 
@@ -311,13 +311,13 @@ export default function TransactionsIndex({ transactions = { data: [], current_p
                                             </td>
                                             <td className="p-3 text-right">
                                                 <span className="text-xs font-mono font-bold text-slate-800 dark:text-white">
-                                                    {formatCurrency(row.amount, store)}
+                                                    {formatCurrency(row.amount)}
                                                 </span>
                                             </td>
                                             <td className="p-3 text-right">
                                                 {row.balance_due > 0 ? (
                                                     <span className="text-xs font-mono font-bold text-red-600 dark:text-red-400">
-                                                        {formatCurrency(row.balance_due, store)}
+                                                        {formatCurrency(row.balance_due)}
                                                     </span>
                                                 ) : (
                                                     <span className="inline-flex px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase">

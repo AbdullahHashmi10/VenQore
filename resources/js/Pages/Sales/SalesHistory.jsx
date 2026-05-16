@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { formatCurrency, formatDate, formatTime } from '@/Utils/format';
 import {
     Plus,
     Search,
@@ -265,6 +264,8 @@ export default function SalesIndex({ sales, filters, stats }) {
     };
 
     // Formatters
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
+    const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     // New Sale Buttons (Creating a space for them while respecting blueprint header)
     // The blueprint asks for a specific Header Area. I will place the buttons below tabs.
@@ -288,7 +289,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Sale</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_sale || 0, store)}</p>
+                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_sale || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -297,7 +298,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Paid Amount</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_paid || 0, store)}</p>
+                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_paid || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -306,7 +307,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Unpaid (Due)</p>
                         </div>
-                        <p className="text-base font-black text-rose-600">{formatCurrency(stats?.total_unpaid || 0, store)}</p>
+                        <p className="text-base font-black text-rose-600">{formatCurrency(stats?.total_unpaid || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -515,13 +516,13 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                 ? <span className="text-xs font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-1 rounded-md">Return</span>
                                                                 : <span className="text-xs font-bold uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-1 rounded-md">Sale</span>;
                                                         case 'payment_method': return <span className="uppercase text-xs font-semibold">{row.payment_method || '-'}</span>;
-                                                        case 'amount': return <span className="font-bold">{formatCurrency(row.total, store)}</span>;
+                                                        case 'amount': return <span className="font-bold">{formatCurrency(row.total)}</span>;
                                                         case 'balance':
                                                             const paid = parseFloat(row.paid_amount || (row.payment_status === 'paid' ? row.total : 0) || 0);
                                                             const balance = parseFloat(row.total) - paid;
                                                             // Tolerance of 1 for floating point diffs
-                                                            if (balance > 1) return <span className="text-red-500 font-bold">{formatCurrency(balance, store)}</span>;
-                                                            if (balance < -1) return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatCurrency(Math.abs(balance), store)}</span>;
+                                                            if (balance > 1) return <span className="text-red-500 font-bold">{formatCurrency(balance)}</span>;
+                                                            if (balance < -1) return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatCurrency(Math.abs(balance))}</span>;
                                                             return <span className="text-emerald-500 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">Settled</span>;
                                                         case 'due_date': return <span className="text-slate-400">-</span>;
                                                         case 'status':
@@ -714,7 +715,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date & Time</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewSale.created_at)}</p>
-                                        <p className="text-xs text-slate-500">{formatTime(quickViewSale.created_at)}</p>
+                                        <p className="text-xs text-slate-500">{new Date(quickViewSale.created_at).toLocaleTimeString()}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Payment</p>
@@ -722,7 +723,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     </div>
                                     <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
                                         <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total, store)}</p>
+                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total)}</p>
                                     </div>
                                 </div>
 
@@ -757,12 +758,12 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                 )}
                                                             </td>
                                                             <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
+                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0)}</td>
                                                             <td className="p-3 text-right text-orange-600">
-                                                                {item.discount ? `-${formatCurrency(item.discount, store)}` : '-'}
+                                                                {item.discount ? `-${formatCurrency(item.discount)}` : '-'}
                                                             </td>
                                                             <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                                {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0), store)}
+                                                                {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0))}
                                                             </td>
                                                         </tr>
                                                     ))
@@ -781,23 +782,23 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         <div className="flex justify-end gap-8">
                                             <div className="text-right">
                                                 <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
-                                                <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal || quickViewSale.total, store)}</p>
+                                                <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal || quickViewSale.total)}</p>
                                             </div>
                                             {quickViewSale.discount > 0 && (
                                                 <div className="text-right">
                                                     <p className="text-[10px] text-slate-400 uppercase">Discount</p>
-                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.discount, store)}</p>
+                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.discount)}</p>
                                                 </div>
                                             )}
                                             {quickViewSale.tax > 0 && (
                                                 <div className="text-right">
                                                     <p className="text-[10px] text-slate-400 uppercase">Tax</p>
-                                                    <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.tax, store)}</p>
+                                                    <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.tax)}</p>
                                                 </div>
                                             )}
                                             <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-8">
                                                 <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
-                                                <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewSale.total, store)}</p>
+                                                <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewSale.total)}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -808,7 +809,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     <div className="flex gap-6">
                                         <div>
                                             <p className="text-[10px] text-slate-400 uppercase">Paid Amount</p>
-                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0), store)}</p>
+                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0))}</p>
                                         </div>
                                         {(() => {
                                             const paid = parseFloat(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0));
@@ -817,7 +818,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                 return (
                                                     <div>
                                                         <p className="text-[10px] text-slate-400 uppercase">Balance Due</p>
-                                                        <p className="font-bold text-red-600">{formatCurrency(balance, store)}</p>
+                                                        <p className="font-bold text-red-600">{formatCurrency(balance)}</p>
                                                     </div>
                                                 );
                                             }

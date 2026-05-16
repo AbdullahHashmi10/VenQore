@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
@@ -80,26 +79,6 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
         { key: 'actions', label: 'Actions', width: '10%', frozen: true }
     ]);
 
-    // Use raw data from server (already sorted globally)
-    const sortedPurchases = allPurchases;
-
-    // Formatters
-    const renderCurrency = (val) => (val < 0 ? '-' : '') + (window.amdSettings?.currency_symbol || 'Rs') + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(val) || 0);
-    const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
-
-    // Apply Filters
-    const applyFilters = useCallback((newParams) => {
-        router.get(route('store.purchases.index', { store_slug: store?.slug }), {
-            search: searchTerm,
-            filter: activeFilter,
-            from_date: dateRange.from,
-            to_date: dateRange.to,
-            sort_by: sortConfig.key,
-            sort_dir: sortConfig.direction,
-            ...newParams
-        }, { preserveState: true, preserveScroll: true, replace: true });
-    }, [store?.slug, searchTerm, activeFilter, dateRange, sortConfig]);
-
     // Debounced Search Logic
     const [debouncedSearch] = useMemo(() => {
         let timer;
@@ -111,13 +90,13 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                 }, 400);
             }
         ];
-    }, [applyFilters]);
+    }, [sortConfig, activeFilter, dateRange]);
 
     useEffect(() => {
         if (searchTerm !== (params.get('search') || '')) {
             debouncedSearch(searchTerm);
         }
-    }, [searchTerm, debouncedSearch, params]);
+    }, [searchTerm]);
 
     // Fetch Next Page (Inertia handles this via re-render, but for infinite scroll we use raw json)
     const fetchNextPage = useCallback(async () => {
@@ -137,13 +116,28 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
 
     // Intersection Observer
     useEffect(() => {
-        const target = observerTarget.current;
         const observer = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && nextPageUrl && !isLoading.current) fetchNextPage();
         }, { threshold: 0.1, rootMargin: '800px' });
-        if (target) observer.observe(target);
-        return () => { if (target) observer.unobserve(target); };
+        if (observerTarget.current) observer.observe(observerTarget.current);
+        return () => { if (observerTarget.current) observer.unobserve(observerTarget.current); };
     }, [nextPageUrl, fetchNextPage]);
+
+    // Apply Filters
+    const applyFilters = (newParams) => {
+        router.get(route('store.purchases.index', { store_slug: store?.slug }), {
+            search: searchTerm,
+            filter: activeFilter,
+            from_date: dateRange.from,
+            to_date: dateRange.to,
+            sort_by: sortConfig.key,
+            sort_dir: sortConfig.direction,
+            ...newParams
+        }, { preserveState: true, preserveScroll: true, replace: true });
+    };
+
+    // Use raw data from server (already sorted globally)
+    const sortedPurchases = allPurchases;
 
     // Sorting
     const handleSort = (key) => {
@@ -205,7 +199,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
             }, 250);
             setClickTimeout(timeout);
         }
-    }, [clickTimeout, store?.slug]);
+    }, [clickTimeout]);
 
     const applyFilterType = (type) => {
         setActiveFilter(type);
@@ -245,6 +239,10 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
         setDraggedColumn(null);
     };
 
+    // Formatters
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val || 0);
+    const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+
     // Handlers
     const confirmDelete = () => {
         if (itemToDelete) {
@@ -280,7 +278,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Purchases</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{renderCurrency(stats?.total_purchase || 0, store)}</p>
+                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_purchase || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -289,7 +287,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Paid Amount</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{renderCurrency(stats?.total_paid || 0, store)}</p>
+                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_paid || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -298,7 +296,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Unpaid (Due)</p>
                         </div>
-                        <p className="text-base font-black text-rose-600">{renderCurrency(stats?.total_due || 0, store)}</p>
+                        <p className="text-base font-black text-rose-600">{formatCurrency(stats?.total_due || 0)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -453,9 +451,9 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                         case 'total':
                                                             return (
                                                                 <div className="flex flex-col">
-                                                                    <span className="font-bold">{renderCurrency(row.subtotal || row.total, store)}</span>
+                                                                    <span className="font-bold">{formatCurrency(row.subtotal || row.total)}</span>
                                                                     {row.extras > 0 && (
-                                                                        <span className="text-xs text-amber-600 dark:text-amber-400">+{renderCurrency(row.extras, store)} extras</span>
+                                                                        <span className="text-xs text-amber-600 dark:text-amber-400">+{formatCurrency(row.extras)} extras</span>
                                                                     )}
                                                                 </div>
                                                             );
@@ -465,9 +463,9 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             const balance = row.balance ?? (total - paid);
                                                             return (
                                                                 <div className="flex flex-col">
-                                                                    <span className="text-xs text-slate-500">Paid: <span className="text-emerald-600 font-semibold">{renderCurrency(paid, store)}</span></span>
+                                                                    <span className="text-xs text-slate-500">Paid: <span className="text-emerald-600 font-semibold">{formatCurrency(paid)}</span></span>
                                                                     {balance > 1 ? (
-                                                                        <span className="text-red-500 font-bold">Due: {renderCurrency(balance, store)}</span>
+                                                                        <span className="text-red-500 font-bold">Due: {formatCurrency(balance)}</span>
                                                                     ) : (
                                                                         <span className="text-emerald-500 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full w-fit">Settled</span>
                                                                     )}
@@ -611,7 +609,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                 </div>
                                 <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                    <p className="font-black text-indigo-600 text-lg">{renderCurrency(quickViewItem.total, store)}</p>
+                                    <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewItem.total)}</p>
                                 </div>
                             </div>
 
@@ -645,9 +643,9 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             )}
                                                         </td>
                                                         <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{renderCurrency(item.price || item.unit_price || 0, store)}</td>
+                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0)}</td>
                                                         <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                            {renderCurrency(item.quantity * (item.price || item.unit_price || 0), store)}
+                                                            {formatCurrency(item.quantity * (item.price || item.unit_price || 0))}
                                                         </td>
                                                     </tr>
                                                 ))
@@ -666,25 +664,25 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                     <div className="flex justify-end gap-6">
                                         <div className="text-right">
                                             <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
-                                            <p className="font-bold text-slate-700 dark:text-slate-300">{renderCurrency(quickViewItem.subtotal || quickViewItem.total, store)}</p>
+                                            <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewItem.subtotal || quickViewItem.total)}</p>
                                         </div>
                                         {quickViewItem.extras > 0 && (
                                             <div className="text-right">
                                                 <p className="text-[10px] text-amber-600 uppercase">Extras</p>
-                                                <p className="font-bold text-amber-600">+{renderCurrency(quickViewItem.extras, store)}</p>
+                                                <p className="font-bold text-amber-600">+{formatCurrency(quickViewItem.extras)}</p>
                                             </div>
                                         )}
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-6">
                                             <p className="text-[10px] text-slate-400 uppercase">Paid</p>
-                                            <p className="font-bold text-emerald-600">{renderCurrency(quickViewItem.paid || 0, store)}</p>
+                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewItem.paid || 0)}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] text-slate-400 uppercase">Balance</p>
-                                            <p className="font-bold text-red-600">{renderCurrency(quickViewItem.balance ?? ((quickViewItem.total || 0) - (quickViewItem.paid || 0)), store)}</p>
+                                            <p className="font-bold text-red-600">{formatCurrency(quickViewItem.balance ?? ((quickViewItem.total || 0) - (quickViewItem.paid || 0)))}</p>
                                         </div>
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-6">
                                             <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
-                                            <p className="font-black text-lg text-indigo-600">{renderCurrency(quickViewItem.total, store)}</p>
+                                            <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewItem.total)}</p>
                                         </div>
                                     </div>
                                 </div>

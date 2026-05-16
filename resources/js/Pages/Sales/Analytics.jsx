@@ -1,12 +1,11 @@
 import React from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
 import { DollarSign, ShoppingBag, TrendingUp, Package } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 
 export default function SalesAnalytics({ revenue, counts, topProducts, chartData }) {
-    const { store } = usePage().props;
     return (
         <OneGlanceLayout title="Sales Analytics" activeMenu="Sell">
             <Head title="Sales Analytics" />
@@ -24,7 +23,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
                                 </div>
                                 <div>
                                     <p className="text-sm text-slate-500 font-medium">Today's Revenue</p>
-                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.today, store)}</h3>
+                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.today)}</h3>
                                 </div>
                             </div>
                             <div className="text-xs text-slate-400">
@@ -39,7 +38,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
                                 </div>
                                 <div>
                                     <p className="text-sm text-slate-500 font-medium">This Week</p>
-                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.week, store)}</h3>
+                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.week)}</h3>
                                 </div>
                             </div>
                             <div className="text-xs text-slate-400">
@@ -54,7 +53,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
                                 </div>
                                 <div>
                                     <p className="text-sm text-slate-500 font-medium">This Month</p>
-                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.month, store)}</h3>
+                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.month)}</h3>
                                 </div>
                             </div>
                             <div className="text-xs text-slate-400">
@@ -69,7 +68,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
                                 </div>
                                 <div>
                                     <p className="text-sm text-slate-500 font-medium">Total Revenue</p>
-                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.total, store)}</h3>
+                                    <h3 className="text-2xl font-bold text-slate-800 dark:text-white">{formatCurrency(revenue.total)}</h3>
                                 </div>
                             </div>
                             <div className="text-xs text-slate-400">
@@ -96,7 +95,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
                                                 ></div>
                                                 {/* Tooltip */}
                                                 <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-xs py-1 px-2 rounded pointer-events-none whitespace-nowrap z-10">
-                                                    {formatCurrency(data.revenue, store)}
+                                                    {formatCurrency(data.revenue)}
                                                 </div>
                                             </div>
                                             <span className="text-xs text-slate-500 font-medium">{data.date}</span>
@@ -120,7 +119,7 @@ export default function SalesAnalytics({ revenue, counts, topProducts, chartData
                                             <p className="text-xs text-slate-500">{item.total_qty} units sold</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(item.total_revenue, store)}</p>
+                                            <p className="font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(item.total_revenue)}</p>
                                         </div>
                                     </div>
                                 ))}

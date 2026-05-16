@@ -8,7 +8,6 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
 
 export default function DiscountReport({ invoices = [], filters = {} }) {
     const {
@@ -143,6 +142,7 @@ export default function DiscountReport({ invoices = [], filters = {} }) {
         }, { preserveState: true, preserveScroll: true });
     };
 
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     return (
         <ReportsLayout title="Discount Report">

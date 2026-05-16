@@ -1,5 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState, useMemo } from 'react';
 import { usePage, Head, Link } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { 
@@ -13,7 +12,7 @@ import {
     Download
 } from 'lucide-react';
 
-export default function CashHistory({ balance, ledger, store }) {
+export default function CashHistory({ balance, ledger }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterType, setFilterType] = useState('all');
 
@@ -48,7 +47,7 @@ export default function CashHistory({ balance, ledger, store }) {
                         <div className="flex items-center gap-3">
                             <h1 className="text-lg font-bold text-slate-800 dark:text-white">Cash In Hand</h1>
                             <span className="text-emerald-500 font-bold bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded text-sm">
-                                {getCurrencySymbol()} {balance.toLocaleString()}
+                                Rs {balance.toLocaleString()}
                             </span>
                         </div>
                     </div>
@@ -122,7 +121,7 @@ export default function CashHistory({ balance, ledger, store }) {
                                                 {item.date}
                                             </td>
                                             <td className={`px-4 py-4 text-right text-sm font-black tabular-nums ${item.mode === 'in' ? 'text-[#10b981]' : 'text-[#f43f5e]'}`}>
-                                                {getCurrencySymbol()} {item.amount.toLocaleString()}
+                                                Rs {item.amount.toLocaleString()}
                                             </td>
                                             <td className="px-4 py-4 text-right">
                                                 <button className="p-1 text-slate-300 hover:text-slate-600 dark:hover:text-slate-200">

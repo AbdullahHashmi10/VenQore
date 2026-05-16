@@ -20,25 +20,25 @@ export default function AccountLedger({ account, transactions = [], openingBalan
     const reportStats = account ? [
         {
             label: 'Opening Balance',
-            value: formatCurrency(openingBalance, store),
+            value: formatCurrency(openingBalance),
             icon: <BookOpen size={18} />,
             type: 'neutral'
         },
         {
             label: 'Total Debits',
-            value: formatCurrency(totalDebit, store),
+            value: formatCurrency(totalDebit),
             icon: <ArrowLeft size={18} />,
             type: 'neutral'
         },
         {
             label: 'Total Credits',
-            value: formatCurrency(totalCredit, store),
+            value: formatCurrency(totalCredit),
             icon: <ArrowRight size={18} />,
             type: 'neutral'
         },
         {
             label: 'Closing Balance',
-            value: formatCurrency(closingBalance, store),
+            value: formatCurrency(closingBalance),
             icon: <CreditCard size={18} />,
             type: 'neutral'
         }
@@ -66,19 +66,19 @@ export default function AccountLedger({ account, transactions = [], openingBalan
             key: 'debit',
             label: 'Debit',
             align: 'right',
-            render: (row) => row.debit > 0 ? formatCurrency(row.debit, store) : '-'
+            render: (row) => row.debit > 0 ? formatCurrency(row.debit) : '-'
         },
         {
             key: 'credit',
             label: 'Credit',
             align: 'right',
-            render: (row) => row.credit > 0 ? formatCurrency(row.credit, store) : '-'
+            render: (row) => row.credit > 0 ? formatCurrency(row.credit) : '-'
         },
         {
             key: 'balance',
             label: 'Balance',
             align: 'right',
-            render: (row) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(row.balance, store)}</span>
+            render: (row) => <span className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(row.balance)}</span>
         }
     ];
 

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { formatCurrency } from '@/Utils/format';
 import {
     Plus,
     Search,
@@ -185,6 +184,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
         setDraggedColumn(null);
     };
 
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(Math.abs(val));
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     return (

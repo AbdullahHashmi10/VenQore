@@ -1,5 +1,4 @@
 import { usePage, Link } from '@inertiajs/react'
-import { formatCurrency } from '@/Utils/format';
 
 export default function PurchaseIndex({ purchases }) {
     const { store } = usePage().props;
@@ -37,7 +36,7 @@ export default function PurchaseIndex({ purchases }) {
                             <td className="border border-gray-200 px-4 py-2">{p.supplier_name}</td>
                             <td className="border border-gray-200 px-4 py-2">{p.purchase_date}</td>
                             <td className="border border-gray-200 px-4 py-2 text-right">
-                                {formatCurrency(p.total, store)}
+                                {window.amdSettings?.currency_symbol || ''} {parseFloat(p.total).toLocaleString()}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-center text-sm capitalize">
                                 {p.payment_method}

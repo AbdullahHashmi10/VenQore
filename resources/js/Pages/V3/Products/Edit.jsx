@@ -1,5 +1,4 @@
-import { useForm, Link, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { useForm, Link, usePage } from '@inertiajs/react'
 
 export default function ProductEdit({ product, uomConversions, priceTiers }) {
     const { store } = usePage().props;
@@ -128,7 +127,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                         <p className="text-sm font-medium mb-2">Price Tiers</p>
                         {priceTiers.map(t => (
                             <p key={t.id} className="text-sm text-gray-600">
-                                {t.min_qty}–{t.max_qty ?? '∞'} units: {formatCurrency(t.unit_price, store)}
+                                {t.min_qty}–{t.max_qty ?? '∞'} units: Rs.{t.unit_price}
                             </p>
                         ))}
                         <Link

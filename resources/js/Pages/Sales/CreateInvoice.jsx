@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { shouldStopNegativeStock } from '@/Utils/settings';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import FormModal from '@/Components/FormModal';
@@ -902,25 +902,27 @@ const CreateInvoice = ({ sale }) => {
             }
 
             if (response.data.success || isEditMode) { // Update might fallback
-                // window.dispatchEvent(new CustomEvent('amd:product-updated'));
+                // Global Sync Trigger (Sales affect stock)
+                window.dispatchEvent(new CustomEvent('amd:product-updated'));
                 localStorage.setItem('amd_product_latest_change', Date.now().toString());
 
                 setLastSaleId(isEditMode ? currentInvoice.id : response.data.sale_id);
 
                 if (isEditMode) {
                     showAlert({ title: 'Success', message: 'Sale updated successfully.', type: 'success' });
+                    // If print requested
                     if (shouldPrint) {
                         PrintService.quickPrint(currentInvoice);
                     }
+                    // Redirect back to index after short delay or immediately?
                     if (!shouldPrint) router.visit(route('store.sales.index', { store_slug: store?.slug }));
                 } else {
-                    // For new sales, mark as completed but don't remove immediately 
-                    // This allows it to stay in background while modal is up, but clear on refresh
                     if (shouldPrint) {
                         PrintService.quickPrint(currentInvoice);
+                        setShowSuccessModal(true);
+                    } else {
+                        setShowSuccessModal(true);
                     }
-                    patchInvoice({ status: 'completed' });
-                    setShowSuccessModal(true);
                 }
             } else {
                 showAlert({
@@ -1410,7 +1412,7 @@ const CreateInvoice = ({ sale }) => {
                                                             }}
                                                             className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
                                                         >
-                                                            {quickEntry.discountType === 'percent' ? '%' : (getCurrencySymbol(store || settings))}
+                                                            {quickEntry.discountType === 'percent' ? '%' : 'Rs'}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -1564,7 +1566,7 @@ const CreateInvoice = ({ sale }) => {
                                                             onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
                                                             className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
                                                         >
-                                                            {item.discountType === 'percent' ? '%' : (getCurrencySymbol(store || settings))}
+                                                            {item.discountType === 'percent' ? '%' : 'Rs'}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -1582,7 +1584,7 @@ const CreateInvoice = ({ sale }) => {
                                                                 : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
                                                         }`}
                                                     >
-                                                        {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol(store || settings)) : '#'}
+                                                        {getItemTotalMode(item.id) === 'price' ? '₨' : '#'}
                                                     </button>
                                                     <WheelInput
                                                         type="number"
@@ -1652,7 +1654,7 @@ const CreateInvoice = ({ sale }) => {
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-500 font-medium">Balance:</span>
                                             <span className={`font-black ${currentInvoice.customer.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {currentInvoice.customer.current_balance >= 0 ? getCurrencySymbol(store || settings) : `-${getCurrencySymbol(store || settings)}`} {Math.abs(currentInvoice.customer.current_balance || 0).toLocaleString()}
+                                                {currentInvoice.customer.current_balance >= 0 ? '$ ' : '-Rs '}{Math.abs(currentInvoice.customer.current_balance || 0).toLocaleString()}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-start gap-2">
@@ -1750,11 +1752,11 @@ const CreateInvoice = ({ sale }) => {
                             <div className="space-y-2 pt-3 border-t border-slate-800/50">
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs text-slate-400 font-bold">Subtotal</span>
-                                    <span className="text-white font-bold text-base">{formatCurrency(subtotal, store || settings)}</span>
+                                    <span className="text-white font-bold text-base">{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs text-slate-400 font-bold">Item Discounts</span>
-                                    <span className="text-red-400 font-bold text-sm">- {formatCurrency(itemDiscounts, store || settings)}</span>
+                                    <span className="text-red-400 font-bold text-sm">- {formatCurrency(itemDiscounts)}</span>
                                 </div>
                             </div>
 
@@ -1762,7 +1764,7 @@ const CreateInvoice = ({ sale }) => {
                             <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
                                 <span className="text-xs text-slate-400 font-bold">Invoice Discount</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-slate-500 text-xs">{getCurrencySymbol(store || settings)}</span>
+                                    <span className="text-slate-500 text-xs">Rs</span>
                                     <input
                                         type="number"
                                         value={currentInvoice.discount ?? 0}
@@ -1793,7 +1795,7 @@ const CreateInvoice = ({ sale }) => {
                                 <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
                                     <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol(store || settings)}</span>
+                                        <span className="text-slate-600 text-[10px]">Rs</span>
                                         <input
                                             type="number"
                                             value={currentInvoice.delivery_charge ?? 0}
@@ -1822,7 +1824,7 @@ const CreateInvoice = ({ sale }) => {
                                                 <span className="text-[10px] text-slate-700">✎</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-600 text-[10px]">{getCurrencySymbol(store || settings)}</span>
+                                                <span className="text-slate-600 text-[10px]">Rs</span>
                                                 <input
                                                     type="number"
                                                     value={currentInvoice.extra_charge_value ?? 0}
@@ -1852,7 +1854,7 @@ const CreateInvoice = ({ sale }) => {
                                                         <span className="text-[10px] text-slate-700">✎</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol(store || settings)}</span>
+                                                        <span className="text-slate-600 text-[10px]">Rs</span>
                                                         <input
                                                             type="number"
                                                             value={field.value ?? 0}
@@ -1898,7 +1900,7 @@ const CreateInvoice = ({ sale }) => {
                             <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
                                 <span className="text-xs text-emerald-400 font-bold">Amount Paid</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-emerald-600 text-xs">{getCurrencySymbol(store || settings)}</span>
+                                    <span className="text-emerald-600 text-xs">Rs</span>
                                     <input
                                         type="number"
                                         value={currentInvoice.amountPaid ?? 0}
@@ -1914,7 +1916,7 @@ const CreateInvoice = ({ sale }) => {
                             <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'}`}>
                                 <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Balance Due</span>
                                 <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                                    {formatCurrency(balanceDue, store || settings)}
+                                    {formatCurrency(balanceDue)}
                                 </span>
                             </div>
                         </div>
@@ -1923,7 +1925,7 @@ const CreateInvoice = ({ sale }) => {
                         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
-                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal, store || settings)}</span>
+                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal)}</span>
                             </div>
                             <div className="space-y-2">
                                 <button
@@ -1984,7 +1986,7 @@ const CreateInvoice = ({ sale }) => {
                                 <div>
                                     <p className="text-xs text-slate-400 font-bold uppercase">Profit Margin</p>
                                     <p className={`text-2xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {formatCurrency(profit, store || settings)}
+                                        {formatCurrency(profit)}
                                     </p>
                                 </div>
                             </div>
@@ -2096,7 +2098,7 @@ const CreateInvoice = ({ sale }) => {
                                                             {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
                                                         </p>
                                                         <p className="text-sm text-indigo-500 font-black">
-                                                            {item.quantity} @ {getCurrencySymbol(store || settings)} {item.price.toLocaleString()} = {getCurrencySymbol(store || settings)} {(item.quantity * item.price).toLocaleString()}
+                                                            {item.quantity} @ Rs {item.price.toLocaleString()} = Rs {(item.quantity * item.price).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -2180,8 +2182,8 @@ const CreateInvoice = ({ sale }) => {
                                                         <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                                    <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol(store || settings)} {cost.toLocaleString()}</td>
-                                                    <td className="py-2 text-right text-xs">{getCurrencySymbol(store || settings)} {item.price.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs text-slate-500">Rs {cost.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs">Rs {item.price.toLocaleString()}</td>
                                                     <td className="py-2 text-right">
                                                         <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                             {marginPercent}%
@@ -2189,7 +2191,7 @@ const CreateInvoice = ({ sale }) => {
                                                     </td>
                                                     <td className="py-2 text-right pr-2">
                                                         <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                            {getCurrencySymbol(store || settings)} {lineProfit.toLocaleString()}
+                                                            Rs {lineProfit.toLocaleString()}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -2210,16 +2212,16 @@ const CreateInvoice = ({ sale }) => {
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                                        <p className="text-lg font-bold text-slate-600">{getCurrencySymbol(store || settings)} {totalCost.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-slate-600">Rs {totalCost.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
-                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal, store || settings)}</p>
+                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
                                         <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                                         <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                            {formatCurrency(profit, store || settings)}
+                                            {formatCurrency(profit)}
                                             {grandTotal > 0 && (
                                                 <span className="text-xs ml-1 opacity-70">({((profit / grandTotal) * 100).toFixed(1)}%)</span>
                                             )}
@@ -2316,7 +2318,7 @@ const CreateInvoice = ({ sale }) => {
                                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
                                         <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Default Delivery</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol(store || settings)}</span>
+                                            <span className="text-slate-400 text-xs font-bold">Rs</span>
                                             <input
                                                 type="number"
                                                 value={defaultDelivery}
@@ -2339,7 +2341,7 @@ const CreateInvoice = ({ sale }) => {
                                                 placeholder="Field Name (e.g. Service)"
                                             />
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol(store || settings)}</span>
+                                                <span className="text-slate-400 text-xs font-bold">Rs</span>
                                                 <input
                                                     type="number"
                                                     value={defaultExtraValue}
@@ -2548,7 +2550,7 @@ const CreateInvoice = ({ sale }) => {
                                             {overpaymentDetails.customerName} paid
                                         </p>
                                         <p className="text-5xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                                            {formatCurrency(overpaymentDetails.amount, store || settings)}
+                                            {formatCurrency(overpaymentDetails.amount)}
                                         </p>
                                         <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-medium">more than the total</p>
                                     </div>
@@ -2575,7 +2577,7 @@ const CreateInvoice = ({ sale }) => {
                                             <div className="flex-1">
                                                 <p className="font-bold text-slate-800 dark:text-white">Give Change</p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    Return {formatCurrency(overpaymentDetails.amount, store || settings)} to customer
+                                                    Return {formatCurrency(overpaymentDetails.amount)} to customer
                                                 </p>
                                             </div>
                                         </button>
@@ -2594,7 +2596,7 @@ const CreateInvoice = ({ sale }) => {
                                             <div className="flex-1">
                                                 <p className="font-bold text-slate-800 dark:text-white">Credit to Ledger</p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    Save {formatCurrency(overpaymentDetails.amount, store || settings)} to {overpaymentDetails.customerName}'s account
+                                                    Save {formatCurrency(overpaymentDetails.amount)} to {overpaymentDetails.customerName}'s account
                                                 </p>
                                             </div>
                                         </button>

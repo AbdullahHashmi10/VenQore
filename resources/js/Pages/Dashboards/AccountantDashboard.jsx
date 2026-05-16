@@ -75,7 +75,7 @@ export default function AccountantDashboard({
     const storeSlug = store?.slug;
     const sym = store?.currency_symbol ?? '$ ';
 
-    const fmt = (v) => formatCurrency ? formatCurrency(parseFloat(v || 0), store) : sym + Number(v).toLocaleString();
+    const fmt = (v) => formatCurrency ? formatCurrency(parseFloat(v || 0)) : sym + Number(v).toLocaleString();
 
     const pl = plSummary || { income: 0, expense: 0, profit: 0, status: 'good' };
     const rx = receivables || { total: 0, overdue_30: 0, overdue_60: 0, overdue_90: 0, overdue_90plus: 0 };

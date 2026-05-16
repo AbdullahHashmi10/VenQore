@@ -1,5 +1,4 @@
-﻿import React, { useState } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState } from 'react';
 import { usePage, Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
@@ -20,7 +19,6 @@ import {
 import axios from 'axios';
 
 export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
-    const { store } = usePage().props;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAccount, setEditingAccount] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -40,10 +38,11 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
 
     // Format currency
     const formatCurrency = (value) => {
-        return (value < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', {
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(Math.abs(value) || 0);
+        return new Intl.NumberFormat('en-PK', {
+            style: 'currency',
+            currency: 'PKR',
+            minimumFractionDigits: 0
+        }).format(value || 0);
     };
 
     // Open create modal

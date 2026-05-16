@@ -1,5 +1,4 @@
-﻿import React, { useState, useMemo, useRef } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState, useMemo, useRef } from 'react';
 import { Head, router, usePage, Link } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
@@ -28,7 +27,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 
-import SecurityPinModal from '@/Components/SecurityPinModal';
+import PasscodeModal from '@/Components/PasscodeModal';
 
 // --- Components ---
 
@@ -117,7 +116,7 @@ const ActionCard3D = ({ icon: Icon, title, description, colorClass, glowColor, o
 };
 
 // Graph Component (Updated: Visible axes)
-const FundFlowChart = ({ transactions, store }) => {
+const FundFlowChart = ({ transactions }) => {
     const data = useMemo(() => {
         const grouped = {};
         [...transactions].reverse().forEach(tx => {
@@ -186,7 +185,7 @@ const FundFlowChart = ({ transactions, store }) => {
                             axisLine={false}
                             tickLine={false}
                             tick={{ fontSize: 10, fill: '#94a3b8' }}
-                            tickFormatter={(val) => `${getCurrencySymbol()} ${val / 1000}k`}
+                            tickFormatter={(val) => `Rs ${val / 1000}k`}
                         />
                         <Tooltip
                             contentStyle={{ backgroundColor: '#1e293b', borderRadius: '12px', border: 'none', color: '#fff' }}
@@ -204,7 +203,7 @@ const FundFlowChart = ({ transactions, store }) => {
 // --- Main Page Component ---
 
 export default function FundManagement({ cashAccount, bankAccounts = [], transactions = [], ledger = [], totalFunds = 0, stats = {} }) {
-    const { flash, store } = usePage().props;
+    const { flash } = usePage().props;
 
     // UI State
     const [mode, setMode] = useState('dashboard');
@@ -222,8 +221,8 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
     const [activeModal, setActiveModal] = useState(null);
     const [processing, setProcessing] = useState(false);
 
-    // Security PIN State
-    const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+    // Passcode Security State
+    const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState(null); // 'add' | 'remove' | 'transfer' | 'adjust'
 
     // Search/Sort State
@@ -262,7 +261,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
     // Helper: Trigger Handle Submit with Security Check
     const handleSubmit = (action) => {
         setPendingAction(action);
-        setIsSecurityModalOpen(true);
+        setIsPasscodeModalOpen(true);
     };
 
     // Helper: Execute the final submission
@@ -270,16 +269,16 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
         if (!pendingAction) return;
         
         setProcessing(true);
-        router.post(route(`store.funds.${pendingAction}`, { store_slug: store.slug }), formData, {
+        router.post(route(`funds.${pendingAction}`), formData, {
             onSuccess: () => {
                 setActiveModal(null);
-                setIsSecurityModalOpen(false);
+                setIsPasscodeModalOpen(false);
                 setPendingAction(null);
                 resetForm();
             },
             onFinish: () => {
                 setProcessing(false);
-                setIsSecurityModalOpen(false);
+                setIsPasscodeModalOpen(false);
                 setPendingAction(null);
             }
         });
@@ -320,14 +319,19 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
             <Head title="Fund Management" />
 
             {/* Security Passcode Modal */}
-            <SecurityPinModal
-                isOpen={isSecurityModalOpen}
+            <PasscodeModal
+                isOpen={isPasscodeModalOpen}
                 onClose={() => {
-                    setIsSecurityModalOpen(false);
+                    setIsPasscodeModalOpen(false);
                     setPendingAction(null);
                 }}
                 onSuccess={confirmSubmit}
-                store={store}
+                actionName={
+                    pendingAction === 'add' ? 'add manual funds' :
+                    pendingAction === 'remove' ? 'remove funds (Owner Withdrawal)' :
+                    pendingAction === 'transfer' ? 'transfer funds' :
+                    'adjust account balance'
+                }
             />
 
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-2 overflow-hidden">
@@ -447,7 +451,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
 
                                 {/* Chart Section (Spans 8 cols) */}
                                 <div className="lg:col-span-8 h-full">
-                                    <FundFlowChart transactions={transactions} store={store} />
+                                    <FundFlowChart transactions={transactions} />
                                 </div>
 
                                 {/* Financial Pulse (Spans 4 cols) - Midnight Nebula Theme */}
@@ -465,17 +469,17 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                     Total Business Liquidity
                                                 </h3>
                                                 <h2 className="text-4xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-indigo-100 to-indigo-300">
-                                                    {getCurrencySymbol()} {parseFloat(totalFunds).toLocaleString()}
+                                                    Rs {parseFloat(totalFunds).toLocaleString()}
                                                 </h2>
                                             </div>
                                             <div className="grid grid-cols-2 gap-4 mt-6">
                                                 <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
                                                     <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Cash In Hand</p>
-                                                    <p className="font-bold text-lg text-emerald-400">{getCurrencySymbol()} {parseFloat(cashAccount.balance).toLocaleString()}</p>
+                                                    <p className="font-bold text-lg text-emerald-400">Rs {parseFloat(cashAccount.balance).toLocaleString()}</p>
                                                 </div>
                                                 <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm border border-white/10 hover:bg-white/10 transition-colors">
                                                     <p className="text-[10px] text-slate-400 uppercase font-bold mb-1">Bank Accounts</p>
-                                                    <p className="font-bold text-lg text-blue-400">{getCurrencySymbol()} {bankAccounts.reduce((sum, b) => sum + parseFloat(b.balance), 0).toLocaleString()}</p>
+                                                    <p className="font-bold text-lg text-blue-400">Rs {bankAccounts.reduce((sum, b) => sum + parseFloat(b.balance), 0).toLocaleString()}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -522,7 +526,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                 tx.type === 'remove' ? 'text-rose-600' :
                                                     'text-slate-700 dark:text-slate-300'
                                                 }`}>
-                                                {tx.type === 'add' ? '+' : tx.type === 'remove' ? '-' : ''} {getCurrencySymbol()} {parseFloat(tx.amount).toLocaleString()}
+                                                {tx.type === 'add' ? '+' : tx.type === 'remove' ? '-' : ''} Rs {parseFloat(tx.amount).toLocaleString()}
                                             </span>
                                         </div>
                                     ))}
@@ -614,7 +618,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                                     <td className={`p-4 text-right text-sm font-black tabular-nums ${
                                                         tx.is_outgoing ? 'text-rose-600' : 'text-emerald-600'
                                                     }`}>
-                                                        {tx.is_outgoing ? '-' : '+'} {getCurrencySymbol()} {parseFloat(tx.amount).toLocaleString()}
+                                                        {tx.is_outgoing ? '-' : '+'} {parseFloat(tx.amount).toLocaleString()}
                                                     </td>
                                                     <td className="p-4 text-right text-xs font-mono text-slate-400">{tx.reference || '-'}</td>
                                                 </tr>
@@ -658,7 +662,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount ({getCurrencySymbol()})</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount (Rs)</label>
                         <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
                     </div>
                     <div>
@@ -697,7 +701,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount ({getCurrencySymbol()})</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount (Rs)</label>
                         <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
                     </div>
                     <div>
@@ -753,7 +757,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                                         className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-xs font-bold transition-all shadow-inner"
                                     >
                                         <option value="">Select Origin Bank Account...</option>
-                                        {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({getCurrencySymbol()} {parseFloat(acc.balance).toLocaleString()})</option>)}
+                                        {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} (Rs {parseFloat(acc.balance).toLocaleString()})</option>)}
                                     </select>
                                 </div>
                             )}
@@ -812,7 +816,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                         </div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount ({getCurrencySymbol()})</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Amount (Rs)</label>
                         <input type="number" value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} placeholder="Enter amount" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
                     </div>
                     <button onClick={() => handleSubmit('transfer')} disabled={processing || !formData.amount} className="w-full py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-colors">
@@ -836,7 +840,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                             <button type="button" onClick={() => setFormData({ ...formData, account_type: 'cash', new_balance: cashAccount.balance })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'cash' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
                                 <Wallet size={20} className="mx-auto mb-1 text-emerald-500" />
                                 <p className="text-sm font-medium">Cash</p>
-                                <p className="text-xs text-slate-400">{getCurrencySymbol()} {parseFloat(cashAccount.balance).toLocaleString()}</p>
+                                <p className="text-xs text-slate-400">Rs {parseFloat(cashAccount.balance).toLocaleString()}</p>
                             </button>
                             <button type="button" onClick={() => setFormData({ ...formData, account_type: 'bank' })} className={`p-3 rounded-xl border-2 transition-all ${formData.account_type === 'bank' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' : 'border-slate-200 dark:border-slate-700'}`}>
                                 <Landmark size={20} className="mx-auto mb-1 text-blue-500" />
@@ -849,12 +853,12 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Select Bank Account</label>
                             <select value={formData.bank_account_id} onChange={e => setFormData({ ...formData, bank_account_id: e.target.value })} className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
                                 <option value="">Select account...</option>
-                                {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} - {getCurrencySymbol()} {parseFloat(acc.balance).toLocaleString()}</option>)}
+                                {bankAccounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} - Rs {parseFloat(acc.balance).toLocaleString()}</option>)}
                             </select>
                         </div>
                     )}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Correct Balance ({getCurrencySymbol()})</label>
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Correct Balance (Rs)</label>
                         <input type="number" value={formData.new_balance} onChange={e => setFormData({ ...formData, new_balance: e.target.value })} placeholder="Enter actual balance" className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none text-lg font-bold" />
                     </div>
                     <div>

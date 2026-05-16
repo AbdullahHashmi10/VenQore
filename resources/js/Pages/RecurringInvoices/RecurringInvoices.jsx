@@ -1,5 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState, useMemo } from 'react';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
@@ -23,7 +22,6 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const { showConfirm, showAlert } = useAlert();
-    const { store } = usePage().props;
 
     // Filter invoices
     const filteredInvoices = useMemo(() => {
@@ -171,7 +169,8 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                 <DollarSign className="text-purple-600 dark:text-purple-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-2xl font-black text-purple-600">{(stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0)}</p>
+                                <p className="text-xs text-slate-500 uppercase font-bold">Monthly Revenue</p>
+                                <p className="text-2xl font-black text-purple-600">Rs {stats.monthlyRevenue.toLocaleString()}</p>
                             </div>
                         </div>
                     </div>
@@ -258,7 +257,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <span className="font-bold text-slate-800 dark:text-white">
-                                                    {(parseFloat(invoice.amount || 0) < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(parseFloat(invoice.amount || 0)) || 0)}
+                                                    Rs {parseFloat(invoice.amount || 0).toLocaleString()}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-center">

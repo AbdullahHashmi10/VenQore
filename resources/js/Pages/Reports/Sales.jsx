@@ -10,7 +10,6 @@ import {
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
 
 export default function SalesReport({ sales = [], stats = {}, chartData = [], filters = {} }) {
     const {
@@ -33,6 +32,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
     const [quickViewSale, setQuickViewSale] = useState(null);
 
     // --- Formatters ---
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(Number(val) || 0);
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     // --- Handlers ---
@@ -62,7 +62,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 
             // 1. Uncollected Revenue
             if (stats.total_due > (stats.total_sales * 0.2)) {
-                insights.push({ type: 'danger', title: 'Cash Flow Risk', text: `You have ${formatCurrency(stats.total_due, store)} in unpaid invoices. Follow up with debtors immediately.` });
+                insights.push({ type: 'danger', title: 'Cash Flow Risk', text: `You have ${formatCurrency(stats.total_due)} in unpaid invoices. Follow up with debtors immediately.` });
             }
 
             // 2. Trend Analysis
@@ -78,7 +78,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
 
             // 3. Ticket Size
             if (stats.avg_ticket < 1000) { // Arbitrary threshold, adjust as needed
-                insights.push({ type: 'opportunity', title: 'Upsell Potential', text: `Avg ticket is ${formatCurrency(stats.avg_ticket, store)}. Bundling products could boost this by 15%.` });
+                insights.push({ type: 'opportunity', title: 'Upsell Potential', text: `Avg ticket is ${formatCurrency(stats.avg_ticket)}. Bundling products could boost this by 15%.` });
             } else {
                 insights.push({ type: 'success', title: 'Strong Basket Size', text: 'Customers are buying multiple items. Maintain this momentum.' });
             }
@@ -138,13 +138,13 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                 {/* 2. KPIs - Restored 8 Cards */}
                 {/* 2. KPIs - Horizontal Scroll for Compact Height */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3 shrink-0">
-                    <RatioCard title="Total Sales" value={formatCurrency(stats.total_sales, store)} color="emerald" icon={<TrendingUp />} />
-                    <RatioCard title="Cash Collected" value={formatCurrency(stats.total_paid, store)} color="blue" icon={<CreditCard />} />
-                    <RatioCard title="Outstanding" value={formatCurrency(stats.total_due, store)} color={stats.total_due > 0 ? "rose" : "emerald"} icon={<AlertCircle />} />
-                    <RatioCard title="Avg Ticket" value={formatCurrency(stats.avg_ticket, store)} color="indigo" icon={<Activity />} />
+                    <RatioCard title="Total Sales" value={formatCurrency(stats.total_sales)} color="emerald" icon={<TrendingUp />} />
+                    <RatioCard title="Cash Collected" value={formatCurrency(stats.total_paid)} color="blue" icon={<CreditCard />} />
+                    <RatioCard title="Outstanding" value={formatCurrency(stats.total_due)} color={stats.total_due > 0 ? "rose" : "emerald"} icon={<AlertCircle />} />
+                    <RatioCard title="Avg Ticket" value={formatCurrency(stats.avg_ticket)} color="indigo" icon={<Activity />} />
 
-                    <RatioCard title="Total Discount" value={formatCurrency(stats.total_discount, store)} color="amber" icon={<DollarSign />} />
-                    <RatioCard title="Highest Sale" value={formatCurrency(stats.max_sale, store)} color="emerald" icon={<TrendingUp />} />
+                    <RatioCard title="Total Discount" value={formatCurrency(stats.total_discount)} color="amber" icon={<DollarSign />} />
+                    <RatioCard title="Highest Sale" value={formatCurrency(stats.max_sale)} color="emerald" icon={<TrendingUp />} />
                     <RatioCard title="Total Invoices" value={stats.count} color="blue" icon={<FileText />} />
                     <RatioCard title="Unpaid Count" value={stats.unpaid_count} color={stats.unpaid_count > 0 ? "rose" : "emerald"} icon={<AlertCircle />} />
                 </div>
@@ -176,7 +176,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer" onClick={() => setQuickViewSale(sale)}>
                                                 <td className="px-6 py-3 font-mono font-bold text-indigo-600 dark:text-indigo-400">#{sale.invoice_number || sale.reference_number}</td>
                                                 <td className="px-6 py-3 font-medium text-slate-700 dark:text-slate-200">{sale.party?.name || 'Walk-in Customer'}</td>
-                                                <td className="px-6 py-3 text-right font-bold font-mono text-slate-800 dark:text-white">{formatCurrency(total, store)}</td>
+                                                <td className="px-6 py-3 text-right font-bold font-mono text-slate-800 dark:text-white">{formatCurrency(total)}</td>
                                                 <td className="px-6 py-3 text-right">
                                                     {due > 5 ? (
                                                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Unpaid</span>
@@ -213,7 +213,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                         </defs>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#334155" opacity={0.1} vertical={false} />
                                         <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#94a3b8' }} />
-                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                        <RechartsTooltip formatter={(val) => formatCurrency(val)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
                                         <Area type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" />
                                     </AreaChart>
                                 </ResponsiveContainer>
@@ -363,7 +363,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                     </div>
                                     <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
                                         <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total_amount || quickViewSale.total, store)}</p>
+                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total_amount || quickViewSale.total)}</p>
                                     </div>
                                 </div>
 
@@ -394,9 +394,9 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                                                 <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             </td>
                                                             <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.unit_price || item.price || 0, store)}</td>
+                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.unit_price || item.price || 0)}</td>
                                                             <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                                {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)), store)}
+                                                                {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)))}
                                                             </td>
                                                         </tr>
                                                     ))
@@ -417,7 +417,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                     <div className="flex gap-6">
                                         <div>
                                             <p className="text-[10px] text-slate-400 uppercase">Paid Amount</p>
-                                            <p className="font-bold text-emerald-600">{formatCurrency(Number(quickViewSale.paid_amount) || 0, store)}</p>
+                                            <p className="font-bold text-emerald-600">{formatCurrency(Number(quickViewSale.paid_amount) || 0)}</p>
                                         </div>
                                         {(() => {
                                             const paid = Number(quickViewSale.paid_amount) || 0;
@@ -427,7 +427,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                                 return (
                                                     <div>
                                                         <p className="text-[10px] text-slate-400 uppercase">Balance Due</p>
-                                                        <p className="font-bold text-red-600">{formatCurrency(balance, store)}</p>
+                                                        <p className="font-bold text-red-600">{formatCurrency(balance)}</p>
                                                     </div>
                                                 );
                                             }

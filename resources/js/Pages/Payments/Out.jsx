@@ -1,11 +1,10 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { ArrowUpCircle, Search, X, User, TrendingUp, TrendingDown, Minus, CalendarDays, Banknote, CreditCard, Smartphone, Building2, FileText, Hash, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 
-const formatCurrency = (v, symbol = 'Rs') => (symbol) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(v || 0);
+const formatCurrency = (v) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(v || 0);
 
 // Unique name to prevent browser autocomplete popup
 const AC_OFF_NAME = 'party-out-' + Math.random().toString(36).slice(2);
@@ -19,7 +18,6 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
     const debounceRef = useRef(null);
     const containerRef = useRef(null);
 
-    const { store } = usePage().props;
     // Pre-load top 5 contacts for instant dropdown on focus
     useEffect(() => {
         axios.get(route("store.parties.search", {
@@ -94,7 +92,7 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
         return (
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${isReceive ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'}`}>
                 {isReceive ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                {dir}: {formatCurrency(Math.abs(bal), store?.currency_symbol)}
+                {dir}: {formatCurrency(Math.abs(bal))}
             </span>
         );
     };
@@ -163,7 +161,7 @@ function PartySearchField({ selectedParty, onSelect, onClear }) {
                                 </div>
                                 {!settled && (
                                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${dir === 'To Receive' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}`}>
-                                        {dir}: {formatCurrency(Math.abs(bal), store?.currency_symbol)}
+                                        {dir}: {formatCurrency(Math.abs(bal))}
                                     </span>
                                 )}
                                 {settled && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400">Settled</span>}
@@ -304,7 +302,7 @@ export default function PaymentOut({ parties = [], bankAccounts = [] }) {
                                         Amount <span className="text-red-500">*</span>
                                     </label>
                                     <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">{getCurrencySymbol()}</span>
+                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-bold">₨</span>
                                         <input
                                             type="number"
                                             value={formData.amount}

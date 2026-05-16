@@ -105,7 +105,7 @@ export default function CreateStore({ available_license }) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('store.store'));
+        post(route('store.store', { store_slug: store.slug }));
     };
 
     const selectedCurrency = CURRENCIES.find(c => c.code === data.currency_code) ?? CURRENCIES[0];
@@ -127,7 +127,7 @@ export default function CreateStore({ available_license }) {
                     <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
                 </div>
                 <Link
-                    href={route('store.create-or-join')}
+                    href={route('store.create-or-join', { store_slug: store.slug })}
                     className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
                 >
                     <ArrowLeft size={14} /> Back

@@ -1,5 +1,4 @@
 import { usePage, Link } from '@inertiajs/react'
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 
 export default function PurchaseShow({ purchase, items, journalEntry, journalLines }) {
     const { store } = usePage().props;
@@ -33,7 +32,7 @@ export default function PurchaseShow({ purchase, items, journalEntry, journalLin
                 </div>
                 <div>
                     <p className="text-sm text-gray-500">Total</p>
-                    <p className="font-bold text-lg">{formatCurrency(purchase.total, store)}</p>
+                    <p className="font-bold text-lg">{window.amdSettings?.currency_symbol || ''} {parseFloat(purchase.total).toLocaleString()}</p>
                 </div>
                 <div>
                     <p className="text-sm text-gray-500">Payment Method</p>
@@ -73,13 +72,13 @@ export default function PurchaseShow({ purchase, items, journalEntry, journalLin
                                 {item.qty} {item.base_unit}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-right">
-                                {getCurrencySymbol(store)} {parseFloat(item.unit_cost).toFixed(4)}
+                                {window.amdSettings?.currency_symbol || ''} {parseFloat(item.unit_cost).toFixed(4)}
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-right text-sm">
                                 {item.tax_rate}%
                             </td>
                             <td className="border border-gray-200 px-4 py-2 text-right font-medium">
-                                {formatCurrency(item.line_total, store)}
+                                {window.amdSettings?.currency_symbol || ''} {parseFloat(item.line_total).toFixed(2)}
                             </td>
                         </tr>
                     ))}
@@ -109,12 +108,12 @@ export default function PurchaseShow({ purchase, items, journalEntry, journalLin
                                 </td>
                                 <td className="px-4 py-2 text-right text-sm">
                                     {parseFloat(line.debit) > 0
-                                        ? `${getCurrencySymbol(store)} ${parseFloat(line.debit).toFixed(2)}`
+                                        ? `${window.amdSettings?.currency_symbol || ''} ${parseFloat(line.debit).toFixed(2)}`
                                         : '—'}
                                 </td>
                                 <td className="px-4 py-2 text-right text-sm">
                                     {parseFloat(line.credit) > 0
-                                        ? `${getCurrencySymbol(store)} ${parseFloat(line.credit).toFixed(2)}`
+                                        ? `${window.amdSettings?.currency_symbol || ''} ${parseFloat(line.credit).toFixed(2)}`
                                         : '—'}
                                 </td>
                             </tr>

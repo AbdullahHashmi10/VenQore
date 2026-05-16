@@ -6,7 +6,6 @@ import FeatureLockBadge from '@/Components/FeatureLockBadge';
 export default function SidebarItem({
     icon: Icon,
     label,
-    name, // In OneGlanceLayout we use 'name' instead of 'label'
     isActive,
     isExpanded,
     isMenuExpanded,
@@ -14,16 +13,11 @@ export default function SidebarItem({
     onToggle,
     subItems = [],
     routeName,
-    route: targetRoute, // Renamed to avoid shadowing Ziggy's route()
-    routeParams,
-    onHoverExpand,
-    menuKey,
-    id,
-    isPlatformHQ = false // New prop for premium HQ styling
+    routeParams, // New prop: to support scoped routes
+    onHoverExpand, // New prop: callback to expand sidebar and open this menu
+    menuKey, // New prop: unique key for this menu item
+    id // New prop: for driver.js targeting
 }) {
-    // Priority: use 'name' if provided, then 'label'
-    const displayName = name || label;
-    const finalRoute = targetRoute || routeName;
     const hoverTimerRef = useRef(null);
 
     // Handle hover start - start timer for 2 seconds
@@ -61,19 +55,19 @@ export default function SidebarItem({
         `}
             >
                 {isActive && (
-                    <div className={`absolute inset-0 z-0 pointer-events-none ${isPlatformHQ ? 'bg-indigo-600/10' : 'bg-slate-900'}`}>
-                        <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 ${isPlatformHQ ? 'bg-indigo-500/30' : 'bg-indigo-600/40'}`}></div>
-                        <div className={`absolute bottom-0 left-0 w-32 h-32 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3 ${isPlatformHQ ? 'bg-violet-500/20' : 'bg-purple-600/30'}`}></div>
+                    <div className="absolute inset-0 bg-slate-900 z-0 pointer-events-none">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/40 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/30 rounded-full blur-2xl translate-y-1/3 -translate-x-1/3"></div>
                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20"></div>
-                        <div className={`absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent opacity-50`}></div>
+                        <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-50"></div>
                     </div>
                 )}
 
                 {/* Main Click Zone - Navigation */}
                 <Link
-                    href={finalRoute && window.route().has(finalRoute) ? window.route(finalRoute, routeParams || {}) : '#'}
+                    href={routeName ? route(routeName, routeParams || {}) : '#'}
                     onClick={(e) => {
-                        if (!finalRoute) {
+                        if (!routeName) {
                             e.preventDefault();
                             if (onClick) onClick();
                         }
@@ -81,14 +75,14 @@ export default function SidebarItem({
                     className="flex-1 flex items-center gap-3 p-3 relative z-10 outline-none"
                 >
                     <div className="relative group-hover:scale-125 transition-transform duration-300 origin-center">
-                        <Icon size={isPlatformHQ ? 22 : 20} className={`transition-all duration-300 ${isActive ? (isPlatformHQ ? 'text-white' : 'text-white') : (isPlatformHQ ? 'text-slate-500 group-hover:text-white' : 'group-hover:text-indigo-600')}`} />
+                        <Icon size={20} className={`transition-colors duration-300 ${isActive ? 'text-white' : 'group-hover:text-indigo-600'}`} />
                         {/* Hover indicator ring for collapsed state */}
                         {!isExpanded && subItems.length > 0 && (
                             <div className="absolute -inset-1 rounded-full border-2 border-transparent group-hover:border-indigo-400/50 transition-all duration-300 group-hover:animate-pulse"></div>
                         )}
                     </div>
-                    <span className={`font-bold text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'} ${isActive ? 'text-white' : (isPlatformHQ ? 'text-slate-400 group-hover:text-white' : 'text-slate-500')}`}>
-                        {displayName}
+                    <span className={`font-semibold text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+                        {label}
                     </span>
                 </Link>
 
@@ -246,7 +240,7 @@ export default function SidebarItem({
                                         );
                                     }
 
-                                    const activeRouteName = (routeParams?.store_slug && !baseRoute.startsWith('store.'))
+                                    const route = (routeParams?.store_slug && !baseRoute.startsWith('store.'))
                                         ? `store.${baseRoute}`
                                         : baseRoute;
 
@@ -258,9 +252,9 @@ export default function SidebarItem({
                                                     <span className="text-[9px] px-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 self-center">SOON</span>
                                                 </div>
                                             ) : (
-                                                window.route().has(activeRouteName) && (
+                                                window.route().has(route) && (
                                                     <Link
-                                                        href={window.route(activeRouteName, routeParams || {})}
+                                                        href={window.route(route, routeParams || {})}
                                                         className="block pl-4 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                                     >
                                                         {itemName}

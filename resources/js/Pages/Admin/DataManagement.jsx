@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react'; // usePage added
 import {
     Database,
     Download,

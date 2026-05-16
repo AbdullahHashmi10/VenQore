@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import axios from 'axios';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -215,8 +214,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
         setDraggedColumn(null);
     };
 
-    const { store } = usePage().props;
-
+    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(Math.abs(val));
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     return (
@@ -245,7 +243,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Value</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(computedStats.totalAmount, store)}</p>
+                        <p className="text-base font-black text-emerald-600">{formatCurrency(computedStats.totalAmount)}</p>
                     </div>
 
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
@@ -294,7 +292,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                             <div className="flex items-center gap-1.5 ml-1">
                                 <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
                                     className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-red-500" />
-                                <span className="text-slate-400 text-xs">?</span>
+                                <span className="text-slate-400 text-xs">→</span>
                                 <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
                                     className="px-2 py-0.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-red-500" />
                             </div>
@@ -401,7 +399,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                                                     {row.supplier?.phone && <p className="text-xs text-slate-400">{row.supplier.phone}</p>}
                                                                 </div>
                                                             );
-                                                        case 'amount': return <span className="font-bold text-emerald-600">{formatCurrency(row.amount, store)}</span>;
+                                                        case 'amount': return <span className="font-bold text-emerald-600">{formatCurrency(row.amount)}</span>;
                                                         case 'reason': return <span className="text-slate-500 text-xs italic">{row.reason || '-'}</span>;
                                                         case 'status':
                                                             const styles = {
@@ -488,7 +486,7 @@ export default function DebitNotesIndex({ debitNotes = [], filters = {}, stats =
                                 </div>
                                 <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
                                     <p className="text-xs font-bold text-slate-500 uppercase mb-1">Amount</p>
-                                    <p className="font-black text-emerald-600 text-lg">{formatCurrency(quickViewItem.amount, store)}</p>
+                                    <p className="font-black text-emerald-600 text-lg">{formatCurrency(quickViewItem.amount)}</p>
                                     <p className="text-sm text-slate-500 uppercase">{quickViewItem.status}</p>
                                 </div>
                             </div>

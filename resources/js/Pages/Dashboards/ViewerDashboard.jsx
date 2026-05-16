@@ -33,7 +33,7 @@ export default function ViewerDashboard({ plSummary, inventoryValue }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug;
     const sym = store?.currency_symbol ?? '$ ';
-    const fmt = (v) => formatCurrency ? formatCurrency(parseFloat(v || 0), store) : sym + Number(v || 0).toLocaleString();
+    const fmt = (v) => formatCurrency ? formatCurrency(parseFloat(v || 0)) : sym + Number(v || 0).toLocaleString();
 
     const pl = plSummary || { income: 0, expense: 0, profit: 0 };
 

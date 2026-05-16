@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
@@ -109,7 +108,13 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
     const [errors, setErrors] = useState({});
 
     // Format currency
-
+    const formatCurrency = (value) => {
+        return new Intl.NumberFormat('en-PK', {
+            style: 'currency',
+            currency: 'PKR',
+            minimumFractionDigits: 0
+        }).format(value || 0);
+    };
 
     // Fetch Next Page
     const fetchNextPage = useCallback(async () => {

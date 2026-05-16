@@ -1,6 +1,6 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import FormModal from '@/Components/FormModal';
@@ -1392,7 +1392,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                         }}
                                                         className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
                                                     >
-                                                        {quickEntry.discountType === 'percent' ? '%' : (getCurrencySymbol())}
+                                                        {quickEntry.discountType === 'percent' ? '%' : 'Rs'}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1534,7 +1534,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                         onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
                                                         className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
                                                     >
-                                                        {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
+                                                        {item.discountType === 'percent' ? '%' : 'Rs'}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1550,7 +1550,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                                 : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
                                                         }`}
                                                     >
-                                                        {getItemTotalMode(item.id) === 'price' ? (store?.currency_symbol || '₨') : '#'}
+                                                        {getItemTotalMode(item.id) === 'price' ? '₨' : '#'}
                                                     </button>
                                                     <WheelInput
                                                         type="number"
@@ -1620,7 +1620,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-500 font-medium">Balance:</span>
                                             <span className={`font-black ${currentPurchase.supplier.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {currentPurchase.supplier.current_balance >= 0 ? (getCurrencySymbol()) : `-${getCurrencySymbol()} `}{Math.abs(currentPurchase.supplier.current_balance || 0).toLocaleString()}
+                                                {currentPurchase.supplier.current_balance >= 0 ? '$ ' : '-Rs '}{Math.abs(currentPurchase.supplier.current_balance || 0).toLocaleString()}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-start gap-2">
@@ -1728,7 +1728,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
                                 <span className="text-xs text-slate-400 font-bold">Bill Discount</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-slate-500 text-xs">{getCurrencySymbol()}</span>
+                                    <span className="text-slate-500 text-xs">Rs</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.discount ?? 0}
@@ -1759,7 +1759,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
                                     <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
+                                        <span className="text-slate-600 text-[10px]">Rs</span>
                                         <input
                                             type="number"
                                             value={currentPurchase.delivery_charge ?? 0}
@@ -1813,7 +1813,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                         {/* Amount */}
                                         <div className="w-20">
                                             <div className="flex items-center gap-1 justify-end">
-                                                <span className="text-[10px] text-slate-500">{getCurrencySymbol()}</span>
+                                                <span className="text-[10px] text-slate-500">Rs</span>
                                                 <input
                                                     type="number"
                                                     value={extra.amount || ''}
@@ -1888,7 +1888,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 <div className="flex items-center justify-between pt-1">
                                     <span className="text-xs text-slate-400 font-bold pl-1">Payment:</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-emerald-600 text-xs">{getCurrencySymbol()}</span>
+                                        <span className="text-emerald-600 text-xs">Rs</span>
                                         <input
                                             type="number"
                                             value={currentPurchase.amountPaid ?? 0}
@@ -2090,7 +2090,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                             {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
                                                         </p>
                                                         <p className="text-sm text-indigo-500 font-black">
-                                                            {item.quantity} @ {getCurrencySymbol()} {item.price.toLocaleString()} = {getCurrencySymbol()} {(item.quantity * item.price).toLocaleString()}
+                                                            {item.quantity} @ Rs {item.price.toLocaleString()} = Rs {(item.quantity * item.price).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -2173,8 +2173,8 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                         <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                                    <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
-                                                    <td className="py-2 text-right text-xs">{getCurrencySymbol()} {item.price.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs text-slate-500">Rs {cost.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs">Rs {item.price.toLocaleString()}</td>
                                                     <td className="py-2 text-right">
                                                         <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                             {marginPercent}%
@@ -2182,7 +2182,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                     </td>
                                                     <td className="py-2 text-right pr-2">
                                                         <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                            {getCurrencySymbol()} {lineProfit.toLocaleString()}
+                                                            Rs {lineProfit.toLocaleString()}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -2203,7 +2203,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                                        <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-slate-600">Rs {totalCost.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
@@ -2308,7 +2308,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
                                         <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Default Delivery</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                            <span className="text-slate-400 text-xs font-bold">Rs</span>
                                             <input
                                                 type="number"
                                                 value={defaultDelivery}
@@ -2331,7 +2331,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                                 placeholder="Field Name (e.g. Service)"
                                             />
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                                <span className="text-slate-400 text-xs font-bold">Rs</span>
                                                 <input
                                                     type="number"
                                                     value={defaultExtraValue}

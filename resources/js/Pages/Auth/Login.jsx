@@ -1,41 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import axios from 'axios';
+import Checkbox from '@/Components/Checkbox';
 import InputError from '@/Components/InputError';
+import InputLabel from '@/Components/InputLabel';
+import PrimaryButton from '@/Components/PrimaryButton';
+import TextInput from '@/Components/TextInput';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { Mail, Lock, ArrowRight, Grip, X, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
-
-/* ═══════════════════════════════════════════════════════════════════════
-   LOGIN PAGE — Premium Dark Cinematic
-   Split-screen: ambient branding left · glass form right
-   ═══════════════════════════════════════════════════════════════════════ */
-
-const AuthInput = ({ icon: Icon, label, error, ...props }) => {
-    const [focused, setFocused] = useState(false);
-    return (
-        <div>
-            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-600'}`}>
-                {label}
-            </label>
-            <div className="relative group">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-700'}`}>
-                    <Icon size={18} />
-                </div>
-                <input
-                    {...props}
-                    onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
-                    onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
-                    className={`w-full pl-12 pr-4 py-4 bg-white/[0.03] border rounded-2xl text-white text-sm placeholder:text-slate-700 outline-none transition-all duration-500
-                        ${focused ? 'border-indigo-500/40 bg-indigo-500/[0.03] shadow-lg shadow-indigo-900/10' : 'border-white/[0.08] hover:border-white/[0.12]'}
-                        ${error ? 'border-red-500/40' : ''}
-                    `}
-                />
-                {/* Focus glow */}
-                <div className={`absolute bottom-0 left-6 right-6 h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent transition-opacity duration-500 ${focused ? 'opacity-100' : 'opacity-0'}`} />
-            </div>
-            {error && <p className="text-red-400 text-xs mt-2 font-medium">{error}</p>}
-        </div>
-    );
-};
+import { Mail, Lock, ArrowRight, Grip, X } from 'lucide-react';
 
 export default function Login({ status, canResetPassword, settings, passcode_login_available }) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
@@ -45,50 +16,70 @@ export default function Login({ status, canResetPassword, settings, passcode_log
         loginMethod: 'email',
         passcode: '',
     });
-    const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
-        return () => reset('password');
+        return () => {
+            reset('password');
+        };
     }, []);
 
     const submitPasscode = async () => {
         if (!processing && data.passcode) {
             try {
+                // Silently refresh the CSRF token before submitting
+                // This ensures login always works, even if the user sat on this page a long time
                 const { data: csrfData } = await axios.get('/refresh-csrf');
                 if (csrfData?.token) {
                     const meta = document.querySelector('meta[name="csrf-token"]');
                     if (meta) meta.setAttribute('content', csrfData.token);
                     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfData.token;
                 }
-            } catch { /* proceed */ }
+            } catch {
+                // If token refresh fails, proceed anyway — the server will handle it
+            }
             post(route('login.passcode'), {
                 preserveScroll: true,
-                onError: () => setData('passcode', ''),
+                onError: () => {
+                    setData('passcode', '');
+                },
             });
         }
     };
 
-    const handlePasscodeChange = (newPasscode) => {
-        setData('passcode', newPasscode);
-        if (errors.passcode) clearErrors('passcode');
-    };
-
+    // Handle keyboard input for passcode
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (data.loginMethod !== 'passcode') return;
+
+            // Allow numbers 0-9
             if (/^[0-9]$/.test(e.key)) {
-                const c = data.passcode || '';
-                if (c.length < 10) handlePasscodeChange(c + e.key);
-            } else if (e.key === 'Backspace') {
-                handlePasscodeChange((data.passcode || '').slice(0, -1));
-            } else if (e.key === 'Enter') {
+                const current = data.passcode || '';
+                if (current.length < 10) {
+                    handlePasscodeChange(current + e.key);
+                }
+            }
+            // Allow Backspace
+            else if (e.key === 'Backspace') {
+                const current = data.passcode || '';
+                handlePasscodeChange(current.slice(0, -1));
+            }
+            // Allow Enter
+            else if (e.key === 'Enter') {
                 e.preventDefault();
                 submitPasscode();
             }
         };
+
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [data.loginMethod, data.passcode, processing]);
+
+    const handlePasscodeChange = (newPasscode) => {
+        setData('passcode', newPasscode);
+        if (errors.passcode) {
+            clearErrors('passcode');
+        }
+    };
 
     const submit = async (e) => {
         e.preventDefault();
@@ -100,142 +91,147 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                     if (meta) meta.setAttribute('content', csrfData.token);
                     window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfData.token;
                 }
-            } catch { /* proceed */ }
+            } catch { /* proceed anyway */ }
             post(route('login'));
         }
     };
 
     return (
-        <div className="min-h-screen w-full flex bg-[#020010] font-sans selection:bg-indigo-500/40 selection:text-white">
-            <Head title="Sign In" />
+        <div className="min-h-screen w-full flex bg-slate-50 dark:bg-slate-950 font-sans selection:bg-indigo-500 selection:text-white">
+            <Head title="Log in" />
 
-            {/* ── Left Panel — Branding ─────────────────────── */}
-            <div className="hidden lg:flex w-[45%] relative overflow-hidden items-center justify-center p-16">
-                {/* Ambient blobs */}
-                <div className="absolute top-[-20%] right-[-15%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[140px] pointer-events-none" />
-                <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] pointer-events-none" />
-                <div className="absolute inset-0 bg-gradient-to-br from-white/[0.01] to-transparent pointer-events-none" />
+            {/* Left Side - Branding & Visuals */}
+            <div className="hidden lg:flex w-1/2 bg-slate-900 relative overflow-hidden items-center justify-center p-12">
+                {/* Mesh Gradient Background */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/30 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-purple-600/20 rounded-full blur-[80px] translate-y-1/3 -translate-x-1/3 pointer-events-none"></div>
+                <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-20 pointer-events-none"></div>
 
-                {/* Grid pattern */}
-                <div className="absolute inset-0 opacity-30" style={{
-                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-                    backgroundSize: '60px 60px',
-                }} />
-
-                <div className="relative z-10 text-center max-w-md">
-                    <div className="mb-10 flex justify-center">
-                        <div className="w-20 h-20 bg-white/[0.04] backdrop-blur-xl rounded-3xl flex items-center justify-center border border-white/[0.08] shadow-2xl shadow-indigo-900/20">
+                {/* Content */}
+                <div className="relative z-10 text-center text-white max-w-lg">
+                    <div className="mb-8 flex justify-center">
+                        <div className="w-24 h-24 bg-white/5 backdrop-blur-md rounded-3xl flex items-center justify-center shadow-2xl border border-white/10 ring-1 ring-white/5">
                             <img
                                 src={settings?.company_logo ? `/storage/${settings.company_logo}` : "/images/logo.png"}
                                 alt="Logo"
-                                className="w-12 h-12 object-contain"
-                                onError={(e) => { e.target.onerror = null; e.target.src = "/images/logo.png"; }}
+                                className="w-16 h-16 object-contain drop-shadow-md"
                             />
                         </div>
                     </div>
-                    <h1 className="text-4xl font-black text-white mb-4 tracking-tighter leading-[0.95]" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
-                        {settings?.business_name || 'Welcome Back.'}
+                    <h1 className="text-5xl font-bold mb-6 tracking-tight">
+                        {settings?.business_name || 'Welcome to VenQore'}
                     </h1>
-                    <p className="text-slate-500 text-base leading-relaxed">
-                        {settings?.login_hero_text || 'The operations platform where every transaction writes a correct journal entry. Automatically.'}
+                    <p className="text-slate-400 text-lg leading-relaxed">
+                        {settings?.login_hero_text || 'The ultimate Point of Sale and Inventory Management solution. Streamline your business, track sales, and manage stock with ease.'}
                     </p>
-
-                    {/* Trust indicators */}
-                    <div className="mt-12 grid grid-cols-3 gap-4">
-                        {[
-                            { val: '38', label: 'Reports' },
-                            { val: '0.00', label: 'Balance Error' },
-                            { val: 'FIFO', label: 'Cost Basis' },
-                        ].map((s, i) => (
-                            <div key={i} className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
-                                <div className="text-lg font-black text-white tracking-tighter" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{s.val}</div>
-                                <div className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">{s.label}</div>
-                            </div>
-                        ))}
-                    </div>
                 </div>
             </div>
 
-            {/* ── Right Panel — Form ───────────────────────── */}
-            <div className="w-full lg:w-[55%] flex items-center justify-center p-6 sm:p-12 relative">
-                {/* Subtle ambient on form side */}
-                <div className="absolute top-[20%] right-[10%] w-[300px] h-[300px] bg-indigo-600/5 rounded-full blur-[100px] pointer-events-none" />
+            {/* Right Side - Login Form */}
+            <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 lg:p-24 relative">
+                <div className="w-full max-w-md space-y-8">
 
-                <div className="w-full max-w-md relative z-10">
-
-                    {/* Mobile Logo */}
-                    <div className="lg:hidden flex justify-center mb-10">
-                        <div className="w-16 h-16 bg-white/[0.04] rounded-2xl flex items-center justify-center border border-white/[0.08]">
-                            <img src="/images/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
-                        </div>
+                    {/* Mobile Logo (Visible only on small screens) */}
+                    <div className="lg:hidden flex justify-center mb-8">
+                        <img src="/images/logo.png" alt="Logo" className="w-16 h-16 object-contain" />
                     </div>
 
-                    {/* Header */}
-                    <div className="mb-10">
-                        <h2 className="text-3xl font-black text-white tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
-                            Sign in
-                        </h2>
-                        <p className="text-slate-600 text-sm">
-                            Enter your credentials to access the dashboard.
+                    <div className="text-center lg:text-left">
+                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">Sign in to your account</h2>
+                        <p className="mt-2 text-slate-500 dark:text-slate-400">
+                            Please enter your details to access the dashboard.
                         </p>
                     </div>
 
-                    {/* Status message */}
                     {status && (
-                        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8">
+                        <div className="p-4 rounded-xl bg-emerald-50 text-emerald-600 text-sm font-medium border border-emerald-100 animate-in fade-in slide-in-from-top-2">
                             {status}
                         </div>
                     )}
 
                     {data.loginMethod === 'passcode' ? (
-                        /* ── Passcode Mode ─────────────────────── */
-                        <div className="space-y-6">
-                            <div className="text-center mb-4">
-                                <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.3em] mb-6">Enter Passcode</div>
-                                <div className="flex justify-center gap-2.5 mb-6 min-h-[20px]">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="text-center mb-6">
+                                <div className="flex justify-center gap-3 mb-8 min-h-[16px]">
                                     {(data.passcode || '').split('').map((_, i) => (
-                                        <div key={i} className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${errors.passcode ? 'bg-red-500 animate-pulse' : 'bg-indigo-500 shadow-lg shadow-indigo-500/30'}`} />
+                                        <div
+                                            key={i}
+                                            className={`w-4 h-4 rounded-full transition-all duration-200 bg-indigo-600 scale-110 ${errors.passcode ? 'bg-red-500 animate-pulse' : ''}`}
+                                        />
                                     ))}
                                 </div>
-                                {errors.passcode && <p className="text-red-400 text-sm font-bold">{errors.passcode}</p>}
+                                {errors.passcode && (
+                                    <p className="text-red-500 text-sm font-bold animate-bounce">{errors.passcode}</p>
+                                )}
                             </div>
 
-                            <div className="grid grid-cols-3 gap-3 max-w-[280px] mx-auto">
+                            <div className="grid grid-cols-3 gap-4 max-w-xs mx-auto">
                                 {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
-                                    <button key={num} type="button"
-                                        onClick={() => { const c = data.passcode || ''; if (c.length < 10) handlePasscodeChange(c + num); }}
-                                        className="h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-xl font-bold text-white hover:bg-white/[0.06] hover:border-white/[0.12] hover:scale-105 active:scale-95 transition-all duration-200">
+                                    <button
+                                        key={num}
+                                        type="button"
+                                        onClick={() => {
+                                            const current = data.passcode || '';
+                                            if (current.length < 10) {
+                                                handlePasscodeChange(current + num);
+                                            }
+                                        }}
+                                        className="h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-xl font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-lg hover:scale-105 transition-all active:scale-95"
+                                    >
                                         {num}
                                     </button>
                                 ))}
-                                <button type="button" onClick={submitPasscode}
-                                    className="h-16 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center shadow-lg shadow-indigo-600/25 hover:scale-105 active:scale-95 transition-all">
-                                    <ArrowRight size={22} />
-                                </button>
-                                <button type="button"
-                                    onClick={() => { const c = data.passcode || ''; if (c.length < 10) handlePasscodeChange(c + '0'); }}
-                                    className="h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-xl font-bold text-white hover:bg-white/[0.06] hover:border-white/[0.12] hover:scale-105 active:scale-95 transition-all duration-200">
-                                    0
-                                </button>
-                                <button type="button" onClick={() => handlePasscodeChange((data.passcode || '').slice(0, -1))}
-                                    className="h-16 rounded-2xl bg-white/[0.03] border border-white/[0.06] text-slate-500 hover:bg-red-500/10 hover:border-red-500/20 hover:text-red-400 flex items-center justify-center transition-all active:scale-95">
-                                    <X size={22} />
-                                </button>
+                                <div className="col-start-1">
+                                    <button
+                                        type="button"
+                                        onClick={submitPasscode}
+                                        className="w-full h-14 rounded-2xl bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg hover:scale-105 transition-all flex items-center justify-center active:scale-95"
+                                    >
+                                        <ArrowRight size={24} />
+                                    </button>
+                                </div>
+                                <div className="col-start-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            const current = data.passcode || '';
+                                            if (current.length < 10) {
+                                                handlePasscodeChange(current + '0');
+                                            }
+                                        }}
+                                        className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-xl font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 hover:shadow-lg hover:scale-105 transition-all active:scale-95"
+                                    >
+                                        0
+                                    </button>
+                                </div>
+                                <div className="col-start-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => handlePasscodeChange((data.passcode || '').slice(0, -1))}
+                                        className="w-full h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-all flex items-center justify-center active:scale-95"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
                             </div>
-
                             <div className="mt-8 text-center">
-                                <button type="button" onClick={() => setData('loginMethod', 'email')}
-                                    className="text-sm font-medium text-slate-600 hover:text-indigo-400 transition-colors">
-                                    ← Back to Email Login
+                                <button
+                                    type="button"
+                                    onClick={() => { setData('loginMethod', 'email'); }}
+                                    className="text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+                                >
+                                    Back to Email Login
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        /* ── Email Mode ────────────────────────── */
-                        <div className="space-y-6">
-                            {/* Google OAuth */}
-                            <button type="button" onClick={() => window.location.href = route('auth.google')}
-                                className="flex items-center justify-center gap-3 w-full py-4 px-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-sm font-bold text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 active:scale-[0.98]">
+                        <div className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-300">
+                            {/* Google Sign-in Button */}
+                            <button
+                                type="button"
+                                onClick={() => window.location.href = route('auth.google')}
+                                className="flex items-center justify-center gap-3 w-full py-3.5 px-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:shadow-lg transition-all active:scale-[0.98]"
+                            >
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -247,93 +243,113 @@ export default function Login({ status, canResetPassword, settings, passcode_log
 
                             {/* Divider */}
                             <div className="relative">
-                                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/[0.06]" /></div>
-                                <div className="relative flex justify-center text-[10px]">
-                                    <span className="px-4 bg-[#020010] text-slate-700 font-bold uppercase tracking-widest">or</span>
+                                <div className="absolute inset-0 flex items-center">
+                                    <div className="w-full border-t border-slate-200 dark:border-slate-700"></div>
+                                </div>
+                                <div className="relative flex justify-center text-sm">
+                                    <span className="px-4 bg-slate-50 dark:bg-slate-950 text-slate-400">or sign in with email</span>
                                 </div>
                             </div>
 
-                            <form onSubmit={submit} className="space-y-5">
-                                <AuthInput
-                                    icon={Mail}
-                                    label="Email"
-                                    type="email"
-                                    value={data.email}
-                                    onChange={(e) => setData('email', e.target.value)}
-                                    placeholder="name@company.com"
-                                    autoComplete="username"
-                                    autoFocus
-                                    error={errors.email}
-                                />
-
-                                <div>
-                                    <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-600`}>Password</label>
+                            <form onSubmit={submit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <InputLabel htmlFor="email" value="Email Address" className="text-slate-700 dark:text-slate-300 font-bold" />
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-700">
-                                            <Lock size={18} />
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                            <Mail size={20} />
                                         </div>
-                                        <input
-                                            type={showPassword ? 'text' : 'password'}
-                                            value={data.password}
-                                            onChange={(e) => setData('password', e.target.value)}
-                                            placeholder="••••••••"
-                                            autoComplete="current-password"
-                                            className="w-full pl-12 pr-12 py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-slate-700 outline-none focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] focus:shadow-lg focus:shadow-indigo-900/10 hover:border-white/[0.12] transition-all duration-500"
+                                        <TextInput
+                                            id="email"
+                                            type="email"
+                                            name="email"
+                                            value={data.email}
+                                            className="block w-full pl-11 pr-4 py-3 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+                                            autoComplete="username"
+                                            isFocused={true}
+                                            onChange={(e) => setData('email', e.target.value)}
+                                            placeholder="name@company.com"
                                         />
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-700 hover:text-slate-400 transition-colors">
-                                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                                        </button>
                                     </div>
-                                    {errors.password && <p className="text-red-400 text-xs mt-2 font-medium">{errors.password}</p>}
+                                    <InputError message={errors.email} />
                                 </div>
 
-                                {/* Remember / Forgot */}
-                                <div className="flex items-center justify-between">
-                                    <label className="flex items-center cursor-pointer group">
-                                        <input type="checkbox" checked={data.remember} onChange={(e) => setData('remember', e.target.checked)}
-                                            className="w-4 h-4 rounded border-white/10 bg-white/[0.03] text-indigo-600 focus:ring-indigo-500/20 focus:ring-offset-0" />
-                                        <span className="ml-2.5 text-sm text-slate-600 group-hover:text-slate-400 transition-colors">Remember me</span>
-                                    </label>
-                                    {canResetPassword && (
-                                        <Link href={route('password.request')} className="text-sm font-medium text-indigo-400/70 hover:text-indigo-400 transition-colors">
-                                            Forgot password?
-                                        </Link>
-                                    )}
+                            <div className="space-y-2">
+                                <InputLabel htmlFor="password" value="Password" className="text-slate-700 dark:text-slate-300 font-bold" />
+                                <div className="relative group">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-500 transition-colors">
+                                        <Lock size={20} />
+                                    </div>
+                                    <TextInput
+                                        id="password"
+                                        type="password"
+                                        name="password"
+                                        value={data.password}
+                                        className="block w-full pl-11 pr-4 py-3 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+                                        autoComplete="current-password"
+                                        onChange={(e) => setData('password', e.target.value)}
+                                        placeholder="••••••••"
+                                    />
                                 </div>
+                                <InputError message={errors.password} />
+                            </div>
 
-                                {/* Submit */}
-                                <button type="submit" disabled={processing}
-                                    className="w-full flex items-center justify-center gap-3 py-4 px-4 bg-white text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
-                                    {processing ? <><Loader2 size={18} className="animate-spin" /> Signing in...</> : <>Sign In <ArrowRight size={16} /></>}
+                            <div className="flex items-center justify-between">
+                                <label className="flex items-center cursor-pointer group">
+                                    <Checkbox
+                                        name="remember"
+                                        checked={data.remember}
+                                        onChange={(e) => setData('remember', e.target.checked)}
+                                        className="rounded border-slate-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                                    />
+                                    <span className="ms-2 text-sm text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-slate-200 transition-colors">Remember me</span>
+                                </label>
+
+                                {canResetPassword && (
+                                    <Link
+                                        href={route('password.request')}
+                                        className="text-sm font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-4">
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="w-full flex items-center justify-center gap-2 py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/30 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                                >
+                                    {processing ? 'Signing in...' : 'Sign in'}
+                                    {!processing && <ArrowRight size={20} />}
                                 </button>
 
-                                {/* Passcode login */}
                                 {passcode_login_available && (
-                                    <button type="button" onClick={() => setData('loginMethod', 'passcode')}
-                                        className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-white/[0.03] border border-white/[0.06] text-slate-500 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.1] rounded-2xl font-bold text-sm transition-all active:scale-[0.98]">
-                                        <Grip size={18} /> Login with Passcode
+                                    <button
+                                        type="button"
+                                        onClick={() => { setData('loginMethod', 'passcode'); }}
+                                        className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl font-bold transition-all active:scale-95 border border-slate-200 dark:border-slate-700"
+                                    >
+                                        <Grip size={20} />
+                                        Login with Passcode
                                     </button>
                                 )}
-                            </form>
-                        </div>
+                            </div>
+                        </form>
+                    </div>
                     )}
 
-                    {/* Register link */}
-                    <div className="mt-10 text-center">
-                        <p className="text-sm text-slate-700">
+                    <div className="mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                             Don't have an account?{' '}
-                            <Link href={route('register')} className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
-                                Create one for free
+                            <Link href={route('register')} className="font-bold text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 transition-colors">
+                                Sign up for free
                             </Link>
                         </p>
                     </div>
+
                 </div>
             </div>
-
-            <style>{`
-                * { font-family: 'Inter', 'Figtree', system-ui, sans-serif; }
-            `}</style>
-        </div>
+        </div >
     );
 }

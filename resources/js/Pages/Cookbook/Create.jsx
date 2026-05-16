@@ -1,5 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState, useMemo } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -461,7 +460,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                 <span className="flex items-center gap-1.5"><Clock size={14} /> Labor Cost</span>
                                             </label>
                                             <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rs</span>
                                                 <input
                                                     type="number"
                                                     value={data.labor_cost}
@@ -478,7 +477,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                 <span className="flex items-center gap-1.5"><Flame size={14} /> Utilities</span>
                                             </label>
                                             <div className="relative">
-                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
+                                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">Rs</span>
                                                 <input
                                                     type="number"
                                                     value={data.overhead_cost}
@@ -558,7 +557,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                                 {product && (
                                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none">
                                                         <span className="text-[10px] bg-slate-100 dark:bg-slate-700 px-1.5 rounded text-slate-500 dark:text-slate-400 font-medium">{product.base_unit}</span>
-                                                        <span className="text-[10px] text-slate-400 font-bold">{getCurrencySymbol()} {parseFloat(product.cost_price).toLocaleString()}</span>
+                                                        <span className="text-[10px] text-slate-400 font-bold">Rs {parseFloat(product.cost_price).toLocaleString()}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -675,29 +674,29 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                             <div className="space-y-2 mb-4">
                                 <div className="flex justify-between text-indigo-100">
                                     <span className="text-sm">Ingredients:</span>
-                                    <span className="font-medium">{getCurrencySymbol()} {calculations.totalIngredientCost.toLocaleString()}</span>
+                                    <span className="font-medium">Rs {calculations.totalIngredientCost.toLocaleString()}</span>
                                 </div>
                                 {calculations.laborCost > 0 && (
                                     <div className="flex justify-between text-indigo-100">
                                         <span className="text-sm">Labor:</span>
-                                        <span className="font-medium">{getCurrencySymbol()} {calculations.laborCost.toLocaleString()}</span>
+                                        <span className="font-medium">Rs {calculations.laborCost.toLocaleString()}</span>
                                     </div>
                                 )}
                                 {calculations.overheadCost > 0 && (
                                     <div className="flex justify-between text-indigo-100">
                                         <span className="text-sm">Overhead:</span>
-                                        <span className="font-medium">{getCurrencySymbol()} {calculations.overheadCost.toLocaleString()}</span>
+                                        <span className="font-medium">Rs {calculations.overheadCost.toLocaleString()}</span>
                                     </div>
                                 )}
                                 <div className="border-t border-white/20 pt-2 mt-2">
                                     <div className="flex justify-between">
                                         <span className="font-bold">Total COGM:</span>
                                         <span className="text-xl font-bold">
-                                            {getCurrencySymbol()} {calculations.totalCOGM.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                            Rs {calculations.totalCOGM.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                         </span>
                                     </div>
                                     <p className="text-xs text-indigo-200 mt-1">
-                                        Cost per unit: {getCurrencySymbol()} {calculations.costPerUnit.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        Cost per unit: Rs {calculations.costPerUnit.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                     </p>
                                 </div>
                             </div>
@@ -725,10 +724,10 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                     Suggested Selling Price
                                 </p>
                                 <p className="text-2xl font-bold">
-                                    {getCurrencySymbol()} {calculations.suggestedPrice.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    Rs {calculations.suggestedPrice.toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </p>
                                 <p className="text-xs text-indigo-200 mt-1">
-                                    Profit: {getCurrencySymbol()} {(calculations.suggestedPrice - calculations.totalCOGM).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+                                    Profit: Rs {(calculations.suggestedPrice - calculations.totalCOGM).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
                                 </p>
                             </div>
 
@@ -737,7 +736,7 @@ export default function CookbookCreate({ products = [], recipe = null, warehouse
                                 <div className="mt-4 p-3 bg-white/10 rounded-xl">
                                     <p className="text-xs text-indigo-200">Current Product Price</p>
                                     <div className="flex items-center justify-between">
-                                        <p className="text-lg font-bold">{getCurrencySymbol()} {parseFloat(selectedProduct.price).toLocaleString()}</p>
+                                        <p className="text-lg font-bold">Rs {parseFloat(selectedProduct.price).toLocaleString()}</p>
                                         {parseFloat(selectedProduct.price) < calculations.suggestedPrice && (
                                             <span className="text-xs px-2 py-1 bg-red-500/30 text-red-200 rounded-full">
                                                 Underpriced!
