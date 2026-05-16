@@ -1,0 +1,22 @@
+{
+    "php.suggest.basic": true,
+    "php.validate.enable": true,
+    "php.validate.executablePath": "D:\\Software\\XAMPP\\php\\php.exe",
+    "php.validate.run": "onType",
+    "intelephense.phpVersion": "8.2.0",
+    "intelephense.files.exclude": [
+        "**/vendor/**/*.php"
+    ],
+    "files.exclude": {
+        "**/vendor/**": false,
+        "**/amd_erp_mobile/android/**": true,
+        "**/amd_erp_mobile/build/**": true,
+        "**/.gradle/**": true
+    },
+    "search.exclude": {
+        "**/vendor/**": true,
+        "**/amd_erp_mobile/**": true
+    },
+    "blade.format.enable": true,
+    "java.import.gradle.enabled": false
+}

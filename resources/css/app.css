@@ -1,0 +1,312 @@
+@import './fonts.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================================================
+   GLOBAL SCROLLBAR STYLING - Midnight Nebula Theme
+   ============================================================================================
+   Works with:
+   - Light theme: dark scrollbar on light backgrounds
+   - Dark theme: light scrollbar on dark backgrounds
+   - Midnight Nebula sections: contrasting scrollbar for the deep blue/purple backgrounds
+   ============================================================================================ */
+
+@media print {
+    @page {
+        margin: 0;
+        size: auto;
+    }
+
+    body {
+        margin: 1.6cm;
+    }
+
+    /* Hide Sidebar, Header, and other UI elements */
+    nav,
+    aside,
+    header,
+    .no-print,
+    button,
+    [role="button"],
+    .fixed {
+        display: none !important;
+    }
+
+    /* Ensure content takes full width */
+    main,
+    #app,
+    .bg-slate-100 {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        background: white !important;
+        color: black !important;
+    }
+
+    /* Hide browser headers/footers default text if possible (browser dependent) */
+    /* Note: @page margin: 0 usually handles this */
+}
+
+
+@layer base {
+    /* =====================================================
+       DASHBOARD COMPATIBILITY VARIABLES
+       ===================================================== */
+    :root {
+        --card-bg: #ffffff;
+        --card-border: #f1f5f9;
+        --text-main: #0f172a;
+        --text-sub: #64748b;
+        --sidebar-border: #f8fafc;
+        --sidebar-hover: #f1f5f9;
+        --bg-main: #f8fafc;
+    }
+
+    .dark {
+        --card-bg: #0f172a; /* slate-900 */
+        --card-border: #1e293b; /* slate-800 */
+        --text-main: #f8fafc; /* slate-50 */
+        --text-sub: #94a3b8; /* slate-400 */
+        --sidebar-border: #1e293b; /* slate-800 */
+        --sidebar-hover: #1e293b;
+        --bg-main: #020617; /* slate-950 */
+    }
+
+    /* =====================================================
+       DEFAULT SCROLLBAR (All elements)
+       ===================================================== */
+
+    html,
+    body,
+    #app {
+        height: 100%;
+    }
+
+    /* Webkit Browsers (Chrome, Safari, Edge) */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    /* Light theme: dark scrollbar thumb */
+    ::-webkit-scrollbar-thumb {
+        background: rgba(100, 116, 139, 0.4);
+        /* slate-500 with opacity */
+        border-radius: 9999px;
+        transition: background 0.2s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.6);
+    }
+
+    /* Dark theme: lighter scrollbar thumb */
+    .dark ::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.3);
+        /* slate-400 with opacity */
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.5);
+    }
+
+    /* Firefox */
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+    }
+
+    .dark * {
+        scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+    }
+}
+
+@layer utilities {
+    /* =====================================================
+       MIDNIGHT NEBULA SCROLLBAR - For dark sections
+       Use on sidebars, modals, etc with dark backgrounds
+       ===================================================== */
+
+    .nebula-scrollbar::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    .nebula-scrollbar::-webkit-scrollbar-track {
+        background: rgba(15, 23, 42, 0.3);
+        /* slate-900 subtle */
+        border-radius: 9999px;
+    }
+
+    .nebula-scrollbar::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg,
+                rgba(99, 102, 241, 0.5) 0%,
+                /* indigo-500 */
+                rgba(139, 92, 246, 0.4) 50%,
+                /* violet-500 */
+                rgba(99, 102, 241, 0.5) 100%);
+        border-radius: 9999px;
+        border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .nebula-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg,
+                rgba(99, 102, 241, 0.7) 0%,
+                rgba(139, 92, 246, 0.6) 50%,
+                rgba(99, 102, 241, 0.7) 100%);
+    }
+
+    /* Firefox support for nebula scrollbar */
+    .nebula-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(99, 102, 241, 0.5) rgba(15, 23, 42, 0.3);
+    }
+
+    /* =====================================================
+       MINIMAL SCROLLBAR - Ultra thin, almost invisible
+       ===================================================== */
+
+    .minimal-scrollbar::-webkit-scrollbar {
+        width: 3px;
+        height: 3px;
+    }
+
+    .minimal-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .minimal-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(100, 116, 139, 0.2);
+        border-radius: 9999px;
+    }
+
+    .minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(100, 116, 139, 0.4);
+    }
+
+    .dark .minimal-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(148, 163, 184, 0.2);
+    }
+
+    .dark .minimal-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(148, 163, 184, 0.4);
+    }
+
+    /* Firefox support for minimal scrollbar */
+    .minimal-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(100, 116, 139, 0.2) transparent;
+    }
+
+    .dark .minimal-scrollbar {
+        scrollbar-color: rgba(148, 163, 184, 0.2) transparent;
+    }
+
+    /* =====================================================
+       LIGHT ON DARK SCROLLBAR - For light content on dark bg
+       ===================================================== */
+
+    .light-scrollbar::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    .light-scrollbar::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 9999px;
+    }
+
+    .light-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 9999px;
+    }
+
+    .light-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Firefox support */
+    .light-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.05);
+    }
+
+    /* =====================================================
+       DARK ON LIGHT SCROLLBAR - For dark content on light bg
+       ===================================================== */
+
+    .dark-scrollbar::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+    }
+
+    .dark-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.03);
+        border-radius: 9999px;
+    }
+
+    .dark-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 9999px;
+    }
+
+    .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.25);
+    }
+
+    /* Firefox support */
+    .dark-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 0, 0, 0.15) rgba(0, 0, 0, 0.03);
+    }
+
+    /* =====================================================
+       LEGACY - Keep custom-scrollbar for backwards compat
+       ===================================================== */
+
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+        height: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        @apply bg-slate-200 dark:bg-slate-700 rounded-full;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        @apply bg-slate-300 dark:bg-slate-600;
+    }
+
+    /* =====================================================
+       HIDE SCROLLBAR - When needed
+       ===================================================== */
+
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
+
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    /* Hide Number Input Arrows */
+    .no-spinner::-webkit-outer-spin-button,
+    .no-spinner::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .no-spinner[type=number] {
+        -moz-appearance: textfield;
+    }
+}

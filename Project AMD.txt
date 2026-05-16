@@ -1,0 +1,611 @@
+Project AMD — Final Full Detail
+
+Purpose
+This document is the single, consolidated, exhaustive user-facing and usage reference for the AMD project (also referred to as VyaparApp in some files). It gathers, expands, and clarifies every feature described across the documentation folder so a user or implementer can find every feature, how it works, how to use it, and common questions and answers. Use this file as the canonical single-file reference. Where more detail, screenshots, or printable guides are useful, the document points to the specific supporting files in the same folder.
+
+How to use this document and the documentation folder
+- This file is a unified overview. It synthesizes and extends the contents of the other documentation files in this folder (00_README_Overview.txt, 01_Sales_and_Invoicing.txt, 02_Inventory_and_Stock.txt, 03_Manufacturing_and_BOM.txt, 04_Parties_Customers_Suppliers.txt, 05_Accounting_and_Reports.txt, 06_Taxes_and_Compliance.txt, 07_Banking_and_Payments.txt, 08_Marketing_and_WhatsApp.txt, 09_Plans_and_Subscriptions.txt, 10_Advanced_and_Integrations.txt, 11_Common_WorkFLOWS.txt, Master_Full_Details.txt and the DOCX versions). Read this file first to get the full map, then open the specific numbered file for step-by-step or printable instructions.
+- If you need a downloadable format (PDF or DOCX), use the provided DOCX files in this folder or request generation from the authoring tool that produced these files.
+- If you are a developer or integrator, read the sections labelled "Developer notes" in each feature area. They contain implementation considerations, import/export formats, and integration touchpoints.
+
+Table of contents
+- Overview and global concepts
+- Sales and Invoicing (features, usage, UI flow, templates, POS)
+- Inventory and Stock (items, godowns, batches, serials, labels, bulk import)
+- Manufacturing and BOM (BOM, manufacturing orders, consumption, wastage)
+- Parties (customers, suppliers, credit, contact picker, communication)
+- Accounting and Reports (journals, ledgers, reports, export)
+- Taxes and Compliance (tax rules, e-invoice, e-way bill, country-specific notes)
+- Banking and Payments (payment methods, bank reconciliation, POS machines)
+- Marketing and WhatsApp (messages, online store, integration)
+- Plans and Subscriptions (feature gating, trials, coupons)
+- Advanced and Integrations (hardware, Tally, imports, network features)
+- Common Workflows (company setup, backup, sync, uninstall)
+- Master checklists, troubleshooting, frequently asked questions
+- Developer notes and extension points
+- Exhaustive UI labels, dialog messages, exact fields and example values
+- What is present in this documentation folder (quick map and purpose of each file)
+- Missing pieces and recommended next steps
+- Final notes and versioning
+
+1. Overview and global concepts
+- Multi-company: The app supports multiple companies/accounts in a single installation. Each company has its own settings, items, parties, invoices, and reports.
+- Users and permissions: User accounts control access. Common roles include Admin (full access), Accountant (reports and accounting), Cashier (POS and sales), and Viewer (read-only). Roles and permissions are configured in company settings.
+- Plans and features: Some features are plan-gated (advanced templates, bulk messaging, removal of branding). See the "Plans and Subscriptions" section for exact gating.
+- Data safety: Regular backups are recommended. The app supports manual backup and restore, and cloud sync on supported plans.
+
+2. Sales and Invoicing
+Features
+- Create standard invoices, pro forma invoices, estimates/quotes, credit notes and debit notes.
+- POS mode with quick entry, barcode scanning, receipt printing, and cash drawer control.
+- Invoice templates: multiple designs, logo placement, custom notes, paid watermarks.
+- Send invoices by WhatsApp, email, or download PDF.
+- Combine multiple orders into a single invoice.
+
+How to create and manage invoices (user steps)
+1. New invoice: Click "New Sale" or "Create Invoice". Select company, date, and customer/party.
+2. Add items: Search items by name, SKU, or scan barcode. For each item enter quantity, rate, discount, tax applicability and any item-level notes.
+3. Check totals: The invoice preview shows subtotal, tax breakdown, discounts, and grand total. Use the preview to confirm layout.
+4. Save: Saving issues a unique invoice number and stores the record. If you receive payment immediately, record the payment in the same workflow.
+5. Send/Print: Choose print or send options. For messages, pick the template and recipient contact.
+
+Advanced invoice features and usage notes
+- Partial payments and multiple payments: Record a payment against an invoice with amount, mode and date. The invoice shows outstanding balance and payment history.
+- Editing invoices: Edit allowed before the invoice is finalized. If legally constrained (for example, e-invoicing issued or payment captured under compliance rules), edits may be restricted. The app keeps an audit trail of changes.
+- Templates and branding: Paid plans can remove app branding and unlock premium templates. Templates affect both PDF and print layout.
+- E-invoice/e-way bill integration: Where required, generate government documents from the invoice screen.
+- Combining orders: Use the "Combine Orders" workflow to select multiple sales orders and consolidate them into a single invoice.
+
+Common questions for sales
+- Can I sell with negative stock? There is a setting per company to allow or block sales when stock is insufficient. If blocked, you will get a warning and must adjust stock before proceeding.
+- How to handle returns? Create a credit note or a return entry. This updates the customer's balance and stock as configured.
+
+Developer notes (Sales)
+- Export/Import: Invoices can be exported as CSV/Excel for external accounting or bulk import. Export columns include invoice number, date, party, item rows, tax lines, payment status.
+- API integration: The invoice create endpoint accepts customer id, item lines, taxes, and payment entries. Check the API docs in the Developer portal for exact payloads.
+
+3. Inventory and Stock
+Features
+- Items and SKUs, images, description, categories and attributes (weight, model, custom fields).
+- Stock tracking across multiple godowns (warehouses).
+- Batch and serial tracking with expiry/manufacture dates and traceability.
+- Barcode generation and printing, barcode scanning for POS and stock operations.
+- Stock transfers between godowns, stock adjustments, stock takes (audits), reorder levels and alerts.
+- Bulk import/update of items by spreadsheet.
+
+How to add and manage items
+1. Add item: Click "Add Item". Provide name, SKU, sales price, purchase price, tax category, default godown and optional attributes.
+2. Images and custom fields: Attach images and fill custom fields used for sales or printing.
+3. Stock entries: Use purchase or stock adjustment workflows to set quantity for a godown. For received goods, add batch or serial numbers if applicable.
+
+Note: GS1 barcode support
+- The app supports entering and using GS1-standard item codes and barcodes for automated and precise barcode entry. When working with barcodes that follow GS1 standards (for example GS1-128, EAN/UPC with application identifiers), you can scan or input the full GS1 code and the app will parse identifiers (like batch, expiry, serial as available) according to the configured GS1 parsing rules.
+
+Batches and serials
+- Batches: Use when multiple units share a batch identity (manufacture date, expiry). Record batch when receiving stock and choose batch at sale time if needed.
+- Serials: Record a unique serial for each unit. When selling serial-tracked items, the system will force selection of serials.
+
+Barcode and label printing
+- Generate printable barcode labels per item or per serialized unit. Choose label size and template in the label print screen.
+- Printing can be done in bulk for many items or on demand.
+
+Stock operations
+- Stock transfers: Create a transfer specifying source and destination godowns and item quantities. Confirm to move stock.
+- Stock take: Perform a stock take per godown to reconcile physical counts with system counts; the system records adjustments with reason.
+- Reorder alerts: Set minimum reorder levels for items; the system shows alerts and can generate purchase suggestions.
+
+Common questions for inventory
+- How does the app decide which godown to use on sale? Either the user picks a godown at invoice time or the default godown for the sales channel is used.
+- Can I change stock if I made an error? Use stock adjustment or stock take to correct counts; each change should be accompanied by a short reason and is recorded in the audit.
+
+Developer notes (Inventory)
+- CSV import mapping: Columns supported include name, SKU, category, sales price, purchase price, default godown, opening stock, batch info, and serials (serialized items require one row per serial or a special serial column format).
+- Stock valuation: The system may support FIFO/Weighted average valuation settings per company; check accounting settings before performing bulk adjustments.
+
+4. Manufacturing and BOM
+Features
+- Bill of Materials (BOM) for finished goods
+- Manufacturing orders (create, confirm, partial produce) and consumption tracking
+- Wastage, scrap recording, and traceability
+- Reports for production, consumption, and cost analysis
+
+How BOM and manufacturing orders work
+1. Create BOM: For a finished product, create a BOM listing each raw material, required quantity per finished unit, and optional routing or operation notes.
+2. Create manufacturing order: Choose finished product and desired quantity. The system calculates required raw materials from BOM and shows shortage warnings if stock lacking.
+3. Confirm production: When you confirm or mark production complete, the system consumes raw material stock and increases finished good stock. Record who performed production and when.
+4. Partial production and wastage: You can record partial production and explicitly note material wastage or scrap. The system adjusts stock accordingly.
+
+Common manufacturing questions
+- If BOM changes, do old orders update? Past manufacturing orders remain unaffected. New orders will use the updated BOM.
+- Can I reverse a manufacturing order? Yes, you can cancel or reverse depending on configuration, but the system will retain an audit of the reversal.
+
+Developer notes (Manufacturing)
+- Costing impact: Manufacturing consumes stock and typically creates journal entries for raw material removal and finished goods addition. Ensure costing methods (FIFO/Avg) are configured and tested.
+- Batch traceability: If consumed raw materials are batch-tracked, BOM consumption should optionally select which batch was used to maintain end-to-end traceability.
+
+5. Parties (Customers and Suppliers)
+Features
+- Create and manage parties with contact details, tax IDs, multiple contact persons, payment terms, credit limits and tags/labels.
+- Outstanding balances, aging reports, and payment history.
+- Contact picker for quick selection in transactions.
+- Communication tools to send invoices and messages directly from a party profile.
+
+How to create and use parties
+1. Add party: Click "Add Party". Enter name, phone, email, address, tax ID, and role (customer or supplier). Optionally add secondary contacts.
+2. Use in transactions: When creating invoices or purchases start typing the party name and pick from the contact picker.
+3. Record payments and settlements: Record incoming and outgoing payments against parties, link to invoices or record as advance payments.
+
+Credit limits and rules
+- Set credit limit and default payment terms. System warns if a transaction would exceed the credit limit.
+- Adjust limits and use notes to explain exceptions.
+
+Common party questions
+- Can a party be both supplier and customer? Yes, either create separate records or a single party with both roles depending on preference and reporting needs.
+
+Developer notes (Parties)
+- Imports: Party import CSV columns include name, type, phone, email, tax id, opening balance, opening balance date, default payment terms and tags.
+- Integrations: Party records map to contact tables in external CRMs or ERPs when syncing.
+
+6. Accounting and Reports
+Features
+- Basic double-entry accounting features: journals, ledgers, trial balance, profit and loss, balance sheet.
+- Link invoices, payments and bank transactions to accounting entries.
+- Export reports to Excel/CSV and PDF.
+
+How accounting ties to transactions
+- Each sales invoice can generate accounting entries: revenue, tax liability, receivable. Payments create cash/bank entries and decrease receivables.
+- Purchase invoices create expense or inventory asset entries and payables.
+- Reconciliations: Bank statements can be imported and matched to recorded payments.
+
+Recycle bin and recovery (added for completeness)
+- Deleted records: Many deleted records (invoices, items, parties) are moved to a recycle bin or soft-delete area rather than being permanently erased immediately.
+- Restore: From the recycle bin you can inspect and restore deleted records if they were removed by mistake.
+- Retention: The app may provide settings to control how long deleted records remain in the recycle bin before permanent purge; trial and plan levels can affect retention.
+
+Reports available
+- Trial balance, balance sheet, profit & loss, ledger for any account, cash book, bank book, tax summary and custom reports.
+
+Common accounting questions
+- Can I change accounting settings later? Some settings like opening balances and fiscal year must be set carefully; changing them later may require reconciliations.
+
+Developer notes (Accounting)
+- Export format: Reports export as standard CSV with columns suited for spreadsheet import into accounting packages. For example, ledger exports include date, voucher no, account code, debit, credit, narration.
+- Tally/ERP integration: The system supports Tally export in supported locales; consult the Advanced and Integrations doc for the exact format and limitations.
+
+7. Taxes and Compliance
+Features
+- Tax master per company, tax rates, GST/TAX schemes for supported regions.
+- E-invoice and e-way bill generation where mandated, plus report submission and GSTR reconciliation aids in India.
+
+How to configure and use taxes
+- Set company tax settings, default tax rates, and tax applicability per item.
+- For India: Use the GSTR and e-invoice workflows to register and submit required documents. The app exposes buttons to generate and attach government responses to invoices.
+
+Common tax questions
+- What if tax laws change? Update the tax master and migrate affected items; archived transactions remain unchanged for audit traceability.
+
+Developer notes (Taxes)
+- Tax calculation: Tax calculation engine computes tax line items at invoice save time; rounding rules and multi-tax scenarios are configurable per company.
+- E-invoice API: For countries with e-invoicing, integration uses government APIs; ensure API credentials and GSTIN/Tax registrations are valid before generating official documents.
+
+8. Banking and Payments
+Features
+- Record bank accounts, cash accounts, reconcile bank statements, and manage multiple payment methods.
+- POS integrations with EDC machines, QR payments, and support for printing receipts.
+
+How to use banking features
+- Create bank account: Add bank with account number, IFSC/branch and link to company ledger.
+- Record payments: For invoice payments, select payment method and bank; record cheques with dates.
+- Bank reconciliation: Import bank statements or manually match transactions to recorded entries.
+
+POS payments
+- POS flow supports cash, card, UPI/QR and direct bank integrations depending on region and hardware.
+
+Common banking questions
+- How to reconcile a missing transaction? Use the bank reconciliation tool to find unmatched transactions and create manual entries or import statements.
+
+Developer notes (Banking)
+- Statement import format: Support common CSV/MT940/OFX formats depending on banks. Mapping templates may be required for bank-specific formats.
+
+9. Marketing and WhatsApp
+Features
+- Send invoices and reminders via WhatsApp and email, bulk messaging, and promotional campaigns.
+- Online store listing and ad integrations for selling directly to customers.
+
+How to use WhatsApp and marketing features
+- Configure messaging: Add WhatsApp business integration or API credentials, set message templates and default content for invoices and reminders.
+- Send one-off messages: From an invoice or party screen, click send and choose WhatsApp or email.
+- Bulk campaigns: Select a list of contacts or filter by tags and schedule or send messages in bulk. Some bulk features may be plan-gated.
+
+Common marketing questions
+- How to avoid spam rules on WhatsApp? Use approved templates and avoid sending unasked bulk promotions. Respect country-specific messaging laws.
+
+Developer notes (Marketing)
+- Template management: Messaging templates are saved and may require approval if using official WhatsApp Business API.
+- Rate limits and plan gating: Bulk sends are throttled on lower plans; check the Plans document for limits.
+
+10. Plans and Subscriptions
+Features
+- Multiple subscription tiers control features such as number of users, premium templates, removal of branding, bulk messaging limits, and integrations.
+- Trial behavior, coupon codes and upgrade/downgrade flows.
+
+How plans affect features
+- Free trial: Core features are available for evaluation. Premium features remain locked until upgrade.
+- Upgrading: Upgrade flow is available in the settings. Upgrading unlocks premium features immediately; downgrading may remove access to some features but existing data is retained.
+
+Common questions about plans
+- Will I lose data on downgrade? No, data remains; you may lose access to UI features until you upgrade again.
+
+Developer notes (Plans)
+- Feature flags: The product uses feature flags per company/account. Check the admin console or feature-flag configuration when enabling or disabling trial features.
+
+11. Advanced and Integrations
+Features
+- Integrations with hardware (scales, EDC card machines), Tally export/import, Astro Vyapar network features and third-party apps.
+- Developer API for core entities (items, parties, invoices, stock movements).
+
+How to setup integrations
+- Hardware: Connect peripherals via supported drivers and follow hardware setup docs in the advanced file. Test printing and scanning with sample operations.
+- Tally: Export format and mapping are provided in the Advanced doc. Import carefully using Tally's import utilities.
+
+Developer notes (Integrations)
+- API rate limits: External API usage is rate-limited; check plan docs for exact limits.
+- Webhooks: The system supports webhooks for key events (invoice.created, payment.added, stock.moved). Subscribe in the developer settings.
+
+12. Common Workflows
+- Company setup: Create company, enter GSTIN/tax IDs, fiscal year, default currency, and opening balances.
+- Backup and restore: Manual backup from settings and restore using the backup file. For cloud backup, ensure account sync is enabled.
+- Sync and multi-device: Synchronization across devices is available when signed into the same company account; resolve conflicts by the latest-update-wins policy unless manual merge required.
+- Uninstall: Export data before uninstalling. Use backup to restore later.
+
+13. Master checklists and maintenance
+- Before starting live use: Create company, set fiscal year, import opening balances, import items and parties, configure tax settings, set up bank accounts and test payment recording, configure templates and print settings, perform trial runs with invoices and stock operations, set up backups.
+- Monthly tasks: Reconcile bank statements, review aging reports, run stock take for fast moving items, check reorder alerts.
+- Year-end: Finalize fiscal year, backup complete data, export accounting ledgers for auditors.
+
+14. Troubleshooting and FAQs (consolidated)
+- Missing stock after sale: Verify godown selected, check pending transfers, check stock adjustments and returns.
+- Can’t edit invoice: Check whether e-invoice issued or invoice locked by compliance rules. Check user permissions.
+- Payment not reconciling: Check date, amount and reference. Use bank reconciliation to match.
+- Label printing misaligned: Confirm printer DPI and label template settings.
+
+15. Developer notes and extension points
+- Data model overview: Core entities: Company, User, Party, Item, Invoice, Purchase, StockMovement, BOM, ManufacturingOrder, JournalEntry, BankStatement, MessageTemplate.
+- Import/Export formats: CSV/Excel formats for items, parties, invoices and stock. Keep header names consistent with sample templates in the documentation folder.
+- API and webhooks: Use the documented endpoints for CRUD operations. For integrations that require real-time updates, subscribe to webhooks and validate payload signatures.
+
+16. Exhaustive UI labels, dialog messages, exact fields and example values (pulled from Master_Full_Details and DOCX sources)
+
+I read the DOCX/master files in this folder and extracted the full, explicit UI labels, button names, dialog confirmations, template tokens, import column names, report names, and example placeholder values. Below is the authoritative list you asked to be included in the master file so nothing is missed.
+
+A. Global UI elements and quick-actions
+- Top-level menus and buttons: "Home", "Dashboard", "Sales", "Purchases", "Inventory", "Manufacturing", "Reports", "Accounting", "Customers", "Suppliers", "Banking", "Marketing", "Settings", "Help", "Support", "Plans", "Upgrade", "Logout".
+- Floating action / quick-create: "+ New", "+ New Sale", "+ New Purchase", "+ Add Item", "+ Add Party".
+- Search placeholder: "Search items, invoices, customers, SKUs, or serials" (keyboard hint: "Ctrl+K" in some builds).
+- Filters: "From", "To", "Status" (All, Paid, Unpaid, Overdue, Draft), "Payment Method" (Cash, Card, Bank Transfer, UPI, Other), "Godown"/"Warehouse".
+- Pagination: "Prev", "Next", page sizes (10, 25, 50, 100).
+
+B. Dialogs and confirmations (exact phrasings)
+- "Are you sure you want to delete this record?"
+- "This action cannot be undone, do you want to continue?"
+- "Yes, delete", "Cancel"
+- "Insufficient stock in selected godown. Missing quantity: {X}. Do you want to continue?" (buttons: "Proceed", "Cancel")
+- "Payment recorded successfully.", "Payment failed: {reason}", "Partial payment recorded, remaining balance: {amount}".
+- "Feature available on Gold/Platinum plans, upgrade now?" ("Upgrade", "Maybe later").
+- Backup messages: "Backup created successfully at {path}", "Backup failed: {reason}", "Restoring this backup will overwrite existing data, continue?".
+- Generic errors: "Something went wrong, please try again.", "Network error: please check your internet connection.", "Invalid input: please correct highlighted fields."
+
+C. Sales & Invoice screen — exact labels, fields and buttons
+- Screen labels: "Sales List", "Create Invoice", "Invoice Templates", "POS Mode", "Combine Orders", "Recurring Invoices", "Invoice Reminders".
+- Create Invoice fields: "Customer / Party", "Invoice Date", "Due Date", "Invoice Number", "Reference / PO No.", "Warehouse / Godown", "Salesperson / Bill To".
+- Line item columns: "Item", "Description", "SKU / Code", "Batch / Serial", "Quantity", "Unit", "Rate / Unit Price", "Discount", "Tax", "Line Total".
+- Totals and controls: "Add Item", "Subtotal", "Discount Total", "Tax Total", "Shipping", "Round Off", "Grand Total".
+- Payment controls: "Receive Payment", "Payment Terms" (Cash, NET 7, NET 15, NET 30, Custom), "Allow Partial Payments".
+- Footer/customization: "Notes for customer", "Terms and Conditions", logo/address preview, tax registration display.
+- Bottom actions: "Save Draft", "Save and Send", "Save and Print", "Save and New", "Cancel".
+- Send options: "Send on WhatsApp", "Email Invoice", "Share Link" ("Copy Link", "Password Protect Link").
+- Recurring: "Repeat Every" (daily, weekly, monthly, quarterly, yearly), "End After", "End On", "Send Reminder" schedule options.
+
+D. POS mode and hardware controls
+- POS UI: large search, category tabs, favorite tiles, quantity pad, barcode scan input, "Hold Sale", "Recall Sale", "Close Register".
+- Payment modal: "Amount Due", "Amount Received", Add payment split rows, payment types (Cash, Card, UPI/QR, Wallet), "Tip" field, "Print Receipt" checkbox.
+- Hardware actions: "Open Cash Drawer", "Print Receipt", "Connect Barcode Scanner", "Connect Printer" (paper widths: 58mm, 80mm).
+
+E. Inventory & Item exact fields and import columns
+- Item fields: "Item Name", "SKU", "HSN/SAC", "Barcode", "Brand", "Model", "Category", "Subcategory", "Unit", "Purchase Price", "MRP", "Selling Price", "Selling Price 2", "Cost Price", "Tax Class", "Track Inventory", "Manage Batches", "Manage Serials", "Minimum Reorder Level", "Maximum Level", "Preferred Supplier", "Opening Stock", "Opening Stock Date", "Opening Stock Godown", "Image Upload", "Custom Fields", "Item Notes".
+- CSV/Excel import headers (expected): item_name, sku, barcode, hsn_code, unit, purchase_price, selling_price, tax_percent, opening_stock, godown_name, reorder_level, preferred_supplier, image_url.
+- GS1 note: supports GS1-128, EAN/UPC parsing into batch/expiry/serial when configured.
+- Stock audit fields: "Counted Quantity", "Reason for variance", "Counted By", review page shows "Previous Qty", "Counted Qty", "Adjustment".
+- Serial import columns: "Serial Number", "Purchase Date", "Warranty Expiry", "Supplier Invoice No.".
+
+F. Manufacturing & BOM exact fields
+- BOM fields: "BOM Version", "Effective From", "Cost per BOM", "Labor Time", "Overheads", "Enable Wastage Calculation".
+- Manufacturing Order: "Quantity to produce", "Scheduled Start", "Scheduled End", "Operator / Machine", "Attach Work Order Document", "Start", statuses (Planned, In-Process, Completed, Cancelled).
+- WIP labels: "WIP Number", "Produced Quantity", "Rejected Quantity", "Wastage Quantity", "Finalized By".
+
+G. Parties (Customers & Suppliers) full fields and contact controls
+- Party labels: "Display Name", "Legal Name", "Mobile Number", "Alternate Mobile", "Email Address", "Billing Address", "Shipping Address", "GSTIN / VAT ID", "PAN / Tax ID", "Opening Balance", "Opening Balance Date", "Credit Limit", "Payment Terms", "Preferred Payment Mode", "Salesperson", "Tags".
+- Contact picker icons: "Has Pending Invoices", "Preferred Customer", "Blacklisted" with tooltip last invoice and outstanding.
+- Customer portal toggles: "Allow customer to view invoices", "Allow payment online", "Allow order placement".
+
+H. Accounting & Reports exact list and export formats
+- Reports: Sales Register, Purchase Register, Cash Flow Statement, Profit & Loss, Balance Sheet, Ledger Account, Party Statement, Aged Receivables, Aged Payables, Stock Valuation Report, Sales by Item, Top Customers, GST Summary, GST Liability, GSTR-1 / GSTR-3B Ready Export, Trial Balance, Journal Voucher List, Bank Reconciliation Report, Audit Trail, Item Movement Report, Manufacturing Consumption Report.
+- Exports: CSV, Excel (.xlsx), PDF, JSON (some advanced reports), Print Preview.
+- Filters: date range, company, branch, godown, category, SKU, invoice status, salesperson, payment method, tax type.
+- Recycle bin specifics: deleted records moved to recycle bin (soft-delete), "Restore" action available, retention configurable by plan.
+
+I. Taxes & compliance exact controls
+- Company tax UI: "Tax Regime", "Tax Registration Number", "State", "Place of Supply Rule", "Default Tax Rate".
+- Line tax toggle: "Inclusive of Tax" with explanatory text.
+- E-way/e-invoice fields: "Transporter Name", "Transporter ID", "Vehicle Number", "From PIN Code", "To PIN Code", "Distance (KM)", "Reason for Transport", "E-way Bill No.".
+- Example formatting: numbers with commas (e.g., "1,000.00"), tax calculation narratives included in docs.
+
+J. Banking & Payments exact labels
+- Transfer form: "From Account", "To Account", "Transfer Amount", "Reference", "Transfer Date", "Remarks", "Save Transfer".
+- Reconciliation: "Record bank charges" with "Charge Amount", "Charge Account", "Description".
+- Chargeback: "Mark as Chargeback", fields "Original Payment Ref.", "Chargeback Date", "Chargeback Reason", "Amount Reversed", "Fees".
+
+K. Marketing, WhatsApp and online store tokens & limits
+- Messaging tokens: {customer_name}, {invoice_no}, {invoice_amount}, {due_date}, {company_name}, {payment_link}.
+- Opt-out label: "Do not contact for promotions" on party profile, exportable as "Marketing > Do Not Contact".
+- Bulk send progress: "Sent: {n}, Failed: {m}, Pending: {p}" and warning "Messages will be sent in batches, this may take several minutes".
+- Online store product fields: "Product Title", "Short Description", "Full Description", "Price", "Compare At Price", "Stock Keeping Enabled", "Allow Backorders", "Weight", "Dimensions", "Shipping Class", "SEO Title", "SEO Description".
+
+L. Plans, checkout and coupons exact fields
+- Plan UI: plan comparison table, buttons "Buy" or "Current Plan".
+- Checkout fields: "Billing Name", "Billing Email", "Company Name", "Country", "Coupon Code", "Payment Method", "Card Number", "Expiry", "CVV", "Billing Address", "Agree to Terms", "Pay Now".
+- Coupon messages: "Coupon applied successfully, you saved {amount}", "Coupon invalid or not applicable for selected plan".
+
+M. Advanced integrations and test dialogs
+- Hardware tests: "Testing connection — please ensure device is plugged in", "Connection successful", "Connection failed, check drivers and port".
+- Tally labels: "Export Ledger", "Export Invoices (Tally format)", "Import Chart of Accounts", "Tally Mapping".
+- OAuth/connect labels: "Connect Google Business", "Connect Facebook Ads", "Authorize", "Connected as {account}".
+
+N. Common workflows: fully enumerated example (exact button/field names)
+- Example full flow (as documented):
+  1. "+ New" -> "Create Company". Fill "Company Name" "My Company, Retail Pvt. Ltd.", "Country" "India", "GSTIN" "29ABCDE1234F2Z5", click "Save" -> "Company created successfully.".
+  2. "+ New" -> "Add Item": fill "Item Name" "Blue T-shirt, M", "SKU" "BT-M-001", "Unit" "pcs", "Selling Price" 350.00, "Purchase Price" 200.00, toggle "Track Inventory" On, click "Save Item" -> "Item saved successfully.".
+  3. "Purchases" -> "New Purchase" -> select "Supplier" "ABC Textiles" -> add item "Blue T-shirt, M", qty 10, godown "Main Store", batch "BATCH-001", click "Save & Update Stock" -> "Purchase saved and stock updated.".
+  4. "Sales" -> "New Sale" -> pick "Rahul Sharma" -> add item "Blue T-shirt, M", qty 2, click "Save and Send" -> "Invoice INV-2025-001 saved.".
+  5. Open invoice -> "Receive Payment" -> "Amount Received" 700.00, "Payment Method" UPI, "Reference" UPI1234, "Bank" "State Bank - 1234", click "Record Payment" -> "Payment recorded successfully.".
+  6. "Send on WhatsApp" -> preview -> click "Send" -> "Invoice sent successfully.".
+
+O. Accessibility & localization notes
+- App supports locale files; strings may vary (e.g. "Invoice" vs "Bill").
+- Number and date formats follow system locale: examples "1,234.56", dates "29-12-2025" or "12/29/2025".
+
+P. File references and provenance
+- The exhaustive lists above were extracted from Master_Full_Details.txt and the DOCX files in this folder. These source files are referenced in section 16 of this master document; keep them as authoritative sources for exact phrasing and example values when updating the product UI or generating translations.
+
+End of exhaustive UI labels section
+
+17. What is present in this documentation folder (quick map and purpose of each file)
+- 00_README_Overview.txt — folder purpose and organization summary.
+- 01_Sales_and_Invoicing.txt — step-by-step plain language guide for sales and POS.
+- 02_Inventory_and_Stock.txt — inventory workflows, barcode and stock operations.
+- 03_Manufacturing_and_BOM.txt — BOM and production workflows.
+- 04_Parties_Customers_Suppliers.txt — parties, contact picker and credit management.
+- 05_Accounting_and_Reports.txt — accounting and available reports (see file for step-by-step).
+- 06_Taxes_and_Compliance.txt — tax features for supported locales including e-invoice and e-way bill.
+- 07_Banking_and_Payments.txt — bank accounts, POS payment flows and reconciliation.
+- 08_Marketing_and_WhatsApp.txt — messaging and marketing features.
+- 09_Plans_and_Subscriptions.txt — subscription tiers, trial flow and billing details.
+- 10_Advanced_and_Integrations.txt — hardware and third-party integrations, Tally notes.
+- 11_Common_Workflows.txt — common daily routines and maintenance tasks.
+- Master_Full_Details.txt — a master file (use for cross-reference and backups).
+- PROJECT AMD.docx and other DOCX files — full formatted copies for distribution.
+
+18. Missing pieces and recommended next steps
+- Visual walkthroughs: Add screenshots and annotated screen flows for every major screen (invoice creation, item add, BOM create, stock transfer). The text files reference these but the images are not in this folder.
+- Sample import templates: Add canonical CSV templates for items, parties, invoices and stock with example rows and required headers.
+- API reference: If you plan to integrate programmatically, add a machine-readable OpenAPI spec and sample SDK snippets.
+- Test data suite: Include a small dataset (sample company) for demonstration and testing to validate import and workflows.
+
+19. Final notes and versioning
+- Keep this file updated when features change. Add a change log header each time you modify features or documentation.
+- Version: 1.0 — Consolidated master documentation created by merging 00-11 files and expanding content into a single reference.
+
+End of document
+
+20 — Technical Architecture (Hostinger & Offline Setup)
+
+What this area is for:
+This section explains how the system is built to run on standard shared hosting (Hostinger) while still working like a modern app that can handle offline sales and instant syncing. It bridges the gap between a "website" and a "software."
+
+Key concepts you will see:
+
+* **Build for Production:** Since Hostinger doesn't run "Node.js" servers permanently, we build the React app on your computer first, then upload the finished files.
+* **Dexie.js (Offline DB):** A mini-database that lives inside your browser (Chrome/Edge). It holds all your items and customers so you can sell even if the internet cable is cut.
+* **Minute Cron:** A heartbeat signal sent every minute to check for online orders or syncing tasks.
+
+How to deploy and maintain (Plain steps):
+
+1. **Local Build:** On your laptop, run the command `npm run build`. This creates a folder of "static assets" (HTML, CSS, JS).
+2. **Upload:** Use FileZilla or Hostinger File Manager to upload everything to `public_html`.
+3. **Database Connection:** Edit the `.env` file on Hostinger to connect to the MySQL database you created in the control panel.
+4. **The "Heartbeat":** Go to Hostinger "Cron Jobs" and add a command to run `php artisan schedule:run` every minute. This keeps the system alive.
+
+Common user questions answered plainly:
+
+* **Q: What happens if Hostinger goes down?**
+* **A:** Your POS screen will keep working because it runs from the browser's memory (PWA). You can't see reports or sync, but you can keep selling.
+
+
+* **Q: Do I need a powerful server?**
+* **A:** No. Because we use React for the heavy lifting on the *user's* computer, the server only handles data storage. Shared hosting is enough.
+
+
+What the app does behind the scenes:
+
+* The system uses "Inertia.js" to make the website feel like an app. When you click a link, it doesn't reload the whole page; it just swaps the content, making it incredibly fast.
+
+21 — Composite Inventory (The "Garam Masala" Logic)
+
+What this area is for:
+This handles items that you *assemble* or *mix* yourself. It ensures that when you sell a finished mix, the system automatically subtracts the raw ingredients from your stock so your inventory counts are always real.
+
+Key concepts:
+
+* **Parent Item:** The finished product you sell (e.g., "Special Garam Masala 1kg").
+* **Child Items:** The raw ingredients (e.g., "Black Pepper", "Cumin", "Coriander").
+* **Auto-Assembly:** The magic logic that mixes them instantly at the moment of sale.
+
+How to set it up (Step-by-step):
+
+1. **Create Ingredients:** Add "Black Pepper" and "Cumin" as normal items with their purchase price per kg.
+2. **Create Parent:** Add "Garam Masala" as an item. Go to the **"Manufacturing / BOM"** tab.
+3. **Define Recipe:** Add rows:
+* "Black Pepper" - 0.200 kg
+* "Cumin" - 0.800 kg
+* *Result:* 1 Unit of Garam Masala.
+
+
+4. **Selling (The Magic):** When a cashier sells 1 Packet of Garam Masala, the system checks stock.
+* If you have pre-made packs, it subtracts 1 pack.
+* If you have **0 packs**, it automatically subtracts 200g Pepper and 800g Cumin and records the sale.
+
+
+Common user questions answered plainly:
+
+* **Q: What if I don't have enough ingredients?**
+* **A:** The system will warn you: "Not enough Raw Material to manufacture this item" and block the sale.
+
+
+* **Q: Can I pre-pack them on Sunday?**
+* **A:** Yes. Go to "Production Run", enter "50 Packets", and click "Make". The system deducts bulk ingredients now and adds 50 packs to your shelf.
+
+
+What the app does behind the scenes:
+
+* It calculates the "Cost Price" of the Garam Masala dynamically based on the *current* average price of the ingredients used + any labor cost you defined.
+
+22 — "Senior Mode" (Father-Friendly Interface)
+
+What this area is for:
+This is a specialized accessibility profile designed for users with reduced eyesight or those who prefer high-clarity, clutter-free screens. It completely changes how the POS looks and behaves.
+
+Key features enabled:
+
+* **20px Base Font:** All text is 40% larger than normal.
+* **High Contrast Colors:** No "grey" text. Everything is pure black on white.
+* **Color Coding:** Prices are always **Green**. Quantities are always **Blue**. Errors/Alerts are **Red**.
+* **Input Guard:** Prevents accidental typing errors (like letters in a price field).
+
+How to toggle and use:
+
+1. **The Toggle:** Click the "A+" icon in the top header. The screen instantly redraws with the larger layout.
+2. **Reading Reports:** In Senior Mode, tables have extra padding (space) between rows so lines don't blur together.
+3. **Keyboard Navigation:** Mouse usage is optional.
+* **F1:** Jump to Search.
+* **Spacebar:** Pay & Print.
+* **Enter:** Add to Cart.
+
+
+Common user questions answered plainly:
+
+* **Q: Does this affect the printed invoice?**
+* **A:** Yes, if you select "Print Large Receipt" in settings. Otherwise, the paper receipt stays standard size to save paper.
+
+
+* **Q: Can I turn it off for the young cashier?**
+* **A:** Yes, the setting is saved *per user*. Your father sees the big version; the cashier sees the standard version on the same PC.
+
+23 — Multi-Alias Barcoding (One Product, Many Codes)
+
+What this area is for:
+This solves the "Air Freshener Problem." It lets you sell different variations (Rose, Lavender, Jasmine) using their unique barcodes, but tracks them all as a single generic item in your inventory to keep reports simple.
+
+How it works:
+
+1. **Create Master Item:** Create "Air Freshener (Generic)" with ID 101.
+2. **Add Aliases:** Go to the **"Barcodes"** tab.
+* Scan Rose Can (Code: 1111) -> Link to ID 101.
+* Scan Lavender Can (Code: 2222) -> Link to ID 101.
+
+
+3. **Selling:**
+* Cashier scans "1111" -> Screen shows "Air Freshener".
+* Cashier scans "2222" -> Screen shows "Air Freshener".
+* Stock reduces by 2.
+
+
+Common user questions answered plainly:
+
+* **Q: Can I still see which flavor sold more?**
+* **A:** No, that's the trade-off. This feature is for when you *don't* care about the flavor, only the total stock. If you need flavor tracking, create separate items.
+
+24 — Staff Attendance & Gap Detection (Load Shedding Proof)
+
+What this area is for:
+This tracks your manager's actual working hours. It is smart enough to distinguish between "I went home" and "The power went out," ensuring fair pay and security.
+
+Key concepts:
+
+* **Digital Punch Clock:** Starts automatically when they log in.
+* **Gap Detector:** If the mouse doesn't move for 15 minutes, the "Work Timer" pauses.
+* **Power Failure Logic:** Detects illegal shutdowns.
+
+How it handles "Light Gone" scenarios:
+
+1. **Scenario:** The power cuts at 2:00 PM. The UPS dies. The PC shuts off instantly.
+2. **Restart:** The manager turns the PC on at 4:00 PM.
+3. **The Prompt:** The system sees the gap. It asks: *"System crash detected between 2 PM and 4 PM. Were you working?"*
+4. **The Claim:** The manager enters "Yes, manual packing."
+5. **Verification:** You (The Admin) get a notification. You check the CCTV or trust him, then click **"Approve"** to pay him for those 2 hours.
+
+
+Common user questions answered plainly:
+
+* **Q: Can the manager cheat by changing the time?**
+* **A:** No. The system uses the *Server Time*, not the Windows clock.
+
+
+* **Q: What if he leaves the PC on and goes out?**
+* **A:** The "Gap Detector" will pause his pay after 15 minutes of no mouse movement. When he returns, he must explain the gap.
+
+25 — WooCommerce Sync (The Bridge)
+
+What this area is for:
+This connects your physical shop to your online website. It ensures that if you sell the last "Blue Shirt" in the shop, the website instantly hides it so you don't receive an online order you can't fulfill.
+
+How the traffic flows:
+
+1. **Price Master:** You change the price in **Project AMD** (The App). It updates the Website. (You never change prices on the website manually).
+2. **Shop Sale Wins:** If a walk-in customer buys an item, the stock is reduced from the website within 1 minute.
+3. **Web Order Alert:** When an order comes from the web, a "New Web Order" bell rings on the POS screen so the cashier can set the items aside immediately.
+
+
+Common user questions answered plainly:
+
+* **Q: What happens if internet is down?**
+* **A:** The system queues the updates. As soon as the internet returns, it pushes all the shop sales to the website in a single batch.
+
+26 — Advanced Financial Tools (The Owner's Edge)
+
+What this area is for:
+These are high-level tools for you (the owner) to maximize profit and stay legally compliant.
+
+Key features:
+
+* **Live Margin Checker:**
+* **What it does:** While making a bill, next to the "Total" price, a small percentage shows (e.g., **15%**).
+* **Why:** If a customer bargains, you can see *"If I lower the price by 500 Rs, my margin drops to 0%."* This helps you negotiate safely.
+* **Privacy:** This number is **hidden** for the normal cashier role.
+
+
+* **Fixed Asset Depreciation:**
+* **What it does:** You bought a Delivery Bike for 1 Lakh. It loses value every year.
+* **How:** You set "10% Depreciation". At the end of the year, the system auto-posts an expense of 10,000 Rs, reducing your tax liability and showing the true value of the bike.
+
+
+* **FBR / Tax Toggle:**
+* **What it does:** A switch to "Send to FBR".
+* **Usage:** If enabled, printing a receipt automatically sends the data to the tax authority and prints the required QR code on the footer.
+
+
+What the app does behind the scenes:
+
+* For the Live Margin, it constantly compares the *Weighted Average Purchase Price* (what you paid for the stock over time) against the *Current Selling Price* to give you the real-time profit figure.
+
+End of appended expanded Project AMD sections
+

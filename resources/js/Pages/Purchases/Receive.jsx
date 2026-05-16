@@ -1,0 +1,209 @@
+import React, { useState } from 'react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { Head, router, usePage } from '@inertiajs/react';
+import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import PageHeader from '@/Components/PageHeader';
+import { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
+import { Package, Plus, Trash2, Search, CheckCircle } from 'lucide-react';
+import axios from 'axios';
+
+export default function ReceivePurchase({ purchase = {}, products = [] }) {
+    const {
+        store
+    } = usePage().props;
+
+    const [loading, setLoading] = useState(false);
+    const [receivedItems, setReceivedItems] = useState(
+        purchase.items?.map(item => ({
+            item_id: item.id,
+            product_id: item.product_id,
+            product_name: item.product?.name,
+            ordered_qty: item.quantity,
+            received_qty: item.received_qty || 0,
+            receiving_qty: 0,
+            batch_number: '',
+            expiry_date: ''
+        })) || []
+    );
+    const [notes, setNotes] = useState('');
+    const [errors, setErrors] = useState({});
+
+    const formatCurrency = (val) => (val < 0 ? '-' : '') + (window.amdSettings?.currency_symbol || 'Rs') + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(val) || 0);
+
+    const updateItem = (index, field, value) => {
+        const newItems = [...receivedItems];
+        newItems[index][field] = value;
+        setReceivedItems(newItems);
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrors({});
+
+        try {
+            await axios.post(route("store.purchases.receive.store", [store.slug, purchase.id]), {
+                items: receivedItems.filter(item => item.receiving_qty > 0),
+                notes
+            });
+            router.visit(route("store.purchases.show", [store.slug, purchase.id]));
+        } catch (error) {
+            if (error.response?.status === 422) {
+                setErrors(error.response.data.errors || {});
+            } else {
+                alert(error.response?.data?.message || 'An error occurred');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const receiveAll = () => {
+        setReceivedItems(items => items.map(item => ({
+            ...item,
+            receiving_qty: item.ordered_qty - item.received_qty
+        })));
+    };
+
+    return (
+        <OneGlanceLayout title="Receive Goods">
+            <Head title="Receive Goods" />
+            <div className="h-full flex flex-col gap-6 overflow-auto">
+                <PageHeader
+                    title="Receive Goods"
+                    subtitle={`Purchase #${purchase.invoice_number} from ${purchase.party?.name || 'Supplier'}`}
+                    icon={Package}
+                    breadcrumbs={[
+                        { label: 'Transactions' },
+                        { label: 'Purchases', href: route("store.purchases.index", {
+                            store_slug: store.slug
+                        }) },
+                        { label: purchase.invoice_number },
+                        { label: 'Receive' }
+                    ]}
+                    actions={
+                        <button
+                            onClick={receiveAll}
+                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold flex items-center gap-2 transition-colors"
+                        >
+                            <CheckCircle size={18} />
+                            Receive All
+                        </button>
+                    }
+                />
+
+                {/* Purchase Info Card */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+                    <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <p className="text-slate-500">Invoice Number</p>
+                            <p className="font-semibold text-slate-800 dark:text-white">{purchase.invoice_number}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Supplier</p>
+                            <p className="font-semibold text-slate-800 dark:text-white">{purchase.party?.name || 'Unknown'}</p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Date</p>
+                            <p className="font-semibold text-slate-800 dark:text-white">
+                                {new Date(purchase.created_at).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-slate-500">Total</p>
+                            <p className="font-semibold text-emerald-600">{formatCurrency(purchase.total_amount, store)}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Items Table */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex-1">
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                        <h3 className="font-semibold text-lg text-slate-800 dark:text-white">Items to Receive</h3>
+                    </div>
+
+                    <div className="overflow-auto">
+                        <table className="w-full">
+                            <thead className="bg-slate-50 dark:bg-slate-800/50">
+                                <tr>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Product</th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Ordered</th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Received</th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Pending</th>
+                                    <th className="px-4 py-3 text-center text-xs font-semibold text-slate-500 uppercase">Receiving Now</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Batch #</th>
+                                    <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Expiry</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {receivedItems.map((item, index) => {
+                                    const pending = item.ordered_qty - item.received_qty;
+                                    return (
+                                        <tr key={item.item_id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                            <td className="px-4 py-3">
+                                                <p className="font-medium text-slate-800 dark:text-white">{item.product_name}</p>
+                                            </td>
+                                            <td className="px-4 py-3 text-center font-medium">{item.ordered_qty}</td>
+                                            <td className="px-4 py-3 text-center text-emerald-600 font-medium">{item.received_qty}</td>
+                                            <td className="px-4 py-3 text-center text-amber-600 font-medium">{pending}</td>
+                                            <td className="px-4 py-3">
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    max={pending}
+                                                    value={item.receiving_qty}
+                                                    onChange={(e) => updateItem(index, 'receiving_qty', parseFloat(e.target.value) || 0)}
+                                                    className="w-20 mx-auto block px-2 py-1 text-center rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800"
+                                                />
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <input
+                                                    type="text"
+                                                    value={item.batch_number}
+                                                    onChange={(e) => updateItem(index, 'batch_number', e.target.value)}
+                                                    placeholder="Batch"
+                                                    className="w-24 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
+                                                />
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <input
+                                                    type="date"
+                                                    value={item.expiry_date}
+                                                    onChange={(e) => updateItem(index, 'expiry_date', e.target.value)}
+                                                    className="w-32 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm"
+                                                />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {/* Notes & Actions */}
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-6">
+                    <FormField label="Receiving Notes">
+                        <FormTextarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Any notes about this goods receipt..."
+                            rows={2}
+                        />
+                    </FormField>
+
+                    <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                        <SecondaryButton onClick={() => router.visit(route("store.purchases.index", {
+                            store_slug: store.slug
+                        }))}>
+                            Cancel
+                        </SecondaryButton>
+                        <PrimaryButton onClick={handleSubmit} loading={loading}>
+                            Confirm Receipt
+                        </PrimaryButton>
+                    </div>
+                </div>
+            </div>
+        </OneGlanceLayout>
+    );
+}

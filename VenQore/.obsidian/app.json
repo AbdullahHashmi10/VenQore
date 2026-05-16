@@ -1,0 +1,9 @@
+{
+  "userIgnoreFilters": [
+    "node_modules",
+    "vendor",
+    ".git",
+    "public/storage"
+  ],
+  "newFileLocation": "current"
+}

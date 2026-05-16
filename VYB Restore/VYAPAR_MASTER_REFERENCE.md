@@ -1,0 +1,3768 @@
+# VYAPAR DATABASE - MASTER REFERENCE FOR REVERSE ENGINEERING
+
+> **Complete Schema Documentation**  
+> Database: Vyapar Backup (.vyb files)  
+> Format: SQLite3  
+> Tables: 67 | Columns: 792  
+> Generated: 2026-02-08
+
+---
+
+## QUICK REFERENCE
+
+### Database Statistics
+- **Total Tables**: 67
+- **Total Columns**: 792
+- **Database Type**: SQLite 3
+- **File Extension**: `.vyb`
+
+### Table Categories
+1. **Business Entities** (7 tables) - Customers, Suppliers, Products
+2. **Financial Accounts** (11 tables) - Cash, Bank, Loans, Payments
+3. **Transactions** (6 tables) - Sales, Purchases, Payments
+4. **Inventory** (14 tables) - Stock, Batches, Serials, Units
+5. **Tax & Compliance** (7 tables) - GST, TCS, TDS
+6. **User Management** (3 tables) - Users, Roles, Activity
+7. **Customization** (9 tables) - UDF, Custom Fields, Settings
+8. **System** (10 tables) - Logs, Audit, Recycle Bin
+
+---
+
+## TABLE INDEX (Alphabetical)
+
+```
+audit_trails                          kb_lineitems
+chart_of_accounts_mapping             kb_linked_transactions
+item_def_assembly                     kb_log
+item_def_assembly_additional_costs    kb_names
+item_mfg_assembly_additional_costs    kb_party_groups
+journal_entry                         kb_party_item_rate
+journal_entry_line_items              kb_paymentTypes
+kb_address                            kb_payment_gateway
+kb_adjustment_ist_mapping             kb_payment_terms
+kb_bank_accounts                      kb_prefix
+kb_bank_adjustments                   kb_serial_details
+kb_cash_adjustments                   kb_serial_mapping
+kb_cheque_status                      kb_settings
+kb_closed_link_txn_table             kb_tax_code
+kb_custom_fields                      kb_tax_mapping
+kb_extra_charges                      kb_tcs_tax_rates
+kb_firms                              kb_transactions
+kb_fts_vtable                         kb_txn_links
+kb_fts_vtable_content                 kb_txn_message_config
+kb_fts_vtable_segdir                  kb_udf_fields
+kb_fts_vtable_segments                kb_udf_values
+kb_images                             loan_accounts
+kb_items                              loan_transactions
+kb_item_adjustments                   loyalty_txn
+kb_item_categories                    other_accounts
+kb_item_categories_mapping            party_item_service_reminder
+kb_item_images                        party_to_party_transfer
+kb_item_stock_tracking                recycle_bin
+kb_item_units                         sqlite_sequence
+kb_item_units_mapping                 stores
+                                      store_line_items
+                                      store_transactions
+                                      tds_tax_rates
+                                      transaction_attachments
+                                      txn_payment_mapping
+                                      urp_activity
+                                      urp_users
+```
+
+---
+
+## COMPLETE SCHEMA DETAILS
+
+VYAPAR DATABASE COMPLETE SCHEMA - MASTER REFERENCE
+
+Total Tables: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+
+
+================================================================================
+TABLE: recycle_bin
+================================================================================
+Total Columns: 7
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_deleted_date
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #2: txn_firm_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #3: txn_data_json
+  Type: varchar
+  Nullable: NO
+
+Column #4: txn_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #5: txn_date
+  Type: datetime
+  Nullable: YES
+
+Column #6: status
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: sqlite_sequence
+================================================================================
+Total Columns: 2
+
+Column #0: name
+  Type: 
+  Nullable: YES
+
+Column #1: seq
+  Type: 
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_tcs_tax_rates
+================================================================================
+Total Columns: 4
+
+Column #0: tcs_tax_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: tcs_tax_name
+  Type: varchar(50)
+  Nullable: NO
+
+Column #2: tcs_tax_percentage
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #3: tcs_tax_nature_of_collection_id
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+
+================================================================================
+TABLE: urp_users
+================================================================================
+Total Columns: 11
+
+Column #0: user_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: user_name
+  Type: VARCHAR(64)
+  Nullable: NO
+
+Column #2: user_role_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #3: user_passcode
+  Type: VARCHAR(64)
+  Nullable: YES
+  Default: NULL
+
+Column #4: user_phone_or_emaill
+  Type: VARCHAR(256)
+  Nullable: YES
+  Default: NULL
+
+Column #5: user_is_active
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #6: user_is_deleted
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #7: user_sync_enabled
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #8: user_sync_started
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #9: user_status
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #10: user_server_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: urp_activity
+================================================================================
+Total Columns: 8
+
+Column #0: activity_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: activity_actor
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: activity_resource
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #3: activity_operation
+  Type: VARCHAR (128)
+  Nullable: NO
+
+Column #4: activity_time
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #5: activity_creation_time
+  Type: bigint
+  Nullable: YES
+  Default: 0
+
+Column #6: activity_resource_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #7: activity_is_old
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_payment_terms
+================================================================================
+Total Columns: 4
+
+Column #0: payment_term_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: term_name
+  Type: varchar(50)
+  Nullable: YES
+
+Column #2: term_days
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: is_default
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_party_groups
+================================================================================
+Total Columns: 2
+
+Column #0: party_group_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: party_group_name
+  Type: varchar(1024)
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_item_categories
+================================================================================
+Total Columns: 2
+
+Column #0: item_category_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: item_category_name
+  Type: varchar(1024)
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_names
+================================================================================
+Total Columns: 32
+
+Column #0: name_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #2: date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #3: full_name
+  Type: varchar(50)
+  Nullable: YES
+
+Column #4: phone_number
+  Type: varchar(11)
+  Nullable: YES
+
+Column #5: email
+  Type: varchar(50)
+  Nullable: YES
+
+Column #6: amount
+  Type: double
+  Nullable: YES
+
+Column #7: date_remindon
+  Type: datetime
+  Nullable: YES
+
+Column #8: date_sendsmson
+  Type: datetime
+  Nullable: YES
+
+Column #9: date_ignoretill
+  Type: datetime
+  Nullable: YES
+
+Column #10: address
+  Type: varchar(2000)
+  Nullable: YES
+
+Column #11: name_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #12: name_group_id
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #13: name_tin_number
+  Type: varchar(20)
+  Nullable: YES
+  Default: ''
+
+Column #14: name_gstin_number
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #15: name_state
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #16: name_shipping_address
+  Type: VARCHAR(2000)
+  Nullable: YES
+  Default: ''
+
+Column #17: name_customer_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #18: is_party_details_sent
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #19: name_last_txn_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #20: name_expense_type
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #21: name_verified_gstin
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #22: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #23: updated_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #24: pincode
+  Type: varchar(10)
+  Nullable: YES
+  Default: ''
+
+Column #25: name_shipping_pincode
+  Type: varchar(10)
+  Nullable: YES
+  Default: ''
+
+Column #26: credit_limit
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #27: credit_limit_enabled
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #28: frequency_of_payment_reminder
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #29: party_billing_name
+  Type: VARCHAR(50)
+  Nullable: YES
+  Default: NULL
+
+Column #30: name_is_active
+  Type: INTEGER
+  Nullable: NO
+  Default: 1
+
+Column #31: name_sub_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_images
+================================================================================
+Total Columns: 2
+
+Column #0: image_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: image_bitmap
+  Type: BLOB
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_paymentTypes
+================================================================================
+Total Columns: 16
+
+Column #0: paymentType_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: paymentType_type
+  Type: varchar(30)
+  Nullable: YES
+  Default: 'BANK'
+
+Column #2: paymentType_name
+  Type: varchar(30)
+  Nullable: YES
+
+Column #3: paymentType_bankName
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #4: paymentType_accountNumber
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #5: paymentType_opening_balance
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #6: paymentType_opening_date
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #7: pt_bank_ifsc_code
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #8: pt_bank_account_holder_name
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #9: pt_bank_upi_id
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #10: pt_bank_ref_id
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #11: pt_bank_code
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #12: edc_deviceId
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #13: edc_vendor_type
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #14: edc_device_type
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #15: uuid
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_payment_gateway
+================================================================================
+Total Columns: 27
+
+Column #0: paymentgateway_id
+  Type: INTEGER
+  Nullable: NO
+  PRIMARY KEY
+
+Column #1: gstin
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #2: owner_pan_name
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #3: owner_pan_number
+  Type: varchar(20)
+  Nullable: YES
+  Default: null
+
+Column #4: business_type
+  Type: varchar(30)
+  Nullable: YES
+  Default: null
+
+Column #5: business_name
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #6: business_pan_number
+  Type: varchar(20)
+  Nullable: YES
+  Default: null
+
+Column #7: business_pan_name
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #8: cin
+  Type: varchar(30)
+  Nullable: YES
+  Default: null
+
+Column #9: owner_pan_doc
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #10: addr_proof_front_doc
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #11: addr_proof_back_doc
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #12: business_pan_doc
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #13: business_proof_doc
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #14: misc_doc
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #15: status
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #16: revisit
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #17: error_fields
+  Type: TEXT
+  Nullable: YES
+  Default: null
+
+Column #18: created_at
+  Type: datetime
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+Column #19: updated_at
+  Type: datetime
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+Column #20: link_auth_token
+  Type: TEXT
+  Nullable: YES
+  Default: null
+
+Column #21: paymentgateway_uuid
+  Type: varchar(36)
+  Nullable: YES
+  Default: null
+
+Column #22: paymentgateway_account_id
+  Type: varchar(36)
+  Nullable: YES
+  Default: null
+
+Column #23: paymentType_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #24: addr_proof_type
+  Type: varchar(80)
+  Nullable: YES
+  Default: null
+
+Column #25: business_proof_doc_type
+  Type: varchar(80)
+  Nullable: YES
+  Default: null
+
+Column #26: misc_proof_type
+  Type: varchar(80)
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_firms
+================================================================================
+Total Columns: 33
+
+Column #0: firm_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: firm_name
+  Type: varchar(256)
+  Nullable: YES
+
+Column #2: firm_invoice_prefix
+  Type: varchar(10)
+  Nullable: YES
+
+Column #3: firm_invoice_number
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #4: firm_tax_invoice_prefix
+  Type: varchar(10)
+  Nullable: YES
+
+Column #5: firm_tax_invoice_number
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #6: firm_email
+  Type: varchar(256)
+  Nullable: YES
+
+Column #7: firm_phone
+  Type: varchar(20)
+  Nullable: YES
+
+Column #8: firm_address
+  Type: varchar(256)
+  Nullable: YES
+
+Column #9: firm_tin_number
+  Type: varchar(20)
+  Nullable: YES
+
+Column #10: firm_logo
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #11: firm_signature
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #12: firm_gstin_number
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #13: firm_state
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #14: firm_bank_name
+  Type: VARCHAR(32)
+  Nullable: YES
+  Default: ''
+
+Column #15: firm_bank_account_number
+  Type: VARCHAR(32)
+  Nullable: YES
+  Default: ''
+
+Column #16: firm_bank_ifsc_code
+  Type: VARCHAR(32)
+  Nullable: YES
+  Default: ''
+
+Column #17: firm_estimate_prefix
+  Type: varchar(10)
+  Nullable: YES
+  Default: ''
+
+Column #18: firm_estimate_number
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #19: firm_cash_in_prefix
+  Type: varchar(10)
+  Nullable: YES
+  Default: ''
+
+Column #20: firm_delivery_challan_prefix
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #21: firm_upi_bank_account_number
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #22: firm_upi_bank_ifsc_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #23: firm_business_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #24: firm_business_category
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #25: firm_description
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #26: firm_visiting_card
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #27: firm_invoice_printing_bank_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #28: firm_collect_payment_bank_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #29: firm_pincode
+  Type: varchar(10)
+  Nullable: YES
+  Default: ''
+
+Column #30: firm_dispatch_address
+  Type: varchar(2000)
+  Nullable: YES
+  Default: ''
+
+Column #31: firm_dispatch_pincode
+  Type: varchar(10)
+  Nullable: YES
+  Default: ''
+
+Column #32: firm_phone_secondary
+  Type: varchar(20)
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_tax_code
+================================================================================
+Total Columns: 7
+
+Column #0: tax_code_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: tax_code_name
+  Type: varchar(32)
+  Nullable: YES
+
+Column #2: tax_rate
+  Type: double
+  Nullable: YES
+
+Column #3: tax_code_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #4: tax_rate_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 4
+
+Column #5: tax_code_date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #6: tax_code_date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+
+================================================================================
+TABLE: kb_tax_mapping
+================================================================================
+Total Columns: 5
+
+Column #0: tax_mapping_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: tax_mapping_group_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: tax_mapping_code_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: tax_mapping_date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #4: tax_mapping_date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+
+================================================================================
+TABLE: kb_prefix
+================================================================================
+Total Columns: 5
+
+Column #0: prefix_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: prefix_firm_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: prefix_txn_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #3: prefix_value
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #4: prefix_is_default
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: tds_tax_rates
+================================================================================
+Total Columns: 6
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: name
+  Type: varchar(250)
+  Nullable: NO
+
+Column #2: percentage
+  Type: double
+  Nullable: NO
+
+Column #3: section_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #4: created_date
+  Type: datetime
+  Nullable: NO
+  Default: current_timestamp
+
+Column #5: modified_date
+  Type: datetime
+  Nullable: NO
+  Default: current_timestamp
+
+
+================================================================================
+TABLE: stores
+================================================================================
+Total Columns: 10
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: type
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: name
+  Type: varchar(256)
+  Nullable: YES
+
+Column #3: phone_number
+  Type: varchar(20)
+  Nullable: YES
+  Default: null
+
+Column #4: email
+  Type: varchar(256)
+  Nullable: YES
+  Default: null
+
+Column #5: gstin
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #6: pincode
+  Type: varchar(10)
+  Nullable: YES
+  Default: null
+
+Column #7: address
+  Type: varchar(2000)
+  Nullable: YES
+  Default: null
+
+Column #8: created_date
+  Type: DATETIME
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+Column #9: modified_date
+  Type: DATETIME
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+
+================================================================================
+TABLE: store_transactions
+================================================================================
+Total Columns: 7
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: from_store_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: to_store_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: txn_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #4: created_date
+  Type: DATETIME
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+Column #5: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #6: sub_type
+  Type: INTEGER
+  Nullable: NO
+  Default: 0
+
+
+================================================================================
+TABLE: store_line_items
+================================================================================
+Total Columns: 4
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: store_txn_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: item_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: quantity
+  Type: DOUBLE
+  Nullable: NO
+
+
+================================================================================
+TABLE: kb_transactions
+================================================================================
+Total Columns: 84
+
+Column #0: txn_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #2: txn_date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #3: txn_name_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #4: txn_cash_amount
+  Type: double
+  Nullable: YES
+
+Column #5: txn_balance_amount
+  Type: double
+  Nullable: YES
+
+Column #6: txn_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #7: txn_date
+  Type: date
+  Nullable: YES
+
+Column #8: txn_discount_percent
+  Type: double
+  Nullable: YES
+
+Column #9: txn_tax_percent
+  Type: double
+  Nullable: YES
+
+Column #10: txn_discount_amount
+  Type: double
+  Nullable: YES
+
+Column #11: txn_tax_amount
+  Type: double
+  Nullable: YES
+
+Column #12: txn_due_date
+  Type: date
+  Nullable: YES
+
+Column #13: txn_description
+  Type: varchar(1024)
+  Nullable: YES
+
+Column #14: txn_image_path
+  Type: varchar(256)
+  Nullable: YES
+
+Column #15: txn_payment_type_id
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #16: txn_payment_reference
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #17: txn_ref_number_char
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #18: txn_status
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #19: txn_ac1_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #20: txn_ac2_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #21: txn_ac3_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #22: txn_firm_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #23: txn_sub_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #24: txn_invoice_prefix
+  Type: varchar(10)
+  Nullable: YES
+  Default: null
+
+Column #25: txn_image_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #26: txn_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #27: txn_custom_field
+  Type: TEXT
+  Nullable: YES
+  Default: ''
+
+Column #28: txn_display_name
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #29: txn_reverse_charge
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #30: txn_place_of_supply
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #31: txn_round_off_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #32: txn_itc_applicable
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #33: txn_po_date
+  Type: date
+  Nullable: YES
+  Default: null
+
+Column #34: txn_po_ref_number
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #35: txn_return_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #36: txn_return_ref_number
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #37: txn_eway_bill_number
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #38: txn_current_balance
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #39: txn_payment_status
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #40: txn_payment_term_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #41: txn_prefix_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #42: txn_tax_inclusive
+  Type: INTEGER
+  Nullable: YES
+  Default: 2
+
+Column #43: txn_billing_address
+  Type: TEXT
+  Nullable: YES
+  Default: ''
+
+Column #44: txn_shipping_address
+  Type: TEXT
+  Nullable: YES
+  Default: ''
+
+Column #45: txn_eway_bill_api_generated
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #46: txn_eway_bill_generated_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #47: txn_category_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #48: txn_time
+  Type: INTEGER
+  Nullable: NO
+  Default: 0
+
+Column #49: txn_online_order_id
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #50: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #51: updated_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #52: txn_paymentgateway_paymenttype_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #53: txn_paymentgateway_payment_txn_id
+  Type: TEXT
+  Nullable: YES
+  Default: null
+
+Column #54: txn_paymentgateway_link
+  Type: TEXT
+  Nullable: YES
+  Default: null
+
+Column #55: txn_paymentgateway_qr
+  Type: TEXT
+  Nullable: YES
+  Default: null
+
+Column #56: txn_tcs_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #57: txn_tcs_tax_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #58: txn_irn_number
+  Type: varchar(256)
+  Nullable: YES
+  Default: null
+
+Column #59: txn_einvoice_qr
+  Type: varchar
+  Nullable: YES
+  Default: null
+
+Column #60: txn_discount_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #61: store_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #62: ac1_name
+  Type: varchar(1024)
+  Nullable: YES
+  Default: null
+
+Column #63: ac2_name
+  Type: varchar(1024)
+  Nullable: YES
+  Default: null
+
+Column #64: ac3_name
+  Type: varchar(1024)
+  Nullable: YES
+  Default: null
+
+Column #65: ac1_sac_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #66: ac2_sac_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #67: ac3_sac_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #68: ac1_tax_amount
+  Type: DOUBLE
+  Nullable: YES
+  Default: 0
+
+Column #69: ac2_tax_amount
+  Type: DOUBLE
+  Nullable: YES
+  Default: 0
+
+Column #70: ac3_tax_amount
+  Type: DOUBLE
+  Nullable: YES
+  Default: 0
+
+Column #71: ac1_itc_applicable
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #72: ac2_itc_applicable
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #73: ac3_itc_applicable
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #74: ac1_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #75: ac2_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #76: ac3_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #77: mobile_no
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #78: loyalty_amount
+  Type: DOUBLE
+  Nullable: NO
+  Default: 0
+
+Column #79: cancelled_einvoice_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #80: txn_tds_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #81: txn_tds_tax_amount
+  Type: double
+  Nullable: YES
+  Default: 0.0
+
+Column #82: payment_initiated_deviceId
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #83: icf_names
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_closed_link_txn_table
+================================================================================
+Total Columns: 7
+
+Column #0: closed_link_txn_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: closed_link_txn_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #2: closed_link_txn_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: closed_link_txn_date
+  Type: date
+  Nullable: YES
+
+Column #4: closed_link_txn_ref_number
+  Type: varchar(50)
+  Nullable: YES
+  Default: ''
+
+Column #5: txn_links_closed_txn_name_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #6: txn_links_closed_txn_category_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_txn_links
+================================================================================
+Total Columns: 7
+
+Column #0: txn_links_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_links_txn_1_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: txn_links_txn_2_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: txn_links_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #4: txn_links_txn_1_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #5: txn_links_txn_2_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #6: txn_links_closed_txn_ref_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_settings
+================================================================================
+Total Columns: 3
+
+Column #0: setting_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: setting_key
+  Type: varchar(256)
+  Nullable: YES
+
+Column #2: setting_value
+  Type: varchar(1024)
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_fts_vtable
+================================================================================
+Total Columns: 3
+
+Column #0: fts_name_id
+  Type: 
+  Nullable: YES
+
+Column #1: fts_txn_id
+  Type: 
+  Nullable: YES
+
+Column #2: fts_text
+  Type: 
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_fts_vtable_content
+================================================================================
+Total Columns: 4
+
+Column #0: docid
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: c0fts_name_id
+  Type: 
+  Nullable: YES
+
+Column #2: c1fts_txn_id
+  Type: 
+  Nullable: YES
+
+Column #3: c2fts_text
+  Type: 
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_fts_vtable_segments
+================================================================================
+Total Columns: 2
+
+Column #0: blockid
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: block
+  Type: BLOB
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_fts_vtable_segdir
+================================================================================
+Total Columns: 6
+
+Column #0: level
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: idx
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: start_block
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: leaves_end_block
+  Type: INTEGER
+  Nullable: YES
+
+Column #4: end_block
+  Type: INTEGER
+  Nullable: YES
+
+Column #5: root
+  Type: BLOB
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_items
+================================================================================
+Total Columns: 41
+
+Column #0: item_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: item_name
+  Type: varchar(256)
+  Nullable: YES
+
+Column #2: item_sale_unit_price
+  Type: double
+  Nullable: YES
+
+Column #3: item_purchase_unit_price
+  Type: double
+  Nullable: YES
+
+Column #4: item_stock_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #5: item_min_stock_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #6: item_location
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #7: item_stock_value
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #8: item_date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #9: item_date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #10: item_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #11: category_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #12: item_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #13: base_unit_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #14: secondary_unit_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #15: unit_mapping_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #16: item_hsn_sac_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: ''
+
+Column #17: item_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #18: item_tax_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 2
+
+Column #19: item_additional_cess_per_unit
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #20: item_description
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #21: item_is_active
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #22: item_ist_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #23: item_tax_type_purchase
+  Type: INTEGER
+  Nullable: YES
+  Default: 2
+
+Column #24: item_catalogue_status
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #25: item_catalogue_sale_unit_price
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #26: item_catalogue_description
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #27: item_discount_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #28: item_discount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #29: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #30: updated_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #31: item_mrp
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #32: item_dis_on_mrp_for_sp
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #33: item_dis_on_mrp_for_wp
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #34: item_wholesale_price
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #35: item_min_wholesale_qty
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #36: item_tax_type_wholesale_price
+  Type: INTEGER
+  Nullable: YES
+  Default: 2
+
+Column #37: item_catalogue_stock_status
+  Type: INTEGER
+  Nullable: NO
+  Default: 1
+
+Column #38: service_reminder_status
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #39: service_period
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #40: icf_values
+  Type: varchar
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_item_categories_mapping
+================================================================================
+Total Columns: 3
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: item_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: category_id
+  Type: INTEGER
+  Nullable: NO
+
+
+================================================================================
+TABLE: kb_item_adjustments
+================================================================================
+Total Columns: 17
+
+Column #0: item_adj_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: item_adj_item_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: item_adj_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: item_adj_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #4: item_adj_date
+  Type: date
+  Nullable: YES
+
+Column #5: item_adj_description
+  Type: varchar(1024)
+  Nullable: YES
+
+Column #6: item_adj_date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #7: item_adj_date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #8: item_adj_atprice
+  Type: double
+  Nullable: YES
+  Default: -1
+
+Column #9: item_adj_ist_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #10: item_adj_is_serialized
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #11: item_adj_unit_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #12: item_adj_unit_mapping_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #13: item_adj_ist_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #14: item_adj_mfg_adj_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #15: store_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #16: item_adj_txn_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_party_item_rate
+================================================================================
+Total Columns: 5
+
+Column #0: party_item_rate_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: party_item_rate_item_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: party_item_rate_party_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: party_item_rate_sale_price
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #4: party_item_rate_purchase_price
+  Type: double
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_bank_adjustments
+================================================================================
+Total Columns: 8
+
+Column #0: bank_adj_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: bank_adj_bank_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: bank_adj_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: bank_adj_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #4: bank_adj_date
+  Type: date
+  Nullable: YES
+
+Column #5: bank_adj_description
+  Type: varchar(1024)
+  Nullable: YES
+  Default: ''
+
+Column #6: bank_adj_to_bank_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #7: bank_adj_image_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_cash_adjustments
+================================================================================
+Total Columns: 5
+
+Column #0: cash_adj_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: cash_adj_type
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: cash_adj_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #3: cash_adj_date
+  Type: date
+  Nullable: YES
+
+Column #4: cash_adj_description
+  Type: varchar(1024)
+  Nullable: YES
+  Default: ''
+
+
+================================================================================
+TABLE: kb_cheque_status
+================================================================================
+Total Columns: 10
+
+Column #0: cheque_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: cheque_txn_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: cheque_current_status
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #3: cheque_transfer_date
+  Type: date
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #4: cheque_close_desc
+  Type: varchar(1024)
+  Nullable: YES
+  Default: ''
+
+Column #5: transferred_To_Account
+  Type: INTEGER
+  Nullable: YES
+  Default: 2
+
+Column #6: check_creation_date
+  Type: date
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #7: check_modification_date
+  Type: date
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #8: cheque_closed_txn_ref_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #9: cheque_issued_date
+  Type: DATE
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_txn_message_config
+================================================================================
+Total Columns: 4
+
+Column #0: txn_type
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_field_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: txn_field_name
+  Type: varchar(50)
+  Nullable: YES
+
+Column #3: txn_field_value
+  Type: varchar(256)
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_extra_charges
+================================================================================
+Total Columns: 6
+
+Column #0: extra_charges_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: extra_charges_name
+  Type: varchar(1024)
+  Nullable: YES
+
+Column #2: sac_code
+  Type: varchar(32)
+  Nullable: YES
+  Default: null
+
+Column #3: tax_enabled
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #4: enabled
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #5: tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_item_units
+================================================================================
+Total Columns: 5
+
+Column #0: unit_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: unit_name
+  Type: varchar(50)
+  Nullable: YES
+
+Column #2: unit_short_name
+  Type: varchar(10)
+  Nullable: YES
+
+Column #3: unit_full_name_editable
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #4: unit_deletable
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+
+================================================================================
+TABLE: kb_item_units_mapping
+================================================================================
+Total Columns: 4
+
+Column #0: unit_mapping_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: base_unit_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: secondary_unit_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: conversion_rate
+  Type: double
+  Nullable: YES
+
+
+================================================================================
+TABLE: kb_item_stock_tracking
+================================================================================
+Total Columns: 11
+
+Column #0: ist_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: ist_batch_number
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #2: ist_serial_number
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #3: ist_mrp
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #4: ist_expiry_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #5: ist_manufacturing_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #6: ist_size
+  Type: varchar(100)
+  Nullable: YES
+  Default: ''
+
+Column #7: ist_item_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #8: ist_current_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #9: ist_opening_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #10: ist_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_lineitems
+================================================================================
+Total Columns: 31
+
+Column #0: lineitem_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: lineitem_txn_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: item_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: quantity
+  Type: double
+  Nullable: YES
+
+Column #4: priceperunit
+  Type: double
+  Nullable: YES
+
+Column #5: total_amount
+  Type: double
+  Nullable: YES
+
+Column #6: lineitem_tax_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #7: lineitem_discount_amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #8: lineitem_unit_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #9: lineitem_unit_mapping_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #10: lineitem_tax_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #11: lineitem_mrp
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #12: lineitem_batch_number
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #13: lineitem_expiry_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #14: lineitem_manufacturing_date
+  Type: datetime
+  Nullable: YES
+  Default: null
+
+Column #15: lineitem_serial_number
+  Type: varchar(30)
+  Nullable: YES
+  Default: ''
+
+Column #16: lineitem_count
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #17: lineitem_description
+  Type: varchar(1024)
+  Nullable: YES
+  Default: ''
+
+Column #18: lineitem_additional_cess
+  Type: double
+  Nullable: YES
+  Default: null
+
+Column #19: lineitem_total_amount_edited
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #20: lineitem_itc_applicable
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #21: lineitem_size
+  Type: varchar(100)
+  Nullable: YES
+  Default: ''
+
+Column #22: lineitem_ist_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #23: lineitem_free_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #24: lineitem_is_serialized
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #25: lineitem_discount_percent
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #26: lineitem_fa_cost_price
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #27: lineitem_discount_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #28: lineitem_ref_id
+  Type: varchar(10)
+  Nullable: YES
+
+Column #29: lineitem_txn_po_ref_number
+  Type: varchar(50)
+  Nullable: YES
+  Default: null
+
+Column #30: icf_values
+  Type: varchar
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_custom_fields
+================================================================================
+Total Columns: 4
+
+Column #0: custom_field_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: custom_field_display_name
+  Type: VARCHAR(32)
+  Nullable: YES
+  Default: ''
+
+Column #2: custom_field_type
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #3: custom_field_visibility
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_log
+================================================================================
+Total Columns: 3
+
+Column #0: log_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: reason
+  Type: varchar(1024)
+  Nullable: YES
+  Default: ''
+
+Column #2: details
+  Type: varchar(1024)
+  Nullable: YES
+  Default: ''
+
+
+================================================================================
+TABLE: kb_udf_fields
+================================================================================
+Total Columns: 10
+
+Column #0: udf_field_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: udf_field_name
+  Type: varchar(150)
+  Nullable: YES
+  Default: ''
+
+Column #2: udf_field_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #3: udf_field_data_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #4: udf_field_data_format
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #5: udf_print_on_invoice
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #6: udf_txn_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #7: udf_field_no
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #8: udf_field_status
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #9: udf_firm_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_udf_values
+================================================================================
+Total Columns: 5
+
+Column #0: udf_value_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: udf_value_field_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #2: udf_ref_id
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #3: udf_value
+  Type: varchar(150)
+  Nullable: YES
+  Default: ''
+
+Column #4: udf_value_field_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_linked_transactions
+================================================================================
+Total Columns: 4
+
+Column #0: linked_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_source_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: txn_destination_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: txns_linked_date
+  Type: DATE
+  Nullable: NO
+  Default: datetime('now')
+
+
+================================================================================
+TABLE: loan_accounts
+================================================================================
+Total Columns: 16
+
+Column #0: loan_account_id
+  Type: INTEGER
+  Nullable: NO
+  PRIMARY KEY
+
+Column #1: loan_account_name
+  Type: TEXT
+  Nullable: NO
+
+Column #2: lender
+  Type: TEXT
+  Nullable: YES
+
+Column #3: account_number
+  Type: TEXT
+  Nullable: YES
+
+Column #4: firm_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #5: loan_desc
+  Type: TEXT
+  Nullable: YES
+
+Column #6: opening_bal
+  Type: DOUBLE
+  Nullable: NO
+
+Column #7: opening_date
+  Type: DATE
+  Nullable: NO
+
+Column #8: loan_modified_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #9: loan_created_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #10: interest_rate
+  Type: DOUBLE
+  Nullable: YES
+
+Column #11: term_duration
+  Type: INTEGER
+  Nullable: YES
+
+Column #12: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #13: updated_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #14: loan_account_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #15: loan_application_num
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: loan_transactions
+================================================================================
+Total Columns: 13
+
+Column #0: loan_txn_id
+  Type: INTEGER
+  Nullable: NO
+  PRIMARY KEY
+
+Column #1: loan_account_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: loan_txn_type
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: principal_amount
+  Type: DOUBLE
+  Nullable: NO
+
+Column #4: interest_amount
+  Type: DOUBLE
+  Nullable: NO
+
+Column #5: payment_acc_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #6: txn_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #7: loan_txn_created_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #8: loan_txn_modified_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #9: txn_desc
+  Type: TEXT
+  Nullable: YES
+
+Column #10: txn_desc_image_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #11: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #12: updated_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_item_images
+================================================================================
+Total Columns: 6
+
+Column #0: item_image_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: item_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #2: item_image_bitmap
+  Type: BLOB
+  Nullable: YES
+
+Column #3: catalogue_item_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #4: item_image_catalogue_sync_status
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+Column #5: item_image_is_dirty
+  Type: INTEGER
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_serial_details
+================================================================================
+Total Columns: 4
+
+Column #0: serial_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: serial_item_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #2: serial_number
+  Type: varchar(256)
+  Nullable: YES
+  Default: ''
+
+Column #3: serial_current_quantity
+  Type: double
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: kb_serial_mapping
+================================================================================
+Total Columns: 4
+
+Column #0: serial_mapping_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: serial_mapping_serial_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #2: serial_mapping_lineitem_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #3: serial_mapping_adj_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_adjustment_ist_mapping
+================================================================================
+Total Columns: 4
+
+Column #0: adjustment_ist_mapping_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: adjustment_ist_mapping_ist_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #2: adjustment_ist_mapping_adjustment_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #3: adjustment_ist_mapping_qty
+  Type: double
+  Nullable: YES
+  Default: 0
+
+
+================================================================================
+TABLE: party_to_party_transfer
+================================================================================
+Total Columns: 10
+
+Column #0: p_txn_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: p_amount
+  Type: double
+  Nullable: YES
+
+Column #2: p_received_txn_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #3: p_paid_txn_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #4: p_txn_date_created
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #5: p_txn_date_modified
+  Type: datetime
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #6: p_txn_description
+  Type: varchar(1024)
+  Nullable: YES
+
+Column #7: p_txn_date
+  Type: date
+  Nullable: YES
+
+Column #8: p_txn_image_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #9: p_txn_firm_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+
+================================================================================
+TABLE: kb_address
+================================================================================
+Total Columns: 6
+
+Column #0: address_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: name_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: address_type
+  Type: INTEGER
+  Nullable: YES
+  Default: 1
+
+Column #3: address
+  Type: VARCHAR(2000)
+  Nullable: NO
+  Default: ''
+
+Column #4: date_created
+  Type: DATETIME
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+Column #5: date_modified
+  Type: DATETIME
+  Nullable: YES
+  Default: CURRENT_TIMESTAMP
+
+
+================================================================================
+TABLE: item_def_assembly
+================================================================================
+Total Columns: 8
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: assembled_item_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: def_assembly_item_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: def_assembly_item_qty
+  Type: DOUBLE
+  Nullable: YES
+  Default: 0
+
+Column #4: def_assembly_item_unit_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #5: def_assembly_item_unit_mapping_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #6: def_assembly_created_at
+  Type: DATETIME
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+Column #7: def_assembly_updated_at
+  Type: DATETIME
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+
+================================================================================
+TABLE: item_def_assembly_additional_costs
+================================================================================
+Total Columns: 8
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: assembled_item_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: def_assembly_payment_type
+  Type: INTEGER
+  Nullable: NO
+  Default: 1
+
+Column #3: def_assembly_ac_1
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #4: def_assembly_ac_2
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #5: def_assembly_ac_3
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #6: def_assembly_ac_4
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #7: def_assembly_ac_5
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: item_mfg_assembly_additional_costs
+================================================================================
+Total Columns: 10
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: mfg_adj_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: mfg_assembly_payment_type
+  Type: INTEGER
+  Nullable: NO
+  Default: 1
+
+Column #3: mfg_assembly_payment_ref_no
+  Type: VARCHAR(50)
+  Nullable: YES
+  Default: NULL
+
+Column #4: mfg_assembly_ac_1
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #5: mfg_assembly_ac_2
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #6: mfg_assembly_ac_3
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #7: mfg_assembly_ac_4
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #8: mfg_assembly_ac_5
+  Type: DOUBLE
+  Nullable: YES
+  Default: NULL
+
+Column #9: mfg_txn_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: kb_bank_accounts
+================================================================================
+Total Columns: 5
+
+Column #0: bank_account_seq_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: bank_account_ref_id
+  Type: VARCHAR(50)
+  Nullable: NO
+
+Column #2: bank_account_number
+  Type: VARCHAR(30)
+  Nullable: NO
+
+Column #3: bank_account_type
+  Type: VARCHAR(30)
+  Nullable: YES
+  Default: ''
+
+Column #4: paymentType_id
+  Type: INTEGER
+  Nullable: NO
+
+
+================================================================================
+TABLE: txn_payment_mapping
+================================================================================
+Total Columns: 11
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: payment_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: cheque_id
+  Type: INTEGER
+  Nullable: YES
+  Default: null
+
+Column #3: txn_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #4: amount
+  Type: double
+  Nullable: YES
+  Default: 0
+
+Column #5: payment_reference
+  Type: varchar
+  Nullable: YES
+  Default: ''
+
+Column #6: edc_payment_status
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #7: edc_payment_txnId
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #8: edc_payment_mode
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #9: edc_payment_initiationId
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #10: edc_card_last_digits
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: transaction_attachments
+================================================================================
+Total Columns: 4
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: uuid
+  Type: VARCHAR(50)
+  Nullable: NO
+
+Column #3: name
+  Type: VARCHAR(1024)
+  Nullable: NO
+
+
+================================================================================
+TABLE: loyalty_txn
+================================================================================
+Total Columns: 14
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #2: party_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #3: mobile_no
+  Type: VARCHAR
+  Nullable: YES
+  Default: NULL
+
+Column #4: point_rewarded
+  Type: DOUBLE
+  Nullable: NO
+  Default: 0
+
+Column #5: point_redeemed
+  Type: DOUBLE
+  Nullable: NO
+  Default: 0
+
+Column #6: amount
+  Type: DOUBLE
+  Nullable: NO
+  Default: 0
+
+Column #7: txn_type
+  Type: INTEGER
+  Nullable: NO
+
+Column #8: redeemed_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #9: rewarded_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #10: created_at
+  Type: DATETIME
+  Nullable: NO
+
+Column #11: updated_at
+  Type: DATETIME
+  Nullable: NO
+
+Column #12: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #13: updated_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: party_item_service_reminder
+================================================================================
+Total Columns: 7
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: name_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: item_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: reminder_status
+  Type: INTEGER
+  Nullable: NO
+
+Column #4: service_period
+  Type: INTEGER
+  Nullable: NO
+
+Column #5: last_service_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #6: last_reminder_sent_date
+  Type: DATETIME
+  Nullable: YES
+  Default: NULL
+
+
+================================================================================
+TABLE: audit_trails
+================================================================================
+Total Columns: 10
+
+Column #0: audit_trail_id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: txn_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: audit_trail_group
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: user_id
+  Type: INTEGER
+  Nullable: YES
+
+Column #4: device_id
+  Type: VARCHAR(20)
+  Nullable: NO
+
+Column #5: device_info
+  Type: VARCHAR(20)
+  Nullable: NO
+
+Column #6: version_number
+  Type: INTEGER
+  Nullable: NO
+
+Column #7: view_changelog
+  Type: INTEGER
+  Nullable: NO
+
+Column #8: change_logs
+  Type: VARCHAR
+  Nullable: NO
+
+Column #9: created_at
+  Type: DATETIME
+  Nullable: NO
+  Default: CURRENT_TIMESTAMP
+
+
+================================================================================
+TABLE: other_accounts
+================================================================================
+Total Columns: 10
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: name
+  Type: VARCHAR(256)
+  Nullable: NO
+
+Column #2: opening_balance
+  Type: DOUBLE
+  Nullable: NO
+
+Column #3: opening_balance_date
+  Type: DATETIME
+  Nullable: NO
+
+Column #4: account_type
+  Type: INTEGER
+  Nullable: NO
+
+Column #5: account_identifier
+  Type: INTEGER
+  Nullable: NO
+  Default: 0
+
+Column #6: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #7: modified_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #8: created_at
+  Type: DATETIME
+  Nullable: NO
+
+Column #9: modified_at
+  Type: DATETIME
+  Nullable: NO
+
+
+================================================================================
+TABLE: chart_of_accounts_mapping
+================================================================================
+Total Columns: 5
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: parent_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #2: account_code
+  Type: VARCHAR(256)
+  Nullable: YES
+
+Column #3: foreign_account_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #4: foreign_account_type
+  Type: INTEGER
+  Nullable: NO
+
+
+================================================================================
+TABLE: journal_entry
+================================================================================
+Total Columns: 9
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: journal_firm_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: reference_number
+  Type: VARCHAR(256)
+  Nullable: NO
+
+Column #3: date
+  Type: DATETIME
+  Nullable: NO
+
+Column #4: description
+  Type: TEXT
+  Nullable: YES
+  Default: ''
+
+Column #5: created_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #6: modified_by
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #7: created_at
+  Type: DATETIME
+  Nullable: NO
+
+Column #8: modified_at
+  Type: DATETIME
+  Nullable: NO
+
+
+================================================================================
+TABLE: journal_entry_line_items
+================================================================================
+Total Columns: 7
+
+Column #0: id
+  Type: INTEGER
+  Nullable: YES
+  PRIMARY KEY
+
+Column #1: journal_entry_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #2: account_id
+  Type: INTEGER
+  Nullable: NO
+
+Column #3: amount
+  Type: DOUBLE
+  Nullable: NO
+
+Column #4: amount_type
+  Type: INTEGER
+  Nullable: NO
+
+Column #5: reference_account_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+Column #6: txn_link_id
+  Type: INTEGER
+  Nullable: YES
+  Default: NULL
+
+
+
+## KEY TABLE RELATIONSHIPS
+
+### Core Business Flow
+```
+kb_firms (Companies)
+    └─→ kb_transactions (All Transactions)
+            ├─→ kb_names (Customers/Suppliers)
+            ├─→ kb_lineitems (Line Items)
+            │       └─→ kb_items (Products)
+            │               ├─→ kb_item_categories
+            │               ├─→ kb_item_units
+            │               └─→ kb_item_stock_tracking (Batches/Serials)
+            ├─→ txn_payment_mapping (Payment Methods Used)
+            │       ├─→ kb_paymentTypes (Cash/Bank Accounts)
+            │       └─→ kb_cheque_status
+            └─→ kb_txn_links (Invoice-Payment Links)
+```
+
+### Financial Accounts Flow
+```
+kb_paymentTypes (Payment Accounts: Cash, Bank, UPI, etc.)
+    ├─→ kb_bank_accounts (Bank Account Details)
+    ├─→ txn_payment_mapping (Transactions using this account)
+    ├─→ kb_cash_adjustments (Cash corrections)
+    └─→ kb_bank_adjustments (Bank corrections & transfers)
+```
+
+### Inventory Flow
+```
+kb_items (Products)
+    ├─→ kb_item_stock_tracking (Batch tracking with expiry)
+    ├─→ kb_serial_details (Serial numbers)
+    ├─→ kb_item_adjustments (Stock corrections)
+    ├─→ item_def_assembly (Bill of Materials)
+    └─→ stores (Warehouses)
+```
+
+---
+
+## CRITICAL FOREIGN KEY RELATIONSHIPS
+
+| Child Table | FK Column | Parent Table | PK Column | Description |
+|-------------|-----------|--------------|-----------|-------------|
+| kb_transactions | txn_name_id | kb_names | name_id | Customer/Supplier |
+| kb_transactions | txn_firm_id | kb_firms | firm_id | Company |
+| kb_transactions | txn_payment_type_id | kb_paymentTypes | paymentType_id | Primary payment method |
+| kb_lineitems | lineitem_txn_id | kb_transactions | txn_id | Invoice |
+| kb_lineitems | item_id | kb_items | item_id | Product |
+| txn_payment_mapping | txn_id | kb_transactions | txn_id | Transaction |
+| txn_payment_mapping | payment_id | kb_paymentTypes | paymentType_id | Payment account |
+| kb_txn_links | txn_links_txn_1_id | kb_transactions | txn_id | Invoice |
+| kb_txn_links | txn_links_txn_2_id | kb_transactions | txn_id | Payment |
+| kb_item_stock_tracking | ist_item_id | kb_items | item_id | Product |
+| kb_cash_adjustments | - | - | - | Standalone corrections |
+| kb_bank_adjustments | bank_adj_bank_id | kb_paymentTypes | paymentType_id | Source account |
+| kb_bank_adjustments | bank_adj_to_bank_id | kb_paymentTypes | paymentType_id | Destination (transfers) |
+
+---
+
+## TRANSACTION TYPES (txn_type values)
+
+| Value | Type | Description |
+|-------|------|-------------|
+| 0 | Sale | Regular sales invoice |
+| 1 | Purchase | Purchase bill |
+| 2 | Payment In | Money received from customer |
+| 3 | Payment Out | Money paid to supplier |
+| 4 | Sale Return | Customer return |
+| 5 | Purchase Return | Return to supplier |
+| 6 | Expense | Business expense |
+| 7 | Estimate | Quotation |
+| 8 | Delivery Challan | Delivery note |
+
+---
+
+## PAYMENT TYPES (paymentType_type values)
+
+| Value | Description |
+|-------|-------------|
+| CASH | Cash in hand |
+| BANK | Bank account |
+| CHEQUE | Cheque payment |
+| UPI | UPI payment |
+| CARD | Card payment |
+| WALLET | Digital wallet |
+
+---
+
+## REVERSE ENGINEERING TIPS
+
+### 1. Extracting All Sales
+```sql
+SELECT 
+    t.txn_id,
+    t.txn_date,
+    t.txn_ref_number_char AS invoice_number,
+    n.full_name AS customer_name,
+    t.txn_cash_amount AS amount_received,
+    t.txn_balance_amount AS amount_due
+FROM kb_transactions t
+LEFT JOIN kb_names n ON t.txn_name_id = n.name_id
+WHERE t.txn_type = 0
+ORDER BY t.txn_date DESC
+```
+
+### 2. Getting Invoice Line Items
+```sql
+SELECT 
+    li.lineitem_id,
+    i.item_name,
+    li.quantity,
+    li.priceperunit,
+    li.total_amount
+FROM kb_lineitems li
+JOIN kb_items i ON li.item_id = i.item_id
+WHERE li.lineitem_txn_id = [TRANSACTION_ID]
+```
+
+### 3. Finding Split Payments
+```sql
+SELECT 
+    t.txn_id,
+    t.txn_ref_number_char,
+    pm.amount,
+    pt.paymentType_name,
+    pm.payment_reference
+FROM kb_transactions t
+JOIN txn_payment_mapping pm ON t.txn_id = pm.txn_id
+JOIN kb_paymentTypes pt ON pm.payment_id = pt.paymentType_id
+WHERE t.txn_id = [TRANSACTION_ID]
+```
+
+### 4. Cash In Hand Balance
+```sql
+SELECT 
+    paymentType_opening_balance +
+    SUM(CASE WHEN cash_adj_type = 1 THEN cash_adj_amount ELSE -cash_adj_amount END) AS cash_balance
+FROM kb_paymentTypes pt
+LEFT JOIN kb_cash_adjustments ca ON pt.paymentType_type = 'CASH'
+WHERE pt.paymentType_type = 'CASH'
+```
+
+### 5. Party Outstanding Balance
+```sql
+SELECT 
+    name_id,
+    full_name,
+    amount AS current_balance
+FROM kb_names
+WHERE amount != 0
+```
+
+---
+
+## DATA EXTRACTION PRIORITY
+
+### Phase 1: Master Data
+1. kb_firms (Company info)
+2. kb_names (All parties)
+3. kb_items (All products)
+4. kb_paymentTypes (All payment accounts)
+
+### Phase 2: Historical Transactions
+1. kb_transactions (All transaction headers)
+2. kb_lineitems (All line items)
+3. txn_payment_mapping (Payment breakdowns)
+4. kb_txn_links (Invoice-payment links)
+
+### Phase 3: Financial Adjustments
+1. kb_cash_adjustments
+2. kb_bank_adjustments
+3. kb_cheque_status
+4. loan_transactions
+
+### Phase 4: Stock & Inventory
+1. kb_item_stock_tracking
+2. kb_item_adjustments
+3. kb_serial_details
+
+### Phase 5: Customizations
+1. kb_udf_fields + kb_udf_values
+2. kb_custom_fields
+3. loyalty_txn
+
+---
+
+## FILE GENERATED
+**Timestamp**: 2026-02-08 18:19  
+**Source**: schema.json (5,392 lines)  
+**Tables Documented**: 67  
+**Columns Documented**: 792
+
+**This is YOUR COMPLETE REFERENCE for Vyapar Database Reverse Engineering.**
+
