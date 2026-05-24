@@ -43,19 +43,50 @@ class AdminDashboardController extends Controller
 
         $tenants = Tenant::withTrashed()->get();
 
+        // 1. Fetch real pricing from the database Plan model (Standard Pricing)
+        $plans = \App\Models\Plan::get();
         $planPrices = [
-            'starter'  => 19,
-            'growth'   => 39,
-            'business' => 79,
+            'trial'        => 0.00,
+            'starter'      => 29.00, // Standard recommended pricing
+            'growth'       => 59.00,
+            'business'     => 129.00,
+            'pk_exclusive' => 3.58,  // $3.58 USD (approx 1000 PKR)
         ];
+        foreach ($plans as $p) {
+            if (in_array($p->slug, ['trial', 'starter', 'growth', 'business', 'pk_exclusive'])) {
+                $planPrices[$p->slug] = (float)($p->price_monthly ?? $p->price_lifetime ?? 0);
+            }
+        }
 
         // Real-only filters (excluding is_demo stores)
         $realTenants = $tenants->where('is_demo', false);
 
-        // MRR = sum of monthly plan prices for all active real tenants
-        $mrr = $realTenants
-            ->where('status', 'active')
-            ->sum(fn($t) => $planPrices[$t->plan] ?? 0);
+        // 2. Real-time dynamic MRR, Standard count, and Discounted count calculations
+        $activeRealTenants = $realTenants->where('status', 'active');
+        $standardCount = 0;
+        $discountedCount = 0;
+        $liveMrr = 0;
+
+        foreach ($activeRealTenants as $t) {
+            $basePrice = $planPrices[$t->plan] ?? 0;
+            
+            // Query actual active coupon redemptions for this tenant
+            $redemption = \App\Models\CouponRedemption::where('tenant_id', $t->id)->with('coupon')->first();
+            if ($redemption && $redemption->coupon) {
+                $coupon = $redemption->coupon;
+                if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
+                    $discountVal = ($basePrice * ($coupon->discount_value / 100));
+                    $finalPrice = max(0, $basePrice - $discountVal);
+                } else {
+                    $finalPrice = max(0, $basePrice - $coupon->discount_value);
+                }
+                $discountedCount++;
+            } else {
+                $finalPrice = $basePrice;
+                $standardCount++;
+            }
+            $liveMrr += $finalPrice;
+        }
 
         // Churn rate (last 30 days cancelled vs total at start of period)
         $cancelledLast30 = $realTenants
@@ -73,15 +104,26 @@ class AdminDashboardController extends Controller
             ->filter(fn($t) => $t->created_at?->gte(now()->subDays(30)))
             ->count();
 
-        // Tenant distribution by plan (Still show distribution of all stores or just real?)
-        // Usually superadmin wants to see everything but label demo.
-        // For now I'll use realTenants for the distribution if we want "Real" dashboard.
+        // Tenant distribution by plan
         $planDistribution = $realTenants
             ->groupBy('plan')
             ->map(fn($group, $plan) => [
                 'plan'  => $plan,
                 'count' => $group->count(),
-                'mrr'   => $group->where('status', 'active')->sum(fn($t) => $planPrices[$plan] ?? 0),
+                'mrr'   => $group->where('status', 'active')->sum(function($t) use ($planPrices) {
+                    // Recalculate with coupon redemptions for accurate breakdown
+                    $basePrice = $planPrices[$t->plan] ?? 0;
+                    $redemption = \App\Models\CouponRedemption::where('tenant_id', $t->id)->with('coupon')->first();
+                    if ($redemption && $redemption->coupon) {
+                        $coupon = $redemption->coupon;
+                        if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
+                            return max(0, $basePrice - ($basePrice * ($coupon->discount_value / 100)));
+                        } else {
+                            return max(0, $basePrice - $coupon->discount_value);
+                        }
+                    }
+                    return $basePrice;
+                }),
             ])
             ->values();
 
@@ -137,22 +179,41 @@ class AdminDashboardController extends Controller
         }
         $storeTrend = $storeTrend->values();
 
-        // MRR growth (last 6 months)
+        // 3. Real-time MRR Growth (last 6 months) taking discounts into account
         $mrrTrend = collect(range(5, 0))->map(function ($i) use ($planPrices) {
             $date = now()->subMonths($i);
-            $monthMrr = Tenant::query()
+            $historicalActiveStores = Tenant::query()
+                ->where('is_demo', false)
                 ->where('status', 'active')
                 ->where('created_at', '<=', $date->endOfMonth())
-                ->get()
-                ->sum(fn($t) => $planPrices[$t->plan] ?? 0);
+                ->get();
+
+            $monthMrr = 0;
+            foreach ($historicalActiveStores as $t) {
+                $basePrice = $planPrices[$t->plan] ?? 0;
+                $redemption = \App\Models\CouponRedemption::where('tenant_id', $t->id)
+                    ->where('redeemed_at', '<=', $date->endOfMonth())
+                    ->with('coupon')
+                    ->first();
+                if ($redemption && $redemption->coupon) {
+                    $coupon = $redemption->coupon;
+                    if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
+                        $discountVal = ($basePrice * ($coupon->discount_value / 100));
+                        $finalPrice = max(0, $basePrice - $discountVal);
+                    } else {
+                        $finalPrice = max(0, $basePrice - $coupon->discount_value);
+                    }
+                } else {
+                    $finalPrice = $basePrice;
+                }
+                $monthMrr += $finalPrice;
+            }
 
             return [
                 'month' => $date->format('M'),
-                'mrr'   => $monthMrr,
+                'mrr'   => (float)$monthMrr,
             ];
         })->values();
-
-
 
         // Filtered Volume (Volume within period) - Exclude demo stores
         $volQuery = DB::table('sales')
@@ -178,21 +239,24 @@ class AdminDashboardController extends Controller
 
         return Inertia::render('SuperAdmin/Dashboard', [
             'stats' => [
-                'mrr'              => $mrr,
-                'total_stores'     => $realTenants->count(),
-                'trial_stores'     => $realTenants->where('status', 'trial')->count(),
-                'active_stores'    => $realTenants->where('status', 'active')->count(),
-                'suspended_stores' => $realTenants->where('status', 'suspended')->count(),
-                'churned_stores'   => $realTenants->where('status', 'cancelled')->count(),
-                'deleted_stores'   => $realTenants->whereNotNull('deleted_at')->count(),
-                'new_today'        => $realTenants->filter(fn($t) => $t->created_at?->isToday())->count(),
-                'new_this_month'   => $realTenants->filter(fn($t) => $t->created_at?->isCurrentMonth())->count(),
-                'storage_used_gb'  => $storageUsedGb,
-                'total_volume'     => (float)$totalVolume,
-                'growth_rate'      => (float)$growthRate,
-                'uptime'           => 100.0,
-                'period'           => $period,
+                'mrr'                     => (float)$liveMrr,
+                'total_stores'            => $realTenants->count(),
+                'trial_stores'            => $realTenants->where('status', 'trial')->count(),
+                'active_stores'           => $realTenants->where('status', 'active')->count(),
+                'suspended_stores'        => $realTenants->where('status', 'suspended')->count(),
+                'churned_stores'          => $realTenants->where('status', 'cancelled')->count(),
+                'deleted_stores'          => $realTenants->whereNotNull('deleted_at')->count(),
+                'new_today'               => $realTenants->filter(fn($t) => $t->created_at?->isToday())->count(),
+                'new_this_month'          => $realTenants->filter(fn($t) => $t->created_at?->isCurrentMonth())->count(),
+                'storage_used_gb'         => $storageUsedGb,
+                'total_volume'            => (float)$totalVolume,
+                'growth_rate'             => (float)$growthRate,
+                'uptime'                  => 100.0,
+                'period'                  => $period,
+                'standard_stores_count'   => $standardCount,
+                'discounted_stores_count' => $discountedCount,
             ],
+            'plans'             => $plans, // Send real DB plans directly to frontend
             'plan_distribution' => $planDistribution,
             'recent_stores'     => $realTenants->take(10)->map(fn($t) => [
                 'id'           => $t->id,
