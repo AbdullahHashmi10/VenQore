@@ -134,6 +134,27 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
         setActivePurchases(prev => {
             const newArr = prev.filter(p => p.id !== id);
             
+            if (newArr.length === 0) {
+                const newId = Date.now();
+                const newPurchase = {
+                    id: newId,
+                    items: [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }],
+                    supplier: null,
+                    paymentMethod: 'credit',
+                    amountPaid: 0,
+                    discount: 0,
+                    tax: 0,
+                    delivery_charge: 0,
+                    extra_charge_value: 0,
+                    date: new Date().toISOString().split('T')[0],
+                    invoiceNumber: '',
+                    notes: '',
+                    extras: []
+                };
+                setCurrentPurchaseId(newId);
+                return [newPurchase];
+            }
+            
             // We also need to update currentPurchaseId if it was the one removed
             setCurrentPurchaseId(currentId => {
                 if (currentId === id) {
