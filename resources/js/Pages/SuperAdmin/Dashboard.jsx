@@ -760,7 +760,7 @@ function PlatformUsersTab({ platform_users }) {
 // ECG Ghost-Sweep Radar Graph (Financial Command Center)
 // ─────────────────────────────────────────────────────────────────────────
 
-function ECGGraph({ data = [], color = '#818cf8', height = 180 }) {
+function ECGGraph({ data = [], color = '#818cf8', height = 180, type = 'money', isDark = true }) {
     const canvasRef = React.useRef(null);
     const pts = React.useMemo(() => data.map(p => ({
         val: isFinite(p?.val) ? p.val : 0,
@@ -794,6 +794,16 @@ function ECGGraph({ data = [], color = '#818cf8', height = 180 }) {
         const speed = 2.0;
         const gapSize = 35;
         const dpr = window.devicePixelRatio || 1;
+
+        // Helper to convert hex to rgba for dynamic gradient transparency
+        const hexToRgba = (hex, alpha) => {
+            if (!hex || hex.length < 6) return `rgba(129, 140, 248, ${alpha})`;
+            const cleanHex = hex.replace('#', '');
+            const r = parseInt(cleanHex.substring(0, 2), 16);
+            const g = parseInt(cleanHex.substring(2, 4), 16);
+            const b = parseInt(cleanHex.substring(4, 6), 16);
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
 
         const draw = () => {
             if (!canvasRef.current) return;
@@ -834,19 +844,45 @@ function ECGGraph({ data = [], color = '#818cf8', height = 180 }) {
             }
 
             ctx.clearRect(0, 0, width, h);
-            const centerY = h * 0.85;
-            const maxVal = Math.max(100, Math.max(...targetPtsRef.current.map(p => p.val || 0)));
-            const getY = (val) => h - ((val || 0) / maxVal) * h * 0.75 - h * 0.10;
-            const thresholdY = getY(100);
+            
+            // Real scaling bounds: leaves Y-axis margin bottom for X axis month names
+            const maxVal = Math.max(10, Math.max(...targetPtsRef.current.map(p => p.val || 0)));
+            const getY = (val) => h - ((val || 0) / maxVal) * h * 0.60 - h * 0.22;
+            const centerY = h * 0.78;
 
-            ctx.beginPath();
-            ctx.setLineDash([6, 6]);
-            ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+            // Draw Y-axis Scale Labels & Dash Grid Lines (theme-aware)
+            ctx.save();
+            ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.08)';
             ctx.lineWidth = 1;
-            ctx.moveTo(0, thresholdY);
-            ctx.lineTo(width, thresholdY);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(15, 23, 42, 0.6)';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'left';
+
+            const gridLevels = [0, maxVal * 0.5, maxVal];
+            gridLevels.forEach(val => {
+                const yPos = getY(val);
+                ctx.beginPath();
+                ctx.setLineDash([4, 4]);
+                ctx.moveTo(40, yPos);
+                ctx.lineTo(width - 10, yPos);
+                ctx.stroke();
+
+                // Format PKR or store/user counts
+                const label = type === 'money' ? '$' + Math.round(val) : Math.round(val);
+                ctx.fillText(label, 8, yPos + 3);
+            });
+            ctx.restore();
+
+            // Draw X-axis Month Label Ticks at bottom (theme-aware)
+            ctx.save();
+            ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(15, 23, 42, 0.5)';
+            ctx.font = '9px monospace';
+            ctx.textAlign = 'center';
+            targetPtsRef.current.forEach((pt, i) => {
+                const xPos = (i / Math.max(targetPtsRef.current.length - 1, 1)) * (width - 65) + 48;
+                ctx.fillText(pt.ds || '', xPos, h - 8);
+            });
+            ctx.restore();
 
             const prevHeadX = headXRef.current;
             headXRef.current += speed;
@@ -882,12 +918,12 @@ function ECGGraph({ data = [], color = '#818cf8', height = 180 }) {
             }
             if (currentSegment.length > 0) segments.push(currentSegment);
 
-            const drawZone = (zoneSegments, isGold) => {
-                const zoneColor = isGold ? '#f59e0b' : color;
-                const fillAlpha = isGold ? '0.12' : '0.08';
+            const drawZone = (zoneSegments) => {
+                const zoneColor = color;
+                const fillAlpha = '0.08';
                 ctx.save();
                 const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
-                fillGrad.addColorStop(0, isGold ? `rgba(245, 158, 11, ${fillAlpha})` : `rgba(129, 140, 248, ${fillAlpha})`);
+                fillGrad.addColorStop(0, hexToRgba(zoneColor, fillAlpha));
                 fillGrad.addColorStop(1, 'transparent');
                 ctx.fillStyle = fillGrad;
                 zoneSegments.forEach(seg => {
@@ -919,31 +955,23 @@ function ECGGraph({ data = [], color = '#818cf8', height = 180 }) {
 
             segments.forEach(segment => {
                 if (segment.length < 2) return;
-                let sub = [segment[0]];
-                let curIsGold = segment[0].y < thresholdY;
-                for (let i = 1; i < segment.length; i++) {
-                    const isGold = segment[i].y < thresholdY;
-                    if (isGold !== curIsGold) { drawZone([sub], curIsGold); sub = [segment[i]]; curIsGold = isGold; }
-                    else sub.push(segment[i]);
-                }
-                drawZone([sub], curIsGold);
+                drawZone([segment]);
             });
 
             const headVal = getInterpolatedVal(targetPtsRef.current, currentHeadX);
             const headY = getY(headVal);
-            const headIsGold = headY < thresholdY;
             ctx.beginPath();
             ctx.arc(currentHeadX, headY, 4, 0, Math.PI * 2);
-            ctx.fillStyle = headIsGold ? '#f59e0b' : '#ffffff';
+            ctx.fillStyle = isDark ? '#ffffff' : color;
             ctx.shadowBlur = 15;
-            ctx.shadowColor = headIsGold ? '#f59e0b' : '#ffffff';
+            ctx.shadowColor = color;
             ctx.fill();
         };
 
         const animateLoop = () => { draw(); animationFrameId = requestAnimationFrame(animateLoop); };
         animateLoop();
         return () => { cancelAnimationFrame(animationFrameId); isRunningRef.current = false; };
-    }, [pts, color]);
+    }, [pts, color, isDark]);
 
     return <canvas ref={canvasRef} style={{ width: '100%', height }} />;
 }
@@ -2321,15 +2349,17 @@ export default function PlatformOwnerDashboard({
             rawData = (user_trend || []).map(item => ({ val: parseFloat(item.users || 0), ds: item.month }));
         }
 
-        // If there are less than 2 data points (e.g. new database install), seed with a premium resting telemetry sweep
-        if (rawData.length < 2) {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const singleVal = rawData.length === 1 ? rawData[0].val : 0;
-            const baseWaves = [35, 42, 68, 55, 72, 115, 82, 98, 120, 88, 105, 112];
-            return baseWaves.map((v, i) => ({
-                val: singleVal > 0 ? singleVal + (v * 0.1) : v,
-                ds: months[i]
-            }));
+        // Strictly no simulated data peaks! Show real database telemetry only
+        if (rawData.length === 0) {
+            // Draw a clean flat line of 0s across a 6-month historical span
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            return months.map(m => ({ val: 0, ds: m }));
+        } else if (rawData.length === 1) {
+            // Duplicate the single real data point to draw a solid, accurate flat line at that value
+            return [
+                { val: rawData[0].val, ds: rawData[0].ds },
+                { val: rawData[0].val, ds: rawData[0].ds + ' (Current)' }
+            ];
         }
         return rawData;
     }, [selectedGraphSource, mrr_trend, store_trend, user_trend]);
@@ -2472,7 +2502,7 @@ export default function PlatformOwnerDashboard({
                 {activeTab === 'overview' && (
                     <div style={{ padding: '0 32px 40px' }}>
                         <div style={{ 
-                            background: T.bgHero,
+                            background: T.bgCard,
                             borderRadius: 32,
                             border: `1px solid ${T.border}`,
                             padding: '40px',
@@ -2563,8 +2593,8 @@ export default function PlatformOwnerDashboard({
                                                 })}
                                             </div>
                                         </div>
-                                        <div style={{ background: T.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.03)', borderRadius: 16, padding: '16px', border: `1px solid ${T.border}`, height: 160, display: 'flex', alignItems: 'center' }}>
-                                            <ECGGraph data={activeECGData} color={selectedGraphSource === 'money' ? '#10b981' : selectedGraphSource === 'stores' ? '#6366f1' : '#ec4899'} height={130} />
+                                        <div style={{ height: 160, display: 'flex', alignItems: 'center', width: '100%', marginTop: 8 }}>
+                                            <ECGGraph data={activeECGData} color={selectedGraphSource === 'money' ? '#10b981' : selectedGraphSource === 'stores' ? '#6366f1' : '#ec4899'} height={150} type={selectedGraphSource} isDark={isDark} />
                                         </div>
                                     </div>
 
