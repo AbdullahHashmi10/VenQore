@@ -277,9 +277,10 @@ class StaffController extends Controller
         $this->authorizeMemberAction($member);
 
         $request->validate([
-            'role'         => 'nullable|in:franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer',
+            'role'         => 'nullable|in:franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
             'display_name' => 'nullable|string|max:50',
             'status'       => 'nullable|in:active,suspended',
+            'permissions'  => 'nullable|array',
         ]);
 
         // Cannot change role of owner
@@ -287,7 +288,7 @@ class StaffController extends Controller
             abort(403, 'Owner role cannot be changed.');
         }
 
-        $member->update($request->only(['role', 'display_name', 'status']));
+        $member->update($request->only(['role', 'display_name', 'status', 'permissions']));
 
         return back()->with('success', 'Member updated.');
     }

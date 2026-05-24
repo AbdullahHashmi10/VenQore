@@ -152,9 +152,9 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
             Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
             Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
-            Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
+            Route::get('/users',       function ($store_slug) { return redirect()->route('store.admin.attendance', ['store_slug' => $store_slug]); })->name('users');
             Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
-            Route::get('/staff',       [\App\Http\Controllers\AdminController::class, 'staffSummaries'])->name('staff');
+            Route::get('/staff',       function ($store_slug) { return redirect()->route('store.admin.attendance', ['store_slug' => $store_slug]); })->name('staff');
 
             // ── V1 Staff Invitation System ─────────────────────────────────
             Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->name('invitations.store');

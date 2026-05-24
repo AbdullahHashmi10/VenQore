@@ -60,6 +60,7 @@ const STATUS = {
     expired:            { label: 'Expired',           color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-500' },
     revoked:            { label: 'Revoked',           color: 'text-red-400 bg-red-50 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-400' },
     declined:           { label: 'Declined',          color: 'text-slate-400 bg-slate-50 border-slate-200 dark:bg-slate-800 dark:text-slate-500',                          dot: 'bg-slate-400' },
+    suspended:          { label: 'Suspended',         color: 'text-red-500 bg-red-50 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-800',             dot: 'bg-red-500' },
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
@@ -851,9 +852,110 @@ function AttendanceDetailModal({ user, history, onClose }) {
     );
 }
 
+// ─── Edit Member Modal ──────────────────────────────────────────────────────
+function EditMemberModal({ member, onClose }) {
+    const { store } = usePage().props;
+    const { data, setData, patch, processing, errors } = useForm({
+        role: member.role,
+        display_name: member.display_name ?? '',
+        status: member.status,
+    });
+
+    const submit = (e) => {
+        e.preventDefault();
+        patch(route('store.staff.update', { store_slug: store?.slug, member: member.membership_id }), {
+            onSuccess: onClose,
+        });
+    };
+
+    return (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 md:p-8">
+            <div className="bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-[500px] border border-slate-700/50 p-8 relative flex flex-col text-left">
+                <button onClick={onClose}
+                    className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-20">
+                    <X size={20} />
+                </button>
+
+                <div className="flex items-center gap-4 mb-8">
+                    <h3 className="font-extrabold text-2xl text-white tracking-tight">Edit Member</h3>
+                    <div className="h-4 w-px bg-slate-700"></div>
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{member.name}</span>
+                </div>
+
+                <form onSubmit={submit} className="flex flex-col gap-6">
+                    {/* Role */}
+                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Role</label>
+                        <select value={data.role} onChange={e => setData('role', e.target.value)}
+                            disabled={member.role === 'owner'}
+                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            <option value="admin">Admin</option>
+                            <option value="manager">Manager</option>
+                            <option value="cashier">Cashier</option>
+                            <option value="accountant">Accountant</option>
+                            <option value="purchasing_officer">Purchasing Officer</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                        {member.role === 'owner' && (
+                            <p className="text-[10px] text-slate-500 ml-1">Owner role cannot be changed.</p>
+                        )}
+                        {errors.role && <p className="text-[10px] text-red-400 ml-1">{errors.role}</p>}
+                    </div>
+
+                    {/* Display Name */}
+                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Display Name</label>
+                        <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
+                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                            placeholder="Display Name" />
+                        {errors.display_name && <p className="text-[10px] text-red-400 ml-1">{errors.display_name}</p>}
+                    </div>
+
+                    {/* Status */}
+                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Status</label>
+                        <select value={data.status} onChange={e => setData('status', e.target.value)}
+                            disabled={member.role === 'owner'}
+                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            <option value="active">Active</option>
+                            <option value="suspended">Suspended</option>
+                        </select>
+                        {errors.status && <p className="text-[10px] text-red-400 ml-1">{errors.status}</p>}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-4 flex items-center justify-end gap-4 border-t border-slate-800/50 pt-6">
+                        <button type="button" onClick={onClose}
+                            className="px-6 py-3 text-slate-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit" disabled={processing}
+                            className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
 // ─── Members Table ─────────────────────────────────────────────────────────
 function MembersTable({ users, store }) {
+    const { my_role } = usePage().props;
+    const canManage = ['owner', 'admin'].includes(my_role);
+    const [openMenu, setOpenMenu] = useState(null);
+    const [editingMember, setEditingMember] = useState(null);
+
     const filtered = users.filter(u => u.role !== 'platform_admin');
+
+    const handleRemove = (member) => {
+        if (!confirm(`Remove ${member.name} from the store? They will lose all access immediately.`)) return;
+        router.delete(route('store.staff.remove', { store_slug: store?.slug, member: member.membership_id }), {
+            onSuccess: () => setOpenMenu(null),
+        });
+    };
+
     if (filtered.length === 0) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-300 dark:text-slate-600 gap-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
@@ -862,57 +964,104 @@ function MembersTable({ users, store }) {
             </div>
         );
     }
+
     return (
-        <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
-            <div className="flex-1 overflow-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
-                        <tr className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                            <th className="px-6 py-4">Member</th>
-                            <th className="px-6 py-4">Role & Access</th>
-                            <th className="px-6 py-4">Email</th>
-                            <th className="px-6 py-4">Status</th>
-                            <th className="px-6 py-4">Joined</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {filtered.map(user => {
-                            const role = getRoleInfo(user.role);
-                            const RoleIcon = role.icon;
-                            return (
-                                <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center text-white font-bold shadow-md`}>
-                                                {user.name.charAt(0).toUpperCase()}
+        <>
+            {editingMember && (
+                <EditMemberModal
+                    member={editingMember}
+                    onClose={() => setEditingMember(null)}
+                />
+            )}
+            <div className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm overflow-hidden flex flex-col min-h-0">
+                <div className="flex-1 overflow-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-slate-50 dark:bg-slate-800/50 sticky top-0 z-10">
+                            <tr className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                                <th className="px-6 py-4">Member</th>
+                                <th className="px-6 py-4">Role & Access</th>
+                                <th className="px-6 py-4">Email</th>
+                                <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4">Joined</th>
+                                {canManage && <th className="px-6 py-4 text-right">Actions</th>}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {filtered.map(user => {
+                                const role = getRoleInfo(user.role);
+                                const RoleIcon = role.icon;
+                                const st = getStatusCfg(user.status);
+                                const isOwner = user.role === 'owner';
+
+                                return (
+                                    <tr key={user.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors group">
+                                        <td className="px-6 py-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${role.color} flex items-center justify-center text-white font-bold shadow-md`}>
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">
+                                                        {user.display_name || user.name}
+                                                        {user.role === 'owner' && <span className="ml-2 text-[10px] font-black bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-widest">Owner</span>}
+                                                    </p>
+                                                    <p className="text-xs text-slate-400 font-mono">ID: {user.id}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{user.name}</p>
-                                                <p className="text-xs text-slate-400 font-mono">ID: {user.id}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${role.badge}`}>
-                                            <RoleIcon size={10} />{role.name}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500 font-mono">{user.email}</td>
-                                    <td className="px-6 py-4">
-                                        <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Active
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-slate-500">
-                                        {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                                    </td>
-                                </tr>
-                            );
-                        })}
-                    </tbody>
-                </table>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${role.badge}`}>
+                                                <RoleIcon size={10} />{role.name}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-slate-500 font-mono">{user.email}</td>
+                                        <td className="px-6 py-4">
+                                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${st.color}`}>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`}></span>
+                                                {st.label}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 text-sm text-slate-500">
+                                            {new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                        </td>
+                                        
+                                        {/* Actions Menu */}
+                                        {canManage && (
+                                            <td className="px-6 py-4 text-right relative">
+                                                {!isOwner && (
+                                                    <div className="relative inline-block">
+                                                        <button onClick={() => setOpenMenu(openMenu === user.id ? null : user.id)}
+                                                            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors opacity-0 group-hover:opacity-100">
+                                                            <ChevronDown size={16} />
+                                                        </button>
+                                                        {openMenu === user.id && (
+                                                            <>
+                                                                <div className="fixed inset-0 z-20" onClick={() => setOpenMenu(null)} />
+                                                                <div className="absolute right-0 top-10 z-30 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl py-2 overflow-hidden text-left">
+                                                                    <button onClick={() => { setEditingMember(user); setOpenMenu(null); }}
+                                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                                                                        <Edit3 size={14} className="text-indigo-500" /> Edit Role & Access
+                                                                    </button>
+                                                                    <div className="my-1 border-t border-slate-100 dark:border-slate-700" />
+                                                                    <button onClick={() => handleRemove(user)}
+                                                                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                                                                        <Trash2 size={14} /> Remove Member
+                                                                    </button>
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </td>
+                                        )}
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </>
     );
 }
 

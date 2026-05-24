@@ -107,9 +107,28 @@ class StaffInvitationController extends Controller
                 });
             });
 
+        $users = TenantUser::where('tenant_id', $tenant->id)
+            ->with('user:id,name,email')
+            ->orderByRaw("FIELD(role, 'owner', 'franchise_admin', 'admin', 'manager', 'shift_supervisor', 'accountant', 'purchasing_officer', 'inventory_controller', 'hr_officer', 'production_supervisor', 'kitchen_manager', 'dispenser', 'sales_executive', 'fulfillment_lead', 'delivery_driver', 'cashier', 'viewer')")
+            ->orderBy('status')
+            ->get()
+            ->map(fn($m) => [
+                'id'            => $m->user_id,
+                'membership_id' => $m->id,
+                'name'          => $m->user?->name ?? $m->display_name,
+                'display_name'  => $m->display_name,
+                'email'         => $m->user?->email,
+                'role'          => $m->role,
+                'status'        => $m->status,
+                'pos_pin_set'   => !is_null($m->pos_pin),
+                'joined_at'     => $m->joined_at,
+                'created_at'    => $m->joined_at ?? $m->created_at,
+            ])
+            ->toArray();
+
         return Inertia::render('Admin/Users', [
             'mode'        => 'admin',
-            'users'       => $tenant->users,
+            'users'       => $users,
             'attendance'  => [
                 'today'   => $todayAttendance,
                 'history' => $history,
