@@ -757,34 +757,927 @@ function PlatformUsersTab({ platform_users }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Tab: Revenue
+// ECG Ghost-Sweep Radar Graph (Financial Command Center)
+// ─────────────────────────────────────────────────────────────────────────
+
+function ECGGraph({ data = [], color = '#818cf8', height = 180 }) {
+    const canvasRef = React.useRef(null);
+    const pts = React.useMemo(() => data.map(p => ({
+        val: isFinite(p?.val) ? p.val : 0,
+        over: !!p?.over,
+        ds: p?.ds
+    })), [data]);
+
+    const headXRef = React.useRef(0);
+    const pixelBufferRef = React.useRef(null);
+    const targetPtsRef = React.useRef(pts);
+    const ptsLengthRef = React.useRef(pts.length);
+    const isRunningRef = React.useRef(false);
+
+    React.useEffect(() => {
+        targetPtsRef.current = pts;
+        if (pts.length !== ptsLengthRef.current) {
+            ptsLengthRef.current = pts.length;
+            pixelBufferRef.current = null;
+            headXRef.current = 0;
+        }
+    }, [pts]);
+
+    React.useEffect(() => {
+        if (!canvasRef.current || pts.length < 2) return;
+        if (isRunningRef.current) return;
+        isRunningRef.current = true;
+
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d');
+        let animationFrameId;
+        const speed = 2.0;
+        const gapSize = 35;
+        const dpr = window.devicePixelRatio || 1;
+
+        const draw = () => {
+            if (!canvasRef.current) return;
+            const rect = canvas.getBoundingClientRect();
+            const width = rect.width || 1;
+            const h = rect.height || 1;
+
+            if (canvas.width !== Math.floor(width * dpr) || canvas.height !== Math.floor(h * dpr)) {
+                canvas.width = Math.floor(width * dpr);
+                canvas.height = Math.floor(h * dpr);
+                ctx.scale(dpr, dpr);
+                pixelBufferRef.current = null;
+                headXRef.current = 0;
+            }
+
+            if (!targetPtsRef.current || targetPtsRef.current.length < 2) {
+                animationFrameId = requestAnimationFrame(draw);
+                return;
+            }
+
+            const bufLen = Math.ceil(width);
+            const getInterpolatedVal = (dataset, xPos) => {
+                const progress = xPos / Math.max(bufLen - 1, 1);
+                const index = progress * (dataset.length - 1);
+                const i1 = Math.floor(index);
+                const i2 = Math.min(dataset.length - 1, i1 + 1);
+                const t = index - i1;
+                const v1 = dataset[i1]?.val || 0;
+                const v2 = dataset[i2]?.val || 0;
+                return v1 + (v2 - v1) * (0.5 - 0.5 * Math.cos(Math.PI * t));
+            };
+
+            if (!pixelBufferRef.current || pixelBufferRef.current.length !== bufLen) {
+                const buf = new Float32Array(bufLen);
+                for (let i = 0; i < bufLen; i++) buf[i] = getInterpolatedVal(targetPtsRef.current, i);
+                pixelBufferRef.current = buf;
+                headXRef.current = 0;
+            }
+
+            ctx.clearRect(0, 0, width, h);
+            const centerY = h * 0.85;
+            const maxVal = Math.max(100, Math.max(...targetPtsRef.current.map(p => p.val || 0)));
+            const getY = (val) => h - ((val || 0) / maxVal) * h * 0.75 - h * 0.10;
+            const thresholdY = getY(100);
+
+            ctx.beginPath();
+            ctx.setLineDash([6, 6]);
+            ctx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+            ctx.lineWidth = 1;
+            ctx.moveTo(0, thresholdY);
+            ctx.lineTo(width, thresholdY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            const prevHeadX = headXRef.current;
+            headXRef.current += speed;
+            let currentHeadX = headXRef.current;
+            const didWrap = currentHeadX >= width;
+            if (didWrap) { headXRef.current = currentHeadX % width; currentHeadX = headXRef.current; }
+
+            if (!didWrap) {
+                for (let i = Math.floor(prevHeadX); i <= Math.floor(currentHeadX) && i < bufLen; i++)
+                    pixelBufferRef.current[i] = getInterpolatedVal(targetPtsRef.current, i);
+            } else {
+                for (let i = Math.floor(prevHeadX); i < bufLen; i++)
+                    pixelBufferRef.current[i] = getInterpolatedVal(targetPtsRef.current, i);
+                for (let i = 0; i <= Math.floor(currentHeadX); i++)
+                    pixelBufferRef.current[i] = getInterpolatedVal(targetPtsRef.current, i);
+            }
+
+            let segments = [];
+            let currentSegment = [];
+            for (let i = 0; i < width; i++) {
+                let inGap = false;
+                if (currentHeadX + gapSize < width) {
+                    if (i >= currentHeadX && i <= currentHeadX + gapSize) inGap = true;
+                } else {
+                    if (i >= currentHeadX || i <= (currentHeadX + gapSize) % width) inGap = true;
+                }
+                if (!inGap) {
+                    currentSegment.push({ x: i, y: getY(pixelBufferRef.current[i] ?? 0) });
+                } else if (currentSegment.length > 0) {
+                    segments.push(currentSegment);
+                    currentSegment = [];
+                }
+            }
+            if (currentSegment.length > 0) segments.push(currentSegment);
+
+            const drawZone = (zoneSegments, isGold) => {
+                const zoneColor = isGold ? '#f59e0b' : color;
+                const fillAlpha = isGold ? '0.12' : '0.08';
+                ctx.save();
+                const fillGrad = ctx.createLinearGradient(0, 0, 0, h);
+                fillGrad.addColorStop(0, isGold ? `rgba(245, 158, 11, ${fillAlpha})` : `rgba(129, 140, 248, ${fillAlpha})`);
+                fillGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = fillGrad;
+                zoneSegments.forEach(seg => {
+                    if (seg.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(seg[0].x, centerY);
+                    seg.forEach(pt => ctx.lineTo(pt.x, pt.y));
+                    ctx.lineTo(seg[seg.length - 1].x, centerY);
+                    ctx.closePath();
+                    ctx.fill();
+                });
+                ctx.restore();
+                ctx.save();
+                ctx.strokeStyle = zoneColor;
+                ctx.lineWidth = 2.5;
+                ctx.lineJoin = 'round';
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = zoneColor;
+                zoneSegments.forEach(seg => {
+                    if (seg.length < 2) return;
+                    ctx.beginPath();
+                    ctx.moveTo(seg[0].x, seg[0].y);
+                    for (let i = 1; i < seg.length; i++) ctx.lineTo(seg[i].x, seg[i].y);
+                    ctx.stroke();
+                });
+                ctx.restore();
+            };
+
+            segments.forEach(segment => {
+                if (segment.length < 2) return;
+                let sub = [segment[0]];
+                let curIsGold = segment[0].y < thresholdY;
+                for (let i = 1; i < segment.length; i++) {
+                    const isGold = segment[i].y < thresholdY;
+                    if (isGold !== curIsGold) { drawZone([sub], curIsGold); sub = [segment[i]]; curIsGold = isGold; }
+                    else sub.push(segment[i]);
+                }
+                drawZone([sub], curIsGold);
+            });
+
+            const headVal = getInterpolatedVal(targetPtsRef.current, currentHeadX);
+            const headY = getY(headVal);
+            const headIsGold = headY < thresholdY;
+            ctx.beginPath();
+            ctx.arc(currentHeadX, headY, 4, 0, Math.PI * 2);
+            ctx.fillStyle = headIsGold ? '#f59e0b' : '#ffffff';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = headIsGold ? '#f59e0b' : '#ffffff';
+            ctx.fill();
+        };
+
+        const animateLoop = () => { draw(); animationFrameId = requestAnimationFrame(animateLoop); };
+        animateLoop();
+        return () => { cancelAnimationFrame(animationFrameId); isRunningRef.current = false; };
+    }, [pts, color]);
+
+    return <canvas ref={canvasRef} style={{ width: '100%', height }} />;
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Tab: Revenue — Full Financial Command Center
 // ─────────────────────────────────────────────────────────────────────────
 
 function RevenueTab({ stats }) {
     const T = useDashboardTheme();
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
 
+    // ── State ──
+    const [exchangeRate, setExchangeRate] = React.useState(279);
+    const [serverCapacity, setServerCapacity] = React.useState(200);
+    const [variableExpenseRate, setVariableExpenseRate] = React.useState(5);
+    const [isAnnualBilling, setIsAnnualBilling] = React.useState(false);
+    const [isFoundingDiscount, setIsFoundingDiscount] = React.useState(true);
+    const [foundingDiscountPercent, setFoundingDiscountPercent] = React.useState(50);
+    const [activeSubTab, setActiveSubTab] = React.useState('overview');
+    const [copiedNotification, setCopiedNotification] = React.useState(false);
+
+    const [prices, setPrices] = React.useState({
+        pk_exclusive: { name: 'Pakistan Exclusive', pricePkr: 1000, priceUsd: 3.58, activeCount: 30, feePct: 2.5, fixedFee: 15 },
+        starter:      { name: 'Starter',            priceUsd: 29,   pricePkr: 8091, activeCount: 15, feePct: 6.5, fixedFee: 0.50 },
+        growth:       { name: 'Growth',             priceUsd: 59,   pricePkr: 16461, activeCount: 10, feePct: 6.5, fixedFee: 0.50 },
+        business:     { name: 'Business',           priceUsd: 129,  pricePkr: 35991, activeCount: 3,  feePct: 6.5, fixedFee: 0.50 },
+    });
+
+    const [ltdRevenue, setLtdRevenue] = React.useState({ tier1Count: 12, tier1Price: 79, tier2Count: 8, tier2Price: 149, tier3Count: 4, tier3Price: 249 });
+
+    const [fixedExpenses, setFixedExpenses] = React.useState([
+        { id: '1', name: 'KVM 2 Production Server',         amount: 2508, currency: 'PKR' },
+        { id: '2', name: 'Domain Registration & Routing',   amount: 257,  currency: 'PKR' },
+        { id: '3', name: 'Database Backups & Cloud Storage', amount: 1500, currency: 'PKR' },
+        { id: '4', name: 'Transactional SMTP Email API',    amount: 10,   currency: 'USD' },
+    ]);
+    const [newExpenseName, setNewExpenseName] = React.useState('');
+    const [newExpenseAmount, setNewExpenseAmount] = React.useState('');
+    const [newExpenseCurrency, setNewExpenseCurrency] = React.useState('PKR');
+
+    const milestones = [
+        { targetPkr: 50000,  label: 'Server Costs & Domains Covered' },
+        { targetPkr: 100000, label: 'Initial Baseline Profit Target' },
+        { targetPkr: 200000, label: 'Healthy SaaS Runway Level' },
+        { targetPkr: 500000, label: 'Enterprise Scaling Milestone' },
+    ];
+
+    // ── Actions ──
+    const handlePriceChange = (tier, field, value) => {
+        setPrices(prev => {
+            const updated = { ...prev };
+            const parsedVal = parseFloat(value) || 0;
+            if (field === 'priceUsd') {
+                updated[tier] = { ...updated[tier], priceUsd: parsedVal, pricePkr: Math.round(parsedVal * exchangeRate) };
+            } else if (field === 'pricePkr') {
+                updated[tier] = { ...updated[tier], pricePkr: parsedVal, priceUsd: parseFloat((parsedVal / exchangeRate).toFixed(2)) };
+            } else {
+                updated[tier] = { ...updated[tier], [field]: parsedVal };
+            }
+            return updated;
+        });
+    };
+
+    const addExpense = (e) => {
+        e.preventDefault();
+        if (!newExpenseName || !newExpenseAmount) return;
+        setFixedExpenses(prev => [...prev, { id: Date.now().toString(), name: newExpenseName, amount: parseFloat(newExpenseAmount) || 0, currency: newExpenseCurrency }]);
+        setNewExpenseName(''); setNewExpenseAmount('');
+    };
+
+    const removeExpense = (id) => setFixedExpenses(prev => prev.filter(exp => exp.id !== id));
+
+    const setPreset = (type) => {
+        const presets = {
+            recommended: { pk_exclusive: { name: 'Pakistan Exclusive', pricePkr: 1000, priceUsd: 3.58, activeCount: 30, feePct: 2.5, fixedFee: 15 }, starter: { name: 'Starter', priceUsd: 29, pricePkr: 8091, activeCount: 15, feePct: 6.5, fixedFee: 0.50 }, growth: { name: 'Growth', priceUsd: 59, pricePkr: 16461, activeCount: 10, feePct: 6.5, fixedFee: 0.50 }, business: { name: 'Business', priceUsd: 129, pricePkr: 35991, activeCount: 3, feePct: 6.5, fixedFee: 0.50 } },
+            legacy:      { pk_exclusive: { name: 'Pakistan Exclusive', pricePkr: 1000, priceUsd: 3.58, activeCount: 20, feePct: 2.5, fixedFee: 15 }, starter: { name: 'Starter', priceUsd: 19, pricePkr: 5301, activeCount: 15, feePct: 6.5, fixedFee: 0.50 }, growth: { name: 'Growth', priceUsd: 39, pricePkr: 10881, activeCount: 10, feePct: 6.5, fixedFee: 0.50 }, business: { name: 'Business', priceUsd: 79, pricePkr: 22041, activeCount: 3, feePct: 6.5, fixedFee: 0.50 } },
+            aggressive:  { pk_exclusive: { name: 'Pakistan Exclusive', pricePkr: 1500, priceUsd: 5.38, activeCount: 15, feePct: 2.5, fixedFee: 15 }, starter: { name: 'Starter', priceUsd: 39, pricePkr: 10881, activeCount: 12, feePct: 6.5, fixedFee: 0.50 }, growth: { name: 'Growth', priceUsd: 89, pricePkr: 24831, activeCount: 8, feePct: 6.5, fixedFee: 0.50 }, business: { name: 'Business', priceUsd: 249, pricePkr: 69471, activeCount: 2, feePct: 6.5, fixedFee: 0.50 } },
+        };
+        if (presets[type]) setPrices(presets[type]);
+    };
+
+    React.useEffect(() => {
+        setPrices(prev => {
+            const updated = { ...prev };
+            Object.keys(updated).forEach(key => {
+                if (key !== 'pk_exclusive') updated[key] = { ...updated[key], pricePkr: Math.round(updated[key].priceUsd * exchangeRate) };
+            });
+            return updated;
+        });
+    }, [exchangeRate]);
+
+    // ── Financial Calculation Engine ──
+    const totals = React.useMemo(() => {
+        let fixedPkrTotal = 0, fixedUsdTotal = 0;
+        fixedExpenses.forEach(exp => {
+            if (exp.currency === 'PKR') { fixedPkrTotal += exp.amount; fixedUsdTotal += exp.amount / exchangeRate; }
+            else { fixedUsdTotal += exp.amount; fixedPkrTotal += exp.amount * exchangeRate; }
+        });
+
+        let totalGrossPkr = 0, totalGrossUsd = 0, totalFeesPkr = 0, totalFeesUsd = 0, totalPayingStores = 0;
+        const storeBreakdown = [];
+
+        Object.entries(prices).forEach(([key, tier]) => {
+            const isLocal = key === 'pk_exclusive';
+            const storeCount = tier.activeCount;
+            totalPayingStores += storeCount;
+            let effectivePriceUsd = tier.priceUsd, effectivePricePkr = tier.pricePkr;
+            if (isAnnualBilling && !isLocal) { effectivePriceUsd *= (10/12); effectivePricePkr *= (10/12); }
+            if (isFoundingDiscount && !isLocal) { const f = (100 - foundingDiscountPercent) / 100; effectivePriceUsd *= f; effectivePricePkr *= f; }
+
+            const tierGrossPkr = effectivePricePkr * storeCount;
+            const tierGrossUsd = effectivePriceUsd * storeCount;
+            totalGrossPkr += tierGrossPkr; totalGrossUsd += tierGrossUsd;
+
+            let tierFeesPkr = 0, tierFeesUsd = 0;
+            if (storeCount > 0) {
+                if (isLocal) { tierFeesPkr = (tierGrossPkr * (tier.feePct/100)) + (tier.fixedFee * storeCount); tierFeesUsd = tierFeesPkr / exchangeRate; }
+                else { tierFeesUsd = (tierGrossUsd * (tier.feePct/100)) + (tier.fixedFee * storeCount); tierFeesPkr = tierFeesUsd * exchangeRate; }
+            }
+            totalFeesPkr += tierFeesPkr; totalFeesUsd += tierFeesUsd;
+
+            const afterFeesPkr = tierGrossPkr - tierFeesPkr;
+            const afterFeesUsd = tierGrossUsd - tierFeesUsd;
+            const varMul = variableExpenseRate / 100;
+            const tierVarExpensePkr = afterFeesPkr * varMul;
+            const tierVarExpenseUsd = afterFeesUsd * varMul;
+            storeBreakdown.push({ key, name: tier.name, count: storeCount, grossPkr: tierGrossPkr, grossUsd: tierGrossUsd, feesPkr: tierFeesPkr, feesUsd: tierFeesUsd, afterFeesPkr, afterFeesUsd, varExpensePkr: tierVarExpensePkr, varExpenseUsd: tierVarExpenseUsd, netContributionPkr: afterFeesPkr - tierVarExpensePkr, netContributionUsd: afterFeesUsd - tierVarExpenseUsd });
+        });
+
+        const afterFeesGrandPkr = totalGrossPkr - totalFeesPkr;
+        const totalVarExpensesPkr = afterFeesGrandPkr * (variableExpenseRate / 100);
+        const netMrrPkr = afterFeesGrandPkr - totalVarExpensesPkr - fixedPkrTotal;
+        const netMrrUsd = netMrrPkr / exchangeRate;
+        const marginPercent = totalGrossPkr > 0 ? (netMrrPkr / totalGrossPkr) * 100 : 0;
+        const totalLtdPkr = ((ltdRevenue.tier1Count * ltdRevenue.tier1Price) + (ltdRevenue.tier2Count * ltdRevenue.tier2Price) + (ltdRevenue.tier3Count * ltdRevenue.tier3Price)) * exchangeRate;
+
+        return { fixedPkr: fixedPkrTotal, fixedUsd: fixedUsdTotal, grossMrrPkr: totalGrossPkr, grossMrrUsd: totalGrossUsd, feesPkr: totalFeesPkr, feesUsd: totalFeesUsd, varExpensesPkr: totalVarExpensesPkr, varExpensesUsd: totalVarExpensesPkr / exchangeRate, deductionsPkr: totalFeesPkr + totalVarExpensesPkr + fixedPkrTotal, netMrrPkr, netMrrUsd, arrPkr: netMrrPkr * 12, arrUsd: netMrrUsd * 12, marginPercent, storeBreakdown, totalPayingStores, totalLtdPkr };
+    }, [prices, fixedExpenses, exchangeRate, isAnnualBilling, isFoundingDiscount, foundingDiscountPercent, variableExpenseRate, ltdRevenue]);
+
+    const liveECGData = React.useMemo(() => {
+        const defaultWaves = [35, 42, 68, 55, 72, 115, 82, 98, 120, 88, 105, 112, 92, 125, 115];
+        const marginFactor = totals.marginPercent > 0 ? (totals.marginPercent / 100) : 0.4;
+        const countFactor = totals.totalPayingStores > 0 ? Math.min(1.5, totals.totalPayingStores / 30) : 0.5;
+        return defaultWaves.map((v, i) => ({ val: Math.round(Math.min(140, Math.max(5, v * (0.4 + marginFactor * 0.45 + countFactor * 0.25)))), ds: `S${i + 1}` }));
+    }, [totals.marginPercent, totals.totalPayingStores]);
+
+    // ── Shared styles ──
+    const card = { background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24, backdropFilter: 'blur(12px)' };
+    const subTabBtn = (id) => ({ padding: '7px 16px', borderRadius: 10, border: `1px solid ${activeSubTab === id ? 'rgba(99,102,241,0.5)' : T.border}`, background: activeSubTab === id ? 'rgba(99,102,241,0.12)' : 'transparent', color: activeSubTab === id ? '#a5b4fc' : T.textMuted, fontSize: 12, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 });
+    const inputStyle = { background: T.isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc', border: `1px solid ${T.border}`, borderRadius: 10, padding: '8px 12px', color: T.text, fontSize: 12, outline: 'none', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' };
+
+    const copyToClipboard = (text) => { navigator.clipboard.writeText(text).catch(() => {}); setCopiedNotification(true); setTimeout(() => setCopiedNotification(false), 2500); };
+
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: 16 }}>
-                <KpiCard label="Monthly Recurring Revenue" value={formatCurrency(stats.mrr)} sub="Live estimate from plan data" Icon={DollarSign} color="#10b981" />
-                <KpiCard label="Annual Recurring Revenue" value={formatCurrency(stats.arr || 0)} sub="MRR × 12 projected" Icon={TrendingUp} color="#6366f1" />
-                <KpiCard label="Churned This Month" value={stats.cancelled_last_30} sub="Cancelled subscriptions" Icon={Ban} color="#ef4444" trend={-1} />
+
+            {/* ── Header with Exchange Rate & Presets ── */}
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: 16, ...card, padding: '16px 24px' }}>
+                <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#818cf8', fontSize: 12, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                        <Activity size={14} /> Finance Command Center
+                    </div>
+                    <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4, fontFamily: 'monospace' }}>Dynamic system simulation pipeline · Local calculations only</div>
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                        <span style={{ color: T.textMuted }}>PKR/USD Rate:</span>
+                        <input type="number" value={exchangeRate} onChange={e => setExchangeRate(parseInt(e.target.value) || 279)} style={{ ...inputStyle, width: 70, textAlign: 'center', color: '#a5b4fc', fontWeight: 700 }} />
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                        {[['Legacy', 'legacy'], ['Recommended', 'recommended'], ['Aggressive', 'aggressive']].map(([label, key]) => (
+                            <button key={key} onClick={() => setPreset(key)} style={{ padding: '6px 12px', borderRadius: 8, border: `1px solid ${key === 'recommended' ? 'rgba(99,102,241,0.5)' : T.border}`, background: key === 'recommended' ? 'rgba(99,102,241,0.12)' : 'transparent', color: key === 'recommended' ? '#a5b4fc' : T.textMuted, fontSize: 11, fontWeight: 700, cursor: 'pointer' }}>
+                                {label}
+                            </button>
+                        ))}
+                    </div>
+                </div>
             </div>
 
-            <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 16, padding: isMobile ? 24 : 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                <div style={{ width: 56, height: 56, borderRadius: 16, background: 'rgba(99,102,241,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <BarChart2 size={24} color="#6366f1" />
-                </div>
-                <div style={{ fontWeight: 700, color: T.text, fontSize: 16, textAlign: 'center' }}>Lemon Squeezy Revenue Dashboard</div>
-                <div style={{ color: T.textMuted, fontSize: 13, textAlign: 'center', maxWidth: 420, lineHeight: 1.7 }}>
-                    Per the V1 architecture plan, detailed revenue charts (MRR growth, churn rate, LTD split)
-                    are deferred to V2. In V1, the Lemon Squeezy dashboard provides this data.
-                </div>
-                <a href="https://app.lemonsqueezy.com" target="_blank" rel="noopener noreferrer" style={{ marginTop: 8, padding: '10px 20px', borderRadius: 10, background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.3)', color: '#a5b4fc', fontSize: 13, fontWeight: 700, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                    <Globe size={14} /> Open Lemon Squeezy <ArrowUpRight size={12} />
-                </a>
+            {/* ── Sub Tab Navigation ── */}
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                {[['overview', LayoutDashboard, 'Platform Overview'], ['simulator', Activity, 'Volume Simulator'], ['pricing', Layers, 'Plan Editor'], ['expenses', DollarSign, 'Expenses & Fees'], ['code', Package, 'Integration Code']].map(([id, Icon, label]) => (
+                    <button key={id} onClick={() => setActiveSubTab(id)} style={subTabBtn(id)}>
+                        <Icon size={13} /> {label}
+                    </button>
+                ))}
             </div>
+
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* SUB TAB 1: OVERVIEW */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {activeSubTab === 'overview' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+                    {/* ECG Radar Graph */}
+                    <div style={{ ...card, position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: -60, right: -60, width: 240, height: 240, background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)', filter: 'blur(50px)', zIndex: 0, pointerEvents: 'none' }} />
+                        <div style={{ position: 'relative', zIndex: 10 }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: T.text, fontSize: 13, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', fontFamily: 'monospace' }}>
+                                        <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#6366f1', boxShadow: '0 0 8px #6366f1', display: 'inline-block', animation: 'aurora 2s infinite ease-in-out' }} />
+                                        Platform Alpha Telemetry
+                                    </div>
+                                    <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4, fontFamily: 'monospace' }}>Ghost-sweep ECG radar · Live signal from financial parameters</div>
+                                </div>
+                                <div style={{ display: 'flex', gap: 16, fontSize: 11, fontFamily: 'monospace', background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.04)', padding: '8px 14px', borderRadius: 10, border: `1px solid ${T.border}` }}>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#818cf8', boxShadow: '0 0 6px #818cf8', display: 'inline-block' }} />Recurring Tiers</span>
+                                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', boxShadow: '0 0 6px #f59e0b', display: 'inline-block' }} />Premium Peak &gt;100%</span>
+                                </div>
+                            </div>
+                            <div style={{ background: T.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.03)', borderRadius: 14, padding: '14px', border: `1px solid ${T.border}` }}>
+                                <ECGGraph data={liveECGData} color="#818cf8" height={190} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 4 KPI Cards */}
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 16 }}>
+                        {[
+                            { label: 'Net MRR Profit', val: `PKR ${totals.netMrrPkr.toLocaleString()}`, sub: `$${totals.netMrrUsd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} /mo`, color: totals.netMrrPkr >= 0 ? '#10b981' : '#ef4444', Icon: TrendingUp },
+                            { label: 'Gross Subscriptions', val: `PKR ${totals.grossMrrPkr.toLocaleString()}`, sub: `$${totals.grossMrrUsd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} gross`, color: '#6366f1', Icon: DollarSign },
+                            { label: 'Annualized ARR', val: `PKR ${totals.arrPkr.toLocaleString()}`, sub: `$${totals.arrUsd.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} /yr`, color: '#8b5cf6', Icon: TrendingUp },
+                            { label: 'Deduction Pool', val: `PKR ${Math.round(totals.deductionsPkr).toLocaleString()}`, sub: `Fees + Fixed + Var`, color: '#ef4444', Icon: Activity },
+                        ].map(({ label, val, sub, color, Icon }) => (
+                            <div key={label} style={{ ...card, padding: 20 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                                    <div style={{ width: 36, height: 36, borderRadius: 10, background: color + '18', border: `1px solid ${color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        <Icon size={16} color={color} />
+                                    </div>
+                                </div>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>{label}</div>
+                                <div style={{ fontSize: 20, fontWeight: 900, color, letterSpacing: '-0.02em' }}>{val}</div>
+                                <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>{sub}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Sub-metrics row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: 12 }}>
+                        {[
+                            { label: 'LS Fees Cut', val: `PKR ${Math.round(totals.feesPkr).toLocaleString()}`, badge: 'LS Cut', color: '#f59e0b' },
+                            { label: 'Simulated Stores', val: `${totals.totalPayingStores} Active`, badge: 'Stores', color: '#6366f1' },
+                            { label: 'Server Capacity', val: `${serverCapacity} Max`, badge: 'Limit', color: T.textMuted },
+                            { label: 'Profit Margin', val: `${totals.marginPercent.toFixed(1)}%`, badge: 'Margin', color: '#10b981' },
+                        ].map(({ label, val, badge, color }) => (
+                            <div key={label} style={{ ...card, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <div>
+                                    <div style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 700, marginBottom: 4 }}>{label}</div>
+                                    <div style={{ fontSize: 14, fontWeight: 800, color, fontFamily: 'monospace' }}>{val}</div>
+                                </div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color, background: color + '15', border: `1px solid ${color}25`, borderRadius: 6, padding: '4px 8px' }}>{badge}</div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Founding Member Promotion System */}
+                    <div style={{ ...card }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', gap: 20, marginBottom: 20 }}>
+                            <div>
+                                <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 4 }}>Founding Member Promotion System</div>
+                                <div style={{ fontSize: 12, color: T.textMuted, maxWidth: 480, lineHeight: 1.7 }}>Early adopters lock in at attractive rates — creates urgency and loyalty while standard pricing displays premium rates.</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
+                                {[
+                                    { label: 'Annual: 2 Months Free', checked: isAnnualBilling, onChange: setIsAnnualBilling },
+                                    { label: 'Founding Discount',      checked: isFoundingDiscount, onChange: setIsFoundingDiscount },
+                                ].map(({ label, checked, onChange }) => (
+                                    <label key={label} style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer', userSelect: 'none' }}>
+                                        <div style={{ position: 'relative', width: 40, height: 22 }}>
+                                            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} style={{ position: 'absolute', opacity: 0, width: 0, height: 0 }} />
+                                            <div style={{ position: 'absolute', inset: 0, borderRadius: 11, background: checked ? '#6366f1' : (T.isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'), transition: 'background 0.2s' }} />
+                                            <div style={{ position: 'absolute', top: 3, left: checked ? 21 : 3, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
+                                        </div>
+                                        <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{label}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
+                        {isFoundingDiscount && (
+                            <div style={{ paddingTop: 20, borderTop: `1px solid ${T.border}`, maxWidth: 500 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.text, marginBottom: 10 }}>
+                                    <span>Discount Rate</span>
+                                    <span style={{ fontWeight: 800, color: '#818cf8' }}>{foundingDiscountPercent}% applied</span>
+                                </div>
+                                <input type="range" min="10" max="80" step="5" value={foundingDiscountPercent} onChange={e => setFoundingDiscountPercent(parseInt(e.target.value))} style={{ width: '100%', accentColor: '#6366f1', height: 4, cursor: 'pointer' }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: T.textMuted, marginTop: 6 }}>
+                                    <span>10%</span><span>50% (Standard)</span><span>80%</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* P&L Waterfall */}
+                    <div style={{ ...card }}>
+                        <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 20 }}>P&amp;L Waterfall Visualizer</div>
+                        {(() => {
+                            const maxIntake = totals.grossMrrPkr || 1;
+                            const otherExp = (totals.grossMrrPkr - totals.feesPkr) * (variableExpenseRate / 100);
+                            const waterfallData = [
+                                { label: 'Gross subscription pool', amount: totals.grossMrrPkr, color: '#6366f1', neg: false },
+                                { label: 'Checkout gateway fees (LS & Local)', amount: totals.feesPkr, color: '#ef4444', neg: true },
+                                { label: 'Other overhead variables', amount: otherExp, color: 'rgba(239,68,68,0.7)', neg: true },
+                                { label: 'Monthly fixed operational costs', amount: totals.fixedPkr, color: '#f59e0b', neg: true },
+                                { label: 'Platform Net Profit', amount: totals.netMrrPkr, color: totals.netMrrPkr >= 0 ? '#10b981' : '#ef4444', neg: false },
+                            ];
+                            return (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                                    {waterfallData.map((item, idx) => {
+                                        const displayPct = Math.max((Math.abs(item.amount) / maxIntake) * 100, 1);
+                                        return (
+                                            <div key={idx} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', alignItems: isMobile ? 'flex-start' : 'center', gap: 12, fontSize: 12, fontFamily: 'monospace' }}>
+                                                <span style={{ color: T.textMuted, width: isMobile ? '100%' : 300, flexShrink: 0 }}>{item.label}</span>
+                                                <div style={{ flex: 1, height: 22, background: T.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', borderRadius: 6, overflow: 'hidden', minWidth: 100 }}>
+                                                    <div style={{ width: `${displayPct}%`, height: '100%', background: item.color, borderRadius: 6, transition: 'width 0.4s ease' }} />
+                                                </div>
+                                                <span style={{ width: 160, textAlign: 'right', fontWeight: 800, color: item.neg ? '#ef4444' : T.text, flexShrink: 0 }}>
+                                                    {item.neg ? '-' : ''}PKR {Math.round(Math.abs(item.amount)).toLocaleString()}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+                    {/* Detailed Financial Matrix */}
+                    <div style={{ ...card }}>
+                        <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 16 }}>Detailed Financial Matrix Breakdown</div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, fontFamily: 'monospace', minWidth: 700 }}>
+                                <thead>
+                                    <tr style={{ borderBottom: `1px solid ${T.border}` }}>
+                                        {['Tier', 'Stores', 'Gross (PKR)', 'Fees', 'After Fees', 'Variables', 'Net Contribution'].map(h => (
+                                            <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {totals.storeBreakdown.map((item, i) => (
+                                        <tr key={i} style={{ borderBottom: `1px solid ${T.border}33` }}>
+                                            <td style={{ padding: '12px 14px', fontWeight: 700, color: T.text }}>{item.name}</td>
+                                            <td style={{ padding: '12px 14px', color: T.textSub }}>{item.count}</td>
+                                            <td style={{ padding: '12px 14px', color: T.textSub }}>PKR {Math.round(item.grossPkr).toLocaleString()}</td>
+                                            <td style={{ padding: '12px 14px', color: '#ef4444' }}>-PKR {Math.round(item.feesPkr).toLocaleString()}</td>
+                                            <td style={{ padding: '12px 14px', color: T.textSub }}>PKR {Math.round(item.afterFeesPkr).toLocaleString()}</td>
+                                            <td style={{ padding: '12px 14px', color: 'rgba(239,68,68,0.8)' }}>-PKR {Math.round(item.varExpensePkr).toLocaleString()}</td>
+                                            <td style={{ padding: '12px 14px', fontWeight: 800, color: item.netContributionPkr >= 0 ? '#10b981' : '#ef4444' }}>PKR {Math.round(item.netContributionPkr).toLocaleString()}</td>
+                                        </tr>
+                                    ))}
+                                    <tr style={{ background: T.isDark ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.04)' }}>
+                                        <td style={{ padding: '14px', fontWeight: 800, color: T.text }}>Total</td>
+                                        <td style={{ padding: '14px', fontWeight: 700, color: T.text }}>{totals.totalPayingStores}</td>
+                                        <td style={{ padding: '14px', color: '#6366f1', fontWeight: 700 }}>PKR {Math.round(totals.grossMrrPkr).toLocaleString()}</td>
+                                        <td style={{ padding: '14px', color: '#ef4444', fontWeight: 700 }}>-PKR {Math.round(totals.feesPkr).toLocaleString()}</td>
+                                        <td style={{ padding: '14px', color: T.text, fontWeight: 700 }}>PKR {Math.round(totals.grossMrrPkr - totals.feesPkr).toLocaleString()}</td>
+                                        <td style={{ padding: '14px', color: 'rgba(239,68,68,0.8)', fontWeight: 700 }}>-PKR {Math.round(totals.varExpensesPkr).toLocaleString()}</td>
+                                        <td style={{ padding: '14px', fontWeight: 900, fontSize: 14, color: totals.netMrrPkr >= 0 ? '#10b981' : '#ef4444' }}>PKR {Math.round(totals.netMrrPkr).toLocaleString()}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* SUB TAB 2: SIMULATOR */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {activeSubTab === 'simulator' && (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 340px', gap: 20 }}>
+                    {/* Left: Sliders + LTD */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        <div style={{ ...card }}>
+                            <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Activity size={16} color="#6366f1" /> Simulate Paying Subscription Volume
+                            </div>
+                            <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 20, lineHeight: 1.6 }}>Adjust sliders to model different subscriber counts per tier. Calculations update in real-time.</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                                {Object.entries(prices).map(([key, value]) => {
+                                    const isLocal = key === 'pk_exclusive';
+                                    let effectiveRate = isLocal ? value.pricePkr : value.priceUsd;
+                                    if (!isLocal && isAnnualBilling) effectiveRate *= (10/12);
+                                    if (!isLocal && isFoundingDiscount) effectiveRate *= ((100 - foundingDiscountPercent) / 100);
+                                    return (
+                                        <div key={key} style={{ background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: 14, padding: 16, border: `1px solid ${T.border}` }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 8 }}>
+                                                <div>
+                                                    <span style={{ fontWeight: 700, color: T.text, fontSize: 14 }}>{value.name}</span>
+                                                    <span style={{ marginLeft: 10, fontSize: 11, color: T.textMuted, fontFamily: 'monospace' }}>
+                                                        {isLocal ? `PKR ${Math.round(effectiveRate).toLocaleString()} /mo` : `$${effectiveRate.toFixed(2)} /mo`}
+                                                    </span>
+                                                </div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12 }}>
+                                                    <span style={{ color: T.textMuted }}>Stores:</span>
+                                                    <span style={{ fontWeight: 900, color: '#818cf8', background: 'rgba(99,102,241,0.12)', padding: '2px 10px', borderRadius: 6, fontFamily: 'monospace' }}>{value.activeCount}</span>
+                                                </div>
+                                            </div>
+                                            <input type="range" min="0" max="150" value={value.activeCount} onChange={e => handlePriceChange(key, 'activeCount', e.target.value)} style={{ width: '100%', accentColor: '#6366f1', cursor: 'pointer' }} />
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: T.textMuted, marginTop: 8, fontFamily: 'monospace' }}>
+                                                <span>{!isLocal && (isAnnualBilling || isFoundingDiscount) ? 'Promotional pricing applied' : 'Standard pricing'}</span>
+                                                <span style={{ color: T.textSub }}>Pool: PKR {Math.round(totals.storeBreakdown.find(b => b.key === key)?.grossPkr || 0).toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* LTD Capital Tracker */}
+                        <div style={{ ...card }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+                                <div style={{ fontWeight: 800, color: T.text, fontSize: 15 }}>LTD Upfront Capital Tracker</div>
+                                <span style={{ fontSize: 10, fontWeight: 700, color: '#8b5cf6', background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 6, padding: '4px 10px' }}>One-Time Inflow</span>
+                            </div>
+                            <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 16, lineHeight: 1.7 }}>LTD deals don't appear as MRR but provide vital upfront capital injection for server launch funding.</div>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
+                                {[
+                                    { key: 'tier1', label: '$79 Codes', count: ltdRevenue.tier1Count, price: ltdRevenue.tier1Price, onCount: v => setLtdRevenue(p => ({ ...p, tier1Count: v })) },
+                                    { key: 'tier2', label: '$149 Codes', count: ltdRevenue.tier2Count, price: ltdRevenue.tier2Price, onCount: v => setLtdRevenue(p => ({ ...p, tier2Count: v })) },
+                                    { key: 'tier3', label: '$249 Codes', count: ltdRevenue.tier3Count, price: ltdRevenue.tier3Price, onCount: v => setLtdRevenue(p => ({ ...p, tier3Count: v })) },
+                                ].map(({ key, label, count, price, onCount }) => (
+                                    <div key={key} style={{ background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: 12, padding: 14, border: `1px solid ${T.border}` }}>
+                                        <div style={{ fontSize: 10, color: T.textMuted, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{label}</div>
+                                        <input type="number" value={count} onChange={e => onCount(parseInt(e.target.value) || 0)} style={{ ...inputStyle, textAlign: 'center', fontWeight: 800, fontSize: 16, padding: '6px', marginBottom: 8 }} />
+                                        <div style={{ fontSize: 10, color: T.textMuted, fontFamily: 'monospace' }}>PKR {((count * price) * exchangeRate).toLocaleString()}</div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div style={{ marginTop: 16, paddingTop: 16, borderTop: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', fontSize: 13, fontFamily: 'monospace' }}>
+                                <span style={{ color: T.textMuted }}>Total LTD Capital:</span>
+                                <span style={{ fontWeight: 800, color: '#8b5cf6' }}>PKR {totals.totalLtdPkr.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Right: Server capacity + Milestones + Break-even */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                        <div style={{ ...card }}>
+                            <div style={{ fontWeight: 700, color: T.text, fontSize: 14, marginBottom: 6 }}>Server Capacity Tracker</div>
+                            <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 16, lineHeight: 1.6 }}>Current capacity limit before scaling to higher performance configurations:</div>
+                            {(() => {
+                                const pct = Math.min((totals.totalPayingStores / serverCapacity) * 100, 100);
+                                const isOver = totals.totalPayingStores > serverCapacity;
+                                const barColor = pct > 90 ? '#ef4444' : pct > 70 ? '#f59e0b' : '#10b981';
+                                return (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.text }}>
+                                            <span style={{ color: T.textMuted }}>Capacity Used</span>
+                                            <span style={{ fontWeight: 700 }}>{pct.toFixed(0)}% ({totals.totalPayingStores}/{serverCapacity})</span>
+                                        </div>
+                                        <div style={{ height: 24, background: T.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', borderRadius: 8, overflow: 'hidden', border: `1px solid ${T.border}` }}>
+                                            <div style={{ width: `${pct}%`, height: '100%', background: barColor, transition: 'width 0.4s ease' }} />
+                                        </div>
+                                        <div style={{ fontSize: 12, color: T.textMuted, fontFamily: 'monospace' }}>Max capacity: <input type="number" value={serverCapacity} onChange={e => setServerCapacity(parseInt(e.target.value) || 200)} style={{ ...inputStyle, display: 'inline', width: 70, padding: '3px 6px', fontSize: 12, textAlign: 'center', marginLeft: 6 }} /></div>
+                                        {isOver && (
+                                            <div style={{ padding: 12, background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 10, color: '#f87171', fontSize: 11, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                                                <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                                                <div><strong>Over Capacity!</strong> Upgrade local server configurations to prevent performance degradation.</div>
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+
+                        <div style={{ ...card }}>
+                            <div style={{ fontWeight: 700, color: T.text, fontSize: 14, marginBottom: 14 }}>Milestone Progress</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                                {milestones.map((ms, index) => {
+                                    const isAchieved = totals.netMrrPkr >= ms.targetPkr;
+                                    const avgContrib = totals.totalPayingStores > 0 ? totals.netMrrPkr / totals.totalPayingStores : 0;
+                                    const needed = avgContrib > 0 ? Math.ceil((ms.targetPkr + totals.fixedPkr) / avgContrib) : 0;
+                                    return (
+                                        <div key={index} style={{ padding: '12px 14px', borderRadius: 12, border: `1px solid ${isAchieved ? 'rgba(16,185,129,0.3)' : T.border}`, background: isAchieved ? 'rgba(16,185,129,0.06)' : 'transparent' }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                                                <span style={{ fontSize: 12, fontWeight: 700, color: T.text, fontFamily: 'monospace' }}>PKR {ms.targetPkr.toLocaleString()}</span>
+                                                {isAchieved
+                                                    ? <span style={{ fontSize: 10, fontWeight: 700, color: '#10b981', background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: 5, padding: '2px 8px' }}>✓ Active</span>
+                                                    : <span style={{ fontSize: 11, color: '#818cf8' }}>~{needed} stores</span>
+                                                }
+                                            </div>
+                                            <span style={{ fontSize: 11, color: T.textMuted }}>{ms.label}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div style={{ ...card }}>
+                            <div style={{ fontWeight: 700, color: T.text, fontSize: 14, marginBottom: 8 }}>Tier Break-Even</div>
+                            <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 14, lineHeight: 1.6 }}>Stores needed per tier to offset PKR {totals.fixedPkr.toLocaleString()} fixed costs:</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {Object.entries(prices).map(([key, value]) => {
+                                    const net = value.pricePkr * (1 - (value.feePct / 100));
+                                    const qty = net > 0 ? Math.ceil(totals.fixedPkr / net) : 0;
+                                    return (
+                                        <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: 10, border: `1px solid ${T.border}` }}>
+                                            <span style={{ fontSize: 12, color: T.textMuted }}>{value.name}</span>
+                                            <span style={{ fontSize: 13, fontWeight: 800, color: '#818cf8', fontFamily: 'monospace' }}>{qty} stores</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* SUB TAB 3: PLAN EDITOR */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {activeSubTab === 'pricing' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                    <div style={{ ...card }}>
+                        <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 6 }}>Dynamic Tier Editor &amp; Price Matrix</div>
+                        <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 24, lineHeight: 1.6 }}>Configure target plan pricing. Modifications recalculate waterfall projections, ARR targets, and server capacity limits.</div>
+                        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(4,1fr)', gap: 16 }}>
+                            {Object.entries(prices).map(([key, value]) => {
+                                const isLocal = key === 'pk_exclusive';
+                                return (
+                                    <div key={key} style={{ background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: 16, padding: 20, border: `1px solid ${isLocal ? 'rgba(139,92,246,0.35)' : T.border}` }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                            <span style={{ fontSize: 10, fontWeight: 700, color: isLocal ? '#8b5cf6' : '#6366f1', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{isLocal ? 'Local PK' : 'SaaS Plan'}</span>
+                                            <span style={{ fontSize: 10, color: T.textMuted, fontFamily: 'monospace' }}>({key})</span>
+                                        </div>
+                                        <div style={{ fontWeight: 800, color: T.text, fontSize: 14, marginBottom: 16 }}>{value.name}</div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                            {!isLocal && (
+                                                <div>
+                                                    <div style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>USD /mo</div>
+                                                    <div style={{ position: 'relative' }}>
+                                                        <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: T.textMuted, fontSize: 12 }}>$</span>
+                                                        <input type="number" value={value.priceUsd} onChange={e => handlePriceChange(key, 'priceUsd', e.target.value)} style={{ ...inputStyle, paddingLeft: 24 }} />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div>
+                                                <div style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>PKR /mo</div>
+                                                <div style={{ position: 'relative' }}>
+                                                    <span style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: T.textMuted, fontSize: 9, fontFamily: 'monospace' }}>PKR</span>
+                                                    <input type="number" value={value.pricePkr} onChange={e => handlePriceChange(key, 'pricePkr', e.target.value)} disabled={!isLocal} style={{ ...inputStyle, paddingLeft: 36, opacity: isLocal ? 1 : 0.6 }} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${T.border}`, display: 'flex', justifyContent: 'space-between', fontSize: 10, color: T.textMuted, fontFamily: 'monospace' }}>
+                                            <span>Rate multiplier</span><span>{exchangeRate}x</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Variable Rate Control */}
+                    <div style={{ ...card }}>
+                        <div style={{ fontWeight: 700, color: T.text, fontSize: 14, marginBottom: 16 }}>Variable Overhead Rate</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+                            <div style={{ flex: 1 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.text, marginBottom: 8 }}>
+                                    <span style={{ color: T.textMuted }}>Variable Expenses (% of revenue after fees)</span>
+                                    <span style={{ fontWeight: 800, color: '#f59e0b' }}>{variableExpenseRate}%</span>
+                                </div>
+                                <input type="range" min="0" max="30" step="0.5" value={variableExpenseRate} onChange={e => setVariableExpenseRate(parseFloat(e.target.value))} style={{ width: '100%', accentColor: '#f59e0b', cursor: 'pointer' }} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Competitor Comparison */}
+                    <div style={{ ...card }}>
+                        <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 16 }}>Competitor &amp; Market Context</div>
+                        <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12, minWidth: 600 }}>
+                                <thead>
+                                    <tr style={{ borderBottom: `1px solid ${T.border}` }}>
+                                        {['Platform', 'Entry', 'Mid-Level', 'Enterprise', 'Limitations'].map(h => (
+                                            <th key={h} style={{ padding: '10px 14px', textAlign: 'left', fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {[
+                                        { name: 'Lightspeed POS', entry: '$89/mo', mid: '$149/mo', ent: '$269/mo', lim: 'Per-location upcharges on active subscribers', highlight: false },
+                                        { name: 'Shopify Retail', entry: '$29/mo', mid: '$79/mo', ent: '$299/mo', lim: 'Missing double-entry ledger & manufacturing', highlight: false },
+                                        { name: 'Odoo POS', entry: '$24/mo', mid: '$44/mo', ent: '$79/mo', lim: 'Requires dedicated engineering to deploy', highlight: false },
+                                        { name: 'VenQore (Simulated)', entry: `$${prices.starter.priceUsd}/mo`, mid: `$${prices.growth.priceUsd}/mo`, ent: `$${prices.business.priceUsd}/mo`, lim: 'Includes GL, manufacturing, open API', highlight: true },
+                                    ].map((row, i) => (
+                                        <tr key={i} style={{ borderBottom: `1px solid ${T.border}33`, background: row.highlight ? 'rgba(99,102,241,0.08)' : 'transparent' }}>
+                                            <td style={{ padding: '12px 14px', fontWeight: 700, color: row.highlight ? '#c7d2fe' : T.text }}>{row.name}</td>
+                                            <td style={{ padding: '12px 14px', color: row.highlight ? '#a5b4fc' : T.textSub, fontWeight: row.highlight ? 700 : 400 }}>{row.entry}</td>
+                                            <td style={{ padding: '12px 14px', color: row.highlight ? '#a5b4fc' : T.textSub, fontWeight: row.highlight ? 700 : 400 }}>{row.mid}</td>
+                                            <td style={{ padding: '12px 14px', color: row.highlight ? '#a5b4fc' : T.textSub, fontWeight: row.highlight ? 700 : 400 }}>{row.ent}</td>
+                                            <td style={{ padding: '12px 14px', color: row.highlight ? '#10b981' : 'rgba(239,68,68,0.8)', fontSize: 11 }}>{row.lim}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* SUB TAB 4: EXPENSES & FEES */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {activeSubTab === 'expenses' && (
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 320px', gap: 20 }}>
+                    <div style={{ ...card }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+                            <div>
+                                <div style={{ fontWeight: 800, color: T.text, fontSize: 15 }}>Platform Fixed Expenses</div>
+                                <div style={{ fontSize: 12, color: T.textMuted, marginTop: 4 }}>Model hosting, domains, backups, and server configurations.</div>
+                            </div>
+                            <span style={{ fontSize: 12, fontWeight: 700, fontFamily: 'monospace', color: T.text, background: T.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', padding: '8px 14px', borderRadius: 10, border: `1px solid ${T.border}` }}>
+                                PKR {totals.fixedPkr.toLocaleString()} /mo
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
+                            {fixedExpenses.map(exp => (
+                                <div key={exp.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: 12, border: `1px solid ${T.border}` }}>
+                                    <div>
+                                        <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{exp.name}</div>
+                                        <div style={{ fontSize: 10, color: T.textMuted, fontFamily: 'monospace', marginTop: 2 }}>
+                                            {exp.currency} {exp.amount.toLocaleString()}{exp.currency === 'USD' ? ` (PKR ${(exp.amount * exchangeRate).toLocaleString()})` : ''}
+                                        </div>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <span style={{ fontSize: 13, fontWeight: 700, color: T.textSub, fontFamily: 'monospace' }}>
+                                            PKR {exp.currency === 'PKR' ? exp.amount.toLocaleString() : (exp.amount * exchangeRate).toLocaleString()}
+                                        </span>
+                                        <button onClick={() => removeExpense(exp.id)} style={{ padding: 6, background: 'none', border: 'none', cursor: 'pointer', color: T.textMuted, borderRadius: 6, display: 'flex' }}>
+                                            <Trash2 size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <form onSubmit={addExpense} style={{ display: 'grid', gridTemplateColumns: '1fr 120px 80px 80px', gap: 10, alignItems: 'end', paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
+                            <div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', marginBottom: 6 }}>Expense Label</div>
+                                <input type="text" placeholder="e.g. Hetzner Volume" value={newExpenseName} onChange={e => setNewExpenseName(e.target.value)} style={inputStyle} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', marginBottom: 6 }}>Amount</div>
+                                <input type="number" placeholder="0" value={newExpenseAmount} onChange={e => setNewExpenseAmount(e.target.value)} style={inputStyle} />
+                            </div>
+                            <div>
+                                <div style={{ fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: 'uppercase', marginBottom: 6 }}>Currency</div>
+                                <select value={newExpenseCurrency} onChange={e => setNewExpenseCurrency(e.target.value)} style={{ ...inputStyle }}>
+                                    <option value="PKR">PKR</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                            </div>
+                            <button type="submit" style={{ padding: '8px', borderRadius: 10, border: 'none', background: '#6366f1', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                <Plus size={14} /> Add
+                            </button>
+                        </form>
+                    </div>
+
+                    {/* Gateway fee settings */}
+                    <div style={{ ...card }}>
+                        <div style={{ fontWeight: 700, color: T.text, fontSize: 14, marginBottom: 16 }}>Checkout Gateway Fees</div>
+                        {Object.entries(prices).map(([key, tier]) => (
+                            <div key={key} style={{ marginBottom: 16, padding: 14, background: T.isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)', borderRadius: 12, border: `1px solid ${T.border}` }}>
+                                <div style={{ fontWeight: 700, color: T.text, fontSize: 12, marginBottom: 10 }}>{tier.name}</div>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+                                    <div>
+                                        <div style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Fee %</div>
+                                        <input type="number" step="0.1" value={tier.feePct} onChange={e => handlePriceChange(key, 'feePct', e.target.value)} style={{ ...inputStyle, padding: '6px 8px' }} />
+                                    </div>
+                                    <div>
+                                        <div style={{ fontSize: 10, color: T.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>Fixed Fee</div>
+                                        <input type="number" step="0.01" value={tier.fixedFee} onChange={e => handlePriceChange(key, 'fixedFee', e.target.value)} style={{ ...inputStyle, padding: '6px 8px' }} />
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                        <div style={{ marginTop: 8, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
+                            <div style={{ fontWeight: 700, color: T.text, fontSize: 12, marginBottom: 10 }}>Variable Rate</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <input type="range" min="0" max="30" step="0.5" value={variableExpenseRate} onChange={e => setVariableExpenseRate(parseFloat(e.target.value))} style={{ flex: 1, accentColor: '#f59e0b', cursor: 'pointer' }} />
+                                <span style={{ fontWeight: 800, color: '#f59e0b', fontSize: 13, fontFamily: 'monospace', width: 40 }}>{variableExpenseRate}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ══════════════════════════════════════════════════════ */}
+            {/* SUB TAB 5: INTEGRATION CODE */}
+            {/* ══════════════════════════════════════════════════════ */}
+            {activeSubTab === 'code' && (
+                <div style={{ ...card }}>
+                    <div style={{ fontWeight: 800, color: T.text, fontSize: 15, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Package size={16} color="#6366f1" /> Dynamic Integration Code Generator
+                    </div>
+                    <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 24, lineHeight: 1.7 }}>
+                        Copy your simulated configuration directly into production application files to avoid pricing discrepancies.
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                        {[
+                            {
+                                label: 'SuperAdminController.php',
+                                snippet: `$planPrices = [\n    'pk_exclusive' => ${prices.pk_exclusive.priceUsd}, // PKR ${prices.pk_exclusive.pricePkr} local\n    'starter'      => ${prices.starter.priceUsd},\n    'growth'       => ${prices.growth.priceUsd},\n    'business'     => ${prices.business.priceUsd},\n    'ltd'          => 0\n];\n\n$mrr = $realTenants\n    ->where('status', 'active')\n    ->sum(fn($t) => $planPrices[$t->plan] ?? 0);`,
+                            },
+                            {
+                                label: 'Dashboard.jsx — PLAN_CONFIG',
+                                snippet: `const PLAN_CONFIG = {\n    pk_exclusive: { price: ${prices.pk_exclusive.priceUsd} },\n    starter:      { price: ${prices.starter.priceUsd} },\n    growth:       { price: ${prices.growth.priceUsd} },\n    business:     { price: ${prices.business.priceUsd} },\n    ltd:          { price: 0 }\n};`,
+                            },
+                        ].map(({ label, snippet }) => (
+                            <div key={label}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: T.isDark ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.06)', padding: '10px 16px', borderRadius: '12px 12px 0 0', border: `1px solid ${T.border}`, borderBottom: 'none' }}>
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: '#818cf8', fontFamily: 'monospace' }}>{label}</span>
+                                    <button onClick={() => copyToClipboard(snippet)} style={{ padding: '5px 12px', borderRadius: 8, background: T.isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)', border: 'none', cursor: 'pointer', color: T.text, fontSize: 11, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <RefreshCw size={11} /> Copy
+                                    </button>
+                                </div>
+                                <pre style={{ background: T.isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.04)', border: `1px solid ${T.border}`, borderRadius: '0 0 12px 12px', padding: '16px', overflowX: 'auto', fontSize: 12, color: T.textSub, lineHeight: 1.8, fontFamily: 'monospace', margin: 0 }}>
+                                    {snippet}
+                                </pre>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Copy notification */}
+            {copiedNotification && (
+                <div style={{ position: 'fixed', bottom: 24, right: 24, background: T.bgCard, border: '1px solid rgba(99,102,241,0.5)', borderRadius: 14, padding: '12px 18px', fontSize: 12, fontFamily: 'monospace', fontWeight: 700, boxShadow: '0 8px 32px rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', gap: 8, color: '#818cf8', zIndex: 9999 }}>
+                    <CheckCircle2 size={14} /> Config copied to clipboard!
+                </div>
+            )}
         </div>
     );
 }
