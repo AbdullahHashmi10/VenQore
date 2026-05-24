@@ -48,6 +48,8 @@ return new class extends Migration
             'production_supervisor', 'fulfillment_lead', 'delivery_driver', 'viewer'
         ];
         
+        $roleList = "'" . implode("','", $roles) . "'";
+        
         if (DB::connection()->getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE tenant_users MODIFY COLUMN role ENUM($roleList) NOT NULL");
         }

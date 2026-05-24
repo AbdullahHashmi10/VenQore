@@ -68,26 +68,26 @@ jobs:
         run: |
           php artisan config:clear --env=testing
           vendor/bin/pest \
-            tests/Feature/Module01 \
-            tests/Feature/Module02 \
-            tests/Feature/Module03 \
-            tests/Feature/Module04 \
-            tests/Feature/Module05 \
-            tests/Feature/Module06 \
-            tests/Feature/Module07 \
-            tests/Feature/Module08 \
-            tests/Feature/Module09 \
-            tests/Feature/Module10 \
-            tests/Feature/Module11 \
-            tests/Feature/Module12 \
-            tests/Feature/Module13 \
-            tests/Feature/Module14 \
-            tests/Feature/Module15 \
-            tests/Feature/Module16 \
-            tests/Feature/Module17 \
-            tests/Feature/Module18 \
-            tests/Feature/Module19 \
-            tests/Feature/Module20 \
+            Tester/tests/Feature/Module01 \
+            Tester/tests/Feature/Module02 \
+            Tester/tests/Feature/Module03 \
+            Tester/tests/Feature/Module04 \
+            Tester/tests/Feature/Module05 \
+            Tester/tests/Feature/Module06 \
+            Tester/tests/Feature/Module07 \
+            Tester/tests/Feature/Module08 \
+            Tester/tests/Feature/Module09 \
+            Tester/tests/Feature/Module10 \
+            Tester/tests/Feature/Module11 \
+            Tester/tests/Feature/Module12 \
+            Tester/tests/Feature/Module13 \
+            Tester/tests/Feature/Module14 \
+            Tester/tests/Feature/Module15 \
+            Tester/tests/Feature/Module16 \
+            Tester/tests/Feature/Module17 \
+            Tester/tests/Feature/Module18 \
+            Tester/tests/Feature/Module19 \
+            Tester/tests/Feature/Module20 \
             --no-coverage \
             --stop-on-failure
         env:

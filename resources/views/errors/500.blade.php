@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>500 - Server Error | VenQore</title>
+    @viteReactRefresh
     @vite(['resources/js/app.jsx'])
 </head>
 <body class="bg-slate-950 font-sans antialiased h-screen w-screen overflow-hidden flex flex-col items-center justify-center relative selection:bg-red-500 selection:text-white">

@@ -1,0 +1,1478 @@
+{
+  "runs": [
+    {
+      "timestamp": "2026-05-24T17:05:23.289Z",
+      "projectPath": "D:\\AMD POS",
+      "duration": "7.23",
+      "passed": 73,
+      "failed": 0,
+      "todos": 27,
+      "incomplete": 0,
+      "modules": {
+        "Module01": {
+          "name": "Module01",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "user can login with correct credentials",
+              "status": "passed"
+            },
+            {
+              "name": "user cannot login with wrong credentials",
+              "status": "passed"
+            },
+            {
+              "name": "tenant a cannot see tenant b products",
+              "status": "passed"
+            },
+            {
+              "name": "tenant a cannot see tenant b sales",
+              "status": "passed"
+            },
+            {
+              "name": "tenant a cannot see tenant b parties",
+              "status": "passed"
+            },
+            {
+              "name": "suspended tenant gets StoreSuspended page",
+              "status": "passed"
+            },
+            {
+              "name": "cashier cannot access admin expenses route",
+              "status": "passed"
+            },
+            {
+              "name": "superadmin can access venqore routes",
+              "status": "passed"
+            },
+            {
+              "name": "regular user cannot access venqore routes",
+              "status": "passed"
+            },
+            {
+              "name": "guest cannot access venqore routes",
+              "status": "passed"
+            }
+          ],
+          "passed": 10,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module02": {
+          "name": "Module02",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "owner can create store successfully",
+              "status": "passed"
+            },
+            {
+              "name": "store creation seeds default data",
+              "status": "passed"
+            },
+            {
+              "name": "ltd tier1 blocked after 1 store",
+              "status": "passed"
+            },
+            {
+              "name": "ltd tier2 blocked after 2 stores",
+              "status": "passed"
+            },
+            {
+              "name": "ltd tier3 blocked after 4 stores",
+              "status": "passed"
+            },
+            {
+              "name": "store creation does not fail when woocommerce env not set",
+              "status": "passed"
+            },
+            {
+              "name": "duplicate store name or slug is rejected",
+              "status": "passed"
+            },
+            {
+              "name": "reserved subdomain is safely sanitized",
+              "status": "passed"
+            },
+            {
+              "name": "does not create partial store",
+              "status": "passed"
+            },
+            {
+              "name": "woocommerce webhook isolation regression",
+              "status": "passed"
+            }
+          ],
+          "passed": 10,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module03": {
+          "name": "Module03",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "featured products endpoint returns top sold items with positive stock",
+              "status": "passed"
+            },
+            {
+              "name": "pos api rate limiter blocks requests after 300 hits per minute",
+              "status": "passed"
+            },
+            {
+              "name": "product search is strictly isolated between tenants",
+              "status": "passed"
+            },
+            {
+              "name": "product search returns wholesale price for wholesale customers when pricing is enabled",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module04": {
+          "name": "Module04",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "split payment with cash, bank, and credit ledger legs",
+              "status": "passed"
+            },
+            {
+              "name": "plan limit enforcement blocks 6th transaction when limit is 5",
+              "status": "passed"
+            },
+            {
+              "name": "negative stock blocking enforcement based on system settings",
+              "status": "passed"
+            },
+            {
+              "name": "discount waterfall calculations are precise and correct",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module05": {
+          "name": "Module05",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "balanced journal entry persists with correct debit and credit lines",
+              "status": "passed"
+            },
+            {
+              "name": "trial balance is zero after one or many balanced entries",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws InvalidArgumentException for unbalanced entry",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws if a line has both debit and credit greater than zero",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws if a line has both debit and credit equal to zero",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws if account_code does not exist for the current tenant",
+              "status": "passed"
+            },
+            {
+              "name": "AccountingService constructor throws RuntimeException without tenant context",
+              "status": "passed"
+            },
+            {
+              "name": "journal entries from tenant A are not visible under tenant B context",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry creates a new entry with swapped debits and credits",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry marks the original journal entry as is_reversed = 1",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry throws LogicException when entry is already reversed",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry throws InvalidArgumentException for a non-existent entry",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance returns net debit balance for a debit-normal account",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance returns net credit balance for a credit-normal account",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance excludes journal items belonging to reversed entries",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance asOf date excludes future entries",
+              "status": "passed"
+            },
+            {
+              "name": "getAccountByCode creates an account when the code does not exist",
+              "status": "passed"
+            },
+            {
+              "name": "accounts:recalculate command updates account balance from journal entries",
+              "status": "passed"
+            },
+            {
+              "name": "accounts:recalculate --tenant option does not recalculate balances for other tenants",
+              "status": "passed"
+            },
+            {
+              "name": "finance:audit command creates missing payment record for a paid sale",
+              "status": "passed"
+            }
+          ],
+          "passed": 20,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module06": {
+          "name": "Module06",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "posted_invoice_returns_403_on_edit_attempt",
+              "status": "passed"
+            },
+            {
+              "name": "proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals",
+              "status": "passed"
+            },
+            {
+              "name": "v3_quotation_to_sales_order_conversion",
+              "status": "passed"
+            },
+            {
+              "name": "sales_orders_stock_hold_and_conversion_to_sale",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 1
+        },
+        "Module07": {
+          "name": "Module07",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "fifo_batch_creation_on_purchase",
+              "status": "passed"
+            },
+            {
+              "name": "purchase_does_not_overwrite_product_base_cost_price",
+              "status": "passed"
+            },
+            {
+              "name": "partial_receiving_updates_order_status_and_stock_correctly",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module08": {
+          "name": "Module08",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "stock transfer between warehouses preserves total stock",
+              "status": "passed"
+            },
+            {
+              "name": "stock take records discrepancy and adjusts stock",
+              "status": "passed"
+            },
+            {
+              "name": "autoHealStockIntegrity is not called in normal flow",
+              "status": "passed"
+            },
+            {
+              "name": "product edit does not reset stock",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module09": {
+          "name": "Module09",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 4
+        },
+        "Module10": {
+          "name": "Module10",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "woocommerce_failure_does_not_affect_sale_creation",
+              "status": "passed"
+            },
+            {
+              "name": "webhook_creates_party_and_records_transaction",
+              "status": "passed"
+            },
+            {
+              "name": "tampered_webhook_rejected",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module11": {
+          "name": "Module11",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "valid_appsumo_code_assigns_correct_plan",
+              "status": "passed"
+            },
+            {
+              "name": "duplicate_appsumo_code_rejected",
+              "status": "passed"
+            },
+            {
+              "name": "two_codes_stacked_upgrades_to_ltd2",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 1
+        },
+        "Module12": {
+          "name": "Module12",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "profit_and_loss_revenue_equals_sum_of_net_sales",
+              "status": "passed"
+            },
+            {
+              "name": "stock valuation report calculates correct value based on fifo",
+              "status": "passed"
+            },
+            {
+              "name": "tax report calculates correct tax payable",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 1
+        },
+        "Module13": {
+          "name": "Module13",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "todays_revenue_widget_returns_net_sales_not_gross",
+              "status": "passed"
+            }
+          ],
+          "passed": 1,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module14": {
+          "name": "Module14",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module15": {
+          "name": "Module15",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "customer_balance_is_ledger_driven_not_cached",
+              "status": "passed"
+            },
+            {
+              "name": "credit_limit_exceeded_blocks_sale",
+              "status": "passed"
+            }
+          ],
+          "passed": 2,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module16": {
+          "name": "Module16",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "check_in_records_timestamp",
+              "status": "passed"
+            },
+            {
+              "name": "double_check_in_updates_last_active_not_creates_duplicate",
+              "status": "passed"
+            }
+          ],
+          "passed": 2,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module17": {
+          "name": "Module17",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 4
+        },
+        "Module18": {
+          "name": "Module18",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module19": {
+          "name": "Module19",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module20": {
+          "name": "Module20",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 4
+        }
+      },
+      "bugs": [],
+      "rawLines": [
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module01\\AuthAndTenancyTest\r",
+        "  ✓ user can login with correct credentials                                                                      1.58s  \r",
+        "  ✓ user cannot login with wrong credentials                                                                     0.24s  \r",
+        "  ✓ tenant a cannot see tenant b products                                                                        0.04s  \r",
+        "  ✓ tenant a cannot see tenant b sales                                                                           0.03s  \r",
+        "  ✓ tenant a cannot see tenant b parties                                                                         0.04s  \r",
+        "  ✓ suspended tenant gets StoreSuspended page                                                                    0.13s  \r",
+        "  ✓ cashier cannot access admin expenses route                                                                   0.05s  \r",
+        "  ✓ superadmin can access venqore routes                                                                         0.05s  \r",
+        "  ✓ regular user cannot access venqore routes                                                                    0.04s  \r",
+        "  ✓ guest cannot access venqore routes                                                                           0.04s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module02\\StoreCreationAndProvisioningTest\r",
+        "  ✓ owner can create store successfully                                                                          0.07s  \r",
+        "  ✓ store creation seeds default data                                                                            0.05s  \r",
+        "  ✓ ltd tier1 blocked after 1 store                                                                              0.04s  \r",
+        "  ✓ ltd tier2 blocked after 2 stores                                                                             0.04s  \r",
+        "  ✓ ltd tier3 blocked after 4 stores                                                                             0.05s  \r",
+        "  ✓ store creation does not fail when woocommerce env not set                                                    0.05s  \r",
+        "  ✓ duplicate store name or slug is rejected                                                                     0.04s  \r",
+        "  ✓ reserved subdomain is safely sanitized                                                                       0.06s  \r",
+        "  ✓ does not create partial store                                                                                0.04s  \r",
+        "  ✓ woocommerce webhook isolation regression                                                                     0.04s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module03\\PosTerminalTest - 3 todos\r",
+        "  ✓ featured products endpoint returns top sold items with positive stock                                        0.06s  \r",
+        "  ✓ pos api rate limiter blocks requests after 300 hits per minute                                               0.06s  \r",
+        "  ✓ product search is strictly isolated between tenants                                                          0.05s  \r",
+        "  ✓ product search returns wholesale price for wholesale customers when pricing is enabled                       0.07s  \r",
+        "  ↓ drm offline lock restricts usage when license is invalid offline                                             0.05s  \r",
+        "  ↓ serial tracking validation checks serial numbers at checkout                                                 0.05s  \r",
+        "  ↓ barcode generator renders valid barcode svg or png                                                           0.05s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module04\\PaymentProcessingTest\r",
+        "  ✓ split payment with cash, bank, and credit ledger legs                                                        0.08s  \r",
+        "  ✓ plan limit enforcement blocks 6th transaction when limit is 5                                                0.12s  \r",
+        "  ✓ negative stock blocking enforcement based on system settings                                                 0.08s  \r",
+        "  ✓ discount waterfall calculations are precise and correct                                                      0.07s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module05\\FinancialEngineTest\r",
+        "  ✓ balanced journal entry persists with correct debit and credit lines                                          0.05s  \r",
+        "  ✓ trial balance is zero after one or many balanced entries                                                     0.05s  \r",
+        "  ✓ createEntry throws InvalidArgumentException for unbalanced entry                                             0.05s  \r",
+        "  ✓ createEntry throws if a line has both debit and credit greater than zero                                     0.05s  \r",
+        "  ✓ createEntry throws if a line has both debit and credit equal to zero                                         0.05s  \r",
+        "  ✓ createEntry throws if account_code does not exist for the current tenant                                     0.05s  \r",
+        "  ✓ AccountingService constructor throws RuntimeException without tenant context                                 0.04s  \r",
+        "  ✓ journal entries from tenant A are not visible under tenant B context                                         0.06s  \r",
+        "  ✓ reverseEntry creates a new entry with swapped debits and credits                                             0.05s  \r",
+        "  ✓ reverseEntry marks the original journal entry as is_reversed = 1                                             0.05s  \r",
+        "  ✓ reverseEntry throws LogicException when entry is already reversed                                            0.05s  \r",
+        "  ✓ reverseEntry throws InvalidArgumentException for a non-existent entry                                        0.05s  \r",
+        "  ✓ getBalance returns net debit balance for a debit-normal account                                              0.05s  \r",
+        "  ✓ getBalance returns net credit balance for a credit-normal account                                            0.05s  \r",
+        "  ✓ getBalance excludes journal items belonging to reversed entries                                              0.05s  \r",
+        "  ✓ getBalance asOf date excludes future entries                                                                 0.05s  \r",
+        "  ✓ getAccountByCode creates an account when the code does not exist                                             0.05s  \r",
+        "  ✓ accounts:recalculate command updates account balance from journal entries                                    0.06s  \r",
+        "  ✓ accounts:recalculate --tenant option does not recalculate balances for other tenants                         0.06s  \r",
+        "  ✓ finance:audit command creates missing payment record for a paid sale                                         0.06s  \r",
+        "array:20 [",
+        "  \"id\" => \"019e5af2-e4fe-70c6-82bd-aca70a536d36\"",
+        "  \"order_number\" => \"SO-20260524-5657\"",
+        "  \"customer_id\" => \"019e5af2-e4f5-725f-ad45-164d9cb95fa8\"",
+        "  \"customer_name\" => \"Johnson-Quitzon\"",
+        "  \"order_date\" => \"2026-05-24T00:00:00.000000Z\"",
+        "  \"delivery_date\" => null",
+        "  \"status\" => \"confirmed\"",
+        "  \"total_amount\" => 800",
+        "  \"notes\" => null",
+        "  \"user_id\" => 1",
+        "  \"created_at\" => \"2026-05-24T17:05:28.000000Z\"",
+        "  \"updated_at\" => \"2026-05-24T17:05:28.000000Z\"",
+        "  \"party_id\" => null",
+        "  \"discount\" => 0",
+        "  \"tax\" => 0",
+        "  \"delivery_charge\" => 0",
+        "  \"extra_charge_value\" => 0",
+        "  \"extra_charge_label\" => null",
+        "  \"deleted_at\" => null",
+        "  \"tenant_id\" => \"1\"",
+        "] // Tester\\tests\\Feature\\Module06\\SalesEcosystemTest.php:216",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module06\\SalesEcosystemTest - 1 todo\r",
+        "  ✓ posted_invoice_returns_403_on_edit_attempt                                                                   0.06s  \r",
+        "  ✓ proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals                                       0.06s  \r",
+        "  ✓ v3_quotation_to_sales_order_conversion                                                                       0.06s  \r",
+        "  ✓ sales_orders_stock_hold_and_conversion_to_sale                                                               0.07s  \r",
+        "  ↓ recurring invoice generation creates a correct new invoice with line items                                   0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module07\\ProcurementTest\r",
+        "  ✓ fifo_batch_creation_on_purchase                                                                              0.07s  \r",
+        "  ✓ purchase_does_not_overwrite_product_base_cost_price                                                          0.06s  \r",
+        "  ✓ partial_receiving_updates_order_status_and_stock_correctly                                                   0.07s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module08\\InventoryTest\r",
+        "  ✓ stock transfer between warehouses preserves total stock                                                      0.06s  \r",
+        "  ✓ stock take records discrepancy and adjusts stock                                                             0.07s  \r",
+        "  ✓ autoHealStockIntegrity is not called in normal flow                                                          0.03s  \r",
+        "  ✓ product edit does not reset stock                                                                            0.05s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module09\\ManufacturingTest - 4 todos\r",
+        "  ↓ bill_of_materials_defined_correctly                                                                          0.04s  \r",
+        "  ↓ production run consumes raw materials                                                                        0.04s  \r",
+        "  ↓ production run produces finished goods                                                                       0.03s  \r",
+        "  ↓ auto calculate assembly cost                                                                                 0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module10\\WooCommerceTest\r",
+        "  ✓ woocommerce_failure_does_not_affect_sale_creation                                                            0.07s  \r",
+        "  ✓ webhook_creates_party_and_records_transaction                                                                0.06s  \r",
+        "  ✓ tampered_webhook_rejected                                                                                    0.05s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module11\\BillingTest - 1 todo\r",
+        "  ✓ valid_appsumo_code_assigns_correct_plan                                                                      0.04s  \r",
+        "  ✓ duplicate_appsumo_code_rejected                                                                              0.04s  \r",
+        "  ✓ two_codes_stacked_upgrades_to_ltd2                                                                           0.05s  \r",
+        "  ↓ lemon_squeezy_subscription_webhook_provisions_tenant                                                         0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module12\\ReportsTest - 1 todo\r",
+        "  ✓ profit_and_loss_revenue_equals_sum_of_net_sales                                                              0.11s  \r",
+        "  ↓ daily sales report calculates correct revenue                                                                0.03s  \r",
+        "  ✓ stock valuation report calculates correct value based on fifo                                                0.06s  \r",
+        "  ✓ tax report calculates correct tax payable                                                                    0.06s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module13\\DashboardTest\r",
+        "  ✓ todays_revenue_widget_returns_net_sales_not_gross                                                            0.08s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module14\\AiEngineTest - 3 todos\r",
+        "  ↓ ai_product_recommendation_returns_relevant_suggestions                                                       0.03s  \r",
+        "  ↓ smart_reorder_alert_triggers_at_correct_threshold                                                            0.04s  \r",
+        "  ↓ predictive_cash_flow_forecast_is_reasonable                                                                  0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module15\\PartiesLedgerTest\r",
+        "  ✓ customer_balance_is_ledger_driven_not_cached                                                                 0.07s  \r",
+        "  ✓ credit_limit_exceeded_blocks_sale                                                                            0.06s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module16\\StaffAttendanceTest\r",
+        "  ✓ check_in_records_timestamp                                                                                   0.06s  \r",
+        "  ✓ double_check_in_updates_last_active_not_creates_duplicate                                                    0.06s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module17\\SettingsTest - 4 todos\r",
+        "  ↓ stop_sale_on_negative_stock_toggle_affects_sale_outcome                                                      0.03s  \r",
+        "  // Covered in Module 4 — negative_stock_blocking_enforcement_based_on_system_settings\r",
+        "  ↓ currency_symbol_setting_appears_in_sale_receipts                                                             0.03s  \r",
+        "  ↓ tax_rate_setting_applies_to_new_sales                                                                        0.04s  \r",
+        "  ↓ store_name_update_reflects_on_dashboard                                                                      0.03s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module18\\OfflineDrmTest - 3 todos\r",
+        "  ↓ drm_license_validated_on_startup                                                                             0.03s  \r",
+        "  ↓ grace_period_expires_after_configured_days                                                                   0.04s  \r",
+        "  ↓ hardware_fingerprint_mismatch_blocks_access                                                                  0.03s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module19\\VenSynQTest - 3 todos\r",
+        "  ↓ vensync_syncs_product_across_stores                                                                          0.04s  \r",
+        "  ↓ command_center_shows_consolidated_revenue                                                                    0.04s  \r",
+        "  ↓ cross_store_transfer_updates_both_inventories                                                                0.03s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module20\\SuperAdminTest - 4 todos\r",
+        "  ↓ super_admin_can_list_all_tenants                                                                             0.03s  \r",
+        "  ↓ super_admin_can_suspend_tenant                                                                               0.04s  \r",
+        "  ↓ super_admin_can_upgrade_tenant_plan                                                                          0.03s  \r",
+        "  ↓ non_admin_cannot_access_platform_dashboard                                                                   0.03s  \r",
+        "\r",
+        "  Tests:    27 todos, 73 passed (274 assertions)\r",
+        "  Duration: 7.08s\r",
+        "\r"
+      ],
+      "_currentModule": "Module20",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-05-24T17:00:16.480Z",
+      "projectPath": "D:\\AMD POS",
+      "duration": "19.31",
+      "passed": 73,
+      "failed": 0,
+      "todos": 27,
+      "incomplete": 0,
+      "modules": {
+        "Module01": {
+          "name": "Module01",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "user can login with correct credentials",
+              "status": "passed"
+            },
+            {
+              "name": "user cannot login with wrong credentials",
+              "status": "passed"
+            },
+            {
+              "name": "tenant a cannot see tenant b products",
+              "status": "passed"
+            },
+            {
+              "name": "tenant a cannot see tenant b sales",
+              "status": "passed"
+            },
+            {
+              "name": "tenant a cannot see tenant b parties",
+              "status": "passed"
+            },
+            {
+              "name": "suspended tenant gets StoreSuspended page",
+              "status": "passed"
+            },
+            {
+              "name": "cashier cannot access admin expenses route",
+              "status": "passed"
+            },
+            {
+              "name": "superadmin can access venqore routes",
+              "status": "passed"
+            },
+            {
+              "name": "regular user cannot access venqore routes",
+              "status": "passed"
+            },
+            {
+              "name": "guest cannot access venqore routes",
+              "status": "passed"
+            }
+          ],
+          "passed": 10,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module02": {
+          "name": "Module02",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "owner can create store successfully",
+              "status": "passed"
+            },
+            {
+              "name": "store creation seeds default data",
+              "status": "passed"
+            },
+            {
+              "name": "ltd tier1 blocked after 1 store",
+              "status": "passed"
+            },
+            {
+              "name": "ltd tier2 blocked after 2 stores",
+              "status": "passed"
+            },
+            {
+              "name": "ltd tier3 blocked after 4 stores",
+              "status": "passed"
+            },
+            {
+              "name": "store creation does not fail when woocommerce env not set",
+              "status": "passed"
+            },
+            {
+              "name": "duplicate store name or slug is rejected",
+              "status": "passed"
+            },
+            {
+              "name": "reserved subdomain is safely sanitized",
+              "status": "passed"
+            },
+            {
+              "name": "does not create partial store",
+              "status": "passed"
+            },
+            {
+              "name": "woocommerce webhook isolation regression",
+              "status": "passed"
+            }
+          ],
+          "passed": 10,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module03": {
+          "name": "Module03",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "featured products endpoint returns top sold items with positive stock",
+              "status": "passed"
+            },
+            {
+              "name": "pos api rate limiter blocks requests after 300 hits per minute",
+              "status": "passed"
+            },
+            {
+              "name": "product search is strictly isolated between tenants",
+              "status": "passed"
+            },
+            {
+              "name": "product search returns wholesale price for wholesale customers when pricing is enabled",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module04": {
+          "name": "Module04",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "split payment with cash, bank, and credit ledger legs",
+              "status": "passed"
+            },
+            {
+              "name": "plan limit enforcement blocks 6th transaction when limit is 5",
+              "status": "passed"
+            },
+            {
+              "name": "negative stock blocking enforcement based on system settings",
+              "status": "passed"
+            },
+            {
+              "name": "discount waterfall calculations are precise and correct",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module05": {
+          "name": "Module05",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "balanced journal entry persists with correct debit and credit lines",
+              "status": "passed"
+            },
+            {
+              "name": "trial balance is zero after one or many balanced entries",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws InvalidArgumentException for unbalanced entry",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws if a line has both debit and credit greater than zero",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws if a line has both debit and credit equal to zero",
+              "status": "passed"
+            },
+            {
+              "name": "createEntry throws if account_code does not exist for the current tenant",
+              "status": "passed"
+            },
+            {
+              "name": "AccountingService constructor throws RuntimeException without tenant context",
+              "status": "passed"
+            },
+            {
+              "name": "journal entries from tenant A are not visible under tenant B context",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry creates a new entry with swapped debits and credits",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry marks the original journal entry as is_reversed = 1",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry throws LogicException when entry is already reversed",
+              "status": "passed"
+            },
+            {
+              "name": "reverseEntry throws InvalidArgumentException for a non-existent entry",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance returns net debit balance for a debit-normal account",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance returns net credit balance for a credit-normal account",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance excludes journal items belonging to reversed entries",
+              "status": "passed"
+            },
+            {
+              "name": "getBalance asOf date excludes future entries",
+              "status": "passed"
+            },
+            {
+              "name": "getAccountByCode creates an account when the code does not exist",
+              "status": "passed"
+            },
+            {
+              "name": "accounts:recalculate command updates account balance from journal entries",
+              "status": "passed"
+            },
+            {
+              "name": "accounts:recalculate --tenant option does not recalculate balances for other tenants",
+              "status": "passed"
+            },
+            {
+              "name": "finance:audit command creates missing payment record for a paid sale",
+              "status": "passed"
+            }
+          ],
+          "passed": 20,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module06": {
+          "name": "Module06",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "posted_invoice_returns_403_on_edit_attempt",
+              "status": "passed"
+            },
+            {
+              "name": "proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals",
+              "status": "passed"
+            },
+            {
+              "name": "v3_quotation_to_sales_order_conversion",
+              "status": "passed"
+            },
+            {
+              "name": "sales_orders_stock_hold_and_conversion_to_sale",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 1
+        },
+        "Module07": {
+          "name": "Module07",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "fifo_batch_creation_on_purchase",
+              "status": "passed"
+            },
+            {
+              "name": "purchase_does_not_overwrite_product_base_cost_price",
+              "status": "passed"
+            },
+            {
+              "name": "partial_receiving_updates_order_status_and_stock_correctly",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module08": {
+          "name": "Module08",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "stock transfer between warehouses preserves total stock",
+              "status": "passed"
+            },
+            {
+              "name": "stock take records discrepancy and adjusts stock",
+              "status": "passed"
+            },
+            {
+              "name": "autoHealStockIntegrity is not called in normal flow",
+              "status": "passed"
+            },
+            {
+              "name": "product edit does not reset stock",
+              "status": "passed"
+            }
+          ],
+          "passed": 4,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module09": {
+          "name": "Module09",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 4
+        },
+        "Module10": {
+          "name": "Module10",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "woocommerce_failure_does_not_affect_sale_creation",
+              "status": "passed"
+            },
+            {
+              "name": "webhook_creates_party_and_records_transaction",
+              "status": "passed"
+            },
+            {
+              "name": "tampered_webhook_rejected",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module11": {
+          "name": "Module11",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "valid_appsumo_code_assigns_correct_plan",
+              "status": "passed"
+            },
+            {
+              "name": "duplicate_appsumo_code_rejected",
+              "status": "passed"
+            },
+            {
+              "name": "two_codes_stacked_upgrades_to_ltd2",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 1
+        },
+        "Module12": {
+          "name": "Module12",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "profit_and_loss_revenue_equals_sum_of_net_sales",
+              "status": "passed"
+            },
+            {
+              "name": "stock valuation report calculates correct value based on fifo",
+              "status": "passed"
+            },
+            {
+              "name": "tax report calculates correct tax payable",
+              "status": "passed"
+            }
+          ],
+          "passed": 3,
+          "failed": 0,
+          "todos": 1
+        },
+        "Module13": {
+          "name": "Module13",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "todays_revenue_widget_returns_net_sales_not_gross",
+              "status": "passed"
+            }
+          ],
+          "passed": 1,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module14": {
+          "name": "Module14",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module15": {
+          "name": "Module15",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "customer_balance_is_ledger_driven_not_cached",
+              "status": "passed"
+            },
+            {
+              "name": "credit_limit_exceeded_blocks_sale",
+              "status": "passed"
+            }
+          ],
+          "passed": 2,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module16": {
+          "name": "Module16",
+          "status": "passed",
+          "tests": [
+            {
+              "name": "check_in_records_timestamp",
+              "status": "passed"
+            },
+            {
+              "name": "double_check_in_updates_last_active_not_creates_duplicate",
+              "status": "passed"
+            }
+          ],
+          "passed": 2,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module17": {
+          "name": "Module17",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 4
+        },
+        "Module18": {
+          "name": "Module18",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module19": {
+          "name": "Module19",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 3
+        },
+        "Module20": {
+          "name": "Module20",
+          "status": "running",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 4
+        }
+      },
+      "bugs": [],
+      "rawLines": [
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module01\\AuthAndTenancyTest\r",
+        "  ✓ user can login with correct credentials                                                                      7.81s  \r",
+        "  ✓ user cannot login with wrong credentials                                                                     0.29s  \r",
+        "  ✓ tenant a cannot see tenant b products                                                                        0.14s  \r",
+        "  ✓ tenant a cannot see tenant b sales                                                                           0.04s  \r",
+        "  ✓ tenant a cannot see tenant b parties                                                                         0.04s  \r",
+        "  ✓ suspended tenant gets StoreSuspended page                                                                    1.32s  \r",
+        "  ✓ cashier cannot access admin expenses route                                                                   0.09s  \r",
+        "  ✓ superadmin can access venqore routes                                                                         0.05s  \r",
+        "  ✓ regular user cannot access venqore routes                                                                    0.10s  \r",
+        "  ✓ guest cannot access venqore routes                                                                           0.04s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module02\\StoreCreationAndProvisioningTest\r",
+        "  ✓ owner can create store successfully                                                                          0.28s  \r",
+        "  ✓ store creation seeds default data                                                                            0.05s  \r",
+        "  ✓ ltd tier1 blocked after 1 store                                                                              0.06s  \r",
+        "  ✓ ltd tier2 blocked after 2 stores                                                                             0.04s  \r",
+        "  ✓ ltd tier3 blocked after 4 stores                                                                             0.05s  \r",
+        "  ✓ store creation does not fail when woocommerce env not set                                                    0.05s  \r",
+        "  ✓ duplicate store name or slug is rejected                                                                     0.04s  \r",
+        "  ✓ reserved subdomain is safely sanitized                                                                       0.10s  \r",
+        "  ✓ does not create partial store                                                                                0.12s  \r",
+        "  ✓ woocommerce webhook isolation regression                                                                     0.09s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module03\\PosTerminalTest - 3 todos\r",
+        "  ✓ featured products endpoint returns top sold items with positive stock                                        0.15s  \r",
+        "  ✓ pos api rate limiter blocks requests after 300 hits per minute                                               0.06s  \r",
+        "  ✓ product search is strictly isolated between tenants                                                          0.06s  \r",
+        "  ✓ product search returns wholesale price for wholesale customers when pricing is enabled                       0.10s  \r",
+        "  ↓ drm offline lock restricts usage when license is invalid offline                                             0.07s  \r",
+        "  ↓ serial tracking validation checks serial numbers at checkout                                                 0.05s  \r",
+        "  ↓ barcode generator renders valid barcode svg or png                                                           0.05s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module04\\PaymentProcessingTest\r",
+        "  ✓ split payment with cash, bank, and credit ledger legs                                                        0.24s  \r",
+        "  ✓ plan limit enforcement blocks 6th transaction when limit is 5                                                0.12s  \r",
+        "  ✓ negative stock blocking enforcement based on system settings                                                 0.08s  \r",
+        "  ✓ discount waterfall calculations are precise and correct                                                      0.07s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module05\\FinancialEngineTest\r",
+        "  ✓ balanced journal entry persists with correct debit and credit lines                                          0.29s  \r",
+        "  ✓ trial balance is zero after one or many balanced entries                                                     0.05s  \r",
+        "  ✓ createEntry throws InvalidArgumentException for unbalanced entry                                             0.04s  \r",
+        "  ✓ createEntry throws if a line has both debit and credit greater than zero                                     0.05s  \r",
+        "  ✓ createEntry throws if a line has both debit and credit equal to zero                                         0.04s  \r",
+        "  ✓ createEntry throws if account_code does not exist for the current tenant                                     0.05s  \r",
+        "  ✓ AccountingService constructor throws RuntimeException without tenant context                                 0.04s  \r",
+        "  ✓ journal entries from tenant A are not visible under tenant B context                                         1.20s  \r",
+        "  ✓ reverseEntry creates a new entry with swapped debits and credits                                             0.05s  \r",
+        "  ✓ reverseEntry marks the original journal entry as is_reversed = 1                                             0.06s  \r",
+        "  ✓ reverseEntry throws LogicException when entry is already reversed                                            0.05s  \r",
+        "  ✓ reverseEntry throws InvalidArgumentException for a non-existent entry                                        0.05s  \r",
+        "  ✓ getBalance returns net debit balance for a debit-normal account                                              0.05s  \r",
+        "  ✓ getBalance returns net credit balance for a credit-normal account                                            0.06s  \r",
+        "  ✓ getBalance excludes journal items belonging to reversed entries                                              0.05s  \r",
+        "  ✓ getBalance asOf date excludes future entries                                                                 0.06s  \r",
+        "  ✓ getAccountByCode creates an account when the code does not exist                                             0.07s  \r",
+        "  ✓ accounts:recalculate command updates account balance from journal entries                                    0.07s  \r",
+        "  ✓ accounts:recalculate --tenant option does not recalculate balances for other tenants                         0.06s  \r",
+        "  ✓ finance:audit command creates missing payment record for a paid sale                                         0.23s  \r",
+        "array:20 [",
+        "  \"id\" => \"019e5aee-5ea3-731a-8bd1-662a888d87b1\"",
+        "  \"order_number\" => \"SO-20260524-5629\"",
+        "  \"customer_id\" => \"019e5aee-5e9a-7369-be67-25c09f01b644\"",
+        "  \"customer_name\" => \"Corwin, Mayert and Corwin\"",
+        "  \"order_date\" => \"2026-05-24T00:00:00.000000Z\"",
+        "  \"delivery_date\" => null",
+        "  \"status\" => \"confirmed\"",
+        "  \"total_amount\" => 800",
+        "  \"notes\" => null",
+        "  \"user_id\" => 1",
+        "  \"created_at\" => \"2026-05-24T17:00:31.000000Z\"",
+        "  \"updated_at\" => \"2026-05-24T17:00:31.000000Z\"",
+        "  \"party_id\" => null",
+        "  \"discount\" => 0",
+        "  \"tax\" => 0",
+        "  \"delivery_charge\" => 0",
+        "  \"extra_charge_value\" => 0",
+        "  \"extra_charge_label\" => null",
+        "  \"deleted_at\" => null",
+        "  \"tenant_id\" => \"1\"",
+        "] // Tester\\tests\\Feature\\Module06\\SalesEcosystemTest.php:216",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module06\\SalesEcosystemTest - 1 todo\r",
+        "  ✓ posted_invoice_returns_403_on_edit_attempt                                                                   0.06s  \r",
+        "  ✓ proposal_to_sale_conversion_transfers_fields_and_no_duplicate_journals                                       0.05s  \r",
+        "  ✓ v3_quotation_to_sales_order_conversion                                                                       0.06s  \r",
+        "  ✓ sales_orders_stock_hold_and_conversion_to_sale                                                               0.11s  \r",
+        "  ↓ recurring invoice generation creates a correct new invoice with line items                                   0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module07\\ProcurementTest\r",
+        "  ✓ fifo_batch_creation_on_purchase                                                                              0.07s  \r",
+        "  ✓ purchase_does_not_overwrite_product_base_cost_price                                                          0.07s  \r",
+        "  ✓ partial_receiving_updates_order_status_and_stock_correctly                                                   0.07s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module08\\InventoryTest\r",
+        "  ✓ stock transfer between warehouses preserves total stock                                                      0.06s  \r",
+        "  ✓ stock take records discrepancy and adjusts stock                                                             0.10s  \r",
+        "  ✓ autoHealStockIntegrity is not called in normal flow                                                          0.03s  \r",
+        "  ✓ product edit does not reset stock                                                                            0.05s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module09\\ManufacturingTest - 4 todos\r",
+        "  ↓ bill_of_materials_defined_correctly                                                                          0.03s  \r",
+        "  ↓ production run consumes raw materials                                                                        0.04s  \r",
+        "  ↓ production run produces finished goods                                                                       0.03s  \r",
+        "  ↓ auto calculate assembly cost                                                                                 0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module10\\WooCommerceTest\r",
+        "  ✓ woocommerce_failure_does_not_affect_sale_creation                                                            0.07s  \r",
+        "  ✓ webhook_creates_party_and_records_transaction                                                                0.35s  \r",
+        "  ✓ tampered_webhook_rejected                                                                                    0.05s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module11\\BillingTest - 1 todo\r",
+        "  ✓ valid_appsumo_code_assigns_correct_plan                                                                      0.04s  \r",
+        "  ✓ duplicate_appsumo_code_rejected                                                                              0.04s  \r",
+        "  ✓ two_codes_stacked_upgrades_to_ltd2                                                                           0.05s  \r",
+        "  ↓ lemon_squeezy_subscription_webhook_provisions_tenant                                                         0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module12\\ReportsTest - 1 todo\r",
+        "  ✓ profit_and_loss_revenue_equals_sum_of_net_sales                                                              0.11s  \r",
+        "  ↓ daily sales report calculates correct revenue                                                                0.03s  \r",
+        "  ✓ stock valuation report calculates correct value based on fifo                                                0.06s  \r",
+        "  ✓ tax report calculates correct tax payable                                                                    0.06s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module13\\DashboardTest\r",
+        "  ✓ todays_revenue_widget_returns_net_sales_not_gross                                                            0.08s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module14\\AiEngineTest - 3 todos\r",
+        "  ↓ ai_product_recommendation_returns_relevant_suggestions                                                       0.03s  \r",
+        "  ↓ smart_reorder_alert_triggers_at_correct_threshold                                                            0.04s  \r",
+        "  ↓ predictive_cash_flow_forecast_is_reasonable                                                                  0.03s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module15\\PartiesLedgerTest\r",
+        "  ✓ customer_balance_is_ledger_driven_not_cached                                                                 0.39s  \r",
+        "  ✓ credit_limit_exceeded_blocks_sale                                                                            0.06s  \r",
+        "",
+        "   PASS  Tester\\tests\\Feature\\Module16\\StaffAttendanceTest\r",
+        "  ✓ check_in_records_timestamp                                                                                   0.10s  \r",
+        "  ✓ double_check_in_updates_last_active_not_creates_duplicate                                                    0.07s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module17\\SettingsTest - 4 todos\r",
+        "  ↓ stop_sale_on_negative_stock_toggle_affects_sale_outcome                                                      0.04s  \r",
+        "  // Covered in Module 4 — negative_stock_blocking_enforcement_based_on_system_settings\r",
+        "  ↓ currency_symbol_setting_appears_in_sale_receipts                                                             0.03s  \r",
+        "  ↓ tax_rate_setting_applies_to_new_sales                                                                        0.04s  \r",
+        "  ↓ store_name_update_reflects_on_dashboard                                                                      0.03s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module18\\OfflineDrmTest - 3 todos\r",
+        "  ↓ drm_license_validated_on_startup                                                                             0.04s  \r",
+        "  ↓ grace_period_expires_after_configured_days                                                                   0.04s  \r",
+        "  ↓ hardware_fingerprint_mismatch_blocks_access                                                                  0.03s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module19\\VenSynQTest - 3 todos\r",
+        "  ↓ vensync_syncs_product_across_stores                                                                          0.04s  \r",
+        "  ↓ command_center_shows_consolidated_revenue                                                                    0.04s  \r",
+        "  ↓ cross_store_transfer_updates_both_inventories                                                                0.03s  \r",
+        "",
+        "   TODO  Tester\\tests\\Feature\\Module20\\SuperAdminTest - 4 todos\r",
+        "  ↓ super_admin_can_list_all_tenants                                                                             0.04s  \r",
+        "  ↓ super_admin_can_suspend_tenant                                                                               0.04s  \r",
+        "  ↓ super_admin_can_upgrade_tenant_plan                                                                          0.03s  \r",
+        "  ↓ non_admin_cannot_access_platform_dashboard                                                                   0.03s  \r",
+        "\r",
+        "  Tests:    27 todos, 73 passed (274 assertions)\r",
+        "  Duration: 17.90s\r",
+        "\r"
+      ],
+      "_currentModule": "Module20",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-05-24T16:49:09.023Z",
+      "projectPath": "D:\\AMD POS",
+      "duration": "0.32",
+      "passed": 0,
+      "failed": 0,
+      "todos": 0,
+      "incomplete": 0,
+      "modules": {
+        "Module01": {
+          "name": "Module01",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module02": {
+          "name": "Module02",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module03": {
+          "name": "Module03",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module04": {
+          "name": "Module04",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module05": {
+          "name": "Module05",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module06": {
+          "name": "Module06",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module07": {
+          "name": "Module07",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module08": {
+          "name": "Module08",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module09": {
+          "name": "Module09",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module10": {
+          "name": "Module10",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module11": {
+          "name": "Module11",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module12": {
+          "name": "Module12",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module13": {
+          "name": "Module13",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module14": {
+          "name": "Module14",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module15": {
+          "name": "Module15",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module16": {
+          "name": "Module16",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module17": {
+          "name": "Module17",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module18": {
+          "name": "Module18",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module19": {
+          "name": "Module19",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        },
+        "Module20": {
+          "name": "Module20",
+          "status": "skipped",
+          "tests": [],
+          "passed": 0,
+          "failed": 0,
+          "todos": 0
+        }
+      },
+      "bugs": [],
+      "rawLines": [
+        "Could not open input file: POS\\Tester\\local_runner.ini\n"
+      ],
+      "exitCode": 1
+    }
+  ]
+}

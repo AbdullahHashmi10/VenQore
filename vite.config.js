@@ -14,6 +14,16 @@ export default defineConfig({
     server: {
         host: '127.0.0.1',
         cors: true,
+        watch: {
+            ignored: [
+                '**/Tester/**',
+                '**/AMD_POS_Update_v3.2.5/**',
+                '**/vendor/**',
+                '**/node_modules/**',
+                '**/storage/**',
+                '**/.git/**',
+            ],
+        },
     },
     resolve: {
         alias: {
