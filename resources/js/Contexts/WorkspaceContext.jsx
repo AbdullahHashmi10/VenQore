@@ -124,15 +124,40 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
     };
 
     const removePurchaseTab = (id) => {
-        // If it's the only one, we might want to reset it or remove it depending on logic.
-        // For consistent sidebar behavior (empty when clear), we allow removing the last one.
-        // BUT page logic often expects at least one. We'll handle "Reset" at page level if needed.
-        // Here we just remove.
-        const newArr = activePurchases.filter(p => p.id !== id);
-        setActivePurchases(newArr);
-        if (currentPurchaseId === id) {
-            setCurrentPurchaseId(newArr[newArr.length - 1]?.id || null);
-        }
+        setActivePurchases(prev => {
+            const newArr = prev.filter(p => p.id !== id);
+            
+            if (newArr.length === 0) {
+                const newId = Date.now();
+                const newPurchase = {
+                    id: newId,
+                    items: [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }],
+                    supplier: null,
+                    paymentMethod: 'credit',
+                    amountPaid: 0,
+                    discount: 0,
+                    tax: 0,
+                    delivery_charge: 0,
+                    extra_charge_value: 0,
+                    date: new Date().toISOString().split('T')[0],
+                    invoiceNumber: '',
+                    notes: '',
+                    extras: []
+                };
+                setCurrentPurchaseId(newId);
+                return [newPurchase];
+            }
+            
+            // We also need to update currentPurchaseId if it was the one removed
+            setCurrentPurchaseId(currentId => {
+                if (currentId === id) {
+                    return newArr[newArr.length - 1]?.id || null;
+                }
+                return currentId;
+            });
+            
+            return newArr;
+        });
     };
 
     const [currentInvoiceId, setCurrentInvoiceId] = useState(activeInvoices[0]?.id || null);

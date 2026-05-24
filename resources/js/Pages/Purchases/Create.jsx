@@ -95,10 +95,11 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
     // Reset current purchase to a brand new empty state
     const resetToNewPurchase = () => {
-        const newPurchase = addPurchase({ extras: [] }); // Initialize extras
-        if (currentPurchaseId) {
-            removePurchase(currentPurchaseId);
+        if (isEditMode) {
+            router.visit(route("store.purchases.index", { store_slug: store.slug }));
+            return;
         }
+        removePurchase(currentPurchase.id);
     };
 
     // --- EDIT MODE LOGIC ---
@@ -929,7 +930,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
             if (response.data.success) {
                 // Global Sync Trigger (Stock changed)
-                window.dispatchEvent(new CustomEvent('amd:product-updated'));
+                // window.dispatchEvent(new CustomEvent('amd:product-updated'));
                 localStorage.setItem('amd_product_latest_change', Date.now().toString());
 
                 setLastPurchaseId(response.data.id);
