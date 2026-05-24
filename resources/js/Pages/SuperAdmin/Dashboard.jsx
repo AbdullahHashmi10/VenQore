@@ -14,7 +14,7 @@ import {
     Newspaper, BarChart2, Ticket, Rss, UserCog, Sparkles,
     CalendarClock, Star, AlertCircle, Info, Lock, KeyRound, EyeOff,
     ShieldCheck, Hash, Menu, Trash2, RotateCcw,
-    MoreHorizontal, Layers, Database
+    MoreHorizontal, Layers, Database, Plus
 } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useTheme as useGlobalTheme } from '@/Contexts/ThemeContext';
