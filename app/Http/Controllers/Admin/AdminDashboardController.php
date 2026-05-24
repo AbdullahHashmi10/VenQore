@@ -237,6 +237,38 @@ class AdminDashboardController extends Controller
         // Peak conversion is the highest monthly rate in history (approximation)
         $conversionRate = $signupsLast30 > 0 ? round(($convertedLast30 / $signupsLast30) * 100, 1) : 0;
 
+        // Platform Users Trend based on period
+        $userTrend = collect();
+        $userQuery = \App\Models\User::query();
+        
+        if ($period === 'today') {
+            // Hourly trend for the current day
+            $userTrend = collect(range(0, 23))->map(function ($h) use ($userQuery) {
+                $start = now()->startOfDay()->addHours($h);
+                $end   = $start->copy()->endOfHour();
+                $count = (clone $userQuery)->whereBetween('created_at', [$start, $end])->count();
+                return ['month' => $start->format('H:00'), 'users' => $count];
+            });
+        } elseif ($period === 'month') {
+            // Daily trend for current month
+            $days = now()->day;
+            $userTrend = collect(range(1, $days))->map(function ($d) use ($userQuery) {
+                $date = now()->startOfMonth()->addDays($d - 1);
+                $count = (clone $userQuery)->whereDate('created_at', $date->toDateString())->count();
+                return ['month' => $date->format('M d'), 'users' => $count];
+            });
+        } else {
+            // Monthly trend (Year/All) - Last 6 months
+            $userTrend = collect(range(5, 0))->map(function ($i) use ($userQuery) {
+                $date = now()->subMonths($i);
+                $count = (clone $userQuery)
+                    ->whereBetween('created_at', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                    ->count();
+                return ['month' => $date->format('M'), 'users' => $count];
+            });
+        }
+        $userTrend = $userTrend->values();
+
         return Inertia::render('SuperAdmin/Dashboard', [
             'stats' => [
                 'mrr'                     => (float)$liveMrr,
@@ -255,6 +287,7 @@ class AdminDashboardController extends Controller
                 'period'                  => $period,
                 'standard_stores_count'   => $standardCount,
                 'discounted_stores_count' => $discountedCount,
+                'total_users'             => \App\Models\User::count(),
             ],
             'plans'             => $plans, // Send real DB plans directly to frontend
             'plan_distribution' => $planDistribution,
@@ -271,6 +304,7 @@ class AdminDashboardController extends Controller
             ])->values(),
             'store_trend'       => $storeTrend,
             'mrr_trend'         => $mrrTrend,
+            'user_trend'        => $userTrend,
             'expiring_stores'   => $realTenants
                 ->filter(fn($t) => $t->status === 'trial' && $t->trial_ends_at?->isFuture() && $t->trial_ends_at?->diffInDays(now()) <= 7)
                 ->map(fn($t) => [
