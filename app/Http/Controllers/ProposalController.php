@@ -292,12 +292,12 @@ class ProposalController extends Controller
         DB::transaction(function () use ($proposal) {
             // Create Sale
             $sale = Sale::create([
-                'invoice_number' => 'INV-' . date('Ymd') . '-' . rand(1000, 9999),
-                'customer_id' => $proposal->customer_id,
-                'customer_name' => $proposal->customer_name,
+                'reference_number' => 'INV-' . date('Ymd') . '-' . rand(1000, 9999),
+                'party_id' => $proposal->customer_id,
                 'status' => 'completed',
                 'payment_status' => 'pending',
-                'final_total' => $proposal->total_amount,
+                'subtotal' => $proposal->total_amount,
+                'total' => $proposal->total_amount,
                 'user_id' => auth()->id(),
                 // Add default cash account/warehouse for now, or make user select in future steps
                 'warehouse_id' => \App\Models\Warehouse::first()?->id ?? 1
@@ -324,7 +324,6 @@ class ProposalController extends Controller
                     'unit_price' => $item->unit_price,
                     'cost_price' => $item->quantity > 0 ? $lineCogs / $item->quantity : 0,
                     'subtotal' => $item->total,
-                    'discount' => $item->discount ?? 0,
                 ]);
 
                 // Record batches if FIFO succeeded
@@ -348,7 +347,8 @@ class ProposalController extends Controller
             $proposal->update(['status' => 'accepted']);
         });
 
-        return redirect()->route('sales.index')->with('success', 'Proposal converted to Sale.');
+        $tenantSlug = request()->route('tenant') ?? 'default';
+        return redirect("/s/{$tenantSlug}/sales")->with('success', 'Proposal converted to Sale.');
     }
 
     public function convertToPreSale(Proposal $proposal)

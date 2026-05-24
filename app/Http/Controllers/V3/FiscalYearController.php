@@ -23,7 +23,7 @@ class FiscalYearController extends Controller
         ]);
 
         $tenantId = app('current.tenant')->id;
-        $approver = DB::table('users')
+        $approver = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
             ->join('tenant_users', 'users.id', '=', 'tenant_users.user_id')
             ->where('tenant_users.tenant_id', $tenantId)
             ->where('users.id', $validated['approved_by'])
@@ -39,7 +39,7 @@ class FiscalYearController extends Controller
         $yearEnd = Carbon::parse($validated['fiscal_year_end']);
 
         // Guard: cannot close a year that's already been closed
-        $alreadyClosed = DB::table('journal_entries')
+        $alreadyClosed = DB::table('journal_entries')->where('journal_entries.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('reference_type', 'fiscal_year_close')
             ->where('date', $yearEnd->toDateString())
@@ -52,7 +52,7 @@ class FiscalYearController extends Controller
         }
 
         // Get all P&L account balances up to year end
-        $plAccounts = DB::table('accounts')
+        $plAccounts = DB::table('accounts')->where('accounts.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->whereIn('type', ['income', 'expense'])
             ->where('is_active', 1)
@@ -62,7 +62,7 @@ class FiscalYearController extends Controller
         $netProfit    = 0;
 
         foreach ($plAccounts as $account) {
-            $balance = (float) DB::table('journal_items as ji')
+            $balance = (float) DB::table('journal_items as ji')->where('ji.tenant_id', app('current.tenant')->id)
                 ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
                 ->where('je.tenant_id', $tenantId)
                 ->where('ji.account_id', $account->id)

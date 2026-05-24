@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Head, router, usePage } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
-import SellModuleTabs from '@/Components/SellModuleTabs';
-import FormModal from '@/Components/FormModal';
+﻿import React, { useState, useEffect, useRef } from "react";
+import { getCurrencySymbol } from "@/Utils/format";
+import { Head, router, usePage } from "@inertiajs/react";
+import OneGlanceLayout from "@/Layouts/OneGlanceLayout";
+import SellModuleTabs from "@/Components/SellModuleTabs";
+import FormModal from "@/Components/FormModal";
 import {
     Plus,
     Trash2,
@@ -33,16 +34,16 @@ import {
     Edit,
     ShoppingCart,
     FileText,
-    ChevronUp
-} from 'lucide-react';
-import axios from 'axios';
-import { useWorkspace } from '@/Contexts/WorkspaceContext';
-import { useAlert } from '@/Contexts/AlertContext';
-import ProductModal from '@/Components/ProductModal';
-import QuickPartyModal from '@/Components/QuickPartyModal';
-import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
-import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
-import WheelInput from '@/Components/WheelInput';
+    ChevronUp,
+} from "lucide-react";
+import axios from "axios";
+import { useWorkspace } from "@/Contexts/WorkspaceContext";
+import { useAlert } from "@/Contexts/AlertContext";
+import ProductModal from "@/Components/ProductModal";
+import QuickPartyModal from "@/Components/QuickPartyModal";
+import AsyncProductCombobox from "@/Components/AsyncProductCombobox";
+import AsyncPartyCombobox from "@/Components/AsyncPartyCombobox";
+import WheelInput from "@/Components/WheelInput";
 
 const CreateProposal = ({ proposal, existingProposal }) => {
     // Use proposal or existingProposal (controller sends as existingProposal)
@@ -53,13 +54,16 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         setCurrentInvoiceId,
         addInvoice,
         removeInvoice,
-        updateInvoice
+        updateInvoice,
     } = useWorkspace();
 
     const { settings, auth, store } = usePage().props;
-    const isSeniorMode = settings?.senior_mode === '1';
-    const showMarginPercent = settings?.show_margin_percentage === '1';
-    const isAdmin = auth.user?.role === 'admin' || auth.user?.role === 'owner' || auth.user?.role === 'platform_admin';
+    const isSeniorMode = settings?.senior_mode === "1";
+    const showMarginPercent = settings?.show_margin_percentage === "1";
+    const isAdmin =
+        auth.user?.role === "admin" ||
+        auth.user?.role === "owner" ||
+        auth.user?.role === "platform_admin";
 
     // --- EDIT MODE LOGIC ---
     const isEditMode = !!sale;
@@ -71,49 +75,62 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 id: sale.id, // Real DB ID
                 invoiceNumber: sale.reference_number,
                 customer: sale.customer,
-                items: (sale.items || []).map(i => ({
+                items: (sale.items || []).map((i) => ({
                     id: i.id, // Real Item ID
                     product: i.product,
-                    name: i.product?.name || i.name || 'Unknown Item',
+                    name: i.product?.name || i.name || "Unknown Item",
                     quantity: parseFloat(i.quantity) || 1, // Default to 1 if unknown
                     originalQuantity: parseFloat(i.quantity) || 0, // Track original for stock validation
-                    price: parseFloat(i.unit_price) || parseFloat(i.price) || parseFloat(i.product?.price) || 0,
-                    cost: parseFloat(i.product?.cost || i.product?.cost_price || 0),
+                    price:
+                        parseFloat(i.unit_price) ||
+                        parseFloat(i.price) ||
+                        parseFloat(i.product?.price) ||
+                        0,
+                    cost: parseFloat(
+                        i.product?.cost || i.product?.cost_price || 0,
+                    ),
                     discount: 0,
-                    discountType: 'fixed'
+                    discountType: "fixed",
                 })),
-                date: sale.date || new Date().toISOString().split('T')[0],
-                notes: sale.notes || '',
-                amountPaid: (sale.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0),
-                originalPaidAmount: (sale.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0),
-                paymentMethod: sale.method || 'cash',
+                date: sale.date || new Date().toISOString().split("T")[0],
+                notes: sale.notes || "",
+                amountPaid: (sale.payments || []).reduce(
+                    (s, p) => s + (parseFloat(p.amount) || 0),
+                    0,
+                ),
+                originalPaidAmount: (sale.payments || []).reduce(
+                    (s, p) => s + (parseFloat(p.amount) || 0),
+                    0,
+                ),
+                paymentMethod: sale.method || "cash",
                 discount: parseFloat(sale.discount) || 0,
                 tax: parseFloat(sale.tax) || 0,
                 delivery_charge: parseFloat(sale.delivery_charge) || 0,
                 extra_charge_value: parseFloat(sale.extra_charge_value) || 0,
                 status: sale.status,
                 originalTotal: parseFloat(sale.total) || 0,
-                overpaymentAction: sale.overpayment_action
+                overpaymentAction: sale.overpayment_action,
             });
         }
     }, [sale]);
 
     const currentInvoice = isEditMode
-        ? (editState || {
-            items: [],
-            customer: null,
-            discount: 0,
-            tax: 0,
-            amountPaid: 0,
-            delivery_charge: 0,
-            extra_charge_value: 0
-        })
-        : (activeInvoices.find(inv => inv.id === currentInvoiceId) || activeInvoices[0]);
+        ? editState || {
+              items: [],
+              customer: null,
+              discount: 0,
+              tax: 0,
+              amountPaid: 0,
+              delivery_charge: 0,
+              extra_charge_value: 0,
+          }
+        : activeInvoices.find((inv) => inv.id === currentInvoiceId) ||
+          activeInvoices[0];
 
     // Update current invoice helper
     const patchInvoice = (data) => {
         if (isEditMode) {
-            setEditState(prev => ({ ...prev, ...data }));
+            setEditState((prev) => ({ ...prev, ...data }));
         } else {
             updateInvoice(currentInvoice.id, data);
         }
@@ -121,7 +138,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
     // Quick Add Modals State
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
-    const [productModalMode, setProductModalMode] = useState('create');
+    const [productModalMode, setProductModalMode] = useState("create");
     const [editingProduct, setEditingProduct] = useState(null);
     const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
 
@@ -133,43 +150,61 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     // Global Sync Listener
     useEffect(() => {
         const handleSync = () => {
-            router.reload({ 
-                only: ['products', 'categories', 'warehouses'], 
-                preserveState: true, 
-                preserveScroll: true 
+            router.reload({
+                only: ["products", "categories", "warehouses"],
+                preserveState: true,
+                preserveScroll: true,
             });
             refreshProposalItems();
         };
-        window.addEventListener('amd:product-updated', handleSync);
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'amd_product_latest_change') handleSync();
+        window.addEventListener("amd:product-updated", handleSync);
+        window.addEventListener("storage", (e) => {
+            if (e.key === "amd_product_latest_change") handleSync();
         });
-        return () => window.removeEventListener('amd:product-updated', handleSync);
+        return () =>
+            window.removeEventListener("amd:product-updated", handleSync);
     }, [currentInvoice?.items]);
 
     const refreshProposalItems = async () => {
         if (!currentInvoice?.items?.length) return;
-        const productsToRefresh = currentInvoice.items.filter(i => i.product?.id).map(i => i.product.id);
+        const productsToRefresh = currentInvoice.items
+            .filter((i) => i.product?.id)
+            .map((i) => i.product.id);
         if (!productsToRefresh.length) return;
 
         try {
-            const response = await axios.get(route("store.inventory.search", {
-                store_slug: store.slug
-            }), { params: { ids: productsToRefresh } });
+            const response = await axios.get(
+                route("store.inventory.search", {
+                    store_slug: store.slug,
+                }),
+                { params: { ids: productsToRefresh } },
+            );
             const latestProducts = response.data || [];
-            const newItems = currentInvoice.items.map(item => {
+            const newItems = currentInvoice.items.map((item) => {
                 if (!item.product?.id) return item;
-                const latest = latestProducts.find(p => p.id === item.product.id);
+                const latest = latestProducts.find(
+                    (p) => p.id === item.product.id,
+                );
                 if (latest) {
                     // PROTECT: Don't auto-update prices on historical/finalized records
-                    const isFinalized = isEditMode || ['accepted', 'ordered'].includes(currentInvoice.status);
-                    
+                    const isFinalized =
+                        isEditMode ||
+                        ["accepted", "ordered"].includes(currentInvoice.status);
+
                     return {
                         ...item,
                         product: latest,
-                        price: !isFinalized ? parseFloat(latest.price || latest.selling_price || 0) : item.price,
-                        available_stock: parseFloat(latest.available_stock || 0),
-                        cost: !isFinalized ? parseFloat(latest.cost || latest.cost_price || 0) : item.cost
+                        price: !isFinalized
+                            ? parseFloat(
+                                  latest.price || latest.selling_price || 0,
+                              )
+                            : item.price,
+                        available_stock: parseFloat(
+                            latest.available_stock || 0,
+                        ),
+                        cost: !isFinalized
+                            ? parseFloat(latest.cost || latest.cost_price || 0)
+                            : item.cost,
                     };
                 }
                 return item;
@@ -185,10 +220,27 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         const fetchData = async () => {
             try {
                 const [catRes, wareRes, accRes, banksRes] = await Promise.all([
-                    axios.get(route('store.api.categories', { store_slug: store.slug })),
-                    axios.get(route('store.api.warehouses', { store_slug: store.slug })),
-                    axios.get(route('store.accounting.accounts.api', { store_slug: store.slug, type: 'asset' })),
-                    axios.get(route('store.api.bank-accounts', { store_slug: store.slug }))
+                    axios.get(
+                        route("store.api.categories", {
+                            store_slug: store.slug,
+                        }),
+                    ),
+                    axios.get(
+                        route("store.api.warehouses", {
+                            store_slug: store.slug,
+                        }),
+                    ),
+                    axios.get(
+                        route("store.accounting.accounts.api", {
+                            store_slug: store.slug,
+                            type: "asset",
+                        }),
+                    ),
+                    axios.get(
+                        route("store.api.bank-accounts", {
+                            store_slug: store.slug,
+                        }),
+                    ),
                 ]);
                 setCategories(catRes.data);
                 setWarehouses(wareRes.data);
@@ -198,42 +250,53 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 const bankAccounts = banksRes.data || [];
 
                 // 1. Cash (Force ID 1 as primary 'Cash in Hand')
-                const cashAccount = { id: 1, name: 'Cash in Hand', type: 'cash' };
+                const cashAccount = {
+                    id: 1,
+                    name: "Cash in Hand",
+                    type: "cash",
+                };
 
                 // 2. Cheque (Static)
-                const chequeAccount = { id: 'CHEQUE', name: 'Cheque', type: 'cheque' };
+                const chequeAccount = {
+                    id: "CHEQUE",
+                    name: "Cheque",
+                    type: "cheque",
+                };
 
                 // 3. Bank Accounts (from separate table, mapped to proper structure)
                 // We use a property 'isBank' to handle them specially if needed,
                 // BUT for the Payment Account ID, we need a valid Chart of Accounts ID.
                 // Assuming 'Bank Account' (ID 2) is the Generic GL Account for banks.
-                const generalBankAccount = rawAccounts.find(a => a.name === 'Bank Account' || a.code === '1010');
+                const generalBankAccount = rawAccounts.find(
+                    (a) => a.name === "Bank Account" || a.code === "1010",
+                );
                 const bankGLId = generalBankAccount?.id || 2;
 
-                const mappedBankAccounts = bankAccounts.map(b => ({
+                const mappedBankAccounts = bankAccounts.map((b) => ({
                     id: `BANK_${b.id}`, // Unique ID for Dropdown Key
                     isBank: true,
                     realAccountId: bankGLId, // The ID to send to backend (GL Account)
-                    bankReferenceId: b.id,   // The specific bank ID
-                    name: `${b.name} ${b.bank_name ? `(${b.bank_name})` : ''}`,
-                    type: 'bank'
+                    bankReferenceId: b.id, // The specific bank ID
+                    name: `${b.name} ${b.bank_name ? `(${b.bank_name})` : ""}`,
+                    type: "bank",
                 }));
 
                 // 4. Other Assets (Filtered)
-                const otherAccounts = rawAccounts.filter(a =>
-                    a.id !== 1 && // Not Cash
-                    a.id !== bankGLId && // Not generic Bank GL
-                    a.name !== 'Cash on Hand' &&
-                    a.name !== 'Cheques in Hand' &&
-                    a.name !== 'Inventory' &&
-                    a.name !== 'Accounts Receivable'
+                const otherAccounts = rawAccounts.filter(
+                    (a) =>
+                        a.id !== 1 && // Not Cash
+                        a.id !== bankGLId && // Not generic Bank GL
+                        a.name !== "Cash on Hand" &&
+                        a.name !== "Cheques in Hand" &&
+                        a.name !== "Inventory" &&
+                        a.name !== "Accounts Receivable",
                 );
 
                 const finalAccounts = [
                     cashAccount,
                     chequeAccount,
                     ...mappedBankAccounts,
-                    ...otherAccounts
+                    ...otherAccounts,
                 ];
 
                 setAccounts(finalAccounts);
@@ -241,8 +304,8 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 console.error("Failed to fetch modal data", error);
                 // Fallback for critical Cash/Cheque options even if API fails
                 setAccounts([
-                    { id: 1, name: 'Cash in Hand', type: 'cash' },
-                    { id: 'CHEQUE', name: 'Cheque', type: 'cheque' }
+                    { id: 1, name: "Cash in Hand", type: "cash" },
+                    { id: "CHEQUE", name: "Cheque", type: "cheque" },
                 ]);
             }
         };
@@ -251,28 +314,32 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
     const handleProductSubmit = async (data, onError) => {
         try {
-            const url = productModalMode === 'create'
-                ? route("store.inventory.store", {
-                store_slug: store.slug
-            })
-                : route("store.inventory.update", [store.slug, editingProduct.id]);
+            const url =
+                productModalMode === "create"
+                    ? route("store.inventory.store", {
+                          store_slug: store.slug,
+                      })
+                    : route("store.inventory.update", [
+                          store.slug,
+                          editingProduct.id,
+                      ]);
 
             const response = await axios.post(url, data);
 
             if (response.data) {
                 setIsProductModalOpen(false);
                 showAlert({
-                    title: 'Success',
-                    message: `Product ${productModalMode === 'create' ? 'created' : 'updated'} successfully.`,
-                    type: 'success'
+                    title: "Success",
+                    message: `Product ${productModalMode === "create" ? "created" : "updated"} successfully.`,
+                    type: "success",
                 });
 
                 // If created, auto-select it if in quick entry
-                if (productModalMode === 'create' && showQuickEntry) {
-                    setQuickEntry(prev => ({ ...prev, name: data.name }));
+                if (productModalMode === "create" && showQuickEntry) {
+                    setQuickEntry((prev) => ({ ...prev, name: data.name }));
                     handleQuickSearch(data.name);
                 }
-                if (productModalMode === 'edit') {
+                if (productModalMode === "edit") {
                     handleQuickSearch(quickEntry.name);
                 }
             }
@@ -282,9 +349,9 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 onError(error.response.data.errors);
             } else {
                 showAlert({
-                    title: 'Error',
-                    message: 'Failed to save product.',
-                    type: 'error'
+                    title: "Error",
+                    message: "Failed to save product.",
+                    type: "error",
                 });
             }
         }
@@ -293,7 +360,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     // Removed the old 'currentInvoice' declaration as it is now above
 
     // Local state for UI interactions
-    const [customerSearch, setCustomerSearch] = useState('');
+    const [customerSearch, setCustomerSearch] = useState("");
     const [productResults, setProductResults] = useState([]);
     const [activeItemIndex, setActiveItemIndex] = useState(null);
     const [saving, setSaving] = useState(false);
@@ -302,17 +369,17 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     const [showQuickEntry, setShowQuickEntry] = useState(false);
     const [quickEntry, setQuickEntry] = useState({
         product: null,
-        name: '',
+        name: "",
         quantity: 1,
         freeQuantity: 0,
         price: 0,
         discount: 0,
-        discountType: 'fixed'
+        discountType: "fixed",
     });
 
     // Scanning Mode State
     const [isScanning, setIsScanning] = useState(false);
-    const [scanBuffer, setScanBuffer] = useState('');
+    const [scanBuffer, setScanBuffer] = useState("");
     const [scannedItems, setScannedItems] = useState([]);
 
     // Profit Sneak Peek State
@@ -327,8 +394,12 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
     // Per-item Total recalculation mode ('price' or 'qty')
     const [itemTotalModes, setItemTotalModes] = useState({});
-    const getItemTotalMode = (id) => itemTotalModes[id] || 'price';
-    const toggleItemTotalMode = (id) => setItemTotalModes(prev => ({ ...prev, [id]: prev[id] === 'qty' ? 'price' : 'qty' }));
+    const getItemTotalMode = (id) => itemTotalModes[id] || "price";
+    const toggleItemTotalMode = (id) =>
+        setItemTotalModes((prev) => ({
+            ...prev,
+            [id]: prev[id] === "qty" ? "price" : "qty",
+        }));
 
     // UI Enhancement State
     const [textSize, setTextSize] = useState(1);
@@ -336,101 +407,160 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
 
     // Global Defaults for Charges (Persisted)
-    const [defaultDelivery, setDefaultDelivery] = useState(() => parseFloat(localStorage.getItem('amd_default_delivery')) || 0);
-    const [defaultExtraLabel, setDefaultExtraLabel] = useState(() => localStorage.getItem('amd_default_extra_label') || 'Extra');
-    const [defaultExtraValue, setDefaultExtraValue] = useState(() => parseFloat(localStorage.getItem('amd_default_extra_value')) || 0);
-    const [enableMultipleExtras, setEnableMultipleExtras] = useState(() => localStorage.getItem('amd_enable_multiple_extras') === '1');
-    const [showDeliveryCharges, setShowDeliveryCharges] = useState(() => localStorage.getItem('amd_show_delivery') !== '0');
-    const [showExtraField, setShowExtraField] = useState(() => localStorage.getItem('amd_show_extra') !== '0');
+    const [defaultDelivery, setDefaultDelivery] = useState(
+        () => parseFloat(localStorage.getItem("amd_default_delivery")) || 0,
+    );
+    const [defaultExtraLabel, setDefaultExtraLabel] = useState(
+        () => localStorage.getItem("amd_default_extra_label") || "Extra",
+    );
+    const [defaultExtraValue, setDefaultExtraValue] = useState(
+        () => parseFloat(localStorage.getItem("amd_default_extra_value")) || 0,
+    );
+    const [enableMultipleExtras, setEnableMultipleExtras] = useState(
+        () => localStorage.getItem("amd_enable_multiple_extras") === "1",
+    );
+    const [showDeliveryCharges, setShowDeliveryCharges] = useState(
+        () => localStorage.getItem("amd_show_delivery") !== "0",
+    );
+    const [showExtraField, setShowExtraField] = useState(
+        () => localStorage.getItem("amd_show_extra") !== "0",
+    );
 
     // Persistence Effects
     useEffect(() => {
-        localStorage.setItem('amd_default_delivery', defaultDelivery.toString());
+        localStorage.setItem(
+            "amd_default_delivery",
+            defaultDelivery.toString(),
+        );
     }, [defaultDelivery]);
     useEffect(() => {
-        localStorage.setItem('amd_default_extra_label', defaultExtraLabel);
+        localStorage.setItem("amd_default_extra_label", defaultExtraLabel);
     }, [defaultExtraLabel]);
     useEffect(() => {
-        localStorage.setItem('amd_default_extra_value', defaultExtraValue.toString());
+        localStorage.setItem(
+            "amd_default_extra_value",
+            defaultExtraValue.toString(),
+        );
     }, [defaultExtraValue]);
     useEffect(() => {
-        localStorage.setItem('amd_enable_multiple_extras', enableMultipleExtras ? '1' : '0');
+        localStorage.setItem(
+            "amd_enable_multiple_extras",
+            enableMultipleExtras ? "1" : "0",
+        );
     }, [enableMultipleExtras]);
     useEffect(() => {
-        localStorage.setItem('amd_show_delivery', showDeliveryCharges ? '1' : '0');
+        localStorage.setItem(
+            "amd_show_delivery",
+            showDeliveryCharges ? "1" : "0",
+        );
     }, [showDeliveryCharges]);
     useEffect(() => {
-        localStorage.setItem('amd_show_extra', showExtraField ? '1' : '0');
+        localStorage.setItem("amd_show_extra", showExtraField ? "1" : "0");
     }, [showExtraField]);
 
     const quantityRef = useRef(null);
     const discountRef = useRef(null);
     const startY = useRef(0);
 
-
-
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if (e.altKey && e.key === 'q') {
+            if (e.altKey && e.key === "q") {
                 e.preventDefault();
-                document.getElementById('quick-entry-input')?.focus();
+                document.getElementById("quick-entry-input")?.focus();
             }
             if (isSeniorMode) {
-                if (e.key === 'F1') {
+                if (e.key === "F1") {
                     e.preventDefault();
-                    document.getElementById('quick-entry-input')?.focus();
+                    document.getElementById("quick-entry-input")?.focus();
                 }
-                if (e.key === ' ') {
+                if (e.key === " ") {
                     // Only trigger if not in an input
-                    if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                    if (
+                        document.activeElement.tagName !== "INPUT" &&
+                        document.activeElement.tagName !== "TEXTAREA"
+                    ) {
                         e.preventDefault();
                         handleSave();
                     }
                 }
             }
         };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [isSeniorMode, currentInvoice]);
 
     // Async search handled by components
 
     // Item Management
     const addItem = () => {
-        const newItems = [...currentInvoice.items, { id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }];
+        const newItems = [
+            ...currentInvoice.items,
+            {
+                id: Date.now(),
+                product: null,
+                quantity: 1,
+                price: 0,
+                discount: 0,
+                discountType: "fixed",
+            },
+        ];
         patchInvoice({ items: newItems });
     };
 
     const removeItem = (id) => {
-        const newItems = currentInvoice.items.filter(item => item.id !== id);
-        patchInvoice({ items: newItems.length ? newItems : [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }] });
+        const newItems = currentInvoice.items.filter((item) => item.id !== id);
+        patchInvoice({
+            items: newItems.length
+                ? newItems
+                : [
+                      {
+                          id: Date.now(),
+                          product: null,
+                          quantity: 1,
+                          price: 0,
+                          discount: 0,
+                          discountType: "fixed",
+                      },
+                  ],
+        });
     };
 
     const updateItem = (id, field, value) => {
-        const newItems = currentInvoice.items.map(item =>
-            item.id === id ? { ...item, [field]: value } : item
+        const newItems = currentInvoice.items.map((item) =>
+            item.id === id ? { ...item, [field]: value } : item,
         );
         patchInvoice({ items: newItems });
     };
 
     const selectProduct = (product, itemId) => {
-        const updatedItems = currentInvoice.items.map(item =>
-            item.id === itemId ? {
-                ...item,
-                product,
-                price: parseFloat(product.price || product.selling_price || 0),
-                name: product.name,
-                cost: parseFloat(product.cost || product.cost_price || 0),
-                available_stock: parseFloat(product.available_stock || 0),
-                originalQuantity: 0 // Reset original quantity as this is a new product selection
-            } : item
+        const updatedItems = currentInvoice.items.map((item) =>
+            item.id === itemId
+                ? {
+                      ...item,
+                      product,
+                      price: parseFloat(
+                          product.price || product.selling_price || 0,
+                      ),
+                      name: product.name,
+                      cost: parseFloat(product.cost || product.cost_price || 0),
+                      available_stock: parseFloat(product.available_stock || 0),
+                      originalQuantity: 0, // Reset original quantity as this is a new product selection
+                  }
+                : item,
         );
 
         // Check if this was the last item - if so, add a new empty row automatically
         const lastItem = updatedItems[updatedItems.length - 1];
         if (lastItem.id === itemId) {
-            updatedItems.push({ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' });
+            updatedItems.push({
+                id: Date.now(),
+                product: null,
+                quantity: 1,
+                price: 0,
+                discount: 0,
+                discountType: "fixed",
+            });
         }
 
         patchInvoice({ items: updatedItems });
@@ -441,12 +571,12 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     // Quick search handled by Async component
 
     const selectQuickProduct = (product) => {
-        setQuickEntry(prev => ({
+        setQuickEntry((prev) => ({
             ...prev,
             product,
             name: product.name,
             price: product.price || product.selling_price || 0,
-            cost: product.cost || product.cost_price || 0
+            cost: product.cost || product.cost_price || 0,
         }));
         setQuickResults([]);
         setQuickSelectedIndex(-1);
@@ -456,17 +586,22 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
     const handleQuickKeyDown = (e) => {
         if (quickResults.length > 0) {
-            if (e.key === 'ArrowDown') {
+            if (e.key === "ArrowDown") {
                 e.preventDefault();
-                setQuickSelectedIndex(prev => (prev + 1) % quickResults.length);
-            } else if (e.key === 'ArrowUp') {
+                setQuickSelectedIndex(
+                    (prev) => (prev + 1) % quickResults.length,
+                );
+            } else if (e.key === "ArrowUp") {
                 e.preventDefault();
-                setQuickSelectedIndex(prev => (prev - 1 + quickResults.length) % quickResults.length);
-            } else if (e.key === 'Enter' && quickSelectedIndex >= 0) {
+                setQuickSelectedIndex(
+                    (prev) =>
+                        (prev - 1 + quickResults.length) % quickResults.length,
+                );
+            } else if (e.key === "Enter" && quickSelectedIndex >= 0) {
                 e.preventDefault();
                 selectQuickProduct(quickResults[quickSelectedIndex]);
             }
-        } else if (e.key === 'Enter' && quickEntry.name) {
+        } else if (e.key === "Enter" && quickEntry.name) {
             // If no results but name exists, maybe focus quantity?
             quantityRef.current?.focus();
         }
@@ -484,13 +619,18 @@ const CreateProposal = ({ proposal, existingProposal }) => {
             price: quickEntry.price || 0,
             discount: quickEntry.discount || 0,
             discountType: quickEntry.discountType,
-            cost: quickEntry.product?.cost || quickEntry.product?.cost_price || 0
+            cost:
+                quickEntry.product?.cost || quickEntry.product?.cost_price || 0,
         };
 
         // Check if the first item is empty and replace it, otherwise append
         const firstItem = currentInvoice.items[0];
         let newItems;
-        if (currentInvoice.items.length === 1 && !firstItem.product && !firstItem.name) {
+        if (
+            currentInvoice.items.length === 1 &&
+            !firstItem.product &&
+            !firstItem.name
+        ) {
             newItems = [newItem];
         } else {
             newItems = [...currentInvoice.items, newItem];
@@ -501,24 +641,23 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         // Reset Quick Entry
         setQuickEntry({
             product: null,
-            name: '',
+            name: "",
             quantity: 1,
             freeQuantity: 0,
             price: 0,
             discount: 0,
-            discountType: 'fixed'
+            discountType: "fixed",
         });
         setQuickResults([]);
         setQuickSelectedIndex(-1);
 
         // Focus back to search for next item
-        document.getElementById('quick-entry-input')?.focus();
+        document.getElementById("quick-entry-input")?.focus();
     };
 
     // Scanning Logic
     const handleScan = async (e) => {
-        if (e.key === 'Enter' && scanBuffer) {
-
+        if (e.key === "Enter" && scanBuffer) {
             // PRIORITY CHECK: Quantity Shortcut
             // If the input is a small number (<= 3 digits) and we have items,
             // assume the user wants to set the quantity of the last scanned item.
@@ -529,29 +668,38 @@ const CreateProposal = ({ proposal, existingProposal }) => {
             if (isNumeric && isShort && scannedItems.length > 0) {
                 const qty = parseInt(scanBuffer);
                 if (qty > 0) {
-                    setScannedItems(prev => {
+                    setScannedItems((prev) => {
                         const newItems = [...prev];
                         const lastIdx = newItems.length - 1;
                         // Replace quantity (User said "replace with 6", "type 15 change to 15")
-                        newItems[lastIdx] = { ...newItems[lastIdx], quantity: qty };
+                        newItems[lastIdx] = {
+                            ...newItems[lastIdx],
+                            quantity: qty,
+                        };
                         return newItems;
                     });
-                    setScanBuffer('');
+                    setScanBuffer("");
                     return; // Stop execution (do not search)
                 }
             }
 
             try {
                 // 1. Try to find the product
-                const response = await axios.get(route("store.inventory.search", {
-                    store_slug: store.slug
-                }), { params: { query: scanBuffer } });
+                const response = await axios.get(
+                    route("store.inventory.search", {
+                        store_slug: store.slug,
+                    }),
+                    { params: { query: scanBuffer } },
+                );
                 const results = response.data;
-                const product = results && results.length > 0 ? results[0] : null;
+                const product =
+                    results && results.length > 0 ? results[0] : null;
 
                 if (product) {
-                    setScannedItems(prev => {
-                        const existingIndex = prev.findIndex(item => item.product.id === product.id);
+                    setScannedItems((prev) => {
+                        const existingIndex = prev.findIndex(
+                            (item) => item.product.id === product.id,
+                        );
                         if (existingIndex >= 0) {
                             // Item exists: Move to end and increment quantity (Bubbling)
                             const newItems = [...prev];
@@ -559,21 +707,28 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                             newItems.splice(existingIndex, 1);
                             newItems.push({
                                 ...existingItem,
-                                quantity: existingItem.quantity + 1 // Add 1 (Scan again behavior)
+                                quantity: existingItem.quantity + 1, // Add 1 (Scan again behavior)
                             });
                             return newItems;
                         } else {
                             // New Item: Add to end
-                            return [...prev, {
-                                id: Date.now(),
-                                product,
-                                name: product.name,
-                                quantity: 1,
-                                price: product.price || product.selling_price || 0,
-                                discount: 0,
-                                discountType: 'fixed',
-                                cost: product.cost || product.cost_price || 0
-                            }];
+                            return [
+                                ...prev,
+                                {
+                                    id: Date.now(),
+                                    product,
+                                    name: product.name,
+                                    quantity: 1,
+                                    price:
+                                        product.price ||
+                                        product.selling_price ||
+                                        0,
+                                    discount: 0,
+                                    discountType: "fixed",
+                                    cost:
+                                        product.cost || product.cost_price || 0,
+                                },
+                            ];
                         }
                     });
                 } else {
@@ -581,10 +736,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                     // We could treat as qty, but safer to just ignore or log
                     console.log("Unknown barcode.");
                 }
-                setScanBuffer('');
+                setScanBuffer("");
             } catch (error) {
-                console.error('Scan error:', error);
-                setScanBuffer('');
+                console.error("Scan error:", error);
+                setScanBuffer("");
             }
         }
     };
@@ -602,20 +757,21 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
         const onMove = (moveEvent) => {
             const diff = moveEvent.clientY - startY.current; // Drag DOWN = positive
-            if (diff > 50) { // Threshold for lock and show modal
+            if (diff > 50) {
+                // Threshold for lock and show modal
                 setProfitLocked(true);
                 setShowProfitModal(true); // Open the full modal
-                window.removeEventListener('mousemove', onMove);
+                window.removeEventListener("mousemove", onMove);
             }
         };
 
         const onUp = () => {
-            window.removeEventListener('mousemove', onMove);
-            window.removeEventListener('mouseup', onUp);
+            window.removeEventListener("mousemove", onMove);
+            window.removeEventListener("mouseup", onUp);
         };
 
-        window.addEventListener('mousemove', onMove);
-        window.addEventListener('mouseup', onUp);
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
     };
 
     const handleProfitUp = () => {
@@ -627,7 +783,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     // Drag and Drop Handlers
     const handleDragStart = (e, index) => {
         setDraggedItemIndex(index);
-        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.effectAllowed = "move";
     };
 
     const handleDragOver = (e, index) => {
@@ -650,7 +806,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     // Calculations
     const calculateLineTotal = (item) => {
         const sub = item.quantity * item.price;
-        const disc = item.discountType === 'percent' ? (sub * (item.discount / 100)) : (item.discount || 0);
+        const disc =
+            item.discountType === "percent"
+                ? sub * (item.discount / 100)
+                : item.discount || 0;
         return sub - disc;
     };
 
@@ -661,25 +820,46 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         const qty = parseFloat(item.quantity) || 1;
         const disc = item.discount || 0;
         const discType = item.discountType;
-        if (mode === 'price') {
-            const newPrice = discType === 'percent'
-                ? newTotal / (qty * (1 - disc / 100))
-                : (newTotal + disc) / qty;
-            updateItem(item.id, 'price', Math.max(0, parseFloat(newPrice.toFixed(4))));
+        if (mode === "price") {
+            const newPrice =
+                discType === "percent"
+                    ? newTotal / (qty * (1 - disc / 100))
+                    : (newTotal + disc) / qty;
+            updateItem(
+                item.id,
+                "price",
+                Math.max(0, parseFloat(newPrice.toFixed(4))),
+            );
         } else {
             const price = parseFloat(item.price) || 0;
-            const effectivePrice = discType === 'percent' ? price * (1 - disc / 100) : price;
+            const effectivePrice =
+                discType === "percent" ? price * (1 - disc / 100) : price;
             const newQty = effectivePrice > 0 ? newTotal / effectivePrice : 0;
-            updateItem(item.id, 'quantity', Math.max(0, parseFloat(newQty.toFixed(4))));
+            updateItem(
+                item.id,
+                "quantity",
+                Math.max(0, parseFloat(newQty.toFixed(4))),
+            );
         }
     };
 
-    const subtotal = currentInvoice.items.reduce((sum, item) => sum + ((item.quantity + (item.freeQuantity || 0)) * item.price), 0);
-    const totalCost = currentInvoice.items.reduce((sum, item) => sum + ((item.quantity + (item.freeQuantity || 0)) * (item.cost || 0)), 0);
+    const subtotal = currentInvoice.items.reduce(
+        (sum, item) =>
+            sum + (item.quantity + (item.freeQuantity || 0)) * item.price,
+        0,
+    );
+    const totalCost = currentInvoice.items.reduce(
+        (sum, item) =>
+            sum + (item.quantity + (item.freeQuantity || 0)) * (item.cost || 0),
+        0,
+    );
 
     const itemDiscounts = currentInvoice.items.reduce((sum, item) => {
         const sub = item.quantity * item.price;
-        const discountVal = item.discountType === 'percent' ? (sub * (item.discount / 100)) : (item.discount || 0);
+        const discountVal =
+            item.discountType === "percent"
+                ? sub * (item.discount / 100)
+                : item.discount || 0;
         const freeItemValue = (item.freeQuantity || 0) * item.price;
         return sum + discountVal + freeItemValue;
     }, 0);
@@ -691,13 +871,15 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     const afterDiscount = afterItemDiscounts - invoiceDiscount;
 
     // Tax is a percentage
-    const taxAmount = afterDiscount * ((parseFloat(currentInvoice.tax) || 0) / 100);
+    const taxAmount =
+        afterDiscount * ((parseFloat(currentInvoice.tax) || 0) / 100);
 
     const deliveryCharge = parseFloat(currentInvoice.delivery_charge) || 0;
     const extraCharge = parseFloat(currentInvoice.extra_charge_value) || 0;
 
     const grandTotal = afterDiscount + taxAmount + deliveryCharge + extraCharge;
-    const balanceDue = grandTotal - (parseFloat(currentInvoice.amountPaid) || 0);
+    const balanceDue =
+        grandTotal - (parseFloat(currentInvoice.amountPaid) || 0);
     const profit = grandTotal - totalCost;
 
     // Alert System
@@ -707,7 +889,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     const [customerError, setCustomerError] = useState(false);
     const [invalidItems, setInvalidItems] = useState([]);
     const [showOverpaymentModal, setShowOverpaymentModal] = useState(false);
-    const [overpaymentDetails, setOverpaymentDetails] = useState({ amount: 0, customerName: '' });
+    const [overpaymentDetails, setOverpaymentDetails] = useState({
+        amount: 0,
+        customerName: "",
+    });
     const [printPreviewOpen, setPrintPreviewOpen] = useState(false); // For "Print Sale"
 
     const validateInputs = () => {
@@ -715,7 +900,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         let newInvalidItems = [];
 
         // For proposals, customer is optional - only validate if provided
-        if (currentInvoice.customer && typeof currentInvoice.customer === 'string') {
+        if (
+            currentInvoice.customer &&
+            typeof currentInvoice.customer === "string"
+        ) {
             // Customer text typed but not selected from dropdown
             setCustomerError(true);
             isValid = false;
@@ -725,7 +913,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
         // Check Items - only validate items that have product selected
         currentInvoice.items.forEach((item, index) => {
-            if ((item.name && !item.product) || (item.name && item.product && !item.product.id)) {
+            if (
+                (item.name && !item.product) ||
+                (item.name && item.product && !item.product.id)
+            ) {
                 newInvalidItems.push(index);
                 isValid = false;
             }
@@ -740,9 +931,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
         if (!isInputValid) {
             showAlert({
-                title: 'Validation Error',
-                message: 'Please resolve the highlighted errors before processing.',
-                type: 'error'
+                title: "Validation Error",
+                message:
+                    "Please resolve the highlighted errors before processing.",
+                type: "error",
             });
             return;
         }
@@ -753,56 +945,84 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
     const processSale = async (addToLedger = false, shouldPrint = false) => {
         // Proposals do NOT affect inventory - skip stock validation
-        const validItems = currentInvoice.items.filter(item => item.product);
+        const validItems = currentInvoice.items.filter((item) => item.product);
 
         setSaving(true);
         try {
             const payload = {
                 customer_id: currentInvoice.customer?.id || null,
                 customer_name: currentInvoice.customer?.name || null,
-                status: 'draft', // Default status for proposals
-                notes: currentInvoice.notes || '',
+                status: "draft", // Default status for proposals
+                notes: currentInvoice.notes || "",
                 valid_until: currentInvoice.dueDate || null,
-                items: validItems.map(item => ({
+                items: validItems.map((item) => ({
                     product_id: item.product.id,
                     quantity: item.quantity,
                     unit_price: item.price, // Backend expects unit_price
-                    discount: item.discount || 0
-                }))
+                    discount: item.discount || 0,
+                })),
             };
 
             let response;
             if (isEditMode) {
-                const updateUrl = route("store.proposals.update", [store.slug, sale.id]);
-                console.log('Updating proposal:', sale.id, 'URL:', updateUrl);
+                const updateUrl = route("store.proposals.update", [
+                    store.slug,
+                    sale.id,
+                ]);
+                console.log("Updating proposal:", sale.id, "URL:", updateUrl);
                 // Use POST with _method for Laravel method spoofing
-                response = await axios.post(updateUrl, { ...payload, _method: 'PUT' });
+                response = await axios.post(updateUrl, {
+                    ...payload,
+                    _method: "PUT",
+                });
             } else {
-                response = await axios.post(route("store.proposals.store", {
-                    store_slug: store.slug
-                }), payload);
+                response = await axios.post(
+                    route("store.proposals.store", {
+                        store_slug: store.slug,
+                    }),
+                    payload,
+                );
             }
 
-            if (response.data.success || isEditMode) { // Update might fallback
+            if (response.data.success || isEditMode) {
+                // Update might fallback
                 // Global Sync Trigger (Proposals don't affect stock, but broadcast for consistency)
-                window.dispatchEvent(new CustomEvent('amd:product-updated'));
-                localStorage.setItem('amd_product_latest_change', Date.now().toString());
+                window.dispatchEvent(new CustomEvent("amd:product-updated"));
+                localStorage.setItem(
+                    "amd_product_latest_change",
+                    Date.now().toString(),
+                );
 
-                setLastSaleId(isEditMode ? currentInvoice.id : response.data.sale_id);
+                setLastSaleId(
+                    isEditMode ? currentInvoice.id : response.data.sale_id,
+                );
 
                 if (isEditMode) {
-                    showAlert({ title: 'Success', message: 'Proposal updated successfully.', type: 'success' });
+                    showAlert({
+                        title: "Success",
+                        message: "Proposal updated successfully.",
+                        type: "success",
+                    });
                     // If print requested
                     if (shouldPrint) {
-                        window.open(route("store.proposals.print", [store.slug, currentInvoice.id]), '_blank');
+                        window.open(
+                            route("store.proposals.print", [
+                                store.slug,
+                                currentInvoice.id,
+                            ]),
+                            "_blank",
+                        );
                     }
                     // Redirect back to index after short delay or immediately?
                     // User said "give option to save or two print".
                     // If they just saved, maybe stay? Or go back?
                     // Usually saving closes the editor.
-                    if (!shouldPrint) router.visit(route("store.proposals.index", {
-                        store_slug: store.slug
-                    }));
+                    if (!shouldPrint)
+                        router.visit(
+                            route("store.proposals.index", {
+                                store_slug: store.slug,
+                            }),
+                        );
                 } else {
                     if (shouldPrint) {
                         setPrintPreviewOpen(true);
@@ -812,28 +1032,31 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 }
             } else {
                 showAlert({
-                    title: 'Transaction Failed',
-                    message: response.data.message || 'Unknown error',
-                    type: 'error'
+                    title: "Transaction Failed",
+                    message: response.data.message || "Unknown error",
+                    type: "error",
                 });
             }
         } catch (error) {
-            console.error('Proposal save error:', error.response?.data || error);
+            console.error(
+                "Proposal save error:",
+                error.response?.data || error,
+            );
             const errorData = error.response?.data;
-            let errorMessage = 'Failed to save proposal.';
+            let errorMessage = "Failed to save proposal.";
 
             if (errorData?.errors) {
                 // Laravel validation errors
                 const validationErrors = Object.values(errorData.errors).flat();
-                errorMessage = validationErrors.join('\\n');
+                errorMessage = validationErrors.join("\\n");
             } else if (errorData?.message) {
                 errorMessage = errorData.message;
             }
 
             showAlert({
-                title: 'Error',
+                title: "Error",
                 message: errorMessage,
-                type: 'error'
+                type: "error",
             });
         } finally {
             setSaving(false);
@@ -844,7 +1067,11 @@ const CreateProposal = ({ proposal, existingProposal }) => {
     const initiateSave = (print = false) => {
         const isInputValid = validateInputs();
         if (!isInputValid) {
-            showAlert({ title: 'Validation Error', message: 'Please fix highlighted errors.', type: 'error' });
+            showAlert({
+                title: "Validation Error",
+                message: "Please fix highlighted errors.",
+                type: "error",
+            });
             return;
         }
 
@@ -852,20 +1079,22 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         const excess = paid - grandTotal;
 
         // If overpaid AND customer is not "Walk In" (assuming ID 1 or name check, but let's just ask for all for now or check if ID exists)
-        // Actually, user said: "If user is specified... give option to add to ledger". 
+        // Actually, user said: "If user is specified... give option to add to ledger".
         // We'll check if excess > 0.
         if (excess > 0) {
             // Respect original decision on Edit
             if (isEditMode && editState?.overpaymentAction) {
-                const autoLedger = editState.overpaymentAction === 'ledger';
+                const autoLedger = editState.overpaymentAction === "ledger";
                 processSale(autoLedger, print);
                 return;
             }
 
-            // If updating an OLD sale (where action is unknown/null), default to REFUND (Change) 
+            // If updating an OLD sale (where action is unknown/null), default to REFUND (Change)
             // ONLY if it was ALREADY overpaid. If it's a NEW overpayment, we ask.
             if (isEditMode && !editState?.overpaymentAction) {
-                const wasOverpaid = (editState.originalPaidAmount || 0) > (editState.originalTotal || 0) + 1;
+                const wasOverpaid =
+                    (editState.originalPaidAmount || 0) >
+                    (editState.originalTotal || 0) + 1;
                 if (wasOverpaid) {
                     processSale(false, print);
                     return;
@@ -875,7 +1104,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
             setOverpaymentDetails({
                 amount: excess,
-                customerName: currentInvoice.customer?.name || 'Customer'
+                customerName: currentInvoice.customer?.name || "Customer",
             });
             setShowOverpaymentModal(true);
             // We store 'print' intent in a ref or state if needed, or pass it to the modal handlers
@@ -889,12 +1118,22 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
     const [tempPrintIntent, setTempPrintIntent] = useState(false);
 
-
-
     return (
-        <OneGlanceLayout title={isEditMode ? `Edit Proposal #${editState?.invoiceNumber || ''}` : "New Proposal"} activeMenu="Sales" fullScreen={false} hideHeader={true} noPadding={true}>
+        <OneGlanceLayout
+            title={
+                isEditMode
+                    ? `Edit Proposal #${editState?.invoiceNumber || ""}`
+                    : "New Proposal"
+            }
+            activeMenu="Sales"
+            fullScreen={false}
+            hideHeader={true}
+            noPadding={true}
+        >
             <Head title={isEditMode ? "Edit Proposal" : "New Proposal"} />
-            <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
+            <div
+                className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? "text-[20px] senior-mode" : ""}`}
+            >
                 <style>{`
                     .senior-mode input, .senior-mode button, .senior-mode p, .senior-mode span, .senior-mode td, .senior-mode th {
                         font-size: 1.25rem !important;
@@ -940,9 +1179,9 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                     .text-scale-5 .text-xs { font-size: 1.15rem !important; }
                 `}</style>
 
-
-
-                <div className={`flex-1 flex gap-2 min-h-0 px-2 pb-0 pt-2 overflow-hidden text-scale-${textSize}`}>
+                <div
+                    className={`flex-1 flex gap-2 min-h-0 px-2 pb-0 pt-2 overflow-hidden text-scale-${textSize}`}
+                >
                     {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
                     <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-0">
                         {/* TABS BAR - Now inside left section */}
@@ -953,32 +1192,48 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     onClick={() => setCurrentInvoiceId(inv.id)}
                                     className={`
                                     flex items-center gap-2 px-3 py-1.5 rounded-t-lg cursor-pointer transition-all min-w-[100px] max-w-[160px] relative group text-xs
-                                    ${currentInvoiceId === inv.id
-                                            ? 'bg-white dark:bg-slate-900 text-indigo-600'
-                                            : 'bg-slate-200/50 dark:bg-slate-800/50 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800'}
+                                    ${
+                                        currentInvoiceId === inv.id
+                                            ? "bg-white dark:bg-slate-900 text-indigo-600"
+                                            : "bg-slate-200/50 dark:bg-slate-800/50 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-800"
+                                    }
                                 `}
                                 >
-                                    <div className={`w-2 h-2 rounded-full ${currentInvoiceId === inv.id ? 'bg-indigo-500 animate-pulse' : 'bg-slate-400'}`}></div>
+                                    <div
+                                        className={`w-2 h-2 rounded-full ${currentInvoiceId === inv.id ? "bg-indigo-500 animate-pulse" : "bg-slate-400"}`}
+                                    ></div>
                                     <span className="text-xs font-bold truncate">
-                                        {inv.customer?.name || `Sale #${idx + 1}`}
+                                        {inv.customer?.name ||
+                                            `Sale #${idx + 1}`}
                                     </span>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             const proceed = () => {
                                                 removeInvoice(inv.id);
-                                                if (activeInvoices.length === 1) router.visit(route("store.proposals.index", {
-                                                    store_slug: store.slug
-                                                }));
+                                                if (activeInvoices.length === 1)
+                                                    router.visit(
+                                                        route(
+                                                            "store.proposals.index",
+                                                            {
+                                                                store_slug:
+                                                                    store.slug,
+                                                            },
+                                                        ),
+                                                    );
                                             };
 
-                                            if (activeInvoices.length === 1 && inv.items.length > 1) {
+                                            if (
+                                                activeInvoices.length === 1 &&
+                                                inv.items.length > 1
+                                            ) {
                                                 showConfirm({
-                                                    title: 'Discard Proposal?',
-                                                    message: 'You have unsaved items. Discarding will lose this data.',
-                                                    type: 'error',
-                                                    confirmLabel: 'Discard',
-                                                    onConfirm: proceed
+                                                    title: "Discard Proposal?",
+                                                    message:
+                                                        "You have unsaved items. Discarding will lose this data.",
+                                                    type: "error",
+                                                    confirmLabel: "Discard",
+                                                    onConfirm: proceed,
                                                 });
                                             } else {
                                                 proceed();
@@ -991,11 +1246,13 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                 </div>
                             ))}
                             <button
-                                onClick={() => addInvoice({
-                                    delivery_charge: defaultDelivery,
-                                    extra_charge_value: defaultExtraValue,
-                                    extra_charge_label: defaultExtraLabel
-                                })}
+                                onClick={() =>
+                                    addInvoice({
+                                        delivery_charge: defaultDelivery,
+                                        extra_charge_value: defaultExtraValue,
+                                        extra_charge_label: defaultExtraLabel,
+                                    })
+                                }
                                 className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 shrink-0"
                                 title="New Tab"
                             >
@@ -1011,13 +1268,26 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     onClick={() => {
                                         setShowQuickEntry(!showQuickEntry);
                                         if (!showQuickEntry) {
-                                            setTimeout(() => document.getElementById('quick-entry-input')?.focus(), 50);
+                                            setTimeout(
+                                                () =>
+                                                    document
+                                                        .getElementById(
+                                                            "quick-entry-input",
+                                                        )
+                                                        ?.focus(),
+                                                50,
+                                            );
                                         }
                                     }}
-                                    className={`flex items-center justify-center w-12 h-12 rounded-2xl transition-all border ${showQuickEntry ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/20' : 'bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50'}`}
+                                    className={`flex items-center justify-center w-12 h-12 rounded-2xl transition-all border ${showQuickEntry ? "bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-500/20" : "bg-white dark:bg-slate-800 text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-50"}`}
                                     title="Toggle Quick Add (Alt+Q)"
                                 >
-                                    <Zap size={20} className={showQuickEntry ? 'fill-current' : ''} />
+                                    <Zap
+                                        size={20}
+                                        className={
+                                            showQuickEntry ? "fill-current" : ""
+                                        }
+                                    />
                                 </button>
                                 <button
                                     onClick={() => setIsScanning(true)}
@@ -1025,7 +1295,9 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     title="Scanning Mode"
                                 >
                                     <ScanBarcode size={20} />
-                                    <span className="text-sm font-bold">Scan</span>
+                                    <span className="text-sm font-bold">
+                                        Scan
+                                    </span>
                                 </button>
                             </div>
 
@@ -1038,7 +1310,9 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                         patchInvoice({ customer });
                                         setCustomerError(false);
                                     }}
-                                    onCreateNew={() => setIsPartyModalOpen(true)}
+                                    onCreateNew={() =>
+                                        setIsPartyModalOpen(true)
+                                    }
                                     onEdit={(customer) => {
                                         setEditingParty(customer);
                                         setIsPartyModalOpen(true);
@@ -1057,20 +1331,32 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                             <div className="flex items-center gap-2">
                                 <div className="flex items-center gap-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl p-1 border border-slate-200 dark:border-slate-700">
                                     <button
-                                        onClick={() => patchInvoice({ paymentMethod: 'credit' })}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'credit'
-                                            ? 'bg-emerald-500 text-white shadow shadow-emerald-500/20'
-                                            : 'text-slate-500 hover:text-slate-700'
-                                            }`}
+                                        onClick={() =>
+                                            patchInvoice({
+                                                paymentMethod: "credit",
+                                            })
+                                        }
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${
+                                            currentInvoice.paymentMethod ===
+                                            "credit"
+                                                ? "bg-emerald-500 text-white shadow shadow-emerald-500/20"
+                                                : "text-slate-500 hover:text-slate-700"
+                                        }`}
                                     >
                                         <CreditCard size={12} /> CREDIT
                                     </button>
                                     <button
-                                        onClick={() => patchInvoice({ paymentMethod: 'cash' })}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${currentInvoice.paymentMethod === 'cash'
-                                            ? 'bg-orange-500 text-white shadow shadow-orange-500/20'
-                                            : 'text-slate-500 hover:text-slate-700'
-                                            }`}
+                                        onClick={() =>
+                                            patchInvoice({
+                                                paymentMethod: "cash",
+                                            })
+                                        }
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black flex items-center gap-1.5 transition-all ${
+                                            currentInvoice.paymentMethod ===
+                                            "cash"
+                                                ? "bg-orange-500 text-white shadow shadow-orange-500/20"
+                                                : "text-slate-500 hover:text-slate-700"
+                                        }`}
                                     >
                                         <Banknote size={12} /> CASH
                                     </button>
@@ -1078,47 +1364,72 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
                                 {/* Payment Account Dropdown */}
                                 <div className="relative group/accounts">
-                                    <button
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black min-w-[120px] justify-between"
-                                    >
+                                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black min-w-[120px] justify-between">
                                         <span className="flex items-center gap-1.5 truncate">
-                                            <Wallet size={12} className="text-indigo-500" />
-                                            {currentInvoice.selectedBankName || accounts.find(a => a.id === (currentInvoice.paymentAccountId || 1))?.name || 'Cash in Hand'}
+                                            <Wallet
+                                                size={12}
+                                                className="text-indigo-500"
+                                            />
+                                            {currentInvoice.selectedBankName ||
+                                                accounts.find(
+                                                    (a) =>
+                                                        a.id ===
+                                                        (currentInvoice.paymentAccountId ||
+                                                            1),
+                                                )?.name ||
+                                                "Cash in Hand"}
                                         </span>
-                                        <ChevronRight size={12} className="rotate-90 text-slate-400" />
+                                        <ChevronRight
+                                            size={12}
+                                            className="rotate-90 text-slate-400"
+                                        />
                                     </button>
 
                                     <div className="absolute top-full pt-2 right-0 w-48 z-50 overflow-hidden hidden group-hover/accounts:block animate-in fade-in slide-in-from-top-2">
                                         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 overflow-hidden">
                                             <div className="p-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50">
-                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Deposit To</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase">
+                                                    Deposit To
+                                                </p>
                                             </div>
                                             <div className="max-h-48 overflow-y-auto custom-scrollbar p-1">
-                                                {accounts.map(acc => (
+                                                {accounts.map((acc) => (
                                                     <button
                                                         key={acc.id}
                                                         onClick={() => {
                                                             if (acc.isBank) {
                                                                 patchInvoice({
-                                                                    paymentAccountId: acc.realAccountId,
-                                                                    selectedBankName: acc.name,
-                                                                    paymentReference: `Deposited to: ${acc.name}`
+                                                                    paymentAccountId:
+                                                                        acc.realAccountId,
+                                                                    selectedBankName:
+                                                                        acc.name,
+                                                                    paymentReference: `Deposited to: ${acc.name}`,
                                                                 });
                                                             } else {
                                                                 patchInvoice({
-                                                                    paymentAccountId: acc.id,
-                                                                    selectedBankName: null, // Clear explicit bank name
-                                                                    paymentReference: ''
+                                                                    paymentAccountId:
+                                                                        acc.id,
+                                                                    selectedBankName:
+                                                                        null, // Clear explicit bank name
+                                                                    paymentReference:
+                                                                        "",
                                                                 });
                                                             }
                                                         }}
-                                                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-between ${(currentInvoice.paymentAccountId || 1) === acc.id
-                                                            ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400'
-                                                            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
-                                                            }`}
+                                                        className={`w-full text-left px-3 py-2 rounded-lg text-xs font-bold transition-colors flex items-center justify-between ${
+                                                            (currentInvoice.paymentAccountId ||
+                                                                1) === acc.id
+                                                                ? "bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400"
+                                                                : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                                                        }`}
                                                     >
                                                         <span>{acc.name}</span>
-                                                        {(currentInvoice.paymentAccountId || 1) === acc.id && <CheckCircle2 size={12} />}
+                                                        {(currentInvoice.paymentAccountId ||
+                                                            1) === acc.id && (
+                                                            <CheckCircle2
+                                                                size={12}
+                                                            />
+                                                        )}
                                                     </button>
                                                 ))}
                                             </div>
@@ -1137,14 +1448,20 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                 {/* Text Size Toggle */}
                                 <div className="relative">
                                     <button
-                                        onClick={() => setShowTextSizeMenu(!showTextSizeMenu)}
-                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-[10px] font-black ${textSize > 1
-                                            ? 'bg-purple-500 text-white border-purple-500 shadow shadow-purple-500/20'
-                                            : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30'
-                                            }`}
+                                        onClick={() =>
+                                            setShowTextSizeMenu(
+                                                !showTextSizeMenu,
+                                            )
+                                        }
+                                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all border text-[10px] font-black ${
+                                            textSize > 1
+                                                ? "bg-purple-500 text-white border-purple-500 shadow shadow-purple-500/20"
+                                                : "bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                                        }`}
                                         title="Change Text Size"
                                     >
-                                        <Type size={12} /> Aa+ {textSize > 1 && `(${textSize})`}
+                                        <Type size={12} /> Aa+{" "}
+                                        {textSize > 1 && `(${textSize})`}
                                     </button>
 
                                     {showTextSizeMenu && (
@@ -1152,10 +1469,23 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                             {[1, 2, 3, 4, 5].map((size) => (
                                                 <button
                                                     key={size}
-                                                    onClick={() => { setTextSize(size); setShowTextSizeMenu(false); }}
-                                                    className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${textSize === size ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-600' : 'text-slate-600 dark:text-slate-300'}`}
+                                                    onClick={() => {
+                                                        setTextSize(size);
+                                                        setShowTextSizeMenu(
+                                                            false,
+                                                        );
+                                                    }}
+                                                    className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${textSize === size ? "bg-purple-50 dark:bg-purple-900/20 text-purple-600" : "text-slate-600 dark:text-slate-300"}`}
                                                 >
-                                                    {size === 1 ? 'Normal' : size === 2 ? 'Large' : size === 3 ? 'Larger' : size === 4 ? 'Senior' : 'Max'}
+                                                    {size === 1
+                                                        ? "Normal"
+                                                        : size === 2
+                                                          ? "Large"
+                                                          : size === 3
+                                                            ? "Larger"
+                                                            : size === 4
+                                                              ? "Senior"
+                                                              : "Max"}
                                                 </button>
                                             ))}
                                         </div>
@@ -1177,13 +1507,27 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                 <thead>
                                     <tr className="text-left text-xs font-bold text-slate-400 uppercase tracking-wide">
                                         <th className="pb-2 w-8"></th>
-                                        <th className="pb-2 pl-3 w-10 text-center">#</th>
-                                        <th className="pb-2">Item Description</th>
-                                        <th className="pb-2 w-20 text-center">Qty</th>
-                                        <th className="pb-2 w-20 text-center text-xs text-emerald-600">Free</th>
-                                        <th className="pb-2 w-28 text-right">Price</th>
-                                        <th className="pb-2 w-32 text-right">Discount</th>
-                                        <th className="pb-2 w-28 text-right">Total</th>
+                                        <th className="pb-2 pl-3 w-10 text-center">
+                                            #
+                                        </th>
+                                        <th className="pb-2">
+                                            Item Description
+                                        </th>
+                                        <th className="pb-2 w-20 text-center">
+                                            Qty
+                                        </th>
+                                        <th className="pb-2 w-20 text-center text-xs text-emerald-600">
+                                            Free
+                                        </th>
+                                        <th className="pb-2 w-28 text-right">
+                                            Price
+                                        </th>
+                                        <th className="pb-2 w-32 text-right">
+                                            Discount
+                                        </th>
+                                        <th className="pb-2 w-28 text-right">
+                                            Total
+                                        </th>
                                         <th className="pb-2 w-10"></th>
                                     </tr>
                                 </thead>
@@ -1193,22 +1537,41 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                             <td className="py-3"></td>
                                             <td className="py-3 pl-3">
                                                 <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex items-center justify-center">
-                                                    <Zap size={16} className="text-indigo-600" />
+                                                    <Zap
+                                                        size={16}
+                                                        className="text-indigo-600"
+                                                    />
                                                 </div>
                                             </td>
                                             <td className="py-3 relative">
                                                 <AsyncProductCombobox
-                                                    selectedItem={quickEntry.product}
-                                                    onSelect={selectQuickProduct}
+                                                    selectedItem={
+                                                        quickEntry.product
+                                                    }
+                                                    onSelect={
+                                                        selectQuickProduct
+                                                    }
                                                     onCreateNew={(name) => {
-                                                        setProductModalMode('create');
-                                                        setEditingProduct({ name });
-                                                        setIsProductModalOpen(true);
+                                                        setProductModalMode(
+                                                            "create",
+                                                        );
+                                                        setEditingProduct({
+                                                            name,
+                                                        });
+                                                        setIsProductModalOpen(
+                                                            true,
+                                                        );
                                                     }}
                                                     onEdit={(product) => {
-                                                        setEditingProduct(product);
-                                                        setProductModalMode('edit');
-                                                        setIsProductModalOpen(true);
+                                                        setEditingProduct(
+                                                            product,
+                                                        );
+                                                        setProductModalMode(
+                                                            "edit",
+                                                        );
+                                                        setIsProductModalOpen(
+                                                            true,
+                                                        );
                                                     }}
                                                     placeholder="Quick Add Product..."
                                                     addNewLabel="Add New Product"
@@ -1220,21 +1583,51 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                     ref={quantityRef}
                                                     type="number"
                                                     value={quickEntry.quantity}
-                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
+                                                    onChange={(e) =>
+                                                        setQuickEntry(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                quantity:
+                                                                    parseFloat(
+                                                                        e.target
+                                                                            .value,
+                                                                    ) || 0,
+                                                            }),
+                                                        )
+                                                    }
                                                     onKeyDown={(e) => {
-                                                        if (e.key === 'Enter') discountRef.current?.focus();
+                                                        if (e.key === "Enter")
+                                                            discountRef.current?.focus();
                                                     }}
-                                                    onFocus={() => setQuickResults([])}
+                                                    onFocus={() =>
+                                                        setQuickResults([])
+                                                    }
                                                     className="w-16 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 outline-none"
                                                 />
                                             </td>
                                             <td className="py-3 text-center">
                                                 <input
                                                     type="number"
-                                                    value={quickEntry.freeQuantity || ''}
+                                                    value={
+                                                        quickEntry.freeQuantity ||
+                                                        ""
+                                                    }
                                                     placeholder="0"
-                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, freeQuantity: parseFloat(e.target.value) || 0 }))}
-                                                    onFocus={() => setQuickResults([])}
+                                                    onChange={(e) =>
+                                                        setQuickEntry(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                freeQuantity:
+                                                                    parseFloat(
+                                                                        e.target
+                                                                            .value,
+                                                                    ) || 0,
+                                                            }),
+                                                        )
+                                                    }
+                                                    onFocus={() =>
+                                                        setQuickResults([])
+                                                    }
                                                     className="w-16 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/30 rounded-lg text-center text-sm font-bold text-emerald-600 dark:text-emerald-400 py-2 focus:ring-2 ring-emerald-500/20 outline-none placeholder-emerald-300"
                                                 />
                                             </td>
@@ -1242,9 +1635,25 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 <input
                                                     type="number"
                                                     value={quickEntry.price}
-                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
-                                                    onFocus={() => setQuickResults([])}
-                                                    onKeyDown={(e) => e.key === 'Enter' && addQuickItem()}
+                                                    onChange={(e) =>
+                                                        setQuickEntry(
+                                                            (prev) => ({
+                                                                ...prev,
+                                                                price:
+                                                                    parseFloat(
+                                                                        e.target
+                                                                            .value,
+                                                                    ) || 0,
+                                                            }),
+                                                        )
+                                                    }
+                                                    onFocus={() =>
+                                                        setQuickResults([])
+                                                    }
+                                                    onKeyDown={(e) =>
+                                                        e.key === "Enter" &&
+                                                        addQuickItem()
+                                                    }
                                                     className="w-24 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 outline-none"
                                                 />
                                             </td>
@@ -1253,20 +1662,51 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                     <input
                                                         ref={discountRef}
                                                         type="number"
-                                                        value={quickEntry.discount}
-                                                        onChange={(e) => setQuickEntry(prev => ({ ...prev, discount: parseFloat(e.target.value) || 0 }))}
-                                                        onFocus={() => setQuickResults([])}
-                                                        onKeyDown={(e) => e.key === 'Enter' && addQuickItem()}
+                                                        value={
+                                                            quickEntry.discount
+                                                        }
+                                                        onChange={(e) =>
+                                                            setQuickEntry(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    discount:
+                                                                        parseFloat(
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        ) || 0,
+                                                                }),
+                                                            )
+                                                        }
+                                                        onFocus={() =>
+                                                            setQuickResults([])
+                                                        }
+                                                        onKeyDown={(e) =>
+                                                            e.key === "Enter" &&
+                                                            addQuickItem()
+                                                        }
                                                         className="w-20 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 outline-none"
                                                     />
                                                     <button
                                                         onClick={() => {
                                                             setQuickResults([]);
-                                                            setQuickEntry(prev => ({ ...prev, discountType: prev.discountType === 'fixed' ? 'percent' : 'fixed' }));
+                                                            setQuickEntry(
+                                                                (prev) => ({
+                                                                    ...prev,
+                                                                    discountType:
+                                                                        prev.discountType ===
+                                                                        "fixed"
+                                                                            ? "percent"
+                                                                            : "fixed",
+                                                                }),
+                                                            );
                                                         }}
-                                                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
+                                                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === "percent" ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"}`}
                                                     >
-                                                        {quickEntry.discountType === 'percent' ? '%' : 'Rs'}
+                                                        {quickEntry.discountType ===
+                                                        "percent"
+                                                            ? "%"
+                                                            : "Rs"}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1286,10 +1726,10 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     {currentInvoice.items.map((item, idx) => (
                                         <tr
                                             key={item.id}
-                                            className={`group animate-in fade-in duration-200 ${draggedItemIndex === idx ? 'opacity-50' : ''}`}
+                                            className={`group animate-in fade-in duration-200 ${draggedItemIndex === idx ? "opacity-50" : ""}`}
                                             draggable
                                             onDragStart={(e) => {
-                                                // Prevent drag unless handle is targeted - handled by grip logic below essentially, 
+                                                // Prevent drag unless handle is targeted - handled by grip logic below essentially,
                                                 // but HTML5 drag starts on the element.
                                                 // We need to check if the target was the grip.
                                                 // Actually, strictly setting draggable={false} on TR if not gripping is hard.
@@ -1297,7 +1737,9 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 // Better: Add draggable only to the handle TD? No, TR moves.
                                                 // Sol: dragging the TR but only if handle is held.
                                             }}
-                                            onDragOver={(e) => handleDragOver(e, idx)}
+                                            onDragOver={(e) =>
+                                                handleDragOver(e, idx)
+                                            }
                                             onDragEnd={handleDragEnd}
                                         >
                                             {/* Drag Handle - Strict */}
@@ -1305,14 +1747,23 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 className="bg-slate-50 dark:bg-slate-800/50 rounded-l-xl py-3 pl-2 cursor-ns-resize group-active:cursor-grabbing"
                                                 onMouseDown={(e) => {
                                                     // Enable Drag Scope
-                                                    e.currentTarget.parentElement.setAttribute('draggable', 'true');
+                                                    e.currentTarget.parentElement.setAttribute(
+                                                        "draggable",
+                                                        "true",
+                                                    );
                                                 }}
                                                 onMouseUp={(e) => {
-                                                    e.currentTarget.parentElement.setAttribute('draggable', 'false');
+                                                    e.currentTarget.parentElement.setAttribute(
+                                                        "draggable",
+                                                        "false",
+                                                    );
                                                 }}
-                                            // Initial state non-draggable row, enabled only on grip mousedown
+                                                // Initial state non-draggable row, enabled only on grip mousedown
                                             >
-                                                <GripVertical size={16} className="text-slate-300 hover:text-slate-500 transition-colors" />
+                                                <GripVertical
+                                                    size={16}
+                                                    className="text-slate-300 hover:text-slate-500 transition-colors"
+                                                />
                                             </td>
                                             {/* Row Number */}
                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-sm font-bold text-slate-400 text-center">
@@ -1321,16 +1772,33 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 relative px-2">
                                                 <AsyncProductCombobox
                                                     selectedItem={item.product}
-                                                    onSelect={(product) => selectProduct(product, item.id)}
+                                                    onSelect={(product) =>
+                                                        selectProduct(
+                                                            product,
+                                                            item.id,
+                                                        )
+                                                    }
                                                     onCreateNew={(name) => {
-                                                        setEditingProduct({ name });
-                                                        setProductModalMode('create');
-                                                        setIsProductModalOpen(true);
+                                                        setEditingProduct({
+                                                            name,
+                                                        });
+                                                        setProductModalMode(
+                                                            "create",
+                                                        );
+                                                        setIsProductModalOpen(
+                                                            true,
+                                                        );
                                                     }}
                                                     onEdit={(product) => {
-                                                        setEditingProduct(product);
-                                                        setProductModalMode('edit');
-                                                        setIsProductModalOpen(true);
+                                                        setEditingProduct(
+                                                            product,
+                                                        );
+                                                        setProductModalMode(
+                                                            "edit",
+                                                        );
+                                                        setIsProductModalOpen(
+                                                            true,
+                                                        );
                                                     }}
                                                     placeholder="Search item..."
                                                     addNewLabel="Create New Product"
@@ -1342,23 +1810,56 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 <div className="relative flex flex-col items-center">
                                                     <WheelInput
                                                         type="number"
-                                                        value={item.quantity ?? 1}
-                                                        onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                        value={
+                                                            item.quantity ?? 1
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                item.id,
+                                                                "quantity",
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ) || 0,
+                                                            )
+                                                        }
                                                         onWheel={(e) => {
                                                             e.preventDefault();
-                                                            const delta = e.deltaY < 0 ? 1 : -1;
-                                                            updateItem(item.id, 'quantity', Math.max(1, (parseFloat(item.quantity) || 0) + delta));
+                                                            const delta =
+                                                                e.deltaY < 0
+                                                                    ? 1
+                                                                    : -1;
+                                                            updateItem(
+                                                                item.id,
+                                                                "quantity",
+                                                                Math.max(
+                                                                    1,
+                                                                    (parseFloat(
+                                                                        item.quantity,
+                                                                    ) || 0) +
+                                                                        delta,
+                                                                ),
+                                                            );
                                                         }}
                                                         onFocus={(e) => {
                                                             e.target.select();
-                                                            setActiveItemIndex(null);
-                                                            setProductResults([]);
+                                                            setActiveItemIndex(
+                                                                null,
+                                                            );
+                                                            setProductResults(
+                                                                [],
+                                                            );
                                                         }}
                                                         className="w-16 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
                                                     />
                                                     {item.product && (
-                                                        <span className={`absolute -bottom-4 text-[10px] font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
-                                                            (Avail: {item.available_stock || 0})
+                                                        <span
+                                                            className={`absolute -bottom-4 text-[10px] font-bold whitespace-nowrap ${item.available_stock > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-500"}`}
+                                                        >
+                                                            (Avail:{" "}
+                                                            {item.available_stock ||
+                                                                0}
+                                                            )
                                                         </span>
                                                     )}
                                                 </div>
@@ -1367,13 +1868,35 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center">
                                                 <WheelInput
                                                     type="number"
-                                                    value={item.freeQuantity || ''}
+                                                    value={
+                                                        item.freeQuantity || ""
+                                                    }
                                                     placeholder="0"
-                                                    onChange={(e) => updateItem(item.id, 'freeQuantity', parseFloat(e.target.value) || 0)}
+                                                    onChange={(e) =>
+                                                        updateItem(
+                                                            item.id,
+                                                            "freeQuantity",
+                                                            parseFloat(
+                                                                e.target.value,
+                                                            ) || 0,
+                                                        )
+                                                    }
                                                     onWheel={(e) => {
                                                         e.preventDefault();
-                                                        const delta = e.deltaY < 0 ? 1 : -1;
-                                                        updateItem(item.id, 'freeQuantity', Math.max(0, (parseFloat(item.freeQuantity) || 0) + delta));
+                                                        const delta =
+                                                            e.deltaY < 0
+                                                                ? 1
+                                                                : -1;
+                                                        updateItem(
+                                                            item.id,
+                                                            "freeQuantity",
+                                                            Math.max(
+                                                                0,
+                                                                (parseFloat(
+                                                                    item.freeQuantity,
+                                                                ) || 0) + delta,
+                                                            ),
+                                                        );
                                                     }}
                                                     className="w-16 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/50 dark:border-emerald-800/30 rounded-lg text-center text-sm font-bold text-emerald-600 dark:text-emerald-400 py-2 focus:ring-2 ring-emerald-500/20 transition-all placeholder-emerald-300/50"
                                                 />
@@ -1383,16 +1906,43 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 <WheelInput
                                                     type="number"
                                                     value={item.price ?? 0}
-                                                    onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                                                    onChange={(e) =>
+                                                        updateItem(
+                                                            item.id,
+                                                            "price",
+                                                            parseFloat(
+                                                                e.target.value,
+                                                            ) || 0,
+                                                        )
+                                                    }
                                                     onWheel={(e) => {
                                                         e.preventDefault();
-                                                        const delta = e.deltaY < 0 ? 1 : -1;
-                                                        const step = item.price >= 100 ? 10 : 1;
-                                                        updateItem(item.id, 'price', Math.max(0, (parseFloat(item.price) || 0) + (delta * step)));
+                                                        const delta =
+                                                            e.deltaY < 0
+                                                                ? 1
+                                                                : -1;
+                                                        const step =
+                                                            item.price >= 100
+                                                                ? 10
+                                                                : 1;
+                                                        updateItem(
+                                                            item.id,
+                                                            "price",
+                                                            Math.max(
+                                                                0,
+                                                                (parseFloat(
+                                                                    item.price,
+                                                                ) || 0) +
+                                                                    delta *
+                                                                        step,
+                                                            ),
+                                                        );
                                                     }}
                                                     onFocus={(e) => {
                                                         e.target.select();
-                                                        setActiveItemIndex(null);
+                                                        setActiveItemIndex(
+                                                            null,
+                                                        );
                                                         setProductResults([]);
                                                     }}
                                                     className="w-24 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
@@ -1403,56 +1953,152 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 <div className="flex items-center justify-end gap-2">
                                                     <WheelInput
                                                         type="number"
-                                                        value={item.discount ?? 0}
-                                                        onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                                                        value={
+                                                            item.discount ?? 0
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateItem(
+                                                                item.id,
+                                                                "discount",
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ) || 0,
+                                                            )
+                                                        }
                                                         onWheel={(e) => {
                                                             e.preventDefault();
-                                                            const delta = e.deltaY < 0 ? 1 : -1;
-                                                            const step = item.discountType === 'percent' ? 1 : (item.price >= 100 ? 5 : 1);
-                                                            updateItem(item.id, 'discount', Math.max(0, (parseFloat(item.discount) || 0) + (delta * step)));
+                                                            const delta =
+                                                                e.deltaY < 0
+                                                                    ? 1
+                                                                    : -1;
+                                                            const step =
+                                                                item.discountType ===
+                                                                "percent"
+                                                                    ? 1
+                                                                    : item.price >=
+                                                                        100
+                                                                      ? 5
+                                                                      : 1;
+                                                            updateItem(
+                                                                item.id,
+                                                                "discount",
+                                                                Math.max(
+                                                                    0,
+                                                                    (parseFloat(
+                                                                        item.discount,
+                                                                    ) || 0) +
+                                                                        delta *
+                                                                            step,
+                                                                ),
+                                                            );
                                                         }}
                                                         className="w-20 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
                                                     />
                                                     <button
-                                                        onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                                                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
+                                                        onClick={() =>
+                                                            updateItem(
+                                                                item.id,
+                                                                "discountType",
+                                                                item.discountType ===
+                                                                    "fixed"
+                                                                    ? "percent"
+                                                                    : "fixed",
+                                                            )
+                                                        }
+                                                        className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === "percent" ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-600"}`}
                                                     >
-                                                        {item.discountType === 'percent' ? '%' : 'Rs'}
+                                                        {item.discountType ===
+                                                        "percent"
+                                                            ? "%"
+                                                            : getCurrencySymbol()}
                                                     </button>
                                                 </div>
                                             </td>
-                                            {/* Total - Editable with mode toggle */}                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 pr-3 align-middle">
+                                            {/* Total - Editable with mode toggle */}{" "}
+                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 pr-3 align-middle">
                                                 <div className="flex items-center justify-end gap-1.5">
                                                     <button
-                                                        onClick={() => toggleItemTotalMode(item.id)}
-                                                        title={getItemTotalMode(item.id) === 'price' ? 'Recalculates: Price (scroll/click to change)' : 'Recalculates: Qty (scroll/click to change)'}
-                                                        className={`w-7 h-7 rounded-md text-[10px] font-black transition-all shrink-0 border flex items-center justify-center ${getItemTotalMode(item.id) === 'price'
-                                                            ? 'bg-indigo-600 text-white border-indigo-500 shadow shadow-indigo-500/30'
-                                                            : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
-                                                            }`}
+                                                        onClick={() =>
+                                                            toggleItemTotalMode(
+                                                                item.id,
+                                                            )
+                                                        }
+                                                        title={
+                                                            getItemTotalMode(
+                                                                item.id,
+                                                            ) === "price"
+                                                                ? "Recalculates: Price (scroll/click to change)"
+                                                                : "Recalculates: Qty (scroll/click to change)"
+                                                        }
+                                                        className={`w-7 h-7 rounded-md text-[10px] font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                            getItemTotalMode(
+                                                                item.id,
+                                                            ) === "price"
+                                                                ? "bg-indigo-600 text-white border-indigo-500 shadow shadow-indigo-500/30"
+                                                                : "bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30"
+                                                        }`}
                                                     >
-                                                        {getItemTotalMode(item.id) === 'price' ? '₨' : '#'}
+                                                        {getItemTotalMode(
+                                                            item.id,
+                                                        ) === "price"
+                                                            ? store?.currency_symbol ||
+                                                              "₨"
+                                                            : "#"}
                                                     </button>
                                                     <WheelInput
                                                         type="number"
-                                                        value={parseFloat(calculateLineTotal(item).toFixed(2))}
-                                                        onChange={(e) => handleTotalChange(item, e.target.value)}
+                                                        value={parseFloat(
+                                                            calculateLineTotal(
+                                                                item,
+                                                            ).toFixed(2),
+                                                        )}
+                                                        onChange={(e) =>
+                                                            handleTotalChange(
+                                                                item,
+                                                                e.target.value,
+                                                            )
+                                                        }
                                                         onWheel={(e) => {
                                                             e.preventDefault();
-                                                            const delta = e.deltaY < 0 ? 1 : -1;
-                                                            const currentTotal = calculateLineTotal(item);
-                                                            const step = currentTotal >= 100 ? 10 : 1;
-                                                            handleTotalChange(item, String(Math.max(0, currentTotal + (delta * step))));
+                                                            const delta =
+                                                                e.deltaY < 0
+                                                                    ? 1
+                                                                    : -1;
+                                                            const currentTotal =
+                                                                calculateLineTotal(
+                                                                    item,
+                                                                );
+                                                            const step =
+                                                                currentTotal >=
+                                                                100
+                                                                    ? 10
+                                                                    : 1;
+                                                            handleTotalChange(
+                                                                item,
+                                                                String(
+                                                                    Math.max(
+                                                                        0,
+                                                                        currentTotal +
+                                                                            delta *
+                                                                                step,
+                                                                    ),
+                                                                ),
+                                                            );
                                                         }}
-                                                        onFocus={(e) => e.target.select()}
+                                                        onFocus={(e) =>
+                                                            e.target.select()
+                                                        }
                                                         className="w-24 bg-white dark:bg-slate-700 border border-indigo-300 dark:border-indigo-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/30 transition-all text-slate-800 dark:text-white no-spinner"
                                                     />
                                                 </div>
-                                             </td>
+                                            </td>
                                             {/* Delete */}
                                             <td className="bg-slate-50 dark:bg-slate-800/50 rounded-r-xl py-3 pr-3 align-middle">
                                                 <button
-                                                    onClick={() => removeItem(item.id)}
+                                                    onClick={() =>
+                                                        removeItem(item.id)
+                                                    }
                                                     className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                                                 >
                                                     <Trash2 size={16} />
@@ -1476,38 +2122,73 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
                     {/* RIGHT SECTION - Side Info Panel */}
                     <div className="w-80 bg-[#1a1d2e] flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800">
-
                         {/* Customer Summary Section - Text Size Responsive */}
                         <div className="p-4 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
                             {currentInvoice.customer ? (
                                 <div className="space-y-3">
                                     <div className="flex items-center gap-3">
-                                        <div className={`rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0 ${textSize >= 4 ? 'w-16 h-16 text-xl' : textSize >= 3 ? 'w-14 h-14 text-lg' : 'w-12 h-12 text-lg'}`}>
-                                            {currentInvoice.customer.name.charAt(0)}
+                                        <div
+                                            className={`rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shrink-0 ${textSize >= 4 ? "w-16 h-16 text-xl" : textSize >= 3 ? "w-14 h-14 text-lg" : "w-12 h-12 text-lg"}`}
+                                        >
+                                            {currentInvoice.customer.name.charAt(
+                                                0,
+                                            )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-white font-bold truncate ${textSize >= 4 ? 'text-lg' : textSize >= 3 ? 'text-base' : 'text-sm'}`}>{currentInvoice.customer.name}</p>
-                                            <p className={`text-slate-400 font-medium ${textSize >= 4 ? 'text-sm' : textSize >= 3 ? 'text-xs' : 'text-[10px]'}`}>{currentInvoice.customer.phone || 'No Phone'}</p>
+                                            <p
+                                                className={`text-white font-bold truncate ${textSize >= 4 ? "text-lg" : textSize >= 3 ? "text-base" : "text-sm"}`}
+                                            >
+                                                {currentInvoice.customer.name}
+                                            </p>
+                                            <p
+                                                className={`text-slate-400 font-medium ${textSize >= 4 ? "text-sm" : textSize >= 3 ? "text-xs" : "text-[10px]"}`}
+                                            >
+                                                {currentInvoice.customer
+                                                    .phone || "No Phone"}
+                                            </p>
                                         </div>
                                         <button
-                                            onClick={() => { patchInvoice({ customer: null }); setCustomerSearch(''); }}
+                                            onClick={() => {
+                                                patchInvoice({
+                                                    customer: null,
+                                                });
+                                                setCustomerSearch("");
+                                            }}
                                             className="text-slate-600 hover:text-red-400 p-1.5 hover:bg-red-400/10 rounded-lg transition-all shrink-0"
                                         >
                                             <X size={16} />
                                         </button>
                                     </div>
                                     {/* Balance & Address */}
-                                    <div className={`space-y-1 bg-slate-800/30 rounded-lg p-2 ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>
+                                    <div
+                                        className={`space-y-1 bg-slate-800/30 rounded-lg p-2 ${textSize >= 3 ? "text-sm" : "text-xs"}`}
+                                    >
                                         <div className="flex justify-between items-center">
-                                            <span className="text-slate-500 font-medium">Balance:</span>
-                                            <span className={`font-black ${currentInvoice.customer.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {currentInvoice.customer.current_balance >= 0 ? '$ ' : '-Rs '}{Math.abs(currentInvoice.customer.current_balance || 0).toLocaleString()}
+                                            <span className="text-slate-500 font-medium">
+                                                Balance:
+                                            </span>
+                                            <span
+                                                className={`font-black ${currentInvoice.customer.current_balance >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                                            >
+                                                {currentInvoice.customer
+                                                    .current_balance >= 0
+                                                    ? getCurrencySymbol()
+                                                    : `-${getCurrencySymbol()} `}
+                                                {Math.abs(
+                                                    currentInvoice.customer
+                                                        .current_balance || 0,
+                                                ).toLocaleString()}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-start gap-2">
-                                            <span className="text-slate-500 font-medium shrink-0">Address:</span>
-                                            <span className={`text-right ${currentInvoice.customer.address ? 'text-slate-300' : 'text-slate-600 italic'}`}>
-                                                {currentInvoice.customer.address || 'Not set'}
+                                            <span className="text-slate-500 font-medium shrink-0">
+                                                Address:
+                                            </span>
+                                            <span
+                                                className={`text-right ${currentInvoice.customer.address ? "text-slate-300" : "text-slate-600 italic"}`}
+                                            >
+                                                {currentInvoice.customer
+                                                    .address || "Not set"}
                                             </span>
                                         </div>
                                     </div>
@@ -1517,7 +2198,11 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     <div className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-2 text-slate-500">
                                         <User size={20} />
                                     </div>
-                                    <p className={`text-slate-400 font-bold ${textSize >= 3 ? 'text-sm' : 'text-xs'}`}>No Customer Selected</p>
+                                    <p
+                                        className={`text-slate-400 font-bold ${textSize >= 3 ? "text-sm" : "text-xs"}`}
+                                    >
+                                        No Customer Selected
+                                    </p>
                                 </div>
                             )}
                         </div>
@@ -1527,21 +2212,35 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                             {/* Invoice # & Date Row */}
                             <div className="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Invoice #</label>
+                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">
+                                        Invoice #
+                                    </label>
                                     <input
                                         type="text"
-                                        value={currentInvoice.invoiceNumber || ''}
-                                        onChange={(e) => patchInvoice({ invoiceNumber: e.target.value })}
+                                        value={
+                                            currentInvoice.invoiceNumber || ""
+                                        }
+                                        onChange={(e) =>
+                                            patchInvoice({
+                                                invoiceNumber: e.target.value,
+                                            })
+                                        }
                                         className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                         placeholder="INV-000001"
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Date</label>
+                                    <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">
+                                        Date
+                                    </label>
                                     <input
                                         type="date"
-                                        value={currentInvoice.date || ''}
-                                        onChange={(e) => patchInvoice({ date: e.target.value })}
+                                        value={currentInvoice.date || ""}
+                                        onChange={(e) =>
+                                            patchInvoice({
+                                                date: e.target.value,
+                                            })
+                                        }
                                         className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                     />
                                 </div>
@@ -1549,10 +2248,18 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
                             {/* Terms Row */}
                             <div>
-                                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Terms</label>
+                                <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">
+                                    Terms
+                                </label>
                                 <select
-                                    value={currentInvoice.paymentTerms || 'net30'}
-                                    onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
+                                    value={
+                                        currentInvoice.paymentTerms || "net30"
+                                    }
+                                    onChange={(e) =>
+                                        patchInvoice({
+                                            paymentTerms: e.target.value,
+                                        })
+                                    }
                                     className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                 >
                                     <option value="immediate">Immediate</option>
@@ -1564,7 +2271,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                             </div>
 
                             {/* CHEQUE DETAILS - Conditional */}
-                            {currentInvoice.paymentAccountId === 'CHEQUE' && (
+                            {currentInvoice.paymentAccountId === "CHEQUE" && (
                                 <div className="grid grid-cols-2 gap-2 p-2 bg-indigo-500/10 rounded-lg border border-indigo-500/30 animate-in slide-in-from-top-2">
                                     <div className="col-span-2">
                                         <p className="text-[10px] text-indigo-400 font-black uppercase mb-2 flex items-center gap-1">
@@ -1572,50 +2279,90 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque No</label>
+                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">
+                                            Cheque No
+                                        </label>
                                         <input
                                             type="text"
-                                            value={currentInvoice.paymentReference || ''}
-                                            onChange={(e) => patchInvoice({ paymentReference: e.target.value })}
+                                            value={
+                                                currentInvoice.paymentReference ||
+                                                ""
+                                            }
+                                            onChange={(e) =>
+                                                patchInvoice({
+                                                    paymentReference:
+                                                        e.target.value,
+                                                })
+                                            }
                                             className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder-slate-600"
                                             placeholder="XXXXXX"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">Cheque Date</label>
+                                        <label className="text-[9px] text-slate-500 font-bold uppercase block mb-1">
+                                            Cheque Date
+                                        </label>
                                         <input
                                             type="date"
-                                            value={currentInvoice.chequeDate || new Date().toISOString().split('T')[0]}
-                                            onChange={(e) => patchInvoice({ chequeDate: e.target.value })}
+                                            value={
+                                                currentInvoice.chequeDate ||
+                                                new Date()
+                                                    .toISOString()
+                                                    .split("T")[0]
+                                            }
+                                            onChange={(e) =>
+                                                patchInvoice({
+                                                    chequeDate: e.target.value,
+                                                })
+                                            }
                                             className="w-full bg-slate-800/50 border border-slate-700/50 rounded-lg px-2 py-1.5 text-white text-[10px] font-bold focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 transition-all"
                                         />
                                     </div>
                                 </div>
                             )}
 
-
-
                             {/* Financial Summary - Bigger */}
                             <div className="space-y-2 pt-3 border-t border-slate-800/50">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-xs text-slate-400 font-bold">Subtotal</span>
-                                    <span className="text-white font-bold text-base">Rs {subtotal.toLocaleString()}</span>
+                                    <span className="text-xs text-slate-400 font-bold">
+                                        Subtotal
+                                    </span>
+                                    <span className="text-white font-bold text-base">
+                                        {getCurrencySymbol()}{" "}
+                                        {subtotal.toLocaleString()}
+                                    </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-xs text-slate-400 font-bold">Item Discounts</span>
-                                    <span className="text-red-400 font-bold text-sm">- Rs {itemDiscounts.toLocaleString()}</span>
+                                    <span className="text-xs text-slate-400 font-bold">
+                                        Item Discounts
+                                    </span>
+                                    <span className="text-red-400 font-bold text-sm">
+                                        - {getCurrencySymbol()}{" "}
+                                        {itemDiscounts.toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 
                             {/* Discount Row */}
                             <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
-                                <span className="text-xs text-slate-400 font-bold">Invoice Discount</span>
+                                <span className="text-xs text-slate-400 font-bold">
+                                    Invoice Discount
+                                </span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-slate-500 text-xs">Rs</span>
+                                    <span className="text-slate-500 text-xs">
+                                        {getCurrencySymbol()}
+                                    </span>
                                     <input
                                         type="number"
                                         value={currentInvoice.discount ?? 0}
-                                        onChange={(e) => patchInvoice({ discount: parseFloat(e.target.value) || 0 })}
+                                        onChange={(e) =>
+                                            patchInvoice({
+                                                discount:
+                                                    parseFloat(
+                                                        e.target.value,
+                                                    ) || 0,
+                                            })
+                                        }
                                         className="w-20 bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-indigo-500/20 transition-all"
                                         placeholder="0"
                                     />
@@ -1624,29 +2371,54 @@ const CreateProposal = ({ proposal, existingProposal }) => {
 
                             {/* Tax Row */}
                             <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
-                                <span className="text-xs text-slate-400 font-bold">Tax</span>
+                                <span className="text-xs text-slate-400 font-bold">
+                                    Tax
+                                </span>
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="number"
                                         value={currentInvoice.tax ?? 0}
-                                        onChange={(e) => patchInvoice({ tax: parseFloat(e.target.value) || 0 })}
+                                        onChange={(e) =>
+                                            patchInvoice({
+                                                tax:
+                                                    parseFloat(
+                                                        e.target.value,
+                                                    ) || 0,
+                                            })
+                                        }
                                         className="w-16 bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-indigo-500/20 transition-all"
                                         placeholder="0"
                                     />
-                                    <span className="text-slate-500 text-xs">%</span>
+                                    <span className="text-slate-500 text-xs">
+                                        %
+                                    </span>
                                 </div>
                             </div>
 
                             {/* Delivery Charge Row - Conditional */}
                             {showDeliveryCharges && (
                                 <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
-                                    <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
+                                    <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">
+                                        Delivery Charges
+                                    </span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-[10px]">Rs</span>
+                                        <span className="text-slate-600 text-[10px]">
+                                            {getCurrencySymbol()}
+                                        </span>
                                         <input
                                             type="number"
-                                            value={currentInvoice.delivery_charge ?? 0}
-                                            onChange={(e) => patchInvoice({ delivery_charge: parseFloat(e.target.value) || 0 })}
+                                            value={
+                                                currentInvoice.delivery_charge ??
+                                                0
+                                            }
+                                            onChange={(e) =>
+                                                patchInvoice({
+                                                    delivery_charge:
+                                                        parseFloat(
+                                                            e.target.value,
+                                                        ) || 0,
+                                                })
+                                            }
                                             className="w-20 bg-transparent border-b border-dashed border-slate-700 hover:border-indigo-500 transition-all text-xs font-bold text-slate-300 text-right focus:ring-0 focus:border-indigo-500"
                                             placeholder="0"
                                         />
@@ -1659,65 +2431,168 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                 <>
                                     {!enableMultipleExtras ? (
                                         /* Single Extra Field Mode */
-                                        (<div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
+                                        <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
                                             <div className="flex items-center gap-1">
                                                 <input
                                                     type="text"
-                                                    value={currentInvoice.extra_charge_label ?? ''}
-                                                    onChange={(e) => patchInvoice({ extra_charge_label: e.target.value })}
+                                                    value={
+                                                        currentInvoice.extra_charge_label ??
+                                                        ""
+                                                    }
+                                                    onChange={(e) =>
+                                                        patchInvoice({
+                                                            extra_charge_label:
+                                                                e.target.value,
+                                                        })
+                                                    }
                                                     className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                                                     placeholder="Extra"
                                                 />
-                                                <span className="text-[10px] text-slate-700">✎</span>
+                                                <span className="text-[10px] text-slate-700">
+                                                    ✎
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-600 text-[10px]">Rs</span>
+                                                <span className="text-slate-600 text-[10px]">
+                                                    {getCurrencySymbol()}
+                                                </span>
                                                 <input
                                                     type="number"
-                                                    value={currentInvoice.extra_charge_value ?? 0}
-                                                    onChange={(e) => patchInvoice({ extra_charge_value: parseFloat(e.target.value) || 0 })}
+                                                    value={
+                                                        currentInvoice.extra_charge_value ??
+                                                        0
+                                                    }
+                                                    onChange={(e) =>
+                                                        patchInvoice({
+                                                            extra_charge_value:
+                                                                parseFloat(
+                                                                    e.target
+                                                                        .value,
+                                                                ) || 0,
+                                                        })
+                                                    }
                                                     className="w-20 bg-transparent border-b border-dashed border-slate-700 hover:border-indigo-500 transition-all text-xs font-bold text-slate-300 text-right focus:ring-0 focus:border-indigo-500"
                                                     placeholder="0"
                                                 />
                                             </div>
-                                        </div>)
+                                        </div>
                                     ) : (
                                         /* Multiple Extra Fields Mode */
-                                        (<div className="space-y-1">
-                                            {(currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }]).map((field, idx) => (
-                                                <div key={field.id || idx} className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
+                                        <div className="space-y-1">
+                                            {(
+                                                currentInvoice.extraFields || [
+                                                    {
+                                                        id: 1,
+                                                        label: "",
+                                                        value: 0,
+                                                    },
+                                                ]
+                                            ).map((field, idx) => (
+                                                <div
+                                                    key={field.id || idx}
+                                                    className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group"
+                                                >
                                                     <div className="flex items-center gap-1">
                                                         <input
                                                             type="text"
-                                                            value={field.label ?? ''}
+                                                            value={
+                                                                field.label ??
+                                                                ""
+                                                            }
                                                             onChange={(e) => {
-                                                                const updated = [...(currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }])];
-                                                                updated[idx] = { ...updated[idx], label: e.target.value };
-                                                                patchInvoice({ extraFields: updated });
+                                                                const updated =
+                                                                    [
+                                                                        ...(currentInvoice.extraFields || [
+                                                                            {
+                                                                                id: 1,
+                                                                                label: "",
+                                                                                value: 0,
+                                                                            },
+                                                                        ]),
+                                                                    ];
+                                                                updated[idx] = {
+                                                                    ...updated[
+                                                                        idx
+                                                                    ],
+                                                                    label: e
+                                                                        .target
+                                                                        .value,
+                                                                };
+                                                                patchInvoice({
+                                                                    extraFields:
+                                                                        updated,
+                                                                });
                                                             }}
                                                             className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                                                             placeholder={`Extra ${idx + 1}`}
                                                         />
-                                                        <span className="text-[10px] text-slate-700">✎</span>
+                                                        <span className="text-[10px] text-slate-700">
+                                                            ✎
+                                                        </span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-slate-600 text-[10px]">Rs</span>
+                                                        <span className="text-slate-600 text-[10px]">
+                                                            {getCurrencySymbol()}
+                                                        </span>
                                                         <input
                                                             type="number"
-                                                            value={field.value ?? 0}
+                                                            value={
+                                                                field.value ?? 0
+                                                            }
                                                             onChange={(e) => {
-                                                                const updated = [...(currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }])];
-                                                                updated[idx] = { ...updated[idx], value: parseFloat(e.target.value) || 0 };
-                                                                patchInvoice({ extraFields: updated });
+                                                                const updated =
+                                                                    [
+                                                                        ...(currentInvoice.extraFields || [
+                                                                            {
+                                                                                id: 1,
+                                                                                label: "",
+                                                                                value: 0,
+                                                                            },
+                                                                        ]),
+                                                                    ];
+                                                                updated[idx] = {
+                                                                    ...updated[
+                                                                        idx
+                                                                    ],
+                                                                    value:
+                                                                        parseFloat(
+                                                                            e
+                                                                                .target
+                                                                                .value,
+                                                                        ) || 0,
+                                                                };
+                                                                patchInvoice({
+                                                                    extraFields:
+                                                                        updated,
+                                                                });
                                                             }}
                                                             className="w-16 bg-transparent border-b border-dashed border-slate-700 hover:border-indigo-500 transition-all text-xs font-bold text-slate-300 text-right focus:ring-0 focus:border-indigo-500"
                                                             placeholder="0"
                                                         />
-                                                        {(currentInvoice.extraFields || []).length > 1 && (
+                                                        {(
+                                                            currentInvoice.extraFields ||
+                                                            []
+                                                        ).length > 1 && (
                                                             <button
                                                                 onClick={() => {
-                                                                    const updated = (currentInvoice.extraFields || []).filter((_, i) => i !== idx);
-                                                                    patchInvoice({ extraFields: updated });
+                                                                    const updated =
+                                                                        (
+                                                                            currentInvoice.extraFields ||
+                                                                            []
+                                                                        ).filter(
+                                                                            (
+                                                                                _,
+                                                                                i,
+                                                                            ) =>
+                                                                                i !==
+                                                                                idx,
+                                                                        );
+                                                                    patchInvoice(
+                                                                        {
+                                                                            extraFields:
+                                                                                updated,
+                                                                        },
+                                                                    );
                                                                 }}
                                                                 className="text-slate-600 hover:text-red-400 p-0.5 opacity-0 group-hover:opacity-100 transition-all"
                                                             >
@@ -1727,31 +2602,59 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                     </div>
                                                 </div>
                                             ))}
-                                            {(currentInvoice.extraFields || []).length < 10 && (
+                                            {(currentInvoice.extraFields || [])
+                                                .length < 10 && (
                                                 <button
                                                     onClick={() => {
-                                                        const current = currentInvoice.extraFields || [{ id: 1, label: '', value: 0 }];
-                                                        patchInvoice({ extraFields: [...current, { id: Date.now(), label: '', value: 0 }] });
+                                                        const current =
+                                                            currentInvoice.extraFields || [
+                                                                {
+                                                                    id: 1,
+                                                                    label: "",
+                                                                    value: 0,
+                                                                },
+                                                            ];
+                                                        patchInvoice({
+                                                            extraFields: [
+                                                                ...current,
+                                                                {
+                                                                    id: Date.now(),
+                                                                    label: "",
+                                                                    value: 0,
+                                                                },
+                                                            ],
+                                                        });
                                                     }}
                                                     className="w-full text-center text-[10px] text-indigo-400 hover:text-indigo-300 font-bold py-1 hover:bg-indigo-900/20 rounded-lg transition-all"
                                                 >
                                                     + Add Extra Field
                                                 </button>
                                             )}
-                                        </div>)
+                                        </div>
                                     )}
                                 </>
                             )}
 
                             {/* Amount Paid Row */}
                             <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
-                                <span className="text-xs text-emerald-400 font-bold">Amount Paid</span>
+                                <span className="text-xs text-emerald-400 font-bold">
+                                    Amount Paid
+                                </span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-emerald-600 text-xs">Rs</span>
+                                    <span className="text-emerald-600 text-xs">
+                                        {getCurrencySymbol()}
+                                    </span>
                                     <input
                                         type="number"
                                         value={currentInvoice.amountPaid ?? 0}
-                                        onChange={(e) => patchInvoice({ amountPaid: parseFloat(e.target.value) || 0 })}
+                                        onChange={(e) =>
+                                            patchInvoice({
+                                                amountPaid:
+                                                    parseFloat(
+                                                        e.target.value,
+                                                    ) || 0,
+                                            })
+                                        }
                                         onFocus={(e) => e.target.select()}
                                         className="w-24 bg-emerald-800/30 border border-emerald-700/50 rounded-lg px-2 py-1.5 text-emerald-400 font-bold text-sm text-right focus:ring-2 ring-emerald-500/20 transition-all"
                                         placeholder="0"
@@ -1760,21 +2663,33 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                             </div>
 
                             {/* Balance Due Row */}
-                            <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'}`}>
-                                <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Balance Due</span>
-                                <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                                    Rs {balanceDue.toLocaleString()}
+                            <div
+                                className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? "bg-red-900/20 border-red-800/30" : "bg-emerald-900/20 border-emerald-800/30"}`}
+                            >
+                                <span
+                                    className={`text-xs font-bold ${balanceDue > 0 ? "text-red-400" : "text-emerald-400"}`}
+                                >
+                                    Balance Due
+                                </span>
+                                <span
+                                    className={`font-bold text-base ${balanceDue > 0 ? "text-red-400" : "text-emerald-400"}`}
+                                >
+                                    {getCurrencySymbol()}{" "}
+                                    {balanceDue.toLocaleString()}
                                 </span>
                             </div>
-
-
                         </div>
 
                         {/* GRAND TOTAL & SAVE - Compact */}
                         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
                             <div className="flex justify-between items-center">
-                                <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
-                                <span className="text-2xl font-black text-white">Rs {grandTotal.toLocaleString()}</span>
+                                <span className="text-[10px] text-slate-500 font-bold uppercase">
+                                    Total
+                                </span>
+                                <span className="text-2xl font-black text-white">
+                                    {getCurrencySymbol()}{" "}
+                                    {grandTotal.toLocaleString()}
+                                </span>
                             </div>
                             <div className="space-y-2">
                                 <button
@@ -1783,7 +2698,11 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
-                                    {saving ? 'SAVING...' : (isEditMode ? 'UPDATE PROPOSAL' : 'SAVE PROPOSAL')}
+                                    {saving
+                                        ? "SAVING..."
+                                        : isEditMode
+                                          ? "UPDATE PROPOSAL"
+                                          : "SAVE PROPOSAL"}
                                 </button>
 
                                 <div className="flex gap-2">
@@ -1793,27 +2712,42 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                         className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
                                     >
                                         <Printer size={16} />
-                                        {saving ? '...' : 'PRINT & SAVE'}
+                                        {saving ? "..." : "PRINT & SAVE"}
                                     </button>
                                     <button
                                         onClick={() => {
                                             if (isEditMode) {
-                                                router.visit(route("store.proposals.index", {
-                                                    store_slug: store.slug
-                                                }));
+                                                router.visit(
+                                                    route(
+                                                        "store.proposals.index",
+                                                        {
+                                                            store_slug:
+                                                                store.slug,
+                                                        },
+                                                    ),
+                                                );
                                                 return;
                                             }
                                             showConfirm({
-                                                title: 'Cancel Proposal?',
-                                                message: 'Discard this proposal? Items will be lost.',
-                                                type: 'warning',
-                                                confirmLabel: 'Yes, Discard',
+                                                title: "Cancel Proposal?",
+                                                message:
+                                                    "Discard this proposal? Items will be lost.",
+                                                type: "warning",
+                                                confirmLabel: "Yes, Discard",
                                                 onConfirm: () => {
-                                                    removeInvoice(currentInvoice.id);
-                                                    router.visit(route("store.proposals.index", {
-                                                        store_slug: store.slug
-                                                    }));
-                                                }
+                                                    removeInvoice(
+                                                        currentInvoice.id,
+                                                    );
+                                                    router.visit(
+                                                        route(
+                                                            "store.proposals.index",
+                                                            {
+                                                                store_slug:
+                                                                    store.slug,
+                                                            },
+                                                        ),
+                                                    );
+                                                },
                                             });
                                         }}
                                         className="flex-1 py-3 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all border border-red-500/20 active:scale-95"
@@ -1825,13 +2759,23 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                 {/* Convert Button with Dropdown */}
                                 <div className="relative">
                                     <button
-                                        onClick={() => setShowConvertMenu(!showConvertMenu)}
-                                        disabled={saving || currentInvoice.items.filter(i => i.product).length === 0}
+                                        onClick={() =>
+                                            setShowConvertMenu(!showConvertMenu)
+                                        }
+                                        disabled={
+                                            saving ||
+                                            currentInvoice.items.filter(
+                                                (i) => i.product,
+                                            ).length === 0
+                                        }
                                         className="w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-amber-500/20 active:scale-95 disabled:opacity-50"
                                     >
                                         <ArrowLeftRight size={16} />
                                         CONVERT
-                                        <ChevronUp size={14} className={`transition-transform ${showConvertMenu ? 'rotate-180' : ''}`} />
+                                        <ChevronUp
+                                            size={14}
+                                            className={`transition-transform ${showConvertMenu ? "rotate-180" : ""}`}
+                                        />
                                     </button>
 
                                     {/* Convert Dropdown Menu */}
@@ -1841,60 +2785,136 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                 onClick={() => {
                                                     setShowConvertMenu(false);
                                                     showConfirm({
-                                                        title: 'Convert to Sale?',
-                                                        message: 'This will create a sale and deduct inventory immediately.',
-                                                        type: 'warning',
-                                                        confirmLabel: 'Yes, Convert',
+                                                        title: "Convert to Sale?",
+                                                        message:
+                                                            "This will create a sale and deduct inventory immediately.",
+                                                        type: "warning",
+                                                        confirmLabel:
+                                                            "Yes, Convert",
                                                         onConfirm: () => {
-                                                            router.post(route("store.proposals.convert-to-sale", [store.slug, currentInvoice.id || 0]), {
-                                                                items: currentInvoice.items.filter(i => i.product).map(item => ({
-                                                                    product_id: item.product.id,
-                                                                    quantity: item.quantity,
-                                                                    price: item.price
-                                                                })),
-                                                                customer_id: currentInvoice.customer?.id
-                                                            });
-                                                        }
+                                                            router.post(
+                                                                route(
+                                                                    "store.proposals.convert-to-sale",
+                                                                    [
+                                                                        store.slug,
+                                                                        currentInvoice.id ||
+                                                                            0,
+                                                                    ],
+                                                                ),
+                                                                {
+                                                                    items: currentInvoice.items
+                                                                        .filter(
+                                                                            (
+                                                                                i,
+                                                                            ) =>
+                                                                                i.product,
+                                                                        )
+                                                                        .map(
+                                                                            (
+                                                                                item,
+                                                                            ) => ({
+                                                                                product_id:
+                                                                                    item
+                                                                                        .product
+                                                                                        .id,
+                                                                                quantity:
+                                                                                    item.quantity,
+                                                                                price: item.price,
+                                                                            }),
+                                                                        ),
+                                                                    customer_id:
+                                                                        currentInvoice
+                                                                            .customer
+                                                                            ?.id,
+                                                                },
+                                                            );
+                                                        },
                                                     });
                                                 }}
                                                 className="w-full px-4 py-3 text-left hover:bg-emerald-600/20 flex items-center gap-3 transition-colors border-b border-slate-700"
                                             >
                                                 <div className="p-2 bg-emerald-500/20 rounded-lg">
-                                                    <ShoppingCart size={18} className="text-emerald-400" />
+                                                    <ShoppingCart
+                                                        size={18}
+                                                        className="text-emerald-400"
+                                                    />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm">Convert to Sale</p>
-                                                    <p className="text-xs text-slate-400">Deduct inventory immediately</p>
+                                                    <p className="font-bold text-white text-sm">
+                                                        Convert to Sale
+                                                    </p>
+                                                    <p className="text-xs text-slate-400">
+                                                        Deduct inventory
+                                                        immediately
+                                                    </p>
                                                 </div>
                                             </button>
                                             <button
                                                 onClick={() => {
                                                     setShowConvertMenu(false);
                                                     showConfirm({
-                                                        title: 'Convert to Pre-Sale?',
-                                                        message: 'This will create a pre-sale and reserve inventory (no deduction).',
-                                                        type: 'info',
-                                                        confirmLabel: 'Yes, Convert',
+                                                        title: "Convert to Pre-Sale?",
+                                                        message:
+                                                            "This will create a pre-sale and reserve inventory (no deduction).",
+                                                        type: "info",
+                                                        confirmLabel:
+                                                            "Yes, Convert",
                                                         onConfirm: () => {
-                                                            router.post(route("store.proposals.convert-to-presale", [store.slug, currentInvoice.id || 0]), {
-                                                                items: currentInvoice.items.filter(i => i.product).map(item => ({
-                                                                    product_id: item.product.id,
-                                                                    quantity: item.quantity,
-                                                                    price: item.price
-                                                                })),
-                                                                customer_id: currentInvoice.customer?.id
-                                                            });
-                                                        }
+                                                            router.post(
+                                                                route(
+                                                                    "store.proposals.convert-to-presale",
+                                                                    [
+                                                                        store.slug,
+                                                                        currentInvoice.id ||
+                                                                            0,
+                                                                    ],
+                                                                ),
+                                                                {
+                                                                    items: currentInvoice.items
+                                                                        .filter(
+                                                                            (
+                                                                                i,
+                                                                            ) =>
+                                                                                i.product,
+                                                                        )
+                                                                        .map(
+                                                                            (
+                                                                                item,
+                                                                            ) => ({
+                                                                                product_id:
+                                                                                    item
+                                                                                        .product
+                                                                                        .id,
+                                                                                quantity:
+                                                                                    item.quantity,
+                                                                                price: item.price,
+                                                                            }),
+                                                                        ),
+                                                                    customer_id:
+                                                                        currentInvoice
+                                                                            .customer
+                                                                            ?.id,
+                                                                },
+                                                            );
+                                                        },
                                                     });
                                                 }}
                                                 className="w-full px-4 py-3 text-left hover:bg-blue-600/20 flex items-center gap-3 transition-colors"
                                             >
                                                 <div className="p-2 bg-blue-500/20 rounded-lg">
-                                                    <FileText size={18} className="text-blue-400" />
+                                                    <FileText
+                                                        size={18}
+                                                        className="text-blue-400"
+                                                    />
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm">Convert to Pre-Sale</p>
-                                                    <p className="text-xs text-slate-400">Reserve inventory (no deduction)</p>
+                                                    <p className="font-bold text-white text-sm">
+                                                        Convert to Pre-Sale
+                                                    </p>
+                                                    <p className="text-xs text-slate-400">
+                                                        Reserve inventory (no
+                                                        deduction)
+                                                    </p>
                                                 </div>
                                             </button>
                                         </div>
@@ -1904,36 +2924,54 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                         </div>
                     </div>
                 </div>
-            </div >
+            </div>
             {/* INLINE PROFIT DISPLAY - Shows when holding Margin button */}
-            {
-                showProfit && !showProfitModal && (
-                    <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-200">
-                        <div className="bg-slate-900/95 backdrop-blur-lg rounded-2xl px-8 py-4 shadow-2xl border border-slate-700 flex items-center gap-6">
-                            <div className="flex items-center gap-3">
-                                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${profit >= 0 ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
-                                    <TrendingUp size={24} className={profit >= 0 ? 'text-emerald-400' : 'text-red-400'} />
-                                </div>
-                                <div>
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Profit Margin</p>
-                                    <p className={`text-2xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        Rs {profit.toLocaleString()}
-                                    </p>
-                                </div>
+            {showProfit && !showProfitModal && (
+                <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4 duration-200">
+                    <div className="bg-slate-900/95 backdrop-blur-lg rounded-2xl px-8 py-4 shadow-2xl border border-slate-700 flex items-center gap-6">
+                        <div className="flex items-center gap-3">
+                            <div
+                                className={`w-12 h-12 rounded-xl flex items-center justify-center ${profit >= 0 ? "bg-emerald-500/20" : "bg-red-500/20"}`}
+                            >
+                                <TrendingUp
+                                    size={24}
+                                    className={
+                                        profit >= 0
+                                            ? "text-emerald-400"
+                                            : "text-red-400"
+                                    }
+                                />
                             </div>
-                            {grandTotal > 0 && (
-                                <div className="border-l border-slate-700 pl-6">
-                                    <p className="text-xs text-slate-400 font-bold uppercase">Margin %</p>
-                                    <p className={`text-xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {((profit / grandTotal) * 100).toFixed(1)}%
-                                    </p>
-                                </div>
-                            )}
-                            <p className="text-xs text-slate-500 italic">↓ Drag down for details</p>
+                            <div>
+                                <p className="text-xs text-slate-400 font-bold uppercase">
+                                    Profit Margin
+                                </p>
+                                <p
+                                    className={`text-2xl font-black ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                                >
+                                    {getCurrencySymbol()}{" "}
+                                    {profit.toLocaleString()}
+                                </p>
+                            </div>
                         </div>
+                        {grandTotal > 0 && (
+                            <div className="border-l border-slate-700 pl-6">
+                                <p className="text-xs text-slate-400 font-bold uppercase">
+                                    Margin %
+                                </p>
+                                <p
+                                    className={`text-xl font-black ${profit >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                                >
+                                    {((profit / grandTotal) * 100).toFixed(1)}%
+                                </p>
+                            </div>
+                        )}
+                        <p className="text-xs text-slate-500 italic">
+                            ↓ Drag down for details
+                        </p>
                     </div>
-                )
-            }
+                </div>
+            )}
             {/* SUCCESS MODAL */}
             <FormModal
                 isOpen={showSuccessModal}
@@ -1950,13 +2988,24 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                         <CheckCircle2 size={48} className="text-emerald-500" />
                     </div>
 
-                    <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">Proposal Saved</h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">Your proposal has been saved. No inventory has been affected.</p>
+                    <h3 className="text-xl font-black text-slate-800 dark:text-white mb-2">
+                        Proposal Saved
+                    </h3>
+                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-8">
+                        Your proposal has been saved. No inventory has been
+                        affected.
+                    </p>
 
                     <div className="grid grid-cols-1 gap-3 w-full">
                         <button
                             onClick={() => {
-                                window.open(route("store.proposals.print", [store.slug, lastSaleId]), '_blank');
+                                window.open(
+                                    route("store.proposals.print", [
+                                        store.slug,
+                                        lastSaleId,
+                                    ]),
+                                    "_blank",
+                                );
                             }}
                             className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20"
                         >
@@ -1976,444 +3025,708 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 </div>
             </FormModal>
             {/* SCANNING MODAL */}
-            {
-                isScanning && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                            <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/20">
-                                        <ScanBarcode size={28} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black text-slate-800 dark:text-white">Scanning Mode</h2>
-                                        <p className="text-sm text-slate-500 font-bold">Scan items one after another</p>
-                                    </div>
+            {isScanning && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white dark:from-slate-800/50 dark:to-slate-900">
+                            <div className="flex items-center gap-5">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-xl shadow-indigo-500/20">
+                                    <ScanBarcode size={28} />
                                 </div>
-                                <button onClick={() => setIsScanning(false)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all">
-                                    <X size={28} className="text-slate-400" />
-                                </button>
+                                <div>
+                                    <h2 className="text-2xl font-black text-slate-800 dark:text-white">
+                                        Scanning Mode
+                                    </h2>
+                                    <p className="text-sm text-slate-500 font-bold">
+                                        Scan items one after another
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setIsScanning(false)}
+                                className="p-4 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-2xl transition-all"
+                            >
+                                <X size={28} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            <div className="relative">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    placeholder="Scan Barcode Now..."
+                                    value={scanBuffer}
+                                    onChange={(e) =>
+                                        setScanBuffer(e.target.value)
+                                    }
+                                    onKeyDown={handleScan}
+                                    className="w-full py-8 px-10 bg-slate-50 dark:bg-slate-800 border-4 border-indigo-100 dark:border-indigo-900/30 rounded-[32px] text-3xl font-black text-center focus:ring-8 ring-indigo-500/10 placeholder-slate-200 transition-all"
+                                />
+                                <div className="absolute right-8 top-1/2 -translate-y-1/2">
+                                    <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                                </div>
                             </div>
 
-                            <div className="p-8 space-y-8">
-                                <div className="relative">
-                                    <input
-                                        autoFocus
-                                        type="text"
-                                        placeholder="Scan Barcode Now..."
-                                        value={scanBuffer}
-                                        onChange={(e) => setScanBuffer(e.target.value)}
-                                        onKeyDown={handleScan}
-                                        className="w-full py-8 px-10 bg-slate-50 dark:bg-slate-800 border-4 border-indigo-100 dark:border-indigo-900/30 rounded-[32px] text-3xl font-black text-center focus:ring-8 ring-indigo-500/10 placeholder-slate-200 transition-all"
-                                    />
-                                    <div className="absolute right-8 top-1/2 -translate-y-1/2">
-                                        <div className="w-4 h-4 bg-red-500 rounded-full animate-ping"></div>
+                            <div className="max-h-80 overflow-y-auto space-y-4 custom-scrollbar pr-2">
+                                {scannedItems.length === 0 ? (
+                                    <div className="text-center py-16 border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[40px]">
+                                        <Package
+                                            size={64}
+                                            className="mx-auto text-slate-200 mb-4"
+                                        />
+                                        <p className="text-slate-400 font-black text-lg">
+                                            No items scanned yet
+                                        </p>
                                     </div>
-                                </div>
-
-                                <div className="max-h-80 overflow-y-auto space-y-4 custom-scrollbar pr-2">
-                                    {scannedItems.length === 0 ? (
-                                        <div className="text-center py-16 border-4 border-dashed border-slate-100 dark:border-slate-800 rounded-[40px]">
-                                            <Package size={64} className="mx-auto text-slate-200 mb-4" />
-                                            <p className="text-slate-400 font-black text-lg">No items scanned yet</p>
-                                        </div>
-                                    ) : (
-                                        scannedItems.map((item, idx) => (
-                                            <div key={item.id} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border-2 border-slate-100 dark:border-slate-800 animate-in slide-in-from-bottom-2 duration-200">
-                                                <div className="flex items-center gap-5">
-                                                    <span className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-xs font-black text-slate-400 shadow-sm">{idx + 1}</span>
-                                                    <div>
-                                                        <p className="font-black text-slate-800 dark:text-white text-lg">
-                                                            {item.name}
-                                                            {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
-                                                        </p>
-                                                        <p className="text-sm text-indigo-500 font-black">
-                                                            {item.quantity} @ Rs {item.price.toLocaleString()} = Rs {(item.quantity * item.price).toLocaleString()}
-                                                        </p>
-                                                    </div>
+                                ) : (
+                                    scannedItems.map((item, idx) => (
+                                        <div
+                                            key={item.id}
+                                            className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border-2 border-slate-100 dark:border-slate-800 animate-in slide-in-from-bottom-2 duration-200"
+                                        >
+                                            <div className="flex items-center gap-5">
+                                                <span className="w-10 h-10 rounded-full bg-white dark:bg-slate-700 flex items-center justify-center text-xs font-black text-slate-400 shadow-sm">
+                                                    {idx + 1}
+                                                </span>
+                                                <div>
+                                                    <p className="font-black text-slate-800 dark:text-white text-lg">
+                                                        {item.name}
+                                                        {item.quantity > 1 && (
+                                                            <span className="ml-2 text-emerald-500 text-base">
+                                                                x{item.quantity}
+                                                            </span>
+                                                        )}
+                                                    </p>
+                                                    <p className="text-sm text-indigo-500 font-black">
+                                                        {item.quantity} @{" "}
+                                                        {getCurrencySymbol()}{" "}
+                                                        {item.price.toLocaleString()}{" "}
+                                                        = {getCurrencySymbol()}{" "}
+                                                        {(
+                                                            item.quantity *
+                                                            item.price
+                                                        ).toLocaleString()}
+                                                    </p>
                                                 </div>
-                                                <button onClick={() => setScannedItems(prev => prev.filter(i => i.id !== item.id))} className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all">
-                                                    <Trash2 size={24} />
-                                                </button>
                                             </div>
-                                        ))
-                                    )}
-                                </div>
+                                            <button
+                                                onClick={() =>
+                                                    setScannedItems((prev) =>
+                                                        prev.filter(
+                                                            (i) =>
+                                                                i.id !==
+                                                                item.id,
+                                                        ),
+                                                    )
+                                                }
+                                                className="p-3 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all"
+                                            >
+                                                <Trash2 size={24} />
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
                             </div>
+                        </div>
 
-                            <div className="p-8 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                                <p className="text-base font-black text-slate-500 uppercase tracking-widest">Total: <span className="text-indigo-600">{scannedItems.length} items</span></p>
-                                <div className="flex gap-4">
-                                    <button onClick={() => setScannedItems([])} className="px-8 py-4 text-sm font-black text-slate-500 hover:text-red-500 transition-colors uppercase tracking-widest">Clear All</button>
-                                    <button
-                                        onClick={confirmScan}
-                                        className="bg-indigo-600 text-white px-12 py-4 rounded-2xl font-black shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95 uppercase tracking-widest"
-                                    >
-                                        Add to Invoice
-                                    </button>
-                                </div>
+                        <div className="p-8 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                            <p className="text-base font-black text-slate-500 uppercase tracking-widest">
+                                Total:{" "}
+                                <span className="text-indigo-600">
+                                    {scannedItems.length} items
+                                </span>
+                            </p>
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setScannedItems([])}
+                                    className="px-8 py-4 text-sm font-black text-slate-500 hover:text-red-500 transition-colors uppercase tracking-widest"
+                                >
+                                    Clear All
+                                </button>
+                                <button
+                                    onClick={confirmScan}
+                                    className="bg-indigo-600 text-white px-12 py-4 rounded-2xl font-black shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all active:scale-95 uppercase tracking-widest"
+                                >
+                                    Add to Invoice
+                                </button>
                             </div>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
             {/* PROFIT ANALYSIS MODAL */}
-            {
-                showProfitModal && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
-                            {/* Header */}
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                                        <TrendingUp className="text-emerald-600" size={20} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-slate-800 dark:text-white">Profit Analysis</h3>
-                                        <p className="text-xs text-slate-500">Per-item breakdown</p>
-                                    </div>
+            {showProfitModal && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 w-full max-w-3xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
+                        {/* Header */}
+                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                                    <TrendingUp
+                                        className="text-emerald-600"
+                                        size={20}
+                                    />
                                 </div>
-                                <button
-                                    onClick={() => { setShowProfitModal(false); setProfitLocked(false); setShowProfit(false); }}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
-                                >
-                                    <X size={20} className="text-slate-400" />
-                                </button>
+                                <div>
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white">
+                                        Profit Analysis
+                                    </h3>
+                                    <p className="text-xs text-slate-500">
+                                        Per-item breakdown
+                                    </p>
+                                </div>
                             </div>
+                            <button
+                                onClick={() => {
+                                    setShowProfitModal(false);
+                                    setProfitLocked(false);
+                                    setShowProfit(false);
+                                }}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+                            >
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
 
-                            {/* Items Table */}
-                            <div className="flex-1 overflow-y-auto p-4">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="text-left text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
-                                            <th className="pb-2 pl-2">#</th>
-                                            <th className="pb-2">Product</th>
-                                            <th className="pb-2 text-center">Qty</th>
-                                            <th className="pb-2 text-right">Cost</th>
-                                            <th className="pb-2 text-right">Price</th>
-                                            <th className="pb-2 text-right">Margin</th>
-                                            <th className="pb-2 text-right pr-2">Profit</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {currentInvoice.items.filter(item => item.product).map((item, idx) => {
-                                            const cost = (item.cost || item.product?.cost || item.product?.cost_price || 0);
-                                            const lineTotal = calculateLineTotal(item);
-                                            const lineCost = cost * item.quantity;
-                                            const lineProfit = lineTotal - lineCost;
-                                            const marginPercent = lineTotal > 0 ? (lineProfit / lineTotal * 100).toFixed(1) : 0;
+                        {/* Items Table */}
+                        <div className="flex-1 overflow-y-auto p-4">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="text-left text-[10px] font-bold text-slate-400 uppercase border-b border-slate-100 dark:border-slate-800">
+                                        <th className="pb-2 pl-2">#</th>
+                                        <th className="pb-2">Product</th>
+                                        <th className="pb-2 text-center">
+                                            Qty
+                                        </th>
+                                        <th className="pb-2 text-right">
+                                            Cost
+                                        </th>
+                                        <th className="pb-2 text-right">
+                                            Price
+                                        </th>
+                                        <th className="pb-2 text-right">
+                                            Margin
+                                        </th>
+                                        <th className="pb-2 text-right pr-2">
+                                            Profit
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentInvoice.items
+                                        .filter((item) => item.product)
+                                        .map((item, idx) => {
+                                            const cost =
+                                                item.cost ||
+                                                item.product?.cost ||
+                                                item.product?.cost_price ||
+                                                0;
+                                            const lineTotal =
+                                                calculateLineTotal(item);
+                                            const lineCost =
+                                                cost * item.quantity;
+                                            const lineProfit =
+                                                lineTotal - lineCost;
+                                            const marginPercent =
+                                                lineTotal > 0
+                                                    ? (
+                                                          (lineProfit /
+                                                              lineTotal) *
+                                                          100
+                                                      ).toFixed(1)
+                                                    : 0;
 
                                             return (
-                                                <tr key={item.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30">
-                                                    <td className="py-2 pl-2 text-slate-400 text-xs">{idx + 1}</td>
-                                                    <td className="py-2">
-                                                        <p className="font-bold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name}</p>
-                                                        <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
+                                                <tr
+                                                    key={item.id}
+                                                    className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50 dark:hover:bg-slate-800/30"
+                                                >
+                                                    <td className="py-2 pl-2 text-slate-400 text-xs">
+                                                        {idx + 1}
                                                     </td>
-                                                    <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                                    <td className="py-2 text-right text-xs text-slate-500">Rs {cost.toLocaleString()}</td>
-                                                    <td className="py-2 text-right text-xs">Rs {item.price.toLocaleString()}</td>
+                                                    <td className="py-2">
+                                                        <p className="font-bold text-slate-800 dark:text-white text-xs">
+                                                            {item.product
+                                                                ?.name ||
+                                                                item.name}
+                                                        </p>
+                                                        <p className="text-[10px] text-slate-400">
+                                                            {item.product
+                                                                ?.sku || "N/A"}
+                                                        </p>
+                                                    </td>
+                                                    <td className="py-2 text-center text-xs">
+                                                        {item.quantity}
+                                                    </td>
+                                                    <td className="py-2 text-right text-xs text-slate-500">
+                                                        {getCurrencySymbol()}{" "}
+                                                        {cost.toLocaleString()}
+                                                    </td>
+                                                    <td className="py-2 text-right text-xs">
+                                                        {getCurrencySymbol()}{" "}
+                                                        {item.price.toLocaleString()}
+                                                    </td>
                                                     <td className="py-2 text-right">
-                                                        <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                        <span
+                                                            className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                                                        >
                                                             {marginPercent}%
                                                         </span>
                                                     </td>
                                                     <td className="py-2 text-right pr-2">
-                                                        <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                            Rs {lineProfit.toLocaleString()}
+                                                        <span
+                                                            className={`text-xs font-bold ${lineProfit >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                                                        >
+                                                            {getCurrencySymbol()}{" "}
+                                                            {lineProfit.toLocaleString()}
                                                         </span>
                                                     </td>
                                                 </tr>
                                             );
                                         })}
-                                    </tbody>
-                                </table>
+                                </tbody>
+                            </table>
 
-                                {currentInvoice.items.filter(item => item.product).length === 0 && (
-                                    <div className="text-center py-8 text-slate-400">
-                                        <p className="text-sm">No products added yet</p>
-                                    </div>
-                                )}
-                            </div>
+                            {currentInvoice.items.filter((item) => item.product)
+                                .length === 0 && (
+                                <div className="text-center py-8 text-slate-400">
+                                    <p className="text-sm">
+                                        No products added yet
+                                    </p>
+                                </div>
+                            )}
+                        </div>
 
-                            {/* Summary Footer */}
-                            <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0">
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                                        <p className="text-lg font-bold text-slate-600">Rs {totalCost.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
-                                        <p className="text-lg font-bold text-slate-800 dark:text-white">Rs {grandTotal.toLocaleString()}</p>
-                                    </div>
-                                    <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
-                                        <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
-                                        <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                            Rs {profit.toLocaleString()}
-                                            {grandTotal > 0 && (
-                                                <span className="text-xs ml-1 opacity-70">({((profit / grandTotal) * 100).toFixed(1)}%)</span>
-                                            )}
-                                        </p>
-                                    </div>
+                        {/* Summary Footer */}
+                        <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                                        Total Cost
+                                    </p>
+                                    <p className="text-lg font-bold text-slate-600">
+                                        {getCurrencySymbol()}{" "}
+                                        {totalCost.toLocaleString()}
+                                    </p>
+                                </div>
+                                <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">
+                                        Total Revenue
+                                    </p>
+                                    <p className="text-lg font-bold text-slate-800 dark:text-white">
+                                        {getCurrencySymbol()}{" "}
+                                        {grandTotal.toLocaleString()}
+                                    </p>
+                                </div>
+                                <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
+                                    <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">
+                                        Net Profit
+                                    </p>
+                                    <p
+                                        className={`text-lg font-bold ${profit >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                                    >
+                                        {getCurrencySymbol()}{" "}
+                                        {profit.toLocaleString()}
+                                        {grandTotal > 0 && (
+                                            <span className="text-xs ml-1 opacity-70">
+                                                (
+                                                {(
+                                                    (profit / grandTotal) *
+                                                    100
+                                                ).toFixed(1)}
+                                                %)
+                                            </span>
+                                        )}
+                                    </p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                )
-            }
+                </div>
+            )}
             {/* SETTINGS DRAWER */}
-            {
-                showSettingsDrawer && (
-                    <>
-                        {/* Backdrop */}
-                        <div
-                            className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[90] animate-in fade-in duration-200"
-                            onClick={() => setShowSettingsDrawer(false)}
-                        />
-                        {/* Drawer */}
-                        <div className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 shadow-2xl z-[100] animate-in slide-in-from-right duration-300 flex flex-col">
-                            {/* Header */}
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                        <Settings size={20} className="text-slate-600 dark:text-slate-400" />
+            {showSettingsDrawer && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/30 backdrop-blur-sm z-[90] animate-in fade-in duration-200"
+                        onClick={() => setShowSettingsDrawer(false)}
+                    />
+                    {/* Drawer */}
+                    <div className="fixed top-0 right-0 h-full w-80 bg-white dark:bg-slate-900 shadow-2xl z-[100] animate-in slide-in-from-right duration-300 flex flex-col">
+                        {/* Header */}
+                        <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                    <Settings
+                                        size={20}
+                                        className="text-slate-600 dark:text-slate-400"
+                                    />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-slate-800 dark:text-white">
+                                        Quick Settings
+                                    </h3>
+                                    <p className="text-xs text-slate-500">
+                                        Invoice preferences
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onClick={() => setShowSettingsDrawer(false)}
+                                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
+                            >
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        {/* Settings Content */}
+                        <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                            {/* Display Settings */}
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                    Display
+                                </h4>
+
+                                {/* Large Text Mode */}
+                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                    <div className="flex items-center gap-3">
+                                        <Type
+                                            size={18}
+                                            className="text-purple-500"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                                Large Text
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                Bigger fonts for better
+                                                visibility
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-800 dark:text-white">Quick Settings</h3>
-                                        <p className="text-xs text-slate-500">Invoice preferences</p>
+                                    <div className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <button
+                                                key={s}
+                                                onClick={() => setTextSize(s)}
+                                                className={`w-7 h-6 rounded-md text-xs font-bold transition-all ${textSize === s ? "bg-purple-500 text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"}`}
+                                            >
+                                                {s}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => setShowSettingsDrawer(false)}
-                                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all"
-                                >
-                                    <X size={20} className="text-slate-400" />
-                                </button>
+
+                                {/* Show Quick Entry */}
+                                <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                    <div className="flex items-center gap-3">
+                                        <Zap
+                                            size={18}
+                                            className="text-indigo-500"
+                                        />
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                                Quick Entry
+                                            </p>
+                                            <p className="text-xs text-slate-500">
+                                                Fast product entry row
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            setShowQuickEntry(!showQuickEntry)
+                                        }
+                                        className={`w-12 h-6 rounded-full transition-all ${showQuickEntry ? "bg-indigo-500" : "bg-slate-200 dark:bg-slate-700"}`}
+                                    >
+                                        <div
+                                            className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showQuickEntry ? "translate-x-6" : "translate-x-0.5"}`}
+                                        />
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Settings Content */}
-                            <div className="flex-1 p-4 space-y-4 overflow-y-auto">
-                                {/* Display Settings */}
-                                <div className="space-y-3">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Display</h4>
+                            {/* Invoice Settings */}
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                    Permanent Defaults
+                                </h4>
 
-                                    {/* Large Text Mode */}
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                        <div className="flex items-center gap-3">
-                                            <Type size={18} className="text-purple-500" />
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Large Text</p>
-                                                <p className="text-xs text-slate-500">Bigger fonts for better visibility</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex bg-slate-200 dark:bg-slate-700 rounded-lg p-1">
-                                            {[1, 2, 3, 4, 5].map(s => (
-                                                <button
-                                                    key={s}
-                                                    onClick={() => setTextSize(s)}
-                                                    className={`w-7 h-6 rounded-md text-xs font-bold transition-all ${textSize === s ? 'bg-purple-500 text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}
-                                                >
-                                                    {s}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Show Quick Entry */}
-                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                        <div className="flex items-center gap-3">
-                                            <Zap size={18} className="text-indigo-500" />
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Quick Entry</p>
-                                                <p className="text-xs text-slate-500">Fast product entry row</p>
-                                            </div>
-                                        </div>
-                                        <button
-                                            onClick={() => setShowQuickEntry(!showQuickEntry)}
-                                            className={`w-12 h-6 rounded-full transition-all ${showQuickEntry ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}
-                                        >
-                                            <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showQuickEntry ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                                        </button>
+                                {/* Permanent Delivery */}
+                                <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
+                                    <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">
+                                        Default Delivery
+                                    </p>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-slate-400 text-xs font-bold">
+                                            {getCurrencySymbol()}
+                                        </span>
+                                        <input
+                                            type="number"
+                                            value={defaultDelivery}
+                                            onChange={(e) =>
+                                                setDefaultDelivery(
+                                                    parseFloat(
+                                                        e.target.value,
+                                                    ) || 0,
+                                                )
+                                            }
+                                            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700 dark:text-white"
+                                            placeholder="0"
+                                        />
                                     </div>
                                 </div>
 
-                                {/* Invoice Settings */}
-                                <div className="space-y-3">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Permanent Defaults</h4>
-
-                                    {/* Permanent Delivery */}
-                                    <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
-                                        <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Default Delivery</p>
+                                {/* Permanent Extra */}
+                                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl space-y-2 border border-purple-100 dark:border-purple-800/50">
+                                    <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">
+                                        Default Extra Field
+                                    </p>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="text"
+                                            value={defaultExtraLabel}
+                                            onChange={(e) =>
+                                                setDefaultExtraLabel(
+                                                    e.target.value,
+                                                )
+                                            }
+                                            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 dark:text-white"
+                                            placeholder="Field Name (e.g. Service)"
+                                        />
                                         <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-xs font-bold">Rs</span>
+                                            <span className="text-slate-400 text-xs font-bold">
+                                                {getCurrencySymbol()}
+                                            </span>
                                             <input
                                                 type="number"
-                                                value={defaultDelivery}
-                                                onChange={(e) => setDefaultDelivery(parseFloat(e.target.value) || 0)}
+                                                value={defaultExtraValue}
+                                                onChange={(e) =>
+                                                    setDefaultExtraValue(
+                                                        parseFloat(
+                                                            e.target.value,
+                                                        ) || 0,
+                                                    )
+                                                }
                                                 className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700 dark:text-white"
                                                 placeholder="0"
                                             />
                                         </div>
                                     </div>
 
-                                    {/* Permanent Extra */}
-                                    <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl space-y-2 border border-purple-100 dark:border-purple-800/50">
-                                        <p className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase">Default Extra Field</p>
-                                        <div className="space-y-2">
-                                            <input
-                                                type="text"
-                                                value={defaultExtraLabel}
-                                                onChange={(e) => setDefaultExtraLabel(e.target.value)}
-                                                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs font-bold text-slate-700 dark:text-white"
-                                                placeholder="Field Name (e.g. Service)"
-                                            />
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-slate-400 text-xs font-bold">Rs</span>
-                                                <input
-                                                    type="number"
-                                                    value={defaultExtraValue}
-                                                    onChange={(e) => setDefaultExtraValue(parseFloat(e.target.value) || 0)}
-                                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm font-bold text-slate-700 dark:text-white"
-                                                    placeholder="0"
+                                    {/* Multiple Extra Fields Toggle */}
+                                    <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/50">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                                                <Plus
+                                                    size={16}
+                                                    className="text-amber-600"
                                                 />
                                             </div>
-                                        </div>
-
-                                        {/* Multiple Extra Fields Toggle */}
-                                        <div className="flex items-center justify-between p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800/50">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-                                                    <Plus size={16} className="text-amber-600" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-slate-700 dark:text-white">Multiple Extra Fields</p>
-                                                    <p className="text-[10px] text-slate-500">Add up to 10 custom charges</p>
-                                                </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                                    Multiple Extra Fields
+                                                </p>
+                                                <p className="text-[10px] text-slate-500">
+                                                    Add up to 10 custom charges
+                                                </p>
                                             </div>
-                                            <button
-                                                onClick={() => setEnableMultipleExtras(!enableMultipleExtras)}
-                                                className={`w-12 h-6 rounded-full transition-all ${enableMultipleExtras ? 'bg-amber-500' : 'bg-slate-200 dark:bg-slate-700'}`}
-                                            >
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${enableMultipleExtras ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                                            </button>
                                         </div>
+                                        <button
+                                            onClick={() =>
+                                                setEnableMultipleExtras(
+                                                    !enableMultipleExtras,
+                                                )
+                                            }
+                                            className={`w-12 h-6 rounded-full transition-all ${enableMultipleExtras ? "bg-amber-500" : "bg-slate-200 dark:bg-slate-700"}`}
+                                        >
+                                            <div
+                                                className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${enableMultipleExtras ? "translate-x-6" : "translate-x-0.5"}`}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
 
+                                {/* Show/Hide Fields */}
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                        Show/Hide Fields
+                                    </h4>
+
+                                    {/* Show Delivery Charges Toggle */}
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                                Delivery Charges
+                                            </p>
+                                            <p className="text-[10px] text-slate-500">
+                                                Show delivery charges field
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                setShowDeliveryCharges(
+                                                    !showDeliveryCharges,
+                                                )
+                                            }
+                                            className={`w-12 h-6 rounded-full transition-all ${showDeliveryCharges ? "bg-indigo-500" : "bg-slate-200 dark:bg-slate-700"}`}
+                                        >
+                                            <div
+                                                className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showDeliveryCharges ? "translate-x-6" : "translate-x-0.5"}`}
+                                            />
+                                        </button>
                                     </div>
 
-                                    {/* Show/Hide Fields */}
-                                    <div className="space-y-3">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Show/Hide Fields</h4>
-
-                                        {/* Show Delivery Charges Toggle */}
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Delivery Charges</p>
-                                                <p className="text-[10px] text-slate-500">Show delivery charges field</p>
-                                            </div>
-                                            <button
-                                                onClick={() => setShowDeliveryCharges(!showDeliveryCharges)}
-                                                className={`w-12 h-6 rounded-full transition-all ${showDeliveryCharges ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}
-                                            >
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showDeliveryCharges ? 'translate-x-6' : 'translate-x-0.5'}`} />
-                                            </button>
+                                    {/* Show Extra Field Toggle */}
+                                    <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                                Extra Field
+                                            </p>
+                                            <p className="text-[10px] text-slate-500">
+                                                Show extra charge field(s)
+                                            </p>
                                         </div>
+                                        <button
+                                            onClick={() =>
+                                                setShowExtraField(
+                                                    !showExtraField,
+                                                )
+                                            }
+                                            className={`w-12 h-6 rounded-full transition-all ${showExtraField ? "bg-indigo-500" : "bg-slate-200 dark:bg-slate-700"}`}
+                                        >
+                                            <div
+                                                className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showExtraField ? "translate-x-6" : "translate-x-0.5"}`}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
 
-                                        {/* Show Extra Field Toggle */}
-                                        <div className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-700 dark:text-white">Extra Field</p>
-                                                <p className="text-[10px] text-slate-500">Show extra charge field(s)</p>
-                                            </div>
+                                {/* Invoice Logic */}
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">
+                                        Invoice Logic
+                                    </h4>
+
+                                    {/* Default Payment Method */}
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                            Payment Method
+                                        </p>
+                                        <div className="flex gap-2">
                                             <button
-                                                onClick={() => setShowExtraField(!showExtraField)}
-                                                className={`w-12 h-6 rounded-full transition-all ${showExtraField ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}
+                                                onClick={() =>
+                                                    patchInvoice({
+                                                        paymentMethod: "credit",
+                                                    })
+                                                }
+                                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                                                    currentInvoice.paymentMethod ===
+                                                    "credit"
+                                                        ? "bg-emerald-500 text-white"
+                                                        : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                                                }`}
                                             >
-                                                <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform ${showExtraField ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                                Credit
+                                            </button>
+                                            <button
+                                                onClick={() =>
+                                                    patchInvoice({
+                                                        paymentMethod: "cash",
+                                                    })
+                                                }
+                                                className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                                                    currentInvoice.paymentMethod ===
+                                                    "cash"
+                                                        ? "bg-orange-500 text-white"
+                                                        : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                                                }`}
+                                            >
+                                                Cash
                                             </button>
                                         </div>
                                     </div>
 
-                                    {/* Invoice Logic */}
-                                    <div className="space-y-3">
-                                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Invoice Logic</h4>
-
-                                        {/* Default Payment Method */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Payment Method</p>
-                                            <div className="flex gap-2">
+                                    {/* Default Tax */}
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                            Default Tax Rate
+                                        </p>
+                                        <div className="flex gap-2">
+                                            {[0, 5, 10, 17].map((rate) => (
                                                 <button
-                                                    onClick={() => patchInvoice({ paymentMethod: 'credit' })}
-                                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${currentInvoice.paymentMethod === 'credit'
-                                                        ? 'bg-emerald-500 text-white'
-                                                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
-                                                        }`}
+                                                    key={rate}
+                                                    onClick={() =>
+                                                        patchInvoice({
+                                                            tax: rate,
+                                                        })
+                                                    }
+                                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
+                                                        currentInvoice.tax ===
+                                                        rate
+                                                            ? "bg-indigo-500 text-white"
+                                                            : "bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600"
+                                                    }`}
                                                 >
-                                                    Credit
+                                                    {rate}%
                                                 </button>
-                                                <button
-                                                    onClick={() => patchInvoice({ paymentMethod: 'cash' })}
-                                                    className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${currentInvoice.paymentMethod === 'cash'
-                                                        ? 'bg-orange-500 text-white'
-                                                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
-                                                        }`}
-                                                >
-                                                    Cash
-                                                </button>
-                                            </div>
+                                            ))}
                                         </div>
+                                    </div>
 
-                                        {/* Default Tax */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Default Tax Rate</p>
-                                            <div className="flex gap-2">
-                                                {[0, 5, 10, 17].map(rate => (
-                                                    <button
-                                                        key={rate}
-                                                        onClick={() => patchInvoice({ tax: rate })}
-                                                        className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${currentInvoice.tax === rate
-                                                            ? 'bg-indigo-500 text-white'
-                                                            : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600'
-                                                            }`}
-                                                    >
-                                                        {rate}%
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        {/* Payment Terms */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Payment Terms</p>
-                                            <select
-                                                value={currentInvoice.paymentTerms || 'net30'}
-                                                onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 ring-indigo-500/20"
-                                            >
-                                                <option value="immediate">Immediate</option>
-                                                <option value="net7">Net 7 Days</option>
-                                                <option value="net15">Net 15 Days</option>
-                                                <option value="net30">Net 30 Days</option>
-                                                <option value="net60">Net 60 Days</option>
-                                            </select>
-                                        </div>
+                                    {/* Payment Terms */}
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-white">
+                                            Payment Terms
+                                        </p>
+                                        <select
+                                            value={
+                                                currentInvoice.paymentTerms ||
+                                                "net30"
+                                            }
+                                            onChange={(e) =>
+                                                patchInvoice({
+                                                    paymentTerms:
+                                                        e.target.value,
+                                                })
+                                            }
+                                            className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 ring-indigo-500/20"
+                                        >
+                                            <option value="immediate">
+                                                Immediate
+                                            </option>
+                                            <option value="net7">
+                                                Net 7 Days
+                                            </option>
+                                            <option value="net15">
+                                                Net 15 Days
+                                            </option>
+                                            <option value="net30">
+                                                Net 30 Days
+                                            </option>
+                                            <option value="net60">
+                                                Net 60 Days
+                                            </option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Footer */}
-                            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
-                                <button
-                                    onClick={() => setShowSettingsDrawer(false)}
-                                    className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90 transition-all"
-                                >
-                                    Done
-                                </button>
-                            </div>
                         </div>
-                    </>
-                )
-            }
+
+                        {/* Footer */}
+                        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                            <button
+                                onClick={() => setShowSettingsDrawer(false)}
+                                className="w-full py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90 transition-all"
+                            >
+                                Done
+                            </button>
+                        </div>
+                    </div>
+                </>
+            )}
             {/* QUICK ADD MODALS */}
             <QuickPartyModal
                 isOpen={isPartyModalOpen}
@@ -2422,7 +3735,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 initialName={customerSearch}
                 onSuccess={(newParty) => {
                     patchInvoice({ customer: newParty });
-                    setCustomerSearch('');
+                    setCustomerSearch("");
                 }}
             />
             <ProductModal
@@ -2430,117 +3743,148 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 onClose={() => setIsProductModalOpen(false)}
                 mode={productModalMode}
                 product={editingProduct}
-                initialName={productModalMode === 'create' ? (showQuickEntry ? quickEntry.name : (activeItemIndex !== null ? currentInvoice.items[activeItemIndex]?.name : '')) : ''}
+                initialName={
+                    productModalMode === "create"
+                        ? showQuickEntry
+                            ? quickEntry.name
+                            : activeItemIndex !== null
+                              ? currentInvoice.items[activeItemIndex]?.name
+                              : ""
+                        : ""
+                }
                 categories={categories}
                 warehouses={warehouses}
                 onSubmit={handleProductSubmit}
             />
             {/* OVERPAYMENT MODAL - Midnight Nebula Theme */}
-            {
-                showOverpaymentModal && (
-                    <>
-                        {/* Backdrop */}
-                        <div
-                            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
-                            onClick={() => setShowOverpaymentModal(false)}
-                        />
-                        {/* Modal */}
-                        <div className="fixed inset-0 flex items-center justify-center z-[210] p-4">
-                            <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
-                                {/* Header - Orange Midnight Nebula Style */}
-                                <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 dark:from-amber-600 dark:via-orange-700 dark:to-orange-900 p-6 overflow-hidden">
-                                    {/* Midnight Nebula ambient glows */}
-                                    <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 via-transparent to-red-500/20"></div>
-                                    <div className="absolute top-0 left-0 w-40 h-40 bg-yellow-400/40 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/4"></div>
-                                    <div className="absolute bottom-0 right-0 w-32 h-32 bg-red-500/30 rounded-full blur-3xl translate-y-1/2 translate-x-1/4"></div>
+            {showOverpaymentModal && (
+                <>
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200]"
+                        onClick={() => setShowOverpaymentModal(false)}
+                    />
+                    {/* Modal */}
+                    <div className="fixed inset-0 flex items-center justify-center z-[210] p-4">
+                        <div className="bg-white dark:bg-[#1a1d2e] rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in zoom-in-95 duration-200 border border-slate-200 dark:border-slate-700/50">
+                            {/* Header - Orange Midnight Nebula Style */}
+                            <div className="relative bg-gradient-to-br from-amber-500 via-orange-500 to-orange-600 dark:from-amber-600 dark:via-orange-700 dark:to-orange-900 p-6 overflow-hidden">
+                                {/* Midnight Nebula ambient glows */}
+                                <div className="absolute inset-0 bg-gradient-to-br from-yellow-300/20 via-transparent to-red-500/20"></div>
+                                <div className="absolute top-0 left-0 w-40 h-40 bg-yellow-400/40 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/4"></div>
+                                <div className="absolute bottom-0 right-0 w-32 h-32 bg-red-500/30 rounded-full blur-3xl translate-y-1/2 translate-x-1/4"></div>
 
-                                    {/* Glass icon - Midnight Nebula style */}
-                                    <div className="relative flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl">
-                                            <CreditCard size={26} className="text-white drop-shadow-lg" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white drop-shadow-sm">Overpayment Detected</h3>
-                                            <p className="text-white/80 text-sm font-medium">Customer paid extra</p>
-                                        </div>
+                                {/* Glass icon - Midnight Nebula style */}
+                                <div className="relative flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-xl">
+                                        <CreditCard
+                                            size={26}
+                                            className="text-white drop-shadow-lg"
+                                        />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white drop-shadow-sm">
+                                            Overpayment Detected
+                                        </h3>
+                                        <p className="text-white/80 text-sm font-medium">
+                                            Customer paid extra
+                                        </p>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Content */}
-                                <div className="p-6 space-y-5 bg-gradient-to-b from-white to-slate-50 dark:from-[#1a1d2e] dark:to-[#0f121d]">
-                                    <div className="text-center py-2">
-                                        <p className="text-slate-500 dark:text-slate-400 text-sm mb-2 font-medium">
-                                            {overpaymentDetails.customerName} paid
-                                        </p>
-                                        <p className="text-5xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                                            Rs {overpaymentDetails.amount.toLocaleString()}
-                                        </p>
-                                        <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-medium">more than the total</p>
-                                    </div>
-
-                                    <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 border border-amber-100 dark:border-amber-800/30">
-                                        <p className="text-sm text-amber-700 dark:text-amber-300 text-center font-medium">
-                                            What would you like to do with this extra amount?
-                                        </p>
-                                    </div>
-
-                                    {/* Options */}
-                                    <div className="grid gap-3">
-                                        {/* Option 1: Give Change */}
-                                        <button
-                                            onClick={() => {
-                                                setShowOverpaymentModal(false);
-                                                processSale(false, tempPrintIntent);
-                                            }}
-                                            className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700/50 hover:border-amber-500 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group text-left flex items-center gap-4"
-                                        >
-                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform border border-amber-200 dark:border-amber-800/50">
-                                                <ArrowLeftRight size={24} />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-bold text-slate-800 dark:text-white">Give Change</p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    Return Rs {overpaymentDetails.amount.toLocaleString()} to customer
-                                                </p>
-                                            </div>
-                                        </button>
-
-                                        {/* Option 2: Credit to Ledger */}
-                                        <button
-                                            onClick={() => {
-                                                setShowOverpaymentModal(false);
-                                                processSale(true, tempPrintIntent);
-                                            }}
-                                            className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700/50 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition-all group text-left flex items-center gap-4"
-                                        >
-                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform border border-emerald-200 dark:border-emerald-800/50">
-                                                <Wallet size={24} />
-                                            </div>
-                                            <div className="flex-1">
-                                                <p className="font-bold text-slate-800 dark:text-white">Credit to Ledger</p>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    Save Rs {overpaymentDetails.amount.toLocaleString()} to {overpaymentDetails.customerName}'s account
-                                                </p>
-                                            </div>
-                                        </button>
-                                    </div>
+                            {/* Content */}
+                            <div className="p-6 space-y-5 bg-gradient-to-b from-white to-slate-50 dark:from-[#1a1d2e] dark:to-[#0f121d]">
+                                <div className="text-center py-2">
+                                    <p className="text-slate-500 dark:text-slate-400 text-sm mb-2 font-medium">
+                                        {overpaymentDetails.customerName} paid
+                                    </p>
+                                    <p className="text-5xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
+                                        {getCurrencySymbol()}{" "}
+                                        {overpaymentDetails.amount.toLocaleString()}
+                                    </p>
+                                    <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-medium">
+                                        more than the total
+                                    </p>
                                 </div>
 
-                                {/* Footer */}
-                                <div className="p-4 bg-slate-100/50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700/50">
+                                <div className="bg-amber-50 dark:bg-amber-950/30 rounded-xl p-4 border border-amber-100 dark:border-amber-800/30">
+                                    <p className="text-sm text-amber-700 dark:text-amber-300 text-center font-medium">
+                                        What would you like to do with this
+                                        extra amount?
+                                    </p>
+                                </div>
+
+                                {/* Options */}
+                                <div className="grid gap-3">
+                                    {/* Option 1: Give Change */}
                                     <button
-                                        onClick={() => setShowOverpaymentModal(false)}
-                                        className="w-full py-2.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-semibold text-sm transition-colors hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg"
+                                        onClick={() => {
+                                            setShowOverpaymentModal(false);
+                                            processSale(false, tempPrintIntent);
+                                        }}
+                                        className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700/50 hover:border-amber-500 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group text-left flex items-center gap-4"
                                     >
-                                        Cancel
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/40 dark:to-orange-900/40 flex items-center justify-center text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform border border-amber-200 dark:border-amber-800/50">
+                                            <ArrowLeftRight size={24} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-slate-800 dark:text-white">
+                                                Give Change
+                                            </p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                Return {getCurrencySymbol()}{" "}
+                                                {overpaymentDetails.amount.toLocaleString()}{" "}
+                                                to customer
+                                            </p>
+                                        </div>
+                                    </button>
+
+                                    {/* Option 2: Credit to Ledger */}
+                                    <button
+                                        onClick={() => {
+                                            setShowOverpaymentModal(false);
+                                            processSale(true, tempPrintIntent);
+                                        }}
+                                        className="w-full p-4 rounded-xl border-2 border-slate-200 dark:border-slate-700/50 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition-all group text-left flex items-center gap-4"
+                                    >
+                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/40 dark:to-teal-900/40 flex items-center justify-center text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform border border-emerald-200 dark:border-emerald-800/50">
+                                            <Wallet size={24} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-slate-800 dark:text-white">
+                                                Credit to Ledger
+                                            </p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                                                Save {getCurrencySymbol()}{" "}
+                                                {overpaymentDetails.amount.toLocaleString()}{" "}
+                                                to{" "}
+                                                {
+                                                    overpaymentDetails.customerName
+                                                }
+                                                's account
+                                            </p>
+                                        </div>
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Footer */}
+                            <div className="p-4 bg-slate-100/50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700/50">
+                                <button
+                                    onClick={() =>
+                                        setShowOverpaymentModal(false)
+                                    }
+                                    className="w-full py-2.5 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 font-semibold text-sm transition-colors hover:bg-slate-200/50 dark:hover:bg-slate-800/50 rounded-lg"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
                         </div>
-                    </>
-                )
-            }
-        </OneGlanceLayout >
+                    </div>
+                </>
+            )}
+        </OneGlanceLayout>
     );
 };
 

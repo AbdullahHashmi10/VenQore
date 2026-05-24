@@ -229,7 +229,7 @@ export default function Updater({ currentVersion }) {
                 if (formDataOrPayload instanceof FormData) {
                     res = await axios.post('/api/updater/run', formDataOrPayload, {
                         headers: { 'Content-Type': 'multipart/form-data' },
-                        timeout: 120000, // 2 min per chunk (generous)
+                        timeout: 600000, // 10 min per chunk (generous)
                     });
                 } else {
                     // Non-upload steps get 3 minute timeout (migrations can be slow)
@@ -294,7 +294,7 @@ export default function Updater({ currentVersion }) {
 
                 const res = await axios.post('/api/updater/run', fd, {
                     headers: { 'Content-Type': 'multipart/form-data' },
-                    timeout: 120000,
+                    timeout: 600000,
                 });
 
                 const pct = Math.round(((i + 1) / totalChunks) * 100);
@@ -371,7 +371,7 @@ export default function Updater({ currentVersion }) {
                             <div className="flex items-center gap-4">
                                 {/* Back to Platform HQ — only platform admins use the Updater */}
                                 <Link
-                                    href={route('store.admin.dashboard', { store_slug: store.slug })}
+                                    href={route('platform.dashboard')}
                                     className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-200 transition-colors group mr-2"
                                     title="Back to Platform HQ"
                                 >

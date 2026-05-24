@@ -23,7 +23,7 @@ class CashShortageController extends Controller
         ]);
 
         // Confirm approved_by is actually a manager
-        $approver = DB::table('users')
+        $approver = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
             ->where('id', $validated['approved_by'])
             ->first();
 

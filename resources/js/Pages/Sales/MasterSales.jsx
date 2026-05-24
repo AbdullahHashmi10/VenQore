@@ -108,6 +108,7 @@ import {
     MoreHorizontal
 } from 'lucide-react';
 import axios from 'axios';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useAlert } from '@/Contexts/AlertContext';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
@@ -122,6 +123,8 @@ import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
 const CustomerProfileCard = ({ customer, onClose }) => {
     if (!customer) return null;
 
+    const { store } = usePage().props;
+ 
     // ATOMIC ANALYSIS: Risks and Rewards
     const isOverLimit = (customer.balance || 0) > (customer.credit_limit || 999999);
 
@@ -147,12 +150,12 @@ const CustomerProfileCard = ({ customer, onClose }) => {
                 <div className="flex justify-between items-center mb-1">
                     <span className="text-slate-400 text-sm">Balance:</span>
                     <span className={`font-mono font-bold ${customer.balance > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                        ${customer.balance || '0.00'}
+                        {formatCurrency(customer.balance || 0, store)}
                     </span>
                 </div>
                 <div className="flex justify-between items-center">
                     <span className="text-slate-400 text-sm">Credit Limit:</span>
-                    <span className="font-mono text-slate-300">${customer.credit_limit || '∞'}</span>
+                    <span className="font-mono text-slate-300">{customer.credit_limit ? formatCurrency(customer.credit_limit, store) : '∞'}</span>
                 </div>
                 {isOverLimit && (
                     <div className="mt-2 text-xs bg-red-500/20 text-red-400 px-2 py-1 rounded flex items-center">
@@ -166,7 +169,7 @@ const CustomerProfileCard = ({ customer, onClose }) => {
                 <div className="text-xs uppercase text-slate-500 font-bold mb-2">Growth Engine</div>
                 <div className="bg-gradient-to-r from-amber-500/10 to-transparent p-2 rounded">
                     <div className="text-amber-500 font-bold text-lg">{customer.points || 0} PTS</div>
-                    <div className="text-[10px] text-amber-400/60">Redeemable Value: ${(customer.points || 0) * 0.1}</div>
+                    <div className="text-[10px] text-amber-400/60">Redeemable Value: {formatCurrency((customer.points || 0) * 0.1, store)}</div>
                 </div>
             </div>
 
@@ -188,7 +191,8 @@ const CustomerProfileCard = ({ customer, onClose }) => {
  * [ATOMIC COMPONENT] Detailed Row
  * "Each and every single detail" for the item row.
  */
-const AtomicRow = ({ item, index, currency = '$', onUpdate, onRemove, onMove, onDuplicate }) => {
+const AtomicRow = ({ item, index, onUpdate, onRemove, onMove, onDuplicate }) => {
+    const { store } = usePage().props;
     // DERIVED ATOMIC MATH
     const gross = (item.quantity * item.price);
     const discountAmount = item.discountType === 'percent' ? (gross * (item.discount / 100)) : item.discount;
@@ -258,7 +262,7 @@ const AtomicRow = ({ item, index, currency = '$', onUpdate, onRemove, onMove, on
                     {/* ATOMIC LINK: MARGIN TOOLTIP */}
                     <div className="absolute top-full right-0 bg-slate-900 border border-slate-700 p-2 rounded shadow-xl z-50 hidden group-focus-within/price:block min-w-[150px]">
                         <div className="text-[10px] text-slate-400 flex justify-between">
-                            <span>Cost:</span> <span>${item.product?.cost || 0}</span>
+                            <span>Cost:</span> <span>{formatCurrency(item.product?.cost || 0, store)}</span>
                         </div>
                         <div className="text-[10px] text-slate-400 flex justify-between">
                             <span>Margin:</span>
@@ -270,7 +274,7 @@ const AtomicRow = ({ item, index, currency = '$', onUpdate, onRemove, onMove, on
 
             {/* TOTALS */}
             <td className="w-32 p-3 text-right font-mono font-bold text-slate-200">
-                {currency}{net.toFixed(2)}
+                {formatCurrency(net, store)}
             </td>
 
             {/* MENU ACTIONS */}
@@ -303,6 +307,7 @@ const AtomicRow = ({ item, index, currency = '$', onUpdate, onRemove, onMove, on
 
 export default function MasterSales() {
     // SYSTEM STATE
+    const { store } = usePage().props;
     const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, addInvoice, removeInvoice, updateInvoice } = useWorkspace();
     const currentInvoice = activeInvoices.find(i => i.id === currentInvoiceId) || activeInvoices[0]; // Active Tab logic
 
@@ -404,7 +409,7 @@ export default function MasterSales() {
                                 </span>
                                 <span className="text-[9px] font-mono opacity-60 flex justify-between w-full">
                                     <span>{inv.items?.length || 0} Items</span>
-                                    <span>${inv.total || '0.00'}</span>
+                                    <span>{formatCurrency(inv.total || 0, store)}</span>
                                 </span>
                             </div>
                             <button
@@ -542,19 +547,19 @@ export default function MasterSales() {
                                 <div className="space-y-1">
                                     <div className="flex justify-between text-xs text-slate-400">
                                         <span>Subtotal</span>
-                                        <span>$0.00</span>
+                                        <span>{formatCurrency(currentInvoice?.subtotal || 0, store)}</span>
                                     </div>
                                     <div className="flex justify-between text-xs text-slate-400">
                                         <span>Tax (VAT 5%)</span>
-                                        <span>$0.00</span>
+                                        <span>{formatCurrency(currentInvoice?.tax || 0, store)}</span>
                                     </div>
                                     <div className="flex justify-between text-xs text-slate-400">
                                         <span>Discount</span>
-                                        <span className="text-red-400">-$0.00</span>
+                                        <span className="text-red-400">-{formatCurrency(currentInvoice?.discount || 0, store)}</span>
                                     </div>
                                     <div className="border-t border-slate-700 my-2 pt-2 flex justify-between items-end">
                                         <span className="text-sm font-bold text-slate-300">TOTAL DUE</span>
-                                        <span className="text-4xl font-black text-white">$0.00</span>
+                                        <span className="text-4xl font-black text-white">{formatCurrency(currentInvoice?.total || 0, store)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -627,7 +632,7 @@ export default function MasterSales() {
                                     >
                                         <div className="flex justify-between">
                                             <span className="font-bold text-slate-200 group-hover:text-white">Sample Product {i}</span>
-                                            <span className="font-mono text-emerald-400 font-bold">$12.50</span>
+                                            <span className="font-mono text-emerald-400 font-bold">{formatCurrency(12.50, store)}</span>
                                         </div>
                                         <div className="flex justify-between mt-1 text-[10px] text-slate-500">
                                             <span>Ware A: 50pcs</span>

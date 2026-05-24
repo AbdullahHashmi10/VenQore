@@ -66,6 +66,8 @@ const MasterReport = ({
     hasMore = false,
     loadingMore = false,
 }) => {
+    const { store, settings } = usePage().props;
+ 
     // Local State for sorting (if client side) - though server side is better for big reports
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [isCustomOpen, setIsCustomOpen] = useState(false);
@@ -496,7 +498,7 @@ const MasterReport = ({
                                             >
                                                 {col.render ? col.render(row) : (
                                                     // Default Render Logic
-                                                    col.type === 'currency' ? formatCurrency(row[col.key]) :
+                                                    col.type === 'currency' ? formatCurrency(row[col.key], store || settings) :
                                                         col.type === 'date' ? new Date(row[col.key]).toLocaleDateString() :
                                                             row[col.key] || <span className="text-slate-300 italic">-</span>
                                                 )}

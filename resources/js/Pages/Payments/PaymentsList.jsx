@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { getCurrencySymbol } from '@/Utils/format';
 import axios from 'axios';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -9,8 +10,8 @@ import {
     Plus, RefreshCw, Calendar, User, Hash, StickyNote
 } from 'lucide-react';
 
-const formatCurrency = (val) =>
-    new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(val || 0));
+const formatCurrency = (val, store) =>
+    (getCurrencySymbol()) + ' ' + (new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(val || 0)));
 
 const formatDate = (d) =>
     d ? new Date(d).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
@@ -34,7 +35,7 @@ const SortBtn = ({ label, sortKey, current, onSort }) => (
     </button>
 );
 
-function PaymentRow({ item, type }) {
+function PaymentRow({ item, type, store }) {
     const isIn = type === 'in';
     return (
         <tr className="group hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0">
@@ -77,14 +78,14 @@ function PaymentRow({ item, type }) {
             <td className="px-4 py-3 text-right">
                 <span className={`text-sm font-black tabular-nums ${isIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'
                     }`}>
-                    {isIn ? '+' : '−'} Rs {formatCurrency(item.amount)}
+                    {isIn ? '+' : '−'} {formatCurrency(item.amount, store)}
                 </span>
             </td>
         </tr>
     );
 }
 
-function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stats }) {
+function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stats, store }) {
     const isIn = type === 'in';
     const accent = isIn
         ? { bg: 'bg-emerald-600', light: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/40' }
@@ -116,10 +117,10 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                 </div>
                 <div className="text-right">
                     <p className={`text-lg font-black tabular-nums ${accent.text}`}>
-                        Rs {formatCurrency(stats?.total || 0)}
+                        {formatCurrency(stats?.total || 0, store)}
                     </p>
                     <p className="text-[10px] text-slate-400">
-                        {payments.length} records · Today: Rs {formatCurrency(stats?.today || 0)}
+                        {payments.length} records · Today: {formatCurrency(stats?.today || 0, store)}
                     </p>
                 </div>
             </div>
@@ -165,7 +166,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
                                 </td>
                             </tr>
                         ) : (
-                            sorted.map(item => <PaymentRow key={item.id} item={item} type={type} />)
+                            sorted.map(item => <PaymentRow key={item.id} item={item} type={type} store={store} />)
                         )}
                         <tr ref={observerRef} className="h-1">
                             <td colSpan={5}>
@@ -183,7 +184,7 @@ function PaymentPanel({ type, payments, sort, onSort, loading, observerRef, stat
     );
 }
 
-export default function PaymentsIndex({ payments = {}, stats = {}, filters = {} }) {
+export default function PaymentsIndex({ payments = {}, stats = {}, filters = {}, store }) {
     const allData = payments.data || [];
     const inPayments = allData.filter(p => p.type === 'in');
     const outPayments = allData.filter(p => p.type === 'out');
@@ -291,10 +292,10 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {} 
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Total Received</p>
-                                <p className="text-base font-black text-emerald-600">Rs {formatCurrency(totalIn)}</p>
+                                <p className="text-base font-black text-emerald-600">{formatCurrency(totalIn, store)}</p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">Today: <span className="font-bold text-emerald-500">Rs {formatCurrency(todayIn)}</span></p>
+                        <p className="text-[10px] text-slate-400">Today: <span className="font-bold text-emerald-500">{formatCurrency(todayIn, store)}</span></p>
                     </div>
 
                     <div className="bg-white dark:bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center justify-between shadow-sm">
@@ -304,10 +305,10 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {} 
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Total Paid Out</p>
-                                <p className="text-base font-black text-rose-600">Rs {formatCurrency(totalOut)}</p>
+                                <p className="text-base font-black text-rose-600">{formatCurrency(totalOut, store)}</p>
                             </div>
                         </div>
-                        <p className="text-[10px] text-slate-400">Today: <span className="font-bold text-rose-500">Rs {formatCurrency(todayOut)}</span></p>
+                        <p className="text-[10px] text-slate-400">Today: <span className="font-bold text-rose-500">{formatCurrency(todayOut, store)}</span></p>
                     </div>
 
                     <div className={`px-4 py-2.5 rounded-xl border shadow-sm flex items-center justify-between ${netFlow >= 0
@@ -321,7 +322,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {} 
                             <div>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase">Net Cash Flow</p>
                                 <p className={`text-base font-black tabular-nums ${netFlow >= 0 ? 'text-indigo-600' : 'text-amber-600'}`}>
-                                    {netFlow >= 0 ? '+' : '−'} Rs {formatCurrency(Math.abs(netFlow))}
+                                    {netFlow >= 0 ? '+' : '−'} {formatCurrency(Math.abs(netFlow), store)}
                                 </p>
                             </div>
                         </div>
@@ -381,6 +382,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {} 
                         loading={loadingMore}
                         observerRef={observerInRef}
                         stats={{ total: totalIn, today: todayIn }}
+                        store={store}
                     />
                     <PaymentPanel
                         type="out"
@@ -390,6 +392,7 @@ export default function PaymentsIndex({ payments = {}, stats = {}, filters = {} 
                         loading={loadingMore}
                         observerRef={observerOutRef}
                         stats={{ total: totalOut, today: todayOut }}
+                        store={store}
                     />
                 </div>
             </div>

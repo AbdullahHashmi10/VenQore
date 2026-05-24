@@ -33,7 +33,7 @@ class BomController extends Controller
         }
 
         // Deactivate any previous active BOM for this product
-        DB::table('bill_of_materials')
+        DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)
             ->where('product_id', $validated['product_id'])
             ->where('is_active', 1)
             ->update(['is_active' => 0, 'updated_at' => now()]);
@@ -42,7 +42,7 @@ class BomController extends Controller
 
             $bomId = Str::uuid()->toString();
 
-            DB::table('bill_of_materials')->insert([
+            DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->insert([
                 'id'             => $bomId,
                 'product_id'     => $validated['product_id'],
                 'version'        => $validated['version'],
@@ -54,7 +54,7 @@ class BomController extends Controller
             ]);
 
             foreach ($validated['items'] as $item) {
-                DB::table('bom_items')->insert([
+                DB::table('bom_items')->where('bom_items.tenant_id', app('current.tenant')->id)->insert([
                     'id'            => Str::uuid()->toString(),
                     'bom_id'        => $bomId,
                     'product_id'    => $item['product_id'],
@@ -66,7 +66,7 @@ class BomController extends Controller
             }
 
             // Mark the finished-good product as manufactured
-            DB::table('products')
+            DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
                 ->where('id', $validated['product_id'])
                 ->update(['is_manufactured' => 1, 'updated_at' => now()]);
         });
@@ -78,7 +78,7 @@ class BomController extends Controller
     {
         // BOMs are versioned — update means deactivate old + create new version
         // Redirect to store with incremented version
-        $bom = DB::table('bill_of_materials')->where('id', $id)->firstOrFail();
+        $bom = DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
         $request->merge([
             'product_id' => $bom->product_id,
@@ -90,9 +90,9 @@ class BomController extends Controller
 
     public function destroy(string $id)
     {
-        $bom = DB::table('bill_of_materials')->where('id', $id)->firstOrFail();
+        $bom = DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
-        $hasRuns = DB::table('production_runs')
+        $hasRuns = DB::table('production_runs')->where('production_runs.tenant_id', app('current.tenant')->id)
             ->where('bom_id', $id)
             ->exists();
 
@@ -102,8 +102,8 @@ class BomController extends Controller
             ]);
         }
 
-        DB::table('bom_items')->where('bom_id', $id)->delete();
-        DB::table('bill_of_materials')->where('id', $id)->delete();
+        DB::table('bom_items')->where('bom_items.tenant_id', app('current.tenant')->id)->where('bom_id', $id)->delete();
+        DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->where('id', $id)->delete();
 
         return redirect()->back()->with('success', 'BOM deleted.');
     }

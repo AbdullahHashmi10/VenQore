@@ -1,8 +1,11 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { ArrowLeftRight } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function SalePurchaseByParty({ parties }) {
+    const { store } = usePage().props;
     return (
         <ReportPage
             title="Sale & Purchase by Party"
@@ -23,10 +26,10 @@ export default function SalePurchaseByParty({ parties }) {
                         {parties.map((party, idx) => (
                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                 <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{party.name}</td>
-                                <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">Rs {party.sales.toLocaleString()}</td>
-                                <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">Rs {party.purchases.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(party.sales)}</td>
+                                <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">{formatCurrency(party.purchases)}</td>
                                 <td className={`px-6 py-4 text-right text-sm font-black ${party.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    Rs {party.net.toLocaleString()}
+                                    {formatCurrency(party.net)}
                                 </td>
                             </tr>
                         ))}

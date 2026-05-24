@@ -148,6 +148,44 @@ class SaleService
             $netSales     = round($subtotalGross - $totalItemDiscounts, 2);
             $invoiceTotal = round($netSales + $taxTotal, 2);
 
+            // ── Credit Limit Check ──
+            if (!empty($data['customer_id'])) {
+                $customer = DB::table('parties')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('id', $data['customer_id'])
+                    ->first();
+
+                if ($customer && $customer->credit_limit !== null) {
+                    $creditPortion = 0.00;
+                    if ($data['payment_method'] === 'credit') {
+                        $creditPortion = $invoiceTotal;
+                    } else {
+                        $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
+                        if (round($amountReceived, 2) < round($invoiceTotal, 2)) {
+                            $creditPortion = round($invoiceTotal - $amountReceived, 2);
+                        }
+                    }
+
+                    if ($creditPortion > 0) {
+                        $currentBalance = (float) DB::table('journal_items as ji')
+                            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                            ->where('je.tenant_id', $this->tenantId)
+                            ->where('je.party_id', $data['customer_id'])
+                            ->where('a.code', '1200')
+                            ->where('je.is_reversed', 0)
+                            ->selectRaw('SUM(ji.debit) - SUM(ji.credit) as balance')
+                            ->value('balance') ?? 0.0;
+
+                        if ($currentBalance + $creditPortion > (float) $customer->credit_limit) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'customer_id' => ["Credit limit exceeded. Remaining limit is " . ($customer->credit_limit - $currentBalance) . ", attempting to charge " . $creditPortion]
+                            ]);
+                        }
+                    }
+                }
+            }
+
             // ── 2. S-011 Below-cost check ─────────────────────────────
             foreach ($lineItems as $lineData) {
                 if (!empty($lineData['item']['is_promotional'])) continue;

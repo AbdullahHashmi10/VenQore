@@ -144,7 +144,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeId, tenant }) {
 
             {!isCurrent && !isLtd && (
                 <button
-                    onClick={() => router.visit(route('store.billing.portal', { store_slug: storeSlug }))}
+                    onClick={() => window.location.href = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey })}
                     className="w-full py-3 rounded-2xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg"
                     style={{ background: `linear-gradient(135deg, ${meta.color}, ${meta.color}dd)` }}
                 >
@@ -153,7 +153,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeId, tenant }) {
             )}
             {isCurrent && !isLtd && (
                 <button
-                    onClick={() => router.visit(route('store.billing.portal', { store_slug: storeSlug }))}
+                    onClick={() => window.location.href = route('store.billing.portal', { store_slug: storeSlug })}
                     className="w-full py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 border-2 transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
                     style={{ borderColor: meta.color + '40', color: meta.color }}
                 >
@@ -215,7 +215,7 @@ export default function BillingIndex({ tenant, plans, usage }) {
                                 </div>
                             </div>
                             <button 
-                                onClick={() => router.visit(route('store.billing.portal', { store_slug: storeSlug }))}
+                                onClick={() => window.location.href = route('store.billing.portal', { store_slug: storeSlug })}
                                 className="px-8 py-4 bg-white text-orange-600 rounded-[1.25rem] font-black text-sm uppercase tracking-widest hover:bg-orange-50 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                             >
                                 Upgrade Now
@@ -244,7 +244,7 @@ export default function BillingIndex({ tenant, plans, usage }) {
                     <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10">
                         {!isLtd && (
                             <button
-                                onClick={() => router.visit(route('store.billing.portal', { store_slug: storeSlug }))}
+                                onClick={() => window.location.href = route('store.billing.portal', { store_slug: storeSlug })}
                                 className="px-6 py-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-200 font-bold text-sm flex items-center gap-2 shadow-sm hover:shadow-md transition-all"
                             >
                                 <ExternalLink size={16} /> Billing Portal

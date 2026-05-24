@@ -14,7 +14,7 @@ class ProductController extends Controller
 {
     public function index()
     {
-        $products = DB::table('products')
+        $products = DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
             ->whereNull('deleted_at')
             ->orderBy('name')
@@ -44,14 +44,14 @@ class ProductController extends Controller
 
         // ── Phase 4.3: SKU Limit Gate (V3 path) ────────────────────────
         if (app()->bound('current.tenant')) {
-            $skuCount = (int) DB::table('products')
+            $skuCount = (int) DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
                 ->where('tenant_id', app('current.tenant')->id)
                 ->whereNull('deleted_at')
                 ->count();
             PlanGate::enforce('sku_limit', $skuCount);
         }
 
-        DB::table('products')->insert([
+        DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->insert([
             'id'                => Str::uuid()->toString(),
             'tenant_id'         => app('current.tenant')->id,
             'name'              => $validated['name'],
@@ -60,7 +60,7 @@ class ProductController extends Controller
             'price'             => $validated['sale_price'],
             'tax_rate'          => $validated['tax_rate'] ?? 0,
             'price_includes_tax'=> $validated['price_includes_tax'] ?? 0,
-            'reorder_level'     => $validated['reorder_level'] ?? 0,
+            // 'reorder_level'     => $validated['reorder_level'] ?? 0,
             'is_manufactured'   => $validated['is_manufactured'] ?? 0,
             'is_active'         => 1,
             'status'            => 'active',
@@ -74,18 +74,18 @@ class ProductController extends Controller
 
     public function edit(string $id)
     {
-        $product = DB::table('products')
+        $product = DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
             ->where('id', $id)
             ->firstOrFail();
 
         // Load UOM conversions for this product
-        $uomConversions = DB::table('product_uom_conversions')
+        $uomConversions = DB::table('product_uom_conversions')->where('product_uom_conversions.tenant_id', app('current.tenant')->id)
             ->where('product_id', $id)
             ->get();
 
         // Load price tiers for this product
-        $priceTiers = DB::table('product_price_tiers')
+        $priceTiers = DB::table('product_price_tiers')->where('product_price_tiers.tenant_id', app('current.tenant')->id)
             ->where('product_id', $id)
             ->orderBy('min_qty')
             ->get();
@@ -101,7 +101,7 @@ class ProductController extends Controller
     {
         $validated = $request->validated();
 
-        DB::table('products')
+        DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
             ->where('id', $id)
             ->update([
@@ -111,7 +111,7 @@ class ProductController extends Controller
             'price'              => $validated['sale_price'],
             'tax_rate'           => $validated['tax_rate'] ?? 0,
             'price_includes_tax' => $validated['price_includes_tax'] ?? 0,
-            'reorder_level'      => $validated['reorder_level'] ?? 0,
+            // 'reorder_level'      => $validated['reorder_level'] ?? 0,
             'is_manufactured'    => $validated['is_manufactured'] ?? 0,
             'updated_at'         => now(),
         ]);
@@ -128,18 +128,18 @@ class ProductController extends Controller
         // Instead, we check first and either archive or soft-delete cleanly.
 
         $tenantId = app('current.tenant')->id;
-        $hasSalesHistory = DB::table('sale_items')->where('tenant_id', $tenantId)->where('product_id', $id)->exists()
-            || DB::table('invoice_items')->where('tenant_id', $tenantId)->where('product_id', $id)->exists()
-            || DB::table('inventory_batches')->where('tenant_id', $tenantId)->where('product_id', $id)->exists();
+        $hasSalesHistory = DB::table('sale_items')->where('sale_items.tenant_id', app('current.tenant')->id)->where('product_id', $id)->exists()
+            || DB::table('invoice_items')->where('invoice_items.tenant_id', app('current.tenant')->id)->where('product_id', $id)->exists()
+            || DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)->where('product_id', $id)->exists();
 
         if ($hasSalesHistory) {
             // Archive: hide from POS and stock lists but NEVER destroy history.
-            DB::table('products')->where('id', $id)->update([
+            DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->where('id', $id)->update([
                 'is_active'  => 0,
                 'updated_at' => now(),
             ]);
 
-            $product = DB::table('products')->where('id', $id)->first();
+            $product = DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->where('id', $id)->first();
             $name = $product->name ?? 'Product';
 
             return redirect()->route('store.v3.products.index', ['store_slug' => app('current.tenant')->slug])

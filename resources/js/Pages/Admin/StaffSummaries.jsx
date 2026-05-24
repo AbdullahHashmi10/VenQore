@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
-import { Head, Link } from '@inertiajs/react';
+﻿import React, { useState, useMemo } from 'react';
+import { getCurrencySymbol } from '@/Utils/format';
+import { Head, Link, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
 import {
@@ -19,6 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function StaffSummaries({ staffData = [] }) {
+    const { store } = usePage().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState('sales'); // 'sales', 'transactions', 'avg'
 
@@ -49,12 +51,7 @@ export default function StaffSummaries({ staffData = [] }) {
     }, [staffData, searchTerm, sortConfig]);
 
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(value);
+        return (getCurrencySymbol()) + ' ' + (parseFloat(value || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
     };
 
     return (
@@ -214,7 +211,7 @@ export default function StaffSummaries({ staffData = [] }) {
                                                     <span className="text-[10px] font-bold uppercase">Avg</span>
                                                 </div>
                                                 <p className="font-bold text-slate-800 dark:text-white max-w-full truncate" title={formatCurrency(staff.avgTransaction)}>
-                                                    Rs {staff.avgTransaction.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                    {getCurrencySymbol()} {staff.avgTransaction.toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                                 </p>
                                             </div>
                                         </div>

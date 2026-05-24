@@ -27,7 +27,6 @@ use Illuminate\Support\Str;
 class MigrateOpeningBalances extends Command
 {
     protected $signature = 'migrate:opening-balances
-                            {--tenant-id= : Required — the tenant ID to migrate. Prevents cross-tenant data mixing.}
                             {--dry-run : Print what would be inserted without touching the DB}
                             {--reverse : Delete all journal entries created by this command}';
 
@@ -35,196 +34,195 @@ class MigrateOpeningBalances extends Command
 
     public function handle(): int
     {
-        $tenantId = $this->option('tenant-id');
-        if (!$tenantId) {
-            $this->error('--tenant-id is required. Run: php artisan migrate:opening-balances --tenant-id=<id>');
-            return self::FAILURE;
-        }
-
         if ($this->option('reverse')) {
-            return $this->reverse($tenantId);
+            return $this->reverse();
         }
 
         $dryRun = $this->option('dry-run');
 
-        // Load accounts we need
-        $arAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1200')->first(); // Accounts Receivable
-        $apAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '2000')->first(); // Accounts Payable
-        $obEquity  = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '7000')->first(); // Opening Balance Equity
-
-        if (!$arAccount || !$apAccount || !$obEquity) {
-            $this->error('Required accounts (1200, 2000, 7000) not found. Run seeders first.');
-            return self::FAILURE;
+        // Check if we are running in a specific tenant context (e.g. from web request)
+        if (app()->bound('current.tenant')) {
+            $tenants = collect([app('current.tenant')]);
+        } else {
+            // Load all tenants
+            $tenants = \App\Models\Tenant::all();
         }
 
-        $this->info('Accounts loaded:');
-        $this->line("  AR  1200: {$arAccount->name} ({$arAccount->id})");
-        $this->line("  AP  2000: {$apAccount->name} ({$apAccount->id})");
-        $this->line("  OBE 7000: {$obEquity->name} ({$obEquity->id})");
+        if ($tenants->isEmpty()) {
+            $this->warn('No tenants found.');
+            return self::SUCCESS;
+        }
 
-        // Load all parties with a non-zero opening balance
-        $parties = DB::table('parties')
-            ->where('tenant_id', $tenantId)
-            ->where(function ($q) {
-                $q->where('opening_balance', '!=', 0)
-                  ->orWhere('current_balance', '!=', 0);
-            })
-            ->get(['id', 'name', 'type', 'opening_balance', 'current_balance']);
+        $totalInserted = 0;
+        $totalSkipped = 0;
+        $globalAR = 0;
+        $globalAP = 0;
 
-        $this->info("Found {$parties->count()} parties with non-zero balance.");
+        foreach ($tenants as $tenant) {
+            $this->info("Processing Tenant: {$tenant->name} (ID: {$tenant->id}, Slug: {$tenant->slug})");
 
-        // Determine the migration date — earliest possible to not distort reports
-        // We use 2000-01-01 so it always appears before any real transaction in reports
-        $migrationDate = '2000-01-01';
-        $adminUserId   = DB::table('users')->orderBy('created_at')->value('id');
+            // Load accounts for this tenant
+            $arAccount = DB::table('accounts')->where('tenant_id', $tenant->id)->where('code', '1200')->first();
+            $apAccount = DB::table('accounts')->where('tenant_id', $tenant->id)->where('code', '2000')->first();
+            $obEquity  = DB::table('accounts')->where('tenant_id', $tenant->id)->where('code', '7000')->first();
 
-        $inserted = 0;
-        $skipped  = 0;
-        $totalAR  = 0;
-        $totalAP  = 0;
+            if ($arAccount && $apAccount && !$obEquity) {
+                $obEquityId = (string) Str::orderedUuid();
+                DB::table('accounts')->insert([
+                    'id' => $obEquityId,
+                    'tenant_id' => $tenant->id,
+                    'code' => '7000',
+                    'name' => 'Historical Balances',
+                    'type' => 'equity',
+                    'is_active' => true,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+                $obEquity = DB::table('accounts')->where('id', $obEquityId)->first();
+            }
 
-        foreach ($parties as $party) {
-            // Priority: opening_balance_type (the explicit intention during import)
-            // Fallback: Use the sign of current_balance for existing records
-            $balance = (float) $party->current_balance;
-            if ($balance == 0) {
-                $skipped++;
+            if (!$arAccount || !$apAccount || !$obEquity) {
+                $this->warn("  Missing required accounts (1200, 2000, 7000) for tenant {$tenant->name}. Skipping.");
                 continue;
             }
 
-            // Determine if it should be an Accounts Receivable (DR 1200) or Accounts Payable (CR 2000) balance
-            // Rule:
-            // - Receivable: DR 1200 (AR), CR 7000 (OBE)
-            // - Payable:    DR 7000 (OBE), CR 2000 (AP)
-            
-            $typeColumn = $party->opening_balance_type ?? null;
-            $isReceivable = false;
+            // Load all parties for this tenant with a non-zero opening balance
+            $parties = DB::table('parties')
+                ->where('tenant_id', $tenant->id)
+                ->where(function($q) {
+                    $q->where('opening_balance', '!=', 0)
+                      ->orWhere('current_balance', '!=', 0);
+                })
+                ->get(['id', 'name', 'type', 'opening_balance', 'opening_balance_type', 'current_balance']);
 
-            if ($typeColumn === 'receivable') {
-                $isReceivable = true;
-            } elseif ($typeColumn === 'payable') {
+            if ($parties->isEmpty()) {
+                $this->line("  No parties with non-zero balance found.");
+                continue;
+            }
+
+            $this->info("  Found {$parties->count()} parties with non-zero balance.");
+
+            $migrationDate = '2000-01-01';
+            // Find admin or first user for this tenant
+            $adminUserId = DB::table('tenant_users')
+                ->where('tenant_id', $tenant->id)
+                ->where('role', 'owner')
+                ->value('user_id') ?: DB::table('users')->orderBy('created_at')->value('id');
+
+            foreach ($parties as $party) {
+                $balance = (float) $party->current_balance;
+                if ($balance == 0) {
+                    $totalSkipped++;
+                    continue;
+                }
+
+                $typeColumn = $party->opening_balance_type ?? null;
                 $isReceivable = false;
-            } else {
-                // Fallback: Infer from sign and party type for old data
-                if ($party->type === 'customer') {
-                    $isReceivable = ($balance > 0);
-                } else { // supplier
-                    $isReceivable = ($balance < 0); // supplier with negative means they owe us
-                }
-            }
 
-            $absBalance = abs($balance);
-            if ($isReceivable) {
-                // DR AR, CR OBE
-                $drAccountId = $arAccount->id;
-                $crAccountId = $obEquity->id;
-                $totalAR    += $absBalance;
-                $desc        = "Opening Balance — " . ($party->type === 'customer' ? 'Customer' : 'Supplier') . " receivable: {$party->name}";
-            } else {
-                // DR OBE, CR AP
-                $drAccountId = $obEquity->id;
-                $crAccountId = $apAccount->id;
-                $totalAP    += $absBalance;
-                $desc        = "Opening Balance — " . ($party->type === 'customer' ? 'Customer' : 'Supplier') . " payable: {$party->name}";
-            }
-
-            $idempKey = 'ob_migrate_' . $party->id;
-
-            // Skip if already migrated
-            $exists = DB::table('journal_entries')
-                ->where('tenant_id', $tenantId)
-                ->where('idempotency_key', $idempKey)
-                ->exists();
-
-            if ($exists) {
-                $this->line("  SKIP [{$party->name}] — already migrated");
-                $skipped++;
-                continue;
-            }
-
-            $this->line(sprintf(
-                "  %s [%s] %.2f — DR %s CR %s",
-                $dryRun ? 'PREVIEW' : 'INSERT',
-                $party->name,
-                $absBalance,
-                $drAccountId === $arAccount->id ? 'AR' : 'OBE',
-                $crAccountId === $apAccount->id ? 'AP' : 'OBE'
-            ));
-
-            if (!$dryRun) {
-                $jeId = (string) Str::orderedUuid();
-                $now  = now()->toDateTimeString();
-
-                $entry = [
-                    'id'               => $jeId,
-                    'tenant_id'        => $tenantId,
-                    'date'             => $migrationDate,
-                    'reference'        => 'OB-MIGRATE-' . strtoupper(substr($party->id, -8)),
-                    'description'      => $desc,
-                    'idempotency_key'  => $idempKey,
-                    'is_reversed'      => 0,
-                    'is_reversal'      => 0,
-                    'reference_type'   => 'opening_balance_migration',
-                    'party_id'         => $party->id,
-                    'user_id'          => $adminUserId,
-                    'created_at'       => $now,
-                    'updated_at'       => $now,
-                ];
-
-                // insertOrIgnore: skip silently if idempotency_key already exists
-                $affected = DB::table('journal_entries')->insertOrIgnore($entry);
-
-                if ($affected === 0) {
-                    // Already existed — skip items too
-                    $this->line("  SKIP (already in DB) [{$party->name}]");
-                    $skipped++;
-                    $inserted--;  // undo the increment below
+                if ($typeColumn === 'receivable') {
+                    $isReceivable = true;
+                } elseif ($typeColumn === 'payable') {
+                    $isReceivable = false;
                 } else {
-                    DB::table('journal_items')->insert([
-                        [
-                            'id'               => (string) Str::orderedUuid(),
-                            'tenant_id'        => $tenantId,
-                            'journal_entry_id' => $jeId,
-                            'account_id'       => $drAccountId,
-                            'debit'            => $absBalance,
-                            'credit'           => 0,
-                            'description'      => $desc,
-                            'created_at'       => $now,
-                            'updated_at'       => $now,
-                        ],
-                        [
-                            'id'               => (string) Str::orderedUuid(),
-                            'tenant_id'        => $tenantId,
-                            'journal_entry_id' => $jeId,
-                            'account_id'       => $crAccountId,
-                            'debit'            => 0,
-                            'credit'           => $absBalance,
-                            'description'      => $desc,
-                            'created_at'       => $now,
-                            'updated_at'       => $now,
-                        ],
-                    ]);
+                    if ($party->type === 'customer') {
+                        $isReceivable = ($balance > 0);
+                    } else {
+                        $isReceivable = ($balance < 0);
+                    }
                 }
-            }
 
-            $inserted++;
+                $absBalance = abs($balance);
+                if ($isReceivable) {
+                    $drAccountId = $arAccount->id;
+                    $crAccountId = $obEquity->id;
+                    $globalAR    += $absBalance;
+                    $desc        = "Opening Balance — " . ($party->type === 'customer' ? 'Customer' : 'Supplier') . " receivable: {$party->name}";
+                } else {
+                    $drAccountId = $obEquity->id;
+                    $crAccountId = $apAccount->id;
+                    $globalAP    += $absBalance;
+                    $desc        = "Opening Balance — " . ($party->type === 'customer' ? 'Customer' : 'Supplier') . " payable: {$party->name}";
+                }
+
+                $idempKey = 'ob_migrate_' . $party->id;
+
+                $exists = DB::table('journal_entries')
+                    ->where('idempotency_key', $idempKey)
+                    ->exists();
+
+                if ($exists) {
+                    $totalSkipped++;
+                    continue;
+                }
+
+                if (!$dryRun) {
+                    $jeId = (string) Str::orderedUuid();
+                    $now  = now()->toDateTimeString();
+
+                    $entry = [
+                        'id'               => $jeId,
+                        'tenant_id'        => $tenant->id,
+                        'date'             => $migrationDate,
+                        'reference'        => 'OB-MIGRATE-' . strtoupper(substr($party->id, -8)),
+                        'description'      => $desc,
+                        'idempotency_key'  => $idempKey,
+                        'is_reversed'      => 0,
+                        'is_reversal'      => 0,
+                        'reference_type'   => 'opening_balance_migration',
+                        'party_id'         => $party->id,
+                        'user_id'          => $adminUserId,
+                        'created_at'       => $now,
+                        'updated_at'       => $now,
+                    ];
+
+                    $affected = DB::table('journal_entries')->insertOrIgnore($entry);
+
+                    if ($affected > 0) {
+                        DB::table('journal_items')->insert([
+                            [
+                                'id'               => (string) Str::orderedUuid(),
+                                'tenant_id'        => $tenant->id,
+                                'journal_entry_id' => $jeId,
+                                'account_id'       => $drAccountId,
+                                'debit'            => $absBalance,
+                                'credit'           => 0,
+                                'description'      => $desc,
+                                'created_at'       => $now,
+                                'updated_at'       => $now,
+                            ],
+                            [
+                                'id'               => (string) Str::orderedUuid(),
+                                'tenant_id'        => $tenant->id,
+                                'journal_entry_id' => $jeId,
+                                'account_id'       => $crAccountId,
+                                'debit'            => 0,
+                                'credit'           => $absBalance,
+                                'description'      => $desc,
+                                'created_at'       => $now,
+                                'updated_at'       => $now,
+                            ],
+                        ]);
+                    }
+                }
+
+                $totalInserted++;
+            }
         }
 
         $this->newLine();
         $this->info($dryRun
-            ? "DRY RUN complete. Would insert {$inserted} journal entries, skip {$skipped}."
-            : "Migration complete. Inserted {$inserted} journal entries, skipped {$skipped} (already done or zero)."
+            ? "DRY RUN complete. Would insert {$totalInserted} journal entries, skip {$totalSkipped}."
+            : "Migration complete. Inserted {$totalInserted} journal entries, skipped {$totalSkipped}."
         );
-        $this->info("  Total AR seeded: Rs " . number_format($totalAR, 2));
-        $this->info("  Total AP seeded: Rs " . number_format($totalAP, 2));
+        $this->info("  Total AR seeded globally: Rs " . number_format($globalAR, 2));
+        $this->info("  Total AP seeded globally: Rs " . number_format($globalAP, 2));
 
         return self::SUCCESS;
     }
 
-    private function reverse(string $tenantId): int
+    private function reverse(): int
     {
         $entries = DB::table('journal_entries')
-            ->where('tenant_id', $tenantId)
             ->where('idempotency_key', 'LIKE', 'ob_migrate_%')
             ->pluck('id');
 

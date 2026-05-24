@@ -86,13 +86,13 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
             insights.push({
                 type: 'success',
                 title: 'Positive Cash Flow',
-                message: `You are generating surplus cash (+${formatCurrency(netCash)}). Good day for reserves.`
+                message: `You are generating surplus cash (+${formatCurrency(netCash, store)}). Good day for reserves.`
             });
         } else if (netCash < 0) {
             insights.push({
                 type: 'warning',
                 title: 'Cash Burn Alert',
-                message: `Outflow exceeds inflow by ${formatCurrency(Math.abs(netCash))}. Monitor expenses closely.`
+                message: `Outflow exceeds inflow by ${formatCurrency(Math.abs(netCash), store)}. Monitor expenses closely.`
             });
         }
 
@@ -240,6 +240,7 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                         isCurrency
                         icon={<TrendingUp size={20} className="text-white" />}
                         color="bg-emerald-500"
+                        store={store}
                     />
                     <StatCard
                         title="Total Outflow"
@@ -247,6 +248,7 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                         isCurrency
                         icon={<TrendingDown size={20} className="text-white" />}
                         color="bg-rose-500"
+                        store={store}
                     />
                     <StatCard
                         title="Net Cash Flow"
@@ -255,6 +257,7 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                         prefix={stats.net_cash >= 0 ? '+' : '-'}
                         icon={<Wallet size={20} className="text-white" />}
                         color={stats.net_cash >= 0 ? "bg-indigo-500" : "bg-amber-500"}
+                        store={store}
                         subtext={stats.net_cash >= 0 ? "Surplus" : "Deficit"}
                     />
                 </div>
@@ -298,7 +301,7 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                                             </td>
                                             <td className={`p-3 text-sm font-bold text-right ${item.flow === 'in' ? 'text-emerald-600' : 'text-rose-600'
                                                 }`}>
-                                                {item.flow === 'in' ? '+' : '-'} {formatCurrency(item.amount)}
+                                                {item.flow === 'in' ? '+' : '-'} {formatCurrency(item.amount, store)}
                                             </td>
                                         </tr>
                                     ))}
@@ -353,7 +356,7 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
                                         <Tooltip
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                                             cursor={{ fill: '#f1f5f9', opacity: 0.4 }}
-                                            formatter={(value) => formatCurrency(value)}
+                                            formatter={(value) => formatCurrency(value, store)}
                                         />
                                         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                                             {chartData.map((entry, index) => (
@@ -371,13 +374,13 @@ export default function DayBook({ transactions = [], stats = {}, filters = {}, d
     );
 }
 
-function StatCard({ title, value, icon, color, isCurrency = false, prefix = '', subtext }) {
+function StatCard({ title, value, icon, color, isCurrency = false, prefix = '', subtext, store }) {
     return (
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
             <div>
                 <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{title}</p>
                 <h3 className="text-2xl font-black text-slate-800 dark:text-white">
-                    {prefix}{isCurrency ? formatCurrency(value || 0) : (value || 0)}
+                    {prefix}{isCurrency ? formatCurrency(value || 0, store) : (value || 0)}
                 </h3>
                 {subtext && <p className="text-[10px] text-slate-400 mt-1">{subtext}</p>}
             </div>

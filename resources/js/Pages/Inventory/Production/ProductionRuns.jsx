@@ -1,7 +1,9 @@
+﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import { Head, Link, router, usePage } from '@inertiajs/react'; // usePage added
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
+import { formatCurrency as globalFormatCurrency } from '@/Utils/format';
 
 import SmartCombobox from '@/Components/SmartCombobox';
 import {
@@ -10,7 +12,7 @@ import {
     Play,
     CheckCircle,
     Clock,
-    AlertTriangle,
+    AlertTriangle as AlertTriangleIcon,
     Package,
     Search,
     BarChart3,
@@ -93,9 +95,9 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
         { key: 'actions', label: 'Actions', width: '5%', frozen: true }
     ]);
 
-    // Formatters (Moved up)
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val || 0);
-    const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
+    // Formatters
+
+    const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString();
 
     // Server Search Application
     const applyServerFilters = (newParams) => {

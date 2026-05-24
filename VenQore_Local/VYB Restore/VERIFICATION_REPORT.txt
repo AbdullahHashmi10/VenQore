@@ -1,0 +1,81 @@
+﻿VERIFICATION REPORT - VYAPAR DATABASE SCHEMA
+
+================================================================================
+Generated: 2026-02-08 18:41:02
+
+TOTAL TABLES IN SOURCE: 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+TOTAL COLUMNS IN SOURCE: 657
+
+================================================================================
+
+COMPLETE TABLE INVENTORY
+
+1. audit_trails - 10 columns
+2. chart_of_accounts_mapping - 5 columns
+3. item_def_assembly - 8 columns
+4. item_def_assembly_additional_costs - 8 columns
+5. item_mfg_assembly_additional_costs - 10 columns
+6. journal_entry - 9 columns
+7. journal_entry_line_items - 7 columns
+8. kb_address - 6 columns
+9. kb_adjustment_ist_mapping - 4 columns
+10. kb_bank_accounts - 5 columns
+11. kb_bank_adjustments - 8 columns
+12. kb_cash_adjustments - 5 columns
+13. kb_cheque_status - 10 columns
+14. kb_closed_link_txn_table - 7 columns
+15. kb_custom_fields - 4 columns
+16. kb_extra_charges - 6 columns
+17. kb_firms - 33 columns
+18. kb_fts_vtable - 3 columns
+19. kb_fts_vtable_content - 4 columns
+20. kb_fts_vtable_segdir - 6 columns
+21. kb_fts_vtable_segments - 2 columns
+22. kb_images - 2 columns
+23. kb_item_adjustments - 17 columns
+24. kb_item_categories - 2 columns
+25. kb_item_categories_mapping - 3 columns
+26. kb_item_images - 6 columns
+27. kb_item_stock_tracking - 11 columns
+28. kb_item_units - 5 columns
+29. kb_item_units_mapping - 4 columns
+30. kb_items - 41 columns
+31. kb_lineitems - 31 columns
+32. kb_linked_transactions - 4 columns
+33. kb_log - 3 columns
+34. kb_names - 32 columns
+35. kb_party_groups - 2 columns
+36. kb_party_item_rate - 5 columns
+37. kb_payment_gateway - 27 columns
+38. kb_payment_terms - 4 columns
+39. kb_paymentTypes - 16 columns
+40. kb_prefix - 5 columns
+41. kb_serial_details - 4 columns
+42. kb_serial_mapping - 4 columns
+43. kb_settings - 3 columns
+44. kb_tax_code - 7 columns
+45. kb_tax_mapping - 5 columns
+46. kb_tcs_tax_rates - 4 columns
+47. kb_transactions - 84 columns
+48. kb_txn_links - 7 columns
+49. kb_txn_message_config - 4 columns
+50. kb_udf_fields - 10 columns
+51. kb_udf_values - 5 columns
+52. loan_accounts - 16 columns
+53. loan_transactions - 13 columns
+54. loyalty_txn - 14 columns
+55. other_accounts - 10 columns
+56. party_item_service_reminder - 7 columns
+57. party_to_party_transfer - 10 columns
+58. recycle_bin - 7 columns
+59. sqlite_sequence - 2 columns
+60. store_line_items - 4 columns
+61. store_transactions - 7 columns
+62. stores - 10 columns
+63. tds_tax_rates - 6 columns
+64. transaction_attachments - 4 columns
+65. txn_payment_mapping - 11 columns
+66. urp_activity - 8 columns
+67. urp_users - 11 columns
+
+================================================================================

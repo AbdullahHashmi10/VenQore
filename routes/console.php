@@ -44,4 +44,10 @@ Artisan::command('inspire', function () {
     ->onOneServer();
 
 
-
+// ── WooCommerce Sync — Scheduler (Safety Net) ─────────────────────────────
+// Runs every 15 minutes to catch anything webhooks missed.
+// Each active connection gets its own SchedulerPollingJob dispatched.
+\Illuminate\Support\Facades\Schedule::command('woo:sync-all')
+    ->everyFifteenMinutes()
+    ->withoutOverlapping()
+    ->onOneServer();

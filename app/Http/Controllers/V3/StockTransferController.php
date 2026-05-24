@@ -23,7 +23,7 @@ class StockTransferController extends Controller
             $qty = (float) $validated['qty'];
 
             // Lock batches in source warehouse oldest-first (FIFO order)
-            $batches = DB::table('inventory_batches')
+            $batches = DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
                 ->where('product_id',   $validated['product_id'])
                 ->where('warehouse_id', $validated['from_warehouse_id'])
                 ->where('remaining_qty', '>', 0)
@@ -50,13 +50,13 @@ class StockTransferController extends Controller
                 $take = min($remaining, (float) $batch->remaining_qty);
 
                 // Reduce source batch
-                DB::table('inventory_batches')
+                DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
                     ->where('id', $batch->id)
                     ->decrement('remaining_qty', $take);
 
                 // Create new batch in destination warehouse
                 // unit_cost carried over exactly — never recalculated
-                DB::table('inventory_batches')->insert([
+                DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)->insert([
                     'id'            => \Illuminate\Support\Str::uuid()->toString(),
                     'product_id'    => $batch->product_id,
                     'warehouse_id'  => $validated['to_warehouse_id'],

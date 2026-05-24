@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+use App\Traits\HasTenant;
+
 class Payment extends Model
 {
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, HasTenant;
 
     protected $guarded = [];
 
@@ -41,10 +43,18 @@ class Payment extends Model
 
     public function updatePartyBalance($amount)
     {
-        if (!$this->party_id)
+        $partyId = $this->party_id;
+        if (!$partyId && $this->sale_id) {
+            $sale = Sale::find($this->sale_id);
+            if ($sale) {
+                $partyId = $sale->party_id ?? $sale->customer_id;
+            }
+        }
+
+        if (!$partyId)
             return;
 
-        $party = Party::find($this->party_id);
+        $party = Party::find($partyId);
         if (!$party)
             return;
 
@@ -62,7 +72,10 @@ class Payment extends Model
         if (in_array($this->type, ['received', 'in'])) {
             // We received money.
             // If customer, their debt decreases.
-            $party->decrement('current_balance', $amount);
+            // For split sales, only the credit method payment leg should decrement outstanding current_balance
+            if ($this->method === 'credit' || !request()->has('payments')) {
+                $party->decrement('current_balance', $amount);
+            }
         } elseif (in_array($this->type, ['sent', 'out'])) {
             // We paid money.
             // If supplier, our debt to them decreases.

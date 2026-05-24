@@ -120,12 +120,13 @@ class PartyController extends Controller
             $query->orderBy($sortBy, $sortDir);
         }
 
-        $tid = app('current.tenant')->id;
+        $tenantId = app('current.tenant')->id;
         $receivables = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_entries.tenant_id', $tid)
+            ->where('accounts.tenant_id', $tenantId)
             ->where('accounts.code', '1200')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
             ->value('net');
@@ -133,8 +134,9 @@ class PartyController extends Controller
         $payables = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_entries.tenant_id', $tid)
+            ->where('accounts.tenant_id', $tenantId)
             ->where('accounts.code', '2000')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0) as net')
             ->value('net');
@@ -291,7 +293,7 @@ class PartyController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $store_slug, $id)
     {
         $party = Party::findOrFail($id);
 
@@ -426,17 +428,20 @@ class PartyController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, $id)
+    public function destroy(Request $request, $store_slug, $id)
     {
         $party = Party::findOrFail($id);
 
-        // Check if party has transactions
-        $arAccount = \App\Models\Account::where('code', '1200')->value('id');
-        $apAccount = \App\Models\Account::where('code', '2000')->value('id');
+        $tenantId = app('current.tenant')->id;
+
+        // Scope AR/AP accounts to the current tenant to avoid cross-tenant mismatch
+        $arAccount = \App\Models\Account::where('tenant_id', $tenantId)->where('code', '1200')->value('id');
+        $apAccount = \App\Models\Account::where('tenant_id', $tenantId)->where('code', '2000')->value('id');
 
         $journalBalance = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->whereIn('journal_items.account_id', array_filter([$arAccount, $apAccount]))
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.party_id', $party->id)
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
@@ -444,7 +449,7 @@ class PartyController extends Controller
 
         if (round(abs($journalBalance), 2) > 0) {
             $passcode = $request->input('passcode');
-            
+
             if (!$passcode) {
                 return response()->json([
                     'requires_passcode' => true,
@@ -452,21 +457,46 @@ class PartyController extends Controller
                 ], 422);
             }
 
-            // Verify passcode
             $valid = false;
-            
-            // 1. Check if the provided passcode belongs to any user with manager, admin, or platform_admin role
-            $userWithPasscode = \App\Models\User::whereIn('role', ['manager', 'admin', 'platform_admin'])->get()->filter(function ($u) use ($passcode) {
-                return \Illuminate\Support\Facades\Hash::check($passcode, $u->passcode);
-            })->first();
 
-            if ($userWithPasscode) {
-                $valid = true;
+            // 1. Check pos_pin on tenant_users for this tenant with a qualifying role
+            $tenantMembers = DB::table('tenant_users')
+                ->where('tenant_id', $tenantId)
+                ->whereIn('role', ['owner', 'admin', 'manager'])
+                ->whereNotNull('pos_pin')
+                ->get(['pos_pin']);
+
+            foreach ($tenantMembers as $member) {
+                if (\Illuminate\Support\Facades\Hash::check($passcode, $member->pos_pin)) {
+                    $valid = true;
+                    break;
+                }
             }
 
-            // 2. Fallback to global admin_passcode setting
+            // 2. Check passcode on users table (set via Profile page)
             if (!$valid) {
-                $adminPasscode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+                $usersInTenant = DB::table('tenant_users')
+                    ->where('tenant_id', $tenantId)
+                    ->whereIn('role', ['owner', 'admin', 'manager'])
+                    ->pluck('user_id');
+
+                $usersWithPasscode = \App\Models\User::whereIn('id', $usersInTenant)
+                    ->whereNotNull('passcode')
+                    ->get(['passcode']);
+
+                foreach ($usersWithPasscode as $u) {
+                    if (\Illuminate\Support\Facades\Hash::check($passcode, $u->passcode)) {
+                        $valid = true;
+                        break;
+                    }
+                }
+            }
+
+            // 3. Fallback: check global admin_passcode setting (plain text)
+            if (!$valid) {
+                $adminPasscode = \App\Models\Setting::where('tenant_id', $tenantId)
+                    ->where('key', 'admin_passcode')
+                    ->value('value');
                 if ($adminPasscode && $passcode === $adminPasscode) {
                     $valid = true;
                 }
@@ -474,7 +504,7 @@ class PartyController extends Controller
 
             if (!$valid) {
                 return response()->json([
-                    'message' => 'Invalid passcode provided or insufficient privileges.'
+                    'message' => 'Invalid passcode. Use the passcode set in your profile or the store admin passcode.'
                 ], 403);
             }
         }
@@ -487,7 +517,121 @@ class PartyController extends Controller
         ]);
     }
 
-    public function ledger($id)
+    /**
+     * Bulk delete multiple parties at once.
+     * Requires passcode if ANY of the parties has a non-zero balance.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids'      => 'required|array|min:1',
+            'ids.*'    => 'string',
+            'passcode' => 'nullable|string',
+        ]);
+
+        $tenantId = app('current.tenant')->id;
+        $ids = $request->input('ids');
+
+        $parties = Party::whereIn('id', $ids)->get();
+
+        if ($parties->isEmpty()) {
+            return response()->json(['message' => 'No matching parties found.'], 404);
+        }
+
+        // Scope AR/AP accounts to the current tenant
+        $arAccount = \App\Models\Account::where('tenant_id', $tenantId)->where('code', '1200')->value('id');
+        $apAccount = \App\Models\Account::where('tenant_id', $tenantId)->where('code', '2000')->value('id');
+
+        // Check if any party has a non-zero balance
+        $needsPasscode = false;
+        foreach ($parties as $party) {
+            $balance = (float) DB::table('journal_items')
+                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                ->whereIn('journal_items.account_id', array_filter([$arAccount, $apAccount]))
+                ->where('journal_entries.tenant_id', $tenantId)
+                ->where('journal_entries.party_id', $party->id)
+                ->where('journal_entries.is_reversed', 0)
+                ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
+                ->value('net');
+            if (round(abs($balance), 2) > 0) {
+                $needsPasscode = true;
+                break;
+            }
+        }
+
+        if ($needsPasscode) {
+            $passcode = $request->input('passcode');
+
+            if (!$passcode) {
+                return response()->json([
+                    'requires_passcode' => true,
+                    'message'           => 'Some parties have outstanding balances. Admin passcode required to delete them.'
+                ], 422);
+            }
+
+            $valid = false;
+
+            // Check tenant_users pos_pin
+            $tenantMembers = DB::table('tenant_users')
+                ->where('tenant_id', $tenantId)
+                ->whereIn('role', ['owner', 'admin', 'manager'])
+                ->whereNotNull('pos_pin')
+                ->get(['pos_pin']);
+
+            foreach ($tenantMembers as $member) {
+                if (\Illuminate\Support\Facades\Hash::check($passcode, $member->pos_pin)) {
+                    $valid = true;
+                    break;
+                }
+            }
+
+            // Check users.passcode (set from Profile page)
+            if (!$valid) {
+                $usersInTenant = DB::table('tenant_users')
+                    ->where('tenant_id', $tenantId)
+                    ->whereIn('role', ['owner', 'admin', 'manager'])
+                    ->pluck('user_id');
+
+                $usersWithPasscode = \App\Models\User::whereIn('id', $usersInTenant)
+                    ->whereNotNull('passcode')
+                    ->get(['passcode']);
+
+                foreach ($usersWithPasscode as $u) {
+                    if (\Illuminate\Support\Facades\Hash::check($passcode, $u->passcode)) {
+                        $valid = true;
+                        break;
+                    }
+                }
+            }
+
+            // Fallback: plain-text admin_passcode setting
+            if (!$valid) {
+                $adminPasscode = \App\Models\Setting::where('tenant_id', $tenantId)
+                    ->where('key', 'admin_passcode')
+                    ->value('value');
+                if ($adminPasscode && $passcode === $adminPasscode) {
+                    $valid = true;
+                }
+            }
+
+            if (!$valid) {
+                return response()->json([
+                    'message' => 'Invalid passcode. Use the passcode set in your profile or the store admin passcode.'
+                ], 403);
+            }
+        }
+
+        $deleted = Party::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => "{$deleted} contact(s) deleted successfully."
+        ]);
+    }
+
+
+    public function ledger($store_slug, $id)
     {
         $party = Party::findOrFail($id);
 

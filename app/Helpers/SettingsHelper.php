@@ -77,21 +77,14 @@ class SettingsHelper
     }
 
     /**
-     * Format currency with the configured currency symbol
+     * Get the configured currency symbol
      */
-    public static function formatCurrency($amount, bool $includeSymbol = true): string
+    public static function getCurrencySymbol(): string
     {
-        $decimals = (int) self::get('decimal_places', 2);
-        $formatted = number_format((float) $amount, $decimals);
-
-        if (!$includeSymbol) {
-            return $formatted;
-        }
-
         // Priority 1: Use direct currency_symbol if set
         $symbol = self::get('currency_symbol');
         if ($symbol) {
-            return $symbol . ' ' . $formatted;
+            return $symbol;
         }
 
         // Priority 2: Fallback to currency code mapping
@@ -106,7 +99,22 @@ class SettingsHelper
             'INR' => '₹',
         ];
 
-        $symbol = $symbols[$currency] ?? $currency . ' ';
+        return $symbols[$currency] ?? $currency . ' ';
+    }
+
+    /**
+     * Format currency with the configured currency symbol
+     */
+    public static function formatCurrency($amount, bool $includeSymbol = true): string
+    {
+        $decimals = (int) self::get('decimal_places', 2);
+        $formatted = number_format((float) $amount, $decimals);
+
+        if (!$includeSymbol) {
+            return $formatted;
+        }
+
+        $symbol = self::getCurrencySymbol();
         return $symbol . $formatted;
     }
 

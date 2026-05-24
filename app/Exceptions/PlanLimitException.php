@@ -35,6 +35,7 @@ class PlanLimitException extends Exception
             'api_access'   => 'API access requires an upgrade.',
             'growth_engine'=> 'The Growth Engine is not available on your current plan.',
             'multi_branch' => 'Multi-branch features require the Growth plan or above.',
+            'transactions_per_month' => 'You\'ve reached your monthly transaction limit. Upgrade your plan or stack another AppSumo code to continue processing sales.',
         ];
 
         parent::__construct($messages[$feature] ?? "You've reached the limit for your current plan.");

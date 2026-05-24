@@ -1,5 +1,6 @@
 import React from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     CreditCard,
@@ -74,7 +75,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                             </div>
                             <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">{card.title}</p>
                             <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                                Rs {card.value.toLocaleString()}
+                                {formatCurrency(card.value, store)}
                             </h3>
                         </div>
                     ))}
@@ -103,7 +104,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                             </div>
                                             <div className="text-right">
                                                 <p className="font-bold text-slate-900 dark:text-white">
-                                                    Rs {entry.items.reduce((sum, item) => sum + parseFloat(item.debit), 0).toLocaleString()}
+                                                    {formatCurrency(entry.items.reduce((sum, item) => sum + parseFloat(item.debit), 0), store)}
                                                 </p>
                                                 <p className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Total Amount</p>
                                             </div>
@@ -111,7 +112,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                         <div className="flex flex-wrap gap-2">
                                             {entry.items.map((item, idx) => (
                                                 <span key={idx} className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                                                    {item.account.name}: {parseFloat(item.debit) > 0 ? `Dr Rs ${parseFloat(item.debit)}` : `Cr Rs ${parseFloat(item.credit)}`}
+                                                    {item.account.name}: {parseFloat(item.debit) > 0 ? `Dr ${formatCurrency(parseFloat(item.debit), store)}` : `Cr ${formatCurrency(parseFloat(item.credit), store)}`}
                                                 </span>
                                             ))}
                                         </div>
@@ -147,7 +148,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                                 <p className="text-xs text-slate-500">Customer</p>
                                             </div>
                                         </div>
-                                        <p className="text-sm font-bold text-indigo-600">Rs {parseFloat(party.balance ?? party.current_balance ?? 0).toLocaleString()}</p>
+                                        <p className="text-sm font-bold text-indigo-600">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>
                                     </div>
                                 )) : (
                                     <p className="text-sm text-slate-400 text-center py-4">No pending receivables.</p>
@@ -178,7 +179,7 @@ export default function FinanceIndex({ stats, topReceivables, topPayables, recen
                                                 <p className="text-xs text-slate-500">Supplier</p>
                                             </div>
                                         </div>
-                                        <p className="text-sm font-bold text-rose-600">Rs {parseFloat(party.balance ?? party.current_balance ?? 0).toLocaleString()}</p>
+                                        <p className="text-sm font-bold text-rose-600">{formatCurrency(parseFloat(party.balance ?? party.current_balance ?? 0), store)}</p>
                                     </div>
                                 )) : (
                                     <p className="text-sm text-slate-400 text-center py-4">No pending payables.</p>

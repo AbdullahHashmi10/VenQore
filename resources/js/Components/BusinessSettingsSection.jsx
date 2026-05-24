@@ -88,19 +88,19 @@ export default function BusinessSettingsSection({ data, setData }) {
                                         value={data.currency}
                                         onChange={(e) => {
                                             const newCurr = e.target.value;
-                                            const map = {
-                                                'PKR': 'Asia/Karachi',
-                                                'AED': 'Asia/Dubai',
-                                                'SAR': 'Asia/Dubai',
-                                                'GBP': 'Europe/London',
-                                                'USD': 'America/New_York',
-                                                'INR': 'Asia/Kolkata',
-                                                'EUR': 'Europe/London'
+                                            const symbolMap = {
+                                                'PKR': 'Rs.',
+                                                'USD': '$',
+                                                'EUR': '€',
+                                                'GBP': '£',
+                                                'INR': '₹',
+                                                'AED': 'DH',
+                                                'SAR': 'SR',
                                             };
                                             setData({
                                                 ...data,
                                                 currency: newCurr,
-                                                timezone: map[newCurr] || data.timezone
+                                                currency_symbol: symbolMap[newCurr] || data.currency_symbol,
                                             });
                                         }}
                                         className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all text-white appearance-none cursor-pointer hover:bg-white/20"
@@ -119,6 +119,20 @@ export default function BusinessSettingsSection({ data, setData }) {
                             </div>
 
                             <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Currency Symbol</label>
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        value={data.currency_symbol}
+                                        onChange={(e) => setData('currency_symbol', e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 rounded-xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none transition-all text-white placeholder:text-slate-600"
+                                        placeholder="e.g. Rs. or $"
+                                    />
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 font-bold text-xs">SYM</div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Timezone</label>
                                 <div className="relative">
                                     <select
@@ -128,15 +142,20 @@ export default function BusinessSettingsSection({ data, setData }) {
                                     >
                                         <option className="bg-slate-800 text-white" value="Asia/Karachi">Asia/Karachi (PKT)</option>
                                         <option className="bg-slate-800 text-white" value="Asia/Dubai">Asia/Dubai (GST)</option>
+                                        <option className="bg-slate-800 text-white" value="Asia/Riyadh">Asia/Riyadh (AST)</option>
                                         <option className="bg-slate-800 text-white" value="Asia/Kolkata">Asia/Kolkata (IST)</option>
                                         <option className="bg-slate-800 text-white" value="Europe/London">Europe/London (GMT)</option>
                                         <option className="bg-slate-800 text-white" value="America/New_York">America/New_York (EST)</option>
+                                        <option className="bg-slate-800 text-white" value="America/Chicago">America/Chicago (CST)</option>
+                                        <option className="bg-slate-800 text-white" value="America/Los_Angeles">America/Los_Angeles (PST)</option>
+                                        <option className="bg-slate-800 text-white" value="Australia/Sydney">Australia/Sydney (AEST)</option>
+                                        <option className="bg-slate-800 text-white" value="UTC">Universal Time (UTC)</option>
                                     </select>
                                     <Clock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none" size={16} />
                                     <ChevronRight className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 rotate-90 pointer-events-none" size={14} />
                                 </div>
                                 <p className="text-[10px] text-slate-400 mt-2">
-                                    Auto-selected based on currency.
+                                    Determines date rollovers for reports.
                                 </p>
                             </div>
                         </div>

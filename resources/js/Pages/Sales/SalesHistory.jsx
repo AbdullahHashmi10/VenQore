@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { formatCurrency, formatDate, formatTime } from '@/Utils/format';
 import {
     Plus,
     Search,
@@ -32,6 +33,36 @@ import {
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
+
+const AmazonLogo = ({ size = 12 }) => (
+    <svg viewBox="0 0 16 16" style={{ width: size, height: size, display: 'block' }}>
+        <path fill="#ffffff" d="M10.813 11.968c.157.083.36.074.5-.05l.005.005a90 90 0 0 1 1.623-1.405c.173-.143.143-.372.006-.563l-.125-.17c-.345-.465-.673-.906-.673-1.791v-3.3l.001-.335c.008-1.265.014-2.421-.933-3.305C10.404.274 9.06 0 8.03 0 6.017 0 3.77.75 3.296 3.24c-.047.264.143.404.316.443l2.054.22c.19-.009.33-.196.366-.387.176-.857.896-1.271 1.703-1.271.435 0 .929.16 1.188.55.264.39.26.91.257 1.376v.432q-.3.033-.621.065c-1.113.114-2.397.246-3.36.67C3.873 5.91 2.94 7.08 2.94 8.798c0 2.2 1.387 3.298 3.168 3.298 1.506 0 2.328-.354 3.489-1.54l.167.246c.274.405.456.675 1.047 1.166ZM6.03 8.431C6.03 6.627 7.647 6.3 9.177 6.3v.57c.001.776.002 1.434-.396 2.133-.336.595-.87.961-1.465.961-.812 0-1.286-.619-1.286-1.533" />
+        <path fill="#FF9900" d="M.435 12.174c2.629 1.603 6.698 4.084 13.183.997.28-.116.475.078.199.431C13.538 13.96 11.312 16 7.57 16 3.832 16 .968 13.446.094 12.386c-.24-.275.036-.4.199-.299z" />
+        <path fill="#FF9900" d="M13.828 11.943c.567-.07 1.468-.027 1.645.204.135.176-.004.966-.233 1.533-.23.563-.572.961-.762 1.115s-.333.094-.23-.137c.105-.23.684-1.663.455-1.963-.213-.278-1.177-.177-1.625-.13l-.09.009q-.142.013-.233.024c-.193.021-.245.027-.274-.032-.074-.209.779-.556 1.347-.623" />
+    </svg>
+);
+
+const TikTokLogo = ({ size = 12 }) => (
+    <svg viewBox="0 0 24 24" style={{ width: size, height: size, display: 'block' }}>
+        <path fill="#69C9D0" transform="translate(-0.6, -0.3)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-2.2.82-4.48 2.4-6.03 1.52-1.5 3.73-2.33 5.9-2.2 1.16.03 2.3.29 3.35.85V10.2c-.75-.45-1.61-.71-2.49-.75-1.16-.07-2.35.21-3.33.87-1.14.73-1.86 2.01-1.98 3.35-.12 1.34.39 2.72 1.34 3.67.95.95 2.32 1.46 3.67 1.34 1.34-.12 2.62-.84 3.35-1.98.66-.98.94-2.17.87-3.33V0h.03z"/>
+        <path fill="#EE1D52" transform="translate(0.6, 0.3)" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-2.2.82-4.48 2.4-6.03 1.52-1.5 3.73-2.33 5.9-2.2 1.16.03 2.3.29 3.35.85V10.2c-.75-.45-1.61-.71-2.49-.75-1.16-.07-2.35.21-3.33.87-1.14.73-1.86 2.01-1.98 3.35-.12 1.34.39 2.72 1.34 3.67.95.95 2.32 1.46 3.67 1.34 1.34-.12 2.62-.84 3.35-1.98.66-.98.94-2.17.87-3.33V0h.03z"/>
+        <path fill="#ffffff" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-2.2.82-4.48 2.4-6.03 1.52-1.5 3.73-2.33 5.9-2.2 1.16.03 2.3.29 3.35.85V10.2c-.75-.45-1.61-.71-2.49-.75-1.16-.07-2.35.21-3.33.87-1.14.73-1.86 2.01-1.98 3.35-.12 1.34.39 2.72 1.34 3.67.95.95 2.32 1.46 3.67 1.34 1.34-.12 2.62-.84 3.35-1.98.66-.98.94-2.17.87-3.33V0h.03z"/>
+    </svg>
+);
+
+const EbayLogo = ({ size = 12 }) => {
+    const scale = size / 28;
+    const width = 44 * scale;
+    const height = 18 * scale;
+    return (
+        <svg viewBox="0 0 1000 400.75" style={{ width, height, display: 'block' }}>
+            <path fill="#f12c2d" d="m 199.63633,185.86602 c -1.94427,-46.87735 -35.77951,-64.41973 -71.94139,-64.41973 -38.99421,0 -70.12667,19.7327 -75.58026,64.41973 z M 51.034408,219.1909 c 2.704332,45.48365 34.069782,72.38437 77.197532,72.38437 29.88033,0 56.45979,-12.17498 65.35948,-38.66041 h 51.68424 c -10.05205,53.73979 -67.15384,71.98058 -116.303,71.98058 C 39.606424,324.89544 0,275.67889 0,209.30653 0,136.24203 40.965642,88.12194 129.78809,88.12194 c 70.69867,0 122.49992,36.99926 122.49992,117.75572 v 13.31324 z" />
+            <path fill="#0968f6" d="m 380.83181,290.6235 c 46.57228,0 78.44078,-33.52181 78.44078,-84.10854 0,-50.58203 -31.8685,-84.10854 -78.44078,-84.10854 -46.31058,0 -78.44392,33.52651 -78.44392,84.10854 0,50.58673 32.13334,84.10854 78.44392,84.10854 z M 252.2854,0 h 50.10249 l -0.005,125.87707 c 24.55682,-29.25975 58.38892,-37.75513 91.68976,-37.75513 55.83503,0 117.85132,37.6773 117.85132,119.02875 0,68.12232 -49.32155,117.74475 -118.78114,117.74475 -36.35726,0 -70.58062,-13.04265 -91.68663,-38.88294 0,10.32107 -0.57618,20.72364 -1.70503,30.56413 h -49.17162 c 0.85513,-15.90944 1.70555,-35.7184 1.70555,-51.74693 z" />
+            <path fill="#ffbc13" d="m 633.07803,212.53323 c -45.43873,1.48929 -73.6715,9.689 -73.6715,39.61897 0,19.37591 15.44713,40.38162 54.66334,40.38162 52.57698,0 80.64259,-28.65902 80.64259,-75.66331 l 0.003,-5.16994 c -18.43302,0 -41.16414,0.16089 -61.63704,0.83266 z m 111.75103,62.10248 c 0,14.58313 0.42155,28.9782 1.69406,41.94092 h -46.61408 c -1.24325,-10.67368 -1.6972,-21.27945 -1.6972,-31.56656 -25.20195,30.97941 -55.17735,39.88537 -96.76149,39.88537 -61.67674,0 -94.70072,-32.59982 -94.70072,-70.30689 0,-54.61215 44.91583,-73.86739 122.89013,-75.65391 21.32332,-0.48686 45.27419,-0.55894 65.07531,-0.55894 l -0.003,-5.33606 c 0,-36.56098 -23.44364,-51.59335 -64.06765,-51.59335 -30.15876,0 -52.38579,12.48057 -54.6764,34.0468 h -52.65168 c 5.57217,-53.77165 62.06643,-67.37115 111.74005,-67.37115 59.50837,0 109.77228,21.17288 109.77228,84.11481 z" />
+            <path fill="#93c822" d="M 1000,96.45747 845.05541,400.75099 H 788.94926 L 833.49578,316.25589 716.89033,96.45747 h 58.6266 l 85.80469,171.73057 85.56283,-171.73057 z" />
+        </svg>
+    );
+};
 
 export default function SalesIndex({ sales, filters, stats }) {
     const { auth, flash, store } = usePage().props;
@@ -264,8 +295,6 @@ export default function SalesIndex({ sales, filters, stats }) {
     };
 
     // Formatters
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
-    const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     // New Sale Buttons (Creating a space for them while respecting blueprint header)
     // The blueprint asks for a specific Header Area. I will place the buttons below tabs.
@@ -289,7 +318,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Sale</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_sale || 0)}</p>
+                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_sale || 0, store)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -298,7 +327,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Paid Amount</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_paid || 0)}</p>
+                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_paid || 0, store)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -307,7 +336,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Unpaid (Due)</p>
                         </div>
-                        <p className="text-base font-black text-rose-600">{formatCurrency(stats?.total_unpaid || 0)}</p>
+                        <p className="text-base font-black text-rose-600">{formatCurrency(stats?.total_unpaid || 0, store)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -501,6 +530,14 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                     {row.source === 'pos' && (
                                                                         <span className="text-[10px] font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-1.5 py-0.5 rounded uppercase">POS</span>
                                                                     )}
+                                                                    {row.is_dropship && (
+                                                                        <span className="text-[10px] font-black bg-indigo-50 border border-indigo-100/50 text-indigo-600 dark:bg-indigo-950/40 dark:border-indigo-900/40 dark:text-indigo-400 px-1.5 py-0.5 rounded uppercase tracking-wide flex items-center gap-1.5">
+                                                                            {row.ecommerce_channel?.platform === 'amazon' && <AmazonLogo size={12} />}
+                                                                            {row.ecommerce_channel?.platform === 'tiktok' && <TikTokLogo size={12} />}
+                                                                            {row.ecommerce_channel?.platform === 'ebay' && <EbayLogo size={12} />}
+                                                                            VenSynQ • {row.ecommerce_channel?.platform ? (row.ecommerce_channel.platform.toUpperCase()) : 'AMAZON'}
+                                                                        </span>
+                                                                    )}
                                                                 </div>
                                                             );
                                                         case 'party_name':
@@ -516,13 +553,13 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                 ? <span className="text-xs font-bold uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-1 rounded-md">Return</span>
                                                                 : <span className="text-xs font-bold uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-1 rounded-md">Sale</span>;
                                                         case 'payment_method': return <span className="uppercase text-xs font-semibold">{row.payment_method || '-'}</span>;
-                                                        case 'amount': return <span className="font-bold">{formatCurrency(row.total)}</span>;
+                                                        case 'amount': return <span className="font-bold">{formatCurrency(row.total, store)}</span>;
                                                         case 'balance':
                                                             const paid = parseFloat(row.paid_amount || (row.payment_status === 'paid' ? row.total : 0) || 0);
                                                             const balance = parseFloat(row.total) - paid;
                                                             // Tolerance of 1 for floating point diffs
-                                                            if (balance > 1) return <span className="text-red-500 font-bold">{formatCurrency(balance)}</span>;
-                                                            if (balance < -1) return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatCurrency(Math.abs(balance))}</span>;
+                                                            if (balance > 1) return <span className="text-red-500 font-bold">{formatCurrency(balance, store)}</span>;
+                                                            if (balance < -1) return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatCurrency(Math.abs(balance), store)}</span>;
                                                             return <span className="text-emerald-500 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">Settled</span>;
                                                         case 'due_date': return <span className="text-slate-400">-</span>;
                                                         case 'status':
@@ -715,7 +752,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Date & Time</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{formatDate(quickViewSale.created_at)}</p>
-                                        <p className="text-xs text-slate-500">{new Date(quickViewSale.created_at).toLocaleTimeString()}</p>
+                                        <p className="text-xs text-slate-500">{formatTime(quickViewSale.created_at)}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Payment</p>
@@ -723,7 +760,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     </div>
                                     <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
                                         <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total)}</p>
+                                        <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewSale.total, store)}</p>
                                     </div>
                                 </div>
 
@@ -758,12 +795,12 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                 )}
                                                             </td>
                                                             <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0)}</td>
+                                                            <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
                                                             <td className="p-3 text-right text-orange-600">
-                                                                {item.discount ? `-${formatCurrency(item.discount)}` : '-'}
+                                                                {item.discount ? `-${formatCurrency(item.discount, store)}` : '-'}
                                                             </td>
                                                             <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                                {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0))}
+                                                                {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0), store)}
                                                             </td>
                                                         </tr>
                                                     ))
@@ -782,23 +819,23 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         <div className="flex justify-end gap-8">
                                             <div className="text-right">
                                                 <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
-                                                <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal || quickViewSale.total)}</p>
+                                                <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal || quickViewSale.total, store)}</p>
                                             </div>
                                             {quickViewSale.discount > 0 && (
                                                 <div className="text-right">
                                                     <p className="text-[10px] text-slate-400 uppercase">Discount</p>
-                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.discount)}</p>
+                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.discount, store)}</p>
                                                 </div>
                                             )}
                                             {quickViewSale.tax > 0 && (
                                                 <div className="text-right">
                                                     <p className="text-[10px] text-slate-400 uppercase">Tax</p>
-                                                    <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.tax)}</p>
+                                                    <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.tax, store)}</p>
                                                 </div>
                                             )}
                                             <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-8">
                                                 <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
-                                                <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewSale.total)}</p>
+                                                <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewSale.total, store)}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -809,7 +846,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                     <div className="flex gap-6">
                                         <div>
                                             <p className="text-[10px] text-slate-400 uppercase">Paid Amount</p>
-                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0))}</p>
+                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0), store)}</p>
                                         </div>
                                         {(() => {
                                             const paid = parseFloat(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0));
@@ -818,7 +855,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                 return (
                                                     <div>
                                                         <p className="text-[10px] text-slate-400 uppercase">Balance Due</p>
-                                                        <p className="font-bold text-red-600">{formatCurrency(balance)}</p>
+                                                        <p className="font-bold text-red-600">{formatCurrency(balance, store)}</p>
                                                     </div>
                                                 );
                                             }

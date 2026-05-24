@@ -48,26 +48,32 @@ trait HasTenant
 
         // ── Global Scope: all queries auto-scoped to current tenant ───────
         static::addGlobalScope('tenant', function (Builder $builder) {
-            $tenantId = null;
-
+            // 1. If we are in a store context (TenantMiddleware applied), scope strictly.
             if (app()->bound('current.tenant')) {
-                $tenantId = app('current.tenant')->id;
-            } elseif (auth()->check() && auth()->user()->last_store_id) {
-                // Fallback for legacy routes (e.g. /growth-engine, /reports) outside /s/{slug}
-                $tenantId = auth()->user()->last_store_id;
+                $builder->where($builder->getModel()->getTable() . '.tenant_id', app('current.tenant')->id);
+                return;
             }
 
-            if ($tenantId) {
-                $table = $builder->getModel()->getTable();
-                $builder->where("{$table}.tenant_id", $tenantId);
-            } else {
-                // Hard block: never return data when tenant context is missing.
-                // This prevents silent full-table leaks in jobs, commands, and
-                // any route where tenant was not bootstrapped.
-                // Use Model::withoutTenantScope() or withoutGlobalScope('tenant')
-                // explicitly for intentional cross-tenant platform operations.
-                $builder->whereRaw('1 = 0');
+            // 2. If we are NOT in a store context, check user permissions.
+            if (auth()->check()) {
+                /** @var \App\Models\User $user */
+                $user = auth()->user();
+
+                // Platform Admins see everything at the global level.
+                if ($user->isPlatformAdmin()) {
+                    return;
+                }
+
+                // Regular users use their last session store.
+                if ($user->last_store_id) {
+                    $builder->where($builder->getModel()->getTable() . '.tenant_id', $user->last_store_id);
+                    return;
+                }
             }
+
+            // 3. Fallback: Hard block to prevent data leaks.
+            // This triggers in CLI (unless tenant is bound) and unauthenticated routes.
+            $builder->whereRaw('1 = 0');
         });
 
 

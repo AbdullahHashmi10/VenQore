@@ -30,7 +30,12 @@ class StoreSaleRequest extends FormRequest
             // S-048 — Optional advance settlement on delivery
             'advance_amount'    => ['nullable', 'numeric', 'min:0.01'],
             'advance_reference' => ['nullable', 'string', 'max:100'],
-
+            
+            // VenSynQ Channel Dropship Fields
+            'is_dropship'          => ['nullable', 'boolean'],
+            'ecommerce_channel_id' => ['nullable', 'integer', 'exists:ecommerce_channels,id'],
+            'channel_order_id'     => ['nullable', 'string', 'max:255'],
+            'fulfillment_type'     => ['nullable', 'string', 'in:fbm,fba,jit'],
         ];
     }
 

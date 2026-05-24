@@ -1,8 +1,11 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Users2 } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function SalePurchaseByPartyGroup({ groups }) {
+    const { store } = usePage().props;
     return (
         <ReportPage
             title="Sale & Purchase by Party Group"
@@ -25,10 +28,10 @@ export default function SalePurchaseByPartyGroup({ groups }) {
                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                 <td className="px-6 py-4 font-black text-slate-800 dark:text-white uppercase tracking-widest text-sm">{group.group}</td>
                                 <td className="px-6 py-4 text-center text-sm text-slate-500">{group.party_count}</td>
-                                <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">Rs {group.sales.toLocaleString()}</td>
-                                <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">Rs {group.purchases.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(group.sales)}</td>
+                                <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">{formatCurrency(group.purchases)}</td>
                                 <td className={`px-6 py-4 text-right text-sm font-black ${group.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    Rs {group.net.toLocaleString()}
+                                    {formatCurrency(group.net)}
                                 </td>
                             </tr>
                         ))}

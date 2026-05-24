@@ -4,20 +4,18 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Throwable;
 
 class MigrateV3Ledger extends Command
 {
-    private string $tenantId;
-
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'migrate:v3-ledger
-                            {--tenant-id= : Required — the tenant ID to migrate. Prevents cross-tenant data mixing.}';
+    protected $signature = 'migrate:v3-ledger';
 
     /**
      * The console command description.
@@ -31,17 +29,32 @@ class MigrateV3Ledger extends Command
      */
     public function handle()
     {
-        $tenantId = $this->option('tenant-id');
-        if (!$tenantId) {
-            $this->error('--tenant-id is required. Run: php artisan migrate:v3-ledger --tenant-id=<id>');
-            return 1;
-        }
-        $this->tenantId = $tenantId;
-
-        $this->info("Starting V3 Ledger Migration for tenant {$tenantId}...");
+        $this->info('Starting V3 Ledger Migration...');
 
         // Login as the first admin user
-        $admin = DB::table('users')->where('role', 'admin')->orderBy('created_at')->first();
+        $admin = null;
+        if (Schema::hasColumn('users', 'role')) {
+            $admin = DB::table('users')->where('role', 'admin')->orderBy('created_at')->first();
+        }
+        
+        if (!$admin && Schema::hasColumn('users', 'is_platform_admin')) {
+            $admin = DB::table('users')->where('is_platform_admin', true)->orderBy('created_at')->first();
+        }
+
+        if (!$admin && Schema::hasTable('tenant_users')) {
+            $tenantUser = DB::table('tenant_users')
+                ->whereIn('role', ['owner', 'admin'])
+                ->orderBy('created_at')
+                ->first();
+            if ($tenantUser) {
+                $admin = DB::table('users')->where('id', $tenantUser->user_id)->first();
+            }
+        }
+
+        if (!$admin) {
+            $admin = DB::table('users')->orderBy('created_at')->first();
+        }
+
         if (!$admin) {
             $this->error('No admin user found to associate with journal entries.');
             return 1;
@@ -71,22 +84,30 @@ class MigrateV3Ledger extends Command
     private function migratePartyOpeningBalances()
     {
         $this->info('Step 1 — Migrating Party Opening Balances...');
-        $tid = $this->tenantId;
-        $parties = DB::table('parties')->where('tenant_id', $tid)->where('current_balance', '!=', 0)->get();
+        $parties = DB::table('parties')->where('current_balance', '!=', 0)->get();
         $this->output->progressStart($parties->count());
 
         $migrated = 0;
         $skipped = 0;
 
-        $arAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1200')->first();
-        $apAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '2000')->first();
-        $obeAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '7000')->first();
-
         foreach ($parties as $party) {
             try {
+                $tenantId = $party->tenant_id ?? null;
+                $arAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1200')->first()
+                    ?? DB::table('accounts')->where('code', '1200')->first();
+                $apAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '2000')->first()
+                    ?? DB::table('accounts')->where('code', '2000')->first();
+                $obeAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '7000')->first()
+                    ?? DB::table('accounts')->where('code', '7000')->first();
+
+                if (!$arAccount || !$apAccount || !$obeAccount) {
+                    $skipped++;
+                    $this->output->progressAdvance();
+                    continue;
+                }
+
                 // Idempotency check
                 $exists = DB::table('journal_entries')
-                    ->where('tenant_id', $tid)
                     ->where('reference_type', 'opening_balance')
                     ->where('reference', $party->id)
                     ->exists();
@@ -144,22 +165,30 @@ class MigrateV3Ledger extends Command
     private function migrateLegacyPurchases()
     {
         $this->info('Step 2 — Migrating Legacy Purchases...');
-        $tid = $this->tenantId;
-        $invoices = DB::table('invoices')->where('tenant_id', $tid)->where('type', 'purchase')->get();
+        $invoices = DB::table('invoices')->where('type', 'purchase')->get();
         $this->output->progressStart($invoices->count());
 
         $migrated = 0;
         $skipped = 0;
 
-        $inventoryAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1100')->first();
-        $apAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '2000')->first();
-        $cashAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1000')->first();
-
         foreach ($invoices as $invoice) {
             try {
+                $tenantId = $invoice->tenant_id ?? null;
+                $inventoryAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1100')->first()
+                    ?? DB::table('accounts')->where('code', '1100')->first();
+                $apAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '2000')->first()
+                    ?? DB::table('accounts')->where('code', '2000')->first();
+                $cashAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1000')->first()
+                    ?? DB::table('accounts')->where('code', '1000')->first();
+
+                if (!$inventoryAccount || !$apAccount || !$cashAccount) {
+                    $skipped++;
+                    $this->output->progressAdvance();
+                    continue;
+                }
+
                 // Idempotency check for primary purchase entry
                 $exists = DB::table('journal_entries')
-                    ->where('tenant_id', $tid)
                     ->where('reference_type', 'purchase')
                     ->where('reference', $invoice->id)
                     ->exists();
@@ -208,22 +237,30 @@ class MigrateV3Ledger extends Command
     private function migrateLegacySales()
     {
         $this->info('Step 3 — Migrating Legacy Sales...');
-        $tid = $this->tenantId;
-        $sales = DB::table('sales')->where('tenant_id', $tid)->get();
+        $sales = DB::table('sales')->get();
         $this->output->progressStart($sales->count());
 
         $migrated = 0;
         $skipped = 0;
 
-        $cashAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1000')->first();
-        $arAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1200')->first();
-        $revenueAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '4000')->first();
-
         foreach ($sales as $sale) {
             try {
+                $tenantId = $sale->tenant_id ?? null;
+                $cashAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1000')->first()
+                    ?? DB::table('accounts')->where('code', '1000')->first();
+                $arAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1200')->first()
+                    ?? DB::table('accounts')->where('code', '1200')->first();
+                $revenueAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '4000')->first()
+                    ?? DB::table('accounts')->where('code', '4000')->first();
+
+                if (!$cashAccount || !$arAccount || !$revenueAccount) {
+                    $skipped++;
+                    $this->output->progressAdvance();
+                    continue;
+                }
+
                 // Idempotency check
                 $exists = DB::table('journal_entries')
-                    ->where('tenant_id', $tid)
                     ->where('reference_type', 'sale')
                     ->where('reference', $sale->id)
                     ->exists();
@@ -242,7 +279,6 @@ class MigrateV3Ledger extends Command
                 $jeId = (string) Str::orderedUuid();
                 DB::table('journal_entries')->insert([
                     'id' => $jeId,
-                    'tenant_id' => $this->tenantId,
                     'date' => $sale->created_at ? date('Y-m-d', strtotime($sale->created_at)) : now()->toDateString(),
                     'description' => "Legacy Sale: {$sale->reference_number}",
                     'reference' => $sale->id,
@@ -276,21 +312,28 @@ class MigrateV3Ledger extends Command
     private function migrateLegacyExpenses()
     {
         $this->info('Step 4 — Migrating Legacy Expenses...');
-        $tid = $this->tenantId;
-        $expenses = DB::table('expenses')->where('tenant_id', $tid)->get();
+        $expenses = DB::table('expenses')->get();
         $this->output->progressStart($expenses->count());
 
         $migrated = 0;
         $skipped = 0;
 
-        $expenseAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '6000')->first();
-        $cashAccount = DB::table('accounts')->where('tenant_id', $tid)->where('code', '1000')->first();
-
         foreach ($expenses as $expense) {
             try {
+                $tenantId = $expense->tenant_id ?? null;
+                $expenseAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '6000')->first()
+                    ?? DB::table('accounts')->where('code', '6000')->first();
+                $cashAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '1000')->first()
+                    ?? DB::table('accounts')->where('code', '1000')->first();
+
+                if (!$expenseAccount || !$cashAccount) {
+                    $skipped++;
+                    $this->output->progressAdvance();
+                    continue;
+                }
+
                 // Idempotency check
                 $exists = DB::table('journal_entries')
-                    ->where('tenant_id', $tid)
                     ->where('reference_type', 'expense')
                     ->where('reference', $expense->id)
                     ->exists();
@@ -328,7 +371,6 @@ class MigrateV3Ledger extends Command
         $jeId = (string) Str::orderedUuid();
         DB::table('journal_entries')->insert([
             'id' => $jeId,
-            'tenant_id' => $this->tenantId,
             'date' => now()->toDateString(),
             'description' => $desc,
             'reference' => $reference,
@@ -347,7 +389,6 @@ class MigrateV3Ledger extends Command
     {
         DB::table('journal_items')->insert([
             'id' => (string) Str::orderedUuid(),
-            'tenant_id' => $this->tenantId,
             'journal_entry_id' => $jeId,
             'account_id' => $accountId,
             'party_id' => $partyId,
@@ -362,9 +403,7 @@ class MigrateV3Ledger extends Command
     {
         $this->info('Step 5 — Trial Balance Check...');
         $result = DB::table('journal_items')
-            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-            ->where('journal_entries.tenant_id', $this->tenantId)
-            ->selectRaw('SUM(journal_items.debit) - SUM(journal_items.credit) as imbalance')
+            ->selectRaw('SUM(debit) - SUM(credit) as imbalance')
             ->first();
 
         $imbalance = (float) ($result->imbalance ?? 0);

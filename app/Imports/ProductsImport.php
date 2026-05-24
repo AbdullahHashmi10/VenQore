@@ -1,15 +1,4 @@
 <?php
- 
- namespace App\Imports;
- 
- use App\Models\Product;
- use App\Models\Stock;
- use App\Models\Category;
- use App\Models\Brand;
- use Maatwebsite\Excel\Row;
- use Maatwebsite\Excel\Concerns\OnEachRow;
- use Maatwebsite\Excel\Concerns\WithMultipleSheets;
- use Illuminate\Support\Str;
 
 namespace App\Imports;
 
@@ -97,7 +86,7 @@ class ProductsDataSheetImport implements OnEachRow
     public function onRow(Row $row)
     {
         $index = $row->getIndex();
-        if ($index <= 6) return;
+        if ($index <= 3) return;
         if (in_array($index, $this->ignoredRows)) return;
 
         $numericArray = $row->toArray();
@@ -196,9 +185,9 @@ class ProductsDataSheetImport implements OnEachRow
             $brandId = $brand->id;
         }
 
-        $product = !empty($sku) ? Product::where('sku', $sku)->first() : null;
+        $product = !empty($sku) ? Product::withTrashed()->where('sku', $sku)->first() : null;
         if (!$product) {
-            $product = Product::where('name', $name)->first();
+            $product = Product::withTrashed()->where('name', $name)->first();
             if ($product && !empty($sku) && strtolower(trim($product->sku)) !== strtolower($sku)) $product = null;
         }
 
@@ -212,17 +201,38 @@ class ProductsDataSheetImport implements OnEachRow
         ];
 
         if ($product) {
+            if ($product->trashed()) {
+                $product->restore();
+            }
             $product->update($productData);
             if ($this->parent) $this->parent->updatedCount++;
         } else {
-            $product = Product::create($productData);
-            if ($this->parent) $this->parent->importedCount++;
+            // It definitely does not exist (even among soft-deleted ones)
+            // Use updateOrCreate as a safety net to handle race conditions
+            $matchKey = !empty($sku)
+                ? ['sku' => $sku]
+                : ['name' => $name];
+            $product = Product::updateOrCreate($matchKey, $productData);
+            if ($this->parent) {
+                if ($product->wasRecentlyCreated) {
+                    $this->parent->importedCount++;
+                } else {
+                    $this->parent->updatedCount++;
+                }
+            }
         }
 
         // Handle Stock
         $qty = $data['opening_stock'] ?? $data['quantity'] ?? null;
         if ($qty !== null && is_numeric($qty)) {
-            $warehouseId = \App\Models\Warehouse::first()?->id ?? 1;
+            $warehouse = \App\Models\Warehouse::first();
+            if (!$warehouse) {
+                $warehouse = \App\Models\Warehouse::create([
+                    'name' => 'Main Store',
+                    'is_default' => true,
+                ]);
+            }
+            $warehouseId = $warehouse->id;
             $allowNeg = $this->options['allow_negative_stock'] ?? false;
             $batchQty = $allowNeg ? (float)$qty : max(0, (float)$qty);
             $batchCost = (float)($data['cost_price'] ?? $product->cost_price);
@@ -231,7 +241,7 @@ class ProductsDataSheetImport implements OnEachRow
 
             \App\Models\InventoryBatch::updateOrCreate(
                 ['product_id' => $product->id, 'warehouse_id' => $warehouseId, 'notes' => 'Imported opening stock'],
-                ['original_qty' => $batchQty, 'remaining_qty' => $batchQty, 'unit_cost' => max(0, $batchCost)]
+                ['original_qty' => $batchQty, 'initial_qty' => $batchQty, 'remaining_qty' => $batchQty, 'unit_cost' => max(0, $batchCost), 'batch_type' => 'purchase']
             );
         }
     }

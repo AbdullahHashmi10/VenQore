@@ -68,17 +68,16 @@ class SupplierPaymentController extends Controller
     // but for the purchases table instead of sales
     private function updatePurchaseBadge(string $purchaseId): void
     {
-        $tid = app('current.tenant')->id;
-        $purchase = DB::table('purchases')->where('tenant_id', $tid)->where('id', $purchaseId)->first();
+        $purchase = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)->where('id', $purchaseId)->first();
         if (!$purchase) return;
 
-        $allocated = (float) DB::table('payment_allocations')
+        $allocated = (float) DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
             ->where('purchase_id', $purchaseId)
             ->where('status', 'active')
             ->sum('allocated_amount');
 
         $total     = (float) $purchase->total;
-        $tolerance = (float) (DB::table('system_settings')
+        $tolerance = (float) (DB::table('system_settings')->where('system_settings.tenant_id', app('current.tenant')->id)
             ->where('key', 'roundoff_tolerance')
             ->value('value') ?? 1.00);
 
@@ -92,8 +91,7 @@ class SupplierPaymentController extends Controller
             $status = 'partial';
         }
 
-        DB::table('purchases')
-            ->where('tenant_id', $tid)
+        DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
             ->where('id', $purchaseId)
             ->update(['payment_status' => $status, 'updated_at' => now()]);
     }

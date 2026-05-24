@@ -37,13 +37,18 @@ class DemoController extends Controller
         $demoTenant = Tenant::where('is_demo', true)->firstOrFail();
 
         // Ensure user exists for this role
-        $demoUser = User::firstOrCreate(
-            ['email' => "demo-{$role}@venqore-demo.internal"],
-            [
+        $email = "demo-{$role}@venqore-demo.internal";
+        $demoUser = User::withTrashed()->where('email', $email)->first();
+        
+        if (!$demoUser) {
+            $demoUser = User::create([
+                'email'    => $email,
                 'name'     => 'Demo ' . ucfirst($role),
                 'password' => bcrypt(Str::random(64)),
-            ]
-        );
+            ]);
+        } elseif ($demoUser->trashed()) {
+            $demoUser->restore();
+        }
 
         // Ensure TenantUser record exists for this demo user
         TenantUser::firstOrCreate(

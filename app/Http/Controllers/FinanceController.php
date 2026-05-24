@@ -19,6 +19,7 @@ class FinanceController extends Controller
         // NEVER read parties.current_balance (legacy column, superseded by ledger queries).
         
         $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $tenantId = app('current.tenant')->id;
 
         // V3: Direct ledger sums for the overview cards
         $cashBalance = (float) $accountingSvc->getBalance('1000');
@@ -28,6 +29,7 @@ class FinanceController extends Controller
         $receivables = (float) \Illuminate\Support\Facades\DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('accounts.code', '1200')
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
@@ -37,6 +39,7 @@ class FinanceController extends Controller
         $payables = (float) \Illuminate\Support\Facades\DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('accounts.code', '2000')
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0) as net')
@@ -56,6 +59,8 @@ class FinanceController extends Controller
             $topReceivables = \Illuminate\Support\Facades\DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('parties', 'journal_entries.party_id', '=', 'parties.id')
+                ->where('journal_items.tenant_id', $tenantId)
+                ->where('journal_entries.tenant_id', $tenantId)
                 ->where('journal_items.account_id', $arAccount->id)
                 ->selectRaw('parties.id, parties.name, parties.phone, COALESCE(SUM(journal_items.debit), 0) - COALESCE(SUM(journal_items.credit), 0) as balance')
                 ->groupBy('parties.id', 'parties.name', 'parties.phone')
@@ -69,6 +74,8 @@ class FinanceController extends Controller
             $topPayables = \Illuminate\Support\Facades\DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('parties', 'journal_entries.party_id', '=', 'parties.id')
+                ->where('journal_items.tenant_id', $tenantId)
+                ->where('journal_entries.tenant_id', $tenantId)
                 ->where('journal_items.account_id', $apAccount->id)
                 ->selectRaw('parties.id, parties.name, parties.phone, COALESCE(SUM(journal_items.credit), 0) - COALESCE(SUM(journal_items.debit), 0) as balance')
                 ->groupBy('parties.id', 'parties.name', 'parties.phone')
@@ -111,6 +118,8 @@ class FinanceController extends Controller
         $parties = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('parties', 'journal_entries.party_id', '=', 'parties.id')
+            ->where('journal_items.tenant_id', app('current.tenant')->id)
+            ->where('journal_entries.tenant_id', app('current.tenant')->id)
             ->where('journal_items.account_id', $arAccount->id)
             ->selectRaw('
                 parties.id,
@@ -142,6 +151,8 @@ class FinanceController extends Controller
         $parties = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('parties', 'journal_entries.party_id', '=', 'parties.id')
+            ->where('journal_items.tenant_id', app('current.tenant')->id)
+            ->where('journal_entries.tenant_id', app('current.tenant')->id)
             ->where('journal_items.account_id', $apAccount->id)
             ->selectRaw('
                 parties.id,
@@ -317,14 +328,17 @@ class FinanceController extends Controller
         // We must CAST(id AS CHAR) because fund_transactions.id is BIGINT, while expenses.id is UUID (char).
         // Mixing them in a UNION causes a 500 SQL Error (Illegal mix of collations or type mismatch).
         $fundIns = DB::table('fund_transactions')
+            ->where('tenant_id', app('current.tenant')->id)
             ->where('to_account_id', $id)
             ->selectRaw("CAST(id AS CHAR) as id, DATE(created_at) as date, amount, reference_number as ref, 'credit' as type, 'fund_transfer' as source, CONCAT('Fund In: ', COALESCE(reason, '')) as description");
 
         $fundOuts = DB::table('fund_transactions')
+            ->where('tenant_id', app('current.tenant')->id)
             ->where('from_account_id', $id)
             ->selectRaw("CAST(id AS CHAR) as id, DATE(created_at) as date, amount, reference_number as ref, 'debit' as type, 'fund_transfer' as source, CONCAT('Fund Out: ', COALESCE(reason, '')) as description");
 
         $expenses = DB::table('expenses')
+            ->where('tenant_id', app('current.tenant')->id)
             ->where('expenses.bank_account_id', $id)
             ->selectRaw("expenses.id, expenses.date, expenses.amount, expenses.reference as ref, 'debit' as type, 'expense' as source, CONCAT('Expense: ', expenses.category) as description");
 
@@ -336,12 +350,14 @@ class FinanceController extends Controller
         if ($hasBankAccount) {
             $deposits = DB::table('payments')
                 ->leftJoin('parties', 'payments.party_id', '=', 'parties.id')
+                ->where('payments.tenant_id', app('current.tenant')->id)
                 ->where('payments.bank_account_id', $id)
                 ->where('payments.type', 'received')
                 ->selectRaw("payments.id, payments.date, payments.amount, payments.reference as ref, 'credit' as type, 'payment' as source, CONCAT('Deposit from ', COALESCE(parties.name, 'Unknown')) as description");
 
             $withdrawals = DB::table('payments')
                 ->leftJoin('parties', 'payments.party_id', '=', 'parties.id')
+                ->where('payments.tenant_id', app('current.tenant')->id)
                 ->where('payments.bank_account_id', $id)
                 ->where('payments.type', 'sent')
                 ->selectRaw("payments.id, payments.date, payments.amount, payments.reference as ref, 'debit' as type, 'payment' as source, CONCAT('Payment to ', COALESCE(parties.name, 'Unknown')) as description");

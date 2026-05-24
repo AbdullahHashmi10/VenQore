@@ -1,11 +1,12 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import {
     Users, Plus, UserCheck, Building2, TrendingUp, TrendingDown, FileText,
-    Search, Download, Printer, Edit2, Trash2, Eye, ChevronUp, ChevronDown
+    Search, Download, Printer, Edit2, Trash2, Eye, ChevronUp, ChevronDown, X
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import axios from 'axios';
@@ -40,8 +41,11 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
     // PIN Modal State
     const [isPinModalOpen, setIsPinModalOpen] = useState(false);
     const [pinToSubmit, setPinToSubmit] = useState('');
-    const [partyToDelete, setPartyToDelete] = useState(null);
+    const [partyToDelete, setPartyToDelete] = useState(null); // stores single party or 'bulk' string
     const [pinError, setPinError] = useState('');
+
+    // Bulk Selection State
+    const [selectedParties, setSelectedParties] = useState([]);
 
     // Debounced Search Logic
     const [debouncedSearch] = useMemo(() => {
@@ -108,13 +112,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
     const [errors, setErrors] = useState({});
 
     // Format currency
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0
-        }).format(value || 0);
-    };
+
 
     // Fetch Next Page
     const fetchNextPage = useCallback(async () => {
@@ -219,8 +217,39 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
         router.visit(route('store.parties.ledger', { store_slug: store?.slug, party: party.id }));
     };
 
-    // Handle delete
+    // Selection Handlers
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedParties(sortedParties.map(p => p.id));
+        } else {
+            setSelectedParties([]);
+        }
+    };
+
+    const handleSelectRow = (id) => {
+        if (selectedParties.includes(id)) {
+            setSelectedParties(selectedParties.filter(item => item !== id));
+        } else {
+            setSelectedParties([...selectedParties, id]);
+        }
+    };
+
+    // Handle delete (Single or Bulk)
     const handleDelete = async (party, passcode = null) => {
+        if (party === 'bulk') {
+            if (!passcode) {
+                showConfirm({
+                    title: 'Confirm Bulk Delete',
+                    message: `Are you sure you want to delete the ${selectedParties.length} selected contacts?`,
+                    confirmLabel: 'Yes, Delete Selected',
+                    onConfirm: () => performBulkDelete(passcode)
+                });
+            } else {
+                performBulkDelete(passcode);
+            }
+            return;
+        }
+
         if (!passcode) {
             showConfirm({
                 title: 'Confirm Delete',
@@ -242,6 +271,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                 setPinError('');
                 setPartyToDelete(null);
             }
+            setSelectedParties(prev => prev.filter(id => id !== party.id));
             router.reload({ only: ['parties', 'stats'] });
         } catch (error) {
             if (error.response?.status === 422 && error.response.data.requires_passcode) {
@@ -253,9 +283,32 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                 alert(error.response?.data?.message || 'Failed to delete party');
             }
         }
-    }; function handleDeleteLegacy(party) {
-        // Keeping this just in case but we transitioned to performDelete
-    }
+    };
+
+    const performBulkDelete = async (passcode = null) => {
+        try {
+            await axios.delete(route('store.parties.bulk-destroy', { store_slug: store?.slug }), { 
+                data: { ids: selectedParties, passcode } 
+            });
+            if (isPinModalOpen) {
+                setIsPinModalOpen(false);
+                setPinToSubmit('');
+                setPinError('');
+                setPartyToDelete(null);
+            }
+            setSelectedParties([]);
+            router.reload({ only: ['parties', 'stats'] });
+        } catch (error) {
+            if (error.response?.status === 422 && error.response.data.requires_passcode) {
+                setPartyToDelete('bulk');
+                setIsPinModalOpen(true);
+            } else if (error.response?.status === 403) {
+                setPinError(error.response?.data?.message || 'Invalid PIN.');
+            } else {
+                alert(error.response?.data?.message || 'Failed to delete selected contacts');
+            }
+        }
+    };
 
     // Submit form
     const handleSubmit = async (e) => {
@@ -390,12 +443,41 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                         </button>
                     </div>
                 </div>
+ 
+                {/* Bulk Actions Bar */}
+                {selectedParties.length > 0 && (
+                    <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2 shrink-0">
+                        <span className="font-bold text-sm">{selectedParties.length} Selected</span>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => handleDelete('bulk')}
+                                className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors flex items-center gap-1"
+                            >
+                                <Trash2 size={14} /> Delete Selected
+                            </button>
+                            <button
+                                onClick={() => setSelectedParties([])}
+                                className="p-1 hover:bg-indigo-700 rounded transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Main Table */}
                 <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                                <th className="p-3 w-10">
+                                    <input
+                                        type="checkbox"
+                                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                        checked={selectedParties.length === sortedParties.length && sortedParties.length > 0}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
                                 <th
                                     onClick={() => handleSort('name')}
                                     className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -434,9 +516,18 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                         className={`
                                             hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer
                                             ${party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'}
+                                            ${selectedParties.includes(party.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
                                         `}
                                         onClick={() => handleViewLedger(party)}
                                     >
+                                        <td className="p-3 w-10" onClick={(e) => e.stopPropagation()}>
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                                checked={selectedParties.includes(party.id)}
+                                                onChange={() => handleSelectRow(party.id)}
+                                            />
+                                        </td>
                                         <td className="p-3">
                                             <div className="flex items-center gap-2">
                                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${party.type === 'customer'
@@ -512,7 +603,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={6} className="p-12">
+                                    <td colSpan={7} className="p-12">
                                         <div className="flex flex-col items-center justify-center text-center">
                                             <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
                                                 <Users size={28} className="text-slate-400" />
@@ -688,7 +779,10 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                     setPartyToDelete(null);
                 }}
                 title="Passcode Required"
-                subtitle="This party has a non-zero balance. A Manager or Admin passcode is required to delete it."
+                subtitle={partyToDelete === 'bulk'
+                    ? "Some of the selected contacts have outstanding balances. A Manager or Admin passcode is required to delete them."
+                    : "This contact has an outstanding balance. A Manager or Admin passcode is required to delete it."
+                }
                 size="sm"
                 footer={
                     <div className="flex justify-end gap-3">

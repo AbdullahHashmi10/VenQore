@@ -15,22 +15,20 @@ class CustomerStatementController extends Controller
 
     public function show(Request $request, string $customerId)
     {
-        $tid = app('current.tenant')->id;
         $validated = $request->validate([
             'from' => ['nullable', 'date'],
             'to'   => ['nullable', 'date', 'after_or_equal:from'],
         ]);
 
-        $customer = DB::table('parties')->where('tenant_id', $tid)->where('id', $customerId)->firstOrFail();
+        $customer = DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)->where('id', $customerId)->firstOrFail();
 
         $from = $validated['from'] ?? now()->startOfYear()->toDateString();
         $to   = $validated['to']   ?? now()->toDateString();
 
         // All transactions for this customer in the period
-        $transactions = DB::table('journal_entries as je')
+        $transactions = DB::table('journal_entries as je')->where('je.tenant_id', app('current.tenant')->id)
             ->join('journal_items as ji', 'je.id', '=', 'ji.journal_entry_id')
             ->join('accounts as a', 'ji.account_id', '=', 'a.id')
-            ->where('je.tenant_id', $tid)
             ->where('je.party_id', $customerId)
             ->where('je.is_reversed', 0)
             ->whereBetween('je.date', [$from, $to])
@@ -52,15 +50,14 @@ class CustomerStatementController extends Controller
         $arBalance = $this->parties->getBalance($customerId, '1200');
 
         // Outstanding invoices with aging
-        $outstanding = DB::table('sales')
-            ->where('tenant_id', $tid)
+        $outstanding = DB::table('sales')->where('sales.tenant_id', app('current.tenant')->id)
             ->where('party_id', $customerId)
             ->whereIn('payment_status', ['unpaid', 'partial'])
             ->orderBy('posted_at')
             ->get(['id', 'reference_number', 'posted_at',
                    'invoice_total', 'total', 'payment_status'])
             ->map(function ($sale) {
-                $paid = (float) DB::table('payment_allocations')
+                $paid = (float) DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
                     ->where('sale_id', $sale->id)
                     ->where('status', 'active')
                     ->sum('allocated_amount');

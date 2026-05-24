@@ -1,9 +1,11 @@
 import { usePage, useForm, Link } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 import { useState } from 'react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
 
 export default function PurchaseCreate({ suppliers, products, warehouses }) {
+    const { store } = usePage().props;
     const defaultWarehouse = warehouses.find(w => w.is_default) ?? warehouses[0]
 
     const { data, setData, post, processing, errors, clearErrors } = useForm({
@@ -195,7 +197,7 @@ export default function PurchaseCreate({ suppliers, products, warehouses }) {
                                             />
                                         </td>
                                         <td className="border border-gray-200 px-3 py-2 text-right text-sm">
-                                            <div>{window.amdSettings?.currency_symbol || ''} {totals.gross.toFixed(2)}</div>
+                                            <div>{formatCurrency(totals.gross, store)}</div>
                                             {totals.tax > 0 && (
                                                 <div className="text-xs text-gray-400">
                                                     tax: {totals.tax.toFixed(2)}
@@ -223,7 +225,7 @@ export default function PurchaseCreate({ suppliers, products, warehouses }) {
                                     Grand Total ({data.payment_method === 'cash' ? 'Cash to Pay' : 'Payable'}):
                                 </td>
                                 <td className="border border-gray-200 px-3 py-2 text-right font-bold">
-                                    {window.amdSettings?.currency_symbol || ''} {grandTotal.toFixed(2)}
+                                    {formatCurrency(grandTotal, store)}
                                 </td>
                                 <td></td>
                             </tr>
@@ -255,7 +257,7 @@ export default function PurchaseCreate({ suppliers, products, warehouses }) {
                         disabled={processing}
                         className="bg-green-600 text-white px-8 py-2 rounded hover:bg-green-700 disabled:opacity-50 font-medium"
                     >
-                        {processing ? 'Posting...' : `Post Purchase — ${window.amdSettings?.currency_symbol || ''} ${grandTotal.toFixed(2)}`}
+                        {processing ? 'Posting...' : `Post Purchase — ${formatCurrency(grandTotal, store)}`}
                     </button>
                     <Link
                         href={route('store.v3.purchases.index', { store_slug: store.slug })}

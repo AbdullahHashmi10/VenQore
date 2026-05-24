@@ -5,14 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+use App\Traits\HasTenant;
+
 class Invoice extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $guarded = [];
 
     protected $casts = [
         'date' => 'date',
+        'is_jit' => 'boolean',
     ];
 
     public function party()

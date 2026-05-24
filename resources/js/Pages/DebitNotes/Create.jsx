@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import FormModal from '@/Components/FormModal';
@@ -1369,7 +1369,7 @@ const Create = ({ debitNote }) => {
                                                         }}
                                                         className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}
                                                     >
-                                                        {quickEntry.discountType === 'percent' ? '%' : 'Rs'}
+                                                        {quickEntry.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1498,7 +1498,7 @@ const Create = ({ debitNote }) => {
                                                         onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
                                                         className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'}`}
                                                     >
-                                                        {item.discountType === 'percent' ? '%' : 'Rs'}
+                                                        {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1514,7 +1514,7 @@ const Create = ({ debitNote }) => {
                                                                 : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
                                                         }`}
                                                     >
-                                                        {getItemTotalMode(item.id) === 'price' ? '₨' : '#'}
+                                                        {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol()) : '#'}
                                                     </button>
                                                     <input
                                                         type="number"
@@ -1577,7 +1577,7 @@ const Create = ({ debitNote }) => {
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-500 font-medium">Supplier Balance:</span>
                                             <span className={`font-black ${currentInvoice.customer.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                                {currentInvoice.customer.current_balance >= 0 ? '$ ' : '-Rs '}{Math.abs(currentInvoice.customer.current_balance || 0).toLocaleString()}
+                                                {currentInvoice.customer.current_balance >= 0 ? (getCurrencySymbol()) + ' ' : '-' + (getCurrencySymbol()) + ' '}{Math.abs(currentInvoice.customer.current_balance || 0).toLocaleString()}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-start gap-2">
@@ -1657,7 +1657,7 @@ const Create = ({ debitNote }) => {
                             <div className="space-y-2 pt-3 border-t border-slate-800/50">
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs text-slate-400 font-bold">Subtotal</span>
-                                    <span className="text-white font-bold text-base">{formatCurrency(subtotal)}</span>
+                                    <span className="text-white font-bold text-base">{formatCurrency(subtotal, store)}</span>
                                 </div>
                             </div>
 
@@ -1665,7 +1665,7 @@ const Create = ({ debitNote }) => {
                             <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
                                 <span className="text-xs text-emerald-400 font-bold">Refund Received</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-emerald-600 text-xs">Rs</span>
+                                    <span className="text-emerald-600 text-xs">{getCurrencySymbol()}</span>
                                     <input
                                         type="number"
                                         value={currentInvoice.amountPaid ?? 0}
@@ -1681,7 +1681,7 @@ const Create = ({ debitNote }) => {
                             <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-indigo-900/20 border-indigo-800/30' : 'bg-slate-900/20 border-slate-800/30'}`}>
                                 <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-indigo-400' : 'text-slate-400'}`}>Net Credited</span>
                                 <span className={`font-bold text-base ${balanceDue > 0 ? 'text-indigo-400' : 'text-slate-400'}`}>
-                                    {formatCurrency(balanceDue)}
+                                    {formatCurrency(balanceDue, store)}
                                 </span>
                             </div>
                         </div>
@@ -1690,7 +1690,7 @@ const Create = ({ debitNote }) => {
                         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] text-slate-500 font-bold uppercase">Total Return Value</span>
-                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal)}</span>
+                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal, store)}</span>
                             </div>
                             <div className="space-y-2">
                                 <button
@@ -1750,7 +1750,7 @@ const Create = ({ debitNote }) => {
                                 <div>
                                     <p className="text-xs text-slate-400 font-bold uppercase">Profit Margin</p>
                                     <p className={`text-2xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {formatCurrency(profit)}
+                                        {formatCurrency(profit, store)}
                                     </p>
                                 </div>
                             </div>
@@ -1861,7 +1861,7 @@ const Create = ({ debitNote }) => {
                                                             {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
                                                         </p>
                                                         <p className="text-sm text-indigo-500 font-black">
-                                                            {item.quantity} @ Rs {item.price.toLocaleString()} = Rs {(item.quantity * item.price).toLocaleString()}
+                                                            {item.quantity} @ {getCurrencySymbol()} {item.price.toLocaleString()} = {getCurrencySymbol()} {(item.quantity * item.price).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -1944,8 +1944,8 @@ const Create = ({ debitNote }) => {
                                                         <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                                    <td className="py-2 text-right text-xs text-slate-500">Rs {cost.toLocaleString()}</td>
-                                                    <td className="py-2 text-right text-xs">Rs {item.price.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs">{getCurrencySymbol()} {item.price.toLocaleString()}</td>
                                                     <td className="py-2 text-right">
                                                         <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                             {marginPercent}%
@@ -1953,7 +1953,7 @@ const Create = ({ debitNote }) => {
                                                     </td>
                                                     <td className="py-2 text-right pr-2">
                                                         <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                            Rs {lineProfit.toLocaleString()}
+                                                            {getCurrencySymbol()} {lineProfit.toLocaleString()}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -1974,16 +1974,16 @@ const Create = ({ debitNote }) => {
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                                        <p className="text-lg font-bold text-slate-600">Rs {totalCost.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
-                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal)}</p>
+                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal, store)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
                                         <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                                         <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                            {formatCurrency(profit)}
+                                            {formatCurrency(profit, store)}
                                             {grandTotal > 0 && (
                                                 <span className="text-xs ml-1 opacity-70">({((profit / grandTotal) * 100).toFixed(1)}%)</span>
                                             )}
@@ -2079,7 +2079,7 @@ const Create = ({ debitNote }) => {
                                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
                                         <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Default Delivery</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-xs font-bold">Rs</span>
+                                            <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
                                             <input
                                                 type="number"
                                                 value={defaultDelivery}
@@ -2102,7 +2102,7 @@ const Create = ({ debitNote }) => {
                                                 placeholder="Field Name (e.g. Service)"
                                             />
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-400 text-xs font-bold">Rs</span>
+                                                <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={defaultExtraValue}
@@ -2308,7 +2308,7 @@ const Create = ({ debitNote }) => {
                                             {overpaymentDetails.customerName} paid
                                         </p>
                                         <p className="text-5xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                                            {formatCurrency(overpaymentDetails.amount)}
+                                            {formatCurrency(overpaymentDetails.amount, store)}
                                         </p>
                                         <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-medium">more than the total</p>
                                     </div>
@@ -2335,7 +2335,7 @@ const Create = ({ debitNote }) => {
                                             <div className="flex-1">
                                                 <p className="font-bold text-slate-800 dark:text-white">Give Change</p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    Return {formatCurrency(overpaymentDetails.amount)} to customer
+                                                    Return {formatCurrency(overpaymentDetails.amount, store)} to customer
                                                 </p>
                                             </div>
                                         </button>
@@ -2354,7 +2354,7 @@ const Create = ({ debitNote }) => {
                                             <div className="flex-1">
                                                 <p className="font-bold text-slate-800 dark:text-white">Credit to Ledger</p>
                                                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                                                    Save {formatCurrency(overpaymentDetails.amount)} to {overpaymentDetails.customerName}'s account
+                                                    Save {formatCurrency(overpaymentDetails.amount, store)} to {overpaymentDetails.customerName}'s account
                                                 </p>
                                             </div>
                                         </button>

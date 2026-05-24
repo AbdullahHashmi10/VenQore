@@ -7,6 +7,7 @@ import axios from 'axios';
 import PremiumSelect from '@/Components/PremiumSelect';
 import PasscodeModal from '@/Components/PasscodeModal';
 import { Lock as LockIcon, Unlock } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 
 const StatCard = ({ title, value, icon }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between">
@@ -495,7 +496,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         />
                     </div>
                 </div>
-                {(props.settings?.batch_tracking_enabled === '1' || props.settings?.batch_tracking_enabled === true) && (
+                {(settings?.batch_tracking_enabled === '1' || settings?.batch_tracking_enabled === true) && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Batch Number</label>
@@ -585,7 +586,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     };
 
     const handleHistoryClick = async (item) => {
-        // Single click — open quick view popup
+        // Single click â€” open quick view popup
         setQuickViewHistory({ _loading: true, type: item.type, invoice_number: item.invoice_number });
         setLoadingQuickView(true);
         try {
@@ -606,7 +607,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     };
 
     const handleHistoryDoubleClick = (item) => {
-        // Double click — open editor
+        // Double click â€” open editor
         setQuickViewHistory(null);
         if (item.type === 'Sale' || item.type === 'Return') {
             router.visit(route('store.sales.edit', { store_slug: store?.slug, sale: item.transaction_id }));
@@ -802,7 +803,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Cost Price</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{settings?.currency_symbol || 'Rs'}</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
                                                 type="number"
                                                 value={data.cost_price}
@@ -815,7 +816,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Selling Price</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{settings?.currency_symbol || 'Rs'}</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
                                                 type="number"
                                                 value={data.price}
@@ -839,7 +840,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Profit / Unit</p>
-                                            <p className="text-2xl font-bold text-emerald-400">{settings?.currency_symbol || 'Rs'} {(data.price - data.cost_price).toLocaleString()}</p>
+                                            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(data.price - data.cost_price, store || settings)}</p>
                                         </div>
                                     </div>
 
@@ -878,12 +879,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                     </span>
                                                     {barcode.is_primary && (
                                                         <span className="text-xs font-bold text-green-600 dark:text-green-400">
-                                                            ⭐ PRIMARY
+                                                            â­ PRIMARY
                                                         </span>
                                                     )}
                                                     {barcode.description && (
                                                         <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                            · {barcode.description}
+                                                            Â· {barcode.description}
                                                         </span>
                                                     )}
                                                 </div>
@@ -1126,11 +1127,11 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                             </div>
                                                             <div>
                                                                 <span className="text-slate-500 dark:text-slate-400">Price:</span>
-                                                                <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">Rs {variant.price?.toLocaleString() || 'N/A'}</span>
+                                                                <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(variant.selling_price || variant.price || 0, store || settings)}</span>
                                                             </div>
-                                                            <div>
-                                                                <span className="text-slate-500 dark:text-slate-400">Cost:</span>
-                                                                <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">Rs {variant.cost_price?.toLocaleString() || 'N/A'}</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-[10px] text-slate-400 uppercase font-medium">Cost:</span>
+                                                                <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">{formatCurrency(variant.cost_price || variant.cost || 0, store || settings)}</span>
                                                             </div>
                                                             <div>
                                                                 <span className="text-slate-500 dark:text-slate-400">Stock:</span>
@@ -1182,7 +1183,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                 <>
                                     <div className="px-8 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/30">
                                         <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-                                            <span className="font-bold">Click</span> a row to preview · <span className="font-bold">Double-click</span> to open editor
+                                            <span className="font-bold">Click</span> a row to preview Â· <span className="font-bold">Double-click</span> to open editor
                                         </p>
                                     </div>
                                     <table className="w-full text-left border-collapse">
@@ -1207,7 +1208,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                         }`}
                                                     onClick={() => handleHistoryClick(item)}
                                                     onDoubleClick={() => handleHistoryDoubleClick(item)}
-                                                    title="Click to preview · Double-click to edit"
+                                                    title="Click to preview Â· Double-click to edit"
                                                 >
                                                     <td className="p-4 pl-8">
                                                         <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${item.type === 'Sale'
@@ -1251,7 +1252,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         </tbody>
                                     </table>
 
-                                    {/* ── QUICK VIEW POPUP ── */}
+                                    {/* â”€â”€ QUICK VIEW POPUP â”€â”€ */}
                                     {quickViewHistory && (
                                         <div
                                             className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
@@ -1695,7 +1696,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
                                 />
                                 <label htmlFor="is_primary" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                                    Set as Primary Barcode ⭐
+                                    Set as Primary Barcode â­
                                 </label>
                             </div>
 
@@ -1733,3 +1734,4 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
         document.body
     );
 }
+

@@ -23,6 +23,9 @@ class AiController extends Controller
             return response()->json(['error' => 'Query cannot be empty'], 400);
         }
 
+        $userQuery = $request->input('query');
+        Log::info("AI Assistant Query: {$userQuery}");
+
         try {
             $this->checkAccess();
         } catch (\Exception $e) {
@@ -32,8 +35,6 @@ class AiController extends Controller
         if (!Schema::hasTable('settings')) {
              return response()->json(['error' => 'System not installed.'], 503);
         }
-
-        $userQuery = $request->input('query');
 
         $apiKey = Setting::where('key', 'openai_api_key')->value('value');
         $model = Setting::where('key', 'ai_model')->value('value') ?? 'gpt-4o';
@@ -445,11 +446,9 @@ class AiController extends Controller
             $revenue = Sale::whereBetween('created_at', [$startDate, $endDate])->sum('final_total');
 
             // Calculate cost (assuming cost_price on products * quantity sold)
-            $tid = app('current.tenant')->id;
             $cost = DB::table('sale_items')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->join('products', 'sale_items.product_id', '=', 'products.id')
-                ->where('sales.tenant_id', $tid)
                 ->whereBetween('sales.created_at', [$startDate, $endDate])
                 ->select(DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
                 ->value('total_cost') ?? 0;
@@ -494,7 +493,6 @@ class AiController extends Controller
             $topProducts = DB::table('sale_items')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->join('products', 'sale_items.product_id', '=', 'products.id')
-                ->where('sales.tenant_id', app('current.tenant')->id)
                 ->whereBetween('sales.created_at', [$args['start_date'], $args['end_date']])
                 ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.total) as total_revenue'))
                 ->groupBy('products.id', 'products.name')

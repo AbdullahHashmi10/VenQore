@@ -29,12 +29,14 @@ class TenantUser extends Model
         'invite_expires_at',
         'invited_at',
         'joined_at',
+        'permissions',
     ];
 
     protected $casts = [
         'invite_expires_at' => 'datetime',
         'invited_at'        => 'datetime',
         'joined_at'         => 'datetime',
+        'permissions'       => 'array',
     ];
 
     protected $hidden = [

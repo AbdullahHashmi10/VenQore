@@ -74,10 +74,7 @@ class HeartbeatController extends Controller
         // Ideally, 'since' should be the client's last sync time, but we use last heartbeat for "recent" check
         $threshold = now()->subMinutes(5);
 
-        $tid = app()->bound('current.tenant') ? app('current.tenant')->id : null;
-        $productsChanged = DB::table('products')
-            ->when($tid, fn($q) => $q->where('tenant_id', $tid))
-            ->where('updated_at', '>', $threshold)->exists();
+        $productsChanged = DB::table('products')->where('updated_at', '>', $threshold)->exists();
         $settingsChanged = DB::table('settings')->where('updated_at', '>', $threshold)->exists();
 
         return $productsChanged || $settingsChanged;

@@ -443,6 +443,8 @@ class ReportController extends Controller
     public function transactions(Request $request)
     {
         $tenantId = app('current.tenant')->id;
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $transactions = DB::table('journal_entries')
             ->leftJoin('parties', 'journal_entries.party_id', '=', 'parties.id')
@@ -803,12 +805,8 @@ class ReportController extends Controller
 
     public function trialBalance(Request $request)
     {
-        // BUG-01 FIX (CALCULATION_LOGIC.md §8 BUG-01)
-        // The old implementation read accounts.balance — a cached column that can desync.
-        // The correct implementation reads from journal_items in real time, filtered to a date.
-        // Rule: the Trial Balance is the ultimate proof that debits = credits in the ledger.
-        //       If it reads a cache, it can "appear" balanced when the ledger is not.
         $tenantId = app('current.tenant')->id;
+        $asOf = $request->input('date', now()->toDateString());
 
         // SINGLE EFFICIENT AGGREGATION QUERY (O(1) database calls)
         $balances = DB::table('journal_items')
@@ -1324,9 +1322,11 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
+        $tenantId = app('current.tenant')->id;
         $query = DB::table('invoice_items')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->where('invoices.tenant_id', $tenantId)
             ->where('invoices.type', 'sales_order');
 
         if ($range === 'today') {
@@ -1407,19 +1407,19 @@ class ReportController extends Controller
 
     public function salePurchaseByPartyGroup(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
         
-        // Groups: types of parties (customer, supplier, etc)
-        // We need to join parties to invoices to sum totals by party type.
-        
         $data = DB::table('parties')
+            ->where('tenant_id', $tenantId)
             ->select('type', DB::raw('COUNT(id) as count'))
             ->groupBy('type')
             ->get()
-            ->map(function($group) use ($startDate, $endDate) {
+            ->map(function($group) use ($startDate, $endDate, $tenantId) {
                 $sales = DB::table('invoices')
                     ->join('parties', 'parties.id', '=', 'invoices.party_id')
+                    ->where('invoices.tenant_id', $tenantId)
                     ->where('parties.type', $group->type)
                     ->where('invoices.type', 'sale')
                     ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
@@ -1427,6 +1427,7 @@ class ReportController extends Controller
                     
                 $purchases = DB::table('invoices')
                     ->join('parties', 'parties.id', '=', 'invoices.party_id')
+                    ->where('invoices.tenant_id', $tenantId)
                     ->where('parties.type', $group->type)
                     ->where('invoices.type', 'purchase')
                     ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
@@ -1463,10 +1464,12 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
+        $tenantId = app('current.tenant')->id;
         $data = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('parties', 'parties.id', '=', 'sales.party_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
@@ -1500,10 +1503,12 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
+        $tenantId = app('current.tenant')->id;
         $data = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('parties', 'parties.id', '=', 'sales.party_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
@@ -1539,8 +1544,10 @@ class ReportController extends Controller
 
         // Phase 5.5 — Tax analysis from sale_items using the waterfall columns.
         // Groups by tax_rate to show how much tax was applied at each rate.
+        $tenantId = app('current.tenant')->id;
         $data = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
@@ -1728,71 +1735,6 @@ class ReportController extends Controller
             }
         }
         return $this->bankStatement($request);
-    }
-
-    /**
-     * Analytics report — aggregated sales, profit, and trend data.
-     * Route: GET /reports/analytics  (name: reports.analytics)
-     */
-    public function analytics(Request $request)
-    {
-        $tenantId = tenant('id');
-        $period   = $request->get('period', '30'); // days
-
-        $from = now()->subDays((int) $period)->startOfDay();
-        $to   = now()->endOfDay();
-
-        // Daily sales totals
-        $dailySales = \DB::table('sales')
-            ->where('tenant_id', $tenantId)
-            ->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(grand_total) as total')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        // Top selling products
-        $topProducts = \DB::table('sale_items')
-            ->join('products', 'products.id', '=', 'sale_items.product_id')
-            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', '!=', 'cancelled')
-            ->whereBetween('sales.created_at', [$from, $to])
-            ->selectRaw('products.name, SUM(sale_items.quantity) as units_sold, SUM(sale_items.total) as revenue')
-            ->groupBy('products.id', 'products.name')
-            ->orderByDesc('units_sold')
-            ->limit(10)
-            ->get();
-
-        // Payment method breakdown
-        $paymentMethods = \DB::table('sales')
-            ->where('tenant_id', $tenantId)
-            ->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('payment_method, COUNT(*) as count, SUM(grand_total) as total')
-            ->groupBy('payment_method')
-            ->get();
-
-        // Summary
-        $summary = \DB::table('sales')
-            ->where('tenant_id', $tenantId)
-            ->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('COUNT(*) as total_sales, SUM(grand_total) as total_revenue, AVG(grand_total) as avg_sale_value')
-            ->first();
-
-        return inertia('Reports/Analytics', [
-            'period'          => $period,
-            'daily_sales'     => $dailySales,
-            'top_products'    => $topProducts,
-            'payment_methods' => $paymentMethods,
-            'summary'         => $summary,
-            'date_range'      => [
-                'from' => $from->toDateString(),
-                'to'   => $to->toDateString(),
-            ],
-        ]);
     }
 }
 

@@ -1,8 +1,11 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Tags } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function SalePurchaseByItemCategory({ categories }) {
+    const { store } = usePage().props;
     return (
         <ReportPage
             title="Sale & Purchase by Category"
@@ -26,10 +29,10 @@ export default function SalePurchaseByItemCategory({ categories }) {
                             return (
                                 <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">{cat.name}</td>
-                                    <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">Rs {sales.toLocaleString()}</td>
-                                    <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">Rs {purchases.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-right text-sm text-emerald-600 dark:text-emerald-400">{formatCurrency(sales)}</td>
+                                    <td className="px-6 py-4 text-right text-sm text-red-600 dark:text-red-400">{formatCurrency(purchases)}</td>
                                     <td className={`px-6 py-4 text-right text-sm font-black ${sales - purchases >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                        Rs {(sales - purchases).toLocaleString()}
+                                        {formatCurrency(sales - purchases)}
                                     </td>
                                 </tr>
                             );

@@ -42,6 +42,14 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
+
+    // CRITICAL: Never intercept cross-origin requests (e.g. Vite dev server on port 5173/5174).
+    // This prevents the SW from breaking the dev environment by failing to cache
+    // cross-origin assets and returning null Responses that crash React.
+    if (url.origin !== self.location.origin) {
+        return;
+    }
+
     const isBypass = BYPASS_ROUTES.some(path => url.pathname.startsWith(path));
     const isApi = url.pathname.startsWith('/api') || url.pathname.startsWith('/v3');
     const isStaticAsset = url.pathname.startsWith('/build/') || 

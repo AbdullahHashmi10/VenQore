@@ -33,7 +33,10 @@ class Sale extends Model
     protected $guarded = [];
 
     protected $casts = [
-        'posted_at' => 'datetime',
+        'posted_at'             => 'datetime',
+        'is_dropship'           => 'boolean',
+        'financial_reconciled'  => 'boolean',
+        'gross_platform_fee'    => 'decimal:2',
     ];
 
     // ─── Phase 1.2 Query Scopes ───────────────────────────────────────────────
@@ -94,5 +97,43 @@ class Sale extends Model
     public function items()
     {
         return $this->hasMany(SaleItem::class);
+    }
+
+    public function journalEntries()
+    {
+        return $this->hasMany(JournalEntry::class, 'reference', 'id')->where('reference_type', 'sale');
+    }
+
+    // ─── VenSynQ Relationships ────────────────────────────────────────────────
+
+    public function ecommerceChannel()
+    {
+        return $this->belongsTo(EcommerceChannel::class);
+    }
+
+    /**
+     * JIT purchase drafts auto-generated for shortfall items on this sale.
+     * One draft per shortfall SKU, not per sale.
+     */
+    public function jitPurchases()
+    {
+        return $this->hasMany(PurchaseOrder::class, 'jit_sale_id');
+    }
+
+    // ─── VenSynQ Scopes ───────────────────────────────────────────────────────
+
+    public function scopeDropship($query)
+    {
+        return $query->where('is_dropship', true);
+    }
+
+    public function scopePendingDispatch($query)
+    {
+        return $query->where('is_dropship', true)->where('dispatch_status', 'pending');
+    }
+
+    public function scopeUnreconciled($query)
+    {
+        return $query->where('is_dropship', true)->where('financial_reconciled', false);
     }
 }

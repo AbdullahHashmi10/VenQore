@@ -23,10 +23,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
  *       sale_items.cost_price is a display convenience — not authoritative.
  */
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasTenant;
 
 class SaleItem extends Model
 {
-    use HasUuids, HasFactory, SoftDeletes;
+    use HasUuids, HasFactory, SoftDeletes, HasTenant;
 
     protected $guarded = [];
 

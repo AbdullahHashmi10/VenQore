@@ -27,13 +27,17 @@ class FundController extends Controller
         // Get all bank accounts
         $bankAccounts = BankAccount::query()->get()->map(function ($acc) {
             $accountType = $acc->account_type ?? $acc->type ?? 'bank';
+            // CRITICAL: Check BOTH type and account_type columns to correctly
+            // identify 'Cash in Hand' virtual accounts. Without this, the GL
+            // cash balance (code 1000) gets double-counted in totalFunds.
+            $isCash = ($accountType === 'cash') || ($acc->type === 'cash');
             return [
                 'id'             => $acc->id,
                 'name'           => $acc->bank_name ?? $acc->name,
                 'account_number' => $acc->account_number,
                 'type'           => $accountType,
-                'balance'        => (float) $acc->v3Balance(),
-                'is_cash'        => $accountType === 'cash'
+                'balance'        => $isCash ? 0.0 : (float) $acc->v3Balance(),
+                'is_cash'        => $isCash
             ];
         });
 

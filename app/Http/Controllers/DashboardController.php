@@ -237,10 +237,13 @@ class DashboardController extends Controller
             return redirect()->route('store.setup', ['store_slug' => $tenant?->slug ?? 'default']);
         }
 
-        // Permission Checks
-        $canSeeSales = $user->hasPermission('sales') || $user->hasPermission('sales_view');
-        $canSeeFinance = $user->hasPermission('finance');
-        $canSeeReports = $user->hasPermission('reports');
+        // Permission Checks — hasPermission() delegates to config/permissions.php
+        // which is the single source of truth for all role-based access control.
+        $membership    = app()->bound('current.membership') ? app('current.membership') : null;
+
+        $canSeeSales     = $user->hasPermission('sales') || $user->hasPermission('sales_view') || $user->hasPermission('pos');
+        $canSeeFinance   = $user->hasPermission('finance');
+        $canSeeReports   = $user->hasPermission('reports');
         $canSeeInventory = $user->hasPermission('inventory');
 
         // Performance Stats
@@ -291,6 +294,7 @@ class DashboardController extends Controller
         // Period: current month. Sorted by net_revenue descending.
         $topSellingItems = collect([]);
         if ($canSeeSales || $canSeeReports) {
+            $currencySym = $tenant?->currency_symbol ?? 'Rs';
             $topSellingItems = (new FinancialReportingService())
                 ->getGrossProfitByProduct(
                     $now->copy()->startOfMonth()->toDateString(),
@@ -298,7 +302,7 @@ class DashboardController extends Controller
                 )
                 ->sortByDesc('net_revenue')
                 ->take(8)
-                ->map(function ($item) {
+                ->map(function ($item) use ($currencySym) {
                     return [
                         'id'           => $item['product_id'],
                         'name'         => $item['name'],
@@ -308,8 +312,8 @@ class DashboardController extends Controller
                         'gross_profit' => $item['gross_profit'],
                         'margin_pct'   => $item['margin_pct'],
                         // Formatted for display
-                        'revenue'      => 'Rs ' . number_format($item['net_revenue'], 2),
-                        'profit'       => 'Rs ' . number_format($item['gross_profit'], 2),
+                        'revenue'      => $currencySym . ' ' . number_format($item['net_revenue'], 2),
+                        'profit'       => $currencySym . ' ' . number_format($item['gross_profit'], 2),
                         'margin'       => $item['margin_pct'] . '%',
                         'image'        => '📦',
                     ];
@@ -345,7 +349,7 @@ class DashboardController extends Controller
                 ->take(10)
                 ->get();
 
-            $recentTransactions = $glRecent->map(function($item) {
+            $recentTransactions = $glRecent->map(function($item) use ($currencySym) {
                 $isIn = (float)$item->debit > 0;
                 $refType = $item->reference_type;
                 
@@ -376,7 +380,7 @@ class DashboardController extends Controller
                 return [
                     'id' => 'gl-' . $item->item_id,
                     'type' => $typeLabel,
-                    'amount' => ($isIn ? '+' : '-') . 'Rs ' . number_format((float)($isIn ? $item->debit : $item->credit), 0),
+                    'amount' => ($isIn ? '+' : '-') . $currencySym . ' ' . number_format((float)($isIn ? $item->debit : $item->credit), 0),
                     'time' => \Carbon\Carbon::parse($item->time)->diffForHumans(),
                     'status' => 'Completed',
                     'description' => $item->description ?: 'Cash Transaction',
@@ -527,10 +531,11 @@ class DashboardController extends Controller
 
         // Only show Sales Activity if user has sales permission
         if ($user->hasPermission('sales') || $user->hasPermission('sales_view') || $user->hasPermission('finance') || $user->hasPermission('inventory')) {
+            $currencySym = app('current.tenant')?->currency_symbol ?? 'Rs';
             $recentActivity = \App\Models\Activity::orderByDesc('created_at')
                 ->take(5)
                 ->get()
-                ->map(function ($activity) {
+                ->map(function ($activity) use ($currencySym) {
                     $isSale = $activity->type === 'sale';
                     $isPaymentIn = $activity->type === 'payment_in';
                     $sign = ($isSale || $isPaymentIn) ? '+' : '-';
@@ -550,7 +555,7 @@ class DashboardController extends Controller
                         'id' => $activity->id,
                         'title' => $titlePrefix . ($activity->reference_id ? ' #' . $activity->reference_id : ''),
                         'subtitle' => $activity->description,
-                        'amount' => $sign . 'Rs ' . number_format(abs((float) $activity->amount), 2),
+                        'amount' => $sign . $currencySym . ' ' . number_format(abs((float) $activity->amount), 2),
                         'time' => $activity->created_at->diffForHumans(),
                     ];
                 });

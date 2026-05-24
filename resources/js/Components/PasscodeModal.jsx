@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Delete, Lock, Check } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
 
-export default function PasscodeModal({ isOpen, onClose, onSuccess, settings }) {
+export default function PasscodeModal({ isOpen, onClose, onSuccess, settings: propSettings }) {
+    const { settings: sharedSettings } = usePage().props;
+    const settings = propSettings || sharedSettings;
+
     const [input, setInput] = useState('');
     const [error, setError] = useState(false);
 

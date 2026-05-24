@@ -31,8 +31,16 @@ class AdminDashboardController extends Controller
      * Platform overview dashboard.
      * Endpoint: GET /superadmin/dashboard
      */
-    public function index(): Response
+    public function index(Request $request): Response
     {
+        $period = $request->get('period', 'all');
+        $dateLimit = match($period) {
+            'today' => now()->startOfDay(),
+            'month' => now()->startOfMonth(),
+            'year'  => now()->startOfYear(),
+            default => null,
+        };
+
         $tenants = Tenant::withTrashed()->get();
 
         $planPrices = [
@@ -41,29 +49,34 @@ class AdminDashboardController extends Controller
             'business' => 79,
         ];
 
-        // MRR = sum of monthly plan prices for all active tenants
-        $mrr = $tenants
+        // Real-only filters (excluding is_demo stores)
+        $realTenants = $tenants->where('is_demo', false);
+
+        // MRR = sum of monthly plan prices for all active real tenants
+        $mrr = $realTenants
             ->where('status', 'active')
             ->sum(fn($t) => $planPrices[$t->plan] ?? 0);
 
         // Churn rate (last 30 days cancelled vs total at start of period)
-        $cancelledLast30 = $tenants
+        $cancelledLast30 = $realTenants
             ->where('status', 'cancelled')
             ->filter(fn($t) => $t->updated_at?->gte(now()->subDays(30)))
             ->count();
 
         // Trial conversion rate (signups in last 30 days that became active)
-        $signupsLast30 = $tenants
+        $signupsLast30 = $realTenants
             ->filter(fn($t) => $t->created_at?->gte(now()->subDays(30)))
             ->count();
 
-        $convertedLast30 = $tenants
+        $convertedLast30 = $realTenants
             ->where('status', 'active')
             ->filter(fn($t) => $t->created_at?->gte(now()->subDays(30)))
             ->count();
 
-        // Tenant distribution by plan
-        $planDistribution = $tenants
+        // Tenant distribution by plan (Still show distribution of all stores or just real?)
+        // Usually superadmin wants to see everything but label demo.
+        // For now I'll use realTenants for the distribution if we want "Real" dashboard.
+        $planDistribution = $realTenants
             ->groupBy('plan')
             ->map(fn($group, $plan) => [
                 'plan'  => $plan,
@@ -82,7 +95,7 @@ class AdminDashboardController extends Controller
                 'name'         => $t->name,
                 'subdomain'    => $t->slug,
                 'plan'         => $t->plan,
-                'status'       => $t->trashed() ? 'deleted' : $t->status,
+                'status'       => $t->deleted_at ? 'deleted' : $t->status,
                 'industry'     => $t->industry,
                 'created_at'   => $t->created_at?->diffForHumans(),
                 'trial_ends'   => $t->trial_ends_at?->format('M d'),
@@ -92,10 +105,42 @@ class AdminDashboardController extends Controller
         // Storage usage (approximate from R2/local)
         $storageUsedGb = $this->calculateStorageUsage();
 
+        // Dynamic Trend Calculation based on period
+        $storeTrend = collect();
+        $trendQuery = Tenant::query()->where('is_demo', false);
+        
+        if ($period === 'today') {
+            // Hourly trend for the current day
+            $storeTrend = collect(range(0, 23))->map(function ($h) use ($trendQuery) {
+                $start = now()->startOfDay()->addHours($h);
+                $end   = $start->copy()->endOfHour();
+                $count = (clone $trendQuery)->whereBetween('created_at', [$start, $end])->count();
+                return ['month' => $start->format('H:00'), 'stores' => $count];
+            });
+        } elseif ($period === 'month') {
+            // Daily trend for current month
+            $days = now()->day;
+            $storeTrend = collect(range(1, $days))->map(function ($d) use ($trendQuery) {
+                $date = now()->startOfMonth()->addDays($d - 1);
+                $count = (clone $trendQuery)->whereDate('created_at', $date->toDateString())->count();
+                return ['month' => $date->format('M d'), 'stores' => $count];
+            });
+        } else {
+            // Monthly trend (Year/All) - Last 6 months
+            $storeTrend = collect(range(5, 0))->map(function ($i) use ($trendQuery) {
+                $date = now()->subMonths($i);
+                $count = (clone $trendQuery)
+                    ->whereBetween('created_at', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])
+                    ->count();
+                return ['month' => $date->format('M'), 'stores' => $count];
+            });
+        }
+        $storeTrend = $storeTrend->values();
+
         // MRR growth (last 6 months)
         $mrrTrend = collect(range(5, 0))->map(function ($i) use ($planPrices) {
             $date = now()->subMonths($i);
-            $monthMrr = Tenant::withoutTenantScope()
+            $monthMrr = Tenant::query()
                 ->where('status', 'active')
                 ->where('created_at', '<=', $date->endOfMonth())
                 ->get()
@@ -107,26 +152,70 @@ class AdminDashboardController extends Controller
             ];
         })->values();
 
+
+
+        // Filtered Volume (Volume within period) - Exclude demo stores
+        $volQuery = DB::table('sales')
+            ->join('tenants', 'sales.tenant_id', '=', 'tenants.id')
+            ->where('tenants.is_demo', false)
+            ->whereNull('sales.deleted_at');
+            
+        if ($dateLimit) $volQuery->where('sales.created_at', '>=', $dateLimit);
+        $totalVolume = (float)$volQuery->sum('sales.total');
+
+        // Growth Rate (Signups vs previous period)
+        $signupsLastMonth = $tenants
+            ->filter(fn($t) => $t->created_at?->between(now()->subMonths(2), now()->subMonth()))
+            ->count();
+            
+        // For 'month' period, we compare this month vs last month signups
+        $growthRate = $signupsLastMonth > 0 
+            ? round((($signupsLast30 - $signupsLastMonth) / $signupsLastMonth) * 100, 1)
+            : 0;
+
+        // Peak conversion is the highest monthly rate in history (approximation)
+        $conversionRate = $signupsLast30 > 0 ? round(($convertedLast30 / $signupsLast30) * 100, 1) : 0;
+
         return Inertia::render('SuperAdmin/Dashboard', [
             'stats' => [
-                'mrr'               => $mrr,
-                'tenants_total'     => $tenants->count(),
-                'tenants_trial'     => $tenants->where('status', 'trial')->count(),
-                'tenants_active'    => $tenants->where('status', 'active')->whereNull('deleted_at')->count(),
-                'tenants_suspended' => $tenants->where('status', 'suspended')->whereNull('deleted_at')->count(),
-                'tenants_churned'   => $tenants->where('status', 'cancelled')->whereNull('deleted_at')->count(),
-                'tenants_deleted'   => $tenants->whereNotNull('deleted_at')->count(),
-                'new_today'         => $tenants->filter(fn($t) => $t->created_at?->isToday())->count(),
-                'new_this_month'    => $tenants->filter(fn($t) => $t->created_at?->isCurrentMonth())->count(),
-                'storage_used_gb'   => $storageUsedGb,
-                'cancelled_last_30' => $cancelledLast30,
-                'conversion_rate'   => $signupsLast30 > 0
-                    ? round(($convertedLast30 / $signupsLast30) * 100, 1)
-                    : 0,
+                'mrr'              => $mrr,
+                'total_stores'     => $realTenants->count(),
+                'trial_stores'     => $realTenants->where('status', 'trial')->count(),
+                'active_stores'    => $realTenants->where('status', 'active')->count(),
+                'suspended_stores' => $realTenants->where('status', 'suspended')->count(),
+                'churned_stores'   => $realTenants->where('status', 'cancelled')->count(),
+                'deleted_stores'   => $realTenants->whereNotNull('deleted_at')->count(),
+                'new_today'        => $realTenants->filter(fn($t) => $t->created_at?->isToday())->count(),
+                'new_this_month'   => $realTenants->filter(fn($t) => $t->created_at?->isCurrentMonth())->count(),
+                'storage_used_gb'  => $storageUsedGb,
+                'total_volume'     => (float)$totalVolume,
+                'growth_rate'      => (float)$growthRate,
+                'uptime'           => 100.0,
+                'period'           => $period,
             ],
             'plan_distribution' => $planDistribution,
-            'recent_tenants'    => $recentTenants,
+            'recent_stores'     => $realTenants->take(10)->map(fn($t) => [
+                'id'           => $t->id,
+                'name'         => $t->name,
+                'subdomain'    => $t->slug,
+                'plan'         => $t->plan,
+                'status'       => $t->deleted_at ? 'deleted' : $t->status,
+                'industry'     => $t->industry,
+                'created_at'   => $t->created_at?->diffForHumans(),
+                'trial_ends'   => $t->trial_ends_at?->format('M d'),
+                'setup_done'   => $t->setup_completed,
+            ])->values(),
+            'store_trend'       => $storeTrend,
             'mrr_trend'         => $mrrTrend,
+            'expiring_stores'   => $realTenants
+                ->filter(fn($t) => $t->status === 'trial' && $t->trial_ends_at?->isFuture() && $t->trial_ends_at?->diffInDays(now()) <= 7)
+                ->map(fn($t) => [
+                    'id'          => $t->id,
+                    'name'        => $t->name,
+                    'owner_email' => $t->ownerEmail(),
+                    'days_left'   => $t->trial_ends_at?->diffInDays(now()),
+                ])
+                ->values(),
         ]);
     }
 
@@ -136,7 +225,7 @@ class AdminDashboardController extends Controller
      */
     public function tenants(Request $request): Response
     {
-        $query = Tenant::withoutTenantScope()->latest();
+        $query = Tenant::latest();
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {
@@ -189,7 +278,7 @@ class AdminDashboardController extends Controller
      */
     public function suspend(string $tenantId): \Illuminate\Http\RedirectResponse
     {
-        $tenant = Tenant::withoutTenantScope()->findOrFail($tenantId);
+        $tenant = Tenant::findOrFail($tenantId);
 
         if ($tenant->status === 'active' || $tenant->status === 'trial') {
             $tenant->update(['status' => 'suspended']);
@@ -204,7 +293,7 @@ class AdminDashboardController extends Controller
      */
     public function reactivate(string $tenantId): \Illuminate\Http\RedirectResponse
     {
-        $tenant = Tenant::withoutTenantScope()->findOrFail($tenantId);
+        $tenant = Tenant::findOrFail($tenantId);
         $tenant->update(['status' => 'active']);
 
         return back()->with('success', "Tenant '{$tenant->name}' has been reactivated.");

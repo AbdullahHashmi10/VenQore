@@ -10,8 +10,8 @@ use App\Models\Payment;
 use App\Models\StockMovement;
 use App\Models\ParkedSale;
 use App\Services\AutoManufacturingService;
-use App\Services\AccountingService;
-use App\Services\FifoService;
+use App\Services\V3\AccountingService;
+use App\Services\V3\FifoService;
 use App\Services\FbrService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,8 +19,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
-use App\Services\V3\AccountingService as V3Accounting;
-use App\Services\V3\FifoService as V3Fifo;
 
 class SaleController extends Controller
 {
@@ -37,369 +35,259 @@ class SaleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'customer_id'          => 'nullable|exists:parties,id',
-            'items'                => 'required|array|min:1',
-            'items.*.product_id'   => 'required|exists:products,id',
-            'items.*.variant_id'   => 'nullable|exists:product_variants,id',
-            'items.*.quantity'     => 'required|numeric|min:0.001',
+            'customer_id'           => 'nullable|exists:parties,id',
+            'items'                 => 'required|array|min:1',
+            'items.*.product_id'    => 'required|exists:products,id',
+            'items.*.variant_id'    => 'nullable|exists:product_variants,id',
+            'items.*.quantity'      => 'required|numeric|min:0.001',
             'items.*.free_quantity' => 'nullable|numeric|min:0',
-            'items.*.price'        => 'required|numeric|min:0',
-            'items.*.discount'     => 'nullable|numeric|min:0', // Phase 1.1: item-level discount
-            'payment_method'       => 'required|string',
-            'amount_paid'          => 'required|numeric|min:0',
-            'discount'             => 'nullable|numeric|min:0',
-            'tax'                  => 'nullable|numeric|min:0',
-            'add_to_ledger'        => 'nullable|boolean',
-            'payment_account_id'   => 'nullable',
-            'cheque_date'          => 'nullable|date',
-            'payment_reference'    => 'nullable|string',
+            'items.*.price'         => 'required|numeric|min:0',
+            'items.*.discount'      => 'nullable|numeric|min:0',
+            'payment_method'        => 'required|string',
+            'amount_paid'           => 'required|numeric|min:0',
+            'discount'              => 'nullable|numeric|min:0',
+            'tax'                   => 'nullable|numeric|min:0',
+            'add_to_ledger'         => 'nullable|boolean',
+            'payment_account_id'    => 'nullable',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // â”€â”€â”€ PHASE 1.1: The Financial Waterfall â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            // Step 1: Calculate the line-level waterfall for each item.
-            // gross_amount = price Ã— qty (before any discount)
-            // item_discount = per-item discount (0 if not provided)
-            // net_amount   = gross_amount - item_discount
-            $subtotalGross      = 0; // SUM of all line gross_amounts
-            $totalItemDiscounts = 0; // SUM of all line discount_amounts
-            $globalDiscount     = (float) ($request->discount ?? 0);
-            $totalTax           = 0;     // SUM of all line tax_amounts (automating Bug-06)
+            // 1. PERFORMANCE: Pre-load products to avoid DB hits in the loop
+            $productIds = collect($request->items)->pluck('product_id')->unique();
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+            
+            $isStockEnabled = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
+            $stopNegative = \App\Helpers\SettingsHelper::shouldStopNegativeStock();
+            $autoMfg = new AutoManufacturingService();
             $manufacturingNotifications = [];
 
-            // Pre-calculate line values (we need subtotalGross before creating Sale)
-            $lineValues = [];
+            // 2. WATERFALL: Calculate totals
+            $subtotalGross = 0;
+            $totalItemDiscounts = 0;
+            $totalTax = 0;
+            $globalDiscount = (float)($request->discount ?? 0);
+            $lineItemsData = [];
+
             foreach ($request->items as $item) {
-                $qty          = (float)   $item['quantity'];
-                $freeQty      = (float)   ($item['free_quantity'] ?? 0);
-                $unitPrice    = (float) $item['price'];
-                $itemDiscount = (float) ($item['discount'] ?? 0);
+                $product = $products->get($item['product_id']);
+                if (!$product) continue;
 
-                $grossAmount    = $unitPrice * $qty;  // qty only â€” free items are a discount
-                $discountAmount = $itemDiscount;
-                $netAmount      = max(0, $grossAmount - $discountAmount);
+                $qty = (float)$item['quantity'];
+                $freeQty = (float)($item['free_quantity'] ?? 0);
+                $unitPrice = (float)$item['price'];
+                $itemDiscount = (float)($item['discount'] ?? 0);
 
-                // BUG-06 FIX: Fetch product-level tax rate
-                $productRecord  = Product::find($item['product_id']);
-                $lineTaxRate    = (float) ($productRecord->tax_rate ?? 0);
-                $lineTaxAmount  = round($netAmount * ($lineTaxRate / 100), 4);
+                $gross = $unitPrice * $qty;
+                $freeValue = $unitPrice * $freeQty;
+                $net = max(0, $gross - $itemDiscount);
+                
+                $taxRate = (float)($product->tax_rate ?? 0);
+                $taxAmt = round($net * ($taxRate / 100), 4);
 
-                // Free items as contra-discount (their gross value reduces net)
-                $freeItemValue  = $unitPrice * $freeQty;
+                $subtotalGross += $gross + $freeValue;
+                $totalItemDiscounts += $itemDiscount + $freeValue;
+                $totalTax += $taxAmt;
 
-                $subtotalGross      += $grossAmount + $freeItemValue;
-                $totalItemDiscounts += $discountAmount + $freeItemValue;
-                $totalTax           += $lineTaxAmount; // free qty = discount
-
-                $lineValues[] = [
-                    'product_id'         => $item['product_id'],
-                    'product_variant_id' => $item['variant_id'] ?? null,
-                    'quantity'           => $qty,
-                    'free_quantity'      => $freeQty,
-                    'unit_price'         => $unitPrice,
-                    'gross_amount'       => $grossAmount + $freeItemValue,
-                    'discount_amount'    => $discountAmount + $freeItemValue,
-                    'net_amount'         => $netAmount,
-                    'tax_rate'           => $lineTaxRate,
-                    'tax_amount'         => $lineTaxAmount,
-                    'line_total'         => $netAmount + $lineTaxAmount,
-                    'subtotal'           => $unitPrice * $qty, // backward-compat column
+                $lineItemsData[] = [
+                    'product' => $product,
+                    'product_id' => $item['product_id'],
+                    'variant_id' => $item['variant_id'] ?? null,
+                    'qty' => $qty,
+                    'free_qty' => $freeQty,
+                    'unit_price' => $unitPrice,
+                    'gross' => $gross + $freeValue,
+                    'discount' => $itemDiscount + $freeValue,
+                    'net' => $net,
+                    'tax_rate' => $taxRate,
+                    'tax_amt' => $taxAmt,
                 ];
             }
 
-            // Step 2: Invoice Header Waterfall
-            // net_sales = The ONLY number that represents Revenue. Never tax-inclusive.
-            $netSales     = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-            $invoiceTotal = $netSales + $totalTax; // what the customer owes
+            $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
+            $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal($netSales + $totalTax);
+            $roundOff = $invoiceTotal - ($netSales + $totalTax);
 
-            // Apply rounding if enabled
-            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal($invoiceTotal);
-            $roundOff = $roundedInvoiceTotal - $invoiceTotal;
+            // ── Credit Limit Check ──
+            if ($request->customer_id) {
+                $customer = DB::table('parties')
+                    ->where('tenant_id', app('current.tenant')->id)
+                    ->where('id', $request->customer_id)
+                    ->first();
 
-            // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                if ($customer && $customer->credit_limit !== null) {
+                    $creditPortion = 0.00;
+                    if ($request->payment_method === 'credit') {
+                        $creditPortion = $invoiceTotal;
+                    } else {
+                        $amountPaid = (float) $request->amount_paid;
+                        if (round($amountPaid, 2) < round($invoiceTotal, 2)) {
+                            $creditPortion = round($invoiceTotal - $amountPaid, 2);
+                        }
+                    }
 
-            $addToLedger = $request->boolean('add_to_ledger');
-            if ($addToLedger && !$request->customer_id) {
-                $addToLedger = false;
+                    if ($creditPortion > 0) {
+                        $currentBalance = (float) DB::table('journal_items as ji')
+                            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                            ->where('je.tenant_id', app('current.tenant')->id)
+                            ->where('je.party_id', $request->customer_id)
+                            ->where('a.code', '1200')
+                            ->where('je.is_reversed', 0)
+                            ->selectRaw('SUM(ji.debit) - SUM(ji.credit) as balance')
+                            ->value('balance') ?? 0.0;
+
+                        if ($currentBalance + $creditPortion > (float) $customer->credit_limit) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'customer_id' => ["Credit limit exceeded. Remaining limit is " . ($customer->credit_limit - $currentBalance) . ", attempting to charge " . $creditPortion]
+                            ]);
+                        }
+                    }
+                }
             }
+            
+            $tendered = (float)$request->amount_paid;
+            $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
+            $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
 
-            $tenderedAmount = (float) $request->amount_paid;
-            $changeReturn   = 0;
-            if ($tenderedAmount > $roundedInvoiceTotal && !$addToLedger) {
-                $changeReturn = $tenderedAmount - $roundedInvoiceTotal;
-            }
-
-            // Reference number
-            $isPos         = $request->source === 'pos';
-            $defaultPrefix = \App\Helpers\SettingsHelper::getSalePrefix() ?: 'INV-';
-            $prefix        = $isPos ? 'POS-' : $defaultPrefix;
-            $dateCode      = date('ymd');
-            $dailyCount    = Sale::whereDate('created_at', today())->count();
-            $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
-            $referenceNumber = $prefix . $dateCode . '-' . $sequence;
-
-            // Create Sale with full waterfall stored
+            // 3. STORAGE: Create Sale Header
             $sale = Sale::create([
                 'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
-                'reference_number'     => $referenceNumber,
-                'source'               => $isPos ? 'pos' : 'manual',
-                'party_id'             => $request->customer_id ?? \App\Models\Party::firstOrCreate(
-                    ['name' => 'Walk-in Customer'],
-                    ['type' => 'customer', 'phone' => '0000000000']
-                )->id,
-                'customer_id'          => null,
-                'user_id'              => $request->user_id ?? Auth::id() ?? \App\Models\User::first()->id,
-                'warehouse_id'         => $request->warehouse_id ?? (($w = \App\Models\Warehouse::first()) ? $w->id : 1),
-                // ── Backward-compat columns (kept for existing queries) ──
+                'reference_number'     => \App\Helpers\SettingsHelper::getSalePrefix() . date('ymd') . '-' . str_pad(Sale::whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT),
+                'source'               => $request->source === 'pos' ? 'pos' : 'manual',
+                'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
+                'user_id'              => Auth::id() ?? 1,
+                'warehouse_id'         => $request->warehouse_id ?? (\App\Models\Warehouse::first()?->id ?? 1),
                 'subtotal'             => $subtotalGross,
                 'tax'                  => $totalTax,
                 'discount'             => $globalDiscount,
-                'total'                => $roundedInvoiceTotal,
-                // â”€â”€ Phase 1.1 waterfall columns (the truth) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                'subtotal_gross'       => $subtotalGross,
-                'total_item_discounts' => $totalItemDiscounts,
-                'global_discount'      => $globalDiscount,
-                'net_sales'            => $netSales,     // â† THE REVENUE COLUMN
+                'total'                => $invoiceTotal,
+                'net_sales'            => $netSales,
                 'total_tax'            => $totalTax,
-                'shipping_charges'     => 0,
-                'invoice_total'        => $roundedInvoiceTotal,
-                // â”€â”€ Payment fields â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                'tendered_amount'      => $tenderedAmount,
+                'invoice_total'        => $invoiceTotal,
+                'tendered_amount'      => $tendered,
                 'change_return'        => $changeReturn,
                 'round_off'            => $roundOff,
-                // ── Phase 1.2: Accrual Accounting State Machine ───────────────────────
-                // A sale created at the POS is IMMEDIATELY posted — goods and services
-                // change hands at the moment of checkout. Revenue is recognized NOW.
-                // posted_at is the authoritative timestamp of revenue recognition.
-                // It is the anchor for all P&L date-range queries.
                 'status'               => 'posted',
                 'posted_at'            => now(),
-                'payment_status'       => $tenderedAmount >= $roundedInvoiceTotal
-                    ? 'paid' : ($tenderedAmount > 0 ? 'partial' : 'unpaid'),
-                'payment_method'       => ($request->payment_method === 'credit' && $tenderedAmount > 0) ? 'cash' : $request->payment_method,
-                'notes'                => $request->notes ?? null,
-                'overpayment_action'   => ($tenderedAmount > $roundedInvoiceTotal)
-                    ? ($addToLedger ? 'ledger' : 'refund') : null,
+                'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
+                'payment_method'       => $request->payment_method,
             ]);
 
-            $isStockEnabled = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
-            $totalCogs      = 0;
-
-            foreach ($lineValues as $lineItem) {
-                $product  = Product::find($lineItem['product_id']);
-                $totalQty = $lineItem['quantity'] + $lineItem['free_quantity'];
-
-                // Fallback cost: static cost_price from product
-                // This is used when no FIFO batches exist yet (transition period)
-                $staticCostPrice = \App\Helpers\SettingsHelper::isEnabled('update_cost_price')
-                    ? ($product->cost_price ?? $product->cost ?? 0)
-                    : ($product->cost_price ?? 0);
-
-                $manufacturingCostPerUnit = null;
+            // 4. STORAGE: Process Items, Stock, and FIFO
+            $totalCogs = 0;
+            foreach ($lineItemsData as $ld) {
+                $product = $ld['product'];
+                $totalQty = $ld['qty'] + $ld['free_qty'];
 
                 if ($isStockEnabled) {
-                    $stock      = \App\Models\Stock::where('product_id', $lineItem['product_id'])
-                        ->where('warehouse_id', $sale->warehouse_id)->first();
-                    $currentQty = $stock ? $stock->quantity : 0;
+                    $stock = \App\Models\Stock::where('product_id', $ld['product_id'])->where('warehouse_id', $sale->warehouse_id)->first();
+                    $avail = $stock ? $stock->quantity : 0;
 
-                    if ($currentQty < $totalQty) {
-                        $manufacturingService = new AutoManufacturingService();
-                        if ($manufacturingService->hasManufacturingRules($lineItem['product_id'])) {
-                            $shortage = $totalQty - max(0, $currentQty);
-                            $result   = $manufacturingService->manufactureByProductId(
-                                $lineItem['product_id'], $shortage, $sale
-                            );
-                            if ($result['success']) {
-                                $manufacturingNotifications[] = $result['notification'];
-                                if (isset($result['cost_per_unit']) && $result['cost_per_unit'] > 0) {
-                                    $manufacturingCostPerUnit = $result['cost_per_unit'];
-                                }
-                                if ($stock) $stock->refresh();
-                            }
-                        }
+                    if ($avail < $totalQty && $autoMfg->hasManufacturingRules($ld['product_id'])) {
+                        $mfg = $autoMfg->manufactureByProductId($ld['product_id'], $totalQty - max(0, $avail), $sale);
+                        if ($mfg['success']) $manufacturingNotifications[] = $mfg['notification'];
                     }
 
-                    if (\App\Helpers\SettingsHelper::shouldStopNegativeStock()) {
-                        $stock    = \App\Models\Stock::where('product_id', $lineItem['product_id'])
-                            ->where('warehouse_id', $sale->warehouse_id)->first();
-                        $finalQty = $stock ? $stock->quantity : 0;
-                        if ($finalQty < $totalQty) {
-                            throw new \Exception(
-                                "Insufficient stock for: {$product->name}. "
-                                . "Needed: {$totalQty}, Available: {$finalQty}"
-                            );
-                        }
+                    if ($stopNegative && ($avail < $totalQty)) {
+                        throw new \Exception("Insufficient stock for: {$product->name}");
                     }
                 }
 
-                $finalStaticCost = $manufacturingCostPerUnit ?? $staticCostPrice;
-
-                // Create SaleItem with the full Phase 1.1 waterfall
                 $saleItem = SaleItem::create([
-                    'sale_id'            => $sale->id,
-                    'product_id'         => $lineItem['product_id'],
-                    'product_variant_id' => $lineItem['product_variant_id'],
-                    'quantity'           => $lineItem['quantity'],
-                    'free_quantity'      => $lineItem['free_quantity'],
-                    'unit_price'         => $lineItem['unit_price'],
-                    'cost_price'         => $finalStaticCost,  // static fallback; FIFO below overrides
-                    // Phase 1.1 waterfall columns:
-                    'gross_amount'       => $lineItem['gross_amount'],
-                    'discount_amount'    => $lineItem['discount_amount'],
-                    'net_amount'         => $lineItem['net_amount'],
-                    'tax_rate'           => $lineItem['tax_rate'],
-                    'tax_amount'         => $lineItem['tax_amount'],
-                    'line_total'         => $lineItem['line_total'],
-                    'subtotal'           => $lineItem['subtotal'],
+                    'sale_id' => $sale->id,
+                    'product_id' => $ld['product_id'],
+                    'product_variant_id' => $ld['variant_id'],
+                    'quantity' => $ld['qty'],
+                    'free_quantity' => $ld['free_qty'],
+                    'unit_price' => $ld['unit_price'],
+                    'cost_price' => $product->cost_price ?? 0,
+                    'net_amount' => $ld['net'],
+                    'tax_amount' => $ld['tax_amt'],
+                    'subtotal' => $ld['qty'] * $ld['unit_price'],
+                    'line_total' => $ld['net'] + $ld['tax_amt'],
                 ]);
 
-                // â”€â”€ FIFO COGS Deduction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-                // Try FIFO first. If no batches exist yet (transition), fall back to static cost.
-                $lineCogs = 0;
-                if (
-                    $isStockEnabled
-                    && $this->fifo->hasBatches($lineItem['product_id'], $sale->warehouse_id, $lineItem['product_variant_id'] ?? null)
-                ) {
+                // FIFO Deduction
+                $itemCogs = 0;
+                if ($isStockEnabled && $this->fifo->checkAvailability($ld['product_id'], $sale->warehouse_id, $totalQty)) {
                     try {
-                        $fifoDeductions = app(V3Fifo::class)->deductStock(
-                            $lineItem['product_id'],
-                            $sale->warehouse_id,
-                            (float) $totalQty
-                        );
-                        $lineCogs = collect($fifoDeductions)->sum('total_cost');
-
-                        // Write sale_item_batches (V3 deductStock returns the deductions, caller writes the record)
-                        foreach ($fifoDeductions as $deduction) {
+                        $deductions = app(\App\Services\V3\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
+                        foreach ($deductions as $d) {
+                            $itemCogs += $d['total_cost'];
                             DB::table('sale_item_batches')->insert([
                                 'id'                 => \Illuminate\Support\Str::uuid()->toString(),
                                 'sale_item_id'       => $saleItem->id,
-                                'inventory_batch_id' => $deduction['batch_id'],
-                                'qty_deducted'       => $deduction['qty_taken'],
-                                'unit_cost'          => $deduction['unit_cost'],
-                                'total_cogs'         => $deduction['total_cost'],
-                                'is_reversed'        => 0,
-                                'created_at'         => now(),
-                                'updated_at'         => now(),
+                                'inventory_batch_id' => $d['batch_id'],
+                                'qty_deducted'       => $d['qty_taken'],
+                                'unit_cost'          => $d['unit_cost'],
+                                'total_cogs'         => $d['total_cost'],
+                                'created_at' => now(), 'updated_at' => now(),
                             ]);
                         }
-
-                        // Update cost_price on the saleItem to reflect the FIFO-weighted cost
-                        $fifoUnitCost = $totalQty > 0 ? $lineCogs / $totalQty : 0;
-                        $saleItem->update(['cost_price' => round($fifoUnitCost, 4)]);
-                    } catch (\App\Exceptions\InsufficientStockException | \Exception $fifoEx) {
-                        // FIFO failed (e.g. insufficient batch stock) â€” use static cost and log
-                        Log::warning('FIFO deduction failed, using static cost. ' . $fifoEx->getMessage());
-                        $lineCogs = $finalStaticCost * $totalQty;
-                    }
+                        $saleItem->update(['cost_price' => $totalQty > 0 ? $itemCogs / $totalQty : 0]);
+                    } catch (\Exception $e) { $itemCogs = ($product->cost_price ?? 0) * $totalQty; }
                 } else {
-                    // No FIFO batches yet â€” use static cost (will be replaced once batches are built)
-                    $lineCogs = $finalStaticCost * $totalQty;
+                    $itemCogs = ($product->cost_price ?? 0) * $totalQty;
                 }
+                $totalCogs += $itemCogs;
 
-                $totalCogs += $lineCogs;
-
-                // â”€â”€ Stock Ledger Deduction (existing system) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+                // Legacy Stock Update
                 if ($isStockEnabled) {
-                    if (!empty($lineItem['product_variant_id'])) {
-                        $variant = ProductVariant::find($lineItem['product_variant_id']);
-                        if ($variant) $variant->decrement('stock', $totalQty);
+                    if ($ld['variant_id']) {
+                        ProductVariant::find($ld['variant_id'])?->decrement('stock', $totalQty);
                     } else {
-                        $stock = \App\Models\Stock::where('product_id', $lineItem['product_id'])
-                            ->where('warehouse_id', $sale->warehouse_id)->first();
-                        if ($stock) {
-                            $stock->decrement('quantity', $totalQty);
-                        } else {
-                            \App\Models\Stock::create([
-                                'product_id'  => $lineItem['product_id'],
-                                'warehouse_id' => $sale->warehouse_id,
-                                'quantity'    => -$totalQty,
-                            ]);
-                        }
+                        \App\Models\Stock::updateOrCreate(
+                            ['product_id' => $ld['product_id'], 'warehouse_id' => $sale->warehouse_id],
+                            ['quantity' => DB::raw("quantity - {$totalQty}")]
+                        );
                     }
-
+                    Product::where('id', $ld['product_id'])->decrement('stock_quantity', $totalQty);
                     StockMovement::create([
-                        'product_id'         => $lineItem['product_id'],
-                        'product_variant_id' => $lineItem['product_variant_id'],
-                        'warehouse_id'       => $sale->warehouse_id,
-                        'type'               => 'sale',
-                        'quantity'           => -$totalQty,
-                        'reference_id'       => $sale->reference_number,
-                        'description'        => 'Sale #' . $sale->id,
-                        'user_id'            => Auth::id(),
+                        'product_id' => $ld['product_id'], 'warehouse_id' => $sale->warehouse_id,
+                        'type' => 'sale', 'quantity' => -$totalQty, 'reference_id' => $sale->reference_number, 'user_id' => Auth::id(),
                     ]);
                 }
             }
 
-            // ── ACCOUNTING: Phase 1.1 Corrected Journal Entry ─────────────────────
-            $recordedAmount    = $addToLedger ? $tenderedAmount : min($tenderedAmount, $roundedInvoiceTotal);
-            $overpaymentAmount = max(0, $tenderedAmount - $roundedInvoiceTotal);
+            // 5. ACCOUNTING: Unified Journal Entry
+            $recorded = $addToLedger ? $tendered : min($tendered, $invoiceTotal);
+            $overpayment = max(0, $tendered - $invoiceTotal);
+            $this->postSaleJournal($sale, $request, $netSales, $totalTax, $totalCogs, $roundOff, $invoiceTotal, $recorded, $overpayment, $addToLedger);
 
-            $this->postSaleJournal(
-                $sale, 
-                $request, 
-                $netSales, 
-                $totalTax, 
-                $totalCogs, 
-                $roundOff, 
-                $roundedInvoiceTotal, 
-                $recordedAmount, 
-                $overpaymentAmount, 
-                $addToLedger
-            );
-
-
-            // FBR Integration
-            $settings = \App\Models\Setting::all()->pluck('value', 'key');
-            if (isset($settings['fbr_integration']) && $settings['fbr_integration'] == '1') {
-                $fbrResponse = $this->fbr->reportSale($sale);
-                if ($fbrResponse['Code'] == 100) {
-                    $sale->update([
-                        'fbr_invoice_number' => $fbrResponse['InvoiceNumber'],
-                        'fbr_qr_data'        => $fbrResponse['QRData'],
-                        'is_fbr_reported'    => true,
-                    ]);
+            // 6. INTEGRATIONS: FBR
+            $fbrEnabled = \App\Helpers\SettingsHelper::get('fbr_integration') == '1';
+            if ($fbrEnabled) {
+                $fbrRes = $this->fbr->reportSale($sale);
+                if (($fbrRes['Code'] ?? 0) == 100) {
+                    $sale->update(['fbr_invoice_number' => $fbrRes['InvoiceNumber'], 'fbr_qr_data' => $fbrRes['QRData'], 'is_fbr_reported' => true]);
                 }
             }
 
             DB::commit();
 
+            // 7. AUDIT: Activity Log (Done after commit for speed, though technically async is better)
             \App\Models\Activity::create([
-                'type'           => 'sale',
-                'description'    => 'Sale to ' . ($request->customer_id
-                    ? \App\Models\Party::find($request->customer_id)?->name ?? 'Customer'
-                    : 'Walk-in'),
-                'amount'         => $roundedInvoiceTotal,
-                'reference_id'   => $sale->id,
-                'reference_type' => 'sale',
-                'user_id'        => Auth::id(),
-                'metadata'       => json_encode([
-                    'reference_number' => $sale->reference_number,
-                    'net_sales'        => $netSales,
-                    'total_tax'        => $totalTax,
-                    'invoice_total'    => $roundedInvoiceTotal,
-                    'items_count'      => count($request->items),
-                    'payment_method'   => $request->payment_method,
-                    'amount_paid'      => $tenderedAmount,
-                ]),
+                'type' => 'sale', 'reference_id' => $sale->id, 'reference_type' => 'sale', 'user_id' => Auth::id(),
+                'amount' => $invoiceTotal, 'description' => 'Sale #' . $sale->reference_number,
+                'metadata' => json_encode(['reference' => $sale->reference_number, 'total' => $invoiceTotal]),
             ]);
 
             return response()->json([
-                'success'                  => true,
-                'message'                  => 'Sale completed successfully',
-                'sale_id'                  => $sale->id,
-                'reference'                => $sale->reference_number,
-                'manufacturing_notifications' => $manufacturingNotifications,
+                'success' => true,
+                'sale_id' => $sale->id,
+                'reference' => $sale->reference_number,
+                'notifications' => $manufacturingNotifications
             ]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'errors' => $e->errors(), 'message' => $e->getMessage()], 422);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Sale Store Error: ' . $e->getMessage() . ' Trace: ' . $e->getTraceAsString());
-            return response()->json([
-                'success' => false,
-                'message' => 'Error processing sale: ' . $e->getMessage(),
-            ], 500);
+            Log::error('Sale Store Error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -513,7 +401,7 @@ class SaleController extends Controller
 
     public function index(Request $request)
     {
-        $query = Sale::with(['customer', 'user', 'items.product'])->withSum('payments as paid_amount', 'amount');
+        $query = Sale::with(['customer', 'user', 'items.product', 'ecommerceChannel'])->withSum('payments as paid_amount', 'amount');
 
         // Apply Search
         if ($request->search) {
@@ -844,14 +732,6 @@ class SaleController extends Controller
     }
 
     /**
-     * Alias for park() — matches the route name sales.park registered as POST /sales/park.
-     */
-    public function parkBill(Request $request)
-    {
-        return $this->park($request);
-    }
-
-    /**
      * Park (Hold) a sale for later completion
      */
     public function park(Request $request)
@@ -937,8 +817,12 @@ class SaleController extends Controller
             $arAccount = \App\Models\Account::where('code', '1200')->value('id');
             $apAccount = \App\Models\Account::where('code', '2000')->value('id');
             
+            $tenantId = app('current.tenant')->id;
             $netAR = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                ->join('journal_entries', function($join) use ($tenantId) {
+                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
+                        ->where('journal_entries.tenant_id', $tenantId);
+                })
                 ->where('journal_entries.party_id', $sale->customer->id)
                 ->where('journal_entries.is_reversed', 0)
                 ->where('journal_items.account_id', $arAccount)
@@ -946,7 +830,10 @@ class SaleController extends Controller
                 ->value('balance') ?? 0;
 
             $netAP = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                ->join('journal_entries', function($join) use ($tenantId) {
+                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
+                        ->where('journal_entries.tenant_id', $tenantId);
+                })
                 ->where('journal_entries.party_id', $sale->customer->id)
                 ->where('journal_entries.is_reversed', 0)
                 ->where('journal_items.account_id', $apAccount)
@@ -982,7 +869,7 @@ class SaleController extends Controller
                     ];
                 })->toArray();
                 
-                app(V3Accounting::class)->createEntry([
+                app(\App\Services\V3\AccountingService::class)->createEntry([
                     'date'           => now()->toDateString(),
                     'reference_type' => 'sale_reversal',
                     'reference'      => $sale->id,
@@ -1046,7 +933,7 @@ class SaleController extends Controller
 
             // 3. Update Sale Header with Phase 1.1 Columns
             $sale->update([
-                'party_id'             => $request->customer_id,
+                'party_id'             => $request->input('customer_id') ?: $sale->party_id,
                 'net_sales'            => $netSales,
                 'total_tax'            => $totalTax,
                 'invoice_total'        => $roundedInvoiceTotal,
@@ -1144,7 +1031,8 @@ class SaleController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Sale Update Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            $statusCode = $e instanceof \Symfony\Component\HttpKernel\Exception\HttpException ? $e->getStatusCode() : 500;
+            return response()->json(['success' => false, 'message' => $e->getMessage()], $statusCode);
         }
     }
 
@@ -1166,7 +1054,6 @@ class SaleController extends Controller
                 foreach ($request->payments as $p) {
                     $pAmt = (float)($p['amount'] ?? 0);
                     $pMethod = strtolower($p['method'] ?? 'cash');
-                    if ($pMethod === 'credit' && $pAmt > 0) $pMethod = 'cash';
                     if ($pAmt > 0) {
                         Payment::create([
                             'sale_id' => $sale->id,
@@ -1179,7 +1066,6 @@ class SaleController extends Controller
                 }
             } else {
                 $pmMethod = strtolower($request->payment_method);
-                if ($pmMethod === 'credit' && $recordedAmount > 0) $pmMethod = 'cash';
                 Payment::create([
                     'sale_id' => $sale->id,
                     'amount'  => $recordedAmount,
@@ -1203,16 +1089,28 @@ class SaleController extends Controller
                 if ($pAmt <= 0) continue;
                 $pMethod = strtolower($p['method'] ?? 'cash');
                 
-                // Allow specific account override per payment
+                $acc = null;
                 if (!empty($p['account_id'])) {
                     $acc = \App\Models\Account::find($p['account_id']);
-                } else {
-                    $code = in_array($pMethod, ['bank', 'card', 'online', 'upi']) ? '1010' : '1000';
+                }
+                
+                if (!$acc) {
+                    if ($pMethod === 'credit') {
+                        $code = '1200';
+                    } else {
+                        $code = in_array($pMethod, ['bank', 'card', 'online', 'upi']) ? '1010' : '1000';
+                    }
                     $acc = $this->accounting->getAccountByCode($code);
                 }
                 
                 if ($acc) {
-                    $journalItems[] = ['account_id' => $acc->id, 'debit' => $pAmt, 'credit' => 0, 'description' => "Payment ($pMethod) for Sale #{$sale->reference_number}"];
+                    $journalItems[] = [
+                        'account_id'  => $acc->id, 
+                        'debit'       => $pAmt, 
+                        'credit'      => 0, 
+                        'description' => "Payment ($pMethod) for Sale #{$sale->reference_number}",
+                        'party_id'    => $sale->party_id
+                    ];
                 }
                 $amountPaidCounted += $pAmt;
             }
@@ -1220,15 +1118,25 @@ class SaleController extends Controller
             if ($cashDebitAmount > 0) {
                 $pMethod = strtolower($request->payment_method);
                 
+                $acc = null;
                 if ($request->payment_account_id) {
                     $acc = \App\Models\Account::find($request->payment_account_id);
-                } else {
+                }
+                
+                // Fallback if account not found (e.g. legacy numeric ID 1 passed instead of V3 UUID)
+                if (!$acc) {
                     $code = in_array($pMethod, ['bank', 'card', 'online', 'upi']) ? '1010' : '1000';
                     $acc = $this->accounting->getAccountByCode($code);
                 }
 
                 if ($acc) {
-                    $journalItems[] = ['account_id' => $acc->id, 'debit' => $cashDebitAmount, 'credit' => 0, 'description' => "Payment received for Sale #{$sale->reference_number}"];
+                    $journalItems[] = [
+                        'account_id'  => $acc->id, 
+                        'debit'       => $cashDebitAmount, 
+                        'credit'      => 0, 
+                        'description' => "Payment received for Sale #{$sale->reference_number}",
+                        'party_id'    => $sale->party_id
+                    ];
                 }
                 $amountPaidCounted = $cashDebitAmount;
             }
@@ -1236,20 +1144,38 @@ class SaleController extends Controller
 
         // DR: Accounts Receivable
         $unpaidBalance = max(0, $roundedInvoiceTotal - $amountPaidCounted);
-        if ($unpaidBalance > 0 && $sale->party_id) {
+        if ($unpaidBalance > 0) {
             $ar = $this->accounting->getAccountByCode('1200', 'Accounts Receivable', 'asset');
-            $journalItems[] = ['account_id' => $ar->id, 'debit' => $unpaidBalance, 'credit' => 0, 'description' => "Credit balance for Sale #{$sale->reference_number}"];
+            $journalItems[] = [
+                'account_id'  => $ar->id, 
+                'debit'       => $unpaidBalance, 
+                'credit'      => 0, 
+                'description' => "Credit balance for Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id
+            ];
         }
 
         // CR: Overpayment
         if ($isLedgerOverpayment) {
             $cr = $this->accounting->getAccountByCode('2050', 'Customer Credit Balances', 'liability');
-            $journalItems[] = ['account_id' => $cr->id, 'debit' => 0, 'credit' => $overpaymentAmount, 'description' => "Customer credit from Sale #{$sale->reference_number}"];
+            $journalItems[] = [
+                'account_id'  => $cr->id, 
+                'debit'       => 0, 
+                'credit'      => $overpaymentAmount, 
+                'description' => "Customer credit from Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id
+            ];
         }
 
         // CR: Revenue
         $rev = $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income');
-        $journalItems[] = ['account_id' => $rev->id, 'debit' => 0, 'credit' => $netSales, 'description' => "Revenue from Sale #{$sale->reference_number}"];
+        $journalItems[] = [
+            'account_id'  => $rev->id, 
+            'debit'       => 0, 
+            'credit'      => $netSales, 
+            'description' => "Revenue from Sale #{$sale->reference_number}",
+            'party_id'    => $sale->party_id
+        ];
 
         // CR: Tax
         if ($totalTax > 0) {
@@ -1272,7 +1198,7 @@ class SaleController extends Controller
             $journalItems[] = ['account_id' => $inv->id, 'debit' => 0, 'credit' => $totalCogs, 'description' => "Inventory reduction — #{$sale->reference_number}"];
         }
 
-        return app(V3Accounting::class)->createEntry([
+        return app(\App\Services\V3\AccountingService::class)->createEntry([
             'date'           => $sale->posted_at ? $sale->posted_at->toDateString() : now()->toDateString(),
             'reference_type' => 'sale',
             'reference'      => $sale->id,
@@ -1322,9 +1248,9 @@ class SaleController extends Controller
         Log::info('Bulk Destroy Attempt', ['user_id' => auth()->id(), 'role' => optional(auth()->user())->role, 'ids' => $request->ids]);
 
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['platform_admin', 'admin'])) {
+        if (!$user || !in_array($user->role, ['owner', 'admin', 'platform_admin'])) {
             Log::warning('Bulk Destroy Unauthorized', ['user_id' => auth()->id(), 'role' => optional($user)->role]);
-            abort(403, 'Unauthorized action. Only Admins can delete sales.');
+            abort(403, 'Unauthorized action. Only Owners and Admins can delete sales.');
         }
 
         $request->validate([
@@ -1357,9 +1283,9 @@ class SaleController extends Controller
         Log::info('Single Destroy Attempt', ['user_id' => auth()->id(), 'role' => optional(auth()->user())->role, 'sale_id' => $sale->id]);
 
         $user = auth()->user();
-        if (!$user || !in_array($user->role, ['platform_admin', 'admin'])) {
+        if (!$user || !in_array($user->role, ['owner', 'admin', 'platform_admin'])) {
             Log::warning('Single Destroy Unauthorized', ['user_id' => auth()->id(), 'role' => optional($user)->role]);
-            abort(403, 'Unauthorized action. Only Admins can delete sales.');
+            abort(403, 'Unauthorized action. Only Owners and Admins can delete sales.');
         }
 
         try {

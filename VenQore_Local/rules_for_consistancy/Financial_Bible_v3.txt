@@ -1,0 +1,1466 @@
+  AMD ERP  
+  THE FINANCIAL BIBLE  v2.0  
+  Corrected Edition — All architectural gaps closed  
+5 critical gaps identified and resolved  |  This is the build-ready specification
+🆕 What changed from v1.0 — the 5 critical fixes
+FIX 1 (B16)  — Manufacturing labor double-count fixed. Added Applied Labor account (6410).
+              Two-path journal: salaried employees vs external contract labor — never overlap.
+FIX 2 (B19)  — Opening Balance now covers Fixed Assets, Accumulated Depreciation, and Loans.
+              Added accounts 1500, 1510 to COA. Account 7000 can now truly zero out.
+FIX 3 (C16)  — Party Balance caching architecture defined. party_snapshots table specified.
+              Cache invalidation rule: any new journal_entry for party_id → rebuild snapshot.
+FIX 4 (NEW)  — payment_allocations table designed. Invoice-level payment tracking added.
+              This drives payment_status badges, aged receivables, aged payables per invoice.
+FIX 5 (B10/E3)— FIFO direction unified. ALL stock decreases use oldest-first (ASC). No exceptions.
+BONUS         — Depreciation journal entry (B23) added. Loan drawdown (B24) added.
+              Fixed Asset purchase journal entry added. COA fully extended.
+  SECTION 0
+  VERSION CHANGELOG
+  Every correction from v1.0 to v2.0 — with the reasoning
+Why Each Fix Was Necessary
+🚫 FIX 1 — Manufacturing Labor Double-Count (B16)
+THE BUG: v1.0 said: when adding labor to a production run, credit Cash or Bank directly.
+  Problem: If your employees are salaried, the B7 Salary process already posts:
+  DR 6100 Salary Expense / CR 2400 Salary Payable
+  Then when you run a production job and credit Cash for 'labor', you are paying twice.
+  The salary is already accrued as Salary Payable — it will be paid from there.
+  Crediting cash AGAIN is a phantom outflow that never happened.
+THE FIX: Two clear labor paths:
+  Path A — External / Contract labor (you pay someone new for this job):
+    DR 6410 Applied Manufacturing Labor  |  CR 1000/1010 Cash or Bank
+  Path B — Internal / Salaried employees (already on payroll):
+    DR 6410 Applied Manufacturing Labor  |  CR 2400 Salary Payable (allocation, not cash)
+  Either way: DR 1100 Inventory Asset  |  CR 6410 Applied Manufacturing Labor  (capitalise)
+  Net effect: labor cost moves into inventory — no phantom cash outflow for salaried staff.
+🚫 FIX 2 — Opening Balance Missing Fixed Assets and Loans (B19 + COA)
+THE BUG: v1.0 COA had no Fixed Asset or Accumulated Depreciation accounts.
+  A business migrating with Rs. 1,000,000 in equipment and a Rs. 500,000 loan could not
+  enter those balances. Account 7000 Opening Balance Equity could never net to zero.
+  A Balance Sheet that doesn't balance on day one is useless.
+THE FIX:
+  Added to COA: 1500 Fixed Assets, 1510 Accumulated Depreciation (contra-asset)
+  Updated B19 to include: equipment, vehicles, loans, owner capital as opening entries
+  Added B23 Depreciation (periodic journal) and B24 Loan Drawdown (new transactions)
+  Now 7000 can zero out correctly across all real-world migration scenarios.
+🚫 FIX 3 — Party Balance Has No Caching Architecture (C16)
+THE BUG: v1.0 said: read party balance directly from journal_items filtered by party_id.
+  This is correct for data integrity but catastrophic for performance at scale.
+  A customer with 5 years of transactions = millions of rows scanned on every page load.
+  This query will time out and take down the application under real usage.
+THE FIX: party_snapshots table defined (see Section 4 C16).
+  The snapshot stores the pre-computed balance per party per account.
+  It is rebuilt ONLY when a new journal entry with that party_id is posted.
+  The ledger remains the single source of truth — snapshots are just a performance cache.
+  If a snapshot is missing or stale, the system falls back to the live ledger query.
+🚫 FIX 4 — Payment Allocation Vacuum (NEW TABLE)
+THE BUG: v1.0 correctly posts B4 as: DR Cash / CR Accounts Receivable (1200).
+  Financially correct. But: how does the system know WHICH invoice got paid?
+  If customer owes Rs. 10,000 across 3 invoices and pays Rs. 4,000 — which invoice
+  gets the 'Paid' or 'Partial' badge? The journal entry has no invoice-level data.
+  Without this, aged receivables are wrong, party statements are wrong, and
+  the payment_status badge that users rely on daily is completely broken.
+THE FIX: payment_allocations table (see Section 4, new subsection).
+  Columns: id, payment_journal_entry_id, sale_id (nullable), purchase_id (nullable),
+           allocated_amount, created_at
+  Every B4/B5 payment explicitly links to one or more invoices with the amounts.
+  Aged receivables and payment badges all read from this table.
+🚫 FIX 5 — FIFO Direction Contradiction (B10 vs E3)
+THE BUG: v1.0 B10 said 'reduce from newest batch backwards (reverse FIFO)' for decreases.
+  v1.0 E3 said 'deduct from oldest batch first' for sales.
+  These contradict each other. Expired goods ARE the oldest goods.
+  A write-off of spoiled stock should remove the oldest batch, not the newest.
+  Using newest-first for adjustments while using oldest-first for sales means
+  your COGS and inventory valuation diverge — the system is internally inconsistent.
+THE FIX: One rule for ALL stock decreases (B1, B2, B8, B9, B10, B16, B22):
+  ORDER BY inventory_batches.created_at ASC — oldest batch first, always.
+  No exceptions. Sales, write-offs, adjustments, donations — all the same direction.
+  SECTION 1
+  THE FOUNDATION
+  Chart of Accounts · Double-Entry Rules · The Single Source Principle
+1.1  The Single Source Principle
+Every financial number in AMD ERP has exactly one source of truth: the journal_items table, queried through the double-entry ledger. No number is stored as a mutable running total used for financial reporting. No report or dashboard widget calculates independently. If it is a financial figure, it comes from the ledger — or from a snapshot cache that is guaranteed to mirror the ledger.
+🚫 What creates inconsistency — the anti-patterns
+bank_accounts.current_balance  ← updated by hand in controllers (WRONG)
+parties.current_balance         ← updated by controller arithmetic (WRONG)
+Dashboard cash formula          ← custom maths duplicating the ledger (WRONG)
+sales.payment_status            ← used in financial calculations (WRONG — badge only)
+products.cost_price             ← used for COGS or inventory value (WRONG — overwrites)
+✅ The one true pattern
+Cash in Hand    = SUM(debit) - SUM(credit) FROM journal_items WHERE account_code = '1000'
+Bank Balance    = SUM(debit) - SUM(credit) FROM journal_items WHERE account_code = '1010'
+Receivables     = SUM(debit) - SUM(credit) FROM journal_items WHERE account_code = '1200'
+Payables        = SUM(credit)- SUM(debit)  FROM journal_items WHERE account_code = '2000'
+Party Balance   = party_snapshots.cached_balance (rebuilt from ledger on every new entry)
+Inventory Value = SUM(remaining_qty × unit_cost) FROM inventory_batches WHERE remaining_qty &gt; 0
+1.2  The Complete Chart of Accounts  (v2.0 — Fixed Assets Added)
+Every journal entry must reference an account from this list. Accounts are permanent — never deleted, only deactivated. v2.0 adds Fixed Asset accounts (1500, 1510) that were missing in v1.0.
+Code
+Account Name
+Type
+Normal Balance
+What It Tracks
+1000
+Cash in Hand
+Asset
+Debit
+Physical cash at the counter / till
+1010
+Bank Account — Main
+Asset
+Debit
+Primary bank account balance
+1011
+Bank Account — Other
+Asset
+Debit
+Additional bank accounts (one code per account)
+1100
+Inventory Asset
+Asset
+Debit
+Value of all unsold stock at FIFO cost
+1200
+Accounts Receivable
+Asset
+Debit
+Total money customers owe you
+1300
+Advance to Supplier
+Asset
+Debit
+Prepayments made before goods received (B21)
+1400
+Prepaid Expenses
+Asset
+Debit
+Expenses paid in advance not yet consumed
+1500
+Fixed Assets
+Asset
+Debit
+Equipment, vehicles, furniture, machinery — at cost  ★ NEW v2.0
+1510
+Accumulated Depreciation
+Contra-Asset
+Credit
+Total depreciation taken on fixed assets to date  ★ NEW v2.0
+2000
+Accounts Payable
+Liability
+Credit
+Total money you owe suppliers
+2100
+Customer Advance
+Liability
+Credit
+Customer payments received before sale is posted (B20)
+2200
+Sales Tax Payable
+Liability
+Credit
+Tax collected from customers — government's money
+2300
+Input Tax Recoverable
+Asset
+Debit
+Tax paid on purchases — offsetable against 2200
+2400
+Salary Payable
+Liability
+Credit
+Salaries accrued but not yet paid
+2500
+Loan Payable
+Liability
+Credit
+Outstanding loan principal owed to lender
+3000
+Owner's Capital
+Equity
+Credit
+Owner's investment in the business
+3100
+Retained Earnings
+Equity
+Credit
+Accumulated profit not withdrawn
+4000
+Sales Revenue
+Income
+Credit
+Net product revenue (ex-tax, ex-discount)
+4100
+Other Income
+Income
+Credit
+Non-product income (interest, misc)
+4200
+Stock Adjustment Gain
+Income
+Credit
+Value gained from positive stock adjustments
+5000
+Cost of Goods Sold
+Expense
+Debit
+FIFO cost of products actually sold
+5100
+Purchase Expense
+Expense
+Debit
+Non-inventory purchases expensed directly
+6000
+Operating Expenses
+Expense
+Debit
+Rent, electricity, transport, marketing, etc.
+6100
+Salary Expense
+Expense
+Debit
+Employee salary costs (gross)
+6200
+Charity Expense
+Expense
+Debit
+Donations and charitable gifts
+6300
+Stock Adjustment Loss
+Expense
+Debit
+Value lost from write-offs, damage, theft
+6400
+Manufacturing Cost
+Expense
+Debit
+Raw material cost allocated to production
+6410
+Applied Manufacturing Labor
+Expense
+Debit
+Labor cost allocated to production runs  ★ NEW v2.0
+6500
+Loan Interest Expense
+Expense
+Debit
+Interest paid on business loans
+6600
+Depreciation Expense
+Expense
+Debit
+Periodic depreciation of fixed assets  ★ NEW v2.0
+7000
+Opening Balance Equity
+Equity
+Credit
+Clearing account for migration opening entries (B19)
+1150
+Work-In-Progress
+Asset
+Debit
+Cost of partially completed production runs not yet finished goods ★ NEW v3.0
+6700
+Bad Debt Expense
+Expense
+Debit
+Uncollectable receivables written off as confirmed bad debt ★ NEW v3.0
+6800
+Gratuity &amp; Severance Expense
+Expense
+Debit
+Gratuity, notice pay, and leave encashment on employee termination ★ NEW v3.0
+6900
+Cash Shortage Loss
+Expense
+Debit
+Physical till shortages from theft or unexplained cash discrepancies ★ NEW v3.0
+6950
+Disaster Loss
+Expense
+Debit
+Inventory or asset value destroyed by fire, flood, or other catastrophe ★ NEW v3.0
+6960
+Insurance Recovery
+Income
+Credit
+Cash received from insurer offsetting a disaster or theft loss ★ NEW v3.0
+📐 Account type rules
+1000–1499  Assets (Debit-normal)  |  1500–1510  Fixed Assets (Debit-normal / contra-asset Credit-normal)
+2000–2999  Liabilities (Credit-normal)  |  3000–3999  Equity (Credit-normal)
+4000–4999  Income (Credit-normal)  |  5000–6999  Expenses / COGS (Debit-normal)
+Net Book Value of Fixed Assets = Account 1500 balance MINUS Account 1510 balance
+1.3  The Double-Entry Golden Rules
+Rule
+Stated Simply
+Consequence if Violated
+1. Every transaction has two sides
+Every debit has an equal credit
+Trial Balance won't balance — error detectable immediately
+2. Debits must equal Credits
+SUM(debit) = SUM(credit) on every journal entry — to the paisa
+System REJECTS the save if this is not satisfied
+3. Entries are never deleted
+Wrong entry? Post a reversal. Never delete.
+Broken audit trail, Trial Balance drift
+4. Posting is atomic
+Business record + journal entries in one DB::transaction()
+Partial writes leave the books in an illegal state
+5. Every entry has a reference
+reference_type + reference_id links journal to source
+Cannot trace back to the original event — audit fails
+6. Debit = Asset/Expense up
+Debit increases assets and expenses
+Getting this backwards inverts all balances
+7. Credit = Liability/Income/Equity up
+Credit increases liabilities, income, equity
+Fundamental — cannot be violated
+  SECTION 2
+  PRE-TRANSACTION DOCUMENTS
+  A1–A5: Zero financial effect — these are intentions only
+Pre-transaction documents create no journal entries and move no stock. They only become financial events when converted into a Section 3 transaction.
+ID
+Document
+Journal Entry?
+Stock Movement?
+Converts To
+A1
+Quotation / Estimate
+None
+None
+Sale (B1) or Sales Order (A2) if accepted
+A2
+Sales Order
+None
+Reserved qty only — not deducted from stock
+Sale (B1) on delivery
+A3
+Purchase Order
+None
+None
+Purchase (B3) when goods arrive
+A4
+Proforma Invoice
+None
+None
+Real Sale (B1) on delivery and acceptance
+A5
+Recurring Invoice Template
+None until triggered
+None
+Generates a real Sale (B1) on each scheduled date
+  SECTION 3
+  TRANSACTIONS
+  B1–B24: Every event that moves money or stock — complete journal definitions
+Every transaction MUST produce the journal entries shown. AccountingService::createEntry() must be called inside DB::transaction() alongside all other writes. The engine validates SUM(debit) = SUM(credit) before saving — it throws an exception and rolls back if not balanced.
+🚫 Universal transaction rules
+1.  Every transaction calls AccountingService::createEntry() — NO EXCEPTIONS
+2.  All writes happen inside DB::transaction() — business record + journal entries together
+3.  Journal entries are NEVER deleted — post reversals only
+4.  Every journal entry carries: entry_date, reference_type, reference_id, party_id (if applicable)
+5.  The engine validates SUM(debit) = SUM(credit) before saving — REJECT if not equal
+B1  —  Sale
+B1
+Sale
+WHAT
+Customer receives products. Revenue earned. Stock leaves. Money collected immediately (cash) or owed later (credit).
+JOURNAL
+On posting the invoice
+DR  1200  Accounts Receivable     = invoice_total  (what customer owes incl. tax)
+CR  4000  Sales Revenue           = net_sales  (gross minus all discounts, EXCLUDING tax)
+CR  2200  Sales Tax Payable       = total_tax  (government's share — not your revenue)
+CR  4100  Other Income            = shipping_charges  (if any)
+COGS — runs simultaneously via FifoService (oldest batch first)
+DR  5000  Cost of Goods Sold      = FIFO cost of items sold  (from sale_item_batches)
+CR  1100  Inventory Asset         = same FIFO cost  (stock value leaves)
+For CASH sales — immediate settlement entry
+DR  1000  Cash in Hand            = amount_received
+CR  1200  Accounts Receivable     = amount_received  (clears the AR just created)
+AFFECTS
+Cash/Bank ↑ (cash sale)  |  Receivables ↑ (credit sale)  |  Revenue ↑  |  COGS ↑  |  Inventory ↓  |  Tax Payable ↑
+RULE
+NEVER include tax in Revenue (4000). Tax → 2200 Sales Tax Payable.
+ALWAYS use FIFO batch cost from sale_item_batches.total_cogs — never products.cost_price.
+payment_allocations: create a record linking this payment to this sale_id when cash is collected.
+B2  —  POS Sale
+B2
+POS Sale (Point of Sale)
+WHAT
+Same as B1 but with split-payment support across multiple methods in a single transaction.
+JOURNAL
+Invoice entries: identical to B1
+DR  1200  Accounts Receivable     = invoice_total
+CR  4000  Sales Revenue           = net_sales
+CR  2200  Sales Tax Payable       = total_tax
+DR  5000  COGS                    = FIFO cost
+CR  1100  Inventory Asset         = FIFO cost
+Split payment settlement
+DR  1000  Cash in Hand            = cash_portion
+DR  1010  Bank Account            = card_or_bank_portion
+CR  1200  Accounts Receivable     = total  (sum of all portions)
+AFFECTS
+Same as B1. Split payment debits multiple cash/bank accounts simultaneously.
+RULE
+Held / parked bills: zero journal entries until the bill is finalised and posted.
+Change given is counter maths only — never a journal entry.
+payment_allocations: link each portion to this sale_id.
+B3  —  Purchase
+B3
+Purchase
+WHAT
+Stock arrives from supplier. Inventory increases. Pay now (cash) or promise to pay later (credit).
+JOURNAL
+Cash purchase
+DR  1100  Inventory Asset         = total_cost  (qty × unit_cost)
+DR  2300  Input Tax Recoverable   = total_tax_paid  (if tax-registered)
+CR  1000  Cash in Hand            = total_paid
+Credit purchase
+DR  1100  Inventory Asset         = total_cost
+DR  2300  Input Tax Recoverable   = total_tax_paid
+CR  2000  Accounts Payable        = total_invoiced
+FifoService creates inventory_batches record (not a journal entry)
+inventory_batches: product_id, purchase_id, unit_cost (LOCKED FOREVER), qty_received, remaining_qty
+AFFECTS
+Inventory Asset ↑  |  Cash ↓ (cash purchase)  |  Payables ↑ (credit purchase)  |  Input Tax ↑
+RULE
+unit_cost is locked at purchase time — it is never overwritten.
+payment_allocations: link payment to this purchase_id when paying cash at time of purchase.
+B4  —  Payment In
+B4
+Payment In — Customer Pays
+WHAT
+Customer pays money they owe. Cash or Bank up. Their Receivable balance down. Invoice badges updated via payment_allocations.
+JOURNAL
+Cash payment received
+DR  1000  Cash in Hand            = amount
+CR  1200  Accounts Receivable     = amount
+Bank payment received
+DR  1010  Bank Account            = amount
+CR  1200  Accounts Receivable     = amount
+payment_allocations record(s) — created alongside the journal entry
+INSERT INTO payment_allocations (journal_entry_id, sale_id, allocated_amount)
+  For each invoice being settled: one row per invoice, amount = how much applies
+  SUM(allocated_amount) across all rows for this payment = total payment amount
+party_snapshot — rebuild after posting
+UPDATE party_snapshots SET cached_balance = ledger_query, last_updated = NOW()
+  WHERE party_id = X AND account_code = '1200'
+AFFECTS
+Cash/Bank ↑  |  Receivables ↓  |  Invoice payment_status badges updated via allocations
+RULE
+MUST post journal entry — this is the bug that broke AMD v1.0.
+DO NOT update parties.current_balance with arithmetic — use party_snapshots.
+DO NOT update bank_accounts.current_balance manually — use account 1010 ledger.
+payment_allocations is required — without it, invoice badges are permanently broken.
+B5  —  Payment Out
+B5
+Payment Out — Paying a Supplier
+WHAT
+You pay money you owe a supplier. Cash or Bank down. Their Payable balance down. Invoice badges updated via payment_allocations.
+JOURNAL
+Cash payment out
+DR  2000  Accounts Payable        = amount
+CR  1000  Cash in Hand            = amount
+Bank payment out
+DR  2000  Accounts Payable        = amount
+CR  1010  Bank Account            = amount
+payment_allocations record(s)
+INSERT INTO payment_allocations (journal_entry_id, purchase_id, allocated_amount)
+  One row per purchase invoice being settled, amount = portion being paid
+party_snapshot — rebuild after posting
+UPDATE party_snapshots SET cached_balance = ledger_query, last_updated = NOW()
+  WHERE party_id = X AND account_code = '2000'
+AFFECTS
+Cash/Bank ↓  |  Payables ↓  |  Purchase invoice badges updated via allocations
+RULE
+DO NOT use this path for salary payments — salaries use B7 (hits 6100, not 2000).
+payment_allocations: required for aged payables and supplier statement accuracy.
+B6  —  Expense
+B6
+Expense
+WHAT
+Money out for operational running costs — NOT for buying stock to resell.
+JOURNAL
+Cash expense (no recoverable tax)
+DR  6000  Operating Expenses      = amount
+CR  1000  Cash in Hand            = amount
+Bank expense (no recoverable tax)
+DR  6000  Operating Expenses      = amount
+CR  1010  Bank Account            = amount
+Expense with recoverable input tax
+DR  6000  Operating Expenses      = net_amount
+DR  2300  Input Tax Recoverable   = tax_amount
+CR  1000/1010  Cash or Bank       = total_paid
+AFFECTS
+Cash/Bank ↓  |  Operating Expenses ↑  |  Net Profit ↓
+RULE
+Expense category maps to sub-account under 6000 for category-level reporting.
+Expenses for future periods: post to 1400 Prepaid Expenses, not 6000 immediately.
+B7  —  Salary Payment
+B7
+Salary Payment
+WHAT
+Paying employees. Hits Salary Expense (6100), never Accounts Payable (2000). Two-step: accrue at period end, pay when due.
+JOURNAL
+Step 1 — Accrue salary (end of pay period, salary earned but not yet paid)
+DR  6100  Salary Expense          = gross_salary
+CR  2400  Salary Payable          = gross_salary
+Step 2 — Pay the salary (actual payment date)
+DR  2400  Salary Payable          = net_amount_paid
+CR  1000  Cash in Hand            = net_amount_paid  (cash)
+  OR
+CR  1010  Bank Account            = net_amount_paid  (bank transfer)
+Deductions logic (advances, fines)
+Gross salary → 6100 (full amount — always the expense)
+Advance already given → reduces 2400 directly when advance was granted
+Net paid = what physically leaves cash/bank
+AFFECTS
+Salary Expense ↑  |  Salary Payable ↑ (on accrual)  |  Cash/Bank ↓ (on payment)
+RULE
+NEVER record salary through B5 Payment Out — that hits 2000 Accounts Payable (wrong).
+Salary Payable (2400) is used in B16 Path B for labor allocation to production runs.
+B8  —  Sale Return
+B8
+Sale Return (Credit Note)
+WHAT
+Customer returns goods. Revenue reversed. Stock restored at original FIFO purchase cost. Cash refunded or credit note issued.
+JOURNAL
+Reverse the revenue
+DR  4000  Sales Revenue           = returned_net_amount  (ex-tax, after discounts)
+DR  2200  Sales Tax Payable       = returned_tax
+CR  1200  Accounts Receivable     = total_returned_invoice_amount
+Restore inventory — oldest-first FIFO (same direction as sales)
+DR  1100  Inventory Asset         = FIFO cost of returned items
+CR  5000  Cost of Goods Sold      = FIFO cost  (COGS reversed)
+If CASH REFUND given (separate entry)
+DR  1200  Accounts Receivable     = refund_amount  (clears the credit)
+CR  1000  Cash in Hand            = refund_amount
+AFFECTS
+Revenue ↓  |  Tax Payable ↓  |  Receivables ↓  |  Inventory ↑  |  COGS ↓  |  Cash ↓ (if cash refund)
+RULE
+Returned stock re-enters at original FIFO PURCHASE cost — not at the sale price.
+Restore remaining_qty on the SAME batch the item was originally deducted from (sale_item_batches).
+payment_allocations: update or reverse allocation for the original invoice.
+B9  —  Purchase Return
+B9
+Purchase Return (Debit Note)
+WHAT
+You return goods to a supplier. Inventory decreases. Payable decreases (or cash refund received).
+JOURNAL
+Reduce inventory and payables
+DR  2000  Accounts Payable        = cost_of_returned_items
+CR  1100  Inventory Asset         = cost_of_returned_items
+If supplier gives CASH REFUND
+DR  1000  Cash in Hand            = refund_amount
+CR  2000  Accounts Payable        = refund_amount
+FifoService: restore inventory_batches
+Increase remaining_qty on the source batch of the returned purchase items
+Cost stays at original batch unit_cost — unchanged
+AFFECTS
+Inventory ↓  |  Payables ↓  |  Cash ↑ (if cash refund)
+RULE
+Cost of returned items = original batch unit_cost × returned_qty.
+payment_allocations: reverse or update allocation for original purchase invoice.
+B10  —  Stock Adjustment  ★ FIX 5 APPLIED
+B10
+Stock Adjustment
+WHAT
+Manual correction to stock count — damage, theft, expiry write-off, audit variance. BOTH quantity AND financial value change.
+JOURNAL
+Stock DECREASE — uses oldest-first FIFO  ★ CORRECTED FROM v1.0
+DR  6300  Stock Adjustment Loss   = qty_removed × oldest_batch_unit_cost
+CR  1100  Inventory Asset         = qty_removed × oldest_batch_unit_cost
+FifoService: remove from oldest batch first (ORDER BY created_at ASC)
+REASON: expired/damaged goods ARE the oldest goods — this is consistent with sales FIFO
+Stock INCREASE — creates a new batch
+DR  1100  Inventory Asset         = qty_added × specified_cost
+CR  4200  Stock Adjustment Gain   = qty_added × specified_cost
+FifoService: create new inventory_batches record dated today
+AFFECTS
+Inventory Asset ↑ or ↓  |  Adjustment Gain/Loss ↑  |  Net Profit affected
+RULE
+★ v1.0 said 'newest batch backwards (reverse FIFO)' — THIS WAS WRONG. v2.0 corrects it.
+ALL stock decreases use oldest-first (ASC). Sales (B1/B2), adjustments (B10), donations (B22) — same direction.
+Journal entry AND inventory_batches update must happen in one DB::transaction().
+Auto-heal must NOT be the mechanism for stock correction — use explicit B10 entries only.
+B11  —  Stock Transfer
+B11
+Stock Transfer
+WHAT
+Moving stock between warehouses. Zero financial effect. Only the location tracking changes.
+JOURNAL
+No journal entry required — logistics only
+inventory_batches.warehouse_id changes from source to destination
+stock_movements: type='transfer', from_warehouse, to_warehouse, product_id, qty
+Total company inventory value: UNCHANGED
+AFFECTS
+Per-warehouse stock counts change  |  Total inventory value: UNCHANGED  |  No P&amp;L effect
+RULE
+Zero ledger effect. This is a logistics operation only.
+B12  —  Stock Take
+B12
+Stock Take / Physical Audit
+WHAT
+Physical count of all stock. Each variance (more or less than system says) becomes a B10 Stock Adjustment.
+JOURNAL
+During count — frozen state, no entries
+No journal entries during the count process
+System locks affected products from new sales movements during count
+On finalisation — each variance → one B10 entry
+Physical &gt; System: DR 1100 Inventory Asset  |  CR 4200 Stock Adjustment Gain
+Physical &lt; System: DR 6300 Stock Adjustment Loss  |  CR 1100 Inventory Asset
+Each variance uses oldest-first FIFO for deductions (consistent with B10)
+AFFECTS
+Creates one B10 Stock Adjustment per product with a variance
+RULE
+Lock the count before posting any entries to prevent race conditions.
+B13  —  Fund In
+B13
+Fund In — Capital Injection
+WHAT
+Owner puts personal money into the business. Not revenue — owner investment.
+JOURNAL
+Cash injection
+DR  1000  Cash in Hand            = amount
+CR  3000  Owner's Capital         = amount
+Bank injection
+DR  1010  Bank Account            = amount
+CR  3000  Owner's Capital         = amount
+AFFECTS
+Cash/Bank ↑  |  Owner's Capital ↑  |  P&amp;L unaffected
+RULE
+Never touches account 4000 (Revenue). This is not a sale.
+B14  —  Fund Out
+B14
+Fund Out — Capital Withdrawal
+WHAT
+Owner withdraws personal money from the business. Not an expense.
+JOURNAL
+Cash withdrawal
+DR  3000  Owner's Capital         = amount
+CR  1000  Cash in Hand            = amount
+Bank withdrawal
+DR  3000  Owner's Capital         = amount
+CR  1010  Bank Account            = amount
+AFFECTS
+Cash/Bank ↓  |  Owner's Capital ↓  |  P&amp;L unaffected
+RULE
+Never touches 6000 (Expenses). This is not a business cost.
+B15  —  Bank Transfer
+B15
+Bank Transfer
+WHAT
+Moving money between your own accounts. Total assets unchanged.
+JOURNAL
+Cash to Bank
+DR  1010  Bank Account            = amount
+CR  1000  Cash in Hand            = amount
+Bank A to Bank B
+DR  1011  Bank Account (dest.)    = amount
+CR  1010  Bank Account (source)   = amount
+Bank to Cash
+DR  1000  Cash in Hand            = amount
+CR  1010  Bank Account            = amount
+AFFECTS
+Individual cash/bank balances change  |  Total assets: UNCHANGED  |  No P&amp;L effect
+RULE
+Always use two different account codes. Never DR and CR the same account.
+B16  —  Manufacturing / Production Run  ★ FIX 1 APPLIED
+B16
+Manufacturing / Production Run
+WHAT
+Raw materials consumed. Finished product created. Labor cost allocated to inventory — NOT credited to Cash if the labor is already on the payroll.
+JOURNAL
+Step 1 — Consume raw materials (oldest-first FIFO)
+DR  6400  Manufacturing Cost      = qty_used × oldest_batch_unit_cost  (per material)
+CR  1100  Inventory Asset         = qty_used × unit_cost  (raw material leaves stock)
+Step 2A — Labor cost: EXTERNAL / CONTRACT workers  ★ NEW v2.0
+DR  6410  Applied Manufacturing Labor = labor_cost
+CR  1000/1010  Cash or Bank           = labor_cost  (actual cash paid out)
+Step 2B — Labor cost: INTERNAL / SALARIED employees  ★ NEW v2.0
+DR  6410  Applied Manufacturing Labor = labor_allocation
+CR  2400  Salary Payable              = labor_allocation  (already accrued — no cash here)
+REASON: B7 already accrued DR 6100 / CR 2400 for these employees this period.
+  Crediting Cash again would be a double-count. We allocate from Salary Payable instead.
+Step 3 — Capitalise all production costs into finished goods
+DR  1100  Inventory Asset         = total_production_cost  (materials + labor)
+CR  6400  Manufacturing Cost      = material_cost  (closes material account)
+CR  6410  Applied Manufacturing Labor = labor_cost  (closes labor account)
+NEW batch unit_cost = total_production_cost ÷ units_successfully_produced
+Wastage / scrap adjustment
+If units_produced &lt; expected: total cost ÷ actual units = higher cost per unit
+Scrap material leaving stock: DR 6300 Stock Adjustment Loss  |  CR 1100 Inventory Asset
+AFFECTS
+Raw material Inventory ↓  |  Finished product Inventory ↑  |  Net Inventory value: unchanged (unless wastage)
+RULE
+★ v1.0 always credited Cash for labor — this double-counts if employees are salaried.
+★ Use Path 2A (cash) for contractors, Path 2B (Salary Payable allocation) for staff.
+If the business has no accrual and pays labor immediately each time: Path 2A always.
+B17  —  Debit Note
+B17
+Debit Note — to Supplier
+WHAT
+Formal notice to supplier claiming a reduction in what you owe. Triggered by purchase return, overcharge, or quality dispute. Journal entries post on supplier acceptance only.
+JOURNAL
+Goods returned (purchase return — same as B9)
+DR  2000  Accounts Payable        = claimed_amount
+CR  1100  Inventory Asset         = cost_of_returned_goods
+Price correction (no goods returned)
+DR  2000  Accounts Payable        = overcharge_amount
+CR  5100  Purchase Expense        = overcharge_amount  (reverses overpaid cost)
+AFFECTS
+Payables ↓  |  Inventory ↓ (if goods returned)  |  Purchase Expense ↓ (if price correction)
+RULE
+Journal entries post when supplier ACCEPTS the note. Pending = no financial effect.
+B18  —  Credit Note
+B18
+Credit Note — to Customer
+WHAT
+Formal document reducing what a customer owes you. Same journal entries as B8 Sale Return.
+JOURNAL
+Goods returned
+DR  4000  Sales Revenue           = returned_net_amount
+DR  2200  Sales Tax Payable       = returned_tax
+CR  1200  Accounts Receivable     = total
+DR  1100  Inventory Asset         = FIFO cost
+CR  5000  COGS                    = FIFO cost
+Goodwill / overcharge (no goods returned)
+DR  4000  Sales Revenue           = credit_amount
+CR  1200  Accounts Receivable     = credit_amount
+AFFECTS
+Revenue ↓  |  Receivables ↓  |  Inventory ↑ (if goods returned)  |  COGS ↓ (if goods returned)
+RULE
+Unapplied credit notes remain as negative AR balance for the customer.
+B19  —  Opening Balance Entry  ★ FIX 2 APPLIED
+B19
+Opening Balance Entry
+WHAT
+One-time setup when starting AMD. Records ALL pre-existing financial positions — including fixed assets and loans that v1.0 missed.
+JOURNAL
+Customers owe you (Receivables)
+DR  1200  Accounts Receivable     = customer_balance
+CR  7000  Opening Balance Equity  = customer_balance
+You owe suppliers (Payables)
+DR  7000  Opening Balance Equity  = supplier_balance
+CR  2000  Accounts Payable        = supplier_balance
+Cash and Bank
+DR  1000  Cash in Hand            = opening_cash
+CR  7000  Opening Balance Equity  = opening_cash
+DR  1010  Bank Account            = opening_bank
+CR  7000  Opening Balance Equity  = opening_bank
+Opening stock value
+DR  1100  Inventory Asset         = total_stock_value
+CR  7000  Opening Balance Equity  = total_stock_value
+Fixed Assets — equipment, vehicles, machinery  ★ NEW v2.0
+DR  1500  Fixed Assets            = original_cost_of_all_assets
+CR  7000  Opening Balance Equity  = original_cost
+If asset is partially depreciated already:
+DR  7000  Opening Balance Equity  = accumulated_depreciation_to_date
+CR  1510  Accumulated Depreciation= accumulated_depreciation_to_date
+Outstanding loans  ★ NEW v2.0
+DR  7000  Opening Balance Equity  = outstanding_loan_balance
+CR  2500  Loan Payable            = outstanding_loan_balance
+Verification: account 7000 must net to zero after all entries
+SUM of all DR entries to 7000 = SUM of all CR entries to 7000
+If 7000 ≠ 0, there is a missing opening balance entry — find and add it
+AFFECTS
+All real accounts funded from 7000 Opening Balance Equity — books balance from day one
+RULE
+★ v1.0 had no Fixed Asset or Loan accounts — 7000 could never zero out.
+7000 Opening Balance Equity is a CLEARING account — its net balance must be zero.
+Run ONCE at business start date. All subsequent transactions are normal B1–B24 entries.
+B20  —  Advance from Customer
+B20
+Advance Payment from Customer
+WHAT
+Customer pays before delivery. Money received but revenue NOT yet recognised — it is a liability.
+JOURNAL
+On receiving advance
+DR  1000/1010  Cash or Bank       = advance_amount
+CR  2100  Customer Advance        = advance_amount  (liability — you owe them delivery)
+When goods delivered and sale posted
+DR  2100  Customer Advance        = advance_amount  (liability clears)
+CR  1200  Accounts Receivable     = advance_amount  (applies to invoice)
+If excess advance: refund remainder
+DR  2100  Customer Advance        = excess
+CR  1000/1010  Cash or Bank       = excess
+AFFECTS
+Cash/Bank ↑  |  Customer Advance Liability ↑  |  Revenue: NOT recognised until delivery
+RULE
+Advance = LIABILITY (2100). Revenue (4000) only recognised on delivery.
+B21  —  Advance to Supplier
+B21
+Advance Payment to Supplier
+WHAT
+You pay before goods arrive. Cash out but no inventory yet — it is an asset.
+JOURNAL
+On paying advance
+DR  1300  Advance to Supplier     = advance_amount
+CR  1000/1010  Cash or Bank       = advance_amount
+When goods arrive and purchase posted
+DR  1100  Inventory Asset         = total_purchase_cost
+CR  1300  Advance to Supplier     = advance_amount  (advance clears)
+CR  2000  Accounts Payable        = remaining_balance  (if purchase &gt; advance)
+AFFECTS
+Cash/Bank ↓  |  Advance to Supplier Asset ↑  |  No inventory until goods arrive
+RULE
+Advance to Supplier is an ASSET (1300) — not an expense.
+B22  —  Charitable Donation
+B22
+Charitable Donation
+WHAT
+Cash or goods donated to charity. Recorded as expense. Goods leave at FIFO purchase cost — oldest-first.
+JOURNAL
+Cash donation
+DR  6200  Charity Expense         = amount
+CR  1000  Cash in Hand            = amount
+Goods donation — oldest-first FIFO
+DR  6200  Charity Expense         = qty × oldest_batch_unit_cost
+CR  1100  Inventory Asset         = qty × unit_cost
+AFFECTS
+Cash/Bank ↓ (cash) or Inventory ↓ (goods)  |  Charity Expense ↑  |  Profit ↓
+RULE
+Goods valued at FIFO purchase cost — never retail price.
+B23  —  Depreciation  ★ NEW IN v2.0
+B23
+Depreciation (Periodic Journal)
+WHAT
+Periodic write-down of Fixed Asset value over its useful life. Posted at period end (monthly or annually).
+JOURNAL
+Monthly/annual depreciation entry
+DR  6600  Depreciation Expense    = depreciation_for_period
+CR  1510  Accumulated Depreciation= depreciation_for_period
+Net Book Value = 1500 Fixed Assets balance MINUS 1510 Accumulated Depreciation balance
+Common depreciation methods
+Straight Line: (Cost - Salvage Value) ÷ Useful Life (years) = annual depreciation
+Declining Balance: Net Book Value × Rate% = annual depreciation
+  Use one method consistently — do not switch methods mid-asset
+Fixed Asset Purchase journal entry (not B3 — this is a capital expense)
+DR  1500  Fixed Assets            = purchase_price
+CR  1000/1010  Cash or Bank       = purchase_price  (if paid now)
+CR  2000  Accounts Payable        = purchase_price  (if on credit)
+  NOTE: Fixed assets go to 1500 — NOT to 6000 Operating Expenses
+Asset disposal / retirement
+DR  1510  Accumulated Depreciation= total_depreciation_taken
+DR  6300  Stock Adjustment Loss   = book_value_remaining  (if scrapped with no proceeds)
+CR  1500  Fixed Assets            = original_cost
+AFFECTS
+Depreciation Expense ↑  |  Accumulated Depreciation ↑  |  Net Book Value ↓  |  Net Profit ↓
+RULE
+1500 Fixed Assets never decreases directly — only 1510 Accumulated Depreciation increases.
+The Balance Sheet shows both: 1500 (cost) MINUS 1510 (accumulated) = Net Book Value.
+Fixed asset purchases are CAPEX (capital expense) — never OPEX (operating expense).
+B24  —  Loan Drawdown  ★ NEW IN v2.0
+B24
+Loan Drawdown and Repayment
+WHAT
+Business takes a loan (cash in, liability created) and makes periodic repayments (cash out, liability reduces, interest expensed).
+JOURNAL
+Receiving loan funds
+DR  1000/1010  Cash or Bank       = loan_amount
+CR  2500  Loan Payable            = loan_amount
+Loan repayment (each instalment = principal + interest)
+DR  2500  Loan Payable            = principal_portion
+DR  6500  Loan Interest Expense   = interest_portion
+CR  1000/1010  Cash or Bank       = total_instalment_amount
+Verification
+2500 Loan Payable balance after all entries = outstanding principal
+D40 Loan Statement reads directly from account 2500 in journal_items
+AFFECTS
+Loan receipt: Cash ↑, Loan Payable ↑. Repayment: Cash ↓, Loan Payable ↓, Interest Expense ↑
+RULE
+Interest is an Expense (6500) — never reduces Loan Payable principal.
+The opening balance of a loan (B19) posts the outstanding principal directly to 2500.
+  SECTION 4
+  CALCULATED BALANCES
+  C1–C26: Every balance — formula, source, and caching rules
+No balance is stored as a mutable running total for financial reporting. All balances are calculated from the ledger or from snapshot caches that are guaranteed to mirror the ledger. Caching is permitted for performance — but invalidation rules are mandatory.
+4.0  The payment_allocations Table  ★ NEW IN v2.0
+This table was missing in v1.0. It is the architectural component that connects a payment (B4/B5 journal entry) to specific invoices. Without it, invoice payment_status badges are broken and aged receivables are wrong.
+🆕 payment_allocations — schema definition
+CREATE TABLE payment_allocations (
+  id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  journal_entry_id        BIGINT UNSIGNED NOT NULL,  -- the B4 or B5 journal entry
+  sale_id                 BIGINT UNSIGNED NULL,      -- which sale invoice (if Payment In)
+  purchase_id             BIGINT UNSIGNED NULL,      -- which purchase invoice (if Payment Out)
+  allocated_amount        DECIMAL(15,2) NOT NULL,
+  created_at              TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (journal_entry_id) REFERENCES journal_entries(id),
+  FOREIGN KEY (sale_id)          REFERENCES sales(id),
+  FOREIGN KEY (purchase_id)      REFERENCES purchases(id)
+);
+CONSTRAINT: SUM(allocated_amount) for one journal_entry_id must equal the payment total.
+INDEX on: journal_entry_id, sale_id, purchase_id
+Use Case
+Query Against payment_allocations
+Sales invoice payment_status badge
+SELECT SUM(allocated_amount) WHERE sale_id = X → compare to invoice total
+Aged receivables per invoice
+SELECT SUM(allocated_amount) WHERE sale_id = X → outstanding = invoice_total - paid
+Supplier invoice payment_status
+SELECT SUM(allocated_amount) WHERE purchase_id = X
+Party statement per invoice
+JOIN payment_allocations to sales/purchases for running balance per invoice
+Unapplied payment credit
+Payment total - SUM(allocations for this journal_entry_id) = unapplied credit
+📐 payment_allocations rules
+Every B4 Payment In must create at least one payment_allocations row (or the payment is 'on account')
+Every B5 Payment Out must create at least one payment_allocations row
+Partial payments: one row per invoice, allocated_amount = how much of this payment goes to that invoice
+Unallocated credit (payment &gt; invoices): one row with sale_id = NULL, amount = excess — applies later
+On allocating: SUM(all rows for this payment) must equal the payment journal entry total
+4.1  The party_snapshots Table  ★ NEW IN v2.0 — Fix 3
+Performance architecture for party balances. The ledger is the single source of truth. Snapshots are a performance cache — not the source. They are guaranteed to be up-to-date because they are rebuilt every time a new journal entry touches a party.
+🆕 party_snapshots — schema definition
+CREATE TABLE party_snapshots (
+  id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  party_id        BIGINT UNSIGNED NOT NULL,
+  account_code    CHAR(4) NOT NULL,  -- '1200' for customers, '2000' for suppliers
+  cached_balance  DECIMAL(15,2) NOT NULL DEFAULT 0.00,
+  last_journal_id BIGINT UNSIGNED NULL,  -- last journal entry that triggered rebuild
+  last_updated    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY via (party_id, account_code)
+);
+-- Invalidation trigger: runs after every INSERT into journal_entries
+-- where party_id IS NOT NULL
+-- After posting any journal entry with party_id:
+function rebuildPartySnapshot(party_id, account_code) {
+    $fresh = DB::table('journal_items')
+        -&gt;join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+        -&gt;join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+        -&gt;where('journal_entries.party_id', party_id)
+        -&gt;where('accounts.code', account_code)
+        -&gt;where('journal_entries.is_reversed', false)
+        -&gt;selectRaw('SUM(debit) - SUM(credit) as balance')
+        -&gt;value('balance') ?? 0.00;
+    DB::table('party_snapshots')-&gt;updateOrInsert(
+        ['party_id' =&gt; party_id, 'account_code' =&gt; account_code],
+        ['cached_balance' =&gt; $fresh, 'last_journal_id' =&gt; $new_entry_id,
+         'last_updated' =&gt; now()]
+    );
+}
+-- Reading party balance (fast path):
+function getPartyBalance(party_id, account_code) {
+    $snap = DB::table('party_snapshots')
+        -&gt;where('party_id', party_id)-&gt;where('account_code', account_code)-&gt;first();
+    if ($snap) return $snap-&gt;cached_balance;
+    // Fallback: live ledger query (first visit or cache miss)
+    return rebuildPartySnapshot(party_id, account_code);
+}
+📐 party_snapshots rules
+Snapshot is ALWAYS rebuilt immediately after any journal entry with that party_id is posted
+Reading the balance: read from snapshot. If snapshot missing: fall back to live ledger query
+The live ledger query is ALWAYS available as the fallback — snapshots never replace the truth
+If a snapshot appears stale (last_journal_id doesn't match latest entry): rebuild it
+On database restore / migration: truncate party_snapshots and rebuild all from ledger
+4.2  Money Balances (C1–C4, C16)
+C1
+Cash in Hand
+FORMULA
+SUM(ji.debit) - SUM(ji.credit)  WHERE accounts.code = '1000' AND je.is_reversed = 0
+SOURCE
+journal_items → journal_entries → accounts
+FEEDS
+Dashboard cash widget, D7 Cash Book, D4 Cash Flow, D2 Balance Sheet
+RULE
+Affected by B1, B2, B3, B4, B5, B6, B7, B8, B9, B13, B14, B15, B20, B21, B22, B24
+NEVER calculate from: payments table, custom formula, bank_accounts.current_balance
+C2
+Bank Balance
+FORMULA
+SUM(ji.debit) - SUM(ji.credit)  WHERE accounts.code IN ('1010','1011') AND je.is_reversed = 0
+SOURCE
+journal_items — per bank account code
+FEEDS
+Dashboard bank widget, D8 Bank Book, D4 Cash Flow, D2 Balance Sheet
+RULE
+NEVER update bank_accounts.current_balance directly from controllers
+C3
+Accounts Receivable (Total)
+FORMULA
+SUM(ji.debit) - SUM(ji.credit)  WHERE accounts.code = '1200' AND je.is_reversed = 0
+SOURCE
+journal_items — account 1200
+FEEDS
+Dashboard outstanding widget, D10 Aged Receivables, D2 Balance Sheet, D9 Party Statement
+RULE
+NEVER read from parties.current_balance or sales.payment_status
+C4
+Accounts Payable (Total)
+FORMULA
+SUM(ji.credit) - SUM(ji.debit)  WHERE accounts.code = '2000' AND je.is_reversed = 0
+SOURCE
+journal_items — account 2000
+FEEDS
+Dashboard outstanding widget, D11 Aged Payables, D2 Balance Sheet, D9 Party Statement
+RULE
+NEVER read from parties.current_balance directly
+C16
+Party Balance (per customer or supplier)  ★ FIX 3
+FORMULA
+READ: party_snapshots.cached_balance WHERE party_id = X AND account_code = '1200' or '2000'
+FALLBACK: SUM(ji.debit/credit) from journal_items filtered by party_id
+SOURCE
+party_snapshots table (cache) — rebuilt from journal_items on every new entry for this party
+FEEDS
+D9 Party Statement, D37 All Parties, D10 Aged Receivables, D11 Aged Payables, customer/supplier detail pages
+RULE
+★ v1.0 raw ledger query on every page load = performance catastrophe at scale
+Snapshot is rebuilt immediately after every journal entry with this party_id
+Live ledger query always available as fallback — snapshot never replaces the source of truth
+party_snapshots must be truncated and rebuilt from ledger on any database restore
+4.3  Sales &amp; Profit Balances (C5–C12)
+C5
+Gross Sales
+FORMULA
+SUM(sale_items.qty × sale_items.unit_price)  WHERE sales.status = 'posted'
+SOURCE
+sale_items table
+FEEDS
+Starting point for waterfall calculation — never used as revenue in P&amp;L
+C7
+Net Sales (True Revenue)
+FORMULA
+Gross Sales (C5) - Total Discounts (C6) — Tax EXCLUDED
+Verification: must equal SUM(journal_items.credit) WHERE accounts.code = '4000'
+SOURCE
+sale_items + sales tables. Verified against account 4000 in journal_items.
+FEEDS
+P&amp;L top line, Dashboard revenue, Gross Profit (C9)
+RULE
+Tax is NEVER part of revenue. Always use net_sales column, not sales.total
+Cross-check: C7 from sales table = account 4000 ledger balance. If not equal = posting error.
+C8
+COGS — Cost of Goods Sold
+FORMULA
+SUM(sale_item_batches.total_cogs)  (FIFO batch cost × qty sold per batch deduction)
+Verification: must equal SUM(journal_items.debit) WHERE accounts.code = '5000'
+SOURCE
+sale_item_batches table — populated by FifoService. Verified against account 5000.
+FEEDS
+P&amp;L, Gross Profit (C9), D14 Item-wise Profit, D15 Bill-wise Profit
+RULE
+NEVER use products.cost_price for COGS
+Cross-check: C8 from sale_item_batches = account 5000 ledger balance. If not equal = FifoService bug.
+C9
+Gross Profit
+FORMULA
+Net Sales (C7) - COGS (C8)
+SOURCE
+Calculated — never stored
+FEEDS
+P&amp;L, Dashboard gross profit, all profit reports
+RULE
+NEVER store — always calculate dynamically
+C12
+Net Profit
+FORMULA
+SUM(credit on income accounts 4000–4999) - SUM(debit on COGS+expense accounts 5000–6999)
+All from journal_items WHERE je.is_reversed = 0
+SOURCE
+journal_items — all P&amp;L accounts
+FEEDS
+P&amp;L bottom line, Dashboard net profit, Balance Sheet Retained Earnings movement
+RULE
+NEVER store — always calculate dynamically from ledger
+Net Profit increases account 3100 Retained Earnings at year-end closing entry
+4.4  Inventory Balances (C13, C20–C22)
+C13
+Inventory Value
+FORMULA
+SUM(inventory_batches.remaining_qty × inventory_batches.unit_cost)  WHERE remaining_qty &gt; 0
+SOURCE
+inventory_batches table — all rows with remaining_qty &gt; 0
+FEEDS
+Balance Sheet Asset line, Dashboard inventory widget, D19 Stock Valuation
+RULE
+NEVER: products.current_stock × products.cost_price
+Verify periodically: C13 should equal account 1100 balance in journal_items
+C20
+Stock Quantity
+FORMULA
+Opening + Purchases_in + Production_out + Returns_in + Adj_positive
+- Sales_out - PurchaseReturns_out - Adj_negative - Transfers_out + Transfers_in
+SOURCE
+stock_movements table — authoritative source. products.current_stock is a cache of this.
+FEEDS
+Dashboard stock widget, Low Stock Alert (C21), Available Stock (C22), inventory reports
+RULE
+Reconcile periodically: SUM(stock_movements) should equal products.current_stock
+4.5  Fixed Asset Balance  ★ NEW IN v2.0
+C27 (NEW)
+Net Book Value of Fixed Assets
+FORMULA
+Account 1500 balance (at cost) MINUS Account 1510 balance (accumulated depreciation)
+SOURCE
+journal_items — accounts 1500 and 1510
+FEEDS
+D2 Balance Sheet (Asset side), Fixed Asset Schedule report
+RULE
+1500 only increases when new assets are purchased (B23)
+1510 only increases via depreciation entries (B23) — never directly
+Net Book Value decreases each period as depreciation is posted
+  SECTION 5
+  FINANCIAL REPORTS
+  D1–D42: Every report, its source, and correctness check
+Every report reads from the authoritative source defined here. No report has its own independent calculation. Reports are views over correctly-recorded ledger data.
+Core Financial Statements
+Report
+Source
+Correctness Check
+D1. P&amp;L Statement
+journal_items accounts 4000–6999
+Net Profit = change in Retained Earnings (3100). If not: closing entries missing.
+D2. Balance Sheet
+journal_items accounts 1000–3999 WHERE date ≤ as-of-date
+Assets = Liabilities + Equity. Fixed Assets = 1500 MINUS 1510.
+D3. Trial Balance
+journal_items all accounts
+SUM(all debits) = SUM(all credits) = net 0.00. Run after every batch of fixes.
+D4. Cash Flow
+journal_items accounts 1000, 1010, 1011
+Net Cash Flow + Opening Balance = Closing Balance = C1 + C2.
+D5. Account Ledger
+journal_items — one account_id
+Running balance at end must equal Trial Balance for that account.
+D6. Day Book
+journal_entries + journal_items — one date
+Total DR = Total CR for the day.
+D9. Party Statement
+journal_entries WHERE party_id = X + payment_allocations
+Running balance per invoice. Reads snapshot balance, payment_allocations for invoice detail.
+D10. Aged Receivables
+payment_allocations per sale_id → outstanding = invoice_total - SUM(allocated)
+Invoice-level aging. Without payment_allocations this report is broken.
+D11. Aged Payables
+payment_allocations per purchase_id → outstanding = purchase_total - SUM(allocated)
+Invoice-level aging. Requires payment_allocations.
+D40. Loan Statement
+journal_items account 2500
+Opening + drawdowns - repayments = outstanding. Interest (6500) shown separately.
+  SECTION 6
+  INVENTORY SYSTEMS
+  E1–E5: FIFO rules v2.0 — unified direction for all stock decreases
+E3  —  FIFO Direction Rule  ★ FIX 5 APPLIED
+v1.0 had a contradiction: sales used oldest-first (ASC) while stock adjustments used newest-first (DESC / reverse FIFO). This is now corrected. ALL stock decreases — regardless of the reason — use oldest-first FIFO.
+🚫 v1.0 was wrong — the contradiction
+B1/B2 Sales: ORDER BY inventory_batches.created_at ASC  (oldest first)
+B10 Stock Decrease: ORDER BY inventory_batches.created_at DESC  (newest first — WRONG)
+Why this is wrong: expired goods, damaged goods, stolen goods ARE the oldest goods.
+Writing off newest stock while keeping oldest stock inflates inventory value (old cheap stock
+stays, expensive new stock leaves). This contradicts FIFO accounting entirely.
+✅ v2.0 — one rule for all stock decreases
+ALL stock out events use: ORDER BY inventory_batches.created_at ASC  (oldest first)
+This applies to: B1 Sales, B2 POS Sales, B8 Sale Returns (deductions), B9 Purchase Returns,
+  B10 Stock Adjustments (decreases), B16 Raw material consumption, B22 Charity donations
+The only exception: B8/B9 RESTORES go back to the SPECIFIC original batch (not FIFO direction)
+-- FifoService.deductStock() — used by ALL decrease operations
+function deductStock(product_id, qty_needed, warehouse_id = null) {
+    $batches = DB::table('inventory_batches')
+        -&gt;where('product_id', product_id)
+        -&gt;where('remaining_qty', '&gt;', 0)
+        -&gt;when($warehouse_id, fn($q) =&gt; $q-&gt;where('warehouse_id', $warehouse_id))
+        -&gt;whereNull('deleted_at')
+        -&gt;orderBy('created_at', 'ASC')   // ← OLDEST FIRST, ALWAYS
+        -&gt;get();
+    $remaining = $qty_needed;
+    $deductions = [];
+    foreach ($batches as $batch) {
+        if ($remaining &lt;= 0) break;
+        $take = min($remaining, $batch-&gt;remaining_qty);
+        $deductions[] = ['batch_id' =&gt; $batch-&gt;id, 'qty' =&gt; $take, 'unit_cost' =&gt; $batch-&gt;unit_cost];
+        DB::table('inventory_batches')-&gt;where('id', $batch-&gt;id)
+            -&gt;decrement('remaining_qty', $take);
+        $remaining -= $take;
+    }
+    if ($remaining &gt; 0) throw new InsufficientStockException();
+    return $deductions;  // used to build sale_item_batches and COGS journal entry
+}
+  SECTION 7
+  SYSTEM CONCEPTS
+  F1–F7: Foundational rules governing all calculations
+Concept
+Definition
+Critical Rule
+F1. Chart of Accounts
+Master list of all GL accounts. v2.0 adds 1500, 1510, 6410, 6600.
+No transaction posts to an account not in the COA. Accounts are never deleted.
+F2. Journal Entry
+Atomic unit of accounting. Every financial event = one balanced journal entry.
+System rejects if SUM(debit) ≠ SUM(credit). No exceptions.
+F3. Double-Entry Rule
+Every event affects ≥ 2 accounts. Debits = Credits always.
+Trial Balance nets to zero if this rule is never violated.
+F4. Fiscal Year
+12-month accounting period. Year-end: close income/expense → Retained Earnings (3100).
+Year-end: DR 4000–4999, CR 6000–6999, net difference → DR/CR 3100.
+F5. Opening Balance
+One-time setup via B19. All assets, liabilities, equity incl. Fixed Assets and Loans.
+Account 7000 must net to exactly zero after all opening entries.
+F6. Retained Earnings
+Accumulated profit not withdrawn. Increases each year by Net Profit. Decreases by B14 drawings.
+Formula: Prev RE + Net Profit - Owner Drawings = Closing RE.
+F7. Payment Status Badge
+UI display label only. Driven by payment_allocations — never by raw sales.payment_status.
+payment_status badge = invoice_total - SUM(payment_allocations for this sale_id).
+  SECTION 8
+  THE MASTER LINK MAP
+  Every balance — what feeds in and what reads from it
+Cash in Hand (C1)  ←→  Account 1000
+Direction
+Transaction
+Effect
+IN  ↑
+B1/B2 Cash Sale
++ invoice amount (via AR clearing)
+IN  ↑
+B4 Payment In (cash)
++ payment amount
+IN  ↑
+B9 Purchase Return (cash refund)
++ refund amount
+IN  ↑
+B13 Fund In (cash)
++ amount
+IN  ↑
+B15 Bank→Cash transfer
++ amount
+IN  ↑
+B20 Advance from Customer (cash)
++ advance amount
+IN  ↑
+B21 Supplier refund of advance
++ excess refund
+IN  ↑
+B24 Loan received (cash)
++ loan amount
+OUT ↓
+B3 Cash Purchase
+- total cost
+OUT ↓
+B5 Payment Out (cash)
+- payment amount
+OUT ↓
+B6 Cash Expense
+- expense amount
+OUT ↓
+B7 Salary (cash)
+- net salary paid
+OUT ↓
+B8 Cash Refund on Sale Return
+- refund amount
+OUT ↓
+B14 Fund Out (cash)
+- withdrawal amount
+OUT ↓
+B15 Cash→Bank transfer
+- amount
+OUT ↓
+B16 Manufacturing labor (external)
+- labor cost (Path 2A only)
+OUT ↓
+B22 Cash Charity
+- donation amount
+OUT ↓
+B23 Fixed Asset purchase (cash)
+- purchase price
+OUT ↓
+B24 Loan repayment (cash)
+- instalment amount
+Inventory Asset (C13)  ←→  Account 1100
+Direction
+Transaction
+Effect
+IN  ↑
+B3 Purchase
++ qty × unit_cost (new FIFO batch)
+IN  ↑
+B8 Sale Return
++ returned qty × original FIFO cost
+IN  ↑
+B10 Stock Adjustment (increase)
++ qty × specified cost
+IN  ↑
+B16 Production Run (finished goods)
++ total production cost (materials + labor)
+OUT ↓
+B1/B2 Sale (COGS)
+- FIFO batch cost — oldest first
+OUT ↓
+B9 Purchase Return
+- cost of returned items
+OUT ↓
+B10 Stock Adjustment (decrease)
+- FIFO cost — oldest first  ★ FIXED v2.0
+OUT ↓
+B16 Raw material consumption
+- FIFO cost of materials used — oldest first
+OUT ↓
+B22 Charity (goods)
+- FIFO cost — oldest first
+OUT ↓
+B23 Depreciation
+No effect on 1100 — only affects 1500/1510
+B25  —  Bounced Cheque Reversal (B-REV)  ★ NEW v3.0
+B25
+Bounced Cheque Reversal (B-REV)
+TRIGGER
+A cheque previously recorded as B4 Payment In is returned unpaid by the bank.
+JOURNAL
+DR  1200  Accounts Receivable  = original_cheque_amount  |  CR  1000  Cash in Hand  = original_cheque_amount  (reverses the cash that never arrived)  |  UPDATE payment_allocations: set status = REVERSED for the original allocation  |  Invoice payment_status badge reverts to Unpaid or Partial automatically
+THE RULE
+NEVER delete the original B4 entry — post a B25 reversal referencing the original journal_entry_id  /  B25 must carry reference_type = B-REV, reference_id = original_payment_id  /  If bank charges a return fee: post a separate B13 Operating Expense for the fee amount  /  After B25 the invoice is unpaid again — customer must re-pay via a new B4
+NOTE
+Optionally record a Bounced Cheque Liability (memo note on the party record) for follow-up.
+B26  —  Bad Debt Write-Off  ★ NEW v3.0
+B26
+Bad Debt Write-Off
+TRIGGER
+A customer is confirmed to never pay. The receivable must be removed from assets.
+JOURNAL
+DR  6700  Bad Debt Expense  = write_off_amount  |  CR  1200  Accounts Receivable  = write_off_amount  |  UPDATE payment_allocations: create a write-off allocation record so invoice shows Written Off
+THE RULE
+Requires explicit manager authorisation — system must prompt for approval before posting  /  The original sale and journal entries are NEVER deleted — history is preserved  /  If customer later pays (recovery): post DR 1200 AR / CR 6700 Bad Debt Expense (partial reversal), then post normal B4  /  Account 6700 is required in COA — must be added if not present
+NOTE
+Bad Debt Write-Off appears as an expense in P&amp;L. AR balance reduces. No cash movement.
+B27  —  Final Employee Settlement  ★ NEW v3.0
+B27
+Final Employee Settlement
+TRIGGER
+Employee is terminated. All outstanding obligations paid in one composite transaction.
+JOURNAL
+DR  6100  Salary Expense  = unpaid_salary_for_partial_month  |  DR  6800  Gratuity &amp; Severance Expense  = gratuity_amount + notice_pay + leave_encashment  |  CR  2400  Salary Payable  = total_settlement_amount  (accrual step)  |  THEN: DR  2400  Salary Payable  = total_settlement_amount  /  CR  1000/1010  Cash or Bank  = total_settlement_amount  (payment step)
+THE RULE
+Settlement = unpaid salary + notice pay + gratuity + leave encashment — all in ONE composite transaction  /  Accrual and payment can be posted simultaneously if paying immediately  /  Gratuity amount is determined by HR policy — system stores the final agreed figure, does not auto-calculate  /  Account 6800 must exist in COA — covers gratuity, notice pay, and leave encashment as sub-components
+NOTE
+After B27 the employee record is archived. Account 2400 balance for that employee returns to zero.
+B28  —  Cash Shortage Recording (Theft or Unexplained Variance)  ★ NEW v3.0
+B28
+Cash Shortage Recording (Theft or Unexplained Variance)
+TRIGGER
+Daily till close reveals physical cash is less than the system balance. Difference is written off.
+JOURNAL
+DR  6900  Cash Shortage Loss  = shortage_amount  |  CR  1000  Cash in Hand  = shortage_amount  (reduces cash balance to match physical count)
+THE RULE
+NEVER record as a stock adjustment (B10) — this is a financial loss, not an inventory event  /  Must be posted by a manager or owner — cashier cannot self-approve a shortage write-off  /  A mandatory narrative note is required: describe the circumstances (theft suspected, counting error, etc.)  /  If recovered later (theft proven, employee pays back): DR 1000 Cash / CR 6900 Cash Shortage Loss
+NOTE
+Account 6900 Cash Shortage Loss appears in P&amp;L under Operating Expenses. Separate from stock losses (6300).
+B29  —  Insurance Claim — Disaster Loss and Recovery (Two-Step)  ★ NEW v3.0
+B29
+Insurance Claim — Disaster Loss and Recovery (Two-Step)
+TRIGGER
+Stock or assets destroyed. Insurance claim filed. Payout received later.
+JOURNAL
+STEP 1 — Write off destroyed stock (post immediately when loss occurs):  |  DR  6950  Disaster Loss  = fifo_cost_of_destroyed_stock  /  CR  1100  Inventory Asset  = fifo_cost_of_destroyed_stock  |  Link this entry to a disaster_claim_id so Step 2 can reference it.  |  STEP 2 — Record insurance payout (post when cash is received from insurer):  |  DR  1000/1010  Cash or Bank  = insurance_payout_amount  /  CR  6960  Insurance Recovery  = insurance_payout_amount  |  If payout &lt; loss: the difference remains in 6950 as a net expense on the P&amp;L  |  If payout &gt; loss: surplus in 6960 is income — report to owner for review
+THE RULE
+Step 1 and Step 2 are SEPARATE journal entries — they happen on different dates  /  Both entries must reference the same disaster_claim_id for audit linkage  /  FIFO cost of destroyed stock is calculated by FifoService using oldest-batch-first rule  /  Do NOT net the two steps — gross loss and gross recovery both appear in P&amp;L for transparency
+NOTE
+Net P&amp;L impact = 6950 Disaster Loss minus 6960 Insurance Recovery. Both lines visible on P&amp;L separately.
+B30  —  Product Set Disassembly (Bought as Set, Sold Separately)  ★ NEW v3.0
+B30
+Product Set Disassembly (Bought as Set, Sold Separately)
+TRIGGER
+A bundled product (e.g. printer set) is purchased as one item but will be sold as individual components.
+JOURNAL
+On disassembly run: CR  1100  Inventory Asset  = total_set_fifo_cost  (remove the bundle)  |  DR  1100  Inventory Asset  = allocated_cost_per_component  (create individual component batches)  |  Each component batch unit_cost = total_set_cost x component_cost_allocation_percentage  |  Cost allocation percentages are defined in the Disassembly BOM — must sum to 100%
+THE RULE
+A Disassembly BOM must be created before the first disassembly run — defines components and cost % splits  /  Cost allocation method: proportional by estimated NRV (e.g. printer 80%, ink 15%, cable 5%)  /  The disassembly transaction is the INVERSE of a B16 production run — it splits, not combines  /  Each component receives its own inventory_batch with unit_cost = set_cost x allocation_%  /  Partial disassembly is allowed — e.g. open 3 of 10 sets; remaining 7 sets stay as bundles
+NOTE
+COGS on subsequent component sales uses the allocated batch cost, not the original set purchase price.
+B31  —  Unit of Measure Conversion (Buy in KG, Sell in Grams)  ★ NEW v3.0
+B31
+Unit of Measure Conversion (Buy in KG, Sell in Grams)
+TRIGGER
+A product is purchased in one unit (KG) but sold in a different unit (Grams). System handles the conversion.
+JOURNAL
+Purchase side (normal B2): stock arrives in base UOM (e.g. KG). Batch unit_cost stored per KG.  |  Sale side: user enters quantity in sale UOM (e.g. 500g). System converts: deducted_qty = sale_qty / conversion_factor  |  Example: sell 500g of rice. conversion_factor = 1000 (1 KG = 1000g). Deducted from batch = 0.5 KG.  |  COGS = deducted_qty_in_base_uom x batch_unit_cost_per_base_uom
+THE RULE
+Each product has ONE base UOM (stored in products.base_uom) — the unit used in inventory_batches  /  Each product can have multiple sale UOMs with a conversion_factor stored in product_uom_conversions table  /  product_uom_conversions: {product_id, sale_uom, conversion_factor} — e.g. {rice_id, grams, 1000}  /  If no conversion exists for the sale UOM selected, the system blocks the sale and prompts setup  /  Conversion is always: base_qty = sale_qty / conversion_factor — never the reverse on deduction
+NOTE
+The invoice shows the sale UOM quantity (e.g. 500g). Inventory batch records show base UOM deductions (0.5 KG).
+B32  —  Work-In-Progress Transfer (Production Spanning Multiple Days)  ★ NEW v3.0
+B32
+Work-In-Progress Transfer (Production Spanning Multiple Days)
+TRIGGER
+A production run is started but not completed within the same accounting period.
+JOURNAL
+When production starts (materials consumed, labor added but not finished):  |  DR  1150  Work-In-Progress  = materials_cost + labor_cost_to_date  /  CR  1100  Inventory Asset  = materials_cost  /  CR  6410  Applied Labor  = labor_cost  |  When production completes (WIP transfers to finished goods):  |  DR  1100  Inventory Asset  = total_wip_accumulated_cost  /  CR  1150  Work-In-Progress  = total_wip_accumulated_cost  |  If partial completion: only completed units transfer out; remaining WIP stays in 1150
+THE RULE
+Account 1150 WIP is an Asset — it appears on the Balance Sheet between Raw Materials and Finished Goods  /  WIP balance must be zero at end of every fully-completed production run — monitor for stale WIP  /  Each production run has a wip_balance tracked cumulatively until the run closes  /  Partial reversal of unsold qty: reverse only the finished_qty - sold_qty portion back through 1150 to 1100 raw materials  /  Sold units from a partially-reversed run are LOCKED — cannot be reversed
+NOTE
+A non-zero 1150 balance on the Balance Sheet means production runs are in progress. Review monthly.
+  SECTION 9
+  THE 18 LAWS
+  v2.0 — expanded from 15. Every violation causes a specific failure.
+These are not guidelines. A code review must reject any pull request that violates one of these laws. Every law traces directly to a failure mode.
+🚫 LAW 1 — Every financial transaction posts a journal entry
+No exceptions. Every B1–B24 transaction calls AccountingService::createEntry()
+Failure mode: transaction invisible to P&amp;L, Trial Balance, Cash Flow, all ledger reports
+🚫 LAW 2 — Journal entries are never deleted
+To correct: post a reversal entry. Both entries stay in the database permanently.
+Failure mode: broken audit trail, Trial Balance drift, historical reports wrong
+🚫 LAW 3 — Every journal entry must be perfectly balanced
+SUM(debit) = SUM(credit) to the last paisa. Engine validates before saving — throws if not.
+Failure mode: single unbalanced entry permanently corrupts the Trial Balance
+🚫 LAW 4 — All writes happen inside DB::transaction()
+Business record + journal entries together. If any part fails, everything rolls back.
+Failure mode: sale with no journal entry, or journal entry with no sale — broken data state
+🚫 LAW 5 — Cash balance is always account 1000 from journal_items
+Never from payments table. Never from custom formula. Never from bank_accounts.current_balance.
+Failure mode: Cash shows different numbers on different screens
+🚫 LAW 6 — bank_accounts.current_balance is a display cache only
+Never used for financial calculations. Never updated by controller arithmetic.
+Failure mode: bank balance desyncs from ledger silently
+🚫 LAW 7 — parties.current_balance is a display cache only
+Party balances come from party_snapshots → journal_items. Never manual arithmetic.
+Failure mode: party balance wrong, aged reports wrong
+🚫 LAW 8 — Tax is never included in Revenue
+Account 4000 Revenue = net_sales (ex-tax). Tax → 2200 Sales Tax Payable.
+Failure mode: P&amp;L overstates revenue, tax filing wrong
+🚫 LAW 9 — COGS always uses FIFO batch cost from sale_item_batches
+Never products.cost_price. Never a simple average. Always locked purchase batch cost.
+Failure mode: COGS wrong, gross profit wrong, inventory value inflated
+🚫 LAW 10 — Inventory Value always uses inventory_batches
+SUM(remaining_qty × unit_cost) from inventory_batches WHERE remaining_qty &gt; 0.
+Failure mode: Balance Sheet asset value wrong, Net Book Value wrong
+🚫 LAW 11 — payment_status badge comes from payment_allocations only
+invoice_total - SUM(payment_allocations.allocated_amount WHERE sale_id = X) = outstanding.
+Failure mode: badges show wrong status, aged receivables wrong, party statements wrong
+🚫 LAW 12 — Salaries use B7, never B5
+Salary = Expense (6100). Payment Out = reduces Payable (2000). These are different accounts.
+Failure mode: salary invisible in P&amp;L, Accounts Payable inflated
+🚫 LAW 13 — Customer advances are liabilities (2100), never revenue
+Revenue recognised only on delivery. Advance received = DR Cash / CR 2100.
+Failure mode: P&amp;L overstates revenue before delivery, Balance Sheet wrong
+🚫 LAW 14 — ALL stock decreases use oldest-first FIFO  ★ FIX 5
+ORDER BY inventory_batches.created_at ASC for: sales, adjustments, write-offs, donations.
+Failure mode: inventory value distorted, COGS inconsistent, Balance Sheet asset wrong
+🚫 LAW 15 — Fixed assets go to account 1500, not 6000 expenses
+Purchasing equipment → DR 1500 Fixed Assets. Depreciation → DR 6600 / CR 1510.
+Failure mode: P&amp;L overstates expenses in purchase period, Balance Sheet missing assets
+🚫 LAW 16 — Manufacturing salaried labor uses Path 2B (Salary Payable, not Cash)  ★ FIX 1
+Salaried employees: DR 6410 Applied Labor / CR 2400 Salary Payable. Never CR Cash twice.
+Failure mode: double-counted cash outflow, inflated manufacturing costs
+🚫 LAW 17 — Account 7000 Opening Balance Equity must net to zero after B19
+SUM(all DR to 7000) = SUM(all CR from 7000) after all opening entries are posted.
+Failure mode: Balance Sheet doesn't balance on day one, all subsequent reports wrong
+🚫 LAW 18 — party_snapshots are rebuilt immediately after every party-linked journal entry
+Any INSERT to journal_entries with a party_id triggers rebuildPartySnapshot().
+Failure mode: party balances stale, performance degrades to raw ledger scan at scale
+  BUILD READY
+  v2.0 closes every known gap. This is the specification to build from.
+Every transaction type has complete journal entries. Every balance has a single authoritative source. Every edge case — manufacturing labor, fixed assets, loan repayments, advance payments, opening balances, payment allocation, and FIFO direction — is defined unambiguously. No developer should need to make an accounting decision while writing code. The decision is already made here.
+✅ The 6 new architectural components added in v2.0
+1.  payment_allocations table — invoice-level payment tracking, drives all badges and aging reports
+2.  party_snapshots table + rebuildPartySnapshot() — performance cache with mandatory invalidation
+3.  Account 1500 Fixed Assets + 1510 Accumulated Depreciation — complete Balance Sheet
+4.  Account 6410 Applied Manufacturing Labor — eliminates salaried labor double-count
+5.  Account 6600 Depreciation Expense — periodic fixed asset write-down
+6.  B23 Depreciation + B24 Loan Drawdown — two new complete transaction types
+✅ Verification: when is the system correct?
+Trial Balance: SUM(all debits) = SUM(all credits) = net 0.00
+Balance Sheet: Assets = Liabilities + Equity (including Fixed Assets at Net Book Value)
+Account 1100 (Inventory Asset) = SUM(inventory_batches.remaining_qty × unit_cost)
+Account 4000 (Revenue) = Net Sales from sales table
+Account 5000 (COGS) = SUM(sale_item_batches.total_cogs)
+Account 7000 (Opening Balance Equity) nets to zero after migration
+party_snapshots.cached_balance matches live ledger query for every party
+SUM(payment_allocations) for each invoice ≤ invoice total — no over-allocation

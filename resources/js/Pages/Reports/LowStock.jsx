@@ -4,6 +4,7 @@ import { AlertTriangle, Package, ArrowDown, DollarSign, ShoppingCart, TrendingUp
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function LowStock({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
     const {
@@ -41,7 +42,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
         },
         {
             label: 'Est. Reorder Cost',
-            value: new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(estimatedReorderCost),
+            value: formatCurrency(estimatedReorderCost),
             subValue: 'Based on Cost Price',
             icon: <DollarSign size={20} className="text-emerald-500" />,
             type: 'up'
@@ -159,7 +160,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                 const cost = unitCost * shortage;
                 return (
                     <div className="font-mono text-sm text-slate-600 dark:text-slate-400">
-                        {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(cost)}
+                        {formatCurrency(cost)}
                     </div>
                 );
             }

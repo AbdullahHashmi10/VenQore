@@ -18,6 +18,7 @@ import {
     ChevronDown,
     MoreVertical
 } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function BestPreSales({ presales = [], stats = {} }) {
     const {
@@ -94,7 +95,6 @@ export default function BestPreSales({ presales = [], stats = {} }) {
     };
 
     // Formatters
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val || 0);
     const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' });
 
     // Drag & Drop

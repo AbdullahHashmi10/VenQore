@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import FormModal from '@/Components/FormModal';
@@ -1256,7 +1256,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         }}
                                                         className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${quickEntry.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'} `}
                                                     >
-                                                        {quickEntry.discountType === 'percent' ? '%' : 'Rs'}
+                                                        {quickEntry.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1408,7 +1408,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
                                                         className={`w-8 h-8 rounded-lg text-xs font-black transition-all ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-600'} `}
                                                     >
-                                                        {item.discountType === 'percent' ? '%' : 'Rs'}
+                                                        {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
                                                     </button>
                                                 </div>
                                             </td>
@@ -1423,7 +1423,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                             : 'bg-emerald-600 text-white border-emerald-500 shadow shadow-emerald-500/30'
                                                             }`}
                                                     >
-                                                        {getItemTotalMode(item.id) === 'price' ? '₨' : '#'}
+                                                        {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol()) : '#'}
                                                     </button>
                                                     <WheelInput
                                                         type="number"
@@ -1493,7 +1493,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                         <div className="flex justify-between items-center">
                                             <span className="text-slate-500 font-medium">Balance:</span>
                                             <span className={`font-black ${currentPurchase.supplier.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'} `}>
-                                                {currentPurchase.supplier.current_balance >= 0 ? '$ ' : '-Rs '}{Math.abs(currentPurchase.supplier.current_balance || 0).toLocaleString()}
+                                                {currentPurchase.supplier.current_balance >= 0 ? (getCurrencySymbol()) + ' ' : '-' + (getCurrencySymbol()) + ' '}{Math.abs(currentPurchase.supplier.current_balance || 0).toLocaleString()}
                                             </span>
                                         </div>
                                         <div className="flex justify-between items-start gap-2">
@@ -1589,11 +1589,11 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className="space-y-2 pt-3 border-t border-slate-800/50">
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs text-slate-400 font-bold">Subtotal</span>
-                                    <span className="text-white font-bold text-base">{formatCurrency(subtotal)}</span>
+                                    <span className="text-white font-bold text-base">{formatCurrency(subtotal, store)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-xs text-slate-400 font-bold">Item Discounts</span>
-                                    <span className="text-red-400 font-bold text-sm">- {formatCurrency(itemDiscounts)}</span>
+                                    <span className="text-red-400 font-bold text-sm">- {formatCurrency(itemDiscounts, store)}</span>
                                 </div>
                             </div>
 
@@ -1601,7 +1601,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
                                 <span className="text-xs text-slate-400 font-bold">Invoice Discount</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-slate-500 text-xs">Rs</span>
+                                    <span className="text-slate-500 text-xs">{getCurrencySymbol()}</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.discount ?? 0}
@@ -1632,7 +1632,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <div className="flex items-center justify-between p-2 hover:bg-slate-800/20 rounded-lg transition-colors group">
                                     <span className="text-xs text-slate-500 font-bold group-hover:text-slate-400">Delivery Charges</span>
                                     <div className="flex items-center gap-2">
-                                        <span className="text-slate-600 text-[10px]">Rs</span>
+                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
                                         <input
                                             type="number"
                                             value={currentPurchase.delivery_charge ?? 0}
@@ -1661,7 +1661,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 <span className="text-[10px] text-slate-700">✎</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-600 text-[10px]">Rs</span>
+                                                <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={currentPurchase.extra_charge_value ?? 0}
@@ -1691,7 +1691,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         <span className="text-[10px] text-slate-700">✎</span>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-slate-600 text-[10px]">Rs</span>
+                                                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
                                                         <input
                                                             type="number"
                                                             value={field.value ?? 0}
@@ -1737,7 +1737,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
                                 <span className="text-xs text-emerald-400 font-bold">Amount Paid</span>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-emerald-600 text-xs">Rs</span>
+                                    <span className="text-emerald-600 text-xs">{getCurrencySymbol()}</span>
                                     <input
                                         type="number"
                                         value={currentPurchase.amountPaid ?? 0}
@@ -1753,7 +1753,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'} `}>
                                 <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'} `}>Balance Due</span>
                                 <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'} `}>
-                                    {formatCurrency(balanceDue)}
+                                    {formatCurrency(balanceDue, store)}
                                 </span>
                             </div>
                         </div>
@@ -1762,7 +1762,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
                             <div className="flex justify-between items-center">
                                 <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
-                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal)}</span>
+                                <span className="text-2xl font-black text-white">{formatCurrency(grandTotal, store)}</span>
                             </div>
                             <div className="space-y-2">
                                 <button
@@ -1822,7 +1822,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <div>
                                     <p className="text-xs text-slate-400 font-bold uppercase">Profit Margin</p>
                                     <p className={`text-2xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'} `}>
-                                        {formatCurrency(profit)}
+                                        {formatCurrency(profit, store)}
                                     </p>
                                 </div>
                             </div>
@@ -1933,7 +1933,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                             {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
                                                         </p>
                                                         <p className="text-sm text-indigo-500 font-black">
-                                                            {item.quantity} @ Rs {item.price.toLocaleString()} = Rs {(item.quantity * item.price).toLocaleString()}
+                                                            {item.quantity} @ {getCurrencySymbol()} {item.price.toLocaleString()} = {getCurrencySymbol()} {(item.quantity * item.price).toLocaleString()}
                                                         </p>
                                                     </div>
                                                 </div>
@@ -2016,8 +2016,8 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                         <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
                                                     </td>
                                                     <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                                    <td className="py-2 text-right text-xs text-slate-500">Rs {cost.toLocaleString()}</td>
-                                                    <td className="py-2 text-right text-xs">Rs {item.price.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
+                                                    <td className="py-2 text-right text-xs">{getCurrencySymbol()} {item.price.toLocaleString()}</td>
                                                     <td className="py-2 text-right">
                                                         <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'} `}>
                                                             {marginPercent}%
@@ -2025,7 +2025,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                     </td>
                                                     <td className="py-2 text-right pr-2">
                                                         <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'} `}>
-                                                            Rs {lineProfit.toLocaleString()}
+                                                            {getCurrencySymbol()} {lineProfit.toLocaleString()}
                                                         </span>
                                                     </td>
                                                 </tr>
@@ -2046,16 +2046,16 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 <div className="grid grid-cols-3 gap-4">
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                                        <p className="text-lg font-bold text-slate-600">Rs {totalCost.toLocaleString()}</p>
+                                        <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
-                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal)}</p>
+                                        <p className="text-lg font-bold text-slate-800 dark:text-white">{formatCurrency(grandTotal, store)}</p>
                                     </div>
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
                                         <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                                         <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'} `}>
-                                            {formatCurrency(profit)}
+                                            {formatCurrency(profit, store)}
                                             {grandTotal > 0 && (
                                                 <span className="text-xs ml-1 opacity-70">({((profit / grandTotal) * 100).toFixed(1)}%)</span>
                                             )}
@@ -2151,7 +2151,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                     <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-2 border border-indigo-100 dark:border-indigo-800/50">
                                         <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase">Default Delivery</p>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-slate-400 text-xs font-bold">Rs</span>
+                                            <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
                                             <input
                                                 type="number"
                                                 value={defaultDelivery}
@@ -2174,7 +2174,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                                 placeholder="Field Name (e.g. Service)"
                                             />
                                             <div className="flex items-center gap-2">
-                                                <span className="text-slate-400 text-xs font-bold">Rs</span>
+                                                <span className="text-slate-400 text-xs font-bold">{getCurrencySymbol()}</span>
                                                 <input
                                                     type="number"
                                                     value={defaultExtraValue}

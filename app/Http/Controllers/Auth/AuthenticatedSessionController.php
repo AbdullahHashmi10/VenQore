@@ -55,10 +55,15 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // ── Case Platform Owner: Go straight to Platform War Room ─────────
+        // ── Case Platform Owner: Block regular login ──────────────────────
+        // Security requirement: Platform owners MUST use the /VenQore-login portal.
         if ($user->isPlatformAdmin()) {
-            session(['platform_last_activity' => time()]);
-            return redirect()->route('platform.dashboard');
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('platform.login')
+                ->withErrors(['email' => 'Platform admins must use the secure HQ portal to log in.']);
         }
 
         // Load all active memberships with their tenant statuses

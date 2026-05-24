@@ -43,6 +43,18 @@ Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(functi
     Route::get('/barcode/{code}',   [PosSearchController::class, 'findByBarcode']);
 });
 
+// ── WooCommerce Sync — Public Endpoints ───────────────────────────────────
+// These are called by WooCommerce/WordPress directly — no auth, no CSRF.
+// Security is handled via HMAC signature verification (webhook) and token (verify).
+use App\Http\Controllers\WooSync\WooWebhookController;
 
+Route::post('/woo/webhook/{uuid}', [WooWebhookController::class, 'receive'])
+    ->name('woo.webhook.receive');
+
+Route::get('/woo/verify/{token}', [WooWebhookController::class, 'verify'])
+    ->name('woo.verify');
+
+Route::post('/woo/handshake', [\App\Http\Controllers\WooSync\WooHandshakeController::class, 'handshake'])
+    ->name('woo.handshake');
 
 

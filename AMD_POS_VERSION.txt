@@ -1,0 +1,3 @@
+AMD_POS_VERSION=3.2.4
+RELEASED=2026-05-23
+TYPE=update_package

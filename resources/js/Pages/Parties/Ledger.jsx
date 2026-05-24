@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
 import {
@@ -24,14 +25,8 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
     const [transactionType, setTransactionType] = useState('all');
 
     // Format currency
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(value || 0).replace('PKR', 'Rs');
-    };
+    const { store } = usePage().props;
+
 
     const getTypeStyle = (type) => {
         const types = {
@@ -78,7 +73,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Opening</p>
                         </div>
-                        <p className="text-lg font-black text-slate-700 dark:text-slate-300">{formatCurrency(stats.opening_balance)}</p>
+                        <p className="text-lg font-black text-slate-700 dark:text-slate-300">{formatCurrency(stats.opening_balance, store)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -87,7 +82,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Credits</p>
                         </div>
-                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.total_credit)}</p>
+                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.total_credit, store)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -96,7 +91,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Debits</p>
                         </div>
-                        <p className="text-lg font-black text-red-600">{formatCurrency(stats.total_debit)}</p>
+                        <p className="text-lg font-black text-red-600">{formatCurrency(stats.total_debit, store)}</p>
                     </div>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -107,7 +102,7 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                         </div>
                         <div className="text-right">
                             <p className={`text-lg font-black ${stats.final_balance > 0 ? 'text-emerald-600' : (stats.final_balance < 0 ? 'text-red-600' : 'text-slate-500')}`}>
-                                {formatCurrency(Math.abs(stats.final_balance || 0))}
+                                {formatCurrency(Math.abs(stats.final_balance || 0), store)}
                             </p>
                             <p className={`text-[10px] font-bold uppercase ${stats.final_balance > 0 ? 'text-emerald-600' : (stats.final_balance < 0 ? 'text-red-600' : 'text-slate-400')}`}>
                                 {stats.final_balance > 0 ? 'To Receive' : (stats.final_balance < 0 ? 'To Pay' : 'Settled')}
@@ -210,17 +205,17 @@ export default function PartyLedger({ party = {}, transactions = [], stats = {} 
                                             </td>
                                             <td className="p-3 text-right">
                                                 {t.debit > 0 ? (
-                                                    <span className="text-xs font-mono font-bold text-red-600 dark:text-red-400">{formatCurrency(t.debit)}</span>
+                                                    <span className="text-xs font-mono font-bold text-red-600 dark:text-red-400">{formatCurrency(t.debit, store)}</span>
                                                 ) : <span className="text-slate-300">-</span>}
                                             </td>
                                             <td className="p-3 text-right">
                                                 {t.credit > 0 ? (
-                                                    <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(t.credit)}</span>
+                                                    <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(t.credit, store)}</span>
                                                 ) : <span className="text-slate-300">-</span>}
                                             </td>
                                             <td className="p-3 text-right">
                                                 <span className={`text-xs font-mono font-black ${t.balance > 0 ? 'text-emerald-600 dark:text-emerald-400' : (t.balance < 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-500')}`}>
-                                                    {formatCurrency(Math.abs(t.balance))}
+                                                    {formatCurrency(Math.abs(t.balance), store)}
                                                 </span>
                                                 {t.balance !== 0 && (
                                                     <span className={`text-[9px] font-bold ml-1 uppercase ${t.balance > 0 ? 'text-emerald-600' : 'text-red-600'}`}>

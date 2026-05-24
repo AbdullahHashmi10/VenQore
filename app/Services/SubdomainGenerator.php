@@ -62,11 +62,11 @@ class SubdomainGenerator
             $slug = $slug . '-' . rand(100, 999);
         }
 
-        // Ensure uniqueness in the database
+        // Ensure uniqueness in the database (including soft-deleted stores)
         $original = $slug;
         $counter  = 1;
 
-        while (Tenant::where('subdomain', $slug)->exists()) {
+        while (Tenant::withTrashed()->where('slug', $slug)->exists()) {
             $slug = $original . '-' . $counter++;
         }
 
@@ -94,7 +94,7 @@ class SubdomainGenerator
             return 'That subdomain is reserved. Please choose a different store name.';
         }
 
-        if (Tenant::where('subdomain', $subdomain)->exists()) {
+        if (Tenant::withTrashed()->where('slug', $subdomain)->exists()) {
             return 'That subdomain is already taken. Please choose another.';
         }
 

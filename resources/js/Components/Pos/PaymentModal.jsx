@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, CreditCard, Banknote, Smartphone, Plus, Trash2, Printer, CheckCircle } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
+import { usePage } from '@inertiajs/react';
 
 const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PKR', bankAccounts = [], customer = null }) => {
     if (!isOpen) return null;
@@ -12,6 +13,7 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
     }]);
     const [notes, setNotes] = useState('');
     const [printReceipt, setPrintReceipt] = useState(true);
+
 
     // Reset state when modal opens
     useEffect(() => {
@@ -81,7 +83,7 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
             totalPaid,
             change: balance > 0 ? balance : 0,
             notes,
-            printReceipt
+            printReceipt,
         });
     };
 
@@ -144,7 +146,9 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                                 </div>
                                 <div className="flex-[1.5]">
                                      <div className="relative">
-                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{currency}</span>
+                                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
+                                             {usePage().props.store?.currency_symbol || 'Rs'}
+                                         </span>
                                          <input
                                              type="number"
                                              value={payment.amount}
@@ -196,6 +200,8 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                             </div>
                         </div>
                     </div>
+
+
 
                     {/* Notes */}
                     <div className="mb-6">

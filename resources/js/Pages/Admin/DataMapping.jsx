@@ -4,6 +4,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { ArrowLeft, CheckCircle2, AlertTriangle, Play, XCircle } from 'lucide-react';
 
 export default function DataMapping({ file_path, type, file_headers, preview_data, expected_fields }) {
+    const { store } = usePage().props;
     const [mapping, setMapping] = useState({});
     const [isProcessing, setIsProcessing] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
@@ -48,7 +49,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
 
         setIsValidating(true);
         try {
-            const response = await fetch(route('admin.data.validate-import'), {
+            const response = await fetch(route('store.admin.data.validate-import', { store_slug: store.slug }), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
 
     const submitImport = () => {
         setIsProcessing(true);
-        router.post(route('admin.data.process-import'), {
+        router.post(route('store.admin.data.process-import', { store_slug: store.slug }), {
             file_path,
             type,
             mapping,

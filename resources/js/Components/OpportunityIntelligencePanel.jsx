@@ -1,9 +1,12 @@
 import React from 'react';
+import { usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { X, Sparkles, TrendingUp, RefreshCcw, AlertTriangle, Clock, DollarSign, Package, Calendar, History, BarChart2, MessageSquare, Info, User, FileText, CheckCircle, ArrowRight } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 
 export default function OpportunityIntelligencePanel({ isOpen, onClose, recommendation, stats }) {
+    const { store, settings } = usePage().props;
     if (!isOpen || !recommendation) return null;
 
     const tabs = [
@@ -73,11 +76,11 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
         if (type === 'churn' || type === 'retention') {
             let story = "";
             if (trend === 'declining') {
-                story = `${partyName} used to be a very strong buyer, often ordering around Rs 50,000. However, we noticed a worrying pattern where their orders started shrinking—first to 40,000, then 30,000, and now they haven't ordered at all for ${adbo * 2} days. This suggests they might be slowly moving their business elsewhere or are unhappy with something. You should call them to ask why their purchases dropped before they leave for good.`;
+                story = `${partyName} used to be a very strong buyer, often ordering around ${getCurrencySymbol(store || settings)} 50,000. However, we noticed a worrying pattern where their orders started shrinking—first to 40,000, then 30,000, and now they haven't ordered at all for ${adbo * 2} days. This suggests they might be slowly moving their business elsewhere or are unhappy with something. You should call them to ask why their purchases dropped before they leave for good.`;
             } else if (trend === 'sudden_stop') {
-                story = `${partyName} was on a great track, with purchases even increasing lately. They suddenly stopped ordering ${adbo} days ago without any warning. Because they were buying so well, this sudden silence is unusual. Total expected revenue you are missing out on right now is Rs ${avgValue.toLocaleString()}.`;
+                story = `${partyName} was on a great track, with purchases even increasing lately. They suddenly stopped ordering ${adbo} days ago without any warning. Because they were buying so well, this sudden silence is unusual. Total expected revenue you are missing out on right now is ${getCurrencySymbol(store || settings)} ${avgValue.toLocaleString()}.`;
             } else {
-                story = `${partyName} usually buys every ${adbo} days, but they are now late. Based on their history, they should have placed an order of about Rs ${avgValue.toLocaleString()} by now. If they were ordering normally, your revenue would be higher. It's time to check in and see if they need a restock.`;
+                story = `${partyName} usually buys every ${adbo} days, but they are now late. Based on their history, they should have placed an order of about ${formatCurrency(avgValue, store || settings)} by now. If they were ordering normally, your revenue would be higher. It's time to check in and see if they need a restock.`;
             }
 
             return (
@@ -97,7 +100,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
             return (
                 <div className="space-y-4">
                     <p className="text-base font-medium text-slate-600 dark:text-slate-300 leading-relaxed italic">
-                        "{partyName} has Rs {recommendation.potential_revenue?.toLocaleString()} currently stuck in unpaid invoices. Their oldest payment is {data.oldest_days || '26'} days past due. Usually, they pay much faster than this, so this delay is out of character. You are currently losing the use of this cash, which could be used to buy more stock."
+                        "{partyName} has {formatCurrency(recommendation.potential_revenue, store || settings)} currently stuck in unpaid invoices. Their oldest payment is {data.oldest_days || '26'} days past due. Usually, they pay much faster than this, so this delay is out of character. You are currently losing the use of this cash, which could be used to buy more stock."
                     </p>
                 </div>
             );
@@ -112,7 +115,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
         const avgRev = recommendation.potential_revenue || 4500;
         
         if (type === 'recovery') {
-            return `Hi ${partyName}, hope you're doing well. Just a friendly reminder about your outstanding balance of Rs ${avgRev.toLocaleString()}. Please let us know if you have any questions or when we can expect payment. Thanks!`;
+            return `Hi ${partyName}, hope you're doing well. Just a friendly reminder about your outstanding balance of ${formatCurrency(avgRev, store || settings)}. Please let us know if you have any questions or when we can expect payment. Thanks!`;
         }
         
         return `Hi ${partyName}, we haven't seen you for a while! We've prepared a special restock offer for your favorite items (Basmati Rice, etc.). Would you like me to send over a fresh quote with a 5% loyalty discount?`;
@@ -210,17 +213,17 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                             <div className="grid grid-cols-2 gap-8">
                                 <div>
                                     <p className="text-[10px] text-red-400 font-black uppercase tracking-[0.2em] mb-2">Monthly Loss</p>
-                                    <p className="text-3xl font-black text-red-600">Rs {monthlyLoss.toLocaleString()}</p>
+                                    <p className="text-3xl font-black text-red-600">{formatCurrency(monthlyLoss, store || settings)}</p>
                                 </div>
                                 <div>
                                     <p className="text-[10px] text-red-400 font-black uppercase tracking-[0.2em] mb-2">Yearly Risk</p>
-                                    <p className="text-3xl font-black text-red-600">Rs {yearlyLoss.toLocaleString()}</p>
+                                    <p className="text-3xl font-black text-red-600">{formatCurrency(yearlyLoss, store || settings)}</p>
                                 </div>
                             </div>
-
+ 
                             <div className="p-4 bg-white/50 dark:bg-red-950/50 rounded-[1.5rem] border border-red-100 dark:border-red-800">
                                 <p className="text-sm font-bold text-red-800 dark:text-red-200 leading-relaxed italic">
-                                    "If {partyName} is not recovered this month, your business stands to lose over Rs {yearlyLoss.toLocaleString()} in annual revenue based on their purchase history."
+                                    "If {partyName} is not recovered this month, your business stands to lose over {formatCurrency(yearlyLoss, store || settings)} in annual revenue based on their purchase history."
                                 </p>
                             </div>
                         </div>
@@ -290,7 +293,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
     const renderHistoryTab = () => {
         const historyItems = [
             { date: 'Today, 04:30 AM', event: 'AI Analysis Alert Generated', icon: Sparkles, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20', desc: 'The VenQore Brain detected a high-risk churn pattern based on the last 30 days of inactivity.' },
-            { date: 'March 15, 2025', event: 'Last Recovery Success', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', desc: 'Customer returned after a 12-day silence period via WhatsApp outreach. Total order: Rs 14,500.' },
+            { date: 'March 15, 2025', event: 'Last Recovery Success', icon: CheckCircle, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20', desc: `Customer returned after a 12-day silence period via WhatsApp outreach. Total order: ${formatCurrency(14500, store || settings)}.` },
             { date: 'Feb 28, 2025', event: 'Previous Churn Alert', icon: AlertTriangle, color: 'text-orange-600', bg: 'bg-orange-50 dark:bg-orange-900/20', desc: 'Retention outreach sent by Admin. Customer re-engaged successfully.' },
         ];
 
@@ -465,40 +468,42 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     <h4 className="text-sm font-black text-slate-800 dark:text-white mb-6 flex items-center gap-3 uppercase tracking-widest">
                         <TrendingUp size={20} className="text-indigo-500" /> Revenue & Order Pattern
                     </h4>
-                    <div className="h-[350px] w-full bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 shadow-inner">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={realChartData}>
-                                <defs>
-                                    <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888810" />
-                                <XAxis 
-                                    dataKey="name" 
-                                    stroke="#64748b" 
-                                    fontSize={11} 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{fill: '#64748b', fontWeight: 'bold'}}
-                                    dy={15}
-                                />
-                                <YAxis 
-                                    stroke="#64748b" 
-                                    fontSize={11} 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{fill: '#64748b', fontWeight: 'bold'}}
-                                    tickFormatter={(value) => `Rs ${value.toLocaleString()}`}
-                                    dx={-15}
-                                />
-                                <Tooltip 
-                                    contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold', padding: '16px' }}
-                                />
-                                <Area type="monotone" dataKey="value" stroke="#4f46e5" fillOpacity={1} fill="url(#colorVal)" strokeWidth={5} />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                    <div className="h-[350px] w-full bg-white dark:bg-slate-900 rounded-[3rem] relative border border-slate-100 dark:border-slate-800 shadow-inner overflow-hidden">
+                        <div className="absolute inset-10">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={realChartData}>
+                                    <defs>
+                                        <linearGradient id="colorVal" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2} />
+                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#88888810" />
+                                    <XAxis 
+                                        dataKey="name" 
+                                        stroke="#64748b" 
+                                        fontSize={11} 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fill: '#64748b', fontWeight: 'bold'}}
+                                        dy={15}
+                                    />
+                                    <YAxis 
+                                        stroke="#64748b" 
+                                        fontSize={11} 
+                                        axisLine={false} 
+                                        tickLine={false} 
+                                        tick={{fill: '#64748b', fontWeight: 'bold'}}
+                                        tickFormatter={(value) => formatCurrency(value, store || settings)}
+                                        dx={-15}
+                                    />
+                                    <Tooltip 
+                                        contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'bold', padding: '16px' }}
+                                    />
+                                    <Area type="monotone" dataKey="value" stroke="#4f46e5" fillOpacity={1} fill="url(#colorVal)" strokeWidth={5} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
                 </div>
 
@@ -507,7 +512,7 @@ export default function OpportunityIntelligencePanel({ isOpen, onClose, recommen
                     <div className="grid grid-cols-2 gap-6">
                         <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Likely Order Value</p>
-                            <p className="text-2xl font-black dark:text-white">{window.amdSettings?.currency_symbol || ''} {recommendation.potential_revenue?.toLocaleString()}</p>
+                            <p className="text-2xl font-black dark:text-white">{formatCurrency(recommendation.potential_revenue, store || settings)}</p>
                         </div>
                         <div className="bg-slate-50 dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-2">Order Frequency</p>

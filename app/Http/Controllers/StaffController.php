@@ -216,7 +216,25 @@ class StaffController extends Controller
      */
     public function joinForm(): \Inertia\Response
     {
-        return \Inertia\Inertia::render('Store/Join');
+        $user = Auth::user();
+
+        // Fetch pending invites for this user's email 
+        $pendingInvites = \App\Models\StaffInvitation::where('invitee_email', $user->email)
+            ->whereIn('status', ['pending', 'no_account'])
+            ->where('expires_at', '>', now())
+            ->with(['tenant:id,name,plan'])
+            ->get()
+            ->map(fn($inv) => [
+                'token'      => $inv->token,
+                'store_name' => $inv->tenant->name,
+                'plan'       => $inv->tenant->plan,
+                'role'       => $inv->role ?? 'cashier',
+                'accept_url' => route('invite.accept', ['token' => $inv->token]),
+            ]);
+
+        return \Inertia\Inertia::render('Store/Join', [
+            'pending_invites' => $pendingInvites
+        ]);
     }
 
     /**

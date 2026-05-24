@@ -65,15 +65,7 @@ class CheckPermissions
             $permMap  = config('permissions', []);
             $rolePerms = $permMap[$userRole] ?? [];
 
-            // Store owners and admins get through on all bare /admin-panel/* routes.
-            // NOTE: 'platform_admin' is intentionally NOT listed here.
-            // Platform access is already gated above via $user->isPlatformAdmin()
-            // which checks is_platform_admin === true (the boolean DB column).
-            // A role string of 'platform_admin' must NOT bypass this check —
-            // the role column can be set without the is_platform_admin flag being true.
-            if (in_array($userRole, ['owner', 'admin'])) {
-                return $next($request);
-            }
+
 
             foreach ($permissions as $permission) {
                 if (in_array($permission, $rolePerms)) {

@@ -1,0 +1,1362 @@
+AMD ERP
+SYSTEM EXECUTION PLAN
+The complete, zero-ambiguity build guide for the entire system
+v1.1  |  2026  |  Laravel 12 + Inertia.js + React 18 + MySQL  |  4 critical flaws corrected from v1.0
+Tech Stack
+Laravel 12 (PHP 8.2+) · Inertia.js · React 18 · Tailwind CSS · MySQL
+Frontend Build
+Vite · Recharts · Lucide React
+Documents &amp; Export
+dompdf · Maatwebsite/Excel · PHP Barcode
+Financial Spec
+Financial Bible v3.0 · Scenario Rulebook v3.0
+Accounting Model
+Double-entry ledger · FIFO inventory · 32 transaction types (B1–B32)
+Total Phases
+7 Phases · ~26 Weeks estimated build time
+Total Modules
+15 core modules + 4 supporting subsystems
+  SECTION 0 — MASTER ARCHITECTURE &amp; GOLDEN RULES
+0.1  The Non-Negotiable Golden Rules
+Every line of code written must honour these rules. If any rule conflicts with a shortcut or convenience, the rule wins — always.
+RULE 1 — The Single Source Principle
+Every financial number in the UI comes from journal_items via AccountingService.
+NEVER store a running balance in parties.current_balance, bank_accounts.current_balance,
+or any similar denormalised column and use it for calculations.
+Snapshot caches (party_snapshots) are read-only mirrors — rebuilt on every journal write.
+RULE 2 — Atomicity is Absolute
+Every transaction (sale, purchase, payment, adjustment) wraps its business record INSERT
+AND its journal entry INSERT in a single DB::transaction().
+If the server crashes between the two, neither should exist.
+RULE 3 — FIFO is Oldest-First, Always
+ALL stock decreases (sales, write-offs, donations, adjustments, manufacturing) use:
+  ORDER BY inventory_batches.created_at ASC
+No exceptions. No reversal for specific transaction types.
+RULE 4 — No App-Layer-Only Constraints
+Every financial constraint (no over-allocation, no negative stock, no zero-cost opening
+inventory) must exist at the DATABASE level as a CHECK constraint or trigger.
+Application validation is the UX layer. Database constraints are the truth layer.
+RULE 5 — UI Badges Are Display-Only
+payment_status, stock_status, and any similar status columns are computed badges.
+They are NEVER used as inputs to financial calculations.
+They are derived from journal_items and payment_allocations at query time.
+0.2  System Layer Map
+The system is built in 5 distinct layers. Each layer has one job and communicates only through defined interfaces.
+Layer 1 — Database
+MySQL schema: tables, indexes, CHECK constraints, foreign keys. The only truth.
+Layer 2 — Services
+PHP Service classes (AccountingService, FifoService, etc.) — pure business logic, no HTTP.
+Layer 3 — Controllers
+Laravel controllers — handle HTTP, call Services, return Inertia responses. No business logic here.
+Layer 4 — Inertia Props
+Data passed from controllers to React components. Typed, predictable, minimal.
+Layer 5 — React UI
+Components render props. Zero financial calculations in the frontend. Display only.
+0.3  Core Service Classes (The Brain)
+These PHP classes contain all business logic. They are called by Controllers and never by other Service classes directly unless documented.
+AccountingService
+Creates all journal entries. The ONLY class that writes to journal_entries and journal_items.
+FifoService
+Handles all stock deductions (oldest-first). Writes to inventory_batches and sale_item_batches.
+PaymentService
+Manages payment_allocations. Enforces over-allocation constraint. Updates party_snapshots.
+InventoryService
+Manages batch creation on purchase, transfers, adjustments, and disassembly (B30).
+ManufacturingService
+Handles B16 production runs, B30 disassembly, B32 WIP transfers.
+PartyService
+Manages customers/suppliers. Rebuilds party_snapshots after any linked journal entry.
+ReportService
+Compiles all financial reports from journal_items. Zero caching — always live ledger.
+TaxService
+Calculates tax on sales/purchases. Handles advance tax timing (at delivery per S-048).
+UomService
+Converts between base UOM and sale UOM using product_uom_conversions table.
+SettlementService
+Handles B27 final employee settlement composite transactions.
+  SECTION 1 — DATABASE SCHEMA (Complete)
+All tables must be created in migration order. Foreign keys enforce referential integrity. CHECK constraints enforce business rules at the DB level.
+1.1  Foundation &amp; Accounting Tables
+🗄 journal_entries
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+Auto-increment primary key
+entry_date
+DATE NOT NULL
+The accounting date (not created_at)
+reference_type
+VARCHAR(50) NOT NULL
+e.g. &quot;sale&quot;, &quot;purchase&quot;, &quot;B-REV&quot;, &quot;B26&quot;, &quot;B27&quot;
+reference_id
+BIGINT UNSIGNED NOT NULL
+FK to the source record (sale_id, purchase_id, etc.)
+description
+VARCHAR(500)
+Human-readable description
+is_reversed
+TINYINT(1) DEFAULT 0
+1 = this entry has a reversal posted against it
+reversed_by
+BIGINT UNSIGNED NULL
+FK → journal_entries.id of the reversal entry
+narration
+TEXT NULL
+Mandatory for B28 Cash Shortage (theft notes)
+approved_by
+BIGINT UNSIGNED NULL
+FK → users.id — for entries requiring manager approval
+created_by
+BIGINT UNSIGNED NOT NULL
+FK → users.id
+created_at
+TIMESTAMP
+Auto-managed by Laravel
+🗄 journal_items
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+journal_entry_id
+BIGINT UNSIGNED NOT NULL
+FK → journal_entries.id
+account_id
+BIGINT UNSIGNED NOT NULL
+FK → accounts.id
+party_id
+BIGINT UNSIGNED NULL
+FK → parties.id (customer or supplier)
+debit
+DECIMAL(15,2) DEFAULT 0.00
+Debit amount (0.00 if credit side)
+credit
+DECIMAL(15,2) DEFAULT 0.00
+Credit amount (0.00 if debit side)
+CHECK constraint
+—
+CHECK ((debit &gt; 0 AND credit = 0) OR (credit &gt; 0 AND debit = 0)) — strictly mutually exclusive. A row cannot have both debit AND credit &gt; 0.
+🗄 accounts (Chart of Accounts)
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+code
+VARCHAR(10) UNIQUE NOT NULL
+1000–6960 per Financial Bible v3.0
+name
+VARCHAR(100) NOT NULL
+e.g. &quot;Cash in Hand&quot;, &quot;Bad Debt Expense&quot;
+type
+ENUM(asset,liability,equity,income,expense)
+normal_balance
+ENUM(debit,credit)
+Determines how to compute balance
+is_active
+TINYINT(1) DEFAULT 1
+Deactivated accounts cannot receive new entries
+is_system
+TINYINT(1) DEFAULT 0
+1 = cannot be deleted or renamed by users
+🗄 payment_allocations
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+payment_journal_entry_id
+BIGINT UNSIGNED NOT NULL
+FK → journal_entries.id (the B4/B5 payment)
+sale_id
+BIGINT UNSIGNED NULL
+FK → sales.id — which invoice this allocation covers
+purchase_id
+BIGINT UNSIGNED NULL
+FK → purchases.id — for supplier payments
+allocated_amount
+DECIMAL(15,2) NOT NULL
+Amount allocated to this invoice
+status
+ENUM(active,reversed)
+Set to reversed by B-REV (B25)
+CHECK constraint
+—
+Trigger: SUM(allocated_amount WHERE sale_id=X AND status=active) ≤ sales.total_amount
+🗄 party_snapshots
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+party_id
+BIGINT UNSIGNED NOT NULL
+FK → parties.id UNIQUE (one snapshot per party)
+account_id
+BIGINT UNSIGNED NOT NULL
+AR (1200) or AP (2000)
+cached_balance
+DECIMAL(15,2) NOT NULL
+Pre-computed balance. Rebuilt on every new journal entry for this party.
+last_updated_at
+TIMESTAMP
+When the snapshot was last rebuilt
+1.2  Inventory Tables
+🗄 products
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+name
+VARCHAR(200) NOT NULL
+sku
+VARCHAR(100) UNIQUE NOT NULL
+Barcode / SKU
+base_uom
+VARCHAR(20) NOT NULL
+e.g. &quot;KG&quot;, &quot;PCS&quot;, &quot;LTR&quot; — the inventory unit
+reorder_level
+DECIMAL(10,4) DEFAULT 0
+is_manufactured
+TINYINT(1) DEFAULT 0
+1 = has a Bill of Materials
+category_id
+BIGINT UNSIGNED NULL
+FK → categories.id
+cost_price
+DECIMAL(15,2)
+Display only — NEVER used for COGS calculations
+sale_price
+DECIMAL(15,2)
+Default sale price — overrideable per sale
+tax_rate
+DECIMAL(5,2) DEFAULT 0.00
+Default tax % for this product
+is_active
+TINYINT(1) DEFAULT 1
+🗄 inventory_batches
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+product_id
+BIGINT UNSIGNED NOT NULL
+FK → products.id
+warehouse_id
+BIGINT UNSIGNED NOT NULL
+FK → warehouses.id — FIFO is per-warehouse
+purchase_id
+BIGINT UNSIGNED NULL
+FK → purchases.id (null for opening stock or manufactured)
+unit_cost
+DECIMAL(15,4) NOT NULL
+LOCKED at creation — never overwritten
+initial_qty
+DECIMAL(10,4) NOT NULL
+remaining_qty
+DECIMAL(10,4) NOT NULL
+created_at
+TIMESTAMP NOT NULL
+FIFO ordering key — ORDER BY created_at ASC
+batch_type
+ENUM(purchase,opening,manufactured,transfer)
+CHECK constraint
+—
+CHECK (remaining_qty &gt;= 0) — no negative stock
+CHECK constraint
+—
+CHECK (unit_cost &gt; 0 OR batch_type != &quot;opening&quot;) — S-055 rule
+🗄 sale_item_batches (FIFO audit trail)
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+sale_item_id
+BIGINT UNSIGNED NOT NULL
+FK → sale_items.id
+batch_id
+BIGINT UNSIGNED NOT NULL
+FK → inventory_batches.id
+qty_taken
+DECIMAL(10,4) NOT NULL
+How many units taken from this batch
+unit_cost
+DECIMAL(15,4) NOT NULL
+Copied from batch at time of sale — immutable
+total_cost
+DECIMAL(15,2) NOT NULL
+qty_taken × unit_cost
+🗄 product_uom_conversions
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+product_id
+BIGINT UNSIGNED NOT NULL
+FK → products.id
+sale_uom
+VARCHAR(20) NOT NULL
+e.g. &quot;GRAMS&quot;, &quot;ML&quot;, &quot;BOX&quot;
+conversion_factor
+DECIMAL(15,6) NOT NULL
+base_qty = sale_qty / conversion_factor
+UNIQUE
+—
+UNIQUE(product_id, sale_uom)
+🗄 product_price_tiers (S-042 tiered pricing)
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+product_id
+BIGINT UNSIGNED NOT NULL
+FK → products.id
+min_qty
+DECIMAL(10,4) NOT NULL
+Minimum quantity for this tier
+max_qty
+DECIMAL(10,4) NULL
+NULL = no upper limit
+unit_price
+DECIMAL(15,2) NOT NULL
+Price per base UOM unit at this tier
+1.3  Sales &amp; Purchases Tables
+🗄 sales
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+invoice_number
+VARCHAR(50) UNIQUE NOT NULL
+Auto-generated e.g. INV-2026-00001
+party_id
+BIGINT UNSIGNED NOT NULL
+FK → parties.id (customer)
+sale_date
+DATE NOT NULL
+subtotal
+DECIMAL(15,2) NOT NULL
+Sum of line items before tax and discount
+discount_amount
+DECIMAL(15,2) DEFAULT 0
+tax_amount
+DECIMAL(15,2) DEFAULT 0
+total_amount
+DECIMAL(15,2) NOT NULL
+subtotal - discount + tax
+payment_status
+ENUM(unpaid,partial,paid,written_off)
+DISPLAY BADGE ONLY — computed from payment_allocations
+source_order_id
+BIGINT UNSIGNED NULL
+FK → sales_orders.id if converted from order
+journal_entry_id
+BIGINT UNSIGNED NOT NULL
+FK → journal_entries.id
+warehouse_id
+BIGINT UNSIGNED NOT NULL
+FK → warehouses.id
+🗄 sale_items
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+sale_id
+BIGINT UNSIGNED NOT NULL
+FK → sales.id
+product_id
+BIGINT UNSIGNED NOT NULL
+FK → products.id
+qty
+DECIMAL(10,4) NOT NULL
+Quantity in sale UOM
+sale_uom
+VARCHAR(20) NOT NULL
+The UOM used on this line (may differ from base_uom)
+unit_price
+DECIMAL(15,2) NOT NULL
+Price per sale UOM unit (blended if tiered)
+discount_percent
+DECIMAL(5,2) DEFAULT 0
+tax_rate
+DECIMAL(5,2) DEFAULT 0
+line_total
+DECIMAL(15,2) NOT NULL
+is_promotional
+TINYINT(1) DEFAULT 0
+1 = free item (Rs.0 line) per S-040 decision
+cogs_amount
+DECIMAL(15,2) NOT NULL
+SUM(sale_item_batches.total_cost) for this line
+1.4  HR &amp; Operational Tables
+🗄 employees
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+name
+VARCHAR(200) NOT NULL
+monthly_salary
+DECIMAL(15,2) NOT NULL
+hire_date
+DATE NOT NULL
+termination_date
+DATE NULL
+Set when B27 Final Settlement is posted
+status
+ENUM(active,terminated)
+commission_rate
+DECIMAL(5,2) DEFAULT 0
+For reference only — commission is monthly bulk per S-106
+🗄 discount_limits (S-044)
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+role_id
+BIGINT UNSIGNED NOT NULL
+FK → roles.id (from Spatie Permission)
+max_discount_percent
+DECIMAL(5,2) NOT NULL
+Maximum discount this role can apply
+🗄 disaster_claims (S-107)
+Column
+Type
+Notes
+id
+BIGINT UNSIGNED PK
+description
+TEXT NOT NULL
+Description of the disaster/event
+loss_journal_entry_id
+BIGINT UNSIGNED NULL
+FK → journal_entries.id (Step 1 — B29a)
+recovery_journal_entry_id
+BIGINT UNSIGNED NULL
+FK → journal_entries.id (Step 2 — B29b)
+loss_amount
+DECIMAL(15,2) NOT NULL
+Total FIFO cost of destroyed stock
+recovery_amount
+DECIMAL(15,2) DEFAULT 0
+Insurance payout received
+status
+ENUM(loss_recorded,recovery_pending,closed)
+created_at
+TIMESTAMP
+  SECTION 2 — SERVICE CLASS SPECIFICATIONS
+2.1  AccountingService
+The only class that writes journal entries. All other services call this. Never write to journal_entries or journal_items from a controller or another service directly.
+AccountingService::createEntry(array $data)
+Input: { entry_date, reference_type, reference_id, description, approved_by?, narration?, lines: [{account_code, debit, credit, party_id?}] }
+Validates: SUM(debits) === SUM(credits) — rejects if unbalanced (Golden Rule 1)
+Wraps in DB::transaction() (Golden Rule 2)
+Returns: journal_entry_id
+Triggers: PartyService::rebuildSnapshot($party_id) for every party_id in lines
+AccountingService::reverseEntry(int $journalEntryId, string $reason)
+Posts a mirror-image entry (all debits become credits and vice versa) inside a DB::transaction()
+Sets original entry is_reversed = 1, reversed_by = new entry id
+MANDATORY: if the original entry has any payment_allocations rows (status=active), reverseEntry() MUST call PaymentService::voidAllocations($originalJournalEntryId) within the SAME transaction before returning. This is hardcoded — not optional. If voidAllocations() throws, the entire reversal rolls back.
+Used by: B25 (bounced cheque), any correction flow. voidAllocations() sets payment_allocations.status = reversed for all active rows linked to $originalJournalEntryId, then calls PaymentService::updatePaymentBadge() on every affected sale_id.
+NEVER deletes the original entry
+AccountingService::getBalance(string $accountCode, ?Carbon $asOf = null)
+Returns the current balance of an account from journal_items
+Asset/Expense: SUM(debit) - SUM(credit)
+Liability/Income/Equity: SUM(credit) - SUM(debit)
+Filters: WHERE journal_entries.is_reversed = 0
+Used by: all report queries, dashboard widgets, trial balance
+2.2  FifoService
+FifoService::deductStock(int $productId, int $warehouseId, float $qty, string $saleUom)
+Converts sale_qty to base_qty using UomService if sale_uom ≠ base_uom
+Queries: SELECT * FROM inventory_batches WHERE product_id=X AND warehouse_id=Y AND remaining_qty &gt; 0 ORDER BY created_at ASC
+Deducts from oldest batch first — creates sale_item_batches rows for each batch touched
+Returns: array of {batch_id, qty_taken, unit_cost, total_cost} — COGS = SUM(total_cost)
+Throws InsufficientStockException if available qty &lt; required qty (blocks oversell)
+FifoService::restoreStock(int $saleItemId)
+Reads sale_item_batches for the original sale_item_id, ordered by most-recent deduction first
+Adds back remaining_qty to the EXACT original batch_id (not a new batch)
+Restored cost = exact unit_cost from sale_item_batches row (immutable)
+Used by: sale returns (B2 reversal)
+2.3  PaymentService
+PaymentService::allocate(int $paymentJournalEntryId, array $allocations)
+allocations = [{sale_id, amount}, ...] or [{purchase_id, amount}, ...]
+For each allocation: checks SUM(existing active allocations) + new_amount ≤ invoice total_amount
+Throws OverAllocationException if constraint violated (app layer — DB trigger is the final stop)
+Inserts payment_allocations rows
+Calls updatePaymentBadge($saleId) to recompute payment_status
+PaymentService::updatePaymentBadge(int $saleId)
+outstanding = sales.total_amount - SUM(payment_allocations.allocated_amount WHERE sale_id=X AND status=active)
+Sets payment_status: 0 = &quot;unpaid&quot;, 0 &lt; outstanding &lt; total = &quot;partial&quot;, 0 = &quot;paid&quot;
+Also handles round-off: if |outstanding| ≤ system_settings.roundoff_tolerance → mark paid, post round-off entry
+This is the ONLY place payment_status is written
+PaymentService::voidAllocations(int $journalEntryId)
+Sets payment_allocations.status = reversed for ALL active rows WHERE payment_journal_entry_id = $journalEntryId
+Calls PaymentService::updatePaymentBadge($saleId) for every affected sale_id — invoice reverts to Unpaid or Partial
+CALLED ONLY by AccountingService::reverseEntry() — never directly by a controller. This enforces that no reversal can exist without allocation voiding.
+All of this happens inside the SAME DB::transaction() as the reversal journal entry — if anything fails, the entire operation rolls back atomically.
+2.4  ManufacturingService
+ManufacturingService::startProductionRun(int $bomId, float $qty, int $warehouseId)
+Reads bill_of_materials for the product — deducts raw materials via FifoService
+Creates production_runs record with status = &quot;in_progress&quot;
+If WIP tracking enabled: posts B32 WIP entry — DR 1150 / CR 1100 + 6410
+ManufacturingService::completeProductionRun(int $runId)
+Creates finished goods inventory_batch with batch_type = &quot;manufactured&quot;
+Posts B16 journal: DR 1100 Inventory / CR 1150 WIP (closes the WIP)
+Sets production_runs.status = &quot;completed&quot;
+ManufacturingService::partialReverse(int $runId, float $reverseQty)
+Checks: reverseQty ≤ (finished_qty - sold_qty) — throws if over limit (S-015 decision)
+Deducts from finished goods batch, restores raw material batches at original cost
+Posts B32 reversal journal
+Sold units from the run are LOCKED and cannot be reversed
+ManufacturingService::disassemble(int $productId, float $qty, array $components)
+B30 Disassembly: reads disassembly_bom for the product
+CR 1100 Inventory Asset = set FIFO cost
+DR 1100 Inventory Asset = allocated_cost per component (cost × allocation_%)
+Creates new inventory_batches for each component product
+Allocation percentages must sum to 100% — validated before posting
+  SECTION 3 — ALL 32 TRANSACTION JOURNALS (B1–B32)
+Every transaction type, its trigger, and its exact journal entries. Developers must implement these exactly as specified — no approximations.
+3.1  Core Sales &amp; Purchases (B1–B6)
+B1 — Cash Sale
+DR 1000 Cash  /  CR 4000 Revenue (net)  /  CR 2200 Tax Payable  |  DR 5000 COGS  /  CR 1100 Inventory (FIFO cost)
+B2 — Credit Sale
+DR 1200 AR  /  CR 4000 Revenue  /  CR 2200 Tax  |  DR 5000 COGS  /  CR 1100 Inventory (FIFO)
+B3 — Cash Purchase
+DR 1100 Inventory  /  DR 2300 Input Tax  /  CR 1000 Cash  |  New inventory_batch created
+B4 — Payment In (Customer)
+DR 1000/1010 Cash or Bank  /  CR 1200 AR  |  PaymentService::allocate() required
+B5 — Payment Out (Supplier)
+DR 2000 AP  /  CR 1000/1010 Cash or Bank
+B6 — Credit Purchase
+DR 1100 Inventory  /  DR 2300 Input Tax  /  CR 2000 AP  |  New inventory_batch created
+3.2  Staff, Expenses &amp; Operations (B7–B15)
+B7 — Salary Accrual
+DR 6100 Salary Expense  /  CR 2400 Salary Payable
+B8 — Salary Payment
+DR 2400 Salary Payable  /  CR 1000/1010 Cash or Bank
+B9 — Sale Return
+Reverse B1/B2. FifoService::restoreStock(). Reverse payment_allocation if already paid.
+B10 — Stock Adjustment (Loss)
+DR 6300 Stock Adjustment Loss  /  CR 1100 Inventory (FIFO cost of adjusted qty)
+B11 — Stock Adjustment (Gain)
+DR 1100 Inventory (at cost)  /  CR 4200 Stock Adjustment Gain
+B12 — Stock Transfer
+No journal entry — updates inventory_batches.warehouse_id or creates new batch at same cost
+B13 — Operating Expense
+DR 6000 Operating Expenses  /  CR 1000/1010 Cash or Bank
+B14 — Owner Drawing
+DR 3000 Owner's Capital  /  CR 1000/1010 Cash or Bank
+B15 — Owner Capital Injection
+DR 1000/1010 Cash or Bank  /  CR 3000 Owner's Capital
+3.3  Manufacturing &amp; Advanced (B16–B24)
+B16 — Production Run (complete)
+DR 1100 Inventory  /  CR 1150 WIP (if WIP tracking) or CR 1100 + 6410 directly
+B17 — Purchase Return
+CR 1100 Inventory (batch cost)  /  DR 2000 AP or DR 1000 Cash
+B18 — Inter-Warehouse Transfer
+Moves batch between warehouses — no journal (cost unchanged)
+B19 — Opening Balance
+One entry per account. DR/CR real accounts  /  CR/DR 7000 Opening Balance Equity. 7000 must net zero.
+B20 — Customer Advance Receipt
+DR 1000/1010 Cash  /  CR 2100 Customer Advance  |  Tax NOT posted here (S-048)
+B21 — Supplier Advance Payment
+DR 1300 Advance to Supplier  /  CR 1000/1010 Cash
+B22 — Charitable Donation
+DR 6200 Charity Expense  /  CR 1100 Inventory (FIFO cost)
+B23 — Depreciation
+DR 6600 Depreciation Expense  /  CR 1510 Accumulated Depreciation
+B24 — Loan Drawdown
+DR 1000/1010 Cash  /  CR 2500 Loan Payable  |  Repayment: DR 2500  /  CR Cash  /  DR 6500 Interest
+3.4  New Transactions v3.0 (B25–B32)
+B25 — Bounced Cheque B-REV
+DR 1200 AR  /  CR 1000 Cash (exact mirror of original B4). Sets payment_allocation.status = REVERSED. Invoice reverts to Unpaid.
+B26 — Bad Debt Write-Off
+DR 6700 Bad Debt Expense  /  CR 1200 AR. Manager approval required. Creates write-off payment_allocation record.
+B27 — Final Employee Settlement
+DR 6100 Salary Expense (partial month)  /  DR 6800 Gratuity &amp; Severance  /  CR 2400 Salary Payable  →  DR 2400  /  CR Cash
+B28 — Cash Theft / Shortage
+DR 6900 Cash Shortage Loss  /  CR 1000 Cash. Manager-only. Narration mandatory on journal_entry.
+B29 — Insurance Claim (2-step)
+Step1: DR 6950 Disaster Loss  /  CR 1100 Inventory (FIFO).  Step2 (on payout): DR Cash  /  CR 6960 Insurance Recovery. Both reference disaster_claim_id.
+B30 — Set Disassembly
+CR 1100 Inventory (set FIFO cost)  /  DR 1100 Inventory per component at allocated_cost (allocation_% × set_cost). Allocation % from disassembly_bom.
+B31 — UOM Conversion Sale
+Normal B1/B2 journal. FifoService deducts base_qty = sale_qty / conversion_factor. COGS = deducted_base_qty × unit_cost.
+B32 — WIP Transfer
+Start: DR 1150 WIP  /  CR 1100 + 6410.  Complete: DR 1100 Inventory  /  CR 1150 WIP.
+  SECTION 4 — PHASE-BY-PHASE EXECUTION PLAN
+7 phases. Each phase produces a fully testable, deployable increment. Later phases depend on earlier ones being complete and tested.
+PHASE 1
+Foundation: Database, Auth &amp; Core Services
+⏱ Duration: 3 Weeks
+Everything else depends on this being correct. No shortcuts. Verify every constraint before moving on.
+Phase 1 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+1.1
+Create all database migrations in dependency order
+database/migrations/
+None
+All tables created
+1.2
+Add CHECK constraints (remaining_qty≥0, unit_cost, over-allocation trigger)
+migrations / raw SQL
+1.1
+DB-level guards active
+1.3
+Seed Chart of Accounts (all accounts from Financial Bible v3.0 — 1000 to 7000)
+database/seeders/AccountSeeder.php
+1.1
+COA ready
+1.4
+Build AccountingService (createEntry, reverseEntry, getBalance)
+app/Services/AccountingService.php
+1.1, 1.3
+Journal engine working
+1.5
+Build FifoService (deductStock, restoreStock)
+app/Services/FifoService.php
+1.1
+FIFO deductions working
+1.6
+Build PaymentService (allocate, updatePaymentBadge, round-off)
+app/Services/PaymentService.php
+1.4
+Allocation working
+1.7
+Build PartyService (create, rebuildSnapshot)
+app/Services/PartyService.php
+1.4
+Party balances working
+1.8
+Build UomService (convert, getConversionFactor)
+app/Services/UomService.php
+1.1
+UOM conversion working
+1.9
+Implement Laravel Sanctum auth + Spatie Permission roles
+config/auth.php, routes/
+1.1
+Auth + RBAC working
+1.10
+Build system_settings table + SettingsService (roundoff_tolerance, discount limits)
+app/Services/SettingsService.php
+1.1
+Settings configurable
+1.11
+Unit tests for all Service classes (AccountingService, FifoService, PaymentService, UomService, PartyService). Test every method in isolation with mock data. NO controller or UI code may be written until all service tests are green.
+tests/Unit/
+1.4–1.8
+Tests green
+1.12
+🚨 GATE TASK: Write scenario test suite for ALL 120 scenarios (all 32 B-transactions, all 8 resolved blockers, all design decisions). These are pure PHP tests against Service classes only. NO controller, NO UI. Nothing in Phase 2 or beyond may start until every scenario test is green.
+tests/Feature/Scenarios/ (one test file per scenario)
+1.4–1.11
+All 120 scenario tests green — hard gate
+Phase 1 Verification Gate
+✓ Trial Balance produces SUM(debits) = SUM(credits) after a test journal entry
+✓ FIFO deduction from 3 batches produces correct sale_item_batches rows
+✓ Payment over-allocation throws exception AND is blocked at DB level
+✓ party_snapshots.cached_balance matches live ledger query for 3 test parties
+✓ CHECK (remaining_qty &gt;= 0) rejects a negative stock attempt at DB level
+PHASE 2
+Inventory &amp; Product Management
+⏱ Duration: 3 Weeks
+The product catalogue, warehouse structure, batch management, and all pre-sale inventory flows.
+Phase 2 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+2.1
+Product CRUD (name, SKU, base UOM, tax rate, category, barcode)
+ProductController + React ProductForm
+Phase 1
+Products manageable
+2.2
+Product UOM conversions UI (add sale UOM + conversion factor per product)
+UomConversionController + React
+2.1
+UOM conversions configurable
+2.3
+Product price tiers UI (S-042: min_qty, max_qty, unit_price per tier)
+PriceTierController + React
+2.1
+Tiered pricing configurable
+2.4
+Warehouse CRUD
+WarehouseController + React
+Phase 1
+Warehouses manageable
+2.5
+Opening Balance entry (B19) — with BLOCK on zero-cost inventory lines (S-055)
+OpeningBalanceController
+2.1, 2.4
+B19 works, S-055 enforced
+2.6
+Stock adjustment form — gain (B11) and loss (B10)
+StockAdjustmentController
+2.4, Phase 1
+Adjustments post correctly
+2.7
+Stock transfer between warehouses (B12)
+StockTransferController
+2.4
+Transfers work
+2.8
+Inventory batch list UI (per warehouse, remaining qty, unit cost, age)
+React InventoryBatchView
+2.1, 2.4
+Batch visibility
+2.9
+Disassembly BOM builder (B30: components + cost allocation %, must sum 100%)
+DisassemblyBomController
+2.1
+Disassembly BOM configurable
+2.10
+Disassembly run execution (B30 transaction)
+ManufacturingService::disassemble()
+2.9
+B30 posts correctly
+2.11
+Barcode scanning integration (product lookup by SKU)
+React BarcodeScanner component
+2.1
+Scanner working
+2.12
+Product import via Excel (Maatwebsite/Excel)
+ProductImportJob
+2.1
+Bulk import working
+Phase 2 Verification Gate
+✓ Opening balance entry for 5 products at correct cost — 1100 Inventory = SUM(batch values)
+✓ Opening entry with zero cost is BLOCKED with correct error message
+✓ Stock adjustment loss posts to 6300, gain posts to 4200
+✓ Disassembly BOM with 3 components, allocation percentages sum to 100%
+✓ Disassembly run: parent set batch reduced to zero, 3 new component batches created at allocated cost
+PHASE 3
+Purchasing &amp; Supplier Management
+⏱ Duration: 2 Weeks
+Full purchase cycle from PO to payment, including returns, advances, and input tax.
+Phase 3 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+3.1
+Supplier (party) CRUD with party_snapshots integration
+PartyController
+Phase 1
+Suppliers manageable
+3.2
+Purchase Order (pre-transaction document — no journal)
+PurchaseOrderController
+3.1
+POs created, no ledger impact
+3.3
+Credit Purchase form (B6) — creates inventory_batch, posts journal
+PurchaseController (B6)
+3.1, Phase 1
+B6 posts correctly
+3.4
+Cash Purchase form (B3)
+PurchaseController (B3)
+3.3
+B3 posts correctly
+3.5
+Purchase return (B17) — restores batch at original cost, reverses AP
+PurchaseReturnController
+3.3
+B17 posts correctly
+3.6
+Supplier payment (B5) — with PaymentService allocation
+SupplierPaymentController
+3.1, 1.6
+B5 posts, AP reduces
+3.7
+Supplier advance payment (B21) — Advance to Supplier account (1300)
+SupplierAdvanceController
+3.1
+B21 posts correctly
+3.8
+Input tax partial recovery UI (S-050: business_pct field, stores for audit)
+PurchaseController enhancement
+3.3
+Partial ITC working
+3.9
+Supplier statement view (party balance + transaction history)
+React SupplierStatement
+3.1
+Statement accurate
+PHASE 4
+Sales, POS &amp; Customer Management
+⏱ Duration: 4 Weeks
+The highest-traffic module. POS speed, correct FIFO, discount rules, and payment badges must all work perfectly.
+Phase 4 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+4.1
+Customer (party) CRUD with party_snapshots
+PartyController
+Phase 1
+Customers manageable
+4.2
+POS sale form (B1 cash sale) — barcode scan, quantity, UOM, tiered price, FIFO
+SaleController (B1)
+4.1, Phase 2
+B1 posts correctly
+4.3
+Credit sale (B2)
+SaleController (B2)
+4.2
+B2 posts, AR created
+4.4
+Discount enforcement (S-044: role-based limits, manager PIN for over-limit)
+DiscountService + React PIN modal
+4.2, 1.10
+Discount limits enforced
+4.5
+Below-cost sale warning + manager PIN (S-011)
+SaleController + React PIN modal
+4.2
+S-011 enforced
+4.6
+Promotional free items (S-040: separate line at Rs.0, COGS deducted)
+SaleController (promotional_flag)
+4.2
+S-040 implemented
+4.7
+Tiered pricing blended average calculation (S-042)
+UomService::calculateBlendedPrice()
+2.3
+S-042 working
+4.8
+UOM conversion on sale lines (S-012: enter in grams, deduct in KG)
+FifoService + UomService integration
+2.2
+S-012 working
+4.9
+Sale return (B9) — FifoService::restoreStock(), reverses COGS
+SaleReturnController
+4.2, 1.5
+B9 posts correctly
+4.10
+Customer payment receipt (B4) + PaymentService allocation
+CustomerPaymentController
+4.3, 1.6
+B4 + allocation working
+4.11
+Bounced cheque reversal (B25 B-REV)
+BounceController
+4.10
+B25 posts, badge reverts
+4.12
+Bad debt write-off (B26) — manager approval flow
+BadDebtController
+4.3
+B26 posts correctly
+4.13
+Customer advance receipt (B20) — 2100 liability, tax NOT posted yet
+AdvanceController
+4.1
+B20 posts, no tax
+4.14
+Advance settlement on delivery — DR 2100, CR Revenue, CR Tax (S-048)
+SaleController advance conversion
+4.13
+S-048 implemented
+4.15
+Sales Order (pre-transaction — no journal, price locked at creation, S-045)
+SalesOrderController
+4.1
+SO created, price locked
+4.16
+Convert Sales Order to Invoice
+SaleController::fromOrder()
+4.15
+Conversion works
+4.17
+Quotation and Proforma Invoice (no journal)
+QuotationController
+4.1
+Docs created
+4.18
+Customer statement + aged receivables (from payment_allocations)
+React CustomerStatement
+4.10
+AR aging accurate
+4.19
+Invoice PDF generation (dompdf)
+InvoicePdfController
+4.2
+PDF generates correctly
+Phase 4 Verification Gate
+✓ FIFO sale pulling from 3 batches: sale_item_batches has 3 rows with correct costs
+✓ Tiered pricing: 60 units across 3 tiers produces correct blended unit price on invoice
+✓ UOM conversion: sell 500g of a KG-based product, batch deducted by 0.5 KG
+✓ Cashier cannot apply 25% discount without manager PIN (role limit = 10%)
+✓ Over-allocation: attempting Rs.15,000 on a Rs.10,000 invoice throws exception at both app AND DB level
+✓ B25 bounced cheque: invoice reverts to Unpaid, AR balance restored, original B4 not deleted
+✓ Customer advance (B20) posts to 2100 with ZERO tax. Invoice from advance posts tax correctly.
+PHASE 5
+Manufacturing, HR &amp; Special Transactions
+⏱ Duration: 3 Weeks
+Production runs, WIP tracking, employee payroll, and all the v3.0 special transactions.
+Phase 5 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+5.1
+Bill of Materials (BOM) builder — products, qty per unit, up to 5 levels deep
+BomController + React BomBuilder
+Phase 2
+BOMs configurable
+5.2
+By-product configuration on BOM (is_byproduct flag, NRV per unit) — S-094
+BomController enhancement
+5.1
+By-products configurable
+5.3
+Production run start — deducts raw materials, posts WIP entry (B32)
+ManufacturingService::start()
+5.1, Phase 1
+Production starts correctly
+5.4
+Production run complete — finishes goods batch, closes WIP (B16/B32)
+ManufacturingService::complete()
+5.3
+B16 + B32 correct
+5.5
+By-product handling on completion — creates by-product batch at NRV, reduces main cost
+ManufacturingService enhancement
+5.4
+S-094 implemented
+5.6
+Partial production run reversal (unsold qty only, S-015)
+ManufacturingService::partialReverse()
+5.4
+S-015 implemented
+5.7
+Employee CRUD
+EmployeeController
+Phase 1
+Employees manageable
+5.8
+Monthly salary accrual (B7) + payment (B8)
+PayrollController
+5.7
+Payroll posts correctly
+5.9
+Final employee settlement (B27) — composite entry with manager approval
+SettlementService + SettlementController
+5.7, Phase 1
+B27 posts correctly
+5.10
+Cash shortage recording (B28) — manager-only, mandatory narration
+CashShortageController
+Phase 1
+B28 posts correctly
+5.11
+Insurance claim — Step 1 loss (B29a) + Step 2 recovery (B29b)
+DisasterClaimController
+Phase 1
+B29 two-step works
+5.12
+Fixed asset purchase journal entry
+AssetController
+Phase 1
+Fixed assets tracked
+5.13
+Depreciation journal (B23) — periodic, per asset
+DepreciationController
+5.12
+B23 posts correctly
+5.14
+Loan drawdown (B24) + repayment with interest split
+LoanController
+Phase 1
+B24 posts correctly
+PHASE 6
+Reports, Dashboard &amp; Financial Statements
+⏱ Duration: 3 Weeks
+Every number on every screen must come from AccountingService::getBalance() or a direct journal_items query. Zero custom arithmetic in React.
+Phase 6 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+6.1
+Trial Balance report — all accounts, debit/credit totals, net balance
+ReportService::trialBalance()
+Phase 1
+Balances correctly
+6.2
+Profit &amp; Loss Statement (Revenue − COGS − Expenses)
+ReportService::profitLoss()
+6.1
+P&amp;L correct
+6.3
+Balance Sheet (Assets = Liabilities + Equity, Net Book Value for fixed assets)
+ReportService::balanceSheet()
+6.1
+BS balances
+6.4
+Cash Flow Statement (operating, investing, financing activities)
+ReportService::cashFlow()
+6.1
+CF statement correct
+6.5
+Aged Receivables (outstanding per customer, per invoice, per bucket)
+ReportService::agedReceivables()
+4.10
+Aging correct
+6.6
+Aged Payables (outstanding per supplier, per invoice)
+ReportService::agedPayables()
+Phase 3
+AP aging correct
+6.7
+Sales report (by date, product, customer, salesperson)
+ReportService::salesReport()
+Phase 4
+Sales data correct
+6.8
+Purchase report (by date, product, supplier)
+ReportService::purchasesReport()
+Phase 3
+Purchase data correct
+6.9
+Inventory Valuation report (SUM(remaining_qty × unit_cost) per product/warehouse)
+ReportService::inventoryValuation()
+Phase 2
+Valuation correct
+6.10
+COGS report (from sale_item_batches — FIFO verified)
+ReportService::cogsReport()
+Phase 4
+COGS matches 5000 account
+6.11
+Gross Profit per product / per period
+ReportService::grossProfit()
+6.10
+Margins accurate
+6.12
+Dashboard widgets — Cash, Bank, AR, AP, Revenue, COGS, Net Profit (all from ledger)
+React Dashboard + Recharts
+6.1–6.4
+Dashboard live
+6.13
+Tax report — Sales Tax Payable (2200) vs Input Tax Recoverable (2300)
+ReportService::taxReport()
+Phase 4
+Tax figures correct
+6.14
+Party ledger / statement (all transactions for a customer or supplier)
+ReportService::partyLedger()
+Phase 4
+Ledger accurate
+6.15
+Inventory movement report (stock in, out, by product, by date)
+ReportService::inventoryMovement()
+Phase 2
+Movement report correct
+6.16
+Export all reports to PDF (dompdf) and Excel (Maatwebsite)
+ReportExportController
+6.1–6.15
+Export working
+Phase 6 Verification Gate
+✓ Trial Balance: SUM(all debits) = SUM(all credits) across all time
+✓ Balance Sheet: Assets = Liabilities + Equity (to the paisa)
+✓ Account 1100 Inventory Asset = SUM(inventory_batches.remaining_qty × unit_cost)
+✓ Account 5000 COGS = SUM(sale_item_batches.total_cost)
+✓ Account 7000 Opening Balance Equity nets to zero after B19 entries
+✓ Aged Receivables: SUM(outstanding per invoice) = total AR (1200) balance
+✓ Dashboard Cash widget = AccountingService::getBalance(&quot;1000&quot;) — not from any other source
+PHASE 7
+Performance, Security &amp; Deployment
+⏱ Duration: 3 Weeks
+MySQL query optimisation, role security hardening, PWA manifest (online-only), queue configuration, fiscal year close, audit logging, and production deployment. No offline mode — internet connectivity is a hard requirement.
+Phase 7 Tasks
+#
+Task
+File / Layer
+Depends On
+Output
+7.1
+PWA manifest + service worker (installable on desktop/tablet)
+public/manifest.json + sw.js
+Phase 6
+App installable
+7.2
+Connection guard middleware — redirect to maintenance page if DB unreachable. No silent offline fallback.
+app/Http/Middleware/DatabaseHealthCheck.php
+Phase 4
+Local DB configured
+7.3
+Network connectivity banner — shows a hard warning if connection drops. POS form disables submission until connection is restored. No queue, no sync, no deferred FIFO.
+resources/js/services/ConnectionMonitor.js
+7.2
+POS locks when offline
+7.4
+Deployment documentation — note for clients in low-connectivity environments: requires local server (e.g. Laravel Herd on a local machine), not a browser offline cache.
+docs/deployment/low-connectivity-guide.md
+7.3
+Sync conflict-free
+7.5
+MySQL query optimisation — indexes on journal_items(account_id), inventory_batches(created_at, product_id, warehouse_id)
+database/migrations/
+Phase 1
+Queries fast
+7.6
+party_snapshots performance test — verify snapshot vs live query &lt; 2ms difference
+tests/Performance/
+7.5
+Snapshots performing
+7.7
+Laravel queues for heavy jobs (Excel import, report generation, PDF)
+config/queue.php
+Phase 6
+Queue working
+7.8
+Role &amp; permission UI (admin sets discount limits, user roles, round-off tolerance)
+RoleController + React
+Phase 1
+Permissions configurable
+7.9
+Fiscal year close process — zero out P&amp;L accounts into Retained Earnings (3100)
+FiscalYearController
+Phase 6
+Year-close working
+7.10
+Audit log — every journal entry timestamped with user, IP, and approved_by
+AuditService
+Phase 1
+Full audit trail
+7.11
+Deployment script — Laravel optimise, Vite build, DB migrations
+deploy.sh
+All phases
+Deploy automated
+7.12
+Deployment hardening + production smoke test. Confirm all 120 scenario tests (written and passing since Phase 1) still pass on the production environment after deployment.
+tests/Feature/
+All phases
+All scenarios pass
+  SECTION 5 — CONSISTENCY &amp; INTEGRITY CHECKLIST
+Run this checklist before every major release. Every item must pass with no exceptions.
+5.1  Financial Integrity Checks
+Ledger Integrity
+☐  SUM(journal_items.debit) = SUM(journal_items.credit) across ALL entries
+☐  No journal_entry exists without at least 2 journal_items
+☐  No journal_item has both debit &gt; 0 AND credit &gt; 0 — enforced by DB CHECK ((debit &gt; 0 AND credit = 0) OR (credit &gt; 0 AND debit = 0))
+☐  Every journal_entry.reference_id points to a real record in its reference_type table
+☐  Account 7000 Opening Balance Equity nets to exactly zero
+Inventory Integrity
+☐  SUM(inventory_batches.remaining_qty × unit_cost) = AccountingService::getBalance(&quot;1100&quot;)
+☐  No inventory_batch has remaining_qty &lt; 0
+☐  No inventory_batch has unit_cost = 0 AND batch_type = &quot;opening&quot;
+☐  Every sale_item_batches row references a real batch with matching product_id
+☐  SUM(sale_item_batches.total_cost for all sales) = AccountingService::getBalance(&quot;5000&quot;)
+Payment Integrity
+☐  For every sale: SUM(payment_allocations.allocated_amount WHERE sale_id=X AND status=active) ≤ sales.total_amount
+☐  Every payment_status badge matches the allocation math
+☐  Every party_snapshots.cached_balance matches the live ledger query for that party
+☐  No payment_allocation references a non-existent sale_id or purchase_id
+Business Rule Compliance
+☐  No sale has a discount_percent exceeding the discount_limits for the creating user's role
+☐  No sale below cost exists without an approved_by on its journal_entry (S-011)
+☐  No B28 cash shortage entry exists without a narration (mandatory note)
+☐  No B27 settlement entry exists without an approved_by
+☐  No disassembly_bom has component allocation_% summing to ≠ 100%
+☐  Tax on customer advance invoices (B20) = Rs.0. Tax only on delivery invoices.
+☐  No future-dated entries exist with entry_date &gt; TODAY + 30 days
+5.2  UI / UX Consistency Rules
+Financial numbers
+ALL financial numbers in the UI come from API calls that query AccountingService or direct ledger — never computed in React
+Payment badges
+payment_status badge reads from payment_allocations — never from a local state variable that gets stale
+Inventory counts
+Stock levels always from inventory_batches.remaining_qty — never from a products.stock_count column
+Party balances
+Customer/supplier balances from party_snapshots — never from React state calculated on the frontend
+Discount field
+Discount input always validates against discount_limits for the current user role before submission
+Zero-cost warning
+Any purchase line with unit_cost = 0 must show a yellow warning with acknowledgement checkbox
+Below-cost sale
+If any sale line unit_price &lt; batch FIFO cost, PIN modal appears before submission (S-011)
+Manager PIN modal
+PIN modal must call a server-side endpoint to verify — never just client-side
+Date picker
+Future dates beyond today + 30 days must be blocked in the date picker (S-073)
+Loading states
+Every financial form submission shows a spinner and disables submit button during processing
+5.3  The 15 Things That Must Never Happen
+1
+A journal entry deleted from the database
+2
+inventory_batches.unit_cost overwritten after creation
+3
+products.cost_price used for any COGS or inventory value calculation
+4
+bank_accounts.current_balance or parties.current_balance used in financial calculations
+5
+SUM(debit) ≠ SUM(credit) on a single journal_entry (system must reject before saving)
+6
+payment_allocations.allocated_amount sum exceeding invoice total_amount (DB constraint enforces)
+7
+inventory_batches.remaining_qty going negative (CHECK constraint enforces)
+8
+Tax posted when a customer advance is received (tax only at delivery, S-048)
+9
+B28 Cash Shortage posted by anyone other than a manager or owner role
+10
+A payment reversal (B25 or any AccountingService::reverseEntry call) that does not atomically void all linked payment_allocations in the same DB transaction
+11
+A disassembly BOM saved with component allocation percentages that do not sum to 100%
+12
+Opening stock (B19) saved with any inventory line at zero cost
+13
+A sale below cost processed without manager PIN approval being recorded on journal_entry.approved_by
+14
+party_snapshots not rebuilt after a journal entry that includes a party_id
+15
+Account 7000 Opening Balance Equity having a non-zero balance after all opening entries are posted
+  SECTION 6 — REACT COMPONENT ARCHITECTURE
+6.1  Page Components (Inertia Pages)
+pages/Dashboard.jsx
+Live widgets: Cash, Bank, AR, AP, Revenue, COGS, Gross Profit, Net Profit. All from API.
+pages/sales/PosForm.jsx
+POS sale entry. Barcode scan, product search, UOM selector, tiered price, discount, PIN modal.
+pages/sales/InvoiceList.jsx
+Sales list with payment_status badges, search, filter by date/customer/status.
+pages/purchases/PurchaseForm.jsx
+Purchase entry. Input tax field, business_pct for partial ITC, supplier advance handling.
+pages/inventory/BatchList.jsx
+FIFO batch viewer per warehouse. Shows remaining_qty, unit_cost, age, total value.
+pages/inventory/StockAdjustment.jsx
+B10/B11 adjustment. Zero-cost warning. Manager PIN for large write-offs.
+pages/manufacturing/ProductionRun.jsx
+Start/complete production run. WIP balance displayed. Partial reversal button.
+pages/hr/EmployeeList.jsx
+Employee management. Settlement button triggers B27 flow with approval.
+pages/accounting/JournalList.jsx
+Read-only journal entry viewer. No delete button — ever.
+pages/accounting/TrialBalance.jsx
+Live trial balance. Verifies debit = credit total.
+pages/reports/ProfitLoss.jsx
+P&amp;L with date range picker. Recharts bar chart for monthly comparison.
+pages/reports/BalanceSheet.jsx
+Balance sheet at a point in time. Net Book Value for fixed assets.
+pages/reports/AgedReceivables.jsx
+AR aging by 0-30, 31-60, 61-90, 90+ days buckets. Export to PDF/Excel.
+pages/settings/DiscountLimits.jsx
+Admin sets max_discount_percent per role. SettingsService persists.
+pages/settings/RoundoffTolerance.jsx
+Admin sets roundoff_tolerance. Applied by PaymentService.
+6.2  Shared UI Components
+components/ManagerPinModal.jsx
+Re-usable PIN modal. Calls POST /api/verify-pin. Blocks UI until server confirms.
+components/ZeroCostWarning.jsx
+Yellow warning banner with acknowledgement checkbox for zero-cost entries.
+components/PaymentBadge.jsx
+Renders Unpaid/Partial/Paid/Written Off badge. Reads payment_status prop only.
+components/FifoDeductionPreview.jsx
+Shows which batches will be consumed for a given sale quantity before submission.
+components/BarcodeScanner.jsx
+Camera-based or USB barcode reader. Fires onScan(sku) callback.
+components/DatePicker.jsx
+Blocks future dates &gt; today + 30 days (S-073). Warns for past dates.
+components/CurrencyInput.jsx
+PKR-formatted numeric input. Handles Rs. prefix, comma formatting.
+components/FinancialWidget.jsx
+Dashboard card with label, value from API, trend indicator. Never computes value itself.
+components/ConnectionGuard.jsx
+Monitors navigator.onLine. When offline: overlays a hard-block modal on every financial form. Clears automatically when connection restores. No queue, no retry — just a hard stop.
+6.3  Why Offline Mode Is Architecturally Impossible in This System
+Rule 2 — Atomicity
+Every sale wraps FifoService + AccountingService in a single DB::transaction(). This transaction cannot span a network gap to a remote MySQL server.
+Rule 3 — FIFO Ordering
+FifoService issues SELECT ... FOR UPDATE on inventory_batches. This lock requires a live database connection. Without it, two offline devices can oversell the same batch.
+Rule 4 — DB Constraints
+CHECK (remaining_qty &gt;= 0) fires at INSERT time on the server. An offline device cannot know if the constraint will pass. By the time it syncs, the stock may already be zero.
+The correct solution
+Clients in low-connectivity environments must install AMD ERP on a local server (e.g. laptop or mini-PC running Laravel). The browser connects to localhost — always online, always atomic, always FIFO-correct.
+What IS acceptable
+Read-only data (product names, customer names, price lists) MAY be cached in the browser for display speed. But NO financial write operation is ever deferred or queued client-side.
+  SECTION 7 — SCENARIO TEST MATRIX (Key Scenarios)
+Every resolved blocker and design decision from the Scenario Rulebook v3.0 must have a passing automated test before Phase 7 closes.
+S-001 — FIFO mixed batch sale
+Sell 10 units across 2 batches. Verify sale_item_batches has 2 rows. COGS = exact sum.
+S-004 — Zero-cost warning
+Purchase at Rs.0 shows warning. Must acknowledge. Saves with promotional_flag.
+S-011 — Below cost + PIN
+Sale below cost: PIN modal appears. No PIN = blocked. PIN logged in approved_by.
+S-012 — UOM conversion
+Buy 10 KG rice. Sell 500g. Batch deducted by 0.5 KG. COGS = 0.5 × batch_unit_cost.
+S-015 — Partial production reversal
+Produce 100, sell 60. Reverse: only 40 can be reversed. 41 throws exception.
+S-020 — Bounced cheque B25
+Post B4. Post B25. Invoice reverts to Unpaid. Original B4 still in journal.
+S-021 — Bad debt write-off B26
+Write off Rs.30,000. 6700 DR, 1200 CR. Invoice badge = Written Off. No AR deletion.
+S-022 — Round-off tolerance
+Invoice Rs.10,000. Payment Rs.9,999. Within Rs.1 tolerance = auto-closed as Paid.
+S-040 — Free item on sale
+B2G1F: 3 line items on invoice. 3rd line Rs.0 with promotional_flag=1. COGS for all 3.
+S-042 — Tiered pricing
+60 bags across 3 tiers. Single invoice line shows blended unit price correctly.
+S-044 — Discount limits
+Cashier (10% limit) tries 15%. Server rejects without manager PIN.
+S-048 — Tax on advance at delivery
+B20 advance: no tax. Convert to delivery invoice: tax posted then. 2100 → 0.
+S-055 — Zero-cost opening stock
+B19 with Rs.0 cost line: system BLOCKS with error. No partial save.
+S-068 — Over-allocation
+Allocate Rs.15,000 to Rs.10,000 invoice. App exception + DB trigger fires. Record not saved.
+S-074 — WIP balance
+Start production run. 1150 WIP &gt; 0. Complete run. 1150 = 0. Finished goods batch created.
+S-080 — Final settlement B27
+Post B27 for Rs.102,000. 6100 + 6800 DR. 2400 CR then Cash CR. Employee = terminated.
+S-094 — By-product NRV
+Manufacturing run produces sawdust. Sawdust batch created at NRV. Main product cost reduced.
+S-104 — Cash shortage B28
+Post B28 Rs.3,000 shortage. 6900 DR, 1000 CR. System blocks if no narration. Manager-only.
+S-107 — Insurance claim B29
+Step1: 6950 DR, 1100 CR. Step2 (later): Cash DR, 6960 CR. Both reference same disaster_claim_id.
+S-108 — Set disassembly B30
+Disassemble printer set Rs.5,000. 3 component batches at 80/15/5% of Rs.5,000.
+Final Sign-Off Criteria — System Is Build-Ready When:
+✓ All 32 B-transactions produce correct double-entry journal entries (verified by unit tests)
+✓ Trial Balance = zero difference on a fully-seeded test dataset
+✓ All 20 scenario tests in the matrix above pass with zero failures
+✓ Over-allocation rejected at BOTH app layer AND database layer
+✓ Zero-cost opening stock blocked at save time
+✓ party_snapshots rebuilt within 1 transaction of any linked journal entry
+✓ FIFO ordering verified: oldest batch always consumed first across 50 randomised sales
+✓ PWA installs on desktop Chrome and tablet Safari without errors
+✓ ConnectionGuard blocks ALL financial form submissions when navigator.onLine = false
+✓ All financial report numbers match hand-calculated expected values on a known test dataset

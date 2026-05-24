@@ -1,0 +1,51 @@
+name: Deploy VenQore to Production
+
+# Trigger on push to main branch
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:    # Allow manual trigger from GitHub UI
+
+jobs:
+  deploy:
+    name: Deploy to venqore.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── 2. SSH into server and run deploy script ─────────────────
+      # Secrets needed in GitHub → Settings → Secrets:
+      #   PRODUCTION_HOST      = IP or hostname of your DigitalOcean Droplet
+      #   PRODUCTION_USER      = www-data (or deploy user)
+      #   PRODUCTION_SSH_KEY   = Private SSH key (generate a deploy key pair)
+      #   PRODUCTION_PORT      = 22 (or custom SSH port)
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_PORT || 22 }}
+          timeout: 600s
+          script: |
+            bash /var/www/venqore/deploy/deploy.sh main 2>&1
+
+      # ── 3. Notify on success ────────────────────────────────────
+      - name: Deploy success notification
+        if: success()
+        run: |
+          echo "✅ VenQore deployed successfully to production"
+          echo "   Commit: ${{ github.sha }}"
+          echo "   By: ${{ github.actor }}"
+
+      # ── 4. Notify on failure ────────────────────────────────────
+      - name: Deploy failure notification
+        if: failure()
+        run: |
+          echo "❌ VenQore deploy FAILED"
+          echo "   Commit: ${{ github.sha }}"
+          echo "   Check: https://github.com/AbdullahHashmi10/AMD-Project/actions"

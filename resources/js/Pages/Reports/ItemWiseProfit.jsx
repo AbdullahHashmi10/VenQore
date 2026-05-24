@@ -9,6 +9,7 @@ import {
 import { // Recharts
     PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend
 } from 'recharts';
+import { formatCurrency } from '@/Utils/format';
 
 export default function ItemWiseProfit({ items = [], filters = {} }) {
     const {
@@ -41,7 +42,6 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
         }));
 
     // --- Formatters ---
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     // --- Handlers ---
     const handleRangeChange = (r) => {
@@ -146,9 +146,9 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
 
                 {/* 2. KPIs */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
-                    <RatioCard title="Total Revenue" value={formatCurrency(totalRevenue)} subtitle={`${items.length} Items Sold`} color="blue" icon={<DollarSign />} />
-                    <RatioCard title="Total Profit" value={formatCurrency(totalProfit)} subtitle={`${avgMargin}% Avg Margin`} color={totalProfit >= 0 ? "emerald" : "rose"} icon={<TrendingUp />} />
-                    <RatioCard title="Top Earner" value={topEarner.name.substring(0, 15)} subtitle={formatCurrency(topEarner.profit)} color="indigo" icon={<Target />} />
+                    <RatioCard title="Total Revenue" value={formatCurrency(totalRevenue, store)} subtitle={`${items.length} Items Sold`} color="blue" icon={<DollarSign />} />
+                    <RatioCard title="Total Profit" value={formatCurrency(totalProfit, store)} subtitle={`${avgMargin}% Avg Margin`} color={totalProfit >= 0 ? "emerald" : "rose"} icon={<TrendingUp />} />
+                    <RatioCard title="Top Earner" value={topEarner.name.substring(0, 15)} subtitle={formatCurrency(topEarner.profit, store)} color="indigo" icon={<Target />} />
                     <RatioCard title="Active Catalog" value={items.length} subtitle="Items with sales" color="amber" icon={<Package />} />
                 </div>
 
@@ -176,9 +176,9 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
                                         return (
                                             <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                                 <td className="px-6 py-3 font-medium text-slate-700 dark:text-slate-200">{item.name}</td>
-                                                <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.revenue)}</td>
+                                                <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.revenue, store)}</td>
                                                 <td className={`px-6 py-3 text-right font-bold font-mono ${item.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
-                                                    {formatCurrency(item.profit)}
+                                                    {formatCurrency(item.profit, store)}
                                                 </td>
                                                 <td className="px-6 py-3 text-right">
                                                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${margin > 20 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
@@ -205,7 +205,7 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
                                         <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                                             {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />)}
                                         </Pie>
-                                        <RechartsTooltip formatter={(val) => formatCurrency(val)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                                        <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
                                         <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ fontSize: '10px' }} />
                                     </PieChart>
                                 </ResponsiveContainer>

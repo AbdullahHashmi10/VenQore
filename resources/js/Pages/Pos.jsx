@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { formatCurrency, formatNumber } from '@/Utils/format';
+import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     ScanBarcode,
@@ -11,6 +11,7 @@ import {
     ShoppingCart,
     Receipt,
     Printer,
+    Package,
     Plus,
     X,
     Search,
@@ -260,7 +261,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         );
         updateActiveSale({ cart: newCart });
         setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' });
-        addToast(`Discount of ${discType === 'percentage' ? val + '%' : formatCurrency(discountAmount)} applied`, 'success');
+        addToast(`Discount of ${discType === 'percentage' ? val + '%' : formatCurrency(val, store || settings)} applied`, 'success');
     };
 
     // Open Converter Modal
@@ -482,7 +483,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             }
             // Remove session and navigate away
             removePosSession(id);
-            router.visit(route('store.sales.index', { store_slug: store?.slug }));
+            // PROBLEM 3 FIX: Return to dashboard (role-appropriate) instead of sales index
+            router.visit(route('store.dashboard', { store_slug: store?.slug }));
             return;
         }
 
@@ -509,8 +511,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const performSearch = async (query) => {
         setIsSearching(true);
         try {
-            const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), { params: { query } });
-            setSearchResults(response.data);
+            const response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), { params: { q: query } });
+            setSearchResults(response.data.data || response.data || []);
         } catch (error) {
             console.error("Search error:", error);
         } finally {
@@ -608,7 +610,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 freeQuantity: 0,
                 stock: stock,
                 has_manufacturing_rule: product.has_manufacturing_rule || false, // Store for updateQty checks
-                image: product.image_path || '📦', // Placeholder
+                image: product.image_url || product.image_path || null, // Robust image path mapping
                 category: product.category?.name || 'General',
                 wholesale_price: product.wholesale_price,
                 wholesale_min_quantity: product.wholesale_min_quantity
@@ -812,7 +814,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             discount: globalDiscount,
             notes: paymentData.notes,
             add_to_ledger: addToLedger, // PASSED FLAG
-            source: 'pos'
+            source: 'pos',
+            is_dropship: false,
         };
 
         try {
@@ -1089,10 +1092,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             if (e.key === 'F8') {
                 e.preventDefault();
                 showInput('Additional Charges', 'Enter charge amount', (val) => {
-                    const charge = parseFloat(val);
-                    if (!isNaN(charge)) {
-                        updateActiveSale({ additionalCharges: charge });
-                        addToast(`Additional charge of ${formatCurrency(charge)} added`, 'success');
+                    const charge = parseFloat(val); if (!isNaN(charge)) { updateActiveSale({ additionalCharges: charge }); addToast(`Additional charge of ${formatCurrency(charge, store || settings)} added`, 'success');
                     }
                 });
             }
@@ -1103,7 +1103,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     const disc = parseFloat(val);
                     if (!isNaN(disc)) {
                         updateActiveSale({ discount: disc });
-                        addToast(`Bill discount of ${formatCurrency(disc)} applied`, 'success');
+                        addToast(`Bill discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
                     }
                 });
             }
@@ -1132,12 +1132,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 e.preventDefault();
                 // Toggle a breakup view (using existing summary or dedicated modal)
                 showAlert('Bill Breakup', `
-                    Subtotal: ${formatCurrency(subtotal)}
-                    Discount: ${formatCurrency(totalDiscounts)}
-                    Taxable: ${formatCurrency(taxableAmount)}
-                    Tax: ${formatCurrency(taxAmount)}
+                    Subtotal: ${formatCurrency(subtotal, store || settings)}
+                    Discount: ${formatCurrency(totalDiscounts, store || settings)}
+                    Taxable: ${formatCurrency(taxableAmount, store || settings)}
+                    Tax: ${formatCurrency(taxAmount, store || settings)}
                     --------------------
-                    Total: ${formatCurrency(cartTotal)}
+                    Total: ${formatCurrency(cartTotal, store || settings)}
                 `, 'info');
             }
 
@@ -1333,7 +1333,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Load categories
     const loadCategories = async () => {
         try {
-            const response = await axios.get(route('store.api.categories', { store_slug: store?.slug }));
+            const response = await axios.get(route('store.pos.categories', { store_slug: store?.slug }));
             setCategories(response.data.data || response.data || []);
         } catch (error) {
             console.error("Error loading categories:", error);
@@ -1341,14 +1341,19 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         }
     };
 
-    // Load products by category
+    // Load products by category (or featured if no category)
     const fetchCategoryProducts = async (catId) => {
         setIsLoadingProducts(true);
         try {
-            const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), {
-                params: { category_id: catId, query: '' }
-            });
-            setCategoryProducts(response.data || []);
+            let response;
+            if (catId) {
+                response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), {
+                    params: { category_id: catId, q: '' }
+                });
+            } else {
+                response = await axios.get(route('store.pos.featured', { store_slug: store?.slug }));
+            }
+            setCategoryProducts(response.data.data || response.data || []);
         } catch (error) {
             console.error("Error loading category products:", error);
         } finally {
@@ -1490,7 +1495,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                         {parked.customer_name || 'Walk-in Customer'}
                                                     </p>
                                                     <p className="text-xs text-slate-500">
-                                                        {parked.items_count} {parked.items_count === 1 ? 'item' : 'items'} · {formatCurrency(parked.total_amount || 0)}
+                                                        {parked.items_count} {parked.items_count === 1 ? 'item' : 'items'} · {formatCurrency(parked.total || 0, store || settings)}
                                                     </p>
                                                 </div>
                                                 <button
@@ -1555,7 +1560,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     <div className="flex-1 flex overflow-hidden">
 
                         {/* LEFT STRIP: Vertical Category List */}
-                        <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col overflow-y-auto custom-scrollbar">
+                        <div className="w-64 bg-slate-50 dark:bg-slate-950 border-r border-slate-100 dark:border-slate-800 flex flex-col overflow-y-auto custom-scrollbar">
                             <div className="p-4 space-y-2">
                                 <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 px-2">Categories</h3>
                                 <button
@@ -1593,9 +1598,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="flex-1 flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
 
                             {/* Product Header & Senior Mode */}
-                            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white/50 backdrop-blur-sm sticky top-0 z-10">
-                                <h2 className="font-black text-xl text-slate-800 dark:text-white">
-                                    {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Products'}
+                            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-10">
+                                <h2 className="font-black text-xl text-slate-800 dark:text-white uppercase tracking-tighter">
+                                    {selectedCategory ? (categories.find(c => c.id === selectedCategory)?.name || 'Category') : 'All Products'}
                                 </h2>
 
                                 {/* Senior Mode Toggle - HIDDEN AS PER USER REQUEST */}
@@ -1624,19 +1629,25 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     className={`group bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-xl text-left relative overflow-hidden active:scale-95 flex flex-col ${seniorMode ? 'p-6 min-h-[200px]' : 'p-4 min-h-[160px]'}`}
                                                 >
                                                     <div className="flex justify-between items-start mb-auto w-full">
-                                                        <div className={`rounded-2xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform ${seniorMode ? 'w-16 h-16 text-3xl' : 'w-12 h-12 text-2xl'}`}>
-                                                            {product.image_path ? <img src={product.image_path} alt="" className="w-full h-full object-cover rounded-2xl" /> : '📦'}
+                                                        <div className={`rounded-2xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden ${seniorMode ? 'w-16 h-16 text-3xl' : 'w-14 h-14 text-2xl'}`}>
+                                                            {product.image_url || product.image_path ? (
+                                                                <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <Package className="text-slate-400" size={seniorMode ? 32 : 24} />
+                                                            )}
                                                         </div>
                                                         <div className="text-right">
-                                                            <p className={`font-black text-indigo-600 dark:text-indigo-400 ${seniorMode ? 'text-lg' : 'text-xs'}`}>{formatCurrency(product.price)}</p>
+                                                            <p className={`font-black text-sky-500 dark:text-sky-400 ${seniorMode ? 'text-lg' : 'text-sm'}`}>
+                                                                {formatCurrency(product.price || product.selling_price || 0, store || settings)}
+                                                            </p>
                                                             <p className={`font-bold ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'} ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>
-                                                                Qty: {product.stock_quantity}
+                                                                Qty: {formatNumber(product.stock_quantity || 0, 0)}
                                                             </p>
                                                         </div>
                                                     </div>
                                                     <div className="mt-4">
                                                         <h4 className={`font-black text-slate-800 dark:text-white leading-tight mb-1 whitespace-normal break-words w-full ${seniorMode ? 'text-lg' : 'text-sm'}`}>{product.name}</h4>
-                                                        <p className={`text-slate-400 font-bold uppercase tracking-widest ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>{product.category?.name || 'General'}</p>
+                                                        <p className={`text-slate-400 font-bold uppercase tracking-widest ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>{product.category?.name || product.category_name || 'General'}</p>
                                                     </div>
                                                     {product.variants && product.variants.length > 0 && (
                                                         <div className="absolute top-2 right-2 flex gap-1">
@@ -1736,7 +1747,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 </div>
                                 <div className="flex items-start gap-4">
                                     <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-xl shrink-0">
-                                        📦
+                                        <Package size={24} className="text-indigo-400" />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
@@ -1757,11 +1768,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             >
                                                 {item.discount > 0 ? (
                                                     <>
-                                                        <span className="line-through text-[10px] text-slate-400 opacity-70">{formatCurrency(item.original_price || (item.price + item.discount))}</span>
-                                                        <span>{formatCurrency(item.price)}</span>
+                                                        <span className="line-through text-[10px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
+                                                        <span>{formatCurrency(item.price, store || settings)}</span>
                                                     </>
                                                 ) : (
-                                                    formatCurrency(item.price)
+                                                    formatCurrency(item.price, store || settings)
                                                 )}
                                             </button>
                                             {/* Converter button — opens Price/Qty/Total editor */}
@@ -1774,7 +1785,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             </button>
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] text-slate-400 font-bold uppercase">{item.category}</span>
-                                                {item.discount > 0 && <span className="text-xs font-black text-emerald-500">Disc: {formatCurrency(item.discount)}</span>}
+                                                {item.discount > 0 && <span className="text-xs font-black text-emerald-500">Disc: {formatCurrency(item.discount, store || settings)}</span>}
                                                 {/* Negative Stock Warning Badge */}
                                                 {item.qty > item.stock && (
                                                     <span className="text-[10px] font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded mt-0.5 animate-pulse">
@@ -1830,7 +1841,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             <div className={`text-right ml-auto ${seniorMode ? 'scale-110 origin-right' : ''} transition-transform`}>
                                                 <p className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1 text-right">Line Total</p>
                                                 <p className="font-black text-slate-900 dark:text-white text-sm">
-                                                    {formatCurrency(item.price * item.qty)}
+                                                    {formatCurrency(item.price * item.qty, store || settings)}
                                                 </p>
                                             </div>
                                         </div>
@@ -1865,22 +1876,22 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="space-y-2 bg-white/5 p-3 rounded-xl">
                             <div className="flex justify-between text-slate-400 text-xs">
                                 <span>Subtotal</span>
-                                <span className="text-white">{formatCurrency(subtotal)}</span>
+                                <span className="text-white">{formatCurrency(subtotal, store || settings)}</span>
                             </div>
-                            {activeSale.discount > 0 && (
+                            {totalDiscounts > 0 && (
                                 <div className="flex justify-between text-emerald-400 text-xs font-bold">
                                     <span>Discount</span>
-                                    <span>-{formatCurrency(activeSale.discount)}</span>
+                                    <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
                                 </div>
                             )}
                             <div className="flex justify-between text-slate-400 text-xs">
                                 <span>Tax ({taxRate}%)</span>
-                                <span className="text-white">{formatCurrency(taxAmount)}</span>
+                                <span className="text-white">{formatCurrency(taxAmount, store || settings)}</span>
                             </div>
                             <div className="h-px bg-white/10 my-1"></div>
                             <div className={`flex justify-between font-bold text-emerald-400 ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
                                 <span>Total</span>
-                                <span>{formatCurrency(cartTotal)}</span>
+                                <span>{formatCurrency(cartTotal, store || settings)}</span>
                             </div>
                         </div>
 
@@ -1945,7 +1956,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             const disc = parseFloat(val);
                                             if (!isNaN(disc)) {
                                                 updateActiveSale({ discountType: 'fixed', discountValue: disc });
-                                                addToast(`Discount of ${formatCurrency(disc)} applied`, 'success');
+                                                addToast(`Discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
                                             }
                                         });
                                     }}
@@ -1956,8 +1967,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
                                         <span className="text-xs font-bold text-white truncate">
                                             {activeSale.discountType === 'percentage'
-                                                ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount)})`
-                                                : formatCurrency(globalDiscount)
+                                                ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
+                                                : formatCurrency(globalDiscount, store || settings)
                                             }
                                         </span>
                                     </div>
@@ -2058,7 +2069,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </span>
                                 </div>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-lg">{settings?.currency_symbol || '$'}</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-lg">{getCurrencySymbol(store || settings)}</span>
                                     <input
                                         type="number"
                                         value={activeSale.cashReceived}
@@ -2087,7 +2098,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         {changeDue >= 0 ? 'Change Due' : 'Shortage'}
                                     </span>
                                     <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {formatCurrency(Math.abs(changeDue))}
+                                        {formatCurrency(Math.abs(changeDue), store || settings)}
                                     </span>
                                 </div>
                             </div>
@@ -2162,7 +2173,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-indigo-600">{formatCurrency(variant.price)}</p>
+                                        <p className="font-bold text-indigo-600">{formatCurrency(variant.price, store || settings)}</p>
                                         <p className="text-xs text-slate-500">Stock: {variant.stock_quantity}</p>
                                     </div>
                                 </div>
@@ -2204,7 +2215,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 onClose={() => setPaymentModalOpen(false)}
                 totalAmount={cartTotal}
                 onComplete={handlePaymentComplete}
-                currency={settings?.currency || 'PKR'}
+                currency={store?.currency_code || settings?.currency || 'PKR'}
                 bankAccounts={bankAccounts}
                 customer={activeSale.customer}
             />
@@ -2344,7 +2355,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             Use Excess Amount
                         </h3>
                         <div className="text-3xl font-black text-emerald-500 my-2">
-                            {formatCurrency(overpaymentDetails.amount)}
+                            {formatCurrency(overpaymentDetails.amount, store || settings)}
                         </div>
                         <p className="text-xs text-slate-400">
                             Customer paid extra. Choose action:
@@ -2368,7 +2379,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             </FormModal>
 
-            {/* ── Item Discount Modal ────────────────────────────────────── */}
+            {/* â”€â”€ Item Discount Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {itemDiscountModal.show && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
@@ -2383,7 +2394,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 onClick={() => setItemDiscountModal(p => ({ ...p, discType: 'fixed' }))}
                                 className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${itemDiscountModal.discType === 'fixed' ? 'bg-white dark:bg-slate-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
                             >
-                                ₨ Fixed
+                                {getCurrencySymbol(store || settings)} Fixed
                             </button>
                             <button
                                 onClick={() => setItemDiscountModal(p => ({ ...p, discType: 'percentage' }))}
@@ -2402,11 +2413,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 value={itemDiscountModal.discValue}
                                 onChange={e => setItemDiscountModal(p => ({ ...p, discValue: e.target.value }))}
                                 onKeyDown={e => e.key === 'Enter' && applyItemDiscount()}
-                                placeholder={itemDiscountModal.discType === 'percentage' ? 'Enter % (e.g. 10)' : `Max: ${formatCurrency(itemDiscountModal.originalPrice)}`}
+                                placeholder={itemDiscountModal.discType === 'percentage' ? 'Enter % (e.g. 10)' : `Max: ${formatCurrency(itemDiscountModal.originalPrice, store || settings)}`}
                                 className="w-full px-4 py-3 pr-12 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white text-lg font-bold focus:ring-2 focus:ring-indigo-400 outline-none"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
-                                {itemDiscountModal.discType === 'percentage' ? '%' : '₨'}
+                                {itemDiscountModal.discType === 'percentage' ? '%' : (getCurrencySymbol(store || settings))}
                             </span>
                         </div>
 
@@ -2420,7 +2431,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             itemDiscountModal.discType === 'percentage'
                                                 ? (itemDiscountModal.originalPrice * parseFloat(itemDiscountModal.discValue)) / 100
                                                 : parseFloat(itemDiscountModal.discValue)
-                                        )
+                                        ),
+                                        store || settings
                                     )}
                                 </span>
                             </div>
@@ -2444,7 +2456,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             )}
 
-            {/* ── Converter Modal (Price / Qty / Total) ─────────────────── */}
+            {/* â”€â”€ Converter Modal (Price / Qty / Total) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {converterModal.show && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
@@ -2461,7 +2473,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'price' }))}
                                     className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${converterModal.mode === 'price' ? 'bg-white dark:bg-slate-600 shadow text-amber-600 dark:text-amber-400' : 'text-slate-500'}`}
                                 >
-                                    ₨ Price
+                                    {getCurrencySymbol(store || settings)} Price
                                 </button>
                                 <button
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'qty' }))}
@@ -2474,9 +2486,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                         {/* Fields */}
                         {[
-                            { label: 'Unit Price', field: 'price', icon: '₨', color: 'indigo' },
+                            { label: 'Unit Price', field: 'price', icon: (getCurrencySymbol(store || settings)), color: 'indigo' },
                             { label: 'Quantity', field: 'qty', icon: '#', color: 'emerald' },
-                            { label: 'Total', field: 'total', icon: '=', color: 'amber' },
+                            { label: 'Total', field: 'total', icon: (getCurrencySymbol(store || settings)), color: 'amber' },
                         ].map(({ label, field, icon, color }) => (
                             <div key={field}>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">{label}</label>
@@ -2569,7 +2581,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 </div>
                                                 <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
                                                     <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-indigo-400" /> {sale.data.cart?.length || 0} Items</span>
-                                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0)}</span>
+                                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0, store || settings)}</span>
                                                     <span className="flex items-center gap-1.5 text-slate-400"><Clock size={14} /> {new Date(sale.created_at).toLocaleTimeString()}</span>
                                                 </div>
                                             </div>
@@ -2634,3 +2646,4 @@ export default function Pos({ settings, bankAccounts, recalledSale }) {
         </OneGlanceLayout>
     );
 }
+

@@ -33,9 +33,7 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
         $variantId      = (string) ($attributes['variant_id'] ?? '');
         $lsStatus       = $attributes['status'] ?? 'active';
 
-        $tenant = Tenant::withoutTenantScope()
-            ->where('lemon_squeezy_subscription_id', $subscriptionId)
-            ->first();
+        $tenant = Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->first();
 
         if (!$tenant) {
             Log::warning("HandleSubscriptionUpdatedJob: No tenant found for subscription {$subscriptionId}");
@@ -60,6 +58,8 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
             (string) config('services.lemon_squeezy.business_variant_id') => 'business',
             default => $tenant->plan,
         };
+
+        app()->instance('current.tenant', $tenant);
 
         $tenant->update(['plan' => $plan, 'status' => $status]);
 

@@ -89,34 +89,37 @@ class QuotationController extends Controller
         ]);
 
         $items = $quotation->items;
+        $orderId = Str::uuid()->toString();
 
         // Create the sales order using quotation prices
-        $total = $items->sum('line_total');
+        
+        DB::transaction(function () use ($quotation, $items, $validated, $orderId) {
+            // 1. Create the Sales Order
+            $dateCode      = date('ymd');
+            $dailyCount    = SalesOrder::whereDate('created_at', today())->count();
+            $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
+            $orderNumber   = 'SO-' . $dateCode . '-' . $sequence;
 
-        DB::transaction(function () use (
-            $quotation, $items, $validated, $id, $total
-        ) {
             $order = SalesOrder::create([
-                'party_id'      => $quotation->party_id,
-                'warehouse_id'  => $validated['warehouse_id'],
+                'id'            => $orderId,
+                'order_number'  => $orderNumber,
+                'customer_id'   => $quotation->party_id,
                 'order_date'    => now()->toDateString(),
                 'delivery_date' => $validated['delivery_date'] ?? null,
                 'status'        => 'open',
-                'total_amount'  => $total,
+                'total_amount'  => $quotation->total_amount,
                 'notes'         => "Converted from quotation {$quotation->quotation_number}",
-                'created_by'    => auth()->id() ?? 1,
+                'user_id'       => auth()->id() ?? 1,
             ]);
 
             foreach ($items as $item) {
                 SalesOrderItem::create([
-                    'sales_order_id'   => $order->id,
-                    'product_id'       => $item->product_id,
-                    'qty'              => $item->qty,
-                    'sale_uom'         => $item->sale_uom,
-                    'unit_price'       => $item->unit_price,
-                    'discount_percent' => $item->discount_percent,
-                    'tax_rate'         => $item->tax_rate,
-                    'line_total'       => $item->line_total,
+                    'sales_order_id'     => $order->id,
+                    'product_id'         => $item->product_id,
+                    'quantity_requested' => $item->qty,
+                    'quantity_reserved'  => 0,
+                    'unit_price'         => $item->unit_price,
+                    'subtotal'           => $item->line_total,
                 ]);
             }
 

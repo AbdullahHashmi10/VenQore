@@ -70,7 +70,7 @@ class ProvisionTenantJob implements ShouldQueue
             // ── Create the store ────────────────────────────────────
             $tenant = Tenant::create([
                 'name'                          => $name . "'s Store",
-                'slug'                          => $this->uniqueSlug($name),
+                'slug'                          => \App\Services\SubdomainGenerator::generate($name),
                 'plan'                          => $plan,
                 'status'                        => 'trial',
                 'trial_ends_at'                 => now()->addDays(14),
@@ -132,17 +132,6 @@ class ProvisionTenantJob implements ShouldQueue
             config('services.lemon_squeezy.business_variant') => 'business',
             default                                            => 'starter',
         };
-    }
-
-    private function uniqueSlug(string $name): string
-    {
-        $base = Str::slug($name);
-        $slug = $base;
-        $i    = 1;
-        while (Tenant::where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $i++;
-        }
-        return $slug;
     }
 
     private function generateJoinCode(): string

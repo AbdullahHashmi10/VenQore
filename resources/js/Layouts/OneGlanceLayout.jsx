@@ -28,6 +28,7 @@ import {
     Settings,
     Trash2,
     History,
+    RefreshCcw,
     ChevronLeft,
     ChevronRight,
     BookOpen,
@@ -45,7 +46,12 @@ import {
     Package,
     Settings2,
     Wallet,
-    TrendingUp
+    TrendingUp,
+    Ticket,
+    Rss,
+    UserCog,
+    Layers,
+    Zap
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -55,6 +61,9 @@ import TerminalStatusBadge from '@/Components/TerminalStatusBadge';
 import Toast from '@/Components/Toast';
 import UpgradeModal from '@/Components/UpgradeModal';
 import ImpersonationBanner from '@/Components/ImpersonationBanner';
+import PlanUsageBanner from '@/Components/PlanUsageBanner';
+import PlanNotificationBell from '@/Components/PlanNotificationBell';
+import { useTheme } from '@/Contexts/ThemeContext';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false }) {
     const {
@@ -117,34 +126,28 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     const isInvoiceCreate = url.includes('/sales/invoice/create') || url.includes('/purchases/create');
     const isPosRoute = url.includes('/pos');
 
-    // Make settings available globally for legacy/utility functions
+    // Make settings available globally for legacy/utility functions (Synchronous population)
     // Definitive Plan: merge store-level currency so formatCurrency() auto-uses per-store currency
+    if (typeof window !== 'undefined') {
+        window.amdSettings = {
+            ...(settings || {}),
+            // Unified metadata: prioritize store-level (synced) values, then settings
+            currency:        settings?.currency        || store?.currency_code,
+            currency_code:   store?.currency_code      || settings?.currency_code,
+            currency_symbol: store?.currency_symbol    || settings?.currency_symbol,
+            store_name:      store?.name               || settings?.store_name || settings?.business_name,
+            decimal_places:  parseInt(settings?.decimal_places || 2)
+        };
+    }
+
     const isTrial = store?.status === 'trial' || (store?.trial_ends_at && new Date(store.trial_ends_at) > new Date());
     const trialDaysLeft = store?.trial_ends_at
         ? Math.max(0, Math.ceil((new Date(store.trial_ends_at) - new Date()) / 86400000))
         : null;
-    useEffect(() => {
-        if (settings) {
-            window.amdSettings = {
-                ...settings,
-                // Store-level currency overrides settings-level currency (per definitive plan)
-                ...(store ? {
-                    currency_symbol: store.currency_symbol || settings?.currency_symbol,
-                    currency_code:   store.currency_code   || settings?.currency_code,
-                } : {}),
-            };
-        }
-    }, [settings, store?.currency_symbol, store?.currency_code]);
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const saved = localStorage.getItem('amd_theme');
-        if (saved) return saved === 'dark';
-        // Default to dark_mode_default setting if no preference saved
-        const def = settings?.dark_mode_default;
-        return def === '1' || def === 1 || def === true || def === 'true' || def === 'on';
-    });
+    const { isDarkMode, setIsDarkMode } = useTheme();
     const [isLargeText, setIsLargeText] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [expandedMenu, setExpandedMenu] = useState(null);
@@ -247,7 +250,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         {
             name: 'Sell',
             icon: ShoppingCart,
-            subs: [
+            // PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
+            subs: props.auth?.user?.role === 'cashier' ? [] : [
                 { group: 'Transactions', items: ['Orders', 'Quotations / Pre-Sales', 'Proposals'] },
                 { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: true }, { label: 'Recurring Invoices', locked: true }] },
                 { group: 'Config', items: [{ label: 'E-Invoicing', locked: true }] }
@@ -297,20 +301,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             routeParams: store ? { store_slug: store.slug } : {}
         },
         {
-            name: 'Marketing',
-            icon: Sparkles,
+            name: 'VenSynQ',
+            icon: RefreshCcw,
             subs: [
-                { group: 'Growth', items: ['Growth Engine', { label: 'Campaigns', locked: true }] },
-                { group: 'Promotion', items: [{ label: 'Email Marketing', locked: true }, { label: 'SMS Marketing', locked: true }] },
-                { group: 'Integrations', items: ['WooCommerce Sync'] }
+                { group: 'Multi-Channel', items: ['VenSynQ'] },
+                { group: 'Promotion', items: [{ label: 'Email Marketing', locked: true }, { label: 'SMS Marketing', locked: true }, { label: 'Campaigns', locked: true }] },
+                { group: 'Integrations', items: ['WooCommerce Sync'] },
+                { group: 'Configuration', items: ['VenSynQ Settings'] }
             ],
-            route: store ? 'store.growth-engine.index' : 'growth-engine.index',
+            route: store ? 'store.vensynq.index' : 'vensynq.index',
             routeParams: store ? { store_slug: store.slug } : {}
         },
         {
             name: 'Insights',
             icon: TrendingUp,
             subs: [
+                { group: 'Growth', items: ['Growth Engine'] },
                 { group: 'Financial Health', items: ['Chart of Accounts', 'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Tax Report'] },
                 { group: 'Sales Analysis', items: ['Sales Report', 'Discount Report', 'Sale Aging'] },
                 { group: 'Purchase Analysis', items: ['Purchase Report', 'Expense Report'] },
@@ -323,7 +329,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     ];
 
     const userRole = props.auth?.user?.role;
-    const isPlatformAdmin = props.auth?.user?.is_platform_admin === true;
+    const isPlatformAdmin = !!props.auth?.user?.is_platform_admin;
 
     // ── CRITICAL SECURITY: If no store context and user landed here via a legacy bare route,
     // redirect to /hub immediately. NEVER show platform links to store users.
@@ -340,13 +346,19 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     // Platform HQ mode (isPlatformAdmin): shows Platform HQ links
     // Store Admin Panel mode (!isPlatformAdmin OR store context): shows the full store Admin Panel
     const adminMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? [
-        // ── Platform HQ (hidden from store users) ─────────────────────────
-        { name: 'Platform Home', icon: Home, subs: [], route: 'platform.dashboard' },
+        // ── Platform HQ (Unified SuperAdmin Experience) ─────────────────────────
+        { name: 'Overview', icon: LayoutDashboard, subs: [], route: 'platform.dashboard' },
+        { name: 'Plans & Limits', icon: Layers, subs: [], route: 'platform.plans.index' },
+        { name: 'Platforms', icon: Database, subs: [], route: 'platform.platforms.index' },
+        { name: 'Coupons', icon: Ticket, subs: [], route: 'platform.coupons.index' },
+        { name: 'Tenant Overrides', icon: Zap, subs: [], route: 'platform.tenants.overrides' },
         { name: 'Stores', icon: ShoppingBag, subs: [], route: 'platform.stores' },
-        { name: 'Users', icon: Users, subs: [], route: 'platform.users' },
-        { name: 'Support Tickets', icon: Activity, subs: [], route: 'platform.tickets' },
-        { name: 'Webhooks', icon: Settings2, subs: [], route: 'platform.webhooks' },
-        { name: 'System Update', icon: Package, subs: [], route: 'store.updater.index', routeParams: store ? { store_slug: store.slug } : {} },
+        { name: 'Platform Users', icon: UserCog, subs: [], route: 'platform.users' },
+        { name: 'Revenue', icon: TrendingUp, subs: [], route: 'platform.dashboard', routeParams: { tab: 'revenue' } },
+        { name: 'Support', icon: Ticket, subs: [], route: 'platform.tickets' },
+        { name: 'Activity Feed', icon: Rss, subs: [], route: 'platform.dashboard', routeParams: { tab: 'feed' } },
+        { name: 'Settings', icon: Settings, subs: [], route: 'platform.dashboard', routeParams: { tab: 'settings' } },
+        { name: 'System Update', icon: Package, subs: [], route: 'updater.index' },
     ] : [
         // ── Store Admin Panel — Restored Full Legacy Experience ──────────────
         // Scoped to /s/{store_slug}/admin/... to maintain SaaS isolation.
@@ -397,16 +409,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         'Stock': ['inventory', 'purchases'],
         'Contacts': ['customers'],
         'Money': ['finance', 'purchases'],
-        'Marketing': ['sales', 'discounts'],
+        'VenSynQ': ['sales', 'inventory', 'discounts'],
         'Insights': ['reports'],
         'Activity Log': ['audit'],
         'Recycle Bin': ['settings'],  // Moved to admin, but still restricted
         // 'Settings': ['settings'],  // Removed
         // 'System': ['settings', 'audit'], // Removed
-        // Admin Menu
-        'Admin Home': ['users', 'settings'],
-        'Dashboard': mode === 'admin' ? ['users', 'settings'] : [],
-        'User Management': ['users'],
+        'Overview': [],
+        'Plans & Limits': [],
+        'Platforms': [],
+        'Coupons': [],
+        'Tenant Overrides': [],
+        'Stores': [],
+        'Platform Users': [],
+        'Revenue': [],
+        'Support': [],
+        'Activity Feed': [],
+        'Settings': [],
+        'System Update': [],
         'Staff Summaries': ['users'],
         'Staff Attendance': ['users'],
         'System Settings': ['settings'],
@@ -492,15 +512,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         wasHoverExpandedRef.current = false; // User interacted, keep sidebar open
     }, []);
 
-    useEffect(() => {
-        if (isDarkMode) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('amd_theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('amd_theme', 'light');
-        }
-    }, [isDarkMode]);
+    // REMOVED LOCAL THEME EFFECT - Handled by ThemeContext
 
     useEffect(() => {
         // UI Scale logic: senior_mode (20px) > ui_scale setting (%)
@@ -591,9 +603,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         onMouseLeave={handleSidebarMouseLeave}
                         onClick={handleSidebarInteraction}
                         className={`
-          flex flex-col h-full bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 transition-all duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)] z-20 shadow-xl relative
-          ${isSidebarOpen ? 'w-64' : 'w-20'}
-        `}
+                            fixed md:relative top-0 left-0 h-[100vh] shrink-0 z-40
+                            transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]
+                            flex flex-col amd-no-drag
+                            ${isPlatformAdmin && !store 
+                                ? (isDarkMode ? 'bg-[#020617]/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-slate-200')
+                                : 'bg-white dark:bg-slate-950 border-r border-slate-100 dark:border-slate-900'}
+                            ${isSidebarOpen ? 'w-[280px]' : 'w-[88px]'}
+                            ${isPlatformAdmin && !store 
+                                ? (isDarkMode ? 'm-4 rounded-[32px] h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-slate-200 shadow-sm transition-all')
+                                : ''}
+                        `}
                     >
 
 
@@ -619,17 +639,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             {menuItems.map((item) => (
                                 <SidebarItem
                                     key={item.name}
-                                    id={`sidebar-${item.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+                                    name={item.name}
                                     icon={item.icon}
-                                    label={item.name}
-                                    isActive={isMenuItemActive(item)}
-                                    isExpanded={isSidebarOpen}
-                                    isMenuExpanded={expandedMenu === item.name}
                                     subItems={item.subs}
-                                    routeName={item.route}
+                                    route={item.route}
                                     routeParams={item.routeParams || { store_slug: store?.slug }}
                                     menuKey={item.name}
                                     onHoverExpand={handleHoverExpand}
+                                    isPlatformHQ={isPlatformAdmin && !store}
+                                    isExpanded={isSidebarOpen}
+                                    isMenuExpanded={expandedMenu === item.name}
+                                    isActive={activeMenu === item.name}
                                     onToggle={() => {
                                         toggleMenu(item.name);
                                         if (!isSidebarOpen) setIsSidebarOpen(true);
@@ -637,8 +657,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                 />
                             ))}
 
-                            {/* Activity Hub Section */}
-                            {(activeInvoices.length > 0 || posSessions.length > 0 || (activePurchases && activePurchases.length > 0)) && (
+                            {/* Activity Hub — PROBLEM 5 FIX: Viewer/Accountant see nothing; Cashier sees own sessions only */}
+                            {(activeInvoices.length > 0 || posSessions.length > 0 || (activePurchases && activePurchases.length > 0)) && !(isPlatformAdmin && !store) && (
                                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-left-2">
                                     <div className={`flex items-center gap-3 mb-4 px-2 ${!isSidebarOpen && 'justify-center'}`}>
                                         <Activity size={18} className="text-indigo-500" />
@@ -646,8 +666,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     </div>
 
                                     <div className="space-y-1">
-                                        {/* Invoices (SALES - GREEN) */}
-                                        {activeInvoices.map((inv, idx) => (
+                                        {/* Invoices — hidden from cashier/viewer/accountant/purchasing_officer */}
+                                        {(userRole === 'owner' || userRole === 'admin' || userRole === 'manager') && activeInvoices.map((inv, idx) => (
                                             <button
                                                 key={inv.id}
                                                 onClick={() => {
@@ -670,8 +690,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             </button>
                                         ))}
 
-                                        {/* POS Sessions (SALES - GREEN) */}
-                                        {posSessions.map((pos, idx) => (
+                                        {/* POS Sessions — cashier sees only own sessions */}
+                                        {(userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || userPerms.includes('pos')) && posSessions
+                                            .filter(pos => userRole === 'cashier' ? pos.user_id === props.auth?.user?.id : true)
+                                            .map((pos, idx) => (
                                             <button
                                                 key={pos.id}
                                                 onClick={() => {
@@ -694,8 +716,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             </button>
                                         ))}
 
-                                        {/* Purchases (RED) */}
-                                        {activePurchases && activePurchases.map((pur, idx) => (
+                                        {/* Purchases — purchasing_officer and above */}
+                                        {activePurchases && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'purchasing_officer' || userPerms.includes('purchases')) && activePurchases.map((pur, idx) => (
                                             <button
                                                 key={pur.id}
                                                 onClick={() => {
@@ -721,13 +743,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                 </div>
                             )}
 
-                            {/* Back to Shop Button (Admin Mode Only) */}
-                            {mode === 'admin' && (
+                            {/* Back to Shop Button (Admin Mode Only) - Hide in Platform HQ */}
+                            {mode === 'admin' && !(isPlatformAdmin && !store) && (
                                 <div className="mt-4 px-2">
                                     <Link
                                         href={store
                                             ? route('store.dashboard', { store_slug: store.slug })
-                                            : route('hub')
+                                            : '#'
                                         }
                                         className={`
                                     flex items-center gap-3 w-full p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all font-medium border border-indigo-100 dark:border-indigo-800
@@ -745,12 +767,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         {/* User & POS Button */}
                         <div className={`border-t border-slate-100 dark:border-slate-800 shrink-0 flex flex-col gap-3 relative z-10 ${isSidebarOpen ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
 
-                            {/* POS BUTTON — only show when we have a store context */}
-                            {/* Never render a bare /pos link -- store.pos route requires {store_slug} */}
-                            <Link
+                            {/* POS BUTTON — only show when we have a store context and NOT in platform HQ */}
+                            {store && !(isPlatformAdmin && !store) && (
+                                <Link
                                 href={store
                                     ? (isPosRoute ? route('store.dashboard', {store_slug: store.slug}) : route('store.pos', {store_slug: store.slug}))
-                                    : '/hub'
+                                    : '#'
                                 }
                                 className={`
                             flex items-center justify-center gap-3 w-full py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden shadow-lg hover:shadow-indigo-500/30
@@ -772,13 +794,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     </span>
                                 </div>
                             </Link>
+                            )}
 
                             {/* USER MENU POPUP */}
                             {isUserMenuOpen && (
                                 <div className="absolute bottom-20 left-4 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700 p-2 z-50 animate-in fade-in slide-in-from-bottom-2">
-                                    <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
-                                        <User size={16} /> Profile Settings
-                                    </Link>
+                                    {store && (
+                                        <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
+                                            <User size={16} /> Profile Settings
+                                        </Link>
+                                    )}
                                     <button
                                         onClick={() => {
                                             localStorage.removeItem('amd_onboarding_driver_complete');
@@ -807,7 +832,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         </Link>
                                     )}
                                     <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
-                                    <a href={`mailto:support@venqore.com?subject=Support Request for ${store?.name || 'Store'}`} className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                                    <a 
+                                        href={`mailto:support@venqore.com?subject=${encodeURIComponent(`Support Request for ${store?.name || 'Store'}`)}`} 
+                                        className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-sm font-medium text-emerald-600 dark:text-emerald-400"
+                                        onClick={(e) => e.stopPropagation()}
+                                    >
                                         <Activity size={16} /> Get Help
                                     </a>
                                     <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
@@ -914,14 +943,19 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         return null;
                     })()}
 
+                    {/* Plan Usage Warning Banner — AppSumo LTD (80% / 95% / 100% threshold) */}
+                    <PlanUsageBanner />
+
                     {/* Header */}
                     {!hideHeader && !fullScreen && (
                         <header className="h-20 px-8 flex items-center z-50 relative shrink-0">
                             {/* LEFT SECTION */}
                             <div className="flex-1 flex items-center gap-8 text-slate-400">
                                 <div className="hidden md:flex flex-col">
-                                    <h1 className="text-xl font-bold text-slate-800 dark:text-white tracking-tight whitespace-nowrap">
-                                        {title || 'Overview'}
+                                    <h1 className={`font-bold tracking-tight whitespace-nowrap ${isPlatformAdmin && !store 
+                                        ? (isDarkMode ? 'text-2xl text-white' : 'text-2xl text-slate-900')
+                                        : 'text-xl text-slate-800 dark:text-white'}`}>
+                                        {title || (isPlatformAdmin && !store ? 'Command Center' : 'Overview')}
                                     </h1>
                                     {!isPosRoute && <p className="text-xs text-slate-400 font-medium">Welcome back, {props.auth?.user?.name || 'Abdullah'}</p>}
                                 </div>
@@ -958,6 +992,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             <div className="flex-1 flex items-center justify-end gap-4">
                                 <CharityButton />
 
+                                {/* Plan Change Notification Bell — owners & admins only */}
+                                {store && (userRole === 'owner' || userRole === 'admin') && (
+                                    <PlanNotificationBell storeSlug={store.slug} />
+                                )}
+
                                 {/* Actionable Intelligence (AI) Recommendation Engine */}
                                 <div className="relative z-50" ref={growthRef}>
                                     {showAiPopup && !isGrowthOpen && props.growth_engine?.popup && (
@@ -993,19 +1032,22 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         </div>
                                     )}
 
-                                    <button
-                                        id="tour-growth-engine"
-                                        onClick={() => setIsGrowthOpen(!isGrowthOpen)}
-                                        className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all duration-300 ${isGrowthOpen
-                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-200 dark:shadow-none'
-                                            : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md'}`}
-                                    >
-                                        <Sparkles size={16} className={isGrowthOpen ? 'text-indigo-200' : 'text-indigo-500'} />
-                                        <span className={`text-sm font-bold ${isGrowthOpen ? 'text-white' : 'bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent'}`}>
-                                            Growth Engine
-                                        </span>
-                                        {props.growth_engine?.count > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>}
-                                    </button>
+                                        {/* Growth Engine - Hide in Platform HQ */}
+                                        {!(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
+                                            <button
+                                                id="tour-growth-engine"
+                                                onClick={() => setIsGrowthOpen(!isGrowthOpen)}
+                                                className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all duration-300 ${isGrowthOpen
+                                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-200 dark:shadow-none'
+                                                    : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md'}`}
+                                            >
+                                                <Sparkles size={16} className={isGrowthOpen ? 'text-indigo-200' : 'text-indigo-500'} />
+                                                <span className={`text-sm font-bold ${isGrowthOpen ? 'text-white' : 'bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent'}`}>
+                                                    Growth Engine
+                                                </span>
+                                                {props.growth_engine?.count > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>}
+                                            </button>
+                                        )}
 
                                     {/* Growth Engine Dropdown */}
                                     {isGrowthOpen && (
@@ -1047,10 +1089,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     </div>
                                 )}
 
-                                {/* Header Private Shortcut: Toggle Admin/Store Panel */}
-                                {store && (userRole === 'owner' || userRole === 'admin' || userRole === 'platform_admin') && (
+                                {/* Header Private Shortcut: Toggle Admin/Store Panel - Hide in Platform HQ */}
+                                {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin' || userRole === 'platform_admin') && (
                                     <Link
-                                        href={mode === 'admin' ? route('store.dashboard', {store_slug: store?.slug}) : route('store.admin.home', {store_slug: store?.slug})}
+                                        href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
                                         className="hidden md:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300"
                                     >
                                         <ShieldCheck size={16} className={mode === 'admin' ? "text-indigo-500" : "text-amber-500"} />
@@ -1139,7 +1181,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             <div className="p-4 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
                                                 <h3 className="font-bold text-slate-800 dark:text-white">Notifications</h3>
                                                 <button
-                                                    onClick={() => router.post(route('store.notifications.mark-all-read', { store_slug: store.slug }))}
+                                                    onClick={() => store && router.post(route('store.notifications.mark-all-read', { store_slug: store.slug }))}
                                                     className="text-xs text-indigo-500 font-medium hover:underline"
                                                 >
                                                     Mark all read
@@ -1168,7 +1210,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 )}
                                             </div>
                                             <div className="p-2 border-t border-slate-50 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 text-center">
-                                                <Link href={route('store.notifications.index', { store_slug: store.slug })} className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
+                                                <Link href={store ? route('store.notifications.index', { store_slug: store.slug }) : '#'} className="text-xs font-medium text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors">
                                                     View All Notifications
                                                 </Link>
                                             </div>
@@ -1221,6 +1263,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                     }}
                     initialQuery={aiModalQuery}
                     settings={settings}
+                    store={store}
                 />
 
                 {isAiMinimized && (

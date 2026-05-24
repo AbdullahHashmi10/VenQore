@@ -1,8 +1,11 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { List } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function ExpenseByItem({ expenses }) {
+    const { store } = usePage().props;
     return (
         <ReportPage
             title="Expense by Item"
@@ -31,7 +34,7 @@ export default function ExpenseByItem({ expenses }) {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{exp.description || 'No description'}</td>
-                                <td className="px-6 py-4 text-right text-sm font-black text-red-600 dark:text-red-400">Rs {exp.amount.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-right text-sm font-black text-red-600 dark:text-red-400">{formatCurrency(exp.amount, store)}</td>
                             </tr>
                         ))}
                     </tbody>

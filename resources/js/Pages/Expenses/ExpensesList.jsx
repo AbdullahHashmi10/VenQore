@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
@@ -33,10 +34,10 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-// ── Party Search Field (same component as Payments In/Out) ──────────────────
+// -- Party Search Field (same component as Payments In/Out) ------------------
 const AC_OFF = 'payee-search-' + Math.random().toString(36).slice(2);
 
-function PartySearchField({ value, selectedParty, onSelect, onClear }) {
+function PartySearchField({ value, selectedParty, onSelect, onClear, store }) {
     const [query, setQuery] = React.useState(value || '');
     const [results, setResults] = React.useState([]);
     const [defaultResults, setDefaultResults] = React.useState([]);
@@ -134,7 +135,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear }) {
                                 </div>
                                 {!settled && (
                                     <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${isReceive ? 'bg-emerald-500/15 text-emerald-400' : 'bg-rose-500/15 text-rose-400'}`}>
-                                        {isReceive ? 'To Receive' : 'To Pay'}: Rs {Math.abs(bal).toLocaleString()}
+                                        {isReceive ? 'To Receive' : 'To Pay'}: {getCurrencySymbol()} {Math.abs(bal).toLocaleString()}
                                     </span>
                                 )}
                                 {settled && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 bg-white/10 text-slate-400">Settled</span>}
@@ -153,7 +154,7 @@ function PartySearchField({ value, selectedParty, onSelect, onClear }) {
     );
 }
 
-// ── Custom Select (Dark Theme) ──────────────────────────────────────────────
+// -- Custom Select (Dark Theme) ----------------------------------------------
 function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }) {
     const [open, setOpen] = React.useState(false);
     const containerRef = React.useRef(null);
@@ -412,7 +413,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
     }, []);
 
     // Formatters
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(Math.abs(val || 0));
+
     const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
     const handleServerSearch = (e) => {
@@ -774,7 +775,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             <td className="p-4 text-xs font-mono text-slate-500">{item.reference || '-'}</td>
                                             <td className="p-4 text-right">
                                                 <span className="font-black text-rose-600 text-sm tabular-nums">{formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}</span>
-                                                {item.tax_amount > 0 && <p className="text-[9px] text-slate-400">(Inc. Tax: {item.tax_amount})</p>}
+                                                {item.tax_amount > 0 && <p className="text-[9px] text-slate-400">(Inc. Tax: {getCurrencySymbol()} {item.tax_amount})</p>}
                                             </td>
                                             <td className="p-4 text-right">
                                                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -798,7 +799,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                 </div>
             </div>
 
-            {/* ── Modern Pro Expense Modal ── */}
+            {/* -- Modern Pro Expense Modal -- */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" style={{ backdropFilter: 'blur(16px)', backgroundColor: 'rgba(15, 23, 42, 0.85)' }}>
                     <div className="relative w-full max-w-[95vw] 2xl:max-w-[1500px] bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500" style={{ maxHeight: '96vh' }}>
@@ -806,7 +807,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
-                        {/* ── Header ── */}
+                        {/* -- Header -- */}
                         <div className="relative z-10 px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/90 backdrop-blur-xl">
                             <div className="flex items-center gap-6">
                                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 flex items-center justify-center shadow-xl shadow-indigo-500/30 transform transition-transform hover:rotate-3 duration-300">
@@ -844,7 +845,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             </div>
                         </div>
 
-                        {/* ── Body ── */}
+                        {/* -- Body -- */}
                         <div className="relative z-10 flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
                             <form encType="multipart/form-data">
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
@@ -885,7 +886,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                     <CustomSelect
                                                         value={formData.expense_category_id}
                                                         onChange={(val) => setFormData({ ...formData, expense_category_id: val })}
-                                                        placeholder="— Select Category —"
+                                                        placeholder="� Select Category �"
                                                         error={errors.expense_category_id}
                                                         options={categories.map(c => ({ value: c.id, label: c.name }))}
                                                         onAddNew={() => setIsCreatingCategory(true)}
@@ -908,7 +909,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                                                 <label className="block text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-3">Amount (Excl. Tax) <span className="text-white">*</span></label>
                                                 <div className="relative flex items-center">
-                                                    <span className="text-3xl font-black text-indigo-300/40 mr-3 select-none">Rs</span>
+                                                    <span className="text-3xl font-black text-indigo-300/40 mr-3 select-none">{getCurrencySymbol()}</span>
                                                     <input
                                                         type="number"
                                                         step="0.01"
@@ -936,6 +937,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             <div className="group">
                                                 <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Payee / Vendor</label>
                                                 <PartySearchField
+                                                    store={store}
                                                     value={formData.payee}
                                                     selectedParty={selectedParty}
                                                     onSelect={(party) => {
@@ -984,7 +986,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                                     <span className="truncate">
                                                                         {b.name || b.bank_name} {b.account_number && <span className="text-slate-500 text-[10px] ml-1">({b.account_number})</span>}
                                                                     </span>
-                                                                    <span className="text-[10px] font-bold text-slate-400 shrink-0">Rs {b.current_balance?.toLocaleString() || 0}</span>
+                                                                    <span className="text-[10px] font-bold text-slate-400 shrink-0">{getCurrencySymbol()} {b.current_balance?.toLocaleString() || 0}</span>
                                                                 </div>
                                                             )
                                                         }))}
@@ -998,7 +1000,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                     <label className="block text-[10px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-2 ml-1">Current Liquidity</label>
                                                     <div className="flex items-center justify-between h-12 px-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
                                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Cash in Hand</span>
-                                                        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">Rs {cashBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
+                                                        <span className="text-sm font-black text-emerald-600 dark:text-emerald-400">{getCurrencySymbol()} {cashBalance?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}</span>
                                                     </div>
                                                 </div>
                                             )}
@@ -1006,7 +1008,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                             <div className="group">
                                                 <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Tax Amount</label>
                                                 <div className="relative flex items-center">
-                                                    <span className="absolute left-4 text-slate-400 dark:text-slate-500 font-bold text-xs">PKR</span>
+                                                    <span className="absolute left-4 text-slate-400 dark:text-slate-500 font-bold text-xs">{getCurrencySymbol()}</span>
                                                     <input
                                                         type="number"
                                                         step="0.01"
@@ -1089,7 +1091,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             </form>
                         </div>
 
-                        {/* ── Footer ── */}
+                        {/* -- Footer -- */}
                         <div className="relative z-20 px-8 py-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-8">
                                 <div className="flex flex-col">

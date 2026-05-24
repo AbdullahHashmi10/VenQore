@@ -68,7 +68,7 @@ class TenantMiddleware
                     'store_name'  => $tenant->name,
                     'plan'        => $tenant->plan,
                     'billing_url' => route('store.billing', ['store_slug' => $storeSlug]),
-                ]);
+                ])->toResponse($request);
             }
         }
 
@@ -78,12 +78,9 @@ class TenantMiddleware
         app()->instance('current.tenant',     $tenant);
         app()->instance('current.membership', $membership);
 
-        // Share with Inertia globally to prevent broken sidebar links
-        \Inertia\Inertia::share([
-            'store'      => $tenant,
-            'membership' => $membership,
-            'userRole'   => $membership->role
-        ]);
+        $request->route()->forgetParameter('store_slug');
+
+        // Shared data has been merged with the main share block below.
 
         // ── Setup wizard redirect ──────────────────────────────────────────
         if (
@@ -119,12 +116,32 @@ class TenantMiddleware
                 'logo_style'      => $tenant->logo_style,
                 'features'        => $tenant->featuresArray(),
             ],
+            'membership'      => $membership,
+            'userRole'        => $membership->role,
             'my_role'         => $membership->role,
             'my_display_name' => $membership->display_name ?? $user->name,
             'my_pos_pin_set'  => !is_null($membership->pos_pin),
             'is_demo'         => (bool)$tenant->is_demo,
             'demo_reset_at'   => $tenant->is_demo ? $this->getNextResetTime() : null,
             'demo_live_users' => $tenant->is_demo ? \Illuminate\Support\Facades\Cache::get('demo_visit_live', 0) : null,
+
+            // ── Plan Usage Banner (GAP 7 — AppSumo LTD) ──────────────────
+            // Lazy closure: only runs when Inertia serializes the response.
+            // Returns null for unlimited plans (null limit) — no query runs.
+            'plan_usage' => function () use ($tenant) {
+                $limit = $tenant->getLimit('transactions_per_month');
+                if ($limit === null) return null; // unlimited plan — no banner shown
+
+                $used = \App\Models\Sale::where('status', 'posted')
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->count();
+
+                return [
+                    'transactions_used'  => $used,
+                    'transactions_limit' => $limit,
+                ];
+            },
         ]);
 
         // Temporary Debug: Verify sharing store prop correctly

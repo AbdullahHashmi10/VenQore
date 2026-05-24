@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { router, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import {
     Wallet,
     MoreHorizontal,
@@ -64,10 +64,10 @@ const ActionMenu = ({ isOpen, onClose, store }) => {
     );
 };
 
-// ... (ActionMenu stays same)
-
-const CashDetailModal = ({ isOpen, onClose, transactions, onNavigate }) => {
+const CashDetailModal = ({ isOpen, onClose, transactions, onNavigate, store }) => {
     if (!isOpen) return null;
+
+    const currencySymbol = getCurrencySymbol(store);
 
     return (
         <div className="absolute inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
@@ -92,7 +92,7 @@ const CashDetailModal = ({ isOpen, onClose, transactions, onNavigate }) => {
                                     <p className="text-[10px] text-slate-400">{new Date(tx.date).toLocaleString('en-PK', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                                 </div>
                                 <span className={`font-bold ${tx.type === 'in' ? 'text-emerald-500' : 'text-red-500'}`}>
-                                    {tx.type === 'in' ? '+' : '-'} Rs {Math.abs(parseFloat(tx.amount)).toLocaleString()}
+                                    {tx.type === 'in' ? '+' : '-'} {currencySymbol} {Math.abs(parseFloat(tx.amount)).toLocaleString()}
                                 </span>
                             </div>
                         )) : (
@@ -125,6 +125,7 @@ const CashDetailModal = ({ isOpen, onClose, transactions, onNavigate }) => {
 };
 
 const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], cashData, inventoryValue = 0 }) => {
+    const { store } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCashModalOpen, setIsCashModalOpen] = useState(false);
@@ -139,9 +140,9 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
     const bankBalance = bankAccounts.reduce((sum, acc) => sum + parseFloat(acc.current_balance || 0), 0);
     const totalBalance = glBalance + bankBalance;
 
-    const formatMoney = (amount) => formatCurrency(parseFloat(amount));
+    const formatMoney = (amount) => formatCurrency(parseFloat(amount), store);
 
-    const { store } = usePage().props;
+ 
     const handleNavigate = (r, params = {}) => router.visit(route(r, { ...params, store_slug: store?.slug }));
 
     useEffect(() => {
@@ -171,6 +172,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                 onClose={() => setIsCashModalOpen(false)}
                 transactions={cashData?.transactions || []}
                 onNavigate={handleNavigate}
+                store={store}
             />
 
             {/* Header */}

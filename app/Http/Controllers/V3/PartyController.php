@@ -24,7 +24,7 @@ class PartyController extends Controller
         $id = Str::uuid()->toString();
 
         $tenantId = app('current.tenant')->id;
-        DB::table('parties')->insert([
+        DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)->insert([
             'id'           => $id,
             'tenant_id'    => $tenantId,
             'name'         => $validated['name'],
@@ -53,7 +53,7 @@ class PartyController extends Controller
         ]);
 
         $tenantId = app('current.tenant')->id;
-        DB::table('parties')
+        DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
             ->update(array_merge($validated, ['updated_at' => now()]));
@@ -65,8 +65,8 @@ class PartyController extends Controller
     {
         $tenantId = app('current.tenant')->id;
         // Only soft-delete by clearing — hard delete blocked if linked to transactions
-        $hasTransactions = DB::table('sales')->where('tenant_id', $tenantId)->where('party_id', $id)->exists()
-            || DB::table('purchases')->where('tenant_id', $tenantId)->where('party_id', $id)->exists();
+        $hasTransactions = DB::table('sales')->where('sales.tenant_id', app('current.tenant')->id)->where('party_id', $id)->exists()
+            || DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)->where('party_id', $id)->exists();
 
         if ($hasTransactions) {
             return redirect()->back()->withErrors([
@@ -74,7 +74,7 @@ class PartyController extends Controller
             ]);
         }
 
-        DB::table('parties')
+        DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
             ->delete();

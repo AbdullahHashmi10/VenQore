@@ -74,7 +74,7 @@ class ImpersonationController extends Controller
         $impersonatorId = $request->session()->get('impersonator_id');
 
         if (!$impersonatorId) {
-            return redirect()->route('admin.dashboard')
+            return redirect()->route('platform.dashboard')
                 ->withErrors(['impersonate' => 'No active impersonation session.']);
         }
 
@@ -97,7 +97,7 @@ class ImpersonationController extends Controller
         // Restore Platform Owner session
         auth()->login($platformOwner);
 
-        return redirect()->route('admin.dashboard')
+        return redirect()->route('platform.dashboard')
             ->with('success', 'Impersonation ended. You are back as Platform Owner.');
     }
 }

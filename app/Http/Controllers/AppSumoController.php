@@ -26,29 +26,25 @@ use Inertia\Response;
 class AppSumoController extends Controller
 {
     /**
-     * Alias for form() — used by the /redeem GET route registered at the tenant level.
-     * Route: GET /redeem  (name: appsumo.index)
+     * Show the AppSumo code redemption form.
      */
     public function index(): Response
     {
-        return $this->form();
-    }
-
-    /**
-     * Show the AppSumo code redemption form.
-     */
-    public function form(): Response
-    {
         $user = Auth::user();
 
-        $existingCount = StoreLicense::where('user_id', $user->id)
+        // withoutTenantScope() is required here: the /redeem route has no TenantMiddleware,
+        // so no 'current.tenant' is bound. StoreLicense uses HasTenant which falls back to
+        // whereRaw('1=0') when no tenant is bound — silently returning 0 rows and breaking
+        // the stacking count. We scope only by user_id + source instead.
+        $existingCount = StoreLicense::query()
+            ->where('user_id', $user->id)
             ->where('source', 'appsumo')
             ->count();
 
         $currentPlan = match(true) {
-            $existingCount >= 3 => 'business',
-            $existingCount >= 2 => 'growth',
-            $existingCount >= 1 => 'starter',
+            $existingCount >= 3 => 'ltd_3',
+            $existingCount >= 2 => 'ltd_2',
+            $existingCount >= 1 => 'ltd_1',
             default             => null,
         };
 
@@ -72,7 +68,7 @@ class AppSumoController extends Controller
         $user = Auth::user();
 
         $appsumoCode = AppSumoCode::where('code', $code)
-            ->where('status', 'available')
+            ->where('is_redeemed', false)
             ->lockForUpdate()
             ->first();
 
@@ -82,7 +78,9 @@ class AppSumoController extends Controller
             ], 422);
         }
 
-        $existingCodeCount = StoreLicense::where('user_id', $user->id)
+        // withoutTenantScope(): same reason as index() — no tenant bound on this public route.
+        $existingCodeCount = StoreLicense::query()
+            ->where('user_id', $user->id)
             ->where('source', 'appsumo')
             ->count();
 
@@ -94,16 +92,16 @@ class AppSumoController extends Controller
 
         $newTotal = $existingCodeCount + 1;
         $plan = match(true) {
-            $newTotal >= 3 => 'business',
-            $newTotal >= 2 => 'growth',
-            default        => 'starter',
+            $newTotal >= 3 => 'ltd_3',
+            $newTotal >= 2 => 'ltd_2',
+            default        => 'ltd_1',
         };
 
         DB::transaction(function () use ($user, $appsumoCode, $plan, $existingCodeCount) {
             // Mark code as consumed
             $appsumoCode->update([
-                'status'      => 'consumed',
-                'redeemed_by' => $user->id,
+                'is_redeemed' => true,
+                'redeemed_by_email' => $user->email,
                 'redeemed_at' => now(),
             ]);
 
@@ -120,28 +118,34 @@ class AppSumoController extends Controller
                 ]);
             } else {
                 // Additional code — upgrade existing LTD license
-                StoreLicense::where('user_id', $user->id)
+                // withoutTenantScope(): still on public route, tenant may not be bound.
+                StoreLicense::query()
+                    ->where('user_id', $user->id)
                     ->where('source', 'appsumo')
                     ->where('type', 'ltd')
                     ->update(['plan' => $plan]);
 
                 // If they already have a store attached to this license, upgrade it too
-                $existingLicense = StoreLicense::where('user_id', $user->id)
+                $existingLicense = StoreLicense::query()
+                    ->where('user_id', $user->id)
                     ->where('source', 'appsumo')
                     ->whereNotNull('tenant_id')
                     ->first();
 
                 if ($existingLicense) {
                     Tenant::where('id', $existingLicense->tenant_id)
-                          ->update(['plan' => $plan]);
+                          ->update([
+                              'plan'        => 'ltd',
+                              'plan_limits' => json_encode(config("plans.{$plan}")), // Explicitly write limits for PlanGate
+                          ]);
                 }
             }
         });
 
         $messages = [
-            1 => 'Code redeemed! You have the Starter plan. Add a 2nd code to upgrade to Growth.',
-            2 => 'Upgraded to Growth plan! Add a 3rd code to unlock Business plan.',
-            3 => 'Upgraded to Business plan — maximum tier unlocked!',
+            1 => 'Code redeemed! You\'re on LTD Starter (ltd_1). Add a 2nd code to upgrade to LTD Growth.',
+            2 => 'Upgraded to LTD Growth (ltd_2)! Add a 3rd code to unlock LTD Business.',
+            3 => 'Upgraded to LTD Business (ltd_3) — maximum tier unlocked!',
         ];
 
         return response()->json([

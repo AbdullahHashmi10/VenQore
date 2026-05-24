@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\PlanRepository;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+
 
 /**
  * Tenant Model — Definitive Plan
@@ -27,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Tenant extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     // Numeric auto-increment PK — NOT UUID
     public $incrementing = true;
@@ -118,9 +121,22 @@ class Tenant extends Model
         return $this->hasMany(StoreLicense::class);
     }
 
+    public function planOverrides(): HasMany
+    {
+        return $this->hasMany(TenantPlanOverride::class);
+    }
+
     // ──────────────────────────────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Get the URL for the tenant's logo.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path ? \Illuminate\Support\Facades\Storage::url($this->logo_path) : null;
+    }
 
     /**
      * Get the owner's email address (for billing notifications).
@@ -151,36 +167,43 @@ class Tenant extends Model
     }
 
     /**
-     * Get effective plan limits, allowing per-tenant JSON overrides.
+     * Get the effective limit for a feature key.
+     *
+     * Priority order:
+     * 1. tenant_plan_overrides table (set from SuperAdmin override panel)
+     * 2. plan_limits table (set from SuperAdmin plan editor)
+     * 3. plan_limits JSON column on this tenant (legacy AppSumo stacking — still supported)
+     * 4. config/plans.php (final fallback during transition period)
      */
     public function getLimit(string $key): mixed
     {
-        if ($this->plan_limits && isset($this->plan_limits[$key])) {
-            return $this->plan_limits[$key];
-        }
-        return config("plans.{$this->plan}.{$key}");
+        // Use PlanRepository which handles DB + cache (priorities 1 & 2)
+        $value = PlanRepository::getEffectiveLimit($this->id, $this->plan, $key);
+
+        // Value semantics from DB:
+        // null = unlimited
+        // '0'  = false/disabled
+        // '1'  = true/enabled
+        // numeric string = integer cap
+        // 'basic'/'advanced' = feature variant
+
+        if ($value === null)        return null;   // unlimited
+        if ($value === '0')         return false;  // feature disabled
+        if ($value === '1')         return true;   // feature enabled
+        if (is_numeric($value))     return (int) $value;
+        return $value;                             // string variant e.g. 'basic', 'advanced'
     }
 
     /**
-     * Return the features array for Inertia sharing.
+     * Get an array of enabled features for the frontend.
      */
     public function featuresArray(): array
     {
         return [
-            'variants'      => $this->feature_variants,
-            'serials'       => $this->feature_serials,
-            'batches'       => $this->feature_batches,
-            'manufacturing' => $this->feature_manufacturing,
+            'variants'      => (bool)$this->feature_variants,
+            'serials'       => (bool)$this->feature_serials,
+            'batches'       => (bool)$this->feature_batches,
+            'manufacturing' => (bool)$this->feature_manufacturing,
         ];
-    }
-    /**
-     * Get the logo URL (using the specific store logo or falling back to VenQore default).
-     */
-    public function getLogoUrlAttribute(): string
-    {
-        if ($this->logo_path) {
-            return asset('storage/' . $this->logo_path);
-        }
-        return asset('images/logo.png');
     }
 }

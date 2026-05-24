@@ -12,10 +12,9 @@ class UomConversionController extends Controller
 {
     public function index(string $productId)
     {
-        $tid = app('current.tenant')->id;
-        $product = DB::table('products')->where('tenant_id', $tid)->where('id', $productId)->firstOrFail();
+        $product = DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->where('id', $productId)->firstOrFail();
 
-        $conversions = DB::table('product_uom_conversions')
+        $conversions = DB::table('product_uom_conversions')->where('product_uom_conversions.tenant_id', app('current.tenant')->id)
             ->where('product_id', $productId)
             ->orderBy('sale_uom')
             ->get();
@@ -34,7 +33,7 @@ class UomConversionController extends Controller
         ]);
 
         // Enforce UNIQUE(product_id, sale_uom)
-        $exists = DB::table('product_uom_conversions')
+        $exists = DB::table('product_uom_conversions')->where('product_uom_conversions.tenant_id', app('current.tenant')->id)
             ->where('product_id', $productId)
             ->whereRaw('UPPER(sale_uom) = ?', [strtoupper($validated['sale_uom'])])
             ->exists();
@@ -45,7 +44,7 @@ class UomConversionController extends Controller
             ]);
         }
 
-        DB::table('product_uom_conversions')->insert([
+        DB::table('product_uom_conversions')->where('product_uom_conversions.tenant_id', app('current.tenant')->id)->insert([
             'id'                => Str::uuid()->toString(),
             'product_id'        => $productId,
             'sale_uom'          => strtoupper($validated['sale_uom']),
@@ -59,10 +58,8 @@ class UomConversionController extends Controller
 
     public function destroy(string $productId, string $id)
     {
-        $tid = app('current.tenant')->id;
         // Safety check: do not delete a UOM that has been used in sale_items
-        $inUse = DB::table('sale_items')
-            ->where('tenant_id', $tid)
+        $inUse = DB::table('sale_items')->where('sale_items.tenant_id', app('current.tenant')->id)
             ->where('product_id', $productId)
             ->whereRaw('UPPER(sale_uom) = UPPER((SELECT sale_uom FROM product_uom_conversions WHERE id = ?))', [$id])
             ->exists();
@@ -73,7 +70,7 @@ class UomConversionController extends Controller
             ]);
         }
 
-        DB::table('product_uom_conversions')
+        DB::table('product_uom_conversions')->where('product_uom_conversions.tenant_id', app('current.tenant')->id)
             ->where('id', $id)
             ->where('product_id', $productId)
             ->delete();

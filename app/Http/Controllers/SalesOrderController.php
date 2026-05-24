@@ -116,7 +116,7 @@ class SalesOrderController extends Controller
         ]);
 
         $order = DB::transaction(function () use ($validated) {
-            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['name' => 'Walk-in Customer'], ['type' => 'customer', 'phone' => '0000000000'])->id;
+            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
             $customerName = Party::find($customerId)->name;
 
             $order = SalesOrder::create([
@@ -135,8 +135,20 @@ class SalesOrderController extends Controller
                 $subtotal = $item['unit_price'] * $item['quantity'];
                 $totalAmount += $subtotal;
 
-                // V3 Inventory Reservation Logic: Count requested qty as reserved
-                // In backorder-mode, we always reserve the full requested quantity even if stock is negative.
+                $totalStock = \App\Models\Stock::where('product_id', $item['product_id'])->sum('quantity');
+                $currentlyReserved = \App\Models\SalesOrderItem::where('product_id', $item['product_id'])
+                    ->whereHas('salesOrder', function($q) {
+                        $q->whereNotIn('status', ['cancelled', 'completed']);
+                    })->sum('quantity_reserved');
+                
+                $available = $totalStock - $currentlyReserved;
+                
+                if ($available < $item['quantity']) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items.0.quantity' => ['Insufficient stock available.']
+                    ]);
+                }
+
                 $reservedAmount = $item['quantity'];
 
                 SalesOrderItem::create([
@@ -230,7 +242,7 @@ class SalesOrderController extends Controller
         DB::transaction(function () use ($validated, $order) {
             $order->items()->delete();
 
-            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['name' => 'Walk-in Customer'], ['type' => 'customer', 'phone' => '0000000000'])->id;
+            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
             $customerName = Party::find($customerId)->name;
 
             // Update order header
@@ -265,11 +277,11 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    public function convertToSale(SalesOrder $order)
+    public function convertToSale(SalesOrder $salesOrder)
     {
+        $order = $salesOrder; // Keep the rest of the code the same
         try {
             $sale = DB::transaction(function () use ($order) {
-                // 1. Create Sale Record
                 $dateCode      = date('ymd');
                 $dailyCount    = Sale::whereDate('created_at', today())->count();
                 $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
@@ -277,19 +289,20 @@ class SalesOrderController extends Controller
 
                 $warehouseId = Warehouse::first()?->id ?? 1;
 
+                $orderTotal = $order->total_amount ?? $order->total ?? 0;
                 $sale = Sale::create([
                     'reference_number' => $referenceNumber,
                     'party_id' => $order->customer_id,
                     'status' => 'posted',
                     'posted_at' => now(),
                     'payment_status' => 'unpaid',
-                    'subtotal' => $order->total_amount,
+                    'subtotal' => $orderTotal,
                     'tax' => 0,
                     'discount' => 0,
-                    'total' => $order->total_amount,
-                    'subtotal_gross' => $order->total_amount,
-                    'net_sales' => $order->total_amount,
-                    'invoice_total' => $order->total_amount,
+                    'total' => $orderTotal,
+                    'subtotal_gross' => $orderTotal,
+                    'net_sales' => $orderTotal,
+                    'invoice_total' => $orderTotal,
                     'user_id' => auth()->id() ?? \App\Models\User::first()->id,
                     'warehouse_id' => $warehouseId
                 ]);

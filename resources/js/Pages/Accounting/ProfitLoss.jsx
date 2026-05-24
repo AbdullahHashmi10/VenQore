@@ -1,5 +1,6 @@
-import React from 'react';
-import { Head, Link } from '@inertiajs/react';
+﻿import React from 'react';
+import { getCurrencySymbol } from '@/Utils/format';
+import { Head, Link, usePage } from '@inertiajs/react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import PageHeader from '@/Components/PageHeader';
 import {
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 
 export default function ProfitLoss({ incomeAccounts, expenseAccounts, totalIncome, totalExpense, netProfit }) {
+    const { store } = usePage().props;
     return (
         <ReportsLayout title="Profit & Loss Statement">
             <Head title="Profit & Loss" />
@@ -45,19 +47,19 @@ export default function ProfitLoss({ incomeAccounts, expenseAccounts, totalIncom
                             <div>
                                 <p className={`text-sm font-bold uppercase tracking-widest ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>Net Profit</p>
                                 <h3 className={`text-4xl font-black ${netProfit >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400'}`}>
-                                    Rs {netProfit.toLocaleString()}
+                                    {getCurrencySymbol()} {netProfit.toLocaleString()}
                                 </h3>
                             </div>
                         </div>
                         <div className="flex gap-8 text-right">
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Income</p>
-                                <p className="text-xl font-bold text-slate-700 dark:text-slate-300">Rs {totalIncome.toLocaleString()}</p>
+                                <p className="text-xl font-bold text-slate-700 dark:text-slate-300">{getCurrencySymbol()} {totalIncome.toLocaleString()}</p>
                             </div>
                             <div className="w-px h-10 bg-slate-200 dark:bg-slate-700"></div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Total Expenses</p>
-                                <p className="text-xl font-bold text-slate-700 dark:text-slate-300">Rs {totalExpense.toLocaleString()}</p>
+                                <p className="text-xl font-bold text-slate-700 dark:text-slate-300">{getCurrencySymbol()} {totalExpense.toLocaleString()}</p>
                             </div>
                         </div>
                     </div>
@@ -75,12 +77,12 @@ export default function ProfitLoss({ incomeAccounts, expenseAccounts, totalIncom
                                 {incomeAccounts.map(account => (
                                     <div key={account.id} className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{account.name}</span>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Rs {parseFloat(account.balance).toLocaleString()}</span>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{getCurrencySymbol()} {parseFloat(account.balance).toLocaleString()}</span>
                                     </div>
                                 ))}
                                 <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
                                     <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Total Income</span>
-                                    <span className="text-lg font-black text-emerald-600">Rs {totalIncome.toLocaleString()}</span>
+                                    <span className="text-lg font-black text-emerald-600">{getCurrencySymbol()} {totalIncome.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>
@@ -97,12 +99,12 @@ export default function ProfitLoss({ incomeAccounts, expenseAccounts, totalIncom
                                 {expenseAccounts.map(account => (
                                     <div key={account.id} className="p-4 flex justify-between items-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">{account.name}</span>
-                                        <span className="text-sm font-bold text-slate-900 dark:text-white">Rs {parseFloat(account.balance).toLocaleString()}</span>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">{getCurrencySymbol()} {parseFloat(account.balance).toLocaleString()}</span>
                                     </div>
                                 ))}
                                 <div className="p-6 bg-slate-50 dark:bg-slate-800/50 flex justify-between items-center">
                                     <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Total Expenses</span>
-                                    <span className="text-lg font-black text-rose-600">Rs {totalExpense.toLocaleString()}</span>
+                                    <span className="text-lg font-black text-rose-600">{getCurrencySymbol()} {totalExpense.toLocaleString()}</span>
                                 </div>
                             </div>
                         </div>

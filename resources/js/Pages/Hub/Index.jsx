@@ -3,7 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     Store, Plus, ArrowRight, Clock, Crown, Zap, Users,
     ChevronRight, Mail, CheckCircle, Building2, Sparkles,
-    AlertCircle, RefreshCw
+    AlertCircle, RefreshCw, Calculator, ShoppingBag
 } from 'lucide-react';
 
 /**
@@ -32,7 +32,10 @@ const ROLE_LABELS = {
     admin:   { label: 'Admin',   icon: Zap,     color: 'text-indigo-400' },
     manager: { label: 'Manager', icon: Users,   color: 'text-blue-400' },
     cashier: { label: 'Cashier', icon: Store,   color: 'text-emerald-400' },
-    viewer:  { label: 'Viewer',  icon: Building2, color: 'text-slate-400' },
+    viewer:            { label: 'Viewer',            icon: Building2,    color: 'text-slate-400' },
+    // PROBLEM 8 FIX: Added missing roles so they don't fall back to "Viewer"
+    accountant:        { label: 'Accountant',       icon: Calculator,   color: 'text-blue-400' },
+    purchasing_officer:{ label: 'Purchasing Officer', icon: ShoppingBag, color: 'text-orange-400' },
 };
 
 function PlanBadge({ plan }) {
@@ -157,9 +160,38 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
     const { props } = usePage();
     const settings = props.settings || {};
     const [invites, setInvites] = useState(pending_invites);
+    const [showCodeModal, setShowCodeModal] = useState(false);
+    const [inviteCode, setInviteCode] = useState('');
+    const [checkingCode, setCheckingCode] = useState(false);
+    const [codeError, setCodeError] = useState('');
+
+    // Auto-show modal if there are pending invites on load
+    useEffect(() => {
+        if (invites.length > 0) {
+            setShowCodeModal(true);
+        }
+    }, []);
 
     const dismissInvite = (token) => {
         setInvites(prev => prev.filter(i => i.token !== token));
+    };
+
+    const handleCheckCode = async (e) => {
+        e.preventDefault();
+        setCheckingCode(true);
+        setCodeError('');
+
+        try {
+            // Check the short code via the validation endpoint using Axios (standard Inertia pattern)
+            const response = await window.axios.post(route('invite.validate-code'), { code: inviteCode });
+            if (response.data.valid) {
+                // If valid, redirect to the acceptance flow using the resolved token
+                router.visit(route('invite.accept', { token: response.data.invitation.token }));
+            }
+        } catch (error) {
+            setCodeError(error.response?.data?.message || 'Invalid or expired invite code.');
+            setCheckingCode(false);
+        }
     };
 
     const activeMemberships = memberships.filter(m => m.status !== 'suspended');
@@ -206,18 +238,22 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                         </p>
                     </div>
 
-                    {/* Pending invites */}
-                    {invites.length > 0 && (
-                        <div className="space-y-3 mb-6">
-                            {invites.map(invite => (
-                                <InviteCard
-                                    key={invite.token}
-                                    invite={invite}
-                                    onDismiss={() => dismissInvite(invite.token)}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    {/* Check Invites Button */}
+                    <div className="flex justify-center mb-6">
+                        <button 
+                            onClick={() => setShowCodeModal(true)}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 font-bold text-sm hover:bg-indigo-500/20 transition-all relative"
+                        >
+                            <Mail size={16} /> 
+                            {invites.length > 0 ? `View Pending Invites (${invites.length})` : 'Check for Invites'}
+                            {invites.length > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-indigo-500"></span>
+                                </span>
+                            )}
+                        </button>
+                    </div>
 
                     {/* Store list */}
                     <div className="space-y-2 mb-6">
@@ -258,14 +294,86 @@ export default function HubIndex({ memberships = [], pending_invites = [] }) {
                     </div>
 
                     <p className="text-center text-xs text-slate-600 mt-4">
-                        Have a store join code?{' '}
+                        Have a permanent store code?{' '}
                         <Link href={route('store.join')} className="text-slate-400 hover:text-indigo-400 transition-colors underline underline-offset-2">
-                            Join a store
+                            Join via link
                         </Link>
                     </p>
 
                 </div>
             </div>
+
+            {/* Invite Code Modal */}
+            {showCodeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                    <div className="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col max-h-[85vh]">
+                        
+                        {/* Modal Bg Decals */}
+                        <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
+                        
+                        <div className="p-8 shrink-0">
+                            <h2 className="text-xl font-black text-white mb-2">
+                                Pending Invitations
+                            </h2>
+                            <p className="text-sm text-slate-400">
+                                Manage your pending store invitations or join via short code.
+                            </p>
+                        </div>
+                        
+                        <div className="px-8 pb-4 overflow-y-auto min-h-0 space-y-3 custom-scrollbar">
+                            {invites.length > 0 ? (
+                                invites.map(invite => (
+                                    <InviteCard
+                                        key={invite.token}
+                                        invite={invite}
+                                        onDismiss={() => dismissInvite(invite.token)}
+                                    />
+                                ))
+                            ) : (
+                                <div className="text-center py-6 rounded-2xl border border-slate-800 bg-slate-800/30">
+                                    <Mail size={24} className="text-slate-600 mx-auto mb-2" />
+                                    <p className="text-slate-400 text-sm">You have no pending invitations.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-8 shrink-0 border-t border-slate-800 bg-slate-900/50">
+                            <h3 className="text-sm font-bold text-slate-300 mb-3">Have a short code?</h3>
+                            <form onSubmit={handleCheckCode}>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. VQ-A3X9"
+                                    value={inviteCode}
+                                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                                    className="w-full bg-slate-800 border items-center text-center font-mono tracking-[0.2em] border-slate-700 text-white text-lg rounded-xl px-4 py-3 focus:outline-none focus:border-indigo-500 transition-colors shadow-inner"
+                                />
+                                {codeError && (
+                                    <p className="text-xs font-bold text-red-400 mt-2 flex items-center gap-1 justify-center">
+                                        <AlertCircle size={12} /> {codeError}
+                                    </p>
+                                )}
+                                
+                                <div className="flex gap-3 mt-6">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCodeModal(false)}
+                                        className="flex-1 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 font-bold transition-colors"
+                                    >
+                                        Close
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={checkingCode || !inviteCode}
+                                        className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold transition-colors shadow-lg shadow-indigo-600/20"
+                                    >
+                                        {checkingCode ? 'Checking...' : 'Check Code'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

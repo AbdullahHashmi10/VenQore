@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     Search,
@@ -237,7 +238,6 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
     };
 
     // Formatters
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val || 0);
     const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('en-PK', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
 
     return (
@@ -282,7 +282,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Total Value</p>
                         </div>
-                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_orders || 0)}</p>
+                        <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_orders || 0, store)}</p>
                     </div>
                 </div>
 
@@ -402,12 +402,12 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                 </div>
                                                             );
                                                         case 'transaction': return <span className="text-xs font-bold uppercase bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 px-2 py-1 rounded-md">Pre-Order</span>;
-                                                        case 'total_amount': return <span className="font-bold">{formatCurrency(row.total_amount)}</span>;
+                                                        case 'total_amount': return <span className="font-bold">{formatCurrency(row.total_amount, store)}</span>;
                                                         case 'balance':
                                                             const paid = parseFloat(row.paid_amount || 0);
                                                             const balance = parseFloat(row.total_amount) - paid;
-                                                            if (balance > 1) return <span className="text-red-500 font-bold">{formatCurrency(balance)}</span>;
-                                                            if (balance < -1) return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatCurrency(Math.abs(balance))}</span>;
+                                                            if (balance > 1) return <span className="text-red-500 font-bold">{formatCurrency(balance, store)}</span>;
+                                                            if (balance < -1) return <span className="text-blue-600 font-bold" title="Overpaid Amount">+{formatCurrency(Math.abs(balance), store)}</span>;
                                                             return <span className="text-emerald-500 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded-full">Settled</span>;
                                                         case 'due_date': return <span className="text-slate-400">{row.due_date ? formatDate(row.due_date) : '-'}</span>;
                                                         case 'status':
@@ -579,7 +579,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                 </div>
                                 <div className="bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-800">
                                     <p className="text-[10px] font-bold text-indigo-600 uppercase mb-1">Total</p>
-                                    <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewItem.total_amount)}</p>
+                                    <p className="font-black text-indigo-600 text-lg">{formatCurrency(quickViewItem.total_amount, store)}</p>
                                 </div>
                             </div>
 
@@ -610,9 +610,9 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                             <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                         </td>
                                                         <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
-                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0)}</td>
+                                                        <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
                                                         <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                            {formatCurrency(item.quantity * (item.price || item.unit_price || 0))}
+                                                            {formatCurrency(item.quantity * (item.price || item.unit_price || 0), store)}
                                                         </td>
                                                     </tr>
                                                 ))
@@ -631,15 +631,15 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                     <div className="flex justify-end gap-8">
                                         <div className="text-right">
                                             <p className="text-[10px] text-slate-400 uppercase">Paid</p>
-                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewItem.paid_amount || 0)}</p>
+                                            <p className="font-bold text-emerald-600">{formatCurrency(quickViewItem.paid_amount || 0, store)}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] text-slate-400 uppercase">Balance</p>
-                                            <p className="font-bold text-red-600">{formatCurrency((quickViewItem.total_amount || 0) - (quickViewItem.paid_amount || 0))}</p>
+                                            <p className="font-bold text-red-600">{formatCurrency((quickViewItem.total_amount || 0) - (quickViewItem.paid_amount || 0), store)}</p>
                                         </div>
                                         <div className="text-right border-l border-slate-200 dark:border-slate-700 pl-8">
                                             <p className="text-[10px] text-indigo-600 uppercase font-bold">Grand Total</p>
-                                            <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewItem.total_amount)}</p>
+                                            <p className="font-black text-lg text-indigo-600">{formatCurrency(quickViewItem.total_amount, store)}</p>
                                         </div>
                                     </div>
                                 </div>

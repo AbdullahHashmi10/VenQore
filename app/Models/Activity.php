@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+use App\Traits\HasTenant;
+
 class Activity extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $guarded = [];
 

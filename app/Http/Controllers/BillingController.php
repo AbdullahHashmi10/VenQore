@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Plan;
 use App\Services\PlanGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -9,9 +10,10 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * BillingController — Phase 4.3
+ * BillingController — Plan Management System v2
  *
- * Handles the billing portal for tenants.
+ * Now reads plan data from the database (plans + plan_limits tables)
+ * instead of the static config/plans.php file.
  *
  * Routes:
  *   GET  /billing          → Billing dashboard (shows plan, usage, upgrade options)
@@ -39,12 +41,39 @@ class BillingController extends Controller
             ->where('status', 'active')
             ->count();
         $productCount  = \App\Models\Product::count(); // scoped by HasTenant
-        $locationCount = \App\Models\Warehouse::count(); // may not exist — catch gracefully
         try {
             $locationCount = \App\Models\Warehouse::count();
         } catch (\Throwable) {
             $locationCount = 1;
         }
+
+        // Load available subscription plans from DB (visible, active, subscription type only)
+        // Grouped by platform for the upgrade carousel in the UI
+        $availablePlans = Plan::with(['limits', 'features', 'platform'])
+            ->where('is_active', true)
+            ->where('is_visible', true)
+            ->whereIn('type', ['subscription', 'trial'])
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function (Plan $plan) {
+                // Transform limits into a simple key => value map for the frontend
+                $limitsMap = $plan->limits->pluck('value', 'key')->toArray();
+                return [
+                    'id'             => $plan->id,
+                    'slug'           => $plan->slug,
+                    'name'           => $plan->display_name ?? $plan->name,
+                    'type'           => $plan->type,
+                    'price_monthly'  => $plan->price_monthly,
+                    'price_annual'   => $plan->price_annual,
+                    'is_featured'    => $plan->is_featured,
+                    'platform'       => $plan->platform?->name,
+                    'limits'         => $limitsMap,
+                    'features'       => $plan->features->map(fn($f) => [
+                        'feature'     => $f->feature,
+                        'is_included' => $f->is_included,
+                    ])->values()->toArray(),
+                ];
+            });
 
         return Inertia::render('Billing/Index', [
             'tenant' => [
@@ -54,7 +83,7 @@ class BillingController extends Controller
                 'trial_ends_at'        => $tenant->trial_ends_at?->toIso8601String(),
                 'subscription_ends_at' => $tenant->subscription_ends_at?->toIso8601String(),
             ],
-            'plans' => config('plans'),
+            'plans' => $availablePlans,
             'usage' => [
                 'staff_count'    => $staffCount,
                 'staff_limit'    => $tenant->getLimit('staff_limit'),
@@ -62,6 +91,7 @@ class BillingController extends Controller
                 'sku_limit'      => $tenant->getLimit('sku_limit'),
                 'location_count' => $locationCount,
                 'locations'      => $tenant->getLimit('locations'),
+                'transactions'   => $tenant->getLimit('transactions_per_month'),
             ],
             'mode' => 'admin'
         ]);
@@ -86,34 +116,28 @@ class BillingController extends Controller
             default   => 'growth',
         });
 
-        // Get the Lemon Squeezy checkout URL for this plan
-        $checkoutUrl = match($targetPlan) {
+        $checkoutUrls = [
+            'starter'  => env('LEMON_SQUEEZY_STARTER_CHECKOUT_URL'),
             'growth'   => env('LEMON_SQUEEZY_GROWTH_CHECKOUT_URL'),
             'business' => env('LEMON_SQUEEZY_BUSINESS_CHECKOUT_URL'),
-            default    => env('LEMON_SQUEEZY_STARTER_CHECKOUT_URL'),
-        };
+        ];
 
-        if (!$checkoutUrl) {
-            return back()->withErrors(['billing' => 'Checkout URL not configured. Please contact support.']);
+        $url = $checkoutUrls[$targetPlan] ?? $checkoutUrls['growth'];
+
+        if (!$url) {
+            return back()->withErrors(['billing' => 'Upgrade URL is not configured. Please contact support.']);
         }
 
-        // Pass pre-fill data to Lemon Squeezy via checkout URL params
-        $adminUser = \App\Models\User::withoutTenantScope()
-            ->where('tenant_id', $tenant->id)
-            ->where('role', 'platform_admin')
-            ->first();
+        // Pre-fill Lemon Squeezy checkout with tenant context
+        $url = $url
+            . '?checkout[email]=' . urlencode($tenant->ownerEmail() ?? '')
+            . '&checkout[custom][tenant_id]=' . $tenant->id;
 
-        if ($adminUser) {
-            $checkoutUrl .= '?checkout[email]=' . urlencode($adminUser->email)
-                . '&checkout[custom][tenant_id]=' . urlencode($tenant->id);
-        }
-
-        return redirect()->away($checkoutUrl);
+        return redirect()->away($url);
     }
 
     /**
-     * Redirect tenant to Lemon Squeezy customer portal to manage their subscription
-     * (update card, cancel, view invoices).
+     * Redirect tenant to their Lemon Squeezy customer portal (manage/cancel subscription).
      */
     public function portal(): RedirectResponse
     {
@@ -123,10 +147,12 @@ class BillingController extends Controller
 
         $tenant = app('current.tenant');
 
-        // Build the Lemon Squeezy Customer Portal URL
-        $portalUrl = 'https://app.lemonsqueezy.com/my-orders/'
-            . ($tenant->lemon_squeezy_customer_id ?? '');
+        if (!$tenant->lemon_squeezy_customer_id) {
+            return back()->withErrors(['billing' => 'No active subscription found to manage.']);
+        }
 
-        return redirect()->away($portalUrl);
+        return redirect()->away(
+            'https://app.lemonsqueezy.com/my-orders/' . $tenant->lemon_squeezy_customer_id
+        );
     }
 }

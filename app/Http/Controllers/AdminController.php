@@ -167,17 +167,7 @@ class AdminController extends Controller
             });
 
         // Get Currency Symbol
-        $currencyCode = SettingsHelper::get('currency', 'PKR');
-        $currencySymbols = [
-            'PKR' => 'Rs. ',
-            'USD' => '$',
-            'EUR' => '€',
-            'GBP' => '£',
-            'AED' => 'AED ',
-            'SAR' => 'SAR ',
-            'INR' => '₹',
-        ];
-        $currencySymbol = $currencySymbols[$currencyCode] ?? $currencyCode . ' ';
+        $currencySymbol = SettingsHelper::getCurrencySymbol();
 
         // 6. Recent Activity (PHYSICAL CASH FLOW ONLY)
         $activities = \App\Models\Payment::where('method', 'cash')
@@ -201,7 +191,7 @@ class AdminController extends Controller
                     'type' => $pmt->sale ? 'sale' : ($isPurchase ? 'purchase' : 'payment'),
                     'title' => $reason,
                     'subtitle' => $pmt->notes ?? '',
-                    'amount' => ($isPlus ? '+' : '-') . ' Rs' . number_format($pmt->amount, 0),
+                    'amount' => ($isPlus ? '+' : '-') . \App\Helpers\SettingsHelper::formatCurrency($pmt->amount),
                     'time' => $pmt->created_at->diffForHumans(),
                     'is_plus' => $isPlus
                 ];
@@ -351,6 +341,38 @@ class AdminController extends Controller
                 ['key' => $key],
                 ['value' => is_array($value) ? json_encode($value) : (string) $value]
             );
+        }
+
+        // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
+        // Some settings (like currency) are mirrored on the 'tenants' table for 
+        // high-performance routing and metadata access.
+        $tenant = app('current.tenant');
+        if ($tenant) {
+            $syncNeeded = false;
+            
+            if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
+                $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
+                $syncNeeded = true;
+            }
+            
+            if (isset($settingsData['currency_symbol'])) {
+                $tenant->currency_symbol = $settingsData['currency_symbol'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['store_name'])) {
+                $tenant->name = $settingsData['store_name'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['timezone'])) {
+                $tenant->timezone = $settingsData['timezone'];
+                $syncNeeded = true;
+            }
+
+            if ($syncNeeded) {
+                $tenant->save();
+            }
         }
 
         // Clear settings cache
@@ -564,7 +586,7 @@ class AdminController extends Controller
         $user = \App\Models\User::findOrFail($id);
 
         // Prevent deleting self
-        if ($user->id === auth()->id()) {
+        if ($user->id === \Illuminate\Support\Facades\Auth::id()) {
             return redirect()->back()->with('error', 'You cannot delete yourself');
         }
 

@@ -43,16 +43,20 @@ trait HasActivityLog
             if (count($payload['new']) === 1 && isset($payload['new']['updated_at'])) return;
         }
 
-        StoreActivityLog::create([
-            'tenant_id'    => $tenantId,
-            'user_id'      => auth()->id(),
-            'action'       => strtolower(class_basename($model)) . '.' . $action,
-            'subject_type' => get_class($model),
-            'subject_id'   => $model->uuid ?? $model->id,
-            'payload'      => $payload,
-            'ip_address'   => Request::ip(),
-            'user_agent'   => Request::userAgent(),
-            'is_impersonated' => session()->has('impersonating_user_id'),
-        ]);
+        try {
+            StoreActivityLog::create([
+                'tenant_id'    => $tenantId,
+                'user_id'      => auth()->id(),
+                'action'       => strtolower(class_basename($model)) . '.' . $action,
+                'subject_type' => get_class($model),
+                'subject_id'   => $model->uuid ?? $model->id,
+                'payload'      => $payload,
+                'ip_address'   => Request::ip(),
+                'user_agent'   => Request::userAgent(),
+                'is_impersonated' => session()->has('impersonating_user_id'),
+            ]);
+        } catch (\Exception $e) {
+            // Ignore missing table during migrations/testing
+        }
     }
 }

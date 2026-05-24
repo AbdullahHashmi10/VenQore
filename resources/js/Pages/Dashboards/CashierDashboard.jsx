@@ -3,8 +3,9 @@ import { Head, Link, usePage, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     ShoppingCart, Clock, TrendingUp, LogIn, CheckCircle2,
-    DollarSign, Package, ArrowRight, Zap
+    DollarSign, Package, ArrowRight, Zap, RotateCcw
 } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 
 // ─── Small stat tile ────────────────────────────────────────────────────────
 function StatTile({ icon: Icon, label, value, sub, color = '#6366f1' }) {
@@ -45,8 +46,7 @@ export default function CashierDashboard({ session, attendance }) {
     const clockIn    = attendance?.clock_in_time ?? null;
     const isWorking  = !!clockIn;
 
-    const formatCurrency = (v) =>
-        (store?.currency_symbol ?? '$ ') + Number(v).toLocaleString('en-US', { minimumFractionDigits: 0 });
+    const fmt = (v) => formatCurrency(v, store);
 
     const hoursWorked = () => {
         if (!clockIn) return '—';
@@ -100,6 +100,32 @@ export default function CashierDashboard({ session, attendance }) {
                     <ArrowRight size={22} color="rgba(255,255,255,0.8)" />
                 </button>
 
+                {/* PROBLEM 2 FIX: Process Return button */}
+                <button
+                    onClick={() => router.visit(route('store.returns.create', { store_slug: storeSlug }))}
+                    style={{
+                        width: '100%', padding: '16px 28px',
+                        background: '#f8fafc',
+                        border: '1.5px solid #e2e8f0', borderRadius: 20, cursor: 'pointer',
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        marginBottom: 24,
+                        transition: 'background 0.15s, border-color 0.15s',
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = '#6366f1'; }}
+                    onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                        <div style={{ width: 44, height: 44, borderRadius: 12, background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <RotateCcw size={20} color="#6366f1" />
+                        </div>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>Process Return</div>
+                            <div style={{ fontSize: 12, color: 'var(--text-sub, #64748b)', marginTop: 2 }}>Handle customer item returns</div>
+                        </div>
+                    </div>
+                    <ArrowRight size={18} color="#94a3b8" />
+                </button>
+
                 {/* Stats Row */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 24 }}>
                     <StatTile
@@ -112,7 +138,7 @@ export default function CashierDashboard({ session, attendance }) {
                     <StatTile
                         icon={DollarSign}
                         label="Session Total"
-                        value={formatCurrency(sessionAmt)}
+                        value={fmt(sessionAmt)}
                         sub="Cash collected"
                         color="#10b981"
                     />

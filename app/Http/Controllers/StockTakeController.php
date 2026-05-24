@@ -92,7 +92,7 @@ class StockTakeController extends Controller
             }
         });
 
-        return redirect()->route('stock-takes.index')->with('success', 'Stock Audit saved successfully.');
+        return redirect()->route('store.stock-takes.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Stock Audit saved successfully.');
     }
 
     protected function adjustStock($productId, $warehouseId, $difference, $reference)
@@ -125,7 +125,7 @@ class StockTakeController extends Controller
              'warehouse_id' => $warehouseId,
              'type' => $difference > 0 ? 'adjust_in' : 'adjust_out',
              'quantity' => $difference,
-             'reference' => $reference,
+             'reference_id' => $reference,
              'user_id' => auth()->id(),
              'description' => "Stock Take Adjustment ($reference)"
         ]);

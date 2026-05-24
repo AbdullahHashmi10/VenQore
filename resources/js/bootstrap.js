@@ -106,6 +106,15 @@ window.axios.interceptors.response.use(
             return Promise.reject(error); // Stop propagation — modal handles it
         }
 
+        // Handle 503 System Update Soft Lock
+        if (error.response && error.response.status === 503) {
+            const errorMsg = error.response.data?.message || error.response.data?.error || '';
+            if (errorMsg.includes('smooth update') || errorMsg.includes('Update in Progress')) {
+                window.dispatchEvent(new CustomEvent('amd:system-update-in-progress'));
+                return Promise.reject(error); // Reject without showing a toast
+            }
+        }
+
         // Dispatch error toast for failed requests with error messages (EXCLUDING 419)
         if (error.response && error.response.data && error.response.status !== 419) {
 

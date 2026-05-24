@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 class LoyaltyPoint extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, HasTenant;
 
     protected $fillable = [
         'party_id',

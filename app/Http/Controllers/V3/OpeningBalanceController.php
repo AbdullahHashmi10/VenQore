@@ -117,7 +117,7 @@ class OpeningBalanceController extends Controller
     {
         $balance = $this->get7000Balance();
 
-        $entries = DB::table('journal_entries')
+        $entries = DB::table('journal_entries')->where('journal_entries.tenant_id', app('current.tenant')->id)
             ->where('reference_type', 'opening_balance')
             ->orderBy('date')
             ->orderBy('created_at')
@@ -134,10 +134,10 @@ class OpeningBalanceController extends Controller
 
     private function get7000Balance(): float
     {
-        $account = DB::table('accounts')->where('code', '7000')->first();
+        $account = DB::table('accounts')->where('accounts.tenant_id', app('current.tenant')->id)->where('code', '7000')->first();
         if (!$account) return 0.00;
 
-        $row = DB::table('journal_items')
+        $row = DB::table('journal_items')->where('journal_items.tenant_id', app('current.tenant')->id)
             ->join('journal_entries',
                 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.account_id', $account->id)

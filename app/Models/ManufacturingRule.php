@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 class ManufacturingRule extends Model
 {
+    use HasTenant;
+
     protected $guarded = [];
 
     public function product()

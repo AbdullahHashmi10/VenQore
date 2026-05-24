@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use App\Models\Tenant;
 use App\Services\V3\ReportService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -20,14 +21,20 @@ class GenerateReportExport implements ShouldQueue
     public string $queue = 'heavy';
 
     public function __construct(
-        private string  $reportType,
-        private string  $from,
-        private string  $to,
-        private string  $cacheKey,
+        private readonly int     $tenantId, 
+        private readonly string  $reportType,
+        private readonly string  $from,
+        private readonly string  $to,
+        private readonly string  $cacheKey,
     ) {}
 
     public function handle(ReportService $reports): void
     {
+        // 1. Resolve and Bind Tenant — CRITICAL for HasTenant global scope
+        $tenant = Tenant::findOrFail($this->tenantId);
+        app()->instance('current.tenant', $tenant);
+
+        // 2. Process
         $from = Carbon::parse($this->from);
         $to   = Carbon::parse($this->to);
 
@@ -39,7 +46,7 @@ class GenerateReportExport implements ShouldQueue
             default         => $reports->trialBalance($to),
         };
 
-        // Cache result for 10 minutes — controller polls this key
+        // 3. Cache result for 10 minutes — controller polls this key
         Cache::put($this->cacheKey, $data, now()->addMinutes(10));
     }
 }

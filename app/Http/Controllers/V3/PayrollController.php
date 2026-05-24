@@ -72,7 +72,7 @@ class PayrollController extends Controller
         ]);
 
         $tenantId = app('current.tenant')->id;
-        $employee = DB::table('employees')
+        $employee = DB::table('employees')->where('employees.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('id', $validated['employee_id'])
             ->firstOrFail();
@@ -89,7 +89,7 @@ class PayrollController extends Controller
 
         // Validate advance balance if deduction requested
         if ($advanceDeduction > 0) {
-            $advanceBalance = (float) DB::table('journal_items as ji')
+            $advanceBalance = (float) DB::table('journal_items as ji')->where('ji.tenant_id', app('current.tenant')->id)
                 ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
                 ->join('accounts as a', 'ji.account_id', '=', 'a.id')
                 ->where('je.tenant_id', $tenantId)

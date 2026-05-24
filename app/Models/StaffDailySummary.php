@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class StaffDailySummary extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $fillable = [
         'user_id',

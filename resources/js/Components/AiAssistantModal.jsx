@@ -21,8 +21,11 @@ export default function AiAssistantModal({
     onClose,
     onMinimize,
     initialQuery = '',
-    settings = {}
+    settings = {},
+    store: propStore = null
 }) {
+    const { store: pageStore } = usePage().props;
+    const activeStore = propStore || pageStore;
     const [query, setQuery] = useState(initialQuery);
     const [messages, setMessages] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -77,7 +80,8 @@ export default function AiAssistantModal({
         setIsLoading(true);
 
         try {
-            const res = await window.axios.get(route('store.ai.query', { store_slug: store.slug }), { params: { query: q } });
+            console.log('AI Assistant Query:', q, 'Store:', activeStore?.slug);
+            const res = await window.axios.get(route('store.ai.query', { store_slug: activeStore?.slug }), { params: { query: q } });
             const aiMessage = {
                 role: 'assistant',
                 content: res.data.answer,
@@ -257,7 +261,7 @@ export default function AiAssistantModal({
                                                     return (
                                                         <Link
                                                             key={linkIdx}
-                                                            href={route(link.route)}
+                                                            href={route(link.route, { store_slug: activeStore?.slug })}
                                                             onClick={onMinimize}
                                                             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 text-xs font-medium transition-colors"
                                                         >

@@ -75,9 +75,18 @@ class HandleInertiaRequests extends Middleware
             'terminals' => ($dbReady && Schema::hasTable('terminals'))
                 ? \App\Models\Terminal::select('id', 'name', 'status', 'last_heartbeat_at', 'last_status_reason')->get()
                 : [],
-            'settings' => ($dbReady && Schema::hasTable('settings'))
-                ? \App\Models\Setting::all()->pluck('value', 'key')->toArray()
-                : [],
+            'settings' => (function() use ($dbReady) {
+                if (!$dbReady || !Schema::hasTable('settings')) return [];
+                
+                $query = \App\Models\Setting::query();
+                if (app()->bound('current.tenant')) {
+                    // Global scope from HasTenant handles filtering if bound
+                    return $query->get()->pluck('value', 'key')->toArray();
+                }
+                
+                // Fallback for non-tenant routes (if any global settings exist)
+                return \App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
+            })(),
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error'   => fn() => $request->session()->get('error'),
@@ -94,9 +103,10 @@ class HandleInertiaRequests extends Middleware
                     'impersonator_id' => $request->session()->get('impersonator_id'),
                     'target_name'     => $user->name,
                     'target_email'    => $user->email,
-                    'exit_url'        => route('admin.impersonate.end'),
+                    'exit_url'        => route('platform.impersonate.end'),
                 ];
             })(),
+            'store' => app()->bound('current.tenant') ? app('current.tenant') : null,
         ];
     }
 

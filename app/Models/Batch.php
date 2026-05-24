@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use App\Traits\HasTenant;
 
 class Batch extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $guarded = [];
 

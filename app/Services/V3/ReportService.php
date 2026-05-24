@@ -937,17 +937,15 @@ class ReportService
 
     private function periodAccountBalance(string $code, Carbon $from, Carbon $to): float
     {
-        $tid     = $this->tenantId;
-        $account = DB::table('accounts')->where('tenant_id', $tid)->where('code', $code)->first();
+        $account = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', $code)->first();
         if (!$account) return 0.0;
 
         $result = DB::table('journal_items as ji')
             ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
-            ->where('ji.tenant_id', $tid)
-            ->where('je.tenant_id', $tid)
             ->where('ji.account_id', $account->id)
             ->where('je.is_reversed', 0)
-            ->whereBetween('je.date', [$from->toDateString(), $to->toDateString()])
+            ->whereDate('je.date', '>=', $from->toDateString())
+            ->whereDate('je.date', '<=', $to->toDateString())
             ->selectRaw('SUM(ji.debit) AS d, SUM(ji.credit) AS c')
             ->first();
 

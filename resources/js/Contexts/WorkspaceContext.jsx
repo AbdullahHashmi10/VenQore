@@ -19,8 +19,15 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
     const [activeInvoices, setActiveInvoices] = useState(() => {
         const saved = sessionStorage.getItem('amd_active_invoices_v2');
         if (saved) {
-            const parsed = JSON.parse(saved);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    const filtered = parsed.filter(inv => inv.status !== 'completed');
+                    if (filtered.length > 0) return filtered;
+                }
+            } catch (e) {
+                console.error("Failed to parse active invoices", e);
+            }
         }
 
         const counter = parseInt(localStorage.getItem('amd_invoice_counter') || '1', 10);
@@ -114,7 +121,7 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
             notes: '',
             ...initialData
         };
-        setActivePurchases([...activePurchases, newPurchase]);
+        setActivePurchases(prev => [...prev, newPurchase]);
         setCurrentPurchaseId(newId);
         return newPurchase;
     };
@@ -124,15 +131,19 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
     };
 
     const removePurchaseTab = (id) => {
-        // If it's the only one, we might want to reset it or remove it depending on logic.
-        // For consistent sidebar behavior (empty when clear), we allow removing the last one.
-        // BUT page logic often expects at least one. We'll handle "Reset" at page level if needed.
-        // Here we just remove.
-        const newArr = activePurchases.filter(p => p.id !== id);
-        setActivePurchases(newArr);
-        if (currentPurchaseId === id) {
-            setCurrentPurchaseId(newArr[newArr.length - 1]?.id || null);
-        }
+        setActivePurchases(prev => {
+            const newArr = prev.filter(p => p.id !== id);
+            
+            // We also need to update currentPurchaseId if it was the one removed
+            setCurrentPurchaseId(currentId => {
+                if (currentId === id) {
+                    return newArr[newArr.length - 1]?.id || null;
+                }
+                return currentId;
+            });
+            
+            return newArr;
+        });
     };
 
     const [currentInvoiceId, setCurrentInvoiceId] = useState(activeInvoices[0]?.id || null);
@@ -170,39 +181,41 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
     };
 
     const removePreSaleInvoice = (id) => {
-        if (activePreSaleInvoices.length === 1) {
-            const nextCounter = invoiceCounter + 1;
-            const resetInvoice = {
-                id: Date.now(),
-                type: 'presale',
-                invoiceNumber: generateInvoiceNumber(nextCounter),
-                customer: null,
-                items: [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }],
-                paymentMethod: 'credit',
-                paymentTerms: 'net30',
-                amountPaid: 0,
-                discount: 0,
-                globalDiscount: 0,
-                globalDiscountType: 'fixed',
-                tax: 0,
-                delivery_charge: 0,
-                extra_charge_value: 0,
-                extra_charge_label: 'Extra',
-                notes: '',
-                reference: '',
-                date: new Date().toISOString().split('T')[0],
-                dueDate: ''
-            };
-            setInvoiceCounter(nextCounter);
-            setActivePreSaleInvoices([resetInvoice]);
-            setCurrentPreSaleId(resetInvoice.id);
-            return;
-        }
-        const remaining = activePreSaleInvoices.filter(inv => inv.id !== id);
-        setActivePreSaleInvoices(remaining);
-        if (currentPreSaleId === id) {
-            setCurrentPreSaleId(remaining[0]?.id || null);
-        }
+        setActivePreSaleInvoices(prev => {
+            if (prev.length === 1) {
+                const nextCounter = invoiceCounter + 1;
+                const resetInvoice = {
+                    id: Date.now(),
+                    type: 'presale',
+                    invoiceNumber: generateInvoiceNumber(nextCounter),
+                    customer: null,
+                    items: [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }],
+                    paymentMethod: 'credit',
+                    paymentTerms: 'net30',
+                    amountPaid: 0,
+                    discount: 0,
+                    globalDiscount: 0,
+                    globalDiscountType: 'fixed',
+                    tax: 0,
+                    delivery_charge: 0,
+                    extra_charge_value: 0,
+                    extra_charge_label: 'Extra',
+                    notes: '',
+                    reference: '',
+                    date: new Date().toISOString().split('T')[0],
+                    dueDate: ''
+                };
+                // Side effects inside reducer (safe for this specific click boundary)
+                setInvoiceCounter(nextCounter);
+                setCurrentPreSaleId(resetInvoice.id);
+                return [resetInvoice];
+            }
+            const remaining = prev.filter(inv => inv.id !== id);
+            setCurrentPreSaleId(currentId => {
+                return currentId === id ? (remaining[0]?.id || null) : currentId;
+            });
+            return remaining;
+        });
     };
 
     const updatePreSaleInvoice = (id, data) => {
@@ -309,48 +322,49 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
             ...initialData
         };
         setInvoiceCounter(nextCounter);
-        setActiveInvoices([...activeInvoices, newInvoice]);
+        setActiveInvoices(prev => [...prev, newInvoice]);
         setCurrentInvoiceId(newInvoice.id);
     };
 
     const removeInvoice = (id) => {
-        if (activeInvoices.length === 1 && posSessions.length === 0) {
-            const nextCounter = invoiceCounter + 1;
-            const resetInvoice = {
-                id: Date.now(),
-                type: 'invoice',
-                invoiceNumber: generateInvoiceNumber(nextCounter),
-                customer: null,
-                items: [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }],
-                paymentMethod: 'credit',
-                paymentTerms: 'net30',
-                amountPaid: 0,
-                discount: 0,
-                globalDiscount: 0,
-                globalDiscountType: 'fixed',
-                tax: 0,
-                delivery_charge: 0,
-                extra_charge_value: 0,
-                extra_charge_label: 'Extra',
-                notes: '',
-                reference: '',
-                date: new Date().toISOString().split('T')[0],
-                dueDate: ''
-            };
-            setInvoiceCounter(nextCounter);
-            setActiveInvoices([resetInvoice]);
-            setCurrentInvoiceId(resetInvoice.id);
-            return;
-        }
-        const newInvoices = activeInvoices.filter(inv => inv.id !== id);
-        setActiveInvoices(newInvoices);
-        if (currentInvoiceId === id) {
-            setCurrentInvoiceId(newInvoices[0]?.id || null);
-        }
+        setActiveInvoices(prev => {
+            if (prev.length === 1 && posSessions.length === 0) {
+                const nextCounter = invoiceCounter + 1;
+                const resetInvoice = {
+                    id: Date.now(),
+                    type: 'invoice',
+                    invoiceNumber: generateInvoiceNumber(nextCounter),
+                    customer: null,
+                    items: [{ id: Date.now(), product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' }],
+                    paymentMethod: 'credit',
+                    paymentTerms: 'net30',
+                    amountPaid: 0,
+                    discount: 0,
+                    globalDiscount: 0,
+                    globalDiscountType: 'fixed',
+                    tax: 0,
+                    delivery_charge: 0,
+                    extra_charge_value: 0,
+                    extra_charge_label: 'Extra',
+                    notes: '',
+                    reference: '',
+                    date: new Date().toISOString().split('T')[0],
+                    dueDate: ''
+                };
+                setInvoiceCounter(nextCounter);
+                setCurrentInvoiceId(resetInvoice.id);
+                return [resetInvoice];
+            }
+            const newInvoices = prev.filter(inv => inv.id !== id);
+            setCurrentInvoiceId(currentId => {
+                return currentId === id ? (newInvoices[0]?.id || null) : currentId;
+            });
+            return newInvoices;
+        });
     };
 
     const updateInvoice = (id, data) => {
-        setActiveInvoices(activeInvoices.map(inv =>
+        setActiveInvoices(prev => prev.map(inv =>
             inv.id === id ? { ...inv, ...data } : inv
         ));
     };
@@ -364,18 +378,21 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
             cashReceived: '',
             ...data
         };
-        setPosSessions([...posSessions, newSession]);
+        setPosSessions(prev => [...prev, newSession]);
         setCurrentPosId(newSession.id);
         return newSession;
     };
 
     const updatePosSession = (id, data) => {
-        setPosSessions(posSessions.map(s => s.id === id ? { ...s, ...data } : s));
+        setPosSessions(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
     };
 
     const removePosSession = (id) => {
-        setPosSessions(posSessions.filter(s => s.id !== id));
-        if (currentPosId === id) setCurrentPosId(null);
+        setPosSessions(prev => {
+            const nextSession = prev.filter(s => s.id !== id);
+            setCurrentPosId(currentId => currentId === id ? null : currentId);
+            return nextSession;
+        });
     };
 
     return (

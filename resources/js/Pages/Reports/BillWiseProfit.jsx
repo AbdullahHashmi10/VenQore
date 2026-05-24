@@ -9,6 +9,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
     ScatterChart, Scatter, ZAxis, Cell, PieChart, Pie, Legend
 } from 'recharts';
+import { formatCurrency } from '@/Utils/format';
 
 export default function BillWiseProfit({ invoices = [], filters = {} }) {
     const {
@@ -119,7 +120,6 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
         }, { preserveState: true, preserveScroll: true });
     };
 
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     return (
         <ReportsLayout title="Bill-wise Profit Report">
@@ -210,20 +210,20 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                     <StatCard
                         title="Total Profit"
-                        value={formatCurrency(stats.profit)}
+                        value={formatCurrency(stats.profit, store)}
                         icon={<DollarSign size={18} />}
                         color="emerald"
                         footer={`${stats.margin.toFixed(1)}% Avg Margin`}
                     />
                     <StatCard
                         title="Total Revenue"
-                        value={formatCurrency(stats.revenue)}
+                        value={formatCurrency(stats.revenue, store)}
                         icon={<TrendingUp size={18} />}
                         color="indigo"
                     />
                     <StatCard
                         title="Avg Ticket Profit"
-                        value={stats.count > 0 ? formatCurrency(stats.profit / stats.count) : formatCurrency(0)}
+                        value={stats.count > 0 ? formatCurrency(stats.profit / stats.count, store) : formatCurrency(0, store)}
                         icon={<Percent size={18} />}
                         color="blue"
                     />
@@ -282,13 +282,13 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                                                         <span className="text-slate-400 mr-1">#</span>{inv.invoice_number}
                                                     </td>
                                                     <td className="px-6 py-3 text-right text-sm text-slate-600 dark:text-slate-400">
-                                                        {formatCurrency(inv.revenue)}
+                                                        {formatCurrency(inv.revenue, store)}
                                                     </td>
                                                     <td className="px-6 py-3 text-right text-sm text-slate-500 dark:text-slate-500">
-                                                        {formatCurrency(inv.cost)}
+                                                        {formatCurrency(inv.cost, store)}
                                                     </td>
                                                     <td className={`px-6 py-3 text-right text-sm font-bold ${inv.profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}`}>
-                                                        {formatCurrency(inv.profit)}
+                                                        {formatCurrency(inv.profit, store)}
                                                     </td>
                                                     <td className="px-6 py-3 text-right">
                                                         <MarginBadge margin={margin} />
@@ -362,7 +362,7 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
                                             <RechartsTooltip
                                                 cursor={{ fill: '#f1f5f9', opacity: 0.1 }}
                                                 contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
-                                                formatter={(value) => formatCurrency(value)}
+                                                formatter={(value) => formatCurrency(value, store)}
                                             />
                                             <Bar dataKey="profit" fill="#10b981" radius={[0, 4, 4, 0]} barSize={20} background={{ fill: 'transparent' }} />
                                         </BarChart>

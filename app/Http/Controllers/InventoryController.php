@@ -72,6 +72,7 @@ class InventoryController extends Controller
 
     public function index(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
         // V3 Logic: Products and Stock from inventory_batches
         $query = Product::query()
             ->with(['category', 'brand', 'images', 'variants', 'barcodes'])
@@ -103,11 +104,13 @@ class InventoryController extends Controller
 
         // Get Stock Totals from stocks (Simple) and variants (Variant)
         $simpleStock = DB::table('stocks')
+            ->where('tenant_id', $tenantId)
             ->select('product_id', DB::raw('SUM(quantity) as total_on_hand'))
             ->groupBy('product_id')
             ->get();
 
         $variantStock = DB::table('product_variants')
+            ->where('tenant_id', $tenantId)
             ->select('product_id', DB::raw('SUM(stock) as total_on_hand'))
             ->groupBy('product_id')
             ->get();
@@ -116,7 +119,9 @@ class InventoryController extends Controller
         $stockTotals = $simpleStock->concat($variantStock)->groupBy('product_id');
 
         // Parked Sales
-        $parkedSalesData = DB::table('parked_sales')->pluck('cart_data');
+        $parkedSalesData = DB::table('parked_sales')
+            ->where('tenant_id', $tenantId)
+            ->pluck('cart_data');
         $parkedProductQtys = [];
         foreach ($parkedSalesData as $cartData) {
             $cart = json_decode($cartData, true) ?? [];
@@ -130,8 +135,12 @@ class InventoryController extends Controller
 
         // Query reserved quantities from active Pre-Sales
         $reservedTotals = \Illuminate\Support\Facades\DB::table('sales_order_items')
-            ->join('sales_orders', 'sales_order_items.sales_order_id', '=', 'sales_orders.id')
+            ->join('sales_orders', function($join) use ($tenantId) {
+                $join->on('sales_order_items.sales_order_id', '=', 'sales_orders.id')
+                    ->where('sales_orders.tenant_id', $tenantId);
+            })
             ->select('sales_order_items.product_id', \Illuminate\Support\Facades\DB::raw('SUM(sales_order_items.quantity_reserved) as total_reserved'))
+            ->where('sales_order_items.tenant_id', $tenantId)
             ->whereNull('sales_orders.deleted_at')
             ->whereNull('sales_order_items.deleted_at')
             ->whereNotIn('sales_orders.status', ['cancelled', 'completed', 'delivered'])
@@ -220,8 +229,12 @@ class InventoryController extends Controller
             'stats' => [
                 'total_products' => $products->total(),
                 'low_stock_count' => DB::table('products as p')
-                    ->leftJoin('inventory_batches as ib', 'p.id', '=', 'ib.product_id')
+                    ->leftJoin('inventory_batches as ib', function($join) use ($tenantId) {
+                        $join->on('p.id', '=', 'ib.product_id')
+                             ->where('ib.tenant_id', $tenantId);
+                    })
                     ->select('p.id', 'p.min_stock_alert', DB::raw('SUM(ib.remaining_qty) as total_qty'))
+                    ->where('p.tenant_id', $tenantId)
                     ->whereNull('p.deleted_at')
                     ->groupBy('p.id', 'p.min_stock_alert')
                     ->get()
@@ -239,9 +252,14 @@ class InventoryController extends Controller
 
     public function store(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'nullable|string|unique:products,sku',
+            'sku' => [
+                'nullable', 
+                'string', 
+                \Illuminate\Validation\Rule::unique('products')->where(fn ($q) => $q->where('tenant_id', $tenantId))
+            ],
             'category' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'new_category_name' => 'nullable|string',
@@ -386,13 +404,18 @@ class InventoryController extends Controller
         return redirect()->back()->with('success', 'Product created successfully.');
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $store_slug, $id)
     {
         $product = Product::findOrFail($id);
 
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'sku' => 'nullable|string|unique:products,sku,' . $id,
+            'sku' => [
+                'nullable', 
+                'string', 
+                \Illuminate\Validation\Rule::unique('products')->ignore($id)->where(fn ($q) => $q->where('tenant_id', $tenantId))
+            ],
             'category' => 'nullable|string',
             'category_id' => 'nullable|exists:categories,id',
             'new_category_name' => 'nullable|string',
@@ -624,7 +647,7 @@ class InventoryController extends Controller
         return redirect()->back()->with('success', 'Product updated successfully.');
     }
 
-    public function destroy($id)
+    public function destroy($store_slug, $id)
     {
         $product = Product::findOrFail($id);
 
@@ -741,8 +764,9 @@ class InventoryController extends Controller
             'properties' => $properties,
         ]);
     }
-    public function stats(Request $request, $id)
+    public function stats(Request $request, $store_slug, $id)
     {
+        $tenantId = app('current.tenant')->id;
         $product = Product::findOrFail($id);
         $startDate = $request->query('start_date');
         $endDate = $request->query('end_date');
@@ -802,7 +826,10 @@ class InventoryController extends Controller
                 $productsQuery->where('category_id', $categoryId);
             }
 
-            $parkedSalesData = DB::table('parked_sales')->pluck('cart_data');
+            $tenantId = app('current.tenant')->id;
+            $parkedSalesData = DB::table('parked_sales')
+                ->where('tenant_id', $tenantId)
+                ->pluck('cart_data');
             $parkedProductQtys = [];
             foreach ($parkedSalesData as $cartData) {
                 $cart = json_decode($cartData, true) ?? [];
@@ -816,24 +843,30 @@ class InventoryController extends Controller
 
             $products = $productsQuery->take(50)
                 ->get()
-                ->map(function ($product) use ($parkedProductQtys) {
+                ->map(function ($product) use ($parkedProductQtys, $tenantId) {
                     // Check if product has an active manufacturing rule
                     $hasManufacturingRule = \App\Models\ManufacturingRule::where('product_id', $product->id)
                         ->where('is_active', true)
                         ->exists();
 
                     $simpleStock = (float)DB::table('stocks')
+                        ->where('tenant_id', $tenantId)
                         ->where('product_id', $product->id)
                         ->sum('quantity');
 
                     $variantStock = (float)DB::table('product_variants')
+                        ->where('tenant_id', $tenantId)
                         ->where('product_id', $product->id)
                         ->sum('stock');
 
                     $totalStock = $simpleStock + $variantStock;
 
                     $preSaleQty = (float)DB::table('sales_order_items as soi')
-                        ->join('sales_orders as so', 'soi.sales_order_id', '=', 'so.id')
+                        ->join('sales_orders as so', function($join) use ($tenantId) {
+                            $join->on('soi.sales_order_id', '=', 'so.id')
+                                ->where('so.tenant_id', $tenantId);
+                        })
+                        ->where('soi.tenant_id', $tenantId)
                         ->where('soi.product_id', $product->id)
                         ->whereNull('so.deleted_at')
                         ->whereNull('soi.deleted_at')
@@ -855,7 +888,7 @@ class InventoryController extends Controller
                         'id' => $product->id,
                         'name' => $product->name,
                         'sku' => $product->sku,
-                        'price' => $product->price ?? $product->selling_price ?? 0,
+                        'price' => (float) ($product->price ?: ($product->selling_price ?: 0)),
                         'wholesale_price' => $product->wholesale_price,
                         'wholesale_min_quantity' => $product->wholesale_min_quantity,
                         'stock_quantity' => $totalStock,
@@ -991,7 +1024,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function updateCategory(Request $request, $id)
+    public function updateCategory(Request $request, $store_slug, $id)
     {
         $category = Category::findOrFail($id);
 
@@ -1017,7 +1050,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function destroyCategory($id)
+    public function destroyCategory($store_slug, $id)
     {
         $category = Category::findOrFail($id);
 
@@ -1043,7 +1076,7 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function getReservations($id)
+    public function getReservations($store_slug, $id)
     {
         try {
             $preSaleReservations = \App\Models\SalesOrderItem::where('product_id', $id)
@@ -1065,8 +1098,11 @@ class InventoryController extends Controller
                 });
 
             // Parked Sales Reservations
+            $tenantId = app('current.tenant')->id;
             $parkedReservations = [];
-            $parkedSales = DB::table('parked_sales')->get();
+            $parkedSales = DB::table('parked_sales')
+                ->where('tenant_id', $tenantId)
+                ->get();
             foreach ($parkedSales as $parked) {
                 $cart = json_decode($parked->cart_data, true) ?? [];
                 foreach ($cart as $item) {
@@ -1090,15 +1126,23 @@ class InventoryController extends Controller
         }
     }
 
-    public function getHistory($id)
+    public function getHistory($store_slug, $id)
     {
         try {
             $product = Product::findOrFail($id);
 
+            $tenantId = app('current.tenant')->id;
             // 1. Fetch Sales (V3)
             $sales = DB::table('sale_items as si')
-                ->join('sales as s', 'si.sale_id', '=', 's.id')
-                ->leftJoin('parties as p', 's.party_id', '=', 'p.id')
+                ->join('sales as s', function($join) use ($tenantId) {
+                    $join->on('si.sale_id', '=', 's.id')
+                        ->where('s.tenant_id', $tenantId);
+                })
+                ->leftJoin('parties as p', function($join) use ($tenantId) {
+                    $join->on('s.party_id', '=', 'p.id')
+                        ->where('p.tenant_id', $tenantId);
+                })
+                ->where('si.tenant_id', $tenantId)
                 ->where('si.product_id', $id)
                 ->whereNull('s.deleted_at')
                 ->select([
@@ -1124,8 +1168,15 @@ class InventoryController extends Controller
 
             // 2. Fetch Purchases (V3)
             $purchases = DB::table('purchase_items as pi')
-                ->join('purchases as pu', 'pi.purchase_id', '=', 'pu.id')
-                ->leftJoin('parties as p', 'pu.party_id', '=', 'p.id')
+                ->join('purchases as pu', function($join) use ($tenantId) {
+                    $join->on('pi.purchase_id', '=', 'pu.id')
+                        ->where('pu.tenant_id', $tenantId);
+                })
+                ->leftJoin('parties as p', function($join) use ($tenantId) {
+                    $join->on('pu.party_id', '=', 'p.id')
+                        ->where('p.tenant_id', $tenantId);
+                })
+                ->where('pi.tenant_id', $tenantId)
                 ->where('pi.product_id', $id)
                 ->select([
                     'pi.id', 'pu.id as transaction_id', 'pu.purchase_date',

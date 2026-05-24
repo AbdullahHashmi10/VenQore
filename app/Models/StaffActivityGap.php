@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class StaffActivityGap extends Model
 {
-    use HasFactory, \Illuminate\Database\Eloquent\Concerns\HasUuids;
+    use HasFactory, \Illuminate\Database\Eloquent\Concerns\HasUuids, \App\Traits\HasTenant;
 
     protected $fillable = [
         'staff_attendance_id',

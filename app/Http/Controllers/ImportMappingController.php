@@ -144,9 +144,14 @@ class ImportMappingController extends Controller
             'ignored_rows' => 'nullable|array'
         ]);
 
+        $storeSlug = $request->route('store_slug');
+        if (!$storeSlug && app()->bound('current.tenant')) {
+            $storeSlug = app('current.tenant')->slug;
+        }
+
         $fullPath = storage_path('app/' . $request->file_path);
         if (!file_exists($fullPath)) {
-            return redirect()->route('admin.data')->with('error', 'Temporary file expired or not found. Please upload again.');
+            return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('error', 'Temporary file expired or not found. Please upload again.');
         }
 
         try {
@@ -154,7 +159,7 @@ class ImportMappingController extends Controller
                 $importClass = new ProductsImport($request->mapping, $request->input('options', []));
                 Excel::import($importClass, $fullPath);
                 $msg = "Successfully added {$importClass->importedCount} new products, and updated {$importClass->updatedCount} existing products!";
-                return redirect()->route('admin.data')->with('success', $msg);
+                return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('success', $msg);
             } elseif ($request->type === 'parties') {
                 $importClass = new PartiesImport(
                     $request->mapping, 
@@ -168,7 +173,7 @@ class ImportMappingController extends Controller
                 \Illuminate\Support\Facades\Artisan::call('migrate:opening-balances');
                 
                 $msg = "Successfully added {$importClass->importedCount} new contacts, and updated {$importClass->updatedCount} existing contacts!";
-                return redirect()->route('admin.data')->with('success', $msg);
+                return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('success', $msg);
             } elseif ($request->type === 'sales') {
                 $importClass = new \App\Imports\SalesImport(
                     $request->mapping,
@@ -178,7 +183,7 @@ class ImportMappingController extends Controller
                 );
                 Excel::import($importClass, $fullPath);
                 $msg = "Successfully processed {$importClass->importedCount} sales rows!";
-                return redirect()->route('admin.data')->with('success', $msg);
+                return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('success', $msg);
             } elseif ($request->type === 'purchases') {
                 $importClass = new \App\Imports\PurchasesImport(
                     $request->mapping,
@@ -188,7 +193,7 @@ class ImportMappingController extends Controller
                 );
                 Excel::import($importClass, $fullPath);
                 $msg = "Successfully processed {$importClass->importedCount} purchase rows!";
-                return redirect()->route('admin.data')->with('success', $msg);
+                return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('success', $msg);
             } elseif ($request->type === 'expenses') {
                 $importClass = new \App\Imports\ExpensesImport(
                     $request->mapping,
@@ -198,17 +203,17 @@ class ImportMappingController extends Controller
                 );
                 Excel::import($importClass, $fullPath);
                 $msg = "Successfully processed {$importClass->importedCount} expenses!";
-                return redirect()->route('admin.data')->with('success', $msg);
+                return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('success', $msg);
             } else {
-                return redirect()->route('admin.data')->with('error', 'Import type not supported.');
+                return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('error', 'Import type not supported.');
             }
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
              $failures = $e->failures();
              $msg = "Row " . $failures[0]->row() . ": " . $failures[0]->errors()[0];
-             return redirect()->route('admin.data')->with('error', 'Validation failed: ' . $msg);
+             return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('error', 'Validation failed: ' . $msg);
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Process Import Error: ' . $e->getMessage());
-            return redirect()->route('admin.data')->with('error', 'Error processing file: ' . $e->getMessage());
+            return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('error', 'Error processing file: ' . $e->getMessage());
         }
     }
 

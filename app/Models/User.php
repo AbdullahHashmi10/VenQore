@@ -84,7 +84,7 @@ class User extends Authenticatable
     public function tenants(): BelongsToMany
     {
         return $this->belongsToMany(Tenant::class, 'tenant_users')
-                    ->withPivot(['role', 'status', 'display_name', 'pos_pin'])
+                    ->withPivot(['role', 'status', 'display_name', 'pos_pin', 'security_pin'])
                     ->withTimestamps();
     }
 
@@ -167,9 +167,7 @@ class User extends Authenticatable
 
     public function isPlatformAdmin(): bool
     {
-        // Reads the is_platform_admin boolean column only.
-        // platform_role is legacy — NOT used for access control.
-        return $this->is_platform_admin === true;
+        return (bool) $this->is_platform_admin;
     }
 
     /**
@@ -183,12 +181,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Legacy shim: check if user has a specific permission.
+     * Check if user has a specific permission.
+     *
+     * Resolution order (first match wins):
+     *   1. Platform admins → wildcard '*' (bypasses everything)
+     *   2. Custom permissions stored in the TenantUser pivot → use those
+     *   3. config/permissions.php role map → canonical source of truth
      */
     public function hasPermission(string $permission): bool
     {
         if ($this->is_platform_admin) return true;
-        return in_array($permission, $this->permissions) || in_array('*', $this->permissions);
+        $perms = $this->permissions; // delegates to getPermissionsAttribute()
+        if (in_array('*', $perms)) return true;
+        return in_array($permission, $perms);
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -236,31 +241,48 @@ class User extends Authenticatable
     }
 
     /**
-     * Shim: Get permissions. Currently role-based in multi-tenant mode.
+     * Shim: Get the security pin (6 digits) for the active store.
+     */
+    public function getSecurityPinAttribute(): ?string
+    {
+        if (!$this->last_store_id) return null;
+        return $this->memberships()
+                    ->where('tenant_id', $this->last_store_id)
+                    ->value('security_pin');
+    }
+
+    /**
+     * Shim: Get permissions for this user.
      *
-     * SECURITY: Only platform admins (is_platform_admin = true) get '*'.
-     * Store owners and admins get their store-scoped permissions.
-     * The CheckPermissions middleware handles them via the fast-path
-     * (owner/admin bypass within store context), but they do NOT get
-     * a global wildcard that could bleed into platform routes.
+     * Resolution order:
+     *   1. Platform admin → ['*']
+     *   2. Custom permissions stored in TenantUser pivot (non-empty array) → use those verbatim
+     *   3. config/permissions.php using the resolved store role → canonical source of truth
+     *
+     * config/permissions.php is the SINGLE SOURCE OF TRUTH for role-to-permission mapping.
+     * Do NOT add inline permission arrays here — update config/permissions.php instead.
      */
     public function getPermissionsAttribute(): array
     {
         // Platform level super admin only
         if ($this->is_platform_admin) return ['*'];
 
-        // Store-level role permissions (store-scoped, NOT global wildcard)
-        $role = $this->role;
-        if ($role === 'owner' || $role === 'admin') {
-            // Return full store permission set (no '*' wildcard — cannot reach /VenQore/*)
-            return [
-                'pos', 'inventory', 'sales', 'sales_view', 'purchases', 'finance',
-                'reports', 'audit', 'customers', 'users', 'settings', 'discounts',
-            ];
+        // Resolve the active membership
+        $membership = app()->bound('current.membership')
+            ? app('current.membership')
+            : $this->memberships()->where('tenant_id', $this->last_store_id)->where('status', 'active')->first();
+
+        // If no membership found, return minimal default
+        if (!$membership) return ['pos', 'sales_view'];
+
+        // 1. Use custom per-user permissions set by admin (non-empty array stored in pivot)
+        if (!empty($membership->permissions) && is_array($membership->permissions)) {
+            return $membership->permissions;
         }
 
-        // Default staff permissions if no custom logic yet
-        return ['pos', 'sales_view', 'inventory_view'];
+        // 2. Delegate to config/permissions.php — the CANONICAL permission map
+        $role = $membership->role ?? 'viewer';
+        return config('permissions.' . $role, ['pos', 'sales_view']);
     }
 
     public function activityLogs(): HasMany

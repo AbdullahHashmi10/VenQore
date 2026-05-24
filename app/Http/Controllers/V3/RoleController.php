@@ -19,14 +19,14 @@ class RoleController extends Controller
         ]);
 
         // Only admin can change roles
-        $actor = DB::table('users')->where('id', auth()->id())->first();
+        $actor = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)->where('id', auth()->id())->first();
         if (!$actor || $actor->role !== 'admin') {
             abort(403, 'Only admins can change user roles.');
         }
 
         // Prevent demoting the last admin
         if ($validated['role'] !== 'admin') {
-            $adminCount = DB::table('users')
+            $adminCount = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
                 ->where('role', 'admin')
                 ->where('id', '!=', $userId)
                 ->count();
@@ -38,7 +38,7 @@ class RoleController extends Controller
             }
         }
 
-        DB::table('users')
+        DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
             ->where('id', $userId)
             ->update(['role' => $validated['role'], 'updated_at' => now()]);
 
@@ -55,7 +55,7 @@ class RoleController extends Controller
             'max_discount_percent' => ['required', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        DB::table('discount_limits')
+        DB::table('discount_limits')->where('discount_limits.tenant_id', app('current.tenant')->id)
             ->updateOrInsert(
                 ['role' => $validated['role']],
                 [

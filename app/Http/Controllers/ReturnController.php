@@ -244,7 +244,7 @@ class ReturnController extends Controller
             unset($data); // clean up foreach reference
 
             // 4. Financials / Accounting
-            $accounting = app(\App\Services\AccountingService::class);
+            $accounting = app(\App\Services\V3\AccountingService::class);
             $journalItems = [];
 
             // DR: Sales Revenue (reduce income by subtotal since it was a return)
@@ -254,6 +254,7 @@ class ReturnController extends Controller
                 'debit'       => $subtotal, // debiting income reduces it
                 'credit'      => 0,
                 'description' => "Return for Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id,
             ];
 
             // CR: Accounts Receivable OR Cash (reduce asset)
@@ -277,6 +278,7 @@ class ReturnController extends Controller
                     'debit'       => 0,
                     'credit'      => $subtotal,
                     'description' => "Return (Store Credit) for Sale #{$sale->reference_number}",
+                    'party_id'    => $sale->party_id,
                 ];
             } else {
                 \App\Models\Payment::create([
@@ -294,6 +296,7 @@ class ReturnController extends Controller
                     'debit'       => 0,
                     'credit'      => $subtotal, // crediting cash reduces it
                     'description' => "Cash Refund for Sale #{$sale->reference_number}",
+                    'party_id'    => $sale->party_id,
                 ];
 
                 // [V3 SWAP DAY 1] Removed: BankAccount::decrement('current_balance') bypass.

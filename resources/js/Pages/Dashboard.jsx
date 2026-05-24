@@ -49,8 +49,8 @@ export default function Dashboard({
                 <div id="tour-performance" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
                     <DualStatCard
                         title="Performance"
-                        leftLabel="Sales" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0))}
-                        rightLabel="Gross Profit" rightValue={formatCurrency(parseFloat(performance[performancePeriod]?.gross_profit || 0))}
+                        leftLabel="Sales" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
+                        rightLabel="Gross Profit" rightValue={formatCurrency(parseFloat(performance[performancePeriod]?.gross_profit || 0), store)}
                         icon={TrendingUp}
                         colorClass="bg-indigo-500"
                         delay={0}
@@ -63,8 +63,8 @@ export default function Dashboard({
                 <div id="tour-outstanding" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
                     <DualStatCard
                         title="Outstanding"
-                        leftLabel="To Receive" leftValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.receivables || 0))}
-                        rightLabel="To Pay" rightValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.payables || 0))}
+                        leftLabel="To Receive" leftValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.receivables || 0), store)}
+                        rightLabel="To Pay" rightValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.payables || 0), store)}
                         icon={CreditCard}
                         colorClass="bg-orange-500"
                         delay={100}
@@ -113,12 +113,12 @@ export default function Dashboard({
                                     <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
                                 </div>
                                 <div className="text-center">
-                                    <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0))}</p>
+                                    <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}</p>
                                     <p className="text-[10px] font-bold text-emerald-500 mt-1">{netProfit[netProfitPeriod]?.growth || ''}</p>
                                     {/* Breakdown Explanation */}
                                     <div className="flex gap-2 justify-center mt-1 text-[9px] font-medium opacity-80">
-                                        <span className="text-emerald-600 dark:text-emerald-400" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0)}</span>
-                                        <span className="text-red-500" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0)}</span>
+                                        <span className="text-emerald-600 dark:text-emerald-400" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
+                                        <span className="text-red-500" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -126,7 +126,8 @@ export default function Dashboard({
                     </div>
                 </div>
 
-                {/* --- RIGHT PANEL (Spans entire height on Desktop) --- */}
+                {/* --- RIGHT PANEL — PROBLEM 6 FIX: Only shown to owner/admin/manager/accountant --- */}
+                {(isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant') && (
                 <div id="tour-right-panel" className="hidden lg:block col-span-3 row-span-6 h-full">
                     <RightPanel
                         recentTransactions={recentTransactions}
@@ -136,9 +137,10 @@ export default function Dashboard({
                         inventoryValue={inventoryValue}
                     />
                 </div>
+                )}
 
                 {/* --- MIDDLE: Sales Chart & Opportunities --- */}
-                <div id="tour-sales-chart" className={`col-span-12 ${isAdmin ? 'lg:col-span-6' : 'lg:col-span-9'} row-span-3 min-h-0`}>
+                <div id="tour-sales-chart" className={`col-span-12 ${isAdmin ? 'lg:col-span-6' : 'lg:col-span-9'} row-span-3 min-h-[300px]`}>
                     <ChartSection salesData={salesData} />
                 </div>
 
@@ -217,12 +219,15 @@ export default function Dashboard({
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-32">{item.name}</p>
                                     <p className="text-[10px] text-red-500 font-bold">Stock: {item.stock} / {item.alert}</p>
                                 </div>
+                                {/* PROBLEM 7 FIX: Order button only for roles with purchases permission */}
+                                {(auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || auth?.user?.role === 'manager' || auth?.user?.role === 'purchasing_officer' || auth?.user?.permissions?.includes('purchases')) && (
                                 <button
                                     onClick={() => router.visit(route('store.purchases.create', { store_slug: store?.slug, product_id: item.id }))}
                                     className="px-2 py-1 bg-white dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 rounded-lg shadow-sm border border-slate-100 dark:border-slate-700 hover:text-indigo-600"
                                 >
                                     Order
                                 </button>
+                                )}
                             </div>
                         ))}
                         {lowStockItems.length === 0 && (

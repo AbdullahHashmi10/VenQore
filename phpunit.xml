@@ -3,8 +3,33 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         stopOnFailure="false"
 >
     <testsuites>
+        <testsuite name="Critical">
+            <directory>tests/Feature/Module01</directory>
+            <directory>tests/Feature/Module02</directory>
+            <directory>tests/Feature/Module03</directory>
+            <directory>tests/Feature/Module04</directory>
+            <directory>tests/Feature/Module05</directory>
+            <directory>tests/Feature/Module10</directory>
+            <directory>tests/Feature/Module11</directory>
+            <directory>tests/Feature/Module12</directory>
+        </testsuite>
+        <testsuite name="High">
+            <directory>tests/Feature/Module06</directory>
+            <directory>tests/Feature/Module07</directory>
+            <directory>tests/Feature/Module08</directory>
+            <directory>tests/Feature/Module09</directory>
+            <directory>tests/Feature/Module13</directory>
+            <directory>tests/Feature/Module14</directory>
+            <directory>tests/Feature/Module15</directory>
+            <directory>tests/Feature/Module16</directory>
+            <directory>tests/Feature/Module17</directory>
+            <directory>tests/Feature/Module18</directory>
+            <directory>tests/Feature/Module19</directory>
+            <directory>tests/Feature/Module20</directory>
+        </testsuite>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
@@ -18,16 +43,27 @@
         </include>
     </source>
     <php>
-        <env name="APP_ENV" value="testing"/>
-        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
-        <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="BROADCAST_CONNECTION" value="null"/>
-        <env name="CACHE_STORE" value="array"/>
-        <env name="MAIL_MAILER" value="array"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
-        <env name="PULSE_ENABLED" value="false"/>
-        <env name="TELESCOPE_ENABLED" value="false"/>
-        <env name="NIGHTWATCH_ENABLED" value="false"/>
+        <env name="APP_NAME"                  value="VenQore Testing"/>
+        <env name="APP_ENV"                   value="testing"/>
+        <env name="APP_KEY"                   value="base64:2yEI71seB86Bj2BjZitdmFfCsRVzPqp56iV6TCJ5wx0="/>
+        <env name="APP_DEBUG"                 value="true"/>
+        <env name="APP_MAINTENANCE_DRIVER"    value="file"/>
+        <env name="BCRYPT_ROUNDS"             value="4"/>
+        <env name="BROADCAST_CONNECTION"      value="null"/>
+        <!-- SQLite in-memory for fast, isolated tests -->
+        <env name="DB_CONNECTION"             value="sqlite"/>
+        <env name="DB_DATABASE"               value=":memory:"/>
+        <env name="CACHE_STORE"               value="array"/>
+        <env name="SESSION_DRIVER"            value="array"/>
+        <env name="QUEUE_CONNECTION"          value="sync"/>
+        <env name="MAIL_MAILER"               value="array"/>
+        <!-- WooCommerce keys intentionally empty — regression test for isolation bug -->
+        <env name="WOOCOMMERCE_KEY"           value=""/>
+        <env name="WOOCOMMERCE_SECRET"        value=""/>
+        <env name="WOOCOMMERCE_URL"           value=""/>
+        <env name="PULSE_ENABLED"             value="false"/>
+        <env name="TELESCOPE_ENABLED"         value="false"/>
+        <env name="NIGHTWATCH_ENABLED"        value="false"/>
+        <env name="HORIZON_ENABLED"           value="false"/>
     </php>
 </phpunit>

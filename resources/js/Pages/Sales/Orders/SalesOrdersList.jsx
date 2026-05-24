@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -24,13 +25,6 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
     const [loading, setLoading] = useState(false);
 
     // Format currency
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0
-        }).format(value || 0);
-    };
 
     // Table columns
     const columns = [
@@ -106,7 +100,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
             label: 'Total',
             render: (value) => (
                 <span className="font-bold text-slate-800 dark:text-white">
-                    {formatCurrency(value)}
+                    {formatCurrency(value, store)}
                 </span>
             )
         }
@@ -203,7 +197,7 @@ export default function SalesOrdersIndex({ orders = [], stats = {}, customers = 
                         />
                         <StatCard
                             title="This Month"
-                            value={formatCurrency(stats.month_total)}
+                            value={formatCurrency(stats.month_total, store)}
                             icon={ClipboardList}
                             iconColor="blue"
                             subtitle="Order value"

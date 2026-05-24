@@ -12,6 +12,7 @@ import {
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function StockAging({ batches = [], filters = {} }) {
     const {
@@ -70,7 +71,7 @@ export default function StockAging({ batches = [], filters = {} }) {
     ];
     const barChartConfig = {
         type: 'bar',
-        bars: [{ dataKey: 'Value', name: 'Stock Value (PKR)' }],
+        bars: [{ dataKey: 'Value', name: 'Stock Value' }],
         xAxisKey: 'name'
     };
 
@@ -78,21 +79,21 @@ export default function StockAging({ batches = [], filters = {} }) {
     const reportStats = [
         {
             label: 'Total Inventory Value',
-            value: new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(stats.totalValue),
+            value: formatCurrency(stats.totalValue),
             subValue: 'Across all batches',
             icon: <DollarSign size={20} className="text-slate-500" />,
             type: 'neutral'
         },
         {
             label: 'Capital in Dead Stock',
-            value: new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(stats.deadStockValue),
+            value: formatCurrency(stats.deadStockValue),
             subValue: '> 180 Days Old',
             icon: <Archive size={20} className="text-red-500" />,
             type: 'down'
         },
         {
             label: 'Slow Moving Capital',
-            value: new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(stats.slowMovingValue),
+            value: formatCurrency(stats.slowMovingValue),
             subValue: '90-180 Days Old',
             icon: <Hourglass size={20} className="text-orange-500" />,
             type: 'neutral'
@@ -190,7 +191,7 @@ export default function StockAging({ batches = [], filters = {} }) {
                 const val = parseFloat(row.cost_value) || 0;
                 return (
                     <div className="font-mono font-bold text-sm text-slate-800 dark:text-white">
-                        {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(val)}
+                        {formatCurrency(val)}
                     </div>
                 );
             }

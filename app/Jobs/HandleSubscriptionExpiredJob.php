@@ -28,14 +28,14 @@ class HandleSubscriptionExpiredJob implements ShouldQueue
     {
         $subscriptionId = (string) ($this->data['id'] ?? '');
 
-        $tenant = Tenant::withoutTenantScope()
-            ->where('lemon_squeezy_subscription_id', $subscriptionId)
-            ->first();
+        $tenant = Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->first();
 
         if (!$tenant) {
             Log::warning("HandleSubscriptionExpiredJob: No tenant found for {$subscriptionId}");
             return;
         }
+
+        app()->instance('current.tenant', $tenant);
 
         $tenant->update(['status' => 'cancelled']);
 

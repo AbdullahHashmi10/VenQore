@@ -72,14 +72,23 @@ class SetupController extends Controller
         try {
             DB::beginTransaction();
 
-            // 1. Save Basic Settings
+            // 1. Save Basic Settings (Aligned with Admin/Settings.jsx)
             Setting::updateOrCreate(['key' => 'business_name'], ['value' => $request->business_name]);
+            Setting::updateOrCreate(['key' => 'business_email'], ['value' => $request->email]);
+            Setting::updateOrCreate(['key' => 'business_phone'], ['value' => $request->phone]);
+            Setting::updateOrCreate(['key' => 'business_address'], ['value' => $request->address]);
+            Setting::updateOrCreate(['key' => 'currency'], ['value' => $request->currency_code]);
+            Setting::updateOrCreate(['key' => 'currency_symbol'], ['value' => $request->currency_symbol]);
+            Setting::updateOrCreate(['key' => 'industry'], ['value' => $request->industry_key]);
+            
+            // Legacy and Shared fallbacks for older components
+            Setting::updateOrCreate(['key' => 'store_name'], ['value' => $request->business_name]);
+            Setting::updateOrCreate(['key' => 'store_phone'], ['value' => $request->phone]);
+            Setting::updateOrCreate(['key' => 'store_address'], ['value' => $request->address]);
             Setting::updateOrCreate(['key' => 'email'], ['value' => $request->email]);
             Setting::updateOrCreate(['key' => 'phone'], ['value' => $request->phone]);
             Setting::updateOrCreate(['key' => 'address'], ['value' => $request->address]);
-            Setting::updateOrCreate(['key' => 'currency_symbol'], ['value' => $request->currency_symbol]);
             Setting::updateOrCreate(['key' => 'currency_code'], ['value' => $request->currency_code]);
-            Setting::updateOrCreate(['key' => 'industry'], ['value' => $request->industry_key]);
             
             // Handle Logo
             if ($request->hasFile('logo_file')) {

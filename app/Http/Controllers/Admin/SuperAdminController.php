@@ -22,207 +22,146 @@ use Inertia\Inertia;
  */
 class SuperAdminController extends Controller
 {
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        $stats          = $this->buildStats();
-        $storeTrend     = $this->buildStoreTrend();
-        $planDist       = $this->buildPlanDistribution();
-        $recentStores   = $this->buildRecentStores(10);
-        $expiringStores = $this->buildExpiringStores();
-        $activityFeed   = $this->buildActivityFeed();
-        $platformUsers  = $this->buildPlatformUsers();
+        $period = $request->get('period', 'all');
+        $dateLimit = match($period) {
+            'today' => now()->startOfDay(),
+            'month' => now()->startOfMonth(),
+            'year'  => now()->startOfYear(),
+            default => null,
+        };
 
-        // V1 Support Inbox — open tickets only for default view
-        $tickets     = [];
-        $openCount   = 0;
-        $totalTickets = 0;
-        try {
-            $tickets = \App\Models\SupportTicket::with(['tenant:id,name', 'submittedBy:id,name,email'])
-                ->whereIn('status', ['open', 'in_progress'])
-                ->orderByRaw("FIELD(priority, 'urgent','high','normal','low')")
-                ->orderBy('created_at', 'desc')
-                ->take(50)->get();
-            $openCount    = \App\Models\SupportTicket::whereIn('status', ['open', 'in_progress'])->count();
-            $totalTickets = \App\Models\SupportTicket::count();
-        } catch (\Throwable) {}
+        $tenants = Tenant::withTrashed()->get();
+        $realTenants = $tenants->where('is_demo', false);
 
-        // Webhook log
-        $webhooks = [];
-        try {
-            $webhooks = \App\Models\WebhookLog::latest()->take(100)->get()->map(fn($w) => [
-                'id'         => $w->id,
-                'event_type' => $w->event_type,
-                'status'     => $w->status,
-                'store_name' => $w->store_name,
-                'plan'       => $w->plan,
-                'created_at' => $w->created_at->toIso8601String(),
-            ]);
-        } catch (\Throwable) {}
+        // MRR
+        $planPrices = ['starter' => 19, 'growth' => 39, 'business' => 79, 'ltd' => 0];
+        $mrr = $realTenants->where('status', 'active')->sum(fn($t) => $planPrices[$t->plan] ?? 0);
+
+        // Volume (Real-only)
+        $volQuery = DB::table('sales')
+            ->join('tenants', 'sales.tenant_id', '=', 'tenants.id')
+            ->where('tenants.is_demo', false)
+            ->whereNull('sales.deleted_at');
+        if ($dateLimit) $volQuery->where('sales.created_at', '>=', $dateLimit);
+        $totalVolume = (float)$volQuery->sum('sales.total');
+
+        // Dynamic Trend Calculation
+        $storeTrend = collect();
+        $trendQuery = Tenant::query()->where('is_demo', false);
+        if ($period === 'today') {
+            $storeTrend = collect(range(0, 23))->map(function ($h) use ($trendQuery) {
+                $start = now()->startOfDay()->addHours($h);
+                $end   = $start->copy()->endOfHour();
+                $count = (clone $trendQuery)->whereBetween('created_at', [$start, $end])->count();
+                return ['month' => $start->format('H:00'), 'stores' => $count];
+            });
+        } elseif ($period === 'month') {
+            $days = now()->day;
+            $storeTrend = collect(range(1, $days))->map(function ($d) use ($trendQuery) {
+                $date = now()->startOfMonth()->addDays($d - 1);
+                $count = (clone $trendQuery)->whereDate('created_at', $date->toDateString())->count();
+                return ['month' => $date->format('M d'), 'stores' => $count];
+            });
+        } else {
+            $storeTrend = collect(range(5, 0))->map(function ($i) use ($trendQuery) {
+                $date = now()->subMonths($i);
+                $count = (clone $trendQuery)->whereBetween('created_at', [$date->copy()->startOfMonth(), $date->copy()->endOfMonth()])->count();
+                return ['month' => $date->format('M'), 'stores' => $count];
+            });
+        }
+
+        // Plan Distribution
+        $planDist = collect(['trial', 'starter', 'growth', 'business', 'ltd'])->map(function ($plan) use ($realTenants, $planPrices) {
+            $group = $realTenants->where('plan', $plan);
+            return [
+                'plan'  => $plan,
+                'count' => $group->count(),
+                'mrr'   => $group->where('status', 'active')->sum(fn($t) => $planPrices[$plan] ?? 0),
+            ];
+        })->values();
+
+        // Expiring Stores
+        $expiringStores = $realTenants
+            ->filter(fn($t) => $t->status === 'trial' && $t->trial_ends_at?->isFuture() && $t->trial_ends_at?->diffInDays(now()) <= 7)
+            ->map(fn($t) => [
+                'id'          => $t->id,
+                'name'        => $t->name ?? '(Unnamed)',
+                'owner_email' => $t->ownerEmail(),
+                'days_left'   => $t->trial_ends_at?->diffInDays(now()),
+                'trial_ends'  => $t->trial_ends_at->toDateString(),
+            ])->values();
+
+        // Recent Stores
+        $recentStores = $realTenants->take(10)->map(fn($t) => [
+            'id'            => $t->id,
+            'name'          => $t->name ?? '(Unnamed Store)',
+            'slug'          => $t->slug,
+            'plan'          => $t->plan,
+            'status'        => $t->trashed() ? 'deleted' : $t->status,
+            'owner_email'   => $t->ownerEmail(),
+            'setup_done'    => (bool) $t->setup_completed,
+            'created_at'    => $t->created_at->diffForHumans(),
+        ])->values();
+
+        // Stats summary for header
+        $stats = [
+            'total_stores'      => $realTenants->count(),
+            'active_stores'     => $realTenants->where('status', 'active')->count(),
+            'trial_stores'      => $realTenants->where('status', 'trial')->count(),
+            'suspended_stores'  => $realTenants->where('status', 'suspended')->count(),
+            'churned_stores'    => $realTenants->where('status', 'cancelled')->count(),
+            'total_deleted_stores' => $tenants->whereNotNull('deleted_at')->count(),
+            'new_today'         => $realTenants->filter(fn($t) => $t->created_at?->isToday())->count(),
+            'new_this_month'    => $realTenants->filter(fn($t) => $t->created_at?->isCurrentMonth())->count(),
+            'mrr'               => $mrr,
+            'arr'               => $mrr * 12,
+            'total_volume'      => $totalVolume,
+            'period'            => $period,
+            'total_users'       => User::where('is_platform_admin', false)->where('email', 'not like', '%@venqore-demo.internal')->count(),
+            'platform_admins'   => User::where('is_platform_admin', true)->count(),
+            'deleted_users'     => User::onlyTrashed()->count(),
+            'open_errors'       => \App\Models\ErrorLog::where('is_resolved', false)->count(),
+            'new_contacts'      => \App\Models\ContactSubmission::where('status', 'new')->count(),
+            'monetization'      => [
+                'total_plans'      => \App\Models\Plan::count(),
+                'website_plans'    => \App\Models\Plan::where('is_ltd', false)->count(),
+                'appsumo_plans'    => \App\Models\Plan::where('is_ltd', true)->count(),
+                
+                'total_platforms'  => \App\Models\Platform::count(),
+                'active_platforms' => \App\Models\Platform::where('is_active', true)->count(),
+                'inactive_platforms' => \App\Models\Platform::where('is_active', false)->count(),
+                
+                'total_coupons'    => \App\Models\Coupon::count(),
+                'active_coupons'   => \App\Models\Coupon::where('is_active', true)->count(),
+                'inactive_coupons' => \App\Models\Coupon::where('is_active', false)->count(),
+
+                'total_overrides'  => \App\Models\TenantPlanOverride::count(),
+                'active_overrides' => \App\Models\TenantPlanOverride::where(function($q) {
+                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })->count(),
+                'expired_overrides' => \App\Models\TenantPlanOverride::where('expires_at', '<=', now())->count(),
+            ],
+        ];
 
         return Inertia::render('SuperAdmin/Dashboard', [
             'stats'             => $stats,
-            'store_trend'       => $storeTrend,
+            'store_trend'       => $storeTrend->values(),
             'plan_distribution' => $planDist,
             'recent_stores'     => $recentStores,
             'expiring_stores'   => $expiringStores,
-            'activity_feed'     => $activityFeed,
-            'platform_users'    => $platformUsers,
-            'tickets'           => $tickets,
-            'tickets_total'     => $totalTickets,
-            'open_count'        => $openCount,
-            'active_filter'     => 'open',
-            'webhooks'          => $webhooks,
+            'activity_feed'     => $this->buildActivityFeed(),
+            'platform_users'    => $this->buildPlatformUsers(),
+            'tickets'           => \App\Models\SupportTicket::whereIn('status', ['open', 'in_progress'])->take(10)->get(),
         ]);
     }
 
     // ─── Data Builders ──────────────────────────────────────────────────────
-
-    private function buildStats(): array
-    {
-        $total       = Tenant::withTrashed()->count();
-        $active      = Tenant::where('status', 'active')->count();
-        $trial       = Tenant::where('status', 'trial')->whereDate('trial_ends_at', '>=', now())->count();
-        $suspended   = Tenant::where('status', 'suspended')->count();
-        $churned     = Tenant::where('status', 'cancelled')->count();
-        $trashed     = Tenant::onlyTrashed()->count();
-        $newToday    = Tenant::whereDate('created_at', today())->count();
-        $newThisMonth = Tenant::whereMonth('created_at', now()->month)->whereYear('created_at', now()->year)->count();
-        $cancelledLast30 = Tenant::where('status', 'cancelled')
-            ->where('updated_at', '>=', now()->subDays(30))->count();
-
-        $expiringSoon = Tenant::where('status', 'trial')
-            ->whereDate('trial_ends_at', '<=', now()->addDays(7))
-            ->whereDate('trial_ends_at', '>=', now())
-            ->count();
-
-        $totalUsers = User::count();
-        $deletedUsers = User::onlyTrashed()->count();
-        $platformAdmins = User::where('is_platform_admin', true)->count();
-        $storeUsers = TenantUser::distinct('user_id')->count('user_id');
-
-        $totalDeletedStores = Tenant::onlyTrashed()->count();
-
-        // Conversion rate: active / (active + churned in last 30 days) * 100
-        $conversionBase = $active + $cancelledLast30;
-        $conversionRate = $conversionBase > 0 ? round(($active / $conversionBase) * 100, 1) : 0;
-
-        // MRR estimation based on plan counts
-        $planPrices = ['starter' => 19, 'growth' => 39, 'business' => 79, 'ltd' => 0];
-        $mrr = 0;
-        foreach ($planPrices as $plan => $price) {
-            $count = Tenant::where('status', 'active')->where('plan', $plan)->count();
-            $mrr += $count * $price;
-        }
-        $arr = $mrr * 12;
-
-        return [
-            'total_stores'      => $total,
-            'active_stores'     => $active,
-            'trial_stores'      => $trial,
-            'suspended_stores'  => $suspended,
-            'churned_stores'    => $churned,
-            'trashed_stores'    => $trashed,
-            'new_today'         => $newToday,
-            'new_this_month'    => $newThisMonth,
-            'cancelled_last_30' => $cancelledLast30,
-            'expiring_soon'     => $expiringSoon,
-            'conversion_rate'   => $conversionRate,
-            'total_users'       => $totalUsers,
-            'deleted_users'     => $deletedUsers,
-            'total_deleted_stores' => $totalDeletedStores,
-            'platform_admins'   => $platformAdmins,
-            'store_users'       => $storeUsers,
-            'mrr'               => $mrr,
-            'arr'               => $arr,
-        ];
-    }
-
-    private function buildStoreTrend(): array
-    {
-        return collect(range(5, 0))->map(function ($i) {
-            $date = now()->subMonths($i);
-            $count = Tenant::whereYear('created_at', $date->year)
-                ->whereMonth('created_at', $date->month)
-                ->count();
-            return ['month' => $date->format('M'), 'stores' => $count];
-        })->values()->toArray();
-    }
-
-    private function buildPlanDistribution(): array
-    {
-        $planPrices = ['starter' => 19, 'growth' => 39, 'business' => 79, 'ltd' => 0];
-        $plans = ['trial', 'starter', 'growth', 'business', 'ltd'];
-
-        return collect($plans)->map(function ($plan) use ($planPrices) {
-            $count = Tenant::where('plan', $plan)->count();
-            $activePaid = Tenant::where('plan', $plan)->where('status', 'active')->count();
-            $mrr = $activePaid * ($planPrices[$plan] ?? 0);
-            return ['plan' => $plan, 'count' => $count, 'mrr' => $mrr];
-        })->filter(fn($p) => $p['count'] > 0)->values()->toArray();
-    }
-
-    private function buildRecentStores(int $limit = 10): array
-    {
-        return Tenant::withTrashed()
-            ->latest()
-            ->take($limit)
-            ->get()
-            ->map(function (Tenant $t) {
-                $owner = $t->ownerMembership()->with('user')->first();
-                $staffCount = $t->memberships()->count();
-                $daysLeft = null;
-                if ($t->status === 'trial' && $t->trial_ends_at) {
-                    $daysLeft = max(0, now()->diffInDays($t->trial_ends_at, false));
-                }
-                return [
-                    'id'            => $t->id,
-                    'name'          => $t->name ?? '(Unnamed Store)',
-                    'slug'          => $t->slug ?? 'store-' . $t->id,
-                    'plan'          => $t->plan ?? 'trial',
-                    'status'        => $t->trashed() ? 'deleted' : ($t->status ?? 'trial'),
-                    'owner_email'   => $owner?->user?->email ?? '—',
-                    'owner_name'    => $owner?->user?->name ?? '—',
-                    'owner_user_id' => $owner?->user_id,          // ← for Impersonate button
-                    'plan_limits'   => $t->plan_limits ?? [],     // ← for Feature Flag toggles
-                    'staff_count'   => $staffCount,
-                    'setup_done'    => (bool) $t->setup_completed,
-                    'trial_ends_at' => $t->trial_ends_at?->toDateString(),
-                    'days_left'     => $daysLeft,
-                    'created_at'    => $t->created_at->diffForHumans(),
-                    'country'       => $t->country_code ?? '—',
-                    'industry'      => $t->industry ?? '—',
-                ];
-            })->toArray();
-    }
-
-    private function buildExpiringStores(): array
-    {
-        return Tenant::where('status', 'trial')
-            ->whereNotNull('trial_ends_at')
-            ->whereDate('trial_ends_at', '>=', now())
-            ->whereDate('trial_ends_at', '<=', now()->addDays(7))
-            ->orderBy('trial_ends_at')
-            ->get()
-            ->map(function (Tenant $t) {
-                $owner = $t->ownerMembership()->with('user')->first();
-                $daysLeft = max(0, now()->diffInDays($t->trial_ends_at, false));
-                return [
-                    'id'          => $t->id,
-                    'name'        => $t->name ?? '(Unnamed)',
-                    'owner_email' => $owner?->user?->email ?? '—',
-                    'plan'        => $t->plan ?? 'trial',
-                    'days_left'   => $daysLeft,
-                    'trial_ends'  => $t->trial_ends_at->toDateString(),
-                ];
-            })->toArray();
-    }
-
     private function buildActivityFeed(): array
     {
-        $feed = [];
-
         // New store signups
-        $newStores = Tenant::latest()->take(5)->get()->map(fn($t) => [
+        $newStores = Tenant::where('is_demo', false)->latest()->take(5)->get()->map(fn($t) => [
             'type'    => 'new_store',
             'icon'    => 'building',
             'message' => '🏪 New store registered: ' . ($t->name ?? 'Unnamed'),
@@ -232,7 +171,7 @@ class SuperAdminController extends Controller
         ]);
 
         // Suspended stores
-        $suspended = Tenant::where('status', 'suspended')->latest('updated_at')->take(3)->get()->map(fn($t) => [
+        $suspended = Tenant::where('status', 'suspended')->where('is_demo', false)->latest('updated_at')->take(3)->get()->map(fn($t) => [
             'type'    => 'suspended',
             'icon'    => 'alert',
             'message' => '⚠️ Store suspended: ' . ($t->name ?? 'Unnamed'),
@@ -241,26 +180,11 @@ class SuperAdminController extends Controller
             'color'   => 'amber',
         ]);
 
-        // Expiring trials
-        $expiring = Tenant::where('status', 'trial')
-            ->whereDate('trial_ends_at', '<=', now()->addDays(3))
-            ->whereDate('trial_ends_at', '>=', now())
-            ->take(3)->get()->map(fn($t) => [
-                'type'    => 'trial_expiring',
-                'icon'    => 'clock',
-                'message' => '⏰ Trial expiring: ' . ($t->name ?? 'Unnamed'),
-                'sub'     => 'Expires ' . $t->trial_ends_at->toDateString(),
-                'time'    => $t->trial_ends_at->timestamp,
-                'color'   => 'red',
-            ]);
-
-        $feed = collect($newStores)->merge($suspended)->merge($expiring)
+        return collect($newStores)->merge($suspended)
             ->sortByDesc('time')
             ->take(15)
             ->values()
             ->toArray();
-
-        return $feed;
     }
 
     private function buildPlatformUsers(): array
@@ -282,7 +206,7 @@ class SuperAdminController extends Controller
 
     public function stores(Request $request)
     {
-        $query = Tenant::query();
+        $query = Tenant::query()->where('is_demo', false)->where('slug', '!=', 'demo');
         
         if ($request->boolean('trashed')) {
             $query->onlyTrashed();
@@ -332,7 +256,9 @@ class SuperAdminController extends Controller
 
     public function users(Request $request)
     {
-        $query = User::query();
+        $query = User::query()
+            ->where('email', 'not like', '%@venqore-demo.internal')
+            ->where('is_platform_admin', false);
 
         if ($request->boolean('trashed')) {
             $query->onlyTrashed();
@@ -362,6 +288,37 @@ class SuperAdminController extends Controller
         ]);
     }
 
+    public function destroyStore(Tenant $tenant)
+    {
+        $tenant->delete();
+        return back()->with('success', "Store '{$tenant->name}' has been moved to trash.");
+    }
+
+    public function bulkDestroyStores(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Tenant::whereIn('id', $request->ids)->delete();
+        return back()->with('success', count($request->ids) . " stores have been moved to trash.");
+    }
+
+    public function destroyUser(User $user)
+    {
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'You cannot delete yourself.');
+        }
+        $user->delete();
+        return back()->with('success', "User '{$user->name}' has been moved to trash.");
+    }
+
+    public function bulkDestroyUsers(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        $ids = array_diff($request->ids, [auth()->id()]);
+        if (empty($ids)) return back();
+        User::whereIn('id', $ids)->delete();
+        return back()->with('success', count($ids) . " users have been moved to trash.");
+    }
+
     public function restoreStore($id)
     {
         $tenant = Tenant::onlyTrashed()->findOrFail($id);
@@ -373,8 +330,16 @@ class SuperAdminController extends Controller
     {
         $tenant = Tenant::onlyTrashed()->findOrFail($id);
         $name = $tenant->name;
-        $tenant->forceDelete();
-        return back()->with('success', "Store '{$name}' has been PERMANENTLY deleted.");
+        
+        try {
+            $tenant->forceDelete();
+            return back()->with('success', "Store '{$name}' has been PERMANENTLY deleted.");
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return back()->with('error', "Cannot permanently delete '{$name}' due to restrictive data constraints (e.g., active sales records). It must remain in the Trash.");
+            }
+            throw $e;
+        }
     }
 
     public function restoreUser($id)
@@ -388,8 +353,22 @@ class SuperAdminController extends Controller
     {
         $user = User::onlyTrashed()->findOrFail($id);
         $name = $user->name;
-        $user->forceDelete();
-        return back()->with('success', "User '{$name}' has been PERMANENTLY deleted.");
+        
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($user) {
+                \App\Models\StoreLicense::where('user_id', $user->id)->delete();
+                \App\Models\TenantUser::where('user_id', $user->id)->delete();
+                \App\Models\ActivityLog::where('user_id', $user->id)->delete();
+                $user->forceDelete();
+            });
+    
+            return back()->with('success', "User '{$name}' has been PERMANENTLY deleted.");
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ($e->getCode() == 23000) {
+                return back()->with('error', "Cannot permanently delete '{$name}' because they have processed sales or financial records. They must remain safely in the Trash.");
+            }
+            throw $e;
+        }
     }
 
     public function suspend(Tenant $tenant)
@@ -519,4 +498,101 @@ class SuperAdminController extends Controller
         AppSumoCode::where('is_redeemed', false)->delete();
         return back()->with('success', 'All unredeemed codes have been cleared.');
     }
+
+    // ── System Health & Monitoring ────────────────────────────────────
+
+    public function errorLogs(Request $request)
+    {
+        $query = \App\Models\ErrorLog::with(['tenant:id,name', 'user:id,name']);
+
+        if ($request->boolean('resolved')) {
+            $query->where('is_resolved', true);
+        } else {
+            $query->where('is_resolved', false);
+        }
+
+        if ($type = $request->get('type')) {
+            $query->where('type', $type);
+        }
+
+        $errors = $query->latest('last_seen_at')->paginate(50);
+
+        return Inertia::render('SuperAdmin/Health/Errors', [
+            'errors' => $errors,
+            'filters' => $request->only(['resolved', 'type'])
+        ]);
+    }
+
+    public function resolveError(\App\Models\ErrorLog $error, Request $request)
+    {
+        $error->update([
+            'is_resolved'     => true,
+            'resolution_note' => $request->get('note', 'Manually resolved.')
+        ]);
+        return back()->with('success', 'Error marked as resolved.');
+    }
+
+    public function resolveAllErrors(Request $request)
+    {
+        \App\Models\ErrorLog::where('is_resolved', false)->update([
+            'is_resolved'     => true,
+            'resolution_note' => $request->get('note', 'Bulk resolved by admin.')
+        ]);
+        return back()->with('success', 'All open errors marked as resolved.');
+    }
+
+    public function detectFixes()
+    {
+        $openErrors = \App\Models\ErrorLog::where('is_resolved', false)
+            ->whereNotNull('file')
+            ->get();
+
+        $resolvedCount = 0;
+        /** @var \App\Models\ErrorLog $error */
+        foreach ($openErrors as $error) {
+            // Adjust paths: If the error has an absolute path we use it. 
+            // Often frontend errors just have filenames, so we may need to skip or map them.
+            // But backend errors usually have full paths.
+            $filePath = $error->file;
+
+            if (file_exists($filePath)) {
+                $lastModified = filemtime($filePath);
+                $lastSeen     = $error->last_seen_at->timestamp;
+
+                // If file was modified AFTER the error was last seen, it's a fixed candidate.
+                if ($lastModified > $lastSeen) {
+                    $error->update([
+                        'is_resolved'     => true,
+                        'resolution_note' => 'Automatically resolved: File modification detected after last occurrence.'
+                    ]);
+                    $resolvedCount++;
+                }
+            }
+        }
+
+        return back()->with('success', "Scanning complete. {$resolvedCount} errors were auto-detected as fixed based on recent code changes.");
+    }
+
+    public function contactSubmissions(Request $request)
+    {
+        $query = \App\Models\ContactSubmission::query();
+
+        if ($status = $request->get('status')) {
+            $query->where('status', $status);
+        }
+
+        $submissions = $query->latest()->paginate(30);
+
+        return Inertia::render('SuperAdmin/Health/Contacts', [
+            'submissions' => $submissions,
+            'filters' => $request->only(['status'])
+        ]);
+    }
+
+    public function readContact(\App\Models\ContactSubmission $contact)
+    {
+        $contact->markRead();
+        return back()->with('success', 'Message marked as read.');
+    }
 }
+

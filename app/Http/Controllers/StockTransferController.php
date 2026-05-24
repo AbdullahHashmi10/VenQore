@@ -87,7 +87,7 @@ class StockTransferController extends Controller
             }
         });
 
-        return redirect()->route('stock-transfers.index')->with('success', 'Stock Transfer created successfully.');
+        return redirect()->route('store.stock-transfers.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Stock Transfer created successfully.');
     }
 
     protected function moveStock($productId, $fromWarehouseId, $toWarehouseId, $quantity, $reference)
@@ -104,7 +104,7 @@ class StockTransferController extends Controller
              'warehouse_id' => $fromWarehouseId,
              'type' => 'transfer_out',
              'quantity' => -$quantity,
-             'reference' => $reference,
+             'reference_id' => $reference,
              'user_id' => auth()->id(),
              'description' => "Transfer to Warehouse #$toWarehouseId"
         ]);
@@ -121,11 +121,19 @@ class StockTransferController extends Controller
              'warehouse_id' => $toWarehouseId,
              'type' => 'transfer_in',
              'quantity' => $quantity,
-             'reference' => $reference,
+             'reference_id' => $reference,
              'user_id' => auth()->id(),
              'description' => "Transfer from Warehouse #$fromWarehouseId"
         ]);
     }
+
+
+
+
+
+
+
+
 
     public function show($id)
     {

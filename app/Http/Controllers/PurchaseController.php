@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Party;
-use App\Services\V3\FifoService as V3Fifo;
 use App\Services\V3\AccountingService as AccountingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -114,6 +113,8 @@ class PurchaseController extends Controller
                     'balance' => $balance,
                     'payment_status' => $paymentStatus,
                     'status' => $purchase->status ?? 'pending',
+                    'is_jit' => $purchase->is_jit,
+                    'approval_status' => $purchase->approval_status,
                 ];
             });
 
@@ -327,12 +328,12 @@ class PurchaseController extends Controller
                         // Increment Stock
                         $product->increment('stock_quantity', $item['quantity']);
 
-                        // Moving Average Calculation (still used for products.cost_price reference field)
-                        $oldVal   = $currentStock * $formattedCurrentCost;
-                        $newVal   = $item['quantity'] * $effectiveCost;
-                        $totalQty = $currentStock + $item['quantity'];
-                        $newAvg   = ($totalQty > 0) ? ($oldVal + $newVal) / $totalQty : $effectiveCost;
-                        $product->update(['cost_price' => $newAvg]);
+                        // Moving Average Calculation (Removed as per new specs: products.cost_price should not be overwritten by purchases, FIFO batches store the actual costs)
+                        // $oldVal   = $currentStock * $formattedCurrentCost;
+                        // $newVal   = $item['quantity'] * $effectiveCost;
+                        // $totalQty = $currentStock + $item['quantity'];
+                        // $newAvg   = ($totalQty > 0) ? ($oldVal + $newVal) / $totalQty : $effectiveCost;
+                        // $product->update(['cost_price' => $newAvg]);
 
                         // Get default warehouse
                         $defaultWarehouse = \App\Models\Warehouse::first();
@@ -669,7 +670,7 @@ class PurchaseController extends Controller
             $defaultWarehouse = \App\Models\Warehouse::first();
             $warehouseId      = $defaultWarehouse?->id;
             // [V3 SWAP DAY 3] V1 FifoService replaced with V3.
-            $fifo             = app(V3Fifo::class);
+            $fifo             = app(\App\Services\V3\FifoService::class);
 
             foreach ($validated['items'] as $itemData) {
                 $item    = $purchase->items->find($itemData['item_id']);
@@ -733,6 +734,23 @@ class PurchaseController extends Controller
 
     public function destroy($id)
     {
+        // ── Authorization: Only Owner / Admin may delete a purchase ──────────
+        // Deleting a purchase reverses journal entries and voids FIFO batches —
+        // this is an irreversible financial action. Managers and below are
+        // barred even though they hold the 'purchases' permission for day-to-day
+        // purchase operations (create, view, edit, receive).
+        $user = auth()->user();
+        $tenantRole = $user?->role; // Resolves from current.membership via getRoleAttribute()
+
+        if (!$user || (!in_array($tenantRole, ['owner', 'admin']) && !$user->isPlatformAdmin())) {
+            Log::warning('Purchase Destroy Unauthorized', [
+                'user_id'     => auth()->id(),
+                'tenant_role' => $tenantRole,
+                'purchase_id' => $id,
+            ]);
+            abort(403, 'Unauthorized action. Only Owners and Admins can delete purchases.');
+        }
+
         DB::transaction(function () use ($id) {
             $purchase = Invoice::with('items')->findOrFail($id);
 
@@ -763,7 +781,7 @@ class PurchaseController extends Controller
             }
 
             // 2. Void FIFO inventory batches
-            $fifo = app(V3Fifo::class);
+            $fifo = app(\App\Services\V3\FifoService::class);
             $voidResult = $fifo->voidPurchaseBatches($purchase->id);
             if (!empty($voidResult['warnings'])) {
                 Log::warning(

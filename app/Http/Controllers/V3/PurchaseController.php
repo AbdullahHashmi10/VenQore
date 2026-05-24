@@ -22,7 +22,7 @@ class PurchaseController extends Controller
     public function index()
     {
         $tenantId = app('current.tenant')->id;
-        $purchases = DB::table('purchases')
+        $purchases = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
             ->where('purchases.tenant_id', $tenantId)
             ->join('parties', 'purchases.party_id', '=', 'parties.id')
             ->orderByDesc('purchases.created_at')
@@ -45,18 +45,18 @@ class PurchaseController extends Controller
     public function create()
     {
         $tenantId = app('current.tenant')->id;
-        $suppliers = DB::table('parties')
+        $suppliers = DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('type', 'supplier')
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $products = DB::table('products')
+        $products = DB::table('products')->where('products.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->orderBy('name')
             ->get(['id', 'name', 'sku', 'base_unit', 'tax_rate']);
 
-        $warehouses = DB::table('warehouses')
+        $warehouses = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->orderByDesc('is_default')
             ->get(['id', 'name', 'is_default']);
@@ -167,7 +167,7 @@ class PurchaseController extends Controller
             ], $journalLines);
 
             // ── 4. Insert purchases record ────────────────────────────
-            DB::table('purchases')->insert([
+            DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)->insert([
                 'id'               => $purchaseId,
                 'tenant_id'        => app('current.tenant')->id,
                 'invoice_number'   => $validated['supplier_invoice'] ?? $invoiceNumber,
@@ -189,7 +189,7 @@ class PurchaseController extends Controller
             foreach ($lineItems as $item) {
                 $itemId = Str::uuid()->toString();
 
-                DB::table('purchase_items')->insert([
+                DB::table('purchase_items')->where('purchase_items.tenant_id', app('current.tenant')->id)->insert([
                     'id'           => $itemId,
                     'tenant_id'    => app('current.tenant')->id,
                     'purchase_id'  => $purchaseId,
@@ -213,12 +213,12 @@ class PurchaseController extends Controller
                 );
 
                 // Link batch back to purchase_item
-                DB::table('purchase_items')
+                DB::table('purchase_items')->where('purchase_items.tenant_id', app('current.tenant')->id)
                     ->where('id', $itemId)
                     ->update(['inventory_batch_id' => $batch->id]);
             }
 
-            return DB::table('purchases')
+            return DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
                 ->join('parties', 'purchases.party_id', '=', 'parties.id')
                 ->where('purchases.id', $purchaseId)
                 ->select('purchases.*', 'parties.name as supplier_name')
@@ -233,14 +233,14 @@ class PurchaseController extends Controller
     public function show(string $id)
     {
         $tenantId = app('current.tenant')->id;
-        $purchase = DB::table('purchases')
+        $purchase = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
             ->where('purchases.tenant_id', $tenantId)
             ->join('parties', 'purchases.party_id', '=', 'parties.id')
             ->where('purchases.id', $id)
             ->select('purchases.*', 'parties.name as supplier_name')
             ->firstOrFail();
 
-        $items = DB::table('purchase_items')
+        $items = DB::table('purchase_items')->where('purchase_items.tenant_id', app('current.tenant')->id)
             ->join('products', 'purchase_items.product_id', '=', 'products.id')
             ->where('purchase_items.purchase_id', $id)
             ->select(
@@ -251,11 +251,11 @@ class PurchaseController extends Controller
             )
             ->get();
 
-        $journalEntry = DB::table('journal_entries')
+        $journalEntry = DB::table('journal_entries')->where('journal_entries.tenant_id', app('current.tenant')->id)
             ->where('id', $purchase->journal_entry_id)
             ->first();
 
-        $journalLines = DB::table('journal_items')
+        $journalLines = DB::table('journal_items')->where('journal_items.tenant_id', app('current.tenant')->id)
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
             ->where('journal_items.journal_entry_id', $purchase->journal_entry_id)
             ->select(

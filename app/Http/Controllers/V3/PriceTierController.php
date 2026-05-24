@@ -12,9 +12,9 @@ class PriceTierController extends Controller
 {
     public function index(string $productId)
     {
-        $product = DB::table('products')->where('id', $productId)->firstOrFail();
+        $product = DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->where('id', $productId)->firstOrFail();
 
-        $tiers = DB::table('product_price_tiers')
+        $tiers = DB::table('product_price_tiers')->where('product_price_tiers.tenant_id', app('current.tenant')->id)
             ->where('product_id', $productId)
             ->orderBy('min_qty')
             ->get();
@@ -34,7 +34,7 @@ class PriceTierController extends Controller
         ]);
 
         // Overlap check: no two tiers should cover the same qty range
-        $overlap = DB::table('product_price_tiers')
+        $overlap = DB::table('product_price_tiers')->where('product_price_tiers.tenant_id', app('current.tenant')->id)
             ->where('product_id', $productId)
             ->where(function ($q) use ($validated) {
                 $q->whereBetween('min_qty', [$validated['min_qty'], $validated['max_qty'] ?? PHP_INT_MAX])
@@ -55,7 +55,7 @@ class PriceTierController extends Controller
             ]);
         }
 
-        DB::table('product_price_tiers')->insert([
+        DB::table('product_price_tiers')->where('product_price_tiers.tenant_id', app('current.tenant')->id)->insert([
             'id'         => Str::uuid()->toString(),
             'product_id' => $productId,
             'min_qty'    => $validated['min_qty'],
@@ -70,7 +70,7 @@ class PriceTierController extends Controller
 
     public function destroy(string $productId, string $id)
     {
-        DB::table('product_price_tiers')
+        DB::table('product_price_tiers')->where('product_price_tiers.tenant_id', app('current.tenant')->id)
             ->where('id', $id)
             ->where('product_id', $productId)
             ->delete();

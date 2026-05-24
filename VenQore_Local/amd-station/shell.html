@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VenQore Station</title>
+    <link rel="stylesheet" href="shell.css">
+</head>
+
+<body>
+    <!-- TOP NOTCHES (Unified) -->
+    <div class="notch-container top">
+        <div class="pill left">
+            <!-- Connection Status -->
+            <div id="conn-indicator" class="indicator online"></div>
+            <span id="status-text">INIT...</span>
+            <div class="sep"></div>
+            <span id="sync-text">📡 Mobile</span>
+            <div class="sep"></div>
+            <button id="settings-btn" title="Server Settings">⚙️</button>
+        </div>
+
+        <div class="pill center">
+            <span class="station-title">VenQore STATION</span>
+        </div>
+
+        <div class="pill right">
+            <span id="printer-status">🖨️ Ready</span>
+            <div class="sep"></div>
+            <button id="blur-toggle" title="Privacy Shade">👁️ Blur</button>
+            <div class="sep"></div>
+            <button id="refresh" title="Reload System">⚡ Refresh</button>
+            <div class="sep"></div>
+            <button id="close" class="exit-btn" title="Authorize Exit">🛑 Exit</button>
+        </div>
+    </div>
+
+    <!-- MAIN VIEWPORT (The Canvas) -->
+    <div id="view-container">
+        <webview id="app-view" src="about:blank" autosize="on" allowpopups
+            webpreferences="contextIsolation=yes, nodeIntegration=no" partition="persist:amd_storage"></webview>
+
+        <div id="loader-overlay">
+            <div class="loader-content">
+                <img src="assets/icon.png" class="logo-pulse" alt="VenQore">
+                <div class="loading-ring"></div>
+                <h2 id="loading-status">System Ignition...</h2>
+            </div>
+        </div>
+
+        <div id="privacy-overlay">
+            <div class="blur-box">
+                <div class="lock">🔒</div>
+                <h2>Security Shade Active</h2>
+                <p>Click to resume work</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM BAR REMOVED -->
+
+    <!-- SUBTLE BRANDING (Floats behind everything) -->
+    <div class="footer-legal">
+        VenQore Group - All Rights Reserved | Created By Abdullah Hashmi
+    </div>
+
+    <script src="shell-renderer.js"></script>
+</body>
+
+</html>

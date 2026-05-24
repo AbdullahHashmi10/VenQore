@@ -1,0 +1,103 @@
+name: VenQore Tests
+
+on:
+  push:
+    branches: ["main", "develop", "release/**"]
+  pull_request:
+    branches: ["main", "develop"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: PHP ${{ matrix.php }} — Feature Tests
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ["8.3"]
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── PHP Setup ───────────────────────────────────────────────────────
+      - name: Set up PHP ${{ matrix.php }}
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: >-
+            mbstring, pdo, pdo_sqlite, sqlite3, bcmath, ctype,
+            fileinfo, json, openssl, tokenizer, xml, zip
+          coverage: none   # no Xdebug overhead — coverage runs separately
+
+      # ── Composer Cache ──────────────────────────────────────────────────
+      - name: Cache Composer packages
+        id: composer-cache
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: composer-${{ runner.os }}-php${{ matrix.php }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-php${{ matrix.php }}-
+
+      - name: Install Composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      # ── Environment ──────────────────────────────────────────────────────
+      - name: Copy .env.testing
+        run: |
+          cp .env.example .env.testing
+          # Override for SQLite in-memory (same as local test runner)
+          echo "APP_ENV=testing"              >> .env.testing
+          echo "DB_CONNECTION=sqlite"         >> .env.testing
+          echo "DB_DATABASE=:memory:"         >> .env.testing
+          echo "CACHE_DRIVER=array"           >> .env.testing
+          echo "QUEUE_CONNECTION=sync"        >> .env.testing
+          echo "SESSION_DRIVER=array"         >> .env.testing
+          echo "MAIL_MAILER=array"            >> .env.testing
+
+      - name: Generate application key
+        run: php artisan key:generate --env=testing
+
+      # ── Run Tests ───────────────────────────────────────────────────────
+      - name: Run VenQore feature tests (all 20 modules)
+        run: |
+          php artisan config:clear --env=testing
+          vendor/bin/pest \
+            tests/Feature/Module01 \
+            tests/Feature/Module02 \
+            tests/Feature/Module03 \
+            tests/Feature/Module04 \
+            tests/Feature/Module05 \
+            tests/Feature/Module06 \
+            tests/Feature/Module07 \
+            tests/Feature/Module08 \
+            tests/Feature/Module09 \
+            tests/Feature/Module10 \
+            tests/Feature/Module11 \
+            tests/Feature/Module12 \
+            tests/Feature/Module13 \
+            tests/Feature/Module14 \
+            tests/Feature/Module15 \
+            tests/Feature/Module16 \
+            tests/Feature/Module17 \
+            tests/Feature/Module18 \
+            tests/Feature/Module19 \
+            tests/Feature/Module20 \
+            --no-coverage \
+            --stop-on-failure
+        env:
+          APP_ENV: testing
+
+      # ── Failure Artifact ─────────────────────────────────────────────────
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-failure-log-php${{ matrix.php }}
+          path: storage/logs/laravel.log
+          retention-days: 7

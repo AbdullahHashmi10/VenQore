@@ -24,6 +24,7 @@ import {
 import { useAlert } from '@/Contexts/AlertContext';
 
 export default function StaffAttendanceIndex({ staff = [], attendance = [], gaps = [], filters = {} }) {
+    const { store } = usePage().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [dateFilter, setDateFilter] = useState(filters.date || new Date().toISOString().split('T')[0]);
     const { showAlert } = useAlert();

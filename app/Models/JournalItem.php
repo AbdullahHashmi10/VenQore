@@ -15,6 +15,7 @@ class JournalItem extends Model
         'tenant_id',
         'journal_entry_id',
         'account_id',
+        'party_id',
         'debit',
         'credit',
         'description',

@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+use App\Traits\HasTenant;
+
 class BankAccount extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $guarded = [];
 
@@ -28,7 +30,7 @@ class BankAccount extends Model
             return (float) \Illuminate\Support\Facades\DB::table('journal_items')
                 ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_items.tenant_id', $this->tenant_id)
+                ->where('journal_entries.tenant_id', $this->tenant_id)
                 ->where('accounts.code', '1000')
                 ->where('journal_entries.is_reversed', 0)
                 ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as balance')
@@ -39,7 +41,7 @@ class BankAccount extends Model
         return (float) \Illuminate\Support\Facades\DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_items.tenant_id', $this->tenant_id)
+            ->where('journal_entries.tenant_id', $this->tenant_id)
             ->where('accounts.code', '1010')
             ->where('journal_entries.reference', $this->id)
             ->where('journal_entries.is_reversed', 0)
