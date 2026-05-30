@@ -5,25 +5,32 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\RecurringInvoice;
+use App\Models\Party;
+use App\Models\Warehouse;
+use App\Models\Product;
 
 class RecurringInvoiceController extends Controller
 {
     public function index()
     {
-        $invoices = RecurringInvoice::latest()->paginate(10);
+        $invoices = RecurringInvoice::with('customer')->latest()->get();
         
         return Inertia::render('RecurringInvoices/RecurringInvoices', [
-            'invoices' => $invoices,
-            'stats' => [
-                'total_active' => RecurringInvoice::where('status', 'active')->count(),
-                'total_revenue' => 0,
-            ]
+            'recurringInvoices' => $invoices,
         ]);
     }
 
     public function create()
     {
-        return Inertia::render('RecurringInvoices/Create');
+        $customers = Party::where('type', 'customer')->orderBy('name')->get();
+        $warehouses = Warehouse::orderBy('name')->get();
+        $products = Product::select('id', 'name', 'sku', 'price', 'cost_price')->orderBy('name')->get();
+
+        return Inertia::render('RecurringInvoices/Create', [
+            'customers' => $customers,
+            'warehouses' => $warehouses,
+            'products' => $products,
+        ]);
     }
 
     public function store(Request $request)
@@ -48,8 +55,15 @@ class RecurringInvoiceController extends Controller
     public function edit($id)
     {
         $invoice = RecurringInvoice::findOrFail($id);
+        $customers = Party::where('type', 'customer')->orderBy('name')->get();
+        $warehouses = Warehouse::orderBy('name')->get();
+        $products = Product::select('id', 'name', 'sku', 'price', 'cost_price')->orderBy('name')->get();
+
         return Inertia::render('RecurringInvoices/Edit', [
-            'invoice' => $invoice
+            'invoice' => $invoice,
+            'customers' => $customers,
+            'warehouses' => $warehouses,
+            'products' => $products,
         ]);
     }
 

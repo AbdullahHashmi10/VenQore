@@ -26,7 +26,7 @@ const StatCard = ({ title, value, icon }) => (
 const PREMADE_BASE_UNITS = ['pcs', 'kg', 'ltr', 'm', 'g', 'oz', 'lb'];
 const PREMADE_SECONDARY_UNITS = ['box', 'carton', 'pack', 'dozen', 'crate', 'bundle', 'roll'];
 
-export default function ProductModal({ product, onClose, isOpen, mode = 'view', warehouses = [], categories = [], attributes = [], onSubmit, initialName = '' }) {
+export default function ProductModal({ product, onClose, isOpen, mode = 'view', warehouses = [], categories = [], attributes = [], onSubmit, initialName = '', onSuccess }) {
     const [activeTab, setActiveTab] = useState('details');
     const [isNewCategory, setIsNewCategory] = useState(false);
     const isEditable = mode === 'create' || mode === 'edit';
