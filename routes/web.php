@@ -1235,6 +1235,7 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
     // E-Invoicing
     Route::get('/e-invoicing', [\App\Http\Controllers\EInvoicingController::class, 'index'])->name('e-invoicing.index');
     Route::post('/e-invoicing/generate', [\App\Http\Controllers\EInvoicingController::class, 'generate'])->name('e-invoicing.generate');
+    Route::post('/e-invoicing/waybill', [\App\Http\Controllers\EInvoicingController::class, 'generateWaybill'])->name('e-invoicing.waybill');
 
     // System Reset (Admin Only)
     Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->name('system.reset');
