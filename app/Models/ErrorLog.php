@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ErrorLog extends Model
 {
-    use \App\Traits\HasTenant;
+    // Removed HasTenant trait to ensure error logging remains fully global 
+    // and writable/readable even when tenant scoping is broken.
 
     protected $fillable = [
         'type', 'message', 'url', 'method', 'stack_trace', 'file', 'line',

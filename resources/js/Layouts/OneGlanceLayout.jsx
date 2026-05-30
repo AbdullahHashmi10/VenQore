@@ -188,6 +188,34 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         return () => clearInterval(interval);
     }, []);
 
+    // Auto-expand sidebar & menu during onboarding steps
+    useEffect(() => {
+        const handleTourStep = (e) => {
+            const step = e.detail;
+            if (step === 'sidebar_stock') {
+                setIsSidebarOpen(true);
+                setExpandedMenu('Stock');
+            } else if (step === 'purchase_tour_sidebar') {
+                setIsSidebarOpen(true);
+                setExpandedMenu('Purchase');
+            }
+        };
+        window.addEventListener('onboarding-step-changed', handleTourStep);
+        
+        // Also check initial load step
+        if (window.activeOnboardingStep === 'sidebar_stock') {
+            setIsSidebarOpen(true);
+            setExpandedMenu('Stock');
+        } else if (window.activeOnboardingStep === 'purchase_tour_sidebar') {
+            setIsSidebarOpen(true);
+            setExpandedMenu('Purchase');
+        }
+
+        return () => {
+            window.removeEventListener('onboarding-step-changed', handleTourStep);
+        };
+    }, [store]);
+
     // Growth Engine AI Popup State
     const [isGrowthOpen, setIsGrowthOpen] = useState(false);
     const [showAiPopup, setShowAiPopup] = useState(false);
@@ -639,6 +667,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             {menuItems.map((item) => (
                                 <SidebarItem
                                     key={item.name}
+                                    id={item.name === 'Stock' ? 'tour-sidebar-stock' : `tour-sidebar-${item.name.toLowerCase()}`}
                                     name={item.name}
                                     icon={item.icon}
                                     subItems={item.subs}

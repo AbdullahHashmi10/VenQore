@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class ManufacturingService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct(
         private AccountingService $accounting,
@@ -39,6 +39,10 @@ class ManufacturingService
                 ->where('id', $data['bom_id'])
                 ->where('is_active', 1)
                 ->firstOrFail();
+
+            // Ensure necessary accounts exist
+            $this->accounting->getAccountByCode('6400', 'Manufacturing Cost', 'expense');
+            $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
 
             $bomItems = DB::table('bom_items')
                 ->where('tenant_id', $tid)
@@ -104,6 +108,9 @@ class ManufacturingService
                 if (isset($data['labor_bank']) && $data['labor_bank']) {
                     $laborCreditAccount = '1010';
                 }
+
+                $this->accounting->getAccountByCode('6410', 'Applied Labor', 'expense');
+                $this->accounting->getAccountByCode($laborCreditAccount, $laborCreditAccount === '2400' ? 'Labor Liability' : ($laborCreditAccount === '1010' ? 'Cash at Bank' : 'Cash on Hand'), $laborCreditAccount === '2400' ? 'liability' : 'asset');
 
                 $step2Entry = $this->accounting->createEntry([
                     'date'     => $data['run_date'],
@@ -172,6 +179,11 @@ class ManufacturingService
 
             $bom      = DB::table('bill_of_materials')->where('tenant_id', $tid)->where('id', $run->bom_id)->first();
             $bomItems = DB::table('bom_items')->where('tenant_id', $tid)->where('bom_id', $bom->id)->get();
+
+            // Ensure necessary accounts exist
+            $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
+            $this->accounting->getAccountByCode('6400', 'Manufacturing Cost', 'expense');
+            $this->accounting->getAccountByCode('6410', 'Applied Labor', 'expense');
 
             $materialCost = (float) $run->material_cost;
             $laborCost    = (float) $run->labor_cost;
@@ -295,6 +307,10 @@ class ManufacturingService
                 max((float) $run->actual_qty, 0.0001);
             $reversalCost = round($reverseQty * $reversalCostPerUnit, 2);
 
+            // Ensure necessary accounts exist
+            $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
+            $this->accounting->getAccountByCode('6400', 'Manufacturing Cost', 'expense');
+
             // Remove finished goods from inventory (FIFO deduction on the run's batch)
             $this->fifo->deductStock(
                 productId:   DB::table('bill_of_materials')
@@ -362,6 +378,9 @@ class ManufacturingService
             );
 
             $totalSetCost = array_sum(array_column($deductions, 'total_cost'));
+
+            // Ensure necessary accounts exist
+            $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
 
             // Post B30 journal — just 1100 to 1100 reclassification entries
             $journalLines = [

@@ -552,10 +552,16 @@ class UpdaterController extends Controller
         $output   = Artisan::output();
 
         // ── Step 3.5: Sync V3 Ledger for legacy data ──────────────
-        // This ensures balances are correctly backfilled into the 
+        // This ensures balances are correctly backfilled into the
         // new V3 accounting architecture.
-        Artisan::call('migrate:v3-ledger');
-        $output .= "\n" . Artisan::output();
+        // Wrapped in try/catch — if it fails it must NOT abort the migrate step.
+        try {
+            Artisan::call('migrate:v3-ledger');
+            $output .= "\n" . Artisan::output();
+        } catch (Exception $e) {
+            Log::warning('Updater: migrate:v3-ledger non-critical failure: ' . $e->getMessage());
+            $output .= "\n[v3-ledger skipped: " . $e->getMessage() . "]";
+        }
 
         // ── Detect migration failure ───────────────────────────────
         if ($exitCode !== 0) {

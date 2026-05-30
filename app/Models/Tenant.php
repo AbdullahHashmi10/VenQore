@@ -65,6 +65,10 @@ class Tenant extends Model
         'feature_manufacturing',
         'logo_style',
         'logo_path',
+        'onboarding_step',
+        'onboarding_completed',
+        'onboarding_skipped',
+        'onboarding_steps_done',
     ];
 
     protected $casts = [
@@ -75,10 +79,14 @@ class Tenant extends Model
         'trial_ends_at'         => 'datetime',
         'subscription_ends_at'  => 'datetime',
         'demo_expires_at'       => 'datetime',
+        'last_online_at'        => 'datetime',
         'feature_variants'      => 'boolean',
         'feature_serials'       => 'boolean',
         'feature_batches'       => 'boolean',
         'feature_manufacturing' => 'boolean',
+        'onboarding_completed'  => 'boolean',
+        'onboarding_skipped'    => 'boolean',
+        'onboarding_steps_done' => 'array',
     ];
 
     // ──────────────────────────────────────────────────────────────────
@@ -135,8 +143,21 @@ class Tenant extends Model
      */
     public function getLogoUrlAttribute(): ?string
     {
-        return $this->logo_path ? \Illuminate\Support\Facades\Storage::url($this->logo_path) : null;
+        if (!$this->logo_path) {
+            return null;
+        }
+
+        // Guard against broken URLs for logos that exist in the DB but are
+        // missing from storage (e.g. after a deployment, migration, or S3 sync issue).
+        // Returning null lets the frontend fall back to the initials avatar gracefully
+        // instead of rendering a broken <img> that fires a 404 on every page load.
+        if (!\Illuminate\Support\Facades\Storage::exists($this->logo_path)) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($this->logo_path);
     }
+
 
     /**
      * Get the owner's email address (for billing notifications).
@@ -179,6 +200,13 @@ class Tenant extends Model
     {
         // Use PlanRepository which handles DB + cache (priorities 1 & 2)
         $value = PlanRepository::getEffectiveLimit($this->id, $this->plan, $key);
+
+        // 3. Fallback to plan_limits JSON column on this tenant (legacy AppSumo stacking)
+        if ($this->plan === 'ltd' || ($value === null && !array_key_exists($key, PlanRepository::getLimits($this->plan)))) {
+            if ($this->plan_limits && isset($this->plan_limits[$key])) {
+                $value = $this->plan_limits[$key];
+            }
+        }
 
         // Value semantics from DB:
         // null = unlimited

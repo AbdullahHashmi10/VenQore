@@ -1,7 +1,7 @@
 import '../css/app.css';
 import './bootstrap';
 
-import { createInertiaApp } from '@inertiajs/react';
+import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -11,6 +11,13 @@ import GlobalProviderLayout from '@/Layouts/GlobalProviderLayout';
 import GlobalErrorBoundary from '@/Components/GlobalErrorBoundary';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+// Intercept non-JSON responses from Inertia server calls (preventing the default modal block)
+router.on('invalid', (event) => {
+    event.preventDefault();
+    const status = event.detail?.response?.status || 500;
+    window.location.href = `/error/${status}`;
+});
 
 createInertiaApp({
     title: (title) => {
@@ -111,13 +118,21 @@ window.onunhandledrejection = function (event) {
 };
 
 if ('serviceWorker' in navigator) {
-    // Only register the SW in production.
-    // In Vite dev mode, the SW intercepts requests to the dev server (port 5173)
-    // causing cross-origin cache failures and two copies of React being loaded.
     const isDev = import.meta.env.DEV;
 
     if (!isDev) {
         window.addEventListener('load', () => {
+            // Proactively unregister any legacy conflicting service workers in production
+            navigator.serviceWorker.getRegistrations().then(registrations => {
+                for (const registration of registrations) {
+                    const url = registration.active?.scriptURL || '';
+                    if (url && !url.endsWith('/sw.js')) {
+                        console.log('[SW] Unregistering legacy conflicting service worker:', url);
+                        registration.unregister();
+                    }
+                }
+            });
+
             navigator.serviceWorker.register('/sw.js')
                 .then(registration => {
                     console.log('SW registered: ', registration);
@@ -127,7 +142,7 @@ if ('serviceWorker' in navigator) {
                 });
         });
     } else {
-        // In dev mode, unregister any previously cached SW to avoid stale caches
+        // In dev mode, unregister any previously registered SW to avoid stale caches
         window.addEventListener('load', () => {
             navigator.serviceWorker.getRegistrations().then(registrations => {
                 for (const registration of registrations) {

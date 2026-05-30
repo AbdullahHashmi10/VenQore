@@ -15,7 +15,7 @@
             'SAR' => 'SAR',
             'INR' => '₹',
         ];
-        $currencySymbol = $currencySymbols[$currency] ?? $currency;
+        $currencySymbol = $settings['currency_symbol'] ?? ($currencySymbols[$currency] ?? $currency);
 
         // Date format
         $dateFormat = match ($settings['date_format'] ?? 'DD/MM/YYYY') {

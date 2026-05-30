@@ -25,8 +25,8 @@ const ActionMenu = ({ isOpen, onClose, store }) => {
     if (!isOpen) return null;
 
     const actions = [
-        { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.funds.add' },
-        { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.funds.remove' },
+        { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.funds.index', params: { action: 'add' } },
+        { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.funds.index', params: { action: 'remove' } },
         { label: 'New Quote', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', route: 'store.proposals.create' },
         { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-500', bg: 'bg-orange-500/10', route: 'store.stock-transfers.create' },
         { label: 'Add Product', icon: Box, color: 'text-purple-500', bg: 'bg-purple-500/10', route: 'store.inventory.create' },
@@ -48,7 +48,12 @@ const ActionMenu = ({ isOpen, onClose, store }) => {
                     <button
                         key={i}
                         onClick={() => {
-                            if (action.route) router.visit(route(action.route, { store_slug: store?.slug }));
+                            if (action.route) {
+                                router.visit(route(action.route, { 
+                                    store_slug: store?.slug,
+                                    ...(action.params || {})
+                                }));
+                            }
                             onClose();
                         }}
                         className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
@@ -125,7 +130,7 @@ const CashDetailModal = ({ isOpen, onClose, transactions, onNavigate, store }) =
 };
 
 const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], cashData, inventoryValue = 0 }) => {
-    const { store } = usePage().props;
+    const { store, auth } = usePage().props;
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCashModalOpen, setIsCashModalOpen] = useState(false);
@@ -133,12 +138,15 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
     const menuRef = useRef(null);
     const settingsRef = useRef(null);
 
+    const userPerms = auth?.user?.permissions || [];
+    const canViewBalances = auth?.user?.is_platform_admin || userPerms.includes('*') || userPerms.includes('finance.balances');
+
     // Calc Total: cashData.balance + sum(banks) + sum(cashAccounts if any separate)
     // We assume cashData covers GL 1000. cashAccounts might be duplicate if they are sub-accounts.
     // For safety, let's just sum banks + cashData.balance.
     const glBalance = parseFloat(cashData?.balance || 0);
     const bankBalance = bankAccounts.reduce((sum, acc) => sum + parseFloat(acc.current_balance || 0), 0);
-    const totalBalance = glBalance + bankBalance;
+    const totalBalance = canViewBalances ? glBalance + bankBalance : 0;
 
     const formatMoney = (amount) => formatCurrency(parseFloat(amount), store);
 
@@ -183,7 +191,9 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                     </div>
                     <div>
                         <p className="text-xs text-slate-300 font-medium">Total Balance</p>
-                        <h3 className="text-xl font-bold tracking-tight">{formatMoney(totalBalance)}</h3>
+                        <h3 className="text-xl font-bold tracking-tight">
+                            {canViewBalances ? formatMoney(totalBalance) : 'Restricted'}
+                        </h3>
                     </div>
                 </div>
                 <div className="relative" ref={settingsRef}>
@@ -227,26 +237,28 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
             {/* Accounts Section */}
             <div className="relative z-10 mb-8 flex-1 overflow-y-auto custom-scrollbar content-start space-y-3">
 
-                {/* 1. Cash in Hand (Always Visible) */}
-                <div onClick={() => setIsCashModalOpen(true)} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 hover:scale-[1.02] transition-all cursor-pointer group">
-                    <div className="flex justify-between items-start mb-3">
-                        <div className="flex items-center gap-2">
-                            <Wallet size={18} className="text-emerald-300" />
-                            <span className="text-[12px] font-bold text-slate-200">Cash in Hand</span>
+                {/* 1. Cash in Hand (Protected) */}
+                {canViewBalances && (
+                    <div onClick={() => setIsCashModalOpen(true)} className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-md rounded-2xl p-4 border border-white/10 hover:border-white/20 hover:scale-[1.02] transition-all cursor-pointer group">
+                        <div className="flex justify-between items-start mb-3">
+                            <div className="flex items-center gap-2">
+                                <Wallet size={18} className="text-emerald-300" />
+                                <span className="text-[12px] font-bold text-slate-200">Cash in Hand</span>
+                            </div>
+                            <span className="text-[9px] text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold uppercase">Main</span>
                         </div>
-                        <span className="text-[9px] text-emerald-200 bg-emerald-500/20 px-2 py-0.5 rounded-full font-bold uppercase">Main</span>
-                    </div>
-                    <div>
-                        <h4 className="text-2xl font-bold tracking-tight text-white mb-1">{formatMoney(glBalance)}</h4>
-                        <div className="flex items-center gap-2 text-[10px] text-emerald-400">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                            Active
+                        <div>
+                            <h4 className="text-2xl font-bold tracking-tight text-white mb-1">{formatMoney(glBalance)}</h4>
+                            <div className="flex items-center gap-2 text-[10px] text-emerald-400">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                Active
+                            </div>
                         </div>
                     </div>
-                </div>
+                )}
 
                 {/* 1.5 Inventory Value */}
-                <div onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-md rounded-2xl p-4 border border-indigo-500/20 hover:border-indigo-500/40 hover:scale-[1.02] transition-all cursor-pointer group">
+                <div id="tour-stock-value" onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 backdrop-blur-md rounded-2xl p-4 border border-indigo-500/20 hover:border-indigo-500/40 hover:scale-[1.02] transition-all cursor-pointer group">
                     <div className="flex justify-between items-start mb-3">
                         <div className="flex items-center gap-2">
                             <Box size={18} className="text-indigo-300" />
@@ -262,33 +274,35 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                     </div>
                 </div>
 
-                {/* 2. Bank Accounts List */}
-                {bankAccounts.length > 0 ? (
-                    <div className="space-y-2">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Bank Accounts</p>
-                        {bankAccounts.map((acc) => (
-                            <div key={acc.id} className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors flex justify-between items-center group">
-                                <div className="flex items-center gap-3">
-                                    <Landmark size={18} className="text-blue-300" />
-                                    <div>
-                                        <p className="text-sm font-bold text-slate-200">{acc.bank_name || acc.name}</p>
-                                        <p className="text-[10px] text-slate-400">**** {acc.account_number ? acc.account_number.slice(-4) : '....'}</p>
+                {/* 2. Bank Accounts List (Protected) */}
+                {canViewBalances && (
+                    bankAccounts.length > 0 ? (
+                        <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Bank Accounts</p>
+                            {bankAccounts.map((acc) => (
+                                <div key={acc.id} className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors flex justify-between items-center group">
+                                    <div className="flex items-center gap-3">
+                                        <Landmark size={18} className="text-blue-300" />
+                                        <div>
+                                            <p className="text-sm font-bold text-slate-200">{acc.bank_name || acc.name}</p>
+                                            <p className="text-[10px] text-slate-400">**** {acc.account_number ? acc.account_number.slice(-4) : '....'}</p>
+                                        </div>
                                     </div>
+                                    <span className="font-bold text-white text-sm">{formatMoney(acc.current_balance)}</span>
                                 </div>
-                                <span className="font-bold text-white text-sm">{formatMoney(acc.current_balance)}</span>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="p-4 rounded-2xl border border-dashed border-slate-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.finance')}>
+                            <div className="p-2 bg-slate-800 rounded-full text-slate-400 group-hover:text-indigo-400 group-hover:scale-110 transition-all">
+                                <Plus size={16} />
                             </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="p-4 rounded-2xl border border-dashed border-slate-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.finance')}>
-                        <div className="p-2 bg-slate-800 rounded-full text-slate-400 group-hover:text-indigo-400 group-hover:scale-110 transition-all">
-                            <Plus size={16} />
+                            <div>
+                                <p className="text-xs font-bold text-slate-300">Add Bank Account</p>
+                                <p className="text-[10px] text-slate-500">Track your business banking</p>
+                            </div>
                         </div>
-                        <div>
-                            <p className="text-xs font-bold text-slate-300">Add Bank Account</p>
-                            <p className="text-[10px] text-slate-500">Track your business banking</p>
-                        </div>
-                    </div>
+                    )
                 )}
             </div>
 

@@ -45,93 +45,160 @@ class ProvisionTenantJob implements ShouldQueue
 
     public function handle(): void
     {
-        $email          = $this->payload['user_email'];
-        $name           = $this->payload['user_name'];
-        $plan           = $this->resolvePlan($this->payload['variant_id']);
-        $orderId        = $this->payload['order_id'];
-        $customerId     = $this->payload['customer_id'];
-        $subscriptionId = $this->payload['subscription_id'];
+        $email          = data_get($this->payload, 'data.attributes.user_email') ?? data_get($this->payload, 'user_email') ?? data_get($this->payload, 'attributes.user_email');
+        $name           = data_get($this->payload, 'data.attributes.user_name') ?? data_get($this->payload, 'user_name') ?? data_get($this->payload, 'attributes.user_name') ?? 'Valued Customer';
+        $variantId      = data_get($this->payload, 'data.attributes.variant_id') ?? data_get($this->payload, 'variant_id') ?? data_get($this->payload, 'attributes.variant_id');
+        $productName    = data_get($this->payload, 'data.attributes.product_name') ?? data_get($this->payload, 'product_name') ?? data_get($this->payload, 'attributes.product_name');
+        $orderId        = data_get($this->payload, 'data.attributes.order_id') ?? data_get($this->payload, 'order_id') ?? data_get($this->payload, 'attributes.order_id');
+        $customerId     = data_get($this->payload, 'data.attributes.customer_id') ?? data_get($this->payload, 'customer_id') ?? data_get($this->payload, 'attributes.customer_id');
+        $subscriptionId = data_get($this->payload, 'data.attributes.subscription_id') ?? data_get($this->payload, 'subscription_id') ?? data_get($this->payload, 'attributes.subscription_id') ?? data_get($this->payload, 'data.id');
+
+        $tenantId       = data_get($this->payload, 'meta.custom_data.tenant_id') ?? data_get($this->payload, 'custom_data.tenant_id');
+
+        $plan           = $this->resolvePlan($variantId, $productName);
 
         // ── Idempotency check ────────────────────────────────────────
-        if (Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->exists()) {
+        if ($subscriptionId && Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->exists()) {
             Log::info("ProvisionTenantJob: subscription {$subscriptionId} already provisioned — skipping.");
             return;
         }
 
-        DB::transaction(function () use ($email, $name, $plan, $orderId, $customerId, $subscriptionId) {
-            // ── Create or find the global user ──────────────────────
-            $password  = Str::random(12);
-            $user      = User::firstOrCreate(
-                ['email' => $email],
-                ['name'  => $name, 'password' => bcrypt($password)]
-            );
-            $isNewUser = $user->wasRecentlyCreated;
+        DB::transaction(function () use ($email, $name, $plan, $orderId, $customerId, $subscriptionId, $tenantId) {
+            $user = null;
+            $isNewUser = false;
+            $password = null;
 
-            // ── Create the store ────────────────────────────────────
-            $tenant = Tenant::create([
-                'name'                          => $name . "'s Store",
-                'slug'                          => \App\Services\SubdomainGenerator::generate($name),
-                'plan'                          => $plan,
-                'status'                        => 'trial',
-                'trial_ends_at'                 => now()->addDays(14),
-                'join_code'                     => $this->generateJoinCode(),
-                'currency_code'                 => 'USD',
-                'currency_symbol'               => '$',
-                'lemon_squeezy_customer_id'     => $customerId,
-                'lemon_squeezy_subscription_id' => $subscriptionId,
-            ]);
+            $tenant = null;
+            if ($tenantId) {
+                $tenant = Tenant::find($tenantId);
+            }
 
-            // ── Make user the owner via pivot ───────────────────────
-            TenantUser::create([
-                'tenant_id' => $tenant->id,
-                'user_id'   => $user->id,
-                'role'      => 'owner',
-                'status'    => 'active',
-                'joined_at' => now(),
-            ]);
+            if ($tenant) {
+                // Update existing tenant
+                $tenant->update([
+                    'plan'                          => $plan,
+                    'status'                        => 'active',
+                    'lemon_squeezy_customer_id'     => $customerId,
+                    'lemon_squeezy_subscription_id' => $subscriptionId,
+                ]);
 
-            // ── Create and consume the license ──────────────────────
-            StoreLicense::create([
-                'user_id'          => $user->id,
-                'tenant_id'        => $tenant->id,
-                'type'             => 'subscription',
-                'status'           => 'consumed',
-                'plan'             => $plan,
-                'source'           => 'lemon_squeezy',
-                'source_reference' => $orderId,
-                'consumed_at'      => now(),
-            ]);
+                // Try to find the owner user
+                $ownerMembership = $tenant->ownerMembership()->first();
+                if ($ownerMembership) {
+                    $user = $ownerMembership->user;
+                }
+            } else {
+                // ── Create or find the global user ──────────────────────
+                if ($email) {
+                    $password  = Str::random(12);
+                    $user      = User::firstOrCreate(
+                        ['email' => $email],
+                        ['name'  => $name, 'password' => bcrypt($password)]
+                    );
+                    $isNewUser = $user->wasRecentlyCreated;
+                }
 
-            // ── Set last_store_id for instant redirect on login ─────
-            $user->update(['last_store_id' => $tenant->id]);
+                // ── Create the store ────────────────────────────────────
+                $tenant = Tenant::create([
+                    'name'                          => $name . "'s Store",
+                    'slug'                          => \App\Services\SubdomainGenerator::generate($name),
+                    'plan'                          => $plan,
+                    'status'                        => 'active',
+                    'trial_ends_at'                 => now()->addDays(14),
+                    'join_code'                     => $this->generateJoinCode(),
+                    'currency_code'                 => 'USD',
+                    'currency_symbol'               => '$',
+                    'lemon_squeezy_customer_id'     => $customerId,
+                    'lemon_squeezy_subscription_id' => $subscriptionId,
+                ]);
 
-            // ── Seed defaults ───────────────────────────────────────
-            TenantDefaultSeeder::seedFor($tenant);
+                if ($user) {
+                    // ── Make user the owner via pivot ───────────────────────
+                    TenantUser::create([
+                        'tenant_id' => $tenant->id,
+                        'user_id'   => $user->id,
+                        'role'      => 'owner',
+                        'status'    => 'active',
+                        'joined_at' => now(),
+                    ]);
+                }
+
+                // ── Seed defaults ───────────────────────────────────────
+                TenantDefaultSeeder::seedFor($tenant);
+            }
+
+            if ($user && $tenant) {
+                // ── Create and consume the license ──────────────────────
+                StoreLicense::create([
+                    'user_id'          => $user->id,
+                    'tenant_id'        => $tenant->id,
+                    'type'             => 'subscription',
+                    'status'           => 'consumed',
+                    'plan'             => $plan,
+                    'source'           => 'lemon_squeezy',
+                    'source_reference' => $orderId ?? $subscriptionId,
+                    'consumed_at'      => now(),
+                ]);
+
+                // ── Set last_store_id for instant redirect on login ─────
+                $user->update(['last_store_id' => $tenant->id]);
+            }
 
             // ── Create R2 storage folder ────────────────────────────
-            try {
-                Storage::disk('r2')->makeDirectory("tenants/{$tenant->id}");
-            } catch (\Throwable $e) {
-                Log::warning("ProvisionTenantJob: R2 folder creation failed for tenant {$tenant->id}: " . $e->getMessage());
+            if ($tenant) {
+                try {
+                    Storage::disk('r2')->makeDirectory("tenants/{$tenant->id}");
+                } catch (\Throwable $e) {
+                    Log::warning("ProvisionTenantJob: R2 folder creation failed for tenant {$tenant->id}: " . $e->getMessage());
+                }
             }
 
             // ── Send welcome email ──────────────────────────────────
-            Mail::to($email)->queue(
-                new TenantWelcomeMail($tenant, $user, $isNewUser ? $password : null)
-            );
+            if ($email && $user && !$tenantId) {
+                try {
+                    Mail::to($email)->queue(
+                        new TenantWelcomeMail($tenant, $user, $isNewUser ? $password : null)
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("ProvisionTenantJob: welcome email failed: " . $e->getMessage());
+                }
+            }
 
-            Log::info("ProvisionTenantJob: provisioned tenant {$tenant->id} ('{$tenant->name}') for {$email}.");
+            Log::info("ProvisionTenantJob: provisioned/updated tenant {$tenant->id} ('{$tenant->name}') for " . ($email ?? 'unknown') . ".");
         });
     }
 
-    private function resolvePlan(string $variantId): string
+    private function resolvePlan(mixed $variantId, ?string $productName = null): string
     {
-        return match($variantId) {
-            config('services.lemon_squeezy.starter_variant')  => 'starter',
-            config('services.lemon_squeezy.growth_variant')   => 'growth',
-            config('services.lemon_squeezy.business_variant') => 'business',
-            default                                            => 'starter',
-        };
+        $variantIdStr = $variantId !== null ? (string)$variantId : '';
+
+        if (config('services.lemon_squeezy.starter_variant_id') && $variantIdStr === (string)config('services.lemon_squeezy.starter_variant_id')) {
+            return 'starter';
+        }
+        if (config('services.lemon_squeezy.growth_variant_id') && $variantIdStr === (string)config('services.lemon_squeezy.growth_variant_id')) {
+            return 'growth';
+        }
+        if (config('services.lemon_squeezy.business_variant_id') && $variantIdStr === (string)config('services.lemon_squeezy.business_variant_id')) {
+            return 'business';
+        }
+
+        if ($productName) {
+            $normalizedName = strtolower($productName);
+            if (str_contains($normalizedName, 'pro')) {
+                return 'pro';
+            }
+            if (str_contains($normalizedName, 'starter')) {
+                return 'starter';
+            }
+            if (str_contains($normalizedName, 'growth')) {
+                return 'growth';
+            }
+            if (str_contains($normalizedName, 'business')) {
+                return 'business';
+            }
+        }
+
+        return 'starter';
     }
 
     private function generateJoinCode(): string

@@ -85,6 +85,7 @@ class DemoProductSeeder extends Seeder
                 'price' => $item['price'],
                 'cost_price' => $item['cost'],
                 'unit' => 'PCS',
+                'base_unit' => 'PCS',
                 'type' => 'standard',
                 'alert_quantity' => 5,
                 // generate a fake summary description

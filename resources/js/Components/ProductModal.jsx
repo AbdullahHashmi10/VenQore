@@ -106,7 +106,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     const fetchReservations = async () => {
         setLoadingReservations(true);
         try {
-            const res = await axios.get(route('store.inventory.reservations', { store_slug: store?.slug, product: product.id }));
+            const res = await axios.get(route('store.inventory.reservations', { store_slug: store?.slug, id: product.id }));
             setReservations(res.data);
         } catch (error) {
             console.error("Failed to fetch reservations", error);
@@ -163,7 +163,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     const fetchCustomStats = async () => {
         if (!dateRange.start || !dateRange.end) return;
         try {
-            const response = await axios.get(route('store.inventory.stats', { store_slug: store?.slug, product: product.id }), {
+            const response = await axios.get(route('store.inventory.stats', { store_slug: store?.slug, id: product.id }), {
                 params: { start_date: dateRange.start, end_date: dateRange.end }
             });
             setCustomStats(response.data);
@@ -372,7 +372,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
         } else {
             // For updates with files, we MUST use POST with _method="PUT" because
             // PHP/Laravel cannot read files from native PUT requests due to standard limitations.
-            post(route('store.inventory.update', { store_slug: store?.slug, product: product.id }), {
+            post(route('store.inventory.update', { store_slug: store?.slug, id: product.id }), {
                 forceFormData: true,
                 transform: (data) => {
                     const transformed = { _method: 'PUT' };
@@ -575,7 +575,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     const fetchHistory = async () => {
         setLoadingHistory(true);
         try {
-            const res = await axios.get(route('store.inventory.history', { store_slug: store?.slug, product: product.id }));
+            const res = await axios.get(route('store.inventory.history', { store_slug: store?.slug, id: product.id }));
             setHistory(res.data);
             historyFetchedFor.current = product.id;
         } catch (error) {
@@ -656,6 +656,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                     {['details', 'reservations', 'extra', 'variants', ...(mode !== 'create' ? ['history', 'purchase_stats'] : [])].map(tab => (
                         <button
                             key={tab}
+                            id={`tour-tab-${tab}`}
                             onClick={() => setActiveTab(tab)}
                             className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                         >
@@ -680,6 +681,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div className="col-span-2">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Product Name</label>
                                         <input
+                                            id="tour-product-name"
                                             type="text"
                                             value={data.name}
                                             onChange={e => setData('name', e.target.value)}
@@ -690,7 +692,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">SKU</label>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2" id="tour-product-sku-gen">
                                             <input
                                                 type="text"
                                                 value={data.sku}
@@ -711,7 +713,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     </div>
 
                                     {/* Category Selection */}
-                                    <div>
+                                    <div id="tour-product-category">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
                                         <PremiumSelect
                                             options={categories}
@@ -805,6 +807,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
+                                                id="tour-product-cost"
                                                 type="number"
                                                 value={data.cost_price}
                                                 onChange={e => setData('cost_price', e.target.value)}
@@ -818,6 +821,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
+                                                id="tour-product-price"
                                                 type="number"
                                                 value={data.price}
                                                 onChange={e => setData('price', e.target.value)}
@@ -850,7 +854,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             {renderInventorySection()}
 
                             {/* Barcodes Section */}
-                            <section>
+                            <section id="tour-product-barcode">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                                         <Box size={16} className="text-indigo-500" /> Barcodes
@@ -1485,6 +1489,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             Cancel
                         </button>
                         <button
+                            id="tour-product-save"
                             onClick={handleSubmit}
                             disabled={processing}
                             className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 active:scale-95 transition-all"
@@ -1502,7 +1507,9 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                 onSuccess={() => {
                     setShowPasscodeModal(false);
                     setIsStockUnlocked(true);
-                    addToast('Inventory field unlocked for manual adjustment', 'success');
+                    window.dispatchEvent(new CustomEvent('amd:toast', {
+                        detail: { message: 'Inventory field unlocked for manual adjustment', type: 'success' }
+                    }));
                 }}
                 settings={settings}
             />

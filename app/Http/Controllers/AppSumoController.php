@@ -36,9 +36,8 @@ class AppSumoController extends Controller
         // so no 'current.tenant' is bound. StoreLicense uses HasTenant which falls back to
         // whereRaw('1=0') when no tenant is bound — silently returning 0 rows and breaking
         // the stacking count. We scope only by user_id + source instead.
-        $existingCount = StoreLicense::query()
-            ->where('user_id', $user->id)
-            ->where('source', 'appsumo')
+        $existingCount = \App\Models\AppSumoCode::where('redeemed_by_email', $user->email)
+            ->where('is_redeemed', true)
             ->count();
 
         $currentPlan = match(true) {
@@ -79,9 +78,8 @@ class AppSumoController extends Controller
         }
 
         // withoutTenantScope(): same reason as index() — no tenant bound on this public route.
-        $existingCodeCount = StoreLicense::query()
-            ->where('user_id', $user->id)
-            ->where('source', 'appsumo')
+        $existingCodeCount = \App\Models\AppSumoCode::where('redeemed_by_email', $user->email)
+            ->where('is_redeemed', true)
             ->count();
 
         if ($existingCodeCount >= 3) {
@@ -119,14 +117,14 @@ class AppSumoController extends Controller
             } else {
                 // Additional code — upgrade existing LTD license
                 // withoutTenantScope(): still on public route, tenant may not be bound.
-                StoreLicense::query()
+                StoreLicense::withoutTenantScope()
                     ->where('user_id', $user->id)
                     ->where('source', 'appsumo')
                     ->where('type', 'ltd')
                     ->update(['plan' => $plan]);
 
                 // If they already have a store attached to this license, upgrade it too
-                $existingLicense = StoreLicense::query()
+                $existingLicense = StoreLicense::withoutTenantScope()
                     ->where('user_id', $user->id)
                     ->where('source', 'appsumo')
                     ->whereNotNull('tenant_id')

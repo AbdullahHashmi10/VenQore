@@ -41,6 +41,7 @@ import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
 import WheelInput from '@/Components/WheelInput';
 import QuickPartyModal from '@/Components/QuickPartyModal';
 import ProductModal from '@/Components/ProductModal';
+import PurchaseTourGuide from '@/Components/PurchaseTourGuide';
 
 const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => {
     const { settings, auth, store } = usePage().props;
@@ -982,6 +983,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
     return (
         <OneGlanceLayout title={isEditMode ? `Edit Purchase #${editState?.invoiceNumber || ''}` : "Add Purchase"} activeMenu="Purchases" fullScreen={false} hideHeader={true} noPadding={true}>
             <Head title={isEditMode ? "Edit Purchase" : "Add Purchase"} />
+            <PurchaseTourGuide store={store} />
             <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
 
                 <style>{`
@@ -1122,7 +1124,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             </div>
 
                             {/* Center - Supplier Search */}
-                            <div className="relative flex-1 max-w-xl">
+                            <div className="relative flex-1 max-w-xl" id="tour-purchase-supplier">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                                     <User size={18} />
                                 </div>
@@ -1442,6 +1444,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                             {/* Product Name */}
                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 relative px-2">
                                                 <AsyncProductCombobox
+                                                    id={idx === 0 ? "tour-purchase-product" : undefined}
                                                     selectedItem={item.product}
                                                     onSelect={(product) => selectProduct(product, item.id)}
                                                     onCreateNew={(name) => {
@@ -1459,6 +1462,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center align-middle">
                                                 <div className="relative flex flex-col items-center">
                                                     <WheelInput
+                                                        id={idx === 0 ? "tour-purchase-quantity" : undefined}
                                                         type="number"
                                                         value={item.quantity ?? 1}
                                                         onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
@@ -1499,6 +1503,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                             {/* Price */}
                                             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right align-middle">
                                                 <WheelInput
+                                                    id={idx === 0 ? "tour-purchase-cost" : undefined}
                                                     type="number"
                                                     value={item.price ?? 0}
                                                     onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
@@ -1891,6 +1896,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                                     <div className="flex items-center gap-2">
                                         <span className="text-emerald-600 text-xs">{getCurrencySymbol()}</span>
                                         <input
+                                            id="tour-purchase-paid"
                                             type="number"
                                             value={currentPurchase.amountPaid ?? 0}
                                             onChange={(e) => patchPurchase({ amountPaid: parseFloat(e.target.value) || 0 })}
@@ -1919,6 +1925,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                             </div>
                             <div className="space-y-2">
                                 <button
+                                    id="tour-purchase-save"
                                     onClick={() => initiateSave(false)}
                                     disabled={saving}
                                     className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"

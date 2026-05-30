@@ -262,6 +262,7 @@ export default function SidebarItem({
                                             ) : (
                                                 window.route().has(activeRouteName) && (
                                                     <Link
+                                                        id={itemName === 'Products' ? 'tour-sidebar-products' : (itemName === 'Purchases' ? 'tour-sidebar-purchases' : undefined)}
                                                         href={window.route(activeRouteName, routeParams || {})}
                                                         className="block pl-4 py-1.5 text-xs font-medium text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
                                                     >

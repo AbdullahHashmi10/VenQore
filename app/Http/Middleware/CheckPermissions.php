@@ -28,11 +28,6 @@ class CheckPermissions
         }
 
         // ── Platform HQ routes (/VenQore/*): ONLY is_platform_admin = true ────
-        // Check by URI prefix — NOT by route name prefix — because both the
-        // Platform HQ (/VenQore/*) and the legacy Store Admin (/admin-panel/*)
-        // share the 'admin.' route name prefix, and we must not block store users
-        // from their own admin panel.
-        // 404 is intentional: a 403 reveals the route exists.
         if ($request->is('VenQore*') || $request->routeIs('superadmin.*')) {
             if (!$user->isPlatformAdmin()) {
                 abort(404);
@@ -40,81 +35,65 @@ class CheckPermissions
             return $next($request);
         }
 
-        // ── Store routes: check against tenant membership role ────────────────
-        $membership = app()->bound('current.membership') ? app('current.membership') : null;
-
-        // No membership bound = legacy bare route (/admin-panel/*, /reports/*, etc.)
-        // These routes don't go through TenantMiddleware so no membership is set.
-        // Allow store owners/admins through by checking their role on the User model.
-        // (The User model stores last-known role from their primary store membership.)
-        if (!$membership) {
-            // Platform admin: always through
-            if ($user->isPlatformAdmin()) {
-                return $next($request);
-            }
-
-            // For legacy bare routes, fall through to permission check below.
-            // We'll use the user's model-level permissions (set by their role in config/permissions.php).
-            // If no required permission is specified, allow authenticated users through.
-            if (empty($permissions)) {
-                return $next($request);
-            }
-
-            // Check via config/permissions.php using the user's stored role
-            $userRole = $user->role ?? 'viewer';
-            $permMap  = config('permissions', []);
-            $rolePerms = $permMap[$userRole] ?? [];
-
-
-
-            foreach ($permissions as $permission) {
-                if (in_array($permission, $rolePerms)) {
-                    return $next($request);
-                }
-            }
-
-            // Not authorized — redirect to hub, not 403, so bookmarks don't white-screen
-            return redirect()->route('hub')
-                ->with('info', 'You do not have permission to access that area.');
+        // ── Platform super admins always bypass all store-level checks ────────
+        if ($user->isPlatformAdmin()) {
+            return $next($request);
         }
 
-        // ── Has store membership: role-based check ────────────────────────────
-        $role = $membership->role;
+        // ── Resolve custom permissions via getPermissionsAttribute() ────────
+        // This unified getter automatically respects:
+        //  1. Custom granular checkbox overrides saved in the tenant_users pivot
+        //  2. config/permissions.php default role map as a fallback
+        $userPerms = $user->permissions;
 
-        // Store owners and admins have full store-level access
-        // Including the /admin/ sub-routes for legacy pages
-        if (in_array($role, ['owner', 'admin']) || str_contains($request->getPathInfo(), '/admin')) {
-            if (in_array($role, ['owner', 'admin'])) {
-                return $next($request);
-            }
-        }
-
-        // Map permissions config if it exists, otherwise fall back to user->permissions shim
-        $permMap = config('permissions', []);
-        if (!empty($permMap) && !empty($permissions)) {
-            $rolePerms = $permMap[$role] ?? [];
-            foreach ($permissions as $permission) {
-                if (in_array($permission, $rolePerms)) {
-                    return $next($request);
-                }
-            }
-            abort(403, 'You do not have permission to access this area.');
-        }
-
-        // Fallback: legacy permissions array on user model
-        $userPerms = $user->permissions ?? [];
-        if (!is_array($userPerms)) {
-            $userPerms = [];
-        }
-
+        // God-mode wildcard bypass
         if (in_array('*', $userPerms)) {
             return $next($request);
         }
 
+        // ── Map legacy broad permissions to granular actions for backward compatibility ──
+        $mappedPermissions = [];
+        $legacyMap = [
+            'inventory'  => ['inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes'],
+            'customers'  => ['purchases.suppliers', 'sales.create'],
+            'finance'    => ['finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal'],
+            'sales'      => ['sales.create', 'sales.edit', 'sales.view'],
+            'sales_view' => ['sales.view', 'sales.create'],
+            'reports'    => ['reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit'],
+            'settings'   => ['admin.settings_view', 'admin.settings_manage'],
+            'users'      => ['admin.staff_view', 'admin.staff_manage'],
+            'audit'      => ['reports.audit'],
+            'returns'    => ['sales.returns'],
+            'pos'        => ['pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session'],
+        ];
+
         foreach ($permissions as $permission) {
+            $mappedPermissions[] = $permission;
+            if (isset($legacyMap[$permission])) {
+                $mappedPermissions = array_merge($mappedPermissions, $legacyMap[$permission]);
+            }
+        }
+        $mappedPermissions = array_unique($mappedPermissions);
+
+        // If no required permissions specified, allow basic authenticated access
+        if (empty($mappedPermissions)) {
+            return $next($request);
+        }
+
+        // ── Check if user holds at least one of the required granular keys ───
+        foreach ($mappedPermissions as $permission) {
             if (in_array($permission, $userPerms)) {
                 return $next($request);
             }
+        }
+
+        // ── Handle access restrictions gracefully ────────────────────────────
+        $membership = app()->bound('current.membership') ? app('current.membership') : null;
+
+        if (!$membership) {
+            // For bare/legacy routes without store context, redirect to hub
+            return redirect()->route('hub')
+                ->with('info', 'You do not have permission to access that area.');
         }
 
         abort(403, 'Access Denied: You do not have the required permission (' . implode(' or ', $permissions) . ').');

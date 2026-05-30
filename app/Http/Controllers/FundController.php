@@ -20,9 +20,13 @@ class FundController extends Controller
      */
     public function index()
     {
-        $cashAccount = Account::where('code', '1000')->first();
         $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
-        $cashBalance = (float) $accountingSvc->getBalance('1000');
+        $cashAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
+        try {
+            $cashBalance = (float) $accountingSvc->getBalance('1000');
+        } catch (\Exception $e) {
+            $cashBalance = 0.0;
+        }
 
         // Get all bank accounts
         $bankAccounts = BankAccount::query()->get()->map(function ($acc) {
@@ -187,12 +191,12 @@ class FundController extends Controller
     public function history()
     {
         $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
-        $cashBalance = (float) $accountingSvc->getBalance('1000');
-
-        // Fetch ALL journal items for account 1000
-        $cashAccount = Account::where('code', '1000')->first();
-        if (!$cashAccount) {
-            return back()->with('error', 'Cash account not found.');
+        $cashAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
+        
+        try {
+            $cashBalance = (float) $accountingSvc->getBalance('1000');
+        } catch (\Exception $e) {
+            $cashBalance = 0.0;
         }
 
         $ledger = \App\Models\JournalItem::where('account_id', $cashAccount->id)
@@ -277,13 +281,14 @@ class FundController extends Controller
 
             if ($request->account_type === 'cash') {
                 // Add to Cash Account (GL 1000)
-                $account = Account::where('code', '1000')->first();
-                if (!$account) {
-                    throw new \Exception('Cash account not found. Please set up Chart of Accounts.');
-                }
+                $account = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
 
                 // V3: Use journal balance
-                $balanceBefore = (float) resolve(\App\Services\V3\AccountingService::class)->getBalance('1000');
+                try {
+                    $balanceBefore = (float) $accountingSvc->getBalance('1000');
+                } catch (\Exception $e) {
+                    $balanceBefore = 0.0;
+                }
                 
                 $cashBank = BankAccount::where('account_type', 'cash')->first();
                 $toAccountId = $cashBank ? $cashBank->id : null;
@@ -369,13 +374,14 @@ class FundController extends Controller
             $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
 
             if ($request->account_type === 'cash') {
-                $account = Account::where('code', '1000')->first();
-                if (!$account) {
-                    throw new \Exception('Cash account not found.');
-                }
+                $account = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
 
                 // V3: Get current balance from journal
-                $balanceBefore = (float) resolve(\App\Services\V3\AccountingService::class)->getBalance('1000');
+                try {
+                    $balanceBefore = (float) $accountingSvc->getBalance('1000');
+                } catch (\Exception $e) {
+                    $balanceBefore = 0.0;
+                }
                 
                 if ($balanceBefore < $amount) {
                     throw new \Exception('Insufficient cash balance. Current: Rs ' . number_format($balanceBefore, 2));
@@ -487,8 +493,12 @@ class FundController extends Controller
 
             // Deduct from source
             if ($request->from_type === 'cash') {
-                $fromAccount = Account::where('code', '1000')->first();
-                $fromBalanceBefore = (float) $accountingSvc->getBalance('1000');
+                $fromAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
+                try {
+                    $fromBalanceBefore = (float) $accountingSvc->getBalance('1000');
+                } catch (\Exception $e) {
+                    $fromBalanceBefore = 0.0;
+                }
                 if ($fromBalanceBefore < $amount) {
                     throw new \Exception("Insufficient cash balance. (Current: Rs " . number_format($fromBalanceBefore) . ")");
                 }
@@ -508,8 +518,12 @@ class FundController extends Controller
 
             // Add to destination
             if ($request->to_type === 'cash') {
-                $toAccount = Account::where('code', '1000')->first();
-                $toBalanceBefore = (float) $accountingSvc->getBalance('1000');
+                $toAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
+                try {
+                    $toBalanceBefore = (float) $accountingSvc->getBalance('1000');
+                } catch (\Exception $e) {
+                    $toBalanceBefore = 0.0;
+                }
                 
                 $cashBank = \App\Models\BankAccount::where('account_type', 'cash')->first();
                 $toAccountId = $cashBank ? $cashBank->id : null;
@@ -586,13 +600,14 @@ class FundController extends Controller
             $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
 
             if ($request->account_type === 'cash') {
-                $account = Account::where('code', '1000')->first();
-                if (!$account) {
-                    throw new \Exception('Cash account not found.');
-                }
+                $account = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
                 
                 // V3: Get current balance from journal
-                $balanceBefore = (float) $accountingSvc->getBalance('1000');
+                try {
+                    $balanceBefore = (float) $accountingSvc->getBalance('1000');
+                } catch (\Exception $e) {
+                    $balanceBefore = 0.0;
+                }
                 
                 // Legacy support (optional: keep row in sync if needed, but truth is journal)
                 $account->balance = $newBalance;
@@ -670,10 +685,8 @@ class FundController extends Controller
         $days = $request->get('days', 7);
         $startDate = Carbon::now()->subDays($days)->startOfDay();
 
-        $cashAccount = Account::where('code', '1000')->first();
-        if (!$cashAccount) {
-            return response()->json(['transactions' => [], 'balance' => 0]);
-        }
+        $accountingSvc = resolve(\App\Services\V3\AccountingService::class);
+        $cashAccount = $accountingSvc->getAccountByCode('1000', 'Cash in Hand', 'asset');
 
         $transactions = $cashAccount->journalItems()
             ->with('journalEntry')

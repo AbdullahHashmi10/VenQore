@@ -51,22 +51,50 @@ class ProductController extends Controller
             PlanGate::enforce('sku_limit', $skuCount);
         }
 
-        DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->insert([
-            'id'                => Str::uuid()->toString(),
-            'tenant_id'         => app('current.tenant')->id,
-            'name'              => $validated['name'],
-            'sku'               => $validated['sku'],
-            'base_unit'         => $validated['base_unit'],
-            'price'             => $validated['sale_price'],
-            'tax_rate'          => $validated['tax_rate'] ?? 0,
-            'price_includes_tax'=> $validated['price_includes_tax'] ?? 0,
-            // 'reorder_level'     => $validated['reorder_level'] ?? 0,
-            'is_manufactured'   => $validated['is_manufactured'] ?? 0,
-            'is_active'         => 1,
-            'status'            => 'active',
-            'created_at'        => now(),
-            'updated_at'        => now(),
-        ]);
+        $productId = Str::uuid()->toString();
+
+        DB::transaction(function () use ($productId, $validated) {
+            DB::table('products')->where('products.tenant_id', app('current.tenant')->id)->insert([
+                'id'                => $productId,
+                'tenant_id'         => app('current.tenant')->id,
+                'name'              => $validated['name'],
+                'sku'               => $validated['sku'],
+                'base_unit'         => $validated['base_unit'],
+                'price'             => $validated['sale_price'],
+                'tax_rate'          => $validated['tax_rate'] ?? 0,
+                'price_includes_tax'=> $validated['price_includes_tax'] ?? 0,
+                'is_manufactured'   => $validated['is_manufactured'] ?? 0,
+                'is_active'         => 1,
+                'status'            => 'active',
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+
+            if (!empty($validated['bom_items'])) {
+                $bomId = Str::uuid()->toString();
+                DB::table('bill_of_materials')->insert([
+                    'id'             => $bomId,
+                    'tenant_id'      => app('current.tenant')->id,
+                    'product_id'     => $productId,
+                    'version'        => 1,
+                    'effective_from' => today()->toDateString(),
+                    'is_active'      => 1,
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
+                ]);
+
+                foreach ($validated['bom_items'] as $item) {
+                    DB::table('bom_items')->insert([
+                        'id'            => Str::uuid()->toString(),
+                        'tenant_id'     => app('current.tenant')->id,
+                        'bom_id'        => $bomId,
+                        'product_id'    => $item['product_id'],
+                        'qty_per_unit'  => $item['qty_per_unit'],
+                        'created_at'    => now(),
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('store.v3.products.index', ['store_slug' => app('current.tenant')->slug])
             ->with('success', 'Product created successfully.');

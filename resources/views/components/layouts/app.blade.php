@@ -34,7 +34,7 @@
     <!-- <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" /> -->
 
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.jsx'])
 
     <!-- Filament Styles -->
     @filamentStyles
@@ -45,13 +45,31 @@
         // Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('Service Worker registered successfully:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.log('Service Worker registration failed:', error);
+                // 1. Proactively unregister any legacy conflicting service workers
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (const registration of registrations) {
+                        const url = registration.active?.scriptURL || '';
+                        if (url && !url.endsWith('/sw.js')) {
+                            console.log('[SW] Unregistering legacy conflicting service worker:', url);
+                            registration.unregister();
+                        }
+                    }
+                });
+
+                // 2. Register the unified sw.js only in production/staging environment
+                const isDev = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                if (!isDev) {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(reg => console.log('[SW] Unified service worker registered:', reg.scope))
+                        .catch(err => console.error('[SW] Registration failed:', err));
+                } else {
+                    // In local development, ensure all service workers are fully unregistered
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        for (const registration of registrations) {
+                            registration.unregister();
+                        }
                     });
+                }
             });
         }
 
@@ -97,7 +115,7 @@
     {{ $slot }}
 
     @filamentScripts
-    @vite('resources/js/app.js')
+    @vite('resources/js/app.jsx')
 </body>
 
 </html>

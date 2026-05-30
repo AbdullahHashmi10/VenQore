@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class FifoService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct()
     {

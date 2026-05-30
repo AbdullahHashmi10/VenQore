@@ -13,7 +13,7 @@ class InventoryService
      * remaining_qty directly.
      */
 
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct(
         public FifoService       $fifo,

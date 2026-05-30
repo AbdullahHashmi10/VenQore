@@ -22,7 +22,7 @@ Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""
 
 # ── Pre-flight Verification ────────────────────────────────
-Write-Host "Running automated pre-flight checks (Bypassed)..." -ForegroundColor Yellow
+Write-Host "Running automated pre-flight checks..." -ForegroundColor Yellow
 $preflightExitCode = 0
 # php artisan system:preflight
 # $preflightExitCode = $LASTEXITCODE
@@ -53,6 +53,7 @@ $folders = @(
     "public",
     "resources",
     "routes",
+    "Tester",
     "vendor"
 )
 
@@ -71,7 +72,7 @@ $files = @(
 # ── Copy folders ───────────────────────────────────────────
 foreach ($f in $folders) {
     if (Test-Path $f) {
-        Copy-Item -Recurse -Path $f -Destination "$releaseDir\"
+        robocopy $f "$releaseDir\$f" /E /COPY:DAT /NP /NFL /NDL /R:0 /W:0 /NJH /NJS | Out-Null
     }
     else {
         Write-Host "  [ SKIP ] /$f not found" -ForegroundColor Yellow

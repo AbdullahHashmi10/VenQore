@@ -30,7 +30,8 @@ const SmartCombobox = ({
     showTypeIcon = true,
     showDetailedView = true, // Show enhanced details
     disableLocalFiltering = false,
-    hideCostAndMargin = false
+    hideCostAndMargin = false,
+    id
 }) => {
     const { store, settings } = usePage().props;
     const [isOpen, setIsOpen] = useState(false);
@@ -377,7 +378,7 @@ const SmartCombobox = ({
     const isProduct = (item) => item.stock_quantity !== undefined || item.sku || item.price !== undefined;
 
     return (
-        <div className={`relative ${className}`} ref={wrapperRef}>
+        <div id={id} className={`relative ${className}`} ref={wrapperRef}>
             {label && <label className="text-xs text-slate-500 font-bold uppercase block mb-1">{label}</label>}
 
             <div className={`relative flex items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>

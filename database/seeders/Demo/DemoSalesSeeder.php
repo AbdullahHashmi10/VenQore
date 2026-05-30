@@ -7,168 +7,150 @@ use App\Models\Product;
 use App\Models\Party;
 use App\Models\Warehouse;
 use App\Models\User;
-use App\Models\TenantUser;
 use App\Services\V3\SaleService;
 use Carbon\Carbon;
-use Illuminate\Support\Str;
 
 class DemoSalesSeeder extends Seeder
 {
     public function run($tenantId = null): void
     {
         if (!$tenantId) {
-            $this->command->error("Tenant ID required for DemoSalesSeeder.");
+            $this->command?->error("Tenant ID required for DemoSalesSeeder.");
             return;
         }
 
         $warehouse = Warehouse::where('tenant_id', $tenantId)->first();
-        $products = Product::where('tenant_id', $tenantId)->get();
+        $products  = Product::where('tenant_id', $tenantId)->get();
         $customers = Party::where('tenant_id', $tenantId)->where('type', 'customer')->get();
 
         if (!$warehouse || $products->isEmpty() || $customers->isEmpty()) {
-            $this->command->error("Required base data missing for DemoSalesSeeder.");
+            $this->command?->error("Required base data missing for DemoSalesSeeder.");
             return;
         }
 
         $saleService = app(SaleService::class);
-        $startDate = Carbon::parse('2015-01-01');
-        $endDate = Carbon::parse('2019-12-31');
-        
+
+        // Authenticate as the demo owner for the service
+        $user = User::where('email', 'owner@venqore-demo.internal')->first()
+            ?? User::where('email', 'demo-owner@venqore-demo.internal')->first()
+            ?? User::where('email', 'master@venqore.com')->first()
+            ?? User::first();
+        if ($user) auth()->login($user);
+
+        // S-curve growth: 2020 → 2026
         $years = [
-            2015 => 40,
-            2016 => 70,
-            2017 => 95,
-            2018 => 130,
-            2019 => 165
+            2020 => 200,
+            2021 => 320,
+            2022 => 460,
+            2023 => 580,
+            2024 => 650,
+            2025 => 750,
+            2026 => 350, // current partial year up to today
         ];
 
-        // Ensure user auth for sale service if it relies on auth()->id()
-        $user = User::firstOrCreate(['email' => 'master@venqore.com'], [
-            'name' => 'Demo Admin',
-            'password' => bcrypt('password'),
-        ]);
-        auth()->login($user);
+        $totalYears = count($years);
+        $yearsCompleted = 0;
+        $this->command?->info("Starting {$totalYears}-year sales history (2020–2026)...");
 
-        $this->command->info("Starting simulated time traversal from 2015 to 2019...");
-
-        // We will loop day by day, distributing the annual targets
         foreach ($years as $year => $targetSales) {
-            $daysInYear = Carbon::parse("$year-01-01")->daysInYear;
-            $salesPerDayBase = $targetSales / $daysInYear;
+            // For current year, only seed up to today
+            $yearStart = Carbon::parse("$year-01-01");
+            $yearEnd   = $year === now()->year
+                ? now()
+                : Carbon::parse("$year-12-31 23:59:59");
 
-            $currentDate = Carbon::parse("$year-01-01 09:00:00");
-            $endOfYear = Carbon::parse("$year-12-31 23:59:59");
-
+            $daysInRange   = $yearStart->diffInDays($yearEnd) + 1;
+            $salesPerDay   = $targetSales / max($daysInRange, 1);
+            $currentDate   = $yearStart->copy()->setTime(9, 0);
             $salesCompleted = 0;
 
-            while ($currentDate <= $endOfYear) {
-                // Determine how many sales today
-                $dailySalesTarget = $salesPerDayBase;
+            while ($currentDate <= $yearEnd) {
+                $dailyTarget = $salesPerDay;
 
-                // Weekends add 40%
-                if ($currentDate->isWeekend()) {
-                    $dailySalesTarget *= 1.4;
-                }
+                // Weekend boost
+                if ($currentDate->isWeekend()) $dailyTarget *= 1.4;
+                // Month-end boost
+                if ($currentDate->day >= 25)    $dailyTarget *= 1.2;
+                // December seasonal boost
+                if ($currentDate->month === 12) $dailyTarget *= 1.6;
+                // Eid / major sale event (May, July spike)
+                if (in_array($currentDate->month, [5, 7])) $dailyTarget *= 1.3;
 
-                // Month end adds 20%
-                if ($currentDate->day >= 25) {
-                    $dailySalesTarget *= 1.2;
-                }
+                $count = (int) floor($dailyTarget)
+                    + ((rand(0, 100) / 100 <= ($dailyTarget - floor($dailyTarget))) ? 1 : 0);
 
-                // December adds 60%
-                if ($currentDate->month === 12) {
-                    $dailySalesTarget *= 1.6;
-                }
-
-                // Convert to whole numbers using probability for remainder
-                $baseInt = floor($dailySalesTarget);
-                $remainder = $dailySalesTarget - $baseInt;
-                $actualSalesToday = $baseInt + ((rand(0, 100) / 100 <= $remainder) ? 1 : 0);
-
-                for ($s = 0; $s < $actualSalesToday; $s++) {
-                    // Set test time to fake exactly when it happened
-                    $simulatedTime = tap(clone $currentDate)->addMinutes(rand(1, 500));
+                for ($s = 0; $s < $count; $s++) {
+                    $simulatedTime = $currentDate->copy()->addMinutes(rand(30, 540));
                     Carbon::setTestNow($simulatedTime);
 
-                    // Pick random customer
-                    $customer = $customers->random();
-
-                    // Pick 1-4 random products
-                    $numItems = rand(1, 4);
+                    $customer  = $customers->random();
+                    $numItems  = rand(1, 4);
                     $itemsData = [];
-                    $totalAmount = 0;
+                    $total     = 0;
 
                     for ($i = 0; $i < $numItems; $i++) {
                         $prod = $products->random();
-                        $qty = rand(1, 2);
-                        
+                        $qty  = rand(1, 3);
+                        $disc = [0, 0, 0, 5, 10][rand(0, 4)]; // occasional discount
                         $itemsData[] = [
-                            'product_id' => $prod->id,
-                            'qty' => $qty,
-                            'unit_price' => $prod->price,
-                            'discount_percent' => 0,
-                            'tax_rate' => 0,
-                            'sale_uom' => 'PCS'
+                            'product_id'       => $prod->id,
+                            'qty'              => $qty,
+                            'unit_price'       => $prod->price,
+                            'discount_percent' => $disc,
+                            'tax_rate'         => 0,
+                            'sale_uom'         => 'PCS',
                         ];
-                        $totalAmount += ($prod->price * $qty);
+                        $total += $prod->price * $qty * (1 - $disc / 100);
                     }
 
-                    $saleData = [
-                        'customer_id' => $customer->id,
-                        'warehouse_id' => $warehouse->id,
-                        'sale_date' => $simulatedTime->toDateString(),
-                        'payment_method' => 'cash',
-                        'amount_received' => $totalAmount,
-                        'tenant_id' => $tenantId,
-                        'items' => $itemsData
-                    ];
+                    // Mix of payment methods
+                    $method = ['cash', 'cash', 'cash', 'credit', 'bank'][rand(0, 4)];
 
                     try {
-                        $saleService->post($saleData);
+                        $saleService->post([
+                            'customer_id'    => $customer->id,
+                            'warehouse_id'   => $warehouse->id,
+                            'sale_date'      => $simulatedTime->toDateString(),
+                            'payment_method' => $method,
+                            'amount_received'=> $method === 'credit' ? 0 : $total,
+                            'tenant_id'      => $tenantId,
+                            'items'          => $itemsData,
+                        ]);
                         $salesCompleted++;
                     } catch (\Exception $e) {
-                        // Log all errors for debugging
-                        $this->command->info("Sale Error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+                        $this->command?->error("  ⚠️ Sale failed: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
                     }
                 }
 
                 $currentDate->addDay();
             }
 
-            $this->command->info("✓ Year $year populated with ~{$salesCompleted} sales.");
-            $targetSalesTotal = $salesCompleted;
+            $yearsCompleted++;
+            $yearsLeft = $totalYears - $yearsCompleted;
+            $this->command?->info("  ✅ Year $year: ~{$salesCompleted} sales seeded. ({$yearsLeft} years remaining)");
         }
 
-        // Add 4-6 sales "today" just before DEMO_EPOCH (2020-01-01)
-        Carbon::setTestNow(Carbon::parse('2019-12-31 23:00:00'));
-        for ($s = 0; $s < 5; $s++) {
-             // Generate standard sale
-             $customer = $customers->random();
-             $prod = $products->random();
-             $totalAmount = $prod->price * 1;
-             
-             $saleData = [
-                 'customer_id' => $customer->id,
-                 'warehouse_id' => $warehouse->id,
-                 'sale_date' => now()->toDateString(),
-                 'payment_method' => 'cash',
-                 'amount_received' => $totalAmount,
-                 'tenant_id' => $tenantId,
-                 'items' => [
-                     [
-                         'product_id' => $prod->id,
-                         'qty' => 1,
-                         'unit_price' => $prod->price,
-                         'discount_percent' => 0,
-                         'tax_rate' => 0,
-                         'sale_uom' => 'PCS'
-                     ]
-                 ]
-             ];
-             try { $saleService->post($saleData); } catch (\Exception $e) {}
+        // Always add fresh sales TODAY so dashboard widgets show non-zero
+        Carbon::setTestNow(null);
+        $today = now();
+        for ($s = 0; $s < 6; $s++) {
+            Carbon::setTestNow($today->copy()->subMinutes(rand(5, 180)));
+            $customer = $customers->random();
+            $prod     = $products->random();
+            try {
+                $saleService->post([
+                    'customer_id'    => $customer->id,
+                    'warehouse_id'   => $warehouse->id,
+                    'sale_date'      => now()->toDateString(),
+                    'payment_method' => 'cash',
+                    'amount_received'=> $prod->price,
+                    'tenant_id'      => $tenantId,
+                    'items'          => [['product_id' => $prod->id, 'qty' => 1, 'unit_price' => $prod->price, 'discount_percent' => 0, 'tax_rate' => 0, 'sale_uom' => 'PCS']],
+                ]);
+            } catch (\Exception $e) {}
         }
-        
-        Carbon::setTestNow(); // Reset time to real reality
-        $this->command->info("✓ 500+ Algorithmic sales fully seeded.");
+
+        Carbon::setTestNow(null);
+        $this->command?->info("✅ Sales seeding complete.");
     }
 }

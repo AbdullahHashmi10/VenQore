@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage, Link } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -216,6 +216,11 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
         if (params.get('view') === 'history') {
             setMode('transactions');
             setSubMode('all');
+        }
+
+        const actionParam = params.get('action') || params.get('modal');
+        if (['add', 'remove', 'transfer', 'adjust'].includes(actionParam)) {
+            setActiveModal(actionParam);
         }
     }, []);
 

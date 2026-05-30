@@ -43,6 +43,14 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// ── Phase 6.3: Demo Full Deploy — Weekly ─────────────────────────────────
+// Every Sunday at 03:00 AM — full nuclear re-seed with 5-year data.
+// Ensures the demo store stays rich and realistic over time.
+\Illuminate\Support\Facades\Schedule::command('demo:full-deploy')
+    ->weeklyOn(0, '03:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 
 // ── WooCommerce Sync — Scheduler (Safety Net) ─────────────────────────────
 // Runs every 15 minutes to catch anything webhooks missed.
@@ -51,3 +59,10 @@ Artisan::command('inspire', function () {
     ->everyFifteenMinutes()
     ->withoutOverlapping()
     ->onOneServer();
+
+// ── Recurring Invoice Generation ──────────────────────────────────────────
+\Illuminate\Support\Facades\Schedule::command('recurring-invoices:generate')
+    ->dailyAt('00:01')
+    ->withoutOverlapping()
+    ->onOneServer();
+

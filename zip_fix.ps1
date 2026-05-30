@@ -3,31 +3,37 @@ param(
     [string]$DestinationFile
 )
 
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-
 $fullSource = (Resolve-Path $SourceDirectory).Path
 
 if (Test-Path $DestinationFile) { Remove-Item $DestinationFile }
 
 Write-Host "Creating Zip Archive: $DestinationFile"
 Write-Host "Source: $fullSource"
+Write-Host "Using fast C# embedded compressor..."
 
-$zip = [System.IO.Compression.ZipFile]::Open($DestinationFile, 'Create')
+Add-Type -TypeDefinition @"
+using System;
+using System.IO;
+using System.IO.Compression;
 
-$files = Get-ChildItem $fullSource -Recurse -File -Force
-
-foreach ($file in $files) {
-    # Absolute path
-    $filePath = $file.FullName
-    # Relative path (remove source dir + \ at start)
-    $relativePath = $filePath.Substring($fullSource.Length + 1)
-    
-    # CRITICAL: Force Forward Slashes for Linux Compatibility
-    $entryName = $relativePath.Replace('\', '/')
-    
-    # Write to Zip
-    [void][System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $filePath, $entryName)
+public class ZipFast {
+    public static void CreateZip(string sourceDirectory, string destinationFile) {
+        using (ZipArchive zip = ZipFile.Open(destinationFile, ZipArchiveMode.Create)) {
+            string[] files = Directory.GetFiles(sourceDirectory, "*", SearchOption.AllDirectories);
+            int prefixLength = sourceDirectory.Length;
+            if (!sourceDirectory.EndsWith("\\") && !sourceDirectory.EndsWith("/")) {
+                prefixLength++;
+            }
+            foreach (string file in files) {
+                string relativePath = file.Substring(prefixLength);
+                string entryName = relativePath.Replace('\\', '/');
+                zip.CreateEntryFromFile(file, entryName);
+            }
+        }
+    }
 }
+"@ -ReferencedAssemblies "System.IO.Compression", "System.IO.Compression.FileSystem"
 
-$zip.Dispose()
+[ZipFast]::CreateZip($fullSource, $DestinationFile)
+
 Write-Host "Zip Creation Complete."

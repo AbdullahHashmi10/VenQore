@@ -34,6 +34,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant'                  => \App\Http\Middleware\TenantMiddleware::class,
             'superadmin'              => \App\Http\Middleware\SuperAdminMiddleware::class,
             'lemon-squeezy.signature' => \App\Http\Middleware\VerifyLemonSqueezySignature::class,
+            'drm'                     => \App\Http\Middleware\DrmOfflineLockMiddleware::class,
+            'drm.license'             => \App\Http\Middleware\DrmLockMiddleware::class,
         ]);
 
         // ── Phase 1.7: Tenant-aware Rate Limiting ──────────────────────────
@@ -48,6 +50,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/updater/*',    // Large ZIP upload can lose CSRF token — auth middleware protects these
             'api/webhooks/*',   // Phase 2.1: Lemon Squeezy webhooks — server-to-server, no browser session
             'refresh-csrf',
+            'api/report-error', // Frontend error reporter fires after session-destroying 500s — no valid CSRF token available
         ]);
 
         // Allow updater/installer API to work even when app is in maintenance mode
@@ -91,6 +94,13 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            // Skip: validation errors, auth redirects, 404s, and custom HTTP responses
+            // This ensures standard Laravel/Inertia forms display validation errors gracefully
+            if ($e instanceof \Illuminate\Validation\ValidationException) return null;
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) return null;
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) return null;
+            if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return null;
+
             // INSTALLER/UPDATER API: Always return the REAL error as JSON
 
             // This overrides Laravel's default "Server Error" page in production
@@ -102,6 +112,24 @@ return Application::configure(basePath: dirname(__DIR__))
                         ($t['file'] ?? '?') . ':' . ($t['line'] ?? '?') . ' ' . ($t['function'] ?? '')
                     )->toArray(),
                 ], 500);
+            }
+
+            // ── Inertia requests: never return a plain HTML 500 page ─────────────
+            // When an Inertia XHR gets back HTML instead of JSON, the client-side
+            // router calls resolveComponent(null) → "Cannot read properties of null"
+            // and the entire SPA crashes with a white screen.
+            // Instead: redirect the Inertia client to a safe error page so React
+            // stays mounted and the user sees a friendly message with a retry button.
+            if ($request->header('X-Inertia')) {
+                $statusCode = method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500;
+                // CRITICAL: Let Inertia handle its own 409 Conflict (version mismatch) natively.
+                // This triggers a silent browser refresh to load the latest build assets,
+                // instead of showing a scary 500 error screen after a new deploy.
+                if ($statusCode === 409) {
+                    return null;
+                }
+                // Use Inertia::location() for a full redirect so the page reloads cleanly
+                return \Inertia\Inertia::location(route('error.page', ['code' => $statusCode]));
             }
 
             // Other API/AJAX requests: let Laravel's default handler deal with it

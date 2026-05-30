@@ -1,9 +1,6 @@
 const CACHE_NAME = 'amd-erp-v1';
 
-// Only cache static UI assets — NEVER cache financial API responses.
-// Financial data must always be fetched live from the server.
 const STATIC_ASSETS = [
-    '/',
     '/favicon.ico',
     '/offline.html',
 ];

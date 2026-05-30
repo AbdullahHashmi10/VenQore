@@ -112,6 +112,7 @@ class TenantMiddleware
                 'trial_ends_at'   => $tenant->trial_ends_at,
                 'subscription_ends_at' => $tenant->subscription_ends_at,
                 'setup_completed' => $tenant->setup_completed,
+                'onboarding_step' => $tenant->onboarding_step,
                 'logo_url'        => $tenant->logo_url,
                 'logo_style'      => $tenant->logo_style,
                 'features'        => $tenant->featuresArray(),

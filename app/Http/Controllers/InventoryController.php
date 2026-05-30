@@ -401,11 +401,20 @@ class InventoryController extends Controller
             }
         }
 
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            if ($tenant->onboarding_step === 'inventory_tour') {
+                $tenant->onboarding_step = 'congratulations';
+                $tenant->save();
+            }
+        }
+
         return redirect()->back()->with('success', 'Product created successfully.');
     }
 
-    public function update(Request $request, $store_slug, $id)
+    public function update(Request $request, $store_slug = null, $id = null)
     {
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
         $product = Product::findOrFail($id);
 
         $tenantId = app('current.tenant')->id;
@@ -647,52 +656,80 @@ class InventoryController extends Controller
         return redirect()->back()->with('success', 'Product updated successfully.');
     }
 
-    public function destroy($store_slug, $id)
+    public function destroy($store_slug = null, $id = null)
     {
-        $product = Product::findOrFail($id);
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
+        try {
+            $product = Product::findOrFail($id);
 
-        // Guard 1 — open inventory batches
-        $remainingStock = \App\Models\InventoryBatch::where('product_id', $product->id)
-            ->where('remaining_qty', '>', 0)
-            ->sum('remaining_qty');
-        if ($remainingStock > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => "Cannot delete — this product has {$remainingStock} units still in inventory. Clear stock first."
-            ], 422);
+            // Guard 1 — open inventory batches
+            $remainingStock = \App\Models\InventoryBatch::where('product_id', $product->id)
+                ->where('remaining_qty', '>', 0)
+                ->sum('remaining_qty');
+            if ($remainingStock > 0) {
+                $msg = "Cannot delete — this product has {$remainingStock} units still in inventory. Clear stock first.";
+                if (request()->wantsJson() && !request()->header('X-Inertia')) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return redirect()->back()->with('error', $msg);
+            }
+
+            // Guard 2 — referenced in sales or purchases
+            $usedInSales     = \App\Models\SaleItem::where('product_id', $product->id)->exists();
+            $usedInPurchases = \App\Models\PurchaseItem::where('product_id', $product->id)->exists();
+            if ($usedInSales || $usedInPurchases) {
+                $msg = "Cannot delete — this product has transaction history. Archive it instead.";
+                if (request()->wantsJson() && !request()->header('X-Inertia')) {
+                    return response()->json(['success' => false, 'message' => $msg], 422);
+                }
+                return redirect()->back()->with('error', $msg);
+            }
+
+            DB::transaction(function() use ($product) {
+                // Delete associated stocks and log movement first
+                $stocks = $product->stocks;
+                foreach ($stocks as $stock) {
+                    StockMovement::create([
+                        'product_id' => $product->id,
+                        'warehouse_id' => $stock->warehouse_id,
+                        'quantity' => -$stock->quantity,
+                        'type' => 'adjustment',
+                        'description' => 'Product deletion stock clearance',
+                        'user_id' => auth()->id(),
+                    ]);
+                    $stock->delete();
+                }
+
+                // Soft delete is automatic due to trait
+                $product->delete();
+            });
+
+            $this->logActivity('delete', "Deleted product: {$product->name}", $product);
+
+            $msg = 'Product moved to Recycle Bin and stock cleared.';
+            if (request()->wantsJson() && !request()->header('X-Inertia')) {
+                return response()->json(['success' => true, 'message' => $msg]);
+            }
+            return redirect()->back()->with('success', $msg);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error("Failed to delete product ID {$id}: " . $e->getMessage());
+            $msg = "Cannot delete product due to database integrity constraints. Please clean up related batches, barcodes, or variants first.";
+            if ($e->getCode() === '23000') {
+                $msg = "This product is referenced by other system records (e.g. variants, barcodes, or batches). Please remove them first.";
+            }
+            if (request()->wantsJson() && !request()->header('X-Inertia')) {
+                return response()->json(['success' => false, 'message' => $msg], 409);
+            }
+            return redirect()->back()->with('error', $msg);
+        } catch (\Throwable $e) {
+            Log::error("Failed to delete product ID {$id}: " . $e->getMessage());
+            $msg = "An unexpected error occurred while deleting the product.";
+            if (request()->wantsJson() && !request()->header('X-Inertia')) {
+                return response()->json(['success' => false, 'message' => $msg], 500);
+            }
+            return redirect()->back()->with('error', $msg);
         }
-
-        // Guard 2 — referenced in sales or purchases
-        $usedInSales     = \App\Models\SaleItem::where('product_id', $product->id)->exists();
-        $usedInPurchases = \App\Models\PurchaseItem::where('product_id', $product->id)->exists();
-        if ($usedInSales || $usedInPurchases) {
-            return response()->json([
-                'success' => false,
-                'message' => "Cannot delete — this product has transaction history. Archive it instead."
-            ], 422);
-        }
-
-
-        // Delete associated stocks and log movement first
-        $stocks = $product->stocks;
-        foreach ($stocks as $stock) {
-            StockMovement::create([
-                'product_id' => $product->id,
-                'warehouse_id' => $stock->warehouse_id,
-                'quantity' => -$stock->quantity,
-                'type' => 'adjustment',
-                'description' => 'Product deletion stock clearance',
-                'user_id' => auth()->id(),
-            ]);
-            $stock->delete(); // Or you could $stock->update(['quantity' => 0]) and wait for sync
-        }
-
-        // Soft delete is automatic due to trait
-        $product->delete();
-
-        $this->logActivity('delete', "Deleted product: {$product->name}", $product);
-
-        return redirect()->back()->with('success', 'Product moved to Recycle Bin and stock cleared.');
     }
 
     public function bulkDestroy(Request $request)
@@ -702,27 +739,59 @@ class InventoryController extends Controller
             'ids.*' => 'exists:products,id',
         ]);
 
-        $products = Product::whereIn('id', $request->ids)->get();
-        foreach ($products as $product) {
-            // Clear related stocks to accurately reflect inventory value
-            $stocks = $product->stocks;
-            foreach ($stocks as $stock) {
-                StockMovement::create([
-                    'product_id' => $product->id,
-                    'warehouse_id' => $stock->warehouse_id,
-                    'quantity' => -$stock->quantity,
-                    'type' => 'adjustment',
-                    'description' => 'Product bulk deletion stock clearance',
-                    'user_id' => auth()->id(),
-                ]);
-                $stock->delete();
+        try {
+            $products = Product::whereIn('id', $request->ids)->get();
+            $deletedCount = 0;
+
+            DB::transaction(function() use ($products, &$deletedCount) {
+                foreach ($products as $product) {
+                    // Guard 1 — open inventory batches
+                    $remainingStock = \App\Models\InventoryBatch::where('product_id', $product->id)
+                        ->where('remaining_qty', '>', 0)
+                        ->sum('remaining_qty');
+                    if ($remainingStock > 0) {
+                        throw new \Exception("Product '{$product->name}' has stock in inventory. Clear stock first.");
+                    }
+
+                    // Guard 2 — referenced in sales or purchases
+                    $usedInSales     = \App\Models\SaleItem::where('product_id', $product->id)->exists();
+                    $usedInPurchases = \App\Models\PurchaseItem::where('product_id', $product->id)->exists();
+                    if ($usedInSales || $usedInPurchases) {
+                        throw new \Exception("Product '{$product->name}' has transaction history. Archive it instead.");
+                    }
+
+                    // Clear related stocks
+                    $stocks = $product->stocks;
+                    foreach ($stocks as $stock) {
+                        StockMovement::create([
+                            'product_id' => $product->id,
+                            'warehouse_id' => $stock->warehouse_id,
+                            'quantity' => -$stock->quantity,
+                            'type' => 'adjustment',
+                            'description' => 'Product bulk deletion stock clearance',
+                            'user_id' => auth()->id(),
+                        ]);
+                        $stock->delete();
+                    }
+
+                    $product->delete();
+                    $this->logActivity('delete', "Deleted product: {$product->name}", $product);
+                    $deletedCount++;
+                }
+            });
+
+            return redirect()->back()->with('success', $deletedCount . ' products moved to Recycle Bin and stock cleared.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            Log::error("Failed to bulk delete products: " . $e->getMessage());
+            $msg = "Cannot delete products due to database integrity constraints.";
+            if ($e->getCode() === '23000') {
+                $msg = "One or more selected products are referenced by other system records. Please remove references first.";
             }
-
-            $product->delete();
-            $this->logActivity('delete', "Deleted product: {$product->name}", $product);
+            return redirect()->back()->with('error', $msg);
+        } catch (\Throwable $e) {
+            Log::error("Failed to bulk delete products: " . $e->getMessage());
+            return redirect()->back()->with('error', $e->getMessage());
         }
-
-        return redirect()->back()->with('success', count($products) . ' products moved to Recycle Bin and stock cleared.');
     }
 
     public function checkDependencies(Request $request)
@@ -764,8 +833,9 @@ class InventoryController extends Controller
             'properties' => $properties,
         ]);
     }
-    public function stats(Request $request, $store_slug, $id)
+    public function stats(Request $request, $store_slug = null, $id = null)
     {
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
         $tenantId = app('current.tenant')->id;
         $product = Product::findOrFail($id);
         $startDate = $request->query('start_date');
@@ -1024,8 +1094,9 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function updateCategory(Request $request, $store_slug, $id)
+    public function updateCategory(Request $request, $store_slug = null, $id = null)
     {
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
         $category = Category::findOrFail($id);
 
         $validated = $request->validate([
@@ -1050,8 +1121,9 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function destroyCategory($store_slug, $id)
+    public function destroyCategory($store_slug = null, $id = null)
     {
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
         $category = Category::findOrFail($id);
 
         // Check if category has products
@@ -1076,8 +1148,9 @@ class InventoryController extends Controller
         ]);
     }
 
-    public function getReservations($store_slug, $id)
+    public function getReservations($store_slug = null, $id = null)
     {
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
         try {
             $preSaleReservations = \App\Models\SalesOrderItem::where('product_id', $id)
                 ->where('quantity_reserved', '>', 0)
@@ -1126,8 +1199,9 @@ class InventoryController extends Controller
         }
     }
 
-    public function getHistory($store_slug, $id)
+    public function getHistory($store_slug = null, $id = null)
     {
+        $id = $id ?? $store_slug; // Fallback if positional binding happened or store_slug wasn't forgotten
         try {
             $product = Product::findOrFail($id);
 

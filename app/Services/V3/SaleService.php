@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct(
         private AccountingService $accounting,

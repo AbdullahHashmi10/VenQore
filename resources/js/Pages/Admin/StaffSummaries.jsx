@@ -28,30 +28,250 @@ const ROLES = {
 };
 
 const ROLE_PERMISSIONS = {
-    admin: ['pos', 'sales', 'inventory', 'purchasing', 'crm', 'reports', 'accounting', 'logs', 'discounts', 'team', 'settings'],
-    manager: ['pos', 'sales', 'inventory', 'purchasing', 'crm', 'reports', 'discounts', 'team'],
-    cashier: ['pos', 'sales_view', 'crm'],
-    inventory_staff: ['inventory', 'purchasing'],
-    accountant: ['accounting', 'reports', 'sales_view'],
-    support: ['logs', 'settings', 'team'],
-    viewer: ['sales_view', 'reports'],
+    admin: [
+        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
+        'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers',
+        'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
+        'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
+        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery'
+    ],
+    manager: [
+        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session',
+        'sales.view', 'sales.create', 'sales.edit', 'sales.void', 'sales.quotations', 'sales.returns',
+        'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers',
+        'reports.summary', 'reports.stock', 'reports.performance',
+        'admin.staff_view', 'admin.settings_view', 'admin.receipt_print'
+    ],
+    cashier: [
+        'pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.close_session',
+        'inventory.view'
+    ],
+    inventory_staff: [
+        'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes',
+        'purchases.view', 'purchases.create', 'purchases.edit', 'purchases.costs', 'purchases.suppliers',
+        'reports.stock'
+    ],
+    accountant: [
+        'finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal',
+        'reports.summary', 'reports.financial', 'reports.audit',
+        'sales.view', 'purchases.view', 'inventory.view'
+    ],
+    support: [
+        'reports.audit',
+        'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage'
+    ],
+    viewer: [
+        'reports.summary', 'reports.financial', 'reports.stock',
+        'sales.view', 'inventory.view', 'purchases.view', 'finance.transactions'
+    ],
     custom: []
 };
 
-const MODULES = [
-    { id: 'pos', name: 'POS Terminal', desc: 'Access point of sale', icon: ShoppingCart },
-    { id: 'sales', name: 'Sales Management', desc: 'View sales & invoices', icon: FileText },
-    { id: 'sales_view', name: 'View Sales Only', desc: 'Read-only sales access', icon: Eye },
-    { id: 'inventory', name: 'Inventory', desc: 'Product & stock management', icon: Package },
-    { id: 'purchasing', name: 'Purchasing', desc: 'Supplier & PO management', icon: Truck },
-    { id: 'crm', name: 'CRM', desc: 'Customer management', icon: Users },
-    { id: 'reports', name: 'Reports', desc: 'Business analytics', icon: BarChart2 },
-    { id: 'accounting', name: 'Accounting', desc: 'Financial statements', icon: DollarSign },
-    { id: 'logs', name: 'Audit Logs', desc: 'View system logs', icon: Activity },
-    { id: 'discounts', name: 'Discounts', desc: 'Manage promotions', icon: Zap },
-    { id: 'team', name: 'Team Access', desc: 'Manage users & roles', icon: UserCheck },
-    { id: 'settings', name: 'Settings', desc: 'System configuration', icon: Settings },
+const PERMISSION_CATEGORIES = [
+    {
+        id: 'pos_register',
+        name: 'POS & Register',
+        desc: 'Register cash flow and checkout operations',
+        icon: ShoppingCart,
+        permissions: [
+            { id: 'pos.open_session', name: 'Open Register Shift', desc: 'Open register shift & enter petty cash' },
+            { id: 'pos.checkout', name: 'Scan & Checkout', desc: 'Process sales and payments at the register' },
+            { id: 'pos.discounts', name: 'Apply Cart Discounts', desc: 'Apply discounts to active shopping cart items' },
+            { id: 'pos.void_item', name: 'Void Cart Item', desc: 'Void scanned items before completing payments' },
+            { id: 'pos.refund', name: 'Register Refunds', desc: 'Process customer returns & refunds directly at the POS' },
+            { id: 'pos.close_session', name: 'Close Register Shift', desc: 'Close drawer shift and count final cash' },
+        ]
+    },
+    {
+        id: 'sales_invoices',
+        name: 'Sales & Invoices',
+        desc: 'Direct sales orders, invoices, and quotations',
+        icon: FileText,
+        permissions: [
+            { id: 'sales.view', name: 'View Sales Directory', desc: 'View complete list of store sales and invoice records' },
+            { id: 'sales.create', name: 'Create Sales Invoices', desc: 'Generate new direct invoices and sales orders' },
+            { id: 'sales.edit', name: 'Edit Sales Invoices', desc: 'Modify existing sales drafts or unpaid invoices' },
+            { id: 'sales.void', name: 'Void/Cancel Invoices', desc: 'Permanently cancel or delete completed sales' },
+            { id: 'sales.quotations', name: 'Quotations & Proposals', desc: 'Create and manage client estimates & quotes' },
+            { id: 'sales.returns', name: 'Standard Returns', desc: 'Handle standard customer returns and refund logs' },
+        ]
+    },
+    {
+        id: 'stock_inventory',
+        name: 'Stock & Inventory',
+        desc: 'Product catalog and warehouse adjustments',
+        icon: Package,
+        permissions: [
+            { id: 'inventory.view', name: 'View Products & Stock', desc: 'Access the products catalog and view stock levels' },
+            { id: 'inventory.create', name: 'Add New Products', desc: 'Add new items and setup product variations' },
+            { id: 'inventory.edit', name: 'Edit Products', desc: 'Edit product details, selling prices, and attributes' },
+            { id: 'inventory.delete', name: 'Delete Products', desc: 'Permanently remove items from the catalog' },
+            { id: 'inventory.adjust', name: 'Manual Stock Adjustments', desc: 'Manually adjust stock for lost/damaged inventory' },
+            { id: 'inventory.transfer', name: 'Warehouse Transfers', desc: 'Record moving stock between warehouse depots' },
+            { id: 'inventory.barcodes', name: 'Print Barcode Labels', desc: 'Generate barcode stickers for items' },
+        ]
+    },
+    {
+        id: 'purchasing_suppliers',
+        name: 'Purchasing & Procurement',
+        desc: 'Vendor POs, supply records, and COGS margins',
+        icon: Truck,
+        permissions: [
+            { id: 'purchases.view', name: 'View Purchases', desc: 'View past supplier purchases & expense records' },
+            { id: 'purchases.create', name: 'Create Purchase Orders', desc: 'Generate new Purchase Orders (POs)' },
+            { id: 'purchases.edit', name: 'Edit Purchase Orders', desc: 'Modify pending or draft purchase orders' },
+            { id: 'purchases.void', name: 'Void Purchase Orders', desc: 'Cancel or delete purchase orders' },
+            { id: 'purchases.costs', name: 'Wholesale Cost Viewer', desc: 'View wholesale purchase prices & cost histories' },
+            { id: 'purchases.suppliers', name: 'Manage Suppliers', desc: 'Create supplier directories and log ledgers' },
+        ]
+    },
+    {
+        id: 'money_finance',
+        name: 'Money & Finance',
+        desc: 'Petty cash, bank accounts, and giving/taking money',
+        icon: DollarSign,
+        permissions: [
+            { id: 'finance.balances', name: 'View Cash & Bank Balances', desc: 'View safe deposit box, registers, & bank balances' },
+            { id: 'finance.transactions', name: 'View Cash Flow Ledger', desc: 'View list of all recent payments & cash flow history' },
+            { id: 'finance.receive_payment', name: 'Record Customer Payments', desc: 'Collect and record outstanding client money' },
+            { id: 'finance.send_payment', name: 'Record Vendor Payments', desc: 'Record payouts & pay outstanding supplier balances' },
+            { id: 'finance.expenses', name: 'Record Business Expenses', desc: 'Record operational expenses (bills, rent, electricity)' },
+            { id: 'finance.journal', name: 'Accounting Journal Entries', desc: 'Create debit/credit adjustments (bookkeeper overrides)' },
+        ]
+    },
+    {
+        id: 'insights_reports',
+        name: 'Insights & Reports',
+        desc: 'Net profit margins, audits, and performance tracking',
+        icon: BarChart2,
+        permissions: [
+            { id: 'reports.summary', name: 'Dashboard KPI Viewer', desc: 'View net margins, global sales stats, & dashboard KPIs' },
+            { id: 'reports.financial', name: 'Financial Statements', desc: 'Export Balance Sheets, Tax Summaries, & Profit/Loss reports' },
+            { id: 'reports.stock', name: 'Stock Reports', desc: 'Track low-stock warnings and movement histories' },
+            { id: 'reports.performance', name: 'Staff Sales Performance', desc: 'Access leaderboard metrics & staff sales counts' },
+            { id: 'reports.audit', name: 'Security Audit Logs', desc: 'Read audit trails showing exactly who performed what action' },
+        ]
+    },
+    {
+        id: 'store_admin',
+        name: 'Store Administration',
+        desc: 'Staff recruitments, VAT configurations, and system backups',
+        icon: Settings,
+        permissions: [
+            { id: 'admin.staff_view', name: 'View Staff & Attendance', desc: 'View staff schedules, attendance logs, and hour sheets' },
+            { id: 'admin.staff_manage', name: 'Manage Team & Permissions', desc: 'Invite staff, edit roles, change checkboxes, or suspend' },
+            { id: 'admin.settings_view', name: 'View General Settings', desc: 'Access store details and active configurations' },
+            { id: 'admin.settings_manage', name: 'Edit General Settings', desc: 'Update operating hours, store names, or upload logos' },
+            { id: 'admin.receipt_print', name: 'Receipt & Print Settings', desc: 'Customize invoice layout printing options' },
+            { id: 'admin.taxes_methods', name: 'Manage Taxes & Payments', desc: 'Configure VAT sales tax rates & store payment modes' },
+            { id: 'admin.warehouses', name: 'Manage Warehouses', desc: 'Create new branches and inventory warehouses' },
+            { id: 'admin.data_recovery', name: 'Data & Disaster Recovery', desc: 'Restore voided items via recycle bin, or export tables' },
+            { id: 'admin.billing_store', name: 'Billing & Store Deletion', desc: 'Upgrade subscriptions, change cards, or delete store database (owner)' },
+        ]
+    }
 ];
+
+const PermissionsSelector = ({ selectedPermissions = [], onChange, disabled = false }) => {
+    const handleToggle = (permId) => {
+        if (disabled) return;
+        const isSelected = selectedPermissions.includes(permId);
+        const newPerms = isSelected 
+            ? selectedPermissions.filter(p => p !== permId)
+            : [...selectedPermissions, permId];
+        onChange(newPerms);
+    };
+
+    const handleToggleCategory = (catId, catPerms) => {
+        if (disabled) return;
+        const allSelected = catPerms.every(p => selectedPermissions.includes(p.id));
+        let newPerms;
+        if (allSelected) {
+            newPerms = selectedPermissions.filter(p => !catPerms.some(cp => cp.id === p));
+        } else {
+            const toAdd = catPerms.map(cp => cp.id).filter(id => !selectedPermissions.includes(id));
+            newPerms = [...selectedPermissions, ...toAdd];
+        }
+        onChange(newPerms);
+    };
+
+    return (
+        <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar relative z-10 max-h-[500px]">
+            {PERMISSION_CATEGORIES.map(cat => {
+                const catPerms = cat.permissions;
+                const isCatActive = catPerms.every(p => selectedPermissions.includes(p.id));
+                const isCatPartial = catPerms.some(p => selectedPermissions.includes(p.id)) && !isCatActive;
+                const CatIcon = cat.icon;
+
+                return (
+                    <div key={cat.id} className="bg-slate-800/30 border border-slate-700/30 rounded-2xl p-4 transition-all hover:border-slate-650/40">
+                        {/* Category Header */}
+                        <div className="flex items-center justify-between gap-4 mb-3 pb-3 border-b border-slate-800/60">
+                            <div className="flex items-center gap-3">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-800 text-slate-350`}>
+                                    <CatIcon size={16} />
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-bold text-white leading-tight">{cat.name}</h4>
+                                    <p className="text-[9px] text-slate-500 leading-tight mt-0.5">{cat.desc}</p>
+                                </div>
+                            </div>
+                            
+                            <button
+                                type="button"
+                                disabled={disabled}
+                                onClick={() => handleToggleCategory(cat.id, catPerms)}
+                                className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider transition-all border ${
+                                    isCatActive
+                                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-400'
+                                        : isCatPartial
+                                            ? 'bg-amber-650/15 border-amber-500/50 text-amber-400'
+                                            : 'bg-slate-800/50 border-slate-700/50 text-slate-400 hover:text-white'
+                                } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+                            >
+                                {isCatActive ? 'Full Access' : isCatPartial ? 'Partial' : 'No Access'}
+                            </button>
+                        </div>
+
+                        {/* Sub Permissions Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                            {catPerms.map(perm => {
+                                const isActive = selectedPermissions.includes(perm.id);
+                                return (
+                                    <button
+                                        key={perm.id}
+                                        type="button"
+                                        disabled={disabled}
+                                        onClick={() => handleToggle(perm.id)}
+                                        className={`p-2.5 rounded-xl border flex items-center gap-2.5 text-left transition-all duration-200 group/mod ${
+                                            isActive
+                                                ? 'bg-indigo-600/10 border-indigo-500/40 shadow-[0_0_15px_rgba(79,70,229,0.05)]'
+                                                : 'bg-slate-900/20 border-slate-900 opacity-60 hover:opacity-100 hover:border-slate-800 hover:bg-slate-900/40'
+                                        } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}
+                                    >
+                                        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                            isActive
+                                                ? 'bg-indigo-600 border-indigo-500 text-white'
+                                                : 'border-slate-705 bg-[#1e293b]'
+                                        }`}>
+                                            {isActive && <Check size={8} strokeWidth={3} />}
+                                        </div>
+                                        <div className="flex flex-col justify-center min-w-0">
+                                            <div className={`text-[10px] font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-400 group-hover/mod:text-slate-300'}`}>{perm.name}</div>
+                                            <div className="text-[8px] text-slate-500 leading-tight mt-0.5 truncate">{perm.desc}</div>
+                                        </div>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
 
 // ─── Status config ─────────────────────────────────────────────────────────
 const STATUS = {
@@ -601,36 +821,17 @@ export default function StaffSummaries({ users = [], invitations = [], attendanc
                                 </div>
                             </div>
                             
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1 content-start overflow-y-auto pr-2 custom-scrollbar relative z-10">
-                                {MODULES.map(mod => {
-                                    const isActive = data.permissions.includes(mod.id);
-                                    return (
-                                        <button key={mod.id} type="button" onClick={() => togglePermission(mod.id)}
-                                            className={`p-3 rounded-xl border flex gap-3 text-left transition-all duration-200 group/mod ${
-                                            isActive 
-                                            ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[0_0_15px_rgba(79,70,229,0.15)]' 
-                                            : 'bg-slate-800/20 border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-700 hover:bg-slate-800/40'
-                                        }`}>
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                                                isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-[#1e293b] text-slate-500 group-hover/mod:text-slate-400'
-                                            }`}>
-                                                <mod.icon size={16} />
-                                            </div>
-                                            <div className="flex flex-col justify-center min-w-0">
-                                                <div className={`text-[11px] font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-400 group-hover/mod:text-slate-300'}`}>{mod.name}</div>
-                                                <div className="text-[8px] text-slate-500 leading-tight mt-0.5 truncate">{mod.desc}</div>
-                                            </div>
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                            <PermissionsSelector
+                                selectedPermissions={data.permissions}
+                                onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
+                            />
                             
                             <div className="mt-6 pt-6 border-t border-slate-800/50 flex items-center justify-between relative z-10 shrink-0">
                                 <div className="space-y-0.5">
                                     <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Visibility Summary</div>
                                     <div className="text-xs font-black text-white">
                                         <span className={data.permissions.length > 0 ? 'text-indigo-400' : 'text-slate-500'}>
-                                             {data.permissions.length} Modules Assigned
+                                             {data.permissions.length} Action Items Assigned
                                         </span>
                                     </div>
                                 </div>
@@ -1189,40 +1390,18 @@ function EditMemberModal({ member, onClose }) {
                         </div>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 flex-1 content-start overflow-y-auto pr-2 custom-scrollbar relative z-10">
-                        {MODULES.map(mod => {
-                            const isActive = data.permissions.includes(mod.id);
-                            const disabled = member.role === 'owner';
-                            
-                            return (
-                                <button key={mod.id} type="button" 
-                                    onClick={() => !disabled && togglePermission(mod.id)}
-                                    disabled={disabled}
-                                    className={`p-3 rounded-xl border flex gap-3 text-left transition-all duration-200 group/mod ${
-                                    isActive 
-                                    ? 'bg-indigo-600/10 border-indigo-500/50 shadow-[0_0_15px_rgba(79,70,229,0.15)]' 
-                                    : 'bg-slate-800/20 border-slate-800 opacity-60 hover:opacity-100 hover:border-slate-700 hover:bg-slate-800/40'
-                                    } ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>
-                                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all ${
-                                        isActive ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'bg-[#1e293b] text-slate-500 group-hover/mod:text-slate-400'
-                                    }`}>
-                                        <mod.icon size={16} />
-                                    </div>
-                                    <div className="flex flex-col justify-center min-w-0">
-                                        <div className={`text-[11px] font-bold leading-tight truncate ${isActive ? 'text-white' : 'text-slate-400 group-hover/mod:text-slate-300'}`}>{mod.name}</div>
-                                        <div className="text-[8px] text-slate-500 leading-tight mt-0.5 truncate">{mod.desc}</div>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
+                    <PermissionsSelector
+                        selectedPermissions={data.permissions}
+                        onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
+                        disabled={member.role === 'owner'}
+                    />
                     
                     <div className="mt-6 pt-6 border-t border-slate-800/50 flex items-center justify-between relative z-10 shrink-0">
                         <div className="space-y-0.5">
                             <div className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Visibility Summary</div>
                             <div className="text-xs font-black text-white">
                                 <span className={data.permissions.length > 0 ? 'text-indigo-400' : 'text-slate-500'}>
-                                     {data.permissions.length} Modules Enabled
+                                     {data.permissions.length} Action Items Enabled
                                 </span>
                             </div>
                         </div>

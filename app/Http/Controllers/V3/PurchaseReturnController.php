@@ -138,7 +138,7 @@ class PurchaseReturnController extends Controller
         });
 
         return redirect()
-            ->route('v3.purchases.show', $purchaseId)
+            ->route('store.v3.purchases.show', ['store_slug' => app('current.tenant')->slug, 'purchase' => $purchaseId])
             ->with('success', 'Purchase return posted successfully.');
     }
 }

@@ -875,4 +875,95 @@ class AiController extends Controller
             ]
         ];
     }
+
+    public function recommendations(Request $request)
+    {
+        $productId = $request->query('product_id');
+        $limit = $request->query('limit', 5);
+
+        $recommendations = DB::table('sale_items as a')
+            ->join('sale_items as b', 'a.sale_id', '=', 'b.sale_id')
+            ->join('products as p', 'b.product_id', '=', 'p.id')
+            ->where('a.product_id', $productId)
+            ->where('b.product_id', '<>', $productId)
+            ->where('a.tenant_id', app('current.tenant')->id)
+            ->select('b.product_id', 'p.name', DB::raw('COUNT(*) as correlation_count'))
+            ->groupBy('b.product_id', 'p.name')
+            ->orderByDesc('correlation_count')
+            ->limit($limit)
+            ->get();
+
+        return response()->json(['status' => 'success', 'data' => $recommendations]);
+    }
+
+    public function smartReorder(Request $request)
+    {
+        $leadTime = (int) $request->query('lead_time', 7);
+        $tenantId = app('current.tenant')->id;
+
+        $products = DB::table('products as p')
+            ->leftJoin('stocks as s', function($join) use ($tenantId) {
+                $join->on('p.id', '=', 's.product_id')
+                     ->where('s.tenant_id', '=', $tenantId);
+            })
+            ->leftJoin('sale_items as si', function($join) use ($tenantId) {
+                $join->on('p.id', '=', 'si.product_id')
+                     ->where('si.created_at', '>=', now()->subDays(30))
+                     ->where('si.tenant_id', '=', $tenantId);
+            })
+            ->where('p.tenant_id', $tenantId)
+            ->select('p.id', 'p.name', DB::raw('COALESCE(SUM(s.quantity), 0) as current_stock'), DB::raw('COALESCE(SUM(si.quantity), 0) / 30.0 as avg_daily_sales'))
+            ->groupBy('p.id', 'p.name')
+            ->get()
+            ->map(function ($p) use ($leadTime) {
+                $p->reorder_threshold = round($p->avg_daily_sales * $leadTime, 2);
+                $p->should_reorder = $p->current_stock <= $p->reorder_threshold;
+                return $p;
+            })
+            ->filter(fn($p) => $p->should_reorder)
+            ->values();
+
+        return response()->json(['status' => 'success', 'data' => $products]);
+    }
+
+    public function cashFlowForecast(Request $request)
+    {
+        $daysToProject = (int) $request->query('days', 30);
+        $tenantId = app('current.tenant')->id;
+
+        $movements = DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('je.tenant_id', $tenantId)
+            ->whereIn('a.code', ['1000', '1010'])
+            ->where('je.date', '>=', now()->subDays(30)->toDateString())
+            ->select('je.date', DB::raw('SUM(ji.debit - ji.credit) as daily_net'))
+            ->groupBy('je.date')
+            ->get();
+
+        $totalNet = $movements->sum('daily_net');
+        $avgDailyNet = round($totalNet / 30.0, 2);
+
+        $currentCash = DB::table('journal_items as ji')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('ji.tenant_id', $tenantId)
+            ->whereIn('a.code', ['1000', '1010'])
+            ->sum(DB::raw('ji.debit - ji.credit'));
+
+        $forecast = [];
+        for ($i = 1; $i <= $daysToProject; $i++) {
+            $forecast[] = [
+                'date' => now()->addDays($i)->toDateString(),
+                'projected_net_change' => round($avgDailyNet * $i, 2),
+                'projected_balance' => round($currentCash + ($avgDailyNet * $i), 2)
+            ];
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'current_balance' => round($currentCash, 2),
+            'avg_daily_net' => $avgDailyNet,
+            'forecast' => $forecast
+        ]);
+    }
 }

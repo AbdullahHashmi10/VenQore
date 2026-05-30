@@ -30,7 +30,7 @@ use Illuminate\Support\Facades\Log;
  */
 class AccountingService
 {
-    private int $tenantId;
+    private $tenantId;
     protected PartyService $partyService;
     protected PaymentService $paymentService;
 

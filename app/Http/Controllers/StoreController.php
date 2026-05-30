@@ -30,7 +30,8 @@ class StoreController extends Controller
         $user = Auth::user();
 
         // Check if they have an available license to create a store
-        $availableLicense = StoreLicense::where('user_id', $user->id)
+        $availableLicense = StoreLicense::withoutTenantScope()
+            ->where('user_id', $user->id)
             ->where('status', 'available')
             ->first();
 
@@ -47,7 +48,8 @@ class StoreController extends Controller
     {
         $user = Auth::user();
 
-        $license = StoreLicense::where('user_id', $user->id)
+        $license = StoreLicense::withoutTenantScope()
+            ->where('user_id', $user->id)
             ->where('status', 'available')
             ->first();
 
@@ -120,7 +122,8 @@ class StoreController extends Controller
             ->count();
 
         // Check their AppSumo license plan for a store count ceiling.
-        $appsumoLicense = StoreLicense::where('user_id', $user->id)
+        $appsumoLicense = StoreLicense::withoutTenantScope()
+            ->where('user_id', $user->id)
             ->whereIn('status', ['available', 'consumed'])
             ->where('source', 'appsumo')
             ->orderByDesc('created_at')
@@ -148,7 +151,8 @@ class StoreController extends Controller
 
         $tenant = DB::transaction(function () use ($request, $user) {
             // Claim available license or create a trial license
-            $license = StoreLicense::where('user_id', $user->id)
+            $license = StoreLicense::withoutTenantScope()
+                ->where('user_id', $user->id)
                 ->where('status', 'available')
                 ->lockForUpdate()
                 ->first();

@@ -43,6 +43,9 @@ class SuperDemoSeeder extends Seeder
         // Set current tenant context for any global scopes
         app()->instance('current.tenant', $demo);
 
+        // Seed default charts and settings for the tenant
+        TenantDefaultSeeder::seedFor($demo);
+
         // 2. Clear existing demo data to avoid duplicates
         $this->command->info('🧹 Cleaning existing demo data...');
         DB::statement('SET FOREIGN_KEY_CHECKS=0;');

@@ -5,6 +5,7 @@ import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import ProductModal from '@/Components/ProductModal';
+import ProductTourGuide from '@/Components/ProductTourGuide';
 import {
     Plus,
     Search,
@@ -273,7 +274,6 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                 actionName={pendingDeleteAction === 'bulk' ? `delete ${selectedProducts.length} selected products` : "delete this product"}
             />
 
-            {/* Product Modal */}
             {isModalOpen && (
                 <ProductModal
                     isOpen={isModalOpen}
@@ -289,6 +289,8 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     }}
                 />
             )}
+
+            <ProductTourGuide isModalOpen={isModalOpen} store={store} />
 
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden relative">
 
@@ -360,6 +362,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 <Upload size={16} />
                             </Link>
                             <button
+                                id="tour-add-product"
                                 onClick={handleAddProduct}
                                 className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20"
                             >

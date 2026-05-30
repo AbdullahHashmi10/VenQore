@@ -24,6 +24,8 @@ class MigrateV3Ledger extends Command
      */
     protected $description = 'Migrate legacy data into the V3 journal ledger (Parties, Invoices, Sales, Expenses)';
 
+    private $adminId = null;
+
     /**
      * Execute the console command.
      */
@@ -59,7 +61,13 @@ class MigrateV3Ledger extends Command
             $this->error('No admin user found to associate with journal entries.');
             return 1;
         }
-        auth()->loginUsingId($admin->id);
+        
+        $this->adminId = $admin->id;
+        try {
+            auth()->loginUsingId($admin->id);
+        } catch (\Throwable $e) {
+            // Ignore session errors in CLI
+        }
         $this->info("Logged in as Admin: {$admin->name} ({$admin->id})");
 
         // Step 1: Party Opening Balances
@@ -284,7 +292,7 @@ class MigrateV3Ledger extends Command
                     'reference' => $sale->id,
                     'reference_type' => 'sale',
                     'party_id' => $sale->party_id,
-                    'user_id' => auth()->id(),
+                    'user_id' => $this->adminId,
                     'created_at' => $sale->created_at ?: now(),
                     'updated_at' => $sale->updated_at ?: now(),
                 ]);

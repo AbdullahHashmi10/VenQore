@@ -610,6 +610,7 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
 
         Route::name('store.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/onboarding/step', [\App\Http\Controllers\OnboardingController::class, 'updateStep'])->name('onboarding.step');
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
     Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
 

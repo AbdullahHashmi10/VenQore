@@ -241,10 +241,10 @@ class DashboardController extends Controller
         // which is the single source of truth for all role-based access control.
         $membership    = app()->bound('current.membership') ? app('current.membership') : null;
 
-        $canSeeSales     = $user->hasPermission('sales') || $user->hasPermission('sales_view') || $user->hasPermission('pos');
-        $canSeeFinance   = $user->hasPermission('finance');
-        $canSeeReports   = $user->hasPermission('reports');
-        $canSeeInventory = $user->hasPermission('inventory');
+        $canSeeSales     = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeFinance   = $user->hasPermission('finance.transactions') || $user->hasPermission('finance.balances');
+        $canSeeReports   = $user->hasPermission('reports.summary') || $user->hasPermission('reports.financial') || $user->hasPermission('reports.stock') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.audit');
+        $canSeeInventory = $user->hasPermission('inventory.view');
 
         // Performance Stats
         $performance = [];
@@ -427,7 +427,7 @@ class DashboardController extends Controller
         $cashData = null;
         $cashBalance = 0.0;
 
-        if ($canSeeFinance) {
+        if ($user->hasPermission('finance.balances')) {
             $bankAccounts = BankAccount::whereNotIn('account_type', ['cash'])
                 ->whereNotIn('type', ['cash'])
                 ->get()

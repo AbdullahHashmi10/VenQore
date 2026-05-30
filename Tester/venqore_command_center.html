@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VenQore : Test Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Plus Jakarta Sans', 'sans-serif'],
+          mono: ['JetBrains Mono', 'monospace'],
+        }
+      }
+    }
+  }
+</script>
+<style>
+  :root {
+    --bg-main: #09090b;
+    --bg-card: #121214;
+    --border-subtle: #1f1f23;
+    --border-focus: #27272a;
+    --teal: #00f0ff;
+    --green: #10b981;
+    --red: #f43f5e;
+    --amber: #f59e0b;
+    --blue: #3b82f6;
+    --text-primary: #f4f4f5;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  /* Custom Sleek Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-main);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-subtle);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-focus);
+  }
+
+  /* Clean Minimal Borders */
+  .minimal-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+  }
+
+  .minimal-card:hover {
+    border-color: var(--border-focus);
+  }
+</style>
+</head>
+<body class="min-h-screen text-zinc-100 antialiased pb-24">
+
+  <!-- Main Grid Layout Container -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 space-y-6">
+    
+    <!-- HEADER SECTION -->
+    <header class="flex flex-col md:flex-row items-start md:items-center justify-between pb-5 border-b border-zinc-800/80 gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
+          <h1 class="text-xl font-bold tracking-tight text-white font-sans">VENQORE COMMAND</h1>
+        </div>
+        <div class="flex items-center gap-2 mt-1">
+          <p class="text-[10px] tracking-wider text-zinc-400 font-mono uppercase">INTEGRITY MATRIX ANALYZER</p>
+          <span class="text-[10px] text-zinc-500 font-mono" id="last-run-info">· STATUS: WAITING SCAN</span>
+        </div>
+      </div>
+
+      <!-- Action hub with Deploy and Setup options -->
+      <div class="flex flex-wrap items-center gap-3">
+        <div id="demo-badge-container" class="hidden px-2.5 py-1 rounded border border-amber-500/20 bg-amber-500/5 text-amber-500 text-[10px] font-mono font-medium tracking-wider flex items-center gap-1.5 animate-pulse">
+          SIMULATION MODE ACTIVE
+        </div>
+        
+        <div class="flex items-center gap-2 bg-zinc-900 px-3 py-1.5 rounded border border-zinc-800">
+          <div class="w-2 h-2 rounded-full bg-zinc-600 transition-all duration-300" id="conn-dot"></div>
+          <span class="text-[10px] tracking-wider font-mono font-bold text-zinc-400" id="conn-label">INITIALIZING</span>
+        </div>
+
+        <button onclick="toggleSimulationMode()" id="simulation-toggle-btn" class="px-3 py-1.5 rounded text-[10px] font-mono font-bold tracking-wider bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-all">
+          FORCE SIMULATOR
+        </button>
+
+        <button onclick="togglePathBanner()" class="px-3 py-1.5 rounded text-[10px] font-mono font-bold tracking-wider bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition-all">
+          SET PATH
+        </button>
+
+        <div class="h-6 w-[1px] bg-zinc-800 hidden md:block"></div>
+
+        <button class="font-mono font-bold text-[10px] tracking-wider bg-white hover:bg-zinc-200 text-black py-1.5 px-4 rounded transition-all duration-150 shadow"
+                id="run-btn" 
+                onclick="startRun()">
+          DEPLOY ANALYZER
+        </button>
+        <button class="font-mono font-bold text-[10px] tracking-wider bg-rose-950/40 hover:bg-rose-900/30 border border-rose-800 text-rose-400 py-1.5 px-4 rounded transition-all"
+                id="stop-btn" 
+                onclick="stopRun()" 
+                style="display:none;">
+          STOP EXECUTION
+        </button>
+      </div>
+    </header>
+
+    <!-- Project Setup Workspace path configurations (Collapsible popup banner) -->
+    <div id="setup-banner" class="hidden p-4 rounded bg-zinc-900/40 border border-zinc-800/80 transition-all">
+      <div class="max-w-3xl space-y-2">
+        <div class="flex items-center justify-between">
+          <h3 class="font-mono text-[10px] font-bold tracking-wider text-zinc-400">PROJECT CORE DIRECTORY</h3>
+          <button onclick="togglePathBanner()" class="text-zinc-500 hover:text-white font-bold text-xs">✕</button>
+        </div>
+        <p class="text-xs text-zinc-400">
+          Configure the absolute system directory on your disk to correctly sync project state files.
+        </p>
+        <div class="flex gap-2 pt-1">
+          <input class="flex-1 bg-zinc-950 border border-zinc-800 focus:border-zinc-700 rounded px-3 py-1.5 text-xs text-white font-mono placeholder-zinc-700 outline-none" 
+                 id="project-path-input" 
+                 placeholder="e.g. D:\POS_Workspace" 
+                 type="text" />
+          <button class="px-4 py-1.5 rounded bg-zinc-100 hover:bg-zinc-200 text-black font-mono font-bold text-[10px] tracking-wider transition-all" 
+                  onclick="saveConfig()">
+            APPLY CONFIG
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN BODY SECTION -->
+    <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- LEFT SECTION: ECG Graph and Modules Grid (8 Columns) -->
+      <section class="lg:col-span-8 space-y-6">
+        
+        <!-- ECG GRAPH PANEL (Positioned right at the top of the diagnostics) -->
+        <article class="minimal-card rounded-lg p-4 shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-3 mb-4 gap-2">
+            <div>
+              <h3 class="font-mono text-[10px] font-bold tracking-wider text-zinc-400">ECG MONITORING FREQUENCY</h3>
+              <p class="text-xs text-zinc-500 mt-0.5">Live sweep across execution modules</p>
+            </div>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-mono text-zinc-500">
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Successful Node</span>
+              <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> active sequence</span>
+            </div>
+          </div>
+
+          <div class="bg-zinc-950 p-3 rounded border border-zinc-900">
+            <div class="flex gap-3">
+              <!-- Y-Axis Coordinates -->
+              <div class="flex flex-col justify-between text-[8px] font-mono font-bold text-zinc-500 h-32 pr-2 border-r border-zinc-900">
+                <span class="text-emerald-500">100%</span>
+                <span>75%</span>
+                <span>50%</span>
+                <span>25%</span>
+                <span class="text-rose-500">0%</span>
+              </div>
+              <!-- Realtime sweeping canvas plot -->
+              <div class="flex-1 relative h-32">
+                <canvas id="ecg-canvas" class="w-full h-full block"></canvas>
+              </div>
+            </div>
+            <!-- X-Axis Labels -->
+            <div class="flex justify-between items-center text-[8px] font-mono text-zinc-500 pt-2 border-t border-zinc-900 mt-2 pl-10">
+              <span>MODULE 01: SYSTEM AUTH</span>
+              <span>MODULE 09: MRP FACTORY</span>
+              <span>MODULE 18: OFFLINE SYNC</span>
+              <span>INTEGRITY ENDPOINT TEST</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- PIPELINE MONITORING SUMMARY -->
+        <article class="minimal-card rounded-lg p-4 shadow-sm">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center">
+            <div>
+              <h4 class="font-mono text-[10px] font-bold tracking-wider text-zinc-400">SYSTEM STABILITY MATRIX</h4>
+              <p class="text-xs font-bold text-white mt-1" id="status-verdict-title">DASHBOARD READY: DEPLOY TO RUN ANALYSIS</p>
+            </div>
+            <div class="flex items-center justify-between sm:justify-end gap-4">
+              <div class="text-right">
+                <span class="font-mono text-[9px] text-zinc-500 block">TOTAL PROGRESS</span>
+                <span class="text-xs font-bold font-mono text-emerald-400 mt-1" id="overall-progress-num">0% Complete</span>
+              </div>
+              <div class="w-1/2 sm:w-40 h-2 bg-zinc-950 rounded border border-zinc-900 overflow-hidden">
+                <div class="h-full bg-white w-0 transition-all duration-300" id="overall-progress-bar"></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- MODULE INTEGRITY GRID (Fully visible, sleek, and interactive) -->
+        <article class="space-y-3">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+            <h3 class="font-mono text-[10px] font-bold tracking-wider text-zinc-400">ACTIVE INTEGRITY MODULES</h3>
+            <span class="text-[9px] font-mono text-zinc-500" id="matrix-active-count">0 ACTIVE MODULES</span>
+          </div>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3" id="module-grid">
+            <!-- Programmatically initialized modules list -->
+          </div>
+        </article>
+
+      </section>
+
+      <!-- RIGHT SECTION: Performance Logs and Action Hub (4 Columns) -->
+      <section class="lg:col-span-4 space-y-6">
+        
+        <!-- KPI METRICS SUMMARY -->
+        <article class="grid grid-cols-4 gap-2">
+          <div class="minimal-card p-2 rounded text-center">
+            <span class="text-[8px] font-mono font-bold text-zinc-500">TOTAL</span>
+            <h4 class="text-sm font-bold text-zinc-100 mt-1 font-mono" id="stat-total">0</h4>
+          </div>
+          <div class="minimal-card p-2 rounded text-center">
+            <span class="text-[8px] font-mono font-bold text-zinc-500">PASSED</span>
+            <h4 class="text-sm font-bold text-emerald-400 mt-1 font-mono" id="stat-pass">0</h4>
+          </div>
+          <div class="minimal-card p-2 rounded text-center">
+            <span class="text-[8px] font-mono font-bold text-zinc-500">FAILED</span>
+            <h4 class="text-sm font-bold text-rose-400 mt-1 font-mono" id="stat-fail">0</h4>
+          </div>
+          <div class="minimal-card p-2 rounded text-center">
+            <span class="text-[8px] font-mono font-bold text-zinc-500">PEND</span>
+            <h4 class="text-sm font-bold text-amber-400 mt-1 font-mono" id="stat-todo">0</h4>
+          </div>
+        </article>
+
+        <!-- STREAMING TELEMETRY LOGGER -->
+        <article class="minimal-card rounded-lg p-4 flex flex-col h-[280px]">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3 flex-shrink-0">
+            <span class="font-mono text-[10px] text-zinc-400 tracking-wider">CONSOLE OUTPUT STREAM</span>
+            <span class="text-[8px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 rounded hidden animate-pulse" id="live-badge">REALTIME</span>
+          </div>
+          <div class="flex-1 overflow-y-auto font-mono text-[11px] space-y-1.5 pr-1 text-zinc-400" id="log-body">
+            <div class="text-zinc-600 text-center py-20">CONSOLE READY : INITIAL DATA FLOW PENDING</div>
+          </div>
+        </article>
+
+        <!-- CODE DISTRIBUTION PACKAGER -->
+        <article class="minimal-card rounded-lg p-4 space-y-4">
+          <div class="border-b border-zinc-800 pb-2">
+            <h4 class="font-mono text-[10px] font-bold tracking-wider text-zinc-400">PRODUCTION COMPILER</h4>
+            <p class="text-[11px] text-zinc-500 mt-1">Generate stable validated workspace builds</p>
+          </div>
+          <div class="space-y-1.5">
+            <label class="font-mono text-[9px] text-zinc-500 block uppercase">Custom Build Version (Optional)</label>
+            <input type="text" id="custom-version-input" 
+                   class="w-full bg-zinc-950 border border-zinc-800 focus:border-zinc-700 rounded px-2.5 py-1.5 text-xs text-white font-mono placeholder-zinc-700 outline-none transition-all"
+                   placeholder="e.g. 3.2.17" />
+          </div>
+          <button class="w-full font-mono font-bold text-[10px] tracking-wider bg-zinc-100 hover:bg-zinc-200 text-black py-2.5 px-4 rounded transition-all shadow"
+                  id="build-btn" 
+                  onclick="startBuild()">
+            PACKAGE SYSTEM RELEASE (<span id="next-version-label">v3.2.8</span>)
+          </button>
+          
+          <div id="build-progress" class="hidden text-[10px] bg-zinc-950 border border-zinc-900 p-2 rounded text-zinc-400 font-mono text-center">
+            Awaiting assembly:
+          </div>
+        </article>
+
+        <!-- COMPREHENSIVE SCAN RESULTS (Visible after compile runs) -->
+        <article id="final-report" class="minimal-card rounded-lg p-4 space-y-3 hidden">
+          <div class="border-b border-zinc-800 pb-2">
+            <h4 class="font-mono text-[10px] text-emerald-400 tracking-wider">COMPREHENSIVE RUN REPORT</h4>
+          </div>
+          <div class="grid grid-cols-2 gap-2" id="report-grid">
+            <!-- Programmatic statistical highlights -->
+          </div>
+          <div class="p-3 rounded text-center text-xs font-bold font-mono border" id="launch-verdict">
+            SYSTEM CRITERIA LOGS
+          </div>
+        </article>
+
+        <!-- CODE TERMINATION FAULT EXCEPTIONS -->
+        <article class="minimal-card rounded-lg p-4 flex flex-col h-[200px]">
+          <div class="flex items-center justify-between border-b border-zinc-800 pb-2 mb-2 flex-shrink-0">
+            <span class="font-mono text-[10px] text-zinc-400 tracking-wider">EXCEPTION EXCEPTION LOGS</span>
+            <span class="text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/20 px-1.5 rounded font-mono" id="bug-count">0</span>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="bug-list">
+            <div class="text-center py-10 text-zinc-600 font-mono text-[11px]">
+              NO RUN EXCEPTIONS REGISTERED
+            </div>
+          </div>
+        </article>
+
+        <!-- METRIC HISTORICAL TRACES -->
+        <article class="minimal-card rounded-lg p-4 flex flex-col h-[220px]">
+          <div class="border-b border-zinc-800 pb-2 mb-2 flex-shrink-0">
+            <span class="font-mono text-[10px] text-zinc-400 tracking-wider">HISTORICAL SCANS</span>
+          </div>
+          <div class="flex-1 overflow-y-auto space-y-2 pr-1" id="history-list">
+            <div class="text-center py-12 text-zinc-600 font-mono text-[11px]">
+              NO HISTORICAL METRICS LOGGED
+            </div>
+          </div>
+        </article>
+
+      </section>
+
+    </main>
+
+  </div>
+
+<script>
+// ─── App Configurations & Key Traces ──────────────────────────────────────
+let ws = null;
+let running = false;
+let modulesDone = 0;
+let projectPath = '';
+let isDemoMode = false;
+let demoInterval = null;
+let currentDemoModuleIndex = 0;
+const TOTAL_MODULES = 28;
+
+const MODULE_NAMES = {
+  'Module01': 'Auth & Tenancy Integrity',
+  'Module02': 'Store Instance Provisioning',
+  'Module03': 'POS Active Terminal Handler',
+  'Module04': 'Stripe & PayPal Gateways',
+  'Module05': 'Ledger Accrual Engine',
+  'Module06': 'Enterprise Sales Pipeline',
+  'Module07': 'Procurement Ecosystem',
+  'Module08': 'Inventory Realtime Audit',
+  'Module09': 'MRP Factory Processing',
+  'Module10': 'WooCommerce Integration',
+  'Module11': 'Billing Core & AppSumo Webhooks',
+  'Module12': 'Analytical Reporting Suite',
+  'Module13': 'Interactive Analytics View',
+  'Module14': 'AI Performance Engine',
+  'Module15': 'Unified Account Balancing',
+  'Module16': 'Staff Matrix & HR Attendance',
+  'Module17': 'Workspace Global Settings',
+  'Module18': 'Local Sync Offline Buffers',
+  'Module19': 'VenSynQ Distributed Sync',
+  'Module20': 'Tenant SuperAdmin Center',
+  'Module21': 'Simulated POS Checkout Flow',
+  'AppSumo': 'AppSumo Tier Redemptions',
+  'V3': 'V3 Period Allocation Ledger',
+  'Auth': 'Breeze Core Middleware',
+  'ProfileTest': 'Profile Parameter Cache',
+  'ImportMappingTest': 'Bulk XLS Field Mapper',
+  'StoreUniqueNameTest': 'Store Namespace Integrity',
+  'MigrateOpeningBalancesTest': 'Historical Ledger Balance'
+};
+
+const MODULE_KEYS = Object.keys(MODULE_NAMES);
+
+// Default ECG baseline points mapping matching standard resting wave curves
+const defaultPoints = MODULE_KEYS.map((key, index) => {
+  const phase = (index / MODULE_KEYS.length) * Math.PI * 4;
+  return {
+    val: 68 + Math.sin(phase) * 12,
+    ds: key
+  };
+});
+
+// ─── ECG Sweep Engine Initialization ─────────────────────────────────────────
+const canvas = document.getElementById('ecg-canvas');
+const ctx = canvas.getContext('2d');
+
+let headX = 0;
+let pixelBuffer = null;
+let targetPts = JSON.parse(JSON.stringify(defaultPoints));
+let speed = 2.4;
+const gapSize = 35;
+let animationFrameId = null;
+
+function resizeCanvas() {
+  const rect = canvas.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  ctx.scale(dpr, dpr);
+  
+  const bufLen = Math.ceil(rect.width);
+  if (!pixelBuffer || pixelBuffer.length !== bufLen) {
+    pixelBuffer = new Float32Array(bufLen);
+    for (let i = 0; i < bufLen; i++) {
+      pixelBuffer[i] = getInterpolatedVal(targetPts, i, bufLen);
+    }
+  }
+}
+
+function getInterpolatedVal(dataset, xPos, bufLen) {
+  const progress = xPos / Math.max(bufLen - 1, 1);
+  const index = progress * (dataset.length - 1);
+  const i1 = Math.floor(index);
+  const i2 = Math.min(dataset.length - 1, i1 + 1);
+  const t = index - i1;
+  const v1 = dataset[i1]?.val ?? 50;
+  const v2 = dataset[i2]?.val ?? 50;
+  return v1 + (v2 - v1) * (0.5 - 0.5 * Math.cos(Math.PI * t));
+}
+
+function updateTargetPointForModule(key, val) {
+  const idx = MODULE_KEYS.indexOf(key);
+  if (idx !== -1 && targetPts[idx]) {
+    targetPts[idx].val = val;
+  }
+}
+
+function renderECGFrame() {
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const width = rect.width;
+  const h = rect.height;
+  if (width <= 0 || h <= 0) {
+    animationFrameId = requestAnimationFrame(renderECGFrame);
+    return;
+  }
+
+  const bufLen = Math.ceil(width);
+  if (!pixelBuffer || pixelBuffer.length !== bufLen) {
+    resizeCanvas();
+  }
+
+  ctx.clearRect(0, 0, width, h);
+
+  const centerY = h * 0.85;
+  const maxVal = 100;
+  const getY = (val) => h - ((val || 0) / maxVal) * h * 0.80 - h * 0.10;
+  const thresholdY = getY(95);
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(63, 63, 70, 0.4)';
+  ctx.lineWidth = 1;
+  [25, 50, 75].forEach(v => {
+    const gy = getY(v);
+    ctx.beginPath();
+    ctx.setLineDash([4, 4]);
+    ctx.moveTo(0, gy);
+    ctx.lineTo(width, gy);
+    ctx.stroke();
+  });
+  
+  ctx.beginPath();
+  ctx.setLineDash([6, 6]);
+  ctx.strokeStyle = 'rgba(16, 185, 129, 0.2)';
+  ctx.moveTo(0, thresholdY);
+  ctx.lineTo(width, thresholdY);
+  ctx.stroke();
+  ctx.restore();
+
+  const prevHeadX = headX;
+  headX += speed;
+  let currentHeadX = headX;
+  const didWrap = currentHeadX >= width;
+
+  if (didWrap) {
+    headX = currentHeadX % width;
+    currentHeadX = headX;
+  }
+
+  if (!didWrap) {
+    for (let i = Math.floor(prevHeadX); i <= Math.floor(currentHeadX) && i < bufLen; i++) {
+      pixelBuffer[i] = getInterpolatedVal(targetPts, i, bufLen);
+    }
+  } else {
+    for (let i = Math.floor(prevHeadX); i < bufLen; i++) {
+      pixelBuffer[i] = getInterpolatedVal(targetPts, i, bufLen);
+    }
+    for (let i = 0; i <= Math.floor(currentHeadX); i++) {
+      pixelBuffer[i] = getInterpolatedVal(targetPts, i, bufLen);
+    }
+  }
+
+  let segments = [];
+  let currentSegment = [];
+
+  for (let i = 0; i < width; i++) {
+    let inGap = false;
+    if (currentHeadX + gapSize < width) {
+      if (i >= currentHeadX && i <= currentHeadX + gapSize) inGap = true;
+    } else {
+      if (i >= currentHeadX || i <= (currentHeadX + gapSize) % width) inGap = true;
+    }
+
+    if (!inGap) {
+      currentSegment.push({ x: i, y: getY(pixelBuffer[i] ?? 0) });
+    } else if (currentSegment.length > 0) {
+      segments.push(currentSegment);
+      currentSegment = [];
+    }
+  }
+  if (currentSegment.length > 0) segments.push(currentSegment);
+
+  const drawSubSegments = (subSegs, isGold) => {
+    const strokeColor = isGold ? '#10b981' : '#3b82f6';
+    const fillAlpha = isGold ? 'rgba(16, 185, 129, 0.05)' : 'rgba(59, 130, 246, 0.03)';
+
+    ctx.save();
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, fillAlpha);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    subSegs.forEach(seg => {
+      if (seg.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(seg[0].x, centerY);
+      seg.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.lineTo(seg[seg.length - 1].x, centerY);
+      ctx.closePath();
+      ctx.fill();
+    });
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 1.8;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    subSegs.forEach(seg => {
+      if (seg.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(seg[0].x, seg[0].y);
+      for (let i = 1; i < seg.length; i++) {
+        ctx.lineTo(seg[i].x, seg[i].y);
+      }
+      ctx.stroke();
+    });
+    ctx.restore();
+  };
+
+  segments.forEach(seg => {
+    if (seg.length < 2) return;
+    let sub = [seg[0]];
+    let isGoldZone = seg[0].y <= thresholdY;
+    
+    for (let i = 1; i < seg.length; i++) {
+      const isGold = seg[i].y <= thresholdY;
+      if (isGold !== isGoldZone) {
+        drawSubSegments([sub], isGoldZone);
+        sub = [seg[i]];
+        isGoldZone = isGold;
+      } else {
+        sub.push(seg[i]);
+      }
+    }
+    drawSubSegments([sub], isGoldZone);
+  });
+
+  const activeHeadVal = getInterpolatedVal(targetPts, currentHeadX, bufLen);
+  const dotY = getY(activeHeadVal);
+  const isDotGold = dotY <= thresholdY;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(currentHeadX, dotY, 4, 0, Math.PI * 2);
+  ctx.fillStyle = isDotGold ? '#10b981' : '#ffffff';
+  ctx.fill();
+  ctx.restore();
+
+  animationFrameId = requestAnimationFrame(renderECGFrame);
+}
+
+// ─── Modular Status Matrices ───────────────────────────────────────────────
+function initGrid() {
+  const grid = document.getElementById('module-grid');
+  grid.innerHTML = '';
+  
+  const countLabel = document.getElementById('matrix-active-count');
+  if (countLabel) {
+    countLabel.textContent = `${MODULE_KEYS.length} ACTIVE MODULES`;
+  }
+
+  MODULE_KEYS.forEach((key, index) => {
+    const name = MODULE_NAMES[key];
+    const isModule = key.startsWith('Module');
+    const label = isModule ? `MODULE ${key.replace('Module', '')}` : 'GLOBAL CORE';
+    grid.innerHTML += `
+      <div class="minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden" id="card-${key}">
+        <div class="absolute bottom-0 left-0 w-full h-[2px] bg-zinc-800" id="accent-${key}"></div>
+        <div class="flex items-start justify-between">
+          <div class="min-w-0">
+            <span class="text-[8px] font-mono font-bold tracking-wider text-zinc-500 uppercase block">${label}</span>
+            <h4 class="text-xs font-bold text-zinc-100 mt-1 truncate leading-tight" title="${name}">${name}</h4>
+          </div>
+          <span class="text-[10px] font-bold text-zinc-500 font-mono leading-none" id="mi-${key}">◎</span>
+        </div>
+        <div class="mt-2.5 flex items-center justify-between text-[8px] text-zinc-500 font-mono leading-none">
+          <span id="mp-${key}">WAITING</span>
+          <span class="text-rose-400 font-bold" id="mf-${key}"></span>
+        </div>
+      </div>`;
+  });
+}
+
+// ─── WebSocket connection ──────────────────────────────────────────────────
+function connect() {
+  try {
+    ws = new WebSocket('ws://localhost:7821');
+
+    ws.onopen = () => {
+      setConn('connected', 'CONNECTED TO WORKSYNC');
+      isDemoMode = false;
+      document.getElementById('demo-badge-container').classList.add('hidden');
+      document.getElementById('simulation-toggle-btn').textContent = 'RESET SIMULATOR';
+    };
+
+    ws.onclose = () => {
+      if (!isDemoMode) {
+        setConn('error', 'DISCONNECTED');
+      }
+      setTimeout(connect, 4000);
+    };
+
+    ws.onerror = () => {
+      if (!isDemoMode) {
+        setConn('error', 'CONNECTION ATTEMPT FAULT');
+      }
+    };
+
+    ws.onmessage = (e) => {
+      if (isDemoMode) return; 
+      try { 
+        handleMessage(JSON.parse(e.data)); 
+      } catch(err) {
+        console.error('Inbound data frame parsing fault:', err);
+      }
+    };
+  } catch (error) {
+    console.warn("WebSocket security blocking triggered in sandboxed canvas. Applying live simulation wrapper.", error);
+    handleSecureFallback();
+  }
+}
+
+function handleSecureFallback() {
+  isDemoMode = true;
+  const container = document.getElementById('demo-badge-container');
+  const btn = document.getElementById('simulation-toggle-btn');
+  if (container) container.classList.remove('hidden');
+  if (btn) {
+    btn.textContent = 'RESTRICTED WORKSPACE: SIMULATING';
+  }
+  setConn('offline', 'SIMULATION MODE');
+  addLog('⚠ Telemetry Alert: WebSocket blocked by sandbox constraints. Falling back safely to isolated simulation mode.', 'info');
+}
+
+function setConn(status, label) {
+  const dot = document.getElementById('conn-dot');
+  const txt = document.getElementById('conn-label');
+  if (!dot || !txt) return;
+
+  dot.className = 'w-2 h-2 rounded-full transition-all duration-300';
+  if (status === 'connected') {
+    dot.classList.add('bg-emerald-400');
+    txt.className = 'text-[9px] tracking-wider font-mono font-bold text-emerald-400';
+  } else if (status === 'error') {
+    dot.classList.add('bg-rose-500');
+    txt.className = 'text-[9px] tracking-wider font-mono font-bold text-rose-500 animate-pulse';
+  } else {
+    dot.classList.add('bg-amber-500');
+    txt.className = 'text-[9px] tracking-wider font-mono font-bold text-amber-500';
+  }
+  txt.textContent = label;
+}
+
+// ─── Message Flow Handler ──────────────────────────────────────────────────
+function handleMessage(msg) {
+  switch(msg.type) {
+    case 'history':
+      renderHistory(msg.data);
+      if (msg.data.runs && msg.data.runs.length > 0) {
+        renderLastResults(msg.data.runs[0]);
+      }
+      break;
+
+    case 'start':
+      onRunStart();
+      break;
+
+    case 'module_start':
+      setModuleStatus(msg.module, 'running');
+      break;
+
+    case 'module_update':
+      setModuleStatus(msg.module, 'running', msg.data);
+      break;
+
+    case 'module_done':
+      setModuleStatus(msg.module, msg.status, msg.data);
+      modulesDone++;
+      updateProgress(modulesDone / TOTAL_MODULES * 100);
+      break;
+
+    case 'test_pass':
+      addLog('✓ PASS: ' + msg.name, 'pass');
+      incStat('pass');
+      break;
+
+    case 'test_fail':
+      addLog('✗ FAIL: ' + msg.name, 'fail');
+      incStat('fail');
+      addBug(msg.name, '');
+      break;
+
+    case 'line':
+      if (msg.text.includes('PASS') || msg.text.includes('FAIL') || msg.text.includes('TODO')) {
+        addLog(msg.text.trim(), 'header');
+      } else if (msg.text.includes('Tests:') && msg.text.includes('passed')) {
+        addLog(msg.text.trim(), 'info');
+      }
+      break;
+
+    case 'summary_line':
+      addLog(msg.text, 'info');
+      break;
+
+    case 'stderr':
+      if (msg.text.trim()) addLog(msg.text.trim(), 'fail');
+      break;
+
+    case 'error':
+      addLog('EXECUTION FAIL: ' + msg.message, 'fail');
+      onRunEnd(null);
+      break;
+
+    case 'complete':
+      onRunEnd(msg.results);
+      break;
+
+    case 'version_info':
+      const label = document.getElementById('next-version-label');
+      if (label) label.textContent = 'v' + msg.next;
+      const customVersionInput = document.getElementById('custom-version-input');
+      if (customVersionInput) customVersionInput.placeholder = 'e.g. ' + msg.next;
+      break;
+
+    case 'build_log':
+      const progressLabel = document.getElementById('build-progress');
+      if (progressLabel) {
+        progressLabel.style.display = 'block';
+        progressLabel.textContent = msg.text;
+      }
+      addLog('[BUILD PIPELINE] ' + msg.text, 'info');
+      break;
+
+    case 'build_complete':
+      handleBuildCompletion(msg);
+      break;
+  }
+}
+
+// ─── Telemetry Execution Control Actions ──────────────────────────────────
+function startRun() {
+  if (running) return;
+  if (isDemoMode) {
+    startDemoSimulationRun();
+    return;
+  }
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    alert('Launcher WebSocket server is currently offline. Force simulated sandbox mode to test runs.');
+    return;
+  }
+  ws.send(JSON.stringify({ action: 'run', projectPath }));
+}
+
+function stopRun() {
+  if (isDemoMode) {
+    stopDemoSimulation();
+    return;
+  }
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ action: 'stop' }));
+  addLog('◈ EXECUTION SEQUENCE CANCELLED BY REQUEST.', 'fail');
+}
+
+function onRunStart() {
+  running = true;
+  modulesDone = 0;
+  passCount = 0; 
+  failCount = 0; 
+  todoCount = 0;
+
+  document.getElementById('run-btn').textContent = 'SCANNING CURRENTLY...';
+  document.getElementById('run-btn').disabled = true;
+  document.getElementById('stop-btn').style.display = 'inline-block';
+  document.getElementById('live-badge').classList.remove('hidden');
+  
+  // Clear lists and active telemetry bugs
+  document.getElementById('log-body').innerHTML = '';
+  document.getElementById('bug-list').innerHTML = `
+    <div class="text-center py-6 text-zinc-600 font-mono text-[11px]">
+      <div class="animate-pulse text-lg mb-1">✦</div>
+      ACTIVE PROCESS FLOW LIVE SCANS STARTED
+    </div>`;
+  document.getElementById('bug-count').textContent = '0';
+  document.getElementById('final-report').classList.add('hidden');
+
+  ['total','pass','fail','todo'].forEach(k => document.getElementById('stat-'+k).textContent = '0');
+
+  // Reset module visual grids
+  MODULE_KEYS.forEach(key => {
+    const card = document.getElementById('card-'+key);
+    const accent = document.getElementById('accent-'+key);
+    const icon = document.getElementById('mi-'+key);
+    const mp = document.getElementById('mp-'+key);
+    const mf = document.getElementById('mf-'+key);
+    
+    if (card) card.className = "minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden";
+    if (accent) accent.className = "absolute bottom-0 left-0 w-full h-[2px] bg-zinc-800";
+    if (icon) icon.textContent = '◎';
+    if (mp) mp.textContent = 'WAITING';
+    if (mf) mf.textContent = '';
+    
+    updateTargetPointForModule(key, 60);
+  });
+
+  updateProgress(2);
+  updateVerdictHeader('RUNNING LIVE ANALYSIS PROTOCOLS...', 'var(--blue)');
+  addLog('◈ INITIATING SYSTEM INTEGRITY ANALYSES...', 'info');
+}
+
+function onRunEnd(results) {
+  running = false;
+  document.getElementById('run-btn').textContent = 'DEPLOY ANALYZER';
+  document.getElementById('run-btn').disabled = false;
+  document.getElementById('stop-btn').style.display = 'none';
+  document.getElementById('live-badge').classList.add('hidden');
+  updateProgress(100);
+
+  if (results) {
+    updateStats(results.passed, results.failed, results.todos);
+    renderFinalReport(results);
+    
+    const lastRunInfoEl = document.getElementById('last-run-info');
+    if (lastRunInfoEl) {
+      lastRunInfoEl.textContent = '· RUN AT ' + formatTime(results.timestamp) + ' (' + results.duration + 's)';
+    }
+
+    const overallSafe = results.failed === 0;
+    if (overallSafe) {
+      updateVerdictHeader('INTEGRITY STABLE: COMPLIANT TO RELEASES', 'var(--green)');
+    } else {
+      updateVerdictHeader('STABILITY FAULTS DETECTED: CODE CORRUPT', 'var(--red)');
+    }
+
+    if (results.modules) {
+      Object.entries(results.modules).forEach(([key, data]) => {
+        setModuleStatus(key, data.status, data);
+      });
+    }
+  } else {
+    updateVerdictHeader('SCAN CANCELLED: CORE DEFERRED', 'var(--text-muted)');
+  }
+
+  addLog('◈ TELEMETRY INTEGRITY SEQUENCE TERMINATED.', 'info');
+  setTimeout(() => updateProgress(0), 1200);
+}
+
+// ─── Visual Minimal UI Utilities ───────────────────────────────────────────
+let passCount = 0, failCount = 0, todoCount = 0;
+
+function incStat(type) {
+  if (type === 'pass') passCount++;
+  if (type === 'fail') failCount++;
+  if (type === 'todo') todoCount++;
+  document.getElementById('stat-pass').textContent = passCount;
+  document.getElementById('stat-fail').textContent = failCount;
+  document.getElementById('stat-todo').textContent = todoCount;
+  document.getElementById('stat-total').textContent = passCount + failCount;
+}
+
+function updateStats(passed, failed, todos) {
+  passCount = passed; 
+  failCount = failed; 
+  todoCount = todos;
+  document.getElementById('stat-pass').textContent = passed;
+  document.getElementById('stat-fail').textContent = failed;
+  document.getElementById('stat-todo').textContent = todos;
+  document.getElementById('stat-total').textContent = passed + failed;
+}
+
+function updateVerdictHeader(title, colorValue) {
+  const ribbon = document.getElementById('status-verdict-title');
+  if (ribbon) {
+    ribbon.textContent = title;
+    ribbon.style.color = colorValue;
+  }
+}
+
+function togglePathBanner() {
+  const banner = document.getElementById('setup-banner');
+  if (banner.classList.contains('hidden')) {
+    banner.classList.remove('hidden');
+  } else {
+    banner.classList.add('hidden');
+  }
+}
+
+function setModuleStatus(key, status, data) {
+  const card = document.getElementById('card-'+key);
+  const accent = document.getElementById('accent-'+key);
+  const icon = document.getElementById('mi-'+key);
+  const mp = document.getElementById('mp-'+key);
+  const mf = document.getElementById('mf-'+key);
+  if (!card) return;
+
+  if (status === 'running') {
+    card.className = "minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden bg-zinc-900 border-zinc-700 animate-pulse";
+    if (accent) accent.className = "absolute bottom-0 left-0 w-full h-[2px] bg-blue-500";
+    if (icon) icon.textContent = '⟳';
+    if (mp) mp.textContent = 'RUNNING';
+    if (mf) mf.textContent = '';
+    updateTargetPointForModule(key, 40);
+  } else if (status === 'passed') {
+    card.className = "minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden border-emerald-500/30 bg-zinc-900/40";
+    if (accent) accent.className = "absolute bottom-0 left-0 w-full h-[2px] bg-emerald-500";
+    if (icon) icon.textContent = '✓';
+    
+    const passedVal = data ? data.passed : 1;
+    if (mp) mp.textContent = passedVal + ' PASSED';
+    if (mf) mf.textContent = '';
+    updateTargetPointForModule(key, 98);
+  } else if (status === 'failed') {
+    card.className = "minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden border-rose-500/30 bg-rose-950/5";
+    if (accent) accent.className = "absolute bottom-0 left-0 w-full h-[2px] bg-rose-500";
+    if (icon) icon.textContent = '✗';
+    
+    const passedVal = data ? data.passed : 0;
+    const failedVal = data ? data.failed : 1;
+    if (mp) mp.textContent = passedVal + ' PASSED';
+    if (mf) mf.textContent = failedVal + ' FAULT';
+    updateTargetPointForModule(key, 12);
+  } else {
+    card.className = "minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden opacity-40";
+    if (accent) accent.className = "absolute bottom-0 left-0 w-full h-[2px] bg-zinc-800";
+    if (icon) icon.textContent = '↓';
+    if (mp) mp.textContent = 'SKIPPED';
+    if (mf) mf.textContent = '';
+  }
+}
+
+function addLog(text, cls) {
+  const body = document.getElementById('log-body');
+  const div = document.createElement('div');
+  div.className = 'py-0.5 border-b border-zinc-900 font-mono tracking-tight leading-normal ';
+  
+  if (cls === 'pass') {
+    div.classList.add('text-emerald-400');
+  } else if (cls === 'fail') {
+    div.classList.add('text-rose-400');
+  } else if (cls === 'info') {
+    div.classList.add('text-blue-400');
+  } else if (cls === 'header') {
+    div.classList.add('text-white', 'font-bold', 'text-xs', 'mt-1', 'mb-0.5');
+  } else {
+    div.classList.add('text-zinc-500');
+  }
+  
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function addBug(name, module) {
+  const list = document.getElementById('bug-list');
+  const empty = list.querySelector('.text-center');
+  if (empty) {
+    list.innerHTML = '';
+  }
+
+  const bugId = document.querySelectorAll('.bug-item').length + 1;
+  document.getElementById('bug-count').textContent = bugId;
+
+  const item = document.createElement('div');
+  item.className = 'bug-item flex gap-2 p-2 bg-zinc-900 border border-rose-900/30 rounded';
+  item.innerHTML = `
+    <div class="text-rose-500 font-bold font-mono select-none text-[10px]">✗</div>
+    <div>
+      <div class="text-[8px] text-rose-400 font-mono tracking-wider font-bold uppercase">${module || 'INTEGRITY EXCEPTION'}</div>
+      <div class="text-[10px] text-zinc-300 font-bold mt-0.5 leading-tight">${name}</div>
+    </div>`;
+  list.appendChild(item);
+  list.scrollTop = list.scrollHeight;
+}
+
+function updateProgress(pct) {
+  document.getElementById('overall-progress-bar').style.width = pct + '%';
+  document.getElementById('overall-progress-num').textContent = Math.round(pct) + '% Complete';
+}
+
+function renderFinalReport(results) {
+  const passed = results.passed || 0;
+  const failed = results.failed || 0;
+  const dur = results.duration || 0;
+
+  const reportGrid = document.getElementById('report-grid');
+  reportGrid.innerHTML = `
+    <div class="bg-zinc-900 border border-zinc-800 p-2 rounded text-center">
+      <div class="text-base font-bold font-mono text-blue-400">${passed + failed}</div>
+      <div class="text-[8px] text-zinc-500 font-mono tracking-wider">SUM SCAN</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 p-2 rounded text-center">
+      <div class="text-base font-bold font-mono text-emerald-400">${passed}</div>
+      <div class="text-[8px] text-zinc-500 font-mono tracking-wider">PASSED</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 p-2 rounded text-center">
+      <div class="text-base font-bold font-mono ${failed > 0 ? 'text-rose-500' : 'text-zinc-500'}">${failed}</div>
+      <div class="text-[8px] text-zinc-500 font-mono tracking-wider">FAULTS</div>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 p-2 rounded text-center">
+      <div class="text-base font-bold font-mono text-indigo-400">${dur}s</div>
+      <div class="text-[8px] text-zinc-500 font-mono tracking-wider">DURATION</div>
+    </div>`;
+
+  const verdict = document.getElementById('launch-verdict');
+  if (failed === 0) {
+    verdict.className = "p-3 rounded text-center text-[10px] font-bold font-mono border bg-emerald-950/15 border-emerald-500/20 text-emerald-400";
+    verdict.textContent = "VERDICT COMPLIANT : ALL TESTS PASSING";
+  } else {
+    verdict.className = "p-3 rounded text-center text-[10px] font-bold font-mono border bg-rose-950/15 border-rose-500/20 text-rose-400";
+    verdict.textContent = `VERDICT FAULTY : ${failed} EXCEPTIONS DETECTED`;
+  }
+
+  document.getElementById('final-report').classList.remove('hidden');
+}
+
+function renderLastResults(run) {
+  if (!run) return;
+  updateStats(run.passed || 0, run.failed || 0, run.todos || 0);
+  
+  const lastRunInfoEl = document.getElementById('last-run-info');
+  if (lastRunInfoEl) {
+    lastRunInfoEl.textContent = '· RUN AT ' + formatTime(run.timestamp) + ' (' + run.duration + 's)';
+  }
+
+  if (run.modules) {
+    Object.entries(run.modules).forEach(([key, data]) => {
+      if (data.status !== 'pending' && data.status !== 'skipped') {
+        setModuleStatus(key, data.status, data);
+      }
+    });
+  }
+}
+
+function renderHistory(data) {
+  const list = document.getElementById('history-list');
+  if (!data.runs || data.runs.length === 0) return;
+  list.innerHTML = '';
+  data.runs.slice(0, 8).forEach(run => {
+    const safe = (run.failed || 0) === 0;
+    list.innerHTML += `
+      <div class="flex items-center justify-between p-2 bg-zinc-900/40 border border-zinc-800 rounded hover:bg-zinc-900/60 transition-all">
+        <div class="flex items-center gap-2">
+          <div class="w-1.5 h-1.5 rounded-full ${safe ? 'bg-emerald-400' : 'bg-rose-500'}"></div>
+          <div>
+            <div class="text-[9px] text-zinc-500 font-mono">${formatTime(run.timestamp)}</div>
+            <div class="text-[10px] text-zinc-300 font-bold mt-0.5">${run.passed} Pass · ${run.failed} Fail</div>
+          </div>
+        </div>
+        <div class="text-[9px] text-zinc-500 font-mono">${run.duration}s</div>
+      </div>`;
+  });
+}
+
+function formatTime(ts) {
+  if (!ts) return '·';
+  const d = new Date(ts);
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+// ─── Automated Simulated Run Engine (Demo Mode) ──────────────────────────────
+function toggleSimulationMode() {
+  if (running) {
+    alert("Please await current execution protocols to conclude.");
+    return;
+  }
+  isDemoMode = !isDemoMode;
+  
+  const container = document.getElementById('demo-badge-container');
+  const btn = document.getElementById('simulation-toggle-btn');
+  
+  if (isDemoMode) {
+    container.classList.remove('hidden');
+    btn.textContent = 'CONNECT RUNNER';
+    setConn('offline', 'DEMO ACTIVE');
+    addLog('◈ LOCAL WORKSPACE RE-ROUTED: SANDBOX SIMULATOR ONLINE.', 'info');
+  } else {
+    container.classList.add('hidden');
+    btn.textContent = 'FORCE SIMULATOR';
+    setConn('offline', 'SYNCING');
+    connect();
+  }
+}
+
+const SIMULATED_LOGS = [
+  "Initializing modular components...",
+  "Loading localized configuration systems...",
+  "Assembling system test runner dependencies...",
+  "Mounting Breeze route definitions...",
+  "Caching database entity state frameworks...",
+  "Validating POS payment transaction webhooks...",
+  "Running accounting audit ledger matrices...",
+  "Compiling real-time sweep diagnostic records..."
+];
+
+function startDemoSimulationRun() {
+  onRunStart();
+  currentDemoModuleIndex = 0;
+  
+  SIMULATED_LOGS.forEach((logLine, idx) => {
+    setTimeout(() => {
+      addLog(logLine, 'info');
+    }, idx * 150);
+  });
+
+  setTimeout(() => {
+    executeNextDemoModule();
+  }, SIMULATED_LOGS.length * 150);
+}
+
+function executeNextDemoModule() {
+  if (!running || !isDemoMode) return;
+
+  if (currentDemoModuleIndex >= MODULE_KEYS.length) {
+    const finalSimulatedResults = {
+      passed: passCount,
+      failed: failCount,
+      todos: todoCount,
+      duration: Math.round(10 + Math.random() * 5),
+      timestamp: Date.now(),
+      modules: {}
+    };
+
+    MODULE_KEYS.forEach(key => {
+      const card = document.getElementById('card-' + key);
+      const isFailed = card && card.classList.contains('border-rose-500/30');
+      finalSimulatedResults.modules[key] = {
+        status: isFailed ? 'failed' : 'passed',
+        passed: isFailed ? 0 : 5,
+        failed: isFailed ? 1 : 0,
+        todos: 0
+      };
+    });
+
+    onRunEnd(finalSimulatedResults);
+
+    try {
+      const existingHist = localStorage.getItem('vqr_hist');
+      let hList = existingHist ? JSON.parse(existingHist) : { runs: [] };
+      hList.runs.unshift(finalSimulatedResults);
+      localStorage.setItem('vqr_hist', JSON.stringify(hList));
+      renderHistory(hList);
+    } catch (e) {
+      console.warn("Storage quota restricted. Displaying inline summary updates.");
+    }
+
+    return;
+  }
+
+  const activeKey = MODULE_KEYS[currentDemoModuleIndex];
+  setModuleStatus(activeKey, 'running');
+  addLog(`→ Scanning node: ${MODULE_NAMES[activeKey]}...`, '');
+
+  setTimeout(() => {
+    // Injecting standard randomized failures to ensure visual reports show accurately
+    const shouldFail = (activeKey === 'Module04' || activeKey === 'Module11' || activeKey === 'StoreUniqueNameTest') && Math.random() > 0.45;
+    
+    if (shouldFail) {
+      setModuleStatus(activeKey, 'failed', { passed: 2, failed: 1, todos: 0 });
+      incStat('fail');
+      addLog(`✗ Exception: Schema payload misaligned inside validation gateway.`, 'fail');
+      addBug(`${MODULE_NAMES[activeKey]} Exception: Transaction rejected. Code verify payload format requirements.`, activeKey);
+    } else {
+      setModuleStatus(activeKey, 'passed', { passed: 4, failed: 0, todos: 0 });
+      incStat('pass');
+      addLog(`✓ Block validation successful: Assert parameters synchronized.`, 'pass');
+    }
+
+    modulesDone++;
+    updateProgress((modulesDone / MODULE_KEYS.length) * 100);
+    
+    currentDemoModuleIndex++;
+    setTimeout(executeNextDemoModule, 180 + Math.random() * 150);
+  }, 200 + Math.random() * 250);
+}
+
+function stopDemoSimulation() {
+  if (demoInterval) clearTimeout(demoInterval);
+  running = false;
+  addLog('◈ SCAN SEQUENCE HALTED MANUALLY.', 'fail');
+  onRunEnd(null);
+}
+
+// ─── Codebase Distribution Assembly ──────────────────────────────────────────
+function startBuild() {
+  const btn = document.getElementById('build-btn');
+  const prog = document.getElementById('build-progress');
+  const customVersionInput = document.getElementById('custom-version-input');
+  const customVersion = customVersionInput ? customVersionInput.value.trim() : '';
+  if (!btn || !prog) return;
+
+  if (customVersionInput) customVersionInput.disabled = true;
+  btn.disabled = true;
+  btn.textContent = 'COMPILING CODEBASE ASSETS...';
+  prog.style.display = 'block';
+  prog.textContent = 'Verifying workspace security rules...';
+
+  if (isDemoMode) {
+    const buildLogs = [
+      "Compiling UI webpack scripts...",
+      "Analyzing modular component references...",
+      "Removing dev system configurations...",
+      "Generating standard production build bundle..."
+    ];
+
+    buildLogs.forEach((log, index) => {
+      setTimeout(() => {
+        prog.textContent = log;
+      }, (index + 1) * 450);
+    });
+
+    setTimeout(() => {
+      const displayVer = customVersion || '3.2.8';
+      handleBuildCompletion({
+        success: true,
+        file: 'venqore-production-release-v' + displayVer + '.tar.gz',
+        version: displayVer
+      });
+    }, (buildLogs.length + 1) * 450);
+  } else {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ action: 'build', projectPath, customVersion }));
+    }
+  }
+}
+
+function handleBuildCompletion(msg) {
+  const btn = document.getElementById('build-btn');
+  const prog = document.getElementById('build-progress');
+  const customVersionInput = document.getElementById('custom-version-input');
+  if (customVersionInput) {
+    customVersionInput.disabled = false;
+    customVersionInput.value = '';
+  }
+  if (!btn || !prog) return;
+
+  btn.disabled = false;
+  const currentVer = msg.version || '3.2.8';
+  btn.textContent = 'PACKAGE SYSTEM RELEASE (v' + currentVer + ')';
+  
+  if (msg.success) {
+    prog.innerHTML = `Success: release bundle generated: <span class="text-white underline font-bold">${msg.file}</span>`;
+    addLog('[COMPILER] Codebase distribution successfully packaged.', 'pass');
+  } else {
+    prog.textContent = '✗ Compilation failure registered.';
+    addLog('[COMPILER] Build aborted.', 'fail');
+  }
+}
+
+// Setup Configurations Sync Logic
+function saveConfig() {
+  const input = document.getElementById('project-path-input').value.trim();
+  if (!input) return;
+  projectPath = input;
+  
+  if (isDemoMode) {
+    try {
+      localStorage.setItem('vqr_path', input);
+    } catch (e) {}
+    hideBanner();
+    addLog(`◈ Configurations locked: path resolved locally to "${input}".`, 'info');
+    return;
+  }
+
+  try {
+    fetch('http://localhost:7821/set-config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ projectPath: input })
+    }).then(() => {
+      hideBanner();
+    }).catch(err => {
+      try { localStorage.setItem('vqr_path', input); } catch(e){}
+      hideBanner();
+    });
+  } catch (err) {
+    try { localStorage.setItem('vqr_path', input); } catch(e){}
+    hideBanner();
+  }
+}
+
+function hideBanner() {
+  document.getElementById('setup-banner').classList.add('hidden');
+}
+
+// ─── App Startup Sequence ────────────────────────────────────────────────────
+window.onload = function() {
+  initGrid();
+  
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  renderECGFrame();
+
+  try {
+    const savedPath = localStorage.getItem('vqr_path');
+    if (savedPath) {
+      document.getElementById('project-path-input').value = savedPath;
+      projectPath = savedPath;
+    }
+  } catch (e) {}
+
+  try {
+    const storedHist = localStorage.getItem('vqr_hist');
+    if (storedHist) {
+      const data = JSON.parse(storedHist);
+      renderHistory(data);
+      if (data.runs && data.runs.length > 0) {
+        renderLastResults(data.runs[0]);
+      }
+    }
+  } catch (e) {}
+
+  connect();
+
+  try {
+    fetch('http://localhost:7821/config')
+      .then(r => r.json())
+      .then(cfg => {
+        if (cfg.projectPath) {
+          projectPath = cfg.projectPath;
+          document.getElementById('project-path-input').value = cfg.projectPath;
+        }
+      })
+      .catch((err) => {
+        console.log("Telemetry workspace listener active.");
+      });
+  } catch (err) {}
+};
+</script>
+</body>
+</html>

@@ -83,7 +83,7 @@ wss.on('connection', (ws) => {
 
   ws.on('message', (msg) => {
     try {
-      const { action, projectPath } = JSON.parse(msg.toString());
+      const { action, projectPath, customVersion } = JSON.parse(msg.toString());
 
       if (action === 'run') {
         if (activeRun) {
@@ -103,6 +103,27 @@ wss.on('connection', (ws) => {
       if (action === 'stop') {
         if (activeRun) { activeRun.kill(); activeRun = null; }
       }
+
+      if (action === 'get_version') {
+        const projPath = projectPath || config.projectPath;
+        if (projPath && fs.existsSync(projPath)) {
+          const info = getVersionInfo(projPath);
+          ws.send(JSON.stringify({ type: 'version_info', current: info.current, next: info.next }));
+        }
+      }
+
+      if (action === 'build') {
+        if (activeRun) {
+          ws.send(JSON.stringify({ type: 'error', message: 'A test run is currently in progress.' }));
+          return;
+        }
+        const projPath = projectPath || config.projectPath;
+        if (!projPath || !fs.existsSync(projPath)) {
+          ws.send(JSON.stringify({ type: 'error', message: 'Project path not set.' }));
+          return;
+        }
+        runBuild(projPath, ws, customVersion);
+      }
     } catch (e) {
       console.error('WS message error:', e);
     }
@@ -114,7 +135,18 @@ wss.on('connection', (ws) => {
 // ─── Test Runner ────────────────────────────────────────────────────────────
 function runTests(projectPath, ws) {
   const startTime = Date.now();
-  const modules = Array.from({ length: 20 }, (_, i) => `Tester/tests/Feature/Module${String(i + 1).padStart(2, '0')}`);
+  const modules = [
+    ...Array.from({ length: 21 }, (_, i) => `Tester/tests/Feature/Module${String(i + 1).padStart(2, '0')}`),
+    'Tester/tests/Feature/Smoke',
+    'Tester/tests/Feature/DemoStore',
+    'Tester/tests/Feature/AppSumo',
+    'Tester/tests/Feature/V3',
+    'Tester/tests/Feature/Auth',
+    'Tester/tests/Feature/ProfileTest.php',
+    'Tester/tests/Feature/ImportMappingTest.php',
+    'Tester/tests/Feature/StoreUniqueNameTest.php',
+    'Tester/tests/Feature/MigrateOpeningBalancesTest.php'
+  ];
 
   const cmd = `"${config.phpBin || 'php'}" ${config.phpIni ? `-c "${config.phpIni}"` : ''} vendor/bin/pest ${modules.join(' ')} --configuration Tester/phpunit.xml --no-coverage`;
 
@@ -134,8 +166,20 @@ function runTests(projectPath, ws) {
   };
 
   // Init module states
-  for (let i = 1; i <= 20; i++) {
-    const key = `Module${String(i).padStart(2, '0')}`;
+  const keys = [
+    ...Array.from({ length: 21 }, (_, i) => `Module${String(i + 1).padStart(2, '0')}`),
+    'Smoke',
+    'DemoStore',
+    'AppSumo',
+    'V3',
+    'Auth',
+    'ProfileTest',
+    'ImportMappingTest',
+    'StoreUniqueNameTest',
+    'MigrateOpeningBalancesTest'
+  ];
+
+  for (const key of keys) {
     results.modules[key] = { name: key, status: 'pending', tests: [], passed: 0, failed: 0, todos: 0 };
   }
 
@@ -150,8 +194,9 @@ function runTests(projectPath, ws) {
     buffer = lines.pop(); // keep incomplete line
 
     for (const line of lines) {
-      results.rawLines.push(line);
-      parseLine(line, results, ws);
+      const trimmedLine = line.replace(/\r$/, ''); // strip Windows \r
+      results.rawLines.push(trimmedLine);
+      parseLine(trimmedLine, results, ws);
     }
   });
 
@@ -195,18 +240,18 @@ function runTests(projectPath, ws) {
 
 function parseLine(line, results, ws) {
   // Detect module
-  const moduleMatch = line.match(/(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\](Module\d+)[\/\\]/);
+  const moduleMatch = line.match(/(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (moduleMatch) {
     const key = moduleMatch[1];
-    results._currentModule = key;
     if (results.modules[key]) {
+      results._currentModule = key;
       results.modules[key].status = 'running';
       ws.send(JSON.stringify({ type: 'module_start', module: key }));
     }
   }
 
   // Detect PASS/FAIL suite
-  const passMatch = line.match(/PASS\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\](Module\d+)[\/\\]/);
+  const passMatch = line.match(/PASS\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (passMatch) {
     const key = passMatch[1];
     if (results.modules[key]) {
@@ -215,7 +260,7 @@ function parseLine(line, results, ws) {
     }
   }
 
-  const failMatch = line.match(/FAIL\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\](Module\d+)[\/\\]/);
+  const failMatch = line.match(/FAIL\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (failMatch) {
     const key = failMatch[1];
     if (results.modules[key]) {
@@ -225,7 +270,7 @@ function parseLine(line, results, ws) {
   }
 
   // Detect TODO-only suite
-  const todoMatch = line.match(/TODO\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\](Module\d+)[\/\\]/);
+  const todoMatch = line.match(/TODO\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (todoMatch) {
     const key = todoMatch[1];
     if (results.modules[key]) {
@@ -270,8 +315,13 @@ function parseLine(line, results, ws) {
   }
 
   // Track current module from PASS/FAIL lines
-  const moduleTrack = line.match(/(?:PASS|FAIL|TODO|WARN)\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\](Module\d+)[\/\\]/);
-  if (moduleTrack) results._currentModule = moduleTrack[1];
+  const moduleTrack = line.match(/(?:PASS|FAIL|TODO|WARN)\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  if (moduleTrack) {
+    const key = moduleTrack[1];
+    if (results.modules[key]) {
+      results._currentModule = key;
+    }
+  }
 
   // Summary line
   const summaryMatch = line.match(/Tests:\s+(.*)/);
@@ -289,3 +339,83 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`  Local server: http://localhost:${PORT}`);
   console.log(`  Press Ctrl+C to stop\n`);
 });
+
+// ─── Build Helper Functions ──────────────────────────────────────────────────
+function getVersionInfo(projectPath) {
+  const versionFile = path.join(projectPath, 'AMD_POS_VERSION.txt');
+  let current = '1.0.0';
+  if (fs.existsSync(versionFile)) {
+    const content = fs.readFileSync(versionFile, 'utf8');
+    const match = content.match(/AMD_POS_VERSION=([\d.]+)/);
+    if (match) current = match[1];
+  }
+  const parts = current.split('.').map(Number);
+  if (parts.length === 3) {
+    parts[2] = parts[2] + 1; // Increment patch version
+  } else {
+    parts.push(1);
+  }
+  const next = parts.join('.');
+  return { current, next };
+}
+
+function runBuild(projectPath, ws, customVersion) {
+  const info = getVersionInfo(projectPath);
+  const next = (customVersion && customVersion.trim()) ? customVersion.trim() : info.next;
+  
+  ws.send(JSON.stringify({ type: 'build_log', text: `Initiating production bundle v${next}...` }));
+  
+  // 1. Run npm run build
+  ws.send(JSON.stringify({ type: 'build_log', text: 'Step 1: Compiling assets (npm run build)...' }));
+  const npmBuild = spawn('npm', ['run', 'build'], { cwd: projectPath, shell: true });
+  
+  npmBuild.stdout.on('data', (data) => {
+    ws.send(JSON.stringify({ type: 'build_log', text: data.toString().trim() }));
+  });
+  
+  npmBuild.stderr.on('data', (data) => {
+    ws.send(JSON.stringify({ type: 'build_log', text: data.toString().trim() }));
+  });
+  
+  npmBuild.on('close', (code) => {
+    if (code !== 0) {
+      ws.send(JSON.stringify({ type: 'build_complete', success: false, error: 'Asset compilation failed' }));
+      return;
+    }
+    
+    // 2. Run bundle_for_update.ps1 script
+    ws.send(JSON.stringify({ type: 'build_log', text: `Step 2: Zipping update package v${next}...` }));
+    const psBuild = spawn('powershell', ['-ExecutionPolicy', 'Bypass', '-File', './bundle_for_update.ps1', '-Version', next], { cwd: projectPath, shell: true });
+    
+    psBuild.stdout.on('data', (data) => {
+      ws.send(JSON.stringify({ type: 'build_log', text: data.toString().trim() }));
+    });
+    
+    psBuild.stderr.on('data', (data) => {
+      ws.send(JSON.stringify({ type: 'build_log', text: data.toString().trim() }));
+    });
+    
+    psBuild.on('close', (psCode) => {
+      if (psCode !== 0) {
+        ws.send(JSON.stringify({ type: 'build_complete', success: false, error: 'Zip packaging failed' }));
+        return;
+      }
+      
+      // 3. Update root version file to next version
+      try {
+        const rootVersionFile = path.join(projectPath, 'AMD_POS_VERSION.txt');
+        const content = `AMD_POS_VERSION=${next}\nRELEASED=${new Date().toISOString().split('T')[0]}\nTYPE=update_package\n`;
+        fs.writeFileSync(rootVersionFile, content, 'utf8');
+      } catch (e) {
+        console.error('Failed to update AMD_POS_VERSION.txt:', e);
+      }
+      
+      ws.send(JSON.stringify({
+        type: 'build_complete',
+        success: true,
+        version: next,
+        file: `AMD_POS_Update_v${next}.zip`
+      }));
+    });
+  });
+}

@@ -393,6 +393,14 @@ class PurchaseController extends Controller
             return $invoice->id;
         });
 
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            if ($tenant->onboarding_step === 'purchase_tour') {
+                $tenant->onboarding_step = 'purchase_congratulations';
+                $tenant->save();
+            }
+        }
+
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,

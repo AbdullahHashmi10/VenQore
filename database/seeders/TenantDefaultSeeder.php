@@ -46,6 +46,7 @@ class TenantDefaultSeeder
             ['code' => '2050', 'name' => 'Customer Credit Balances', 'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '2100', 'name' => 'Sales Tax Payable',        'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '2200', 'name' => 'Loans Payable',            'type' => 'liability', 'balance' => 0, 'normal_balance' => 'credit'],
+            ['code' => '2300', 'name' => 'Input Tax Recoverable',    'type' => 'asset',     'balance' => 0, 'normal_balance' => 'debit'],
 
             // Equity (3xxx)
             ['code' => '3000', 'name' => "Owner's Capital",          'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
@@ -64,6 +65,7 @@ class TenantDefaultSeeder
             ['code' => '5300', 'name' => 'Utilities',                'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
             ['code' => '5400', 'name' => 'Marketing',                'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
             ['code' => '5900', 'name' => 'Round Off Expense',        'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
+            ['code' => '6000', 'name' => 'Operating Expenses',       'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
         ];
 
         $now = now();

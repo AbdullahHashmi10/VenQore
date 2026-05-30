@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
+import WelcomeTourModal from '@/Components/WelcomeTourModal';
 
 export default function Dashboard({
     performance,
@@ -240,6 +241,10 @@ export default function Dashboard({
                 </div>
 
             </div>
+
+            {(store?.onboarding_step === 'welcome' || store?.onboarding_step === 'purchase_tour_start' || store?.onboarding_step === 'purchase_tour_sidebar') && (
+                <WelcomeTourModal store={store} />
+            )}
         </OneGlanceLayout>
     );
 }

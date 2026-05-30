@@ -83,7 +83,7 @@ class SaleController extends Controller
                 $freeValue = $unitPrice * $freeQty;
                 $net = max(0, $gross - $itemDiscount);
                 
-                $taxRate = (float)($product->tax_rate ?? 0);
+                $taxRate = ($product->tax_rate !== null) ? (float)$product->tax_rate : \App\Helpers\SettingsHelper::getDefaultTaxRate();
                 $taxAmt = round($net * ($taxRate / 100), 4);
 
                 $subtotalGross += $gross + $freeValue;
@@ -102,6 +102,7 @@ class SaleController extends Controller
                     'net' => $net,
                     'tax_rate' => $taxRate,
                     'tax_amt' => $taxAmt,
+                    'serials' => $item['serials'] ?? [],
                 ];
             }
 
@@ -146,7 +147,44 @@ class SaleController extends Controller
                     }
                 }
             }
-            
+
+            // ── Serial Tracking Validation ──────────────────────────────────────
+            // For every item whose product has track_serial = true:
+            //  1. The caller must supply a 'serials' array matching the quantity.
+            //  2. Each serial must not already exist in product_serials with status='sold'.
+            $serialErrors = [];
+            foreach ($request->items as $index => $item) {
+                $product = $products->get($item['product_id']);
+                if (!$product || !$product->track_serial) continue;
+
+                $qty = (int) ceil((float) ($item['quantity'] ?? 0));
+                $serials = $item['serials'] ?? null;
+
+                if (empty($serials) || !is_array($serials) || count($serials) !== $qty) {
+                    $serialErrors["items.{$index}.serials"] = [
+                        "Serial numbers are required for '{$product->name}'. Expected {$qty}, got " . (is_array($serials) ? count($serials) : 0) . "."
+                    ];
+                    continue;
+                }
+
+                // Check for already-sold serials
+                $duplicate = DB::table('product_serials')
+                    ->where('product_id', $product->id)
+                    ->where('status', 'sold')
+                    ->whereIn('serial_number', $serials)
+                    ->pluck('serial_number');
+
+                if ($duplicate->isNotEmpty()) {
+                    $serialErrors["items.{$index}.serials"] = [
+                        "Serial number(s) already sold: " . $duplicate->implode(', ')
+                    ];
+                }
+            }
+
+            if (!empty($serialErrors)) {
+                throw \Illuminate\Validation\ValidationException::withMessages($serialErrors);
+            }
+
             $tendered = (float)$request->amount_paid;
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
@@ -209,6 +247,23 @@ class SaleController extends Controller
                     'line_total' => $ld['net'] + $ld['tax_amt'],
                 ]);
 
+                // Serial Number Recording
+                if ($product->track_serial && !empty($ld['serials'])) {
+                    foreach ($ld['serials'] as $serial) {
+                        DB::table('product_serials')->updateOrInsert(
+                            ['serial_number' => $serial, 'product_id' => $ld['product_id']],
+                            [
+                                'id'         => \Illuminate\Support\Str::uuid()->toString(),
+                                'status'     => 'sold',
+                                'sale_id'    => $sale->id,
+                                'warehouse_id' => $sale->warehouse_id,
+                                'updated_at' => now(),
+                                'created_at' => now(),
+                            ]
+                        );
+                    }
+                }
+
                 // FIFO Deduction
                 $itemCogs = 0;
                 if ($isStockEnabled && $this->fifo->checkAvailability($ld['product_id'], $sale->warehouse_id, $totalQty)) {
@@ -238,10 +293,18 @@ class SaleController extends Controller
                     if ($ld['variant_id']) {
                         ProductVariant::find($ld['variant_id'])?->decrement('stock', $totalQty);
                     } else {
-                        \App\Models\Stock::updateOrCreate(
-                            ['product_id' => $ld['product_id'], 'warehouse_id' => $sale->warehouse_id],
-                            ['quantity' => DB::raw("quantity - {$totalQty}")]
-                        );
+                        $stockRecord = \App\Models\Stock::where('product_id', $ld['product_id'])
+                            ->where('warehouse_id', $sale->warehouse_id)
+                            ->first();
+                        if ($stockRecord) {
+                            $stockRecord->decrement('quantity', $totalQty);
+                        } else {
+                            \App\Models\Stock::create([
+                                'product_id' => $ld['product_id'],
+                                'warehouse_id' => $sale->warehouse_id,
+                                'quantity' => -$totalQty,
+                            ]);
+                        }
                     }
                     Product::where('id', $ld['product_id'])->decrement('stock_quantity', $totalQty);
                     StockMovement::create([
@@ -284,8 +347,14 @@ class SaleController extends Controller
         } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'errors' => $e->errors(), 'message' => $e->getMessage()], 422);
+        } catch (\App\Exceptions\InsufficientStockException $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
         } catch (\Exception $e) {
             DB::rollBack();
+            if (str_contains($e->getMessage(), 'Insufficient stock')) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+            }
             Log::error('Sale Store Error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
@@ -706,7 +775,8 @@ class SaleController extends Controller
                 ? "Return processed. Rs {$refundAmount} credited to customer khata. Ledger reversed."
                 : "Return processed. Rs {$refundAmount} refunded via {$sourceLabel}. Ledger reversed.";
 
-            return redirect()->route('sales.index')->with('success', $successMessage);
+            $storeSlug = app('current.tenant')?->slug ?? request()->route('store_slug') ?? 'default';
+            return redirect()->route('store.sales.index', ['store_slug' => $storeSlug])->with('success', $successMessage);
 
         } catch (\Exception $e) {
             Log::error('Sale Return Error', ['sale_id' => $sale->id, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
@@ -906,7 +976,7 @@ class SaleController extends Controller
                 $netAmount    = max(0, $grossAmount - $itemDiscount);
 
                 $productRecord = Product::find($item['product_id']);
-                $lineTaxRate   = (float) ($productRecord->tax_rate ?? 0);
+                $lineTaxRate   = ($productRecord->tax_rate !== null) ? (float)$productRecord->tax_rate : \App\Helpers\SettingsHelper::getDefaultTaxRate();
                 $lineTaxAmount = round($netAmount * ($lineTaxRate / 100), 4);
 
                 $subtotalGross      += $grossAmount;

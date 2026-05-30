@@ -57,4 +57,13 @@ Route::get('/woo/verify/{token}', [WooWebhookController::class, 'verify'])
 Route::post('/woo/handshake', [\App\Http\Controllers\WooSync\WooHandshakeController::class, 'handshake'])
     ->name('woo.handshake');
 
+// ── Offline DRM Validation Endpoints ─────────────────────────────────────
+use App\Http\Controllers\DrmLicenseController;
+
+Route::post('/drm/validate', [DrmLicenseController::class, 'validateLicense']);
+
+Route::middleware('drm.license')->get('/drm/protected', function () {
+    return response()->json(['status' => 'access_granted']);
+});
+
 

@@ -33,6 +33,16 @@ class WooConnectionController extends Controller
     }
 
     /**
+     * Entry point redirect from Sidebar (handles /s/{store_slug}/woocommerce-sync)
+     */
+    public function indexRedirect(Request $request, $store_slug = null)
+    {
+        return redirect()->route('store.woo.connections.index', [
+            'store_slug' => $this->storeSlug($store_slug)
+        ]);
+    }
+
+    /**
      * GET /s/{store_slug}/woo/connections
      */
     public function index(Request $request, $store_slug = null)

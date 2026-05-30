@@ -14,6 +14,7 @@ return new class extends Migration
             $table->integer('version')->default(1);
             $table->date('effective_from');
             $table->boolean('is_active')->default(true);
+            $table->text('notes')->nullable();
             $table->timestamps();
         });
 

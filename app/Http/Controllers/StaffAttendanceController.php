@@ -15,15 +15,26 @@ class StaffAttendanceController extends Controller
     {
         $date = $request->input('date', now()->toDateString());
         
-        $staff = User::where('role', '!=', 'platform_admin')->get();
-        // Or all users if roles are not strictly defined
-        if ($staff->isEmpty()) {
-            $staff = User::query()->get();
-        }
+        $tenant = app('current.tenant');
+        $staff = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            ->where('status', 'active')
+            ->with('user')
+            ->get()
+            ->map(function ($member) {
+                $user = $member->user;
+                if ($user) {
+                    $user->role = $member->role;
+                }
+                return $user;
+            })
+            ->filter()
+            ->values();
 
         $attendance = StaffAttendance::whereDate('check_in', $date)->get()
             ->map(function ($record) {
-                $record->date = $record->check_in->toDateString();
+                $record->date = $record->check_in instanceof \Carbon\Carbon 
+                    ? $record->check_in->toDateString() 
+                    : ($record->check_in ? \Carbon\Carbon::parse($record->check_in)->toDateString() : null);
                 return $record;
             });
         
@@ -37,10 +48,11 @@ class StaffAttendanceController extends Controller
         // StaffActivityGap belongsTo StaffAttendance belongsTo User
         // So we can access user via attendance.user
         $gaps = $gaps->map(function($gap) {
-            $gap->user_id = $gap->attendance->user_id;
-            $gap->user = $gap->attendance->user;
+            $gap->user_id = $gap->attendance?->user_id;
+            $gap->user = $gap->attendance?->user;
             return $gap;
-        });
+        })->filter(fn($gap) => $gap->user_id !== null);
+
 
         return Inertia::render('StaffAttendance/StaffAttendance', [
             'staff' => $staff,

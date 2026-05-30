@@ -127,6 +127,34 @@ class ReportController extends Controller
         ]);
     }
 
+    public function dailySales(Request $request)
+    {
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+
+        // Group sales by day in the range
+        $sales = Sale::where('tenant_id', app('current.tenant')->id)
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->selectRaw('DATE(created_at) as date, SUM(net_sales) as revenue, COUNT(*) as count, SUM(tax) as tax, SUM(discount) as discount')
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return Inertia::render('Reports/DailySales', [
+            'reports' => $sales,
+            'filters' => [
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
+            'stats' => [
+                'total_revenue' => $sales->sum('revenue'),
+                'total_count' => $sales->sum('count'),
+                'total_tax' => $sales->sum('tax'),
+                'total_discount' => $sales->sum('discount'),
+            ]
+        ]);
+    }
+
     public function purchases(Request $request)
     {
         $range = $request->input('range', 'this_month');

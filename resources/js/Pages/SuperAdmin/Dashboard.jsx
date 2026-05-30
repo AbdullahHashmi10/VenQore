@@ -13,11 +13,14 @@ import {
     MoreVertical, Eye, Pause, Play, ChevronDown, Package,
     Newspaper, BarChart2, Ticket, Rss, UserCog, Sparkles,
     CalendarClock, Star, AlertCircle, Info, Lock, KeyRound, EyeOff,
-    ShieldCheck, Hash, Menu, Trash2, RotateCcw,
+    ShieldCheck, Hash, Menu, Trash2, RotateCcw, Monitor,
     MoreHorizontal, Layers, Database, Plus
 } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useTheme as useGlobalTheme } from '@/Contexts/ThemeContext';
+import HealthWidget from '@/Components/SuperAdmin/HealthWidget';
+import SmokeTestRunner from '@/Components/SuperAdmin/SmokeTestRunner';
+import DemoStoreTab from '@/Components/SuperAdmin/DemoStoreTab';
 
 // ─── Constants & Utils ───────────────────────────────────────────────────
 
@@ -59,6 +62,7 @@ const TABS = [
     { id: 'revenue',   label: 'Revenue',         Icon: TrendingUp },
     { id: 'support',   label: 'Support',         Icon: Ticket },
     { id: 'feed',      label: 'Activity Feed',   Icon: Rss },
+    { id: 'demo',      label: '🎭 Demo Store',   Icon: Monitor },
     { id: 'settings',  label: 'Settings',        Icon: Settings },
 ];
 
@@ -300,6 +304,12 @@ function OverviewTab({ stats, store_trend, plan_distribution, recent_stores, exp
 
     return (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+            {/* Smoke Test Runner — Pillar 3: Live production check */}
+            <SmokeTestRunner />
+
+            {/* System Health Diagnostics Heartbeat */}
+            <HealthWidget />
+
             {/* Consolidated Command Grid */}
             <div className="hq-grid-4">
                 {/* 1. Store & Subscription Health */}
@@ -2457,6 +2467,7 @@ export default function PlatformOwnerDashboard({
         'revenue': 'Revenue',
         'support': 'Support',
         'feed': 'Activity Feed',
+        'demo': 'Demo Store',
         'settings': 'Settings'
     };
 
@@ -2697,6 +2708,7 @@ export default function PlatformOwnerDashboard({
                         />
                     )}
                     {activeTab === 'feed' && <FeedTab activity_feed={activity_feed || []} />}
+                    {activeTab === 'demo' && <DemoStoreTab />}
                     {activeTab === 'settings' && (
                         <SettingsTab
                             stores={recent_stores || []}
