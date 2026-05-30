@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, Link, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -110,12 +110,12 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                             </div>
                             Recurring Invoices
                         </h1>
-                        <p className="text-slate-500 text-sm mt-1">Automate invoice generation for subscriptions and regular payments</p>
+                        <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Automate invoice generation for subscriptions and regular payments</p>
                     </div>
                     <div className="flex gap-3">
                         <button
                             onClick={() => {/* Export */ }}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-medium"
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-medium border border-slate-200/80 dark:border-slate-700"
                         >
                             <Download size={18} />
                             Export
@@ -132,45 +132,46 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-xl">
                                 <Repeat className="text-slate-600 dark:text-slate-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Total</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 uppercase font-bold">Total</p>
                                 <p className="text-2xl font-black text-slate-800 dark:text-white">{stats.total}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
                                 <Play className="text-emerald-600 dark:text-emerald-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Active</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 uppercase font-bold">Active</p>
                                 <p className="text-2xl font-black text-emerald-600">{stats.active}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
                                 <Pause className="text-amber-600 dark:text-amber-400" size={20} />
                             </div>
                             <div>
-                                <p className="text-xs text-slate-500 uppercase font-bold">Paused</p>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 uppercase font-bold">Paused</p>
                                 <p className="text-2xl font-black text-amber-600">{stats.paused}</p>
                             </div>
                         </div>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                         <div className="flex items-center gap-3">
                             <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
                                 <DollarSign className="text-purple-600 dark:text-purple-400" size={20} />
                             </div>
                             <div>
+                                <p className="text-xs text-slate-600 dark:text-slate-400 uppercase font-bold">Monthly Revenue</p>
                                 <p className="text-2xl font-black text-purple-600">{(stats.monthlyRevenue < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(Math.abs(stats.monthlyRevenue) || 0)}</p>
                             </div>
                         </div>
@@ -178,24 +179,24 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                 </div>
 
                 {/* Filters */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-100 dark:border-slate-800">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-sm">
                     <div className="flex flex-wrap gap-4">
                         <div className="flex-1 min-w-[200px]">
                             <div className="relative">
-                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                                 <input
                                     type="text"
                                     placeholder="Search by title or customer..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-purple-500/20 outline-none"
+                                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 ring-purple-500/20 outline-none text-slate-800 dark:text-white font-medium"
                                 />
                             </div>
                         </div>
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 ring-purple-500/20 outline-none font-medium"
+                            className="px-4 py-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl focus:ring-2 ring-purple-500/20 outline-none font-semibold text-slate-700 dark:text-slate-200"
                         >
                             <option value="all">All Status</option>
                             <option value="active">Active</option>
@@ -207,11 +208,11 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                 </div>
 
                 {/* Table */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-50 dark:bg-slate-800/50 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                <tr className="bg-slate-100/70 dark:bg-slate-850 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
                                     <th className="px-6 py-4 text-left">Title</th>
                                     <th className="px-6 py-4 text-left">Customer</th>
                                     <th className="px-6 py-4 text-right">Amount</th>
@@ -226,12 +227,12 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                                 {filteredInvoices.length === 0 ? (
                                     <tr>
                                         <td colSpan="8" className="px-6 py-12 text-center">
-                                            <Repeat size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
-                                            <p className="text-slate-500 font-medium">No recurring invoices found</p>
-                                            <p className="text-slate-400 text-sm mt-1">Create one to automate your billing</p>
+                                            <Repeat size={48} className="mx-auto text-slate-400 dark:text-slate-600 mb-4" />
+                                            <p className="text-slate-600 dark:text-slate-300 font-bold">No recurring invoices found</p>
+                                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Create one to automate your billing</p>
                                             <Link
                                                 href={route('store.recurring-invoices.create', { store_slug: store.slug })}
-                                                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium"
+                                                className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors font-medium shadow-md"
                                             >
                                                 <Plus size={18} />
                                                 Create Recurring Invoice
