@@ -905,7 +905,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                 )}
 
                 {/* --- MAIN CONTENT --- */}
-                <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-white dark:bg-slate-950 transition-opacity duration-500 ease-in-out opacity-100`}>
+                <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-slate-50 dark:bg-slate-950 transition-opacity duration-500 ease-in-out opacity-100`}>
                     
                     {/* Subscription/Trial Banner */}
                     {(() => {

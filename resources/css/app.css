@@ -55,12 +55,12 @@
        ===================================================== */
     :root {
         --card-bg: #ffffff;
-        --card-border: #f1f5f9;
+        --card-border: #e2e8f0; /* WAS #f1f5f9 */
         --text-main: #0f172a;
-        --text-sub: #64748b;
-        --sidebar-border: #f8fafc;
+        --text-sub: #475569; /* WAS #64748b */
+        --sidebar-border: #e2e8f0; /* WAS #f8fafc */
         --sidebar-hover: #f1f5f9;
-        --bg-main: #f8fafc;
+        --bg-main: #f1f5f9; /* WAS #f8fafc */
     }
 
     .dark {
@@ -309,4 +309,35 @@
     .no-spinner[type=number] {
         -moz-appearance: textfield;
     }
+}
+
+/* ============================================================================================
+   HIGH-CONTRAST LIGHT MODE CUSTOM OVERRIDES
+   ============================================================================================ */
+html:not(.dark) .border-slate-50 {
+    border-color: #f1f5f9 !important; /* slate-100 */
+}
+html:not(.dark) .border-slate-100 {
+    border-color: #e2e8f0 !important; /* slate-200 */
+}
+html:not(.dark) .border-slate-200 {
+    border-color: #cbd5e1 !important; /* slate-300 */
+}
+html:not(.dark) .text-slate-300 {
+    color: #94a3b8 !important; /* slate-400 */
+}
+html:not(.dark) .text-slate-400 {
+    color: #64748b !important; /* slate-500 */
+}
+html:not(.dark) .text-slate-500 {
+    color: #475569 !important; /* slate-600 */
+}
+html:not(.dark) .text-slate-600 {
+    color: #334155 !important; /* slate-700 */
+}
+html:not(.dark) .bg-slate-50 {
+    background-color: #f1f5f9 !important; /* slate-100 */
+}
+html:not(.dark) .bg-slate-100 {
+    background-color: #e2e8f0 !important; /* slate-200 */
 }

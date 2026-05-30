@@ -212,7 +212,7 @@ export default function RecurringInvoicesIndex({ recurringInvoices = [] }) {
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="bg-slate-100/70 dark:bg-slate-850 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
+                                <tr className="bg-slate-100/70 dark:bg-slate-800/60 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider border-b border-slate-200/80 dark:border-slate-800">
                                     <th className="px-6 py-4 text-left">Title</th>
                                     <th className="px-6 py-4 text-left">Customer</th>
                                     <th className="px-6 py-4 text-right">Amount</th>
