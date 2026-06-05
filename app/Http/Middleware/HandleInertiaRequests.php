@@ -57,6 +57,10 @@ class HandleInertiaRequests extends Middleware
                         'avatar_initial'    => strtoupper(substr($user->name, 0, 1)),
                         'is_platform_staff' => $user->isPlatformStaff(),
                         'staff_role'        => $user->staff_role,
+                        // PIN status flags for the Profile settings page
+                        // pos_pin (quick-login) and security_pin live on tenant_users, not users
+                        'has_passcode'      => !empty($user->passcode),
+                        'security_pin'      => !empty($user->security_pin) ? '****' : null,
                     ]
                 ) : null,
                 'notifications' => $user ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {
