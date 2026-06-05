@@ -443,16 +443,26 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 </div>
                             )}
 
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={passcodeSaving}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/30 transition-all disabled:opacity-50"
-                                >
-                                    <Key size={18} />
-                                    {passcodeSaving ? 'Saving...' : (passcodeData.enable_passcode ? 'Save Passcode' : 'Disable Passcode')}
-                                </button>
-                            </div>
+                            {(passcodeData.enable_passcode || user.has_passcode) && (
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={passcodeSaving}
+                                        className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
+                                            passcodeData.enable_passcode
+                                                ? 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-500/30'
+                                                : 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
+                                        }`}
+                                    >
+                                        <Key size={18} />
+                                        {passcodeSaving
+                                            ? 'Saving...'
+                                            : passcodeData.enable_passcode
+                                                ? (user.has_passcode ? 'Update Passcode' : 'Save Passcode')
+                                                : 'Disable Passcode'}
+                                    </button>
+                                </div>
+                            )}
                         </form>
                     </div>
 
@@ -551,16 +561,26 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 </div>
                             )}
 
-                            <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    disabled={securityPinSaving}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-xl shadow-lg shadow-violet-500/30 transition-all disabled:opacity-50"
-                                >
-                                    <Shield size={18} />
-                                    {securityPinSaving ? 'Saving...' : (securityPinData.enable_security_pin ? 'Save Security PIN' : 'Disable Security PIN')}
-                                </button>
-                            </div>
+                            {(securityPinData.enable_security_pin || user.security_pin) && (
+                                <div className="flex justify-end">
+                                    <button
+                                        type="submit"
+                                        disabled={securityPinSaving}
+                                        className={`inline-flex items-center gap-2 px-6 py-3 text-white font-bold rounded-xl shadow-lg transition-all disabled:opacity-50 ${
+                                            securityPinData.enable_security_pin
+                                                ? 'bg-violet-600 hover:bg-violet-700 shadow-violet-500/30'
+                                                : 'bg-red-500 hover:bg-red-600 shadow-red-500/30'
+                                        }`}
+                                    >
+                                        <Shield size={18} />
+                                        {securityPinSaving
+                                            ? 'Saving...'
+                                            : securityPinData.enable_security_pin
+                                                ? (user.security_pin ? 'Update Security PIN' : 'Save Security PIN')
+                                                : 'Disable Security PIN'}
+                                    </button>
+                                </div>
+                            )}
                         </form>
                     </div>
 
