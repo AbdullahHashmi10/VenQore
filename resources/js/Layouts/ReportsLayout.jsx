@@ -50,6 +50,7 @@ const REPORT_GROUPS = [
             { title: 'Expense Category', route: 'store.reports.expense-by-category', icon: PieChart },
             { title: 'Tax Report', route: 'store.reports.tax', icon: FileText },
             { title: 'Tax Rates', route: 'store.reports.tax-rate', icon: Hash },
+            { title: "Owner's Daily Pulse", route: 'store.reports.owner-daily-pulse', icon: Activity },
         ]
     },
     {

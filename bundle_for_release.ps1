@@ -46,6 +46,32 @@ if (Test-Path "$releaseDir\public\hot") {
     Remove-Item -Force "$releaseDir\public\hot"
 }
 
+# Remove local database files (*.sqlite, *.sqlite-wal, etc.)
+Get-ChildItem -Path "$releaseDir" -Filter "*.sqlite*" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+    Remove-Item -Force $_.FullName
+    Write-Host "Removed database file: $($_.FullName.Replace($releaseDir, ''))"
+}
+
+# Remove dev vendor packages
+$devVendorDirs = @(
+    "$releaseDir\vendor\laravel\pint",
+    "$releaseDir\vendor\pestphp",
+    "$releaseDir\vendor\phpunit",
+    "$releaseDir\vendor\mockery",
+    "$releaseDir\vendor\fakerphp",
+    "$releaseDir\vendor\sebastian",
+    "$releaseDir\vendor\phar-io",
+    "$releaseDir\vendor\theseer",
+    "$releaseDir\vendor\myclabs\deep-copy"
+)
+foreach ($dir in $devVendorDirs) {
+    if (Test-Path $dir) {
+        Remove-Item -Recurse -Force $dir
+        Write-Host "Removed dev package: $($dir.Replace($releaseDir, ''))"
+    }
+}
+
+
 # Clear compiled Blade views (prevents stale @vite references from causing 500 crashes)
 if (Test-Path "$releaseDir\storage\framework\views") {
     Get-ChildItem "$releaseDir\storage\framework\views" -File | Where-Object { $_.Name -ne '.gitignore' } | Remove-Item -Force

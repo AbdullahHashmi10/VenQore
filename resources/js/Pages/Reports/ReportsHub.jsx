@@ -386,6 +386,16 @@ export default function ReportsHub() {
                     href: route("store.reports.tax-rate", {
                         store_slug: store.slug
                     })
+                },
+                {
+                    title: "Owner's Daily Pulse",
+                    description: 'Secure health dashboard',
+                    longDescription: 'A secure vault displaying 7 vital daily store metrics (Sales, Purchases, Stock, Payables, Receivables, Cash, Expenses) with daily inline memos. Access is protected by an authorization passcode.',
+                    icon: Activity,
+                    color: 'text-violet-500',
+                    href: route("store.reports.owner-daily-pulse", {
+                        store_slug: store.slug
+                    })
                 }
             ]
         },

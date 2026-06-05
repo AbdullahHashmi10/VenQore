@@ -193,6 +193,9 @@ class OwnerDailyPulseController extends Controller
 
         session()->put('owner_pulse_authorized_' . $tenant->id, true);
 
+        // Clear settings cache to apply updates immediately
+        SettingsHelper::clearCache();
+
         return response()->json([
             'success' => true,
             'message' => 'Vault security configuration saved.'

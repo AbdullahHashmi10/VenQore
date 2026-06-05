@@ -107,7 +107,8 @@ $devDirs = @(
     "$releaseDir\.github",
     "$releaseDir\tests",
     "$releaseDir\.vscode",
-    "$releaseDir\.idea"
+    "$releaseDir\.idea",
+    "$releaseDir\Tester\dashboard\node_modules"
 )
 foreach ($dir in $devDirs) {
     if (Test-Path $dir) {
@@ -123,7 +124,8 @@ $devFiles = @(
     "$releaseDir\bundle_for_release.ps1",
     "$releaseDir\bundle_for_update.ps1",
     "$releaseDir\zip_fix.ps1",
-    "$releaseDir\test_import.php"
+    "$releaseDir\test_import.php",
+    "$releaseDir\Tester\dashboard\last-results.json"
 )
 foreach ($f in $devFiles) {
     if (Test-Path $f) {
@@ -131,6 +133,40 @@ foreach ($f in $devFiles) {
         Write-Host "  [DEV] Removed $($f.Replace($releaseDir, ''))" -ForegroundColor Gray
     }
 }
+
+# ── REMOVE DEV VENDOR PACKAGES & SQLITE DATABASES ──
+Write-Host "Cleaning up developer packages and database files..." -ForegroundColor Yellow
+
+$devVendorDirs = @(
+    "$releaseDir\vendor\laravel\pint",
+    "$releaseDir\vendor\pestphp",
+    "$releaseDir\vendor\phpunit",
+    "$releaseDir\vendor\mockery",
+    "$releaseDir\vendor\fakerphp",
+    "$releaseDir\vendor\sebastian",
+    "$releaseDir\vendor\phar-io",
+    "$releaseDir\vendor\theseer",
+    "$releaseDir\vendor\myclabs\deep-copy"
+)
+foreach ($dir in $devVendorDirs) {
+    if (Test-Path $dir) {
+        Remove-Item -Recurse -Force $dir
+        Write-Host "  [DEV] Removed $($dir.Replace($releaseDir, ''))" -ForegroundColor Gray
+    }
+}
+
+# Remove local database files and logs (*.sqlite, *.sqlite-wal, etc.)
+Get-ChildItem -Path "$releaseDir" -Filter "*.sqlite*" -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object {
+    Remove-Item -Force $_.FullName
+    Write-Host "  [DEV] Removed database file: $($_.FullName.Replace($releaseDir, ''))" -ForegroundColor Gray
+}
+
+# Remove large desktop installer executable
+if (Test-Path "$releaseDir\public\downloads\VenQore_Station_Setup.exe") {
+    Remove-Item -Force "$releaseDir\public\downloads\VenQore_Station_Setup.exe"
+    Write-Host "  [DEV] Removed public/downloads/VenQore_Station_Setup.exe (74MB Setup Installer)" -ForegroundColor Gray
+}
+
 
 # ── SAFETY CLEANUP — Remove things that must NEVER be in an update ZIP ──
 Write-Host "Applying safety cleanup..." -ForegroundColor Yellow

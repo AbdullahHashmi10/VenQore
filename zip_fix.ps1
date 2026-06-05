@@ -27,7 +27,7 @@ public class ZipFast {
             foreach (string file in files) {
                 string relativePath = file.Substring(prefixLength);
                 string entryName = relativePath.Replace('\\', '/');
-                zip.CreateEntryFromFile(file, entryName);
+                zip.CreateEntryFromFile(file, entryName, CompressionLevel.Fastest);
             }
         }
     }
