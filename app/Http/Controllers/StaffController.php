@@ -34,9 +34,16 @@ class StaffController extends Controller
     {
         $tenant = app('current.tenant');
 
+        $roles = ['owner', 'franchise_admin', 'admin', 'manager', 'shift_supervisor', 'accountant', 'purchasing_officer', 'inventory_controller', 'hr_officer', 'production_supervisor', 'kitchen_manager', 'dispenser', 'sales_executive', 'fulfillment_lead', 'delivery_driver', 'cashier', 'viewer'];
+        $rolesOrder = "CASE role ";
+        foreach ($roles as $idx => $r) {
+            $rolesOrder .= "WHEN '{$r}' THEN {$idx} ";
+        }
+        $rolesOrder .= "ELSE " . count($roles) . " END";
+
         $members = TenantUser::where('tenant_id', $tenant->id)
             ->with('user:id,name,email')
-            ->orderByRaw("FIELD(role, 'owner', 'franchise_admin', 'admin', 'manager', 'shift_supervisor', 'accountant', 'purchasing_officer', 'inventory_controller', 'hr_officer', 'production_supervisor', 'kitchen_manager', 'dispenser', 'sales_executive', 'fulfillment_lead', 'delivery_driver', 'cashier', 'viewer')")
+            ->orderByRaw($rolesOrder)
             ->orderBy('status')
             ->get()
             ->map(fn($m) => [

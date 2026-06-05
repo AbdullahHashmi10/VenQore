@@ -24,9 +24,7 @@ class ImportMappingTest extends VenQoreTestCase
         $tenant = $this->createTenant('test-store-slug');
         $user = $this->createTenantUser($tenant, 'owner');
 
-        // Commit transaction to write the tenant/user to the persistent memory DB
-        // so that the HTTP request can see them even if a new connection is spawned.
-        \Illuminate\Support\Facades\DB::commit();
+
 
         // Request with a non-existent file path
         $response = $this->actingAsTenantUserModel($user, $tenant)

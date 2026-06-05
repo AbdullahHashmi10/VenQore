@@ -1,0 +1,4 @@
+provider: generic
+url: https://updates.venqore.com/station/
+channel: latest
+updaterCacheDirName: venqore-station-updater

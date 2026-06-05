@@ -83,6 +83,8 @@ class CodeStackingTest extends VenQoreTestCase
             'joined_at' => now(),
         ]);
 
+        $this->seedTenantDefaults($tenant);
+
         // Update the StoreLicense to point at this tenant
         StoreLicense::withoutTenantScope()
             ->where('user_id', $user->id)

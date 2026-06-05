@@ -38,6 +38,20 @@ class SettingsHelper
     public static function get(string $key, $default = null)
     {
         $settings = self::all();
+        if (array_key_exists($key, $settings) && !is_null($settings[$key]) && $settings[$key] !== '') {
+            return $settings[$key];
+        }
+
+        // Fallback to global setting if not found/empty in tenant scope
+        if (app()->bound('current.tenant')) {
+            $globalSettings = Cache::remember('settings:global', 300, function () {
+                return Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
+            });
+            if (array_key_exists($key, $globalSettings) && !is_null($globalSettings[$key]) && $globalSettings[$key] !== '') {
+                return $globalSettings[$key];
+            }
+        }
+
         return $settings[$key] ?? $default;
     }
 

@@ -21,8 +21,8 @@ class PlanRepository
             /** @var \App\Models\Plan|null $plan */
             $plan = Plan::with('limits')->where('slug', $planSlug)->first();
 
-            if (!$plan) {
-                // Fallback to config if plan not in DB yet (safe during migration)
+            if (!$plan || $plan->limits->isEmpty()) {
+                // Fallback to config if plan not in DB yet (safe during migration) or limits not seeded
                 return config("plans.{$planSlug}", []);
             }
 

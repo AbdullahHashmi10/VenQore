@@ -11,6 +11,7 @@ import KeyboardShortcutsModal from '@/Components/KeyboardShortcutsModal';
 
 import { usePage } from '@inertiajs/react';
 import { ThemeProvider } from '@/Contexts/ThemeContext';
+import ChatWidget from '@/Components/ChatWidget';
 
 export default function GlobalProviderLayout({ children }) {
     const { props } = usePage();
@@ -130,6 +131,29 @@ function InnerGlobalLayout({ children, settings }) {
     // Determine Logic Check Mode
     const isPosCtx = window.location.pathname.includes('/pos');
 
+    // ── Vena Visibility ────────────────────────────────────────────────────────
+    // Vena appears on all pages where support questions may arise, except
+    // active creation, setup, and transaction flows (POS, create, edit, setup, new-store)
+    // where the floating widget could overlap inputs or form action buttons.
+    const showVena = (() => {
+        if (isInstaller || isMarketing) return false;
+        if (!props.store?.features?.live_chat_widget) return false;
+
+        const path = window.location.pathname;
+
+        // Explicitly blocked patterns — active creation/transaction/setup flows
+        const blockedPatterns = [
+            '/pos',
+            '/create',
+            '/edit',
+            '/new-store',
+            '/setup',
+        ];
+        if (blockedPatterns.some(p => path.includes(p))) return false;
+
+        return true;
+    })();
+
     return (
         <WorkspaceProvider settings={settings}>
             <AttendanceProvider>
@@ -202,6 +226,8 @@ function InnerGlobalLayout({ children, settings }) {
                     )}
 
                     <GlobalDialogOverride />
+                    {/* Vena — only shown on allowlisted idle/exploratory pages */}
+                    {showVena && <ChatWidget />}
                 </AlertProvider>
             </AttendanceProvider>
         </WorkspaceProvider>

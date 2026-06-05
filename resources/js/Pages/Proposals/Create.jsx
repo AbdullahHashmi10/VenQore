@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getCurrencySymbol } from "@/Utils/format";
 import { Head, router, usePage } from "@inertiajs/react";
 import OneGlanceLayout from "@/Layouts/OneGlanceLayout";
@@ -319,10 +319,12 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                     ? route("store.inventory.store", {
                           store_slug: store.slug,
                       })
-                    : route("store.inventory.update", [
-                          store.slug,
-                          editingProduct.id,
-                      ]);
+                    : (editingProduct?.id
+                          ? route("store.inventory.update", [
+                                store.slug,
+                                editingProduct.id,
+                            ])
+                          : "");
 
             const response = await axios.post(url, data);
 
@@ -376,6 +378,30 @@ const CreateProposal = ({ proposal, existingProposal }) => {
         discount: 0,
         discountType: "fixed",
     });
+
+    const [editingParty, setEditingParty] = useState(null);
+    const [quickResults, setQuickResults] = useState([]);
+
+    const handleQuickSearch = async (query) => {
+        setQuickEntry((prev) => ({ ...prev, name: query }));
+        if (query.length < 2) {
+            setQuickResults([]);
+            setQuickSelectedIndex(-1);
+            return;
+        }
+        try {
+            const response = await axios.get(
+                route("store.inventory.search", {
+                    store_slug: store.slug,
+                }),
+                { params: { query } }
+            );
+            setQuickResults(response.data || []);
+            setQuickSelectedIndex(response.data?.length > 0 ? 0 : -1);
+        } catch (error) {
+            console.error("Quick search error:", error);
+        }
+    };
 
     // Scanning Mode State
     const [isScanning, setIsScanning] = useState(false);
@@ -3730,12 +3756,17 @@ const CreateProposal = ({ proposal, existingProposal }) => {
             {/* QUICK ADD MODALS */}
             <QuickPartyModal
                 isOpen={isPartyModalOpen}
-                onClose={() => setIsPartyModalOpen(false)}
+                onClose={() => {
+                    setIsPartyModalOpen(false);
+                    setEditingParty(null);
+                }}
                 type="all"
                 initialName={customerSearch}
+                editingParty={editingParty}
                 onSuccess={(newParty) => {
                     patchInvoice({ customer: newParty });
                     setCustomerSearch("");
+                    setEditingParty(null);
                 }}
             />
             <ProductModal

@@ -11,7 +11,8 @@ import {
     ScrollText,
     Users,
     FileText,
-    BookOpen
+    BookOpen,
+    Scale
 } from 'lucide-react';
 
 export default function ReportsNavigation() {

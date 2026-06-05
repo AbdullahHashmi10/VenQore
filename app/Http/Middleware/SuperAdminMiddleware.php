@@ -29,9 +29,16 @@ class SuperAdminMiddleware
 
         $user = $request->user();
 
-        // Logged in but not a platform admin → 404 (not 403, not redirect)
+        // Allow platform staff through to the chatbot inbox and chatbot APIs
+        $isChatbotRoute = \Illuminate\Support\Str::startsWith($request->path(), 'VenQore/chatbot') || 
+                          \Illuminate\Support\Str::startsWith($request->path(), 'VenQore/api/chatbot');
+
         if (!$user->isPlatformAdmin()) {
-            abort(404);
+            if ($user->isPlatformStaff() && $isChatbotRoute) {
+                // Allow platform staff access to chatbot support workspace
+            } else {
+                abort(404);
+            }
         }
 
         // ── Security Feature: 30-minute Inactivity Timeout for Platform Admins ──

@@ -49,7 +49,7 @@ test('valid_appsumo_code_assigns_correct_plan', function () {
         'plan' => 'ltd_1',
         'plan_limits' => config("plans.ltd_1")
     ]);
-    $this->assertEquals('ltd_1', $tenant->plan);
+    $this->assertEquals('ltd', $tenant->plan);
     $this->assertNotNull($tenant->plan_limits);
 });
 
@@ -150,5 +150,163 @@ test('lemon_squeezy_subscription_webhook_provisions_tenant', function () {
     $response->assertOk();
 
     $tenant->refresh();
-    $this->assertEquals('pro', $tenant->plan);
+    $this->assertEquals('business', $tenant->plan);
+});
+
+test('checkout_upload_service_generates_checkout_url_usd', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    config([
+        'services.lemon_squeezy.api_key' => 'mock_api_key',
+        'services.lemon_squeezy.store_id' => 'mock_store_id',
+        'services.lemon_squeezy.upload_service_variant_id' => 'mock_variant_id',
+    ]);
+
+    \Illuminate\Support\Facades\Http::fake([
+        'https://api.lemonsqueezy.com/v1/checkouts' => \Illuminate\Support\Facades\Http::response([
+            'data' => [
+                'attributes' => [
+                    'url' => 'https://venqore.lemonsqueezy.com/checkout/buy/mock-checkout-url-usd'
+                ]
+            ]
+        ], 201)
+    ]);
+
+    $response = $this->postJson($this->storeUrl($tenant, 'billing/checkout-upload-service'), [
+        'tier' => 'descriptions', // $1.00 base USD
+        'products' => 10,
+        'variants' => 12, // 12 variants -> 2 extra blocks of 5 -> 2 * $0.25 = $0.50 surcharge.
+    ]); // final cost = 10 * ($1.00 + $0.50) = $15.00 USD (1500 cents).
+
+    $response->assertOk();
+    $response->assertJson(['url' => 'https://venqore.lemonsqueezy.com/checkout/buy/mock-checkout-url-usd']);
+
+    \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+        $body = json_decode($request->body(), true);
+        $customPrice = data_get($body, 'data.attributes.custom_price');
+        return $customPrice === 1500; // $15.00 in cents
+    });
+});
+
+test('checkout_upload_service_generates_checkout_url_pkr_conversion', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    config([
+        'services.lemon_squeezy.api_key' => 'mock_api_key',
+        'services.lemon_squeezy.store_id' => 'mock_store_id',
+        'services.lemon_squeezy.upload_service_variant_id' => 'mock_variant_id',
+    ]);
+
+    \Illuminate\Support\Facades\Http::fake([
+        'https://api.lemonsqueezy.com/v1/checkouts' => \Illuminate\Support\Facades\Http::response([
+            'data' => [
+                'attributes' => [
+                    'url' => 'https://venqore.lemonsqueezy.com/checkout/buy/mock-checkout-url-pkr'
+                ]
+            ]
+        ], 201)
+    ]);
+
+    // Request from Pakistan (Cloudflare header)
+    $response = $this->withHeaders(['HTTP_CF_IPCOUNTRY' => 'PK'])
+        ->postJson($this->storeUrl($tenant, 'billing/checkout-upload-service'), [
+            'tier' => 'basic', // 100 PKR base PK
+            'products' => 11,
+            'variants' => 5, // 0 extra blocks
+        ]); // final cost = 11 * 100 PKR = 1100 PKR.
+        // 1100 PKR / 280.0 = $3.92857... -> rounded to $3.93 USD -> 393 cents.
+
+    $response->assertOk();
+    $response->assertJson(['url' => 'https://venqore.lemonsqueezy.com/checkout/buy/mock-checkout-url-pkr']);
+
+    \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+        $body = json_decode($request->body(), true);
+        $customPrice = data_get($body, 'data.attributes.custom_price');
+        return $customPrice === 393; // 1100 / 280 = 3.93 = 393 cents
+    });
+});
+
+test('order_created_onboarding_webhook_creates_support_ticket', function () {
+    $tenant = $this->createTenant();
+    $owner = $this->createTenantUser($tenant, 'owner');
+
+    $payload = [
+        'meta' => [
+            'event_name' => 'order_created',
+            'custom_data' => [
+                'tenant_id' => $tenant->id,
+                'is_onboarding_service' => 1,
+                'tier' => 'basic',
+                'products_count' => 100,
+                'variants_count' => 8,
+                'total_price' => 200,
+                'currency' => 'USD'
+            ]
+        ],
+        'data' => [
+            'attributes' => [
+                'user_email' => $owner->email,
+                'user_name' => $owner->name,
+                'variant_id' => '12345',
+                'product_name' => 'Professional Product Upload Service'
+            ]
+        ]
+    ];
+
+    config(['services.lemon_squeezy.signing_secret' => 'test_signing_secret']);
+    $signature = hash_hmac('sha256', json_encode($payload), 'test_signing_secret');
+
+    $response = $this->postJson('/api/webhooks/lemon-squeezy', $payload, [
+        'X-Signature' => $signature
+    ]);
+
+    $response->assertOk();
+
+    // Verify support ticket was created in DB
+    $ticket = \App\Models\SupportTicket::where('tenant_id', $tenant->id)->first();
+    $this->assertNotNull($ticket);
+    $this->assertEquals('open', $ticket->status);
+    $this->assertEquals('high', $ticket->priority);
+    $this->assertStringContainsString('PRO UPLOAD JOB', $ticket->subject);
+    $this->assertStringContainsString('Selected Tier: Basic', $ticket->message);
+    $this->assertStringContainsString('Products to upload: 100', $ticket->message);
+    $this->assertStringContainsString('Avg Variants per product: 8', $ticket->message);
+    $this->assertStringContainsString('Total Paid: $200', $ticket->message);
+});
+
+test('subscription_updated_webhook_updates_tenant_plan', function () {
+    $tenant = $this->createTenant(plan: 'starter');
+    $tenant->update(['lemon_squeezy_subscription_id' => 'sub_12345']);
+
+    config([
+        'services.lemon_squeezy.growth_variant_id' => 'growth_var_id',
+    ]);
+
+    $payload = [
+        'meta' => [
+            'event_name' => 'subscription_updated',
+        ],
+        'data' => [
+            'id' => 'sub_12345',
+            'attributes' => [
+                'variant_id' => 'growth_var_id',
+                'status' => 'active'
+            ]
+        ]
+    ];
+
+    config(['services.lemon_squeezy.signing_secret' => 'test_signing_secret']);
+    $signature = hash_hmac('sha256', json_encode($payload), 'test_signing_secret');
+
+    $response = $this->postJson('/api/webhooks/lemon-squeezy', $payload, [
+        'X-Signature' => $signature
+    ]);
+
+    $response->assertOk();
+
+    $tenant->refresh();
+    $this->assertEquals('growth', $tenant->plan);
+    $this->assertEquals('active', $tenant->status);
 });

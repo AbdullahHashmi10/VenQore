@@ -255,10 +255,29 @@ export default function SidebarItem({
                                     return (
                                         <FeatureLockBadge key={sIdx} isLocked={locked} showBadge={false}>
                                             {locked ? (
-                                                <div className="block pl-4 py-1.5 text-xs font-medium transition-colors text-slate-400 dark:text-slate-600 cursor-not-allowed flex justify-between">
-                                                    {itemName}
-                                                    <span className="text-[9px] px-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 self-center">SOON</span>
-                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        window.dispatchEvent(new CustomEvent('amd:plan-limit', {
+                                                            detail: {
+                                                                feature: itemName.toLowerCase().replace(' ', '_').replace('/', '_'),
+                                                                message: `${itemName} is not available on your current plan. Please upgrade your plan to unlock.`,
+                                                                current_plan: routeParams?.store_slug ? 'starter' : 'starter',
+                                                                upgrade_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/upgrade` : '#',
+                                                                billing_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing` : '#',
+                                                                portal_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/portal` : '#'
+                                                            }
+                                                        }));
+                                                    }}
+                                                    className="w-full text-left pl-4 py-1.5 text-xs font-medium text-slate-400 hover:text-indigo-600 dark:text-slate-600 dark:hover:text-indigo-400 transition-colors flex justify-between pr-2 group/sub outline-none"
+                                                >
+                                                    <span className="flex items-center gap-1.5">
+                                                        {itemName}
+                                                        <span className="text-[10px]">🔒</span>
+                                                    </span>
+                                                    <span className="text-[9px] px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
+                                                </button>
                                             ) : (
                                                 window.route().has(activeRouteName) && (
                                                     <Link
@@ -301,10 +320,29 @@ export default function SidebarItem({
                     return (
                         <FeatureLockBadge key={idx} isLocked={locked} showBadge={false}>
                             {locked ? (
-                                <div className="block pl-4 py-2 text-xs font-medium transition-colors relative text-slate-400 dark:text-slate-600 cursor-not-allowed flex justify-between pr-2">
-                                    {itemName}
-                                    <span className="text-[9px] px-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/20 self-center">SOON</span>
-                                </div>
+                                <button
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        window.dispatchEvent(new CustomEvent('amd:plan-limit', {
+                                            detail: {
+                                                feature: itemName.toLowerCase().replace(' ', '_').replace('/', '_'),
+                                                message: `${itemName} is not available on your current plan. Please upgrade your plan to unlock.`,
+                                                current_plan: routeParams?.store_slug ? 'starter' : 'starter',
+                                                upgrade_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/upgrade` : '#',
+                                                billing_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing` : '#',
+                                                portal_url: routeParams?.store_slug ? `/s/${routeParams.store_slug}/billing/portal` : '#'
+                                            }
+                                        }));
+                                    }}
+                                    className="w-full text-left pl-4 py-2 text-xs font-medium text-slate-400 hover:text-indigo-600 dark:text-slate-600 dark:hover:text-indigo-400 transition-colors flex justify-between pr-2 group/sub outline-none"
+                                >
+                                    <span className="flex items-center gap-1.5">
+                                        {itemName}
+                                        <span className="text-[10px]">🔒</span>
+                                    </span>
+                                    <span className="text-[9px] px-1 rounded bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 self-center opacity-0 group-hover/sub:opacity-100 transition-opacity">UPGRADE</span>
+                                </button>
                             ) : (
                                 window.route().has(routeName) && (
                                     <Link

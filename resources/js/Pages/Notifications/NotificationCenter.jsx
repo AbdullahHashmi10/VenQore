@@ -4,6 +4,7 @@ import { usePage, Head, Link, router } from '@inertiajs/react';
 import { Bell, Check, Trash2, Clock, Info, AlertTriangle, CheckCircle, AlertOctagon } from 'lucide-react';
 
 export default function NotificationsIndex({ notifications }) {
+    const { store } = usePage().props;
 
     const getIcon = (type) => {
         if (type.includes('Error') || type.includes('Risk')) return <AlertOctagon size={20} className="text-red-500" />;

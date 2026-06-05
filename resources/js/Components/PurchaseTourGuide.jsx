@@ -1,14 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Trophy, Home } from 'lucide-react';
+import axios from 'axios';
 
 export default function PurchaseTourGuide({ store }) {
-    const [currentStep, setCurrentStep] = useState(0); // 0: Supplier, 1: Product, 2: Qty, 3: Cost, 4: Paid, 5: Save
+    const [hasSuppliers, setHasSuppliers] = useState(true);
+    const [isSupplierCreationPath, setIsSupplierCreationPath] = useState(null);
+    const [currentStep, setCurrentStep] = useState(0);
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
 
     // Only run if the onboarding step is 'purchase_tour' or 'purchase_congratulations'
     const isVisible = store?.onboarding_step === 'purchase_tour' || store?.onboarding_step === 'purchase_congratulations';
+
+    useEffect(() => {
+        if (isVisible) {
+            axios.get(route('store.suppliers.search', { store_slug: store?.slug }), { params: { search: '' } })
+                .then(res => {
+                    const list = res.data || [];
+                    const empty = list.length === 0;
+                    setHasSuppliers(!empty);
+                    if (isSupplierCreationPath === null) {
+                        setIsSupplierCreationPath(empty);
+                    }
+                })
+                .catch(err => console.error('Failed to search suppliers:', err));
+        }
+    }, [isVisible, store?.slug]);
 
     // Track mobile view
     useEffect(() => {
@@ -20,16 +38,68 @@ export default function PurchaseTourGuide({ store }) {
 
     // Get DOM IDs for each step
     const getTargetId = (step) => {
-        switch (step) {
-            case 0: return 'tour-purchase-supplier';
-            case 1: return 'tour-purchase-product';
-            case 2: return 'tour-purchase-quantity';
-            case 3: return 'tour-purchase-cost';
-            case 4: return 'tour-purchase-paid';
-            case 5: return 'tour-purchase-save';
-            default: return null;
+        if (isSupplierCreationPath) {
+            switch (step) {
+                case 0: return 'tour-purchase-supplier';
+                case 1: return 'tour-add-new-party-btn';
+                case 2: return 'tour-party-name';
+                case 3: return 'tour-party-phone';
+                case 4: return 'tour-party-address';
+                case 5: return 'tour-party-submit';
+                case 6: return 'tour-purchase-product';
+                case 7: return 'tour-purchase-quantity';
+                case 8: return 'tour-purchase-cost';
+                case 9: return 'tour-purchase-paid';
+                case 10: return 'tour-purchase-save';
+                case 11: return 'tour-new-transaction';
+                default: return null;
+            }
+        } else {
+            switch (step) {
+                case 0: return 'tour-purchase-supplier';
+                case 1: return 'tour-purchase-product';
+                case 2: return 'tour-purchase-quantity';
+                case 3: return 'tour-purchase-cost';
+                case 4: return 'tour-purchase-paid';
+                case 5: return 'tour-purchase-save';
+                case 6: return 'tour-new-transaction';
+                default: return null;
+            }
         }
     };
+
+    // Auto-advance logic
+    useEffect(() => {
+        if (!isVisible) return;
+
+        const interval = setInterval(() => {
+            const activeId = document.activeElement?.id;
+
+            if (isSupplierCreationPath) {
+                if (currentStep === 0) {
+                    if (document.getElementById('tour-add-new-party-btn')) setCurrentStep(1);
+                } else if (currentStep === 1) {
+                    if (document.getElementById('tour-party-name')) setCurrentStep(2);
+                } else if (currentStep === 2) {
+                    if (activeId === 'tour-party-phone') setCurrentStep(3);
+                } else if (currentStep === 3) {
+                    if (activeId === 'tour-party-address') setCurrentStep(4);
+                } else if (currentStep === 4) {
+                    if (activeId === 'tour-party-submit') setCurrentStep(5);
+                } else if (currentStep === 5) {
+                    if (!document.getElementById('tour-party-name')) setCurrentStep(6);
+                } else if (currentStep === 10) {
+                    if (document.getElementById('tour-new-transaction')) setCurrentStep(11);
+                }
+            } else {
+                if (currentStep === 5) {
+                    if (document.getElementById('tour-new-transaction')) setCurrentStep(6);
+                }
+            }
+        }, 150);
+
+        return () => clearInterval(interval);
+    }, [currentStep, isVisible, isSupplierCreationPath]);
 
     // Scroll active element into view and update coordinates
     useEffect(() => {
@@ -76,7 +146,31 @@ export default function PurchaseTourGuide({ store }) {
             window.removeEventListener('resize', updateCoords);
             window.removeEventListener('scroll', updateCoords, true);
         };
-    }, [currentStep, isVisible, store?.onboarding_step]);
+    }, [currentStep, isVisible, store?.onboarding_step, isSupplierCreationPath]);
+
+    const handleStartInvoiceTour = () => {
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'invoice_tour_start' },
+            {
+                onSuccess: () => {
+                    router.visit(route('store.dashboard', { store_slug: store?.slug }));
+                }
+            }
+        );
+    };
+
+    const handleStartPosTour = () => {
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'pos_tour_start' },
+            {
+                onSuccess: () => {
+                    router.visit(route('store.dashboard', { store_slug: store?.slug }));
+                }
+            }
+        );
+    };
 
     const handleCompleteTour = () => {
         router.post(
@@ -117,17 +211,30 @@ export default function PurchaseTourGuide({ store }) {
                                 Your first purchase was recorded successfully!
                             </p>
 
-                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
-                                Congratulations! You have successfully added stock to your store catalog. Let's return to the dashboard to see your updated stock values!
+                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-6">
+                                Congratulations! You have successfully added stock to your store catalog. Now let's try making your first sale to generate an invoice or POS receipt!
                             </p>
 
-                            <button
-                                onClick={handleCompleteTour}
-                                className="w-full flex items-center justify-center gap-2 py-3.5 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-                            >
-                                <Home size={18} />
-                                <span>Go to Dashboard</span>
-                            </button>
+                            <div className="flex flex-col gap-2.5 w-full">
+                                <button
+                                    onClick={handleStartInvoiceTour}
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-sm"
+                                >
+                                    <span>Create B2B Invoice</span>
+                                </button>
+                                <button
+                                    onClick={handleStartPosTour}
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-sm"
+                                >
+                                    <span>Go to POS Register</span>
+                                </button>
+                                <button
+                                    onClick={handleCompleteTour}
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-xs mt-1"
+                                >
+                                    <span>Skip & Finish Setup</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -216,46 +323,113 @@ export default function PurchaseTourGuide({ store }) {
                             Purchase Tour
                         </h4>
                         <span className="text-[10px] font-semibold text-indigo-400">
-                            Step {currentStep + 1} of 6
+                            Step {currentStep + 1} of {isSupplierCreationPath ? 12 : 7}
                         </span>
                     </div>
                 </div>
 
                 <div className="space-y-4">
-                    {currentStep === 0 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Select a <span className="text-white font-bold">Supplier</span> you are purchasing from. If they aren't registered, click the <span className="text-white font-bold">+</span> button to add them instantly.
-                        </p>
-                    )}
-
-                    {currentStep === 1 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Search and select the <span className="text-white font-bold">Product</span> you created in the first step.
-                        </p>
-                    )}
-
-                    {currentStep === 2 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Set the <span className="text-white font-bold">Quantity</span> of items purchased. This will increase your warehouse stock.
-                        </p>
-                    )}
-
-                    {currentStep === 3 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Verify the purchase <span className="text-white font-bold">Unit Price</span> (cost price). The default cost price you set earlier is automatically prefilled.
-                        </p>
-                    )}
-
-                    {currentStep === 4 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Enter the <span className="text-white font-bold">Amount Paid</span> to the supplier (leave as 0 if this purchase is fully on credit/receivables).
-                        </p>
-                    )}
-
-                    {currentStep === 5 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            All done! Click <span className="text-white font-bold">Complete Purchase</span> to save the invoice and update your inventory stock.
-                        </p>
+                    {isSupplierCreationPath ? (
+                        <>
+                            {currentStep === 0 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    You don't have any suppliers yet! Click on the <span className="text-white font-bold">Search Party</span> input.
+                                </p>
+                            )}
+                            {currentStep === 1 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Now click <span className="text-white font-bold">+ Create New Party</span> at the bottom of the dropdown.
+                                </p>
+                            )}
+                            {currentStep === 2 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Put in the supplier's <span className="text-white font-bold">Name</span> inside the modal.
+                                </p>
+                            )}
+                            {currentStep === 3 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Put in their <span className="text-white font-bold">Phone Number</span>.
+                                </p>
+                            )}
+                            {currentStep === 4 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Put in their <span className="text-white font-bold">Address</span>.
+                                </p>
+                            )}
+                            {currentStep === 5 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Click <span className="text-white font-bold">Create Supplier</span> to save the supplier.
+                                </p>
+                            )}
+                            {currentStep === 6 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Great! Now move toward the <span className="text-white font-bold">Search Product</span> option and select the previously created product.
+                                </p>
+                            )}
+                            {currentStep === 7 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Set the <span className="text-white font-bold">Quantity</span> of items purchased.
+                                </p>
+                            )}
+                            {currentStep === 8 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Verify the purchase <span className="text-white font-bold">Unit Price</span>.
+                                </p>
+                            )}
+                            {currentStep === 9 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Enter the <span className="text-white font-bold">Amount Paid</span> (leave as 0 if on credit).
+                                </p>
+                            )}
+                            {currentStep === 10 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Click <span className="text-white font-bold">Complete Purchase</span> to save the transaction.
+                                </p>
+                            )}
+                            {currentStep === 11 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Click <span className="text-white font-bold">NEW TRANSACTION</span> to continue your setup.
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {currentStep === 0 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Select a <span className="text-white font-bold">Supplier</span> you are purchasing from.
+                                </p>
+                            )}
+                            {currentStep === 1 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Search and select the <span className="text-white font-bold">Product</span> you created.
+                                </p>
+                            )}
+                            {currentStep === 2 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Set the <span className="text-white font-bold">Quantity</span> of items purchased.
+                                </p>
+                            )}
+                            {currentStep === 3 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Verify the purchase <span className="text-white font-bold">Unit Price</span>.
+                                </p>
+                            )}
+                            {currentStep === 4 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Enter the <span className="text-white font-bold">Amount Paid</span>.
+                                </p>
+                            )}
+                            {currentStep === 5 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Click <span className="text-white font-bold">Complete Purchase</span> to save the transaction.
+                                </p>
+                            )}
+                            {currentStep === 6 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Click <span className="text-white font-bold">NEW TRANSACTION</span> to continue your setup.
+                                </p>
+                            )}
+                        </>
                     )}
 
                     <div className="flex gap-2 justify-between items-center">
@@ -271,7 +445,7 @@ export default function PurchaseTourGuide({ store }) {
                             <div />
                         )}
 
-                        {currentStep < 5 && (
+                        {currentStep < (isSupplierCreationPath ? 11 : 6) && (
                             <button
                                 onClick={() => setCurrentStep(currentStep + 1)}
                                 className="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"

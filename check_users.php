@@ -4,7 +4,7 @@ $app = require_once __DIR__ . '/bootstrap/app.php';
 $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
-$users = DB::table('users')->orderBy('created_at', 'desc')->get();
-foreach($users as $u) {
-    echo "Email: " . $u->email . ", ID: " . $u->id . ", Created: " . $u->created_at . "\n";
+$tenants = DB::table('tenants')->get();
+foreach($tenants as $t) {
+    echo "ID: " . $t->id . ", Name: " . $t->name . ", Slug: " . $t->slug . "\n";
 }

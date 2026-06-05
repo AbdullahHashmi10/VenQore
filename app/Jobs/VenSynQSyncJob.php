@@ -29,6 +29,10 @@ class VenSynQSyncJob implements ShouldQueue
         TikTokClient $tiktok,
         EbayClient $ebay
     ): void {
+        if (!config('vensynq.enabled', false)) {
+            return;
+        }
+
         Log::info('VenSynQ: Background Sync Job Started.');
 
         $channels = EcommerceChannel::where('is_connected', true)->get();

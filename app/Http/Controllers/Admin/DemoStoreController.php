@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 
 class DemoStoreController extends Controller
@@ -96,6 +97,7 @@ class DemoStoreController extends Controller
     public function deploy(Request $request)
     {
         $only = $request->input('only');
+        $onlyStr = '';
         if ($only) {
             $modules = array_map('trim', explode(',', $only));
             $expanded = [];
@@ -127,13 +129,100 @@ class DemoStoreController extends Controller
             }
             $expanded = array_unique($expanded);
             $onlyStr = implode(',', $expanded);
-
-            Artisan::call("demo:full-deploy --only={$onlyStr}");
-        } else {
-            Artisan::call('demo:full-deploy');
         }
 
-        return response()->json(['message' => 'Demo deploy initiated.']);
+        $jobId   = \Illuminate\Support\Str::uuid()->toString();
+        $outFile = storage_path("logs/demodeploy-{$jobId}.log");
+
+        // Write sentinel immediately so the poller knows the job exists
+        file_put_contents($outFile, "STARTED\n");
+
+        $cmd = [
+            $this->phpBin,
+            base_path('artisan'),
+            'demo:full-deploy',
+            '--no-interaction',
+        ];
+
+        if ($onlyStr) {
+            $cmd[] = "--only={$onlyStr}";
+        }
+
+        $process = new \Symfony\Component\Process\Process($cmd, $this->rootPath);
+        $process->setTimeout(300); // 5 min max
+
+        // Start and stream output to the log file in real-time
+        $process->start(function ($type, $buffer) use ($outFile) {
+            file_put_contents($outFile, $buffer, FILE_APPEND);
+        });
+
+        // Store job metadata in cache for the poller
+        Cache::put("demodeploy_job_{$jobId}", [
+            'outFile' => $outFile,
+            'started' => now()->toISOString(),
+            'done'    => false,
+            'passed'  => null,
+        ], 600); // 10 min TTL
+
+        // Register a shutdown function so the process finishes even after
+        // the HTTP response is sent back to the browser
+        register_shutdown_function(function () use ($process, $jobId, $outFile) {
+            $process->wait();
+            $exitCode = $process->getExitCode();
+
+            $state            = Cache::get("demodeploy_job_{$jobId}", []);
+            $state['done']    = true;
+            $state['passed']  = ($exitCode === 0);
+            $state['exitCode']= $exitCode;
+            Cache::put("demodeploy_job_{$jobId}", $state, 600);
+
+            // Write terminator line so the frontend knows the run is over
+            file_put_contents($outFile, "\nEXIT_CODE:{$exitCode}\n", FILE_APPEND);
+        });
+
+        return response()->json(['job_id' => $jobId]);
+    }
+
+    /**
+     * Poll endpoint for demo deploy logs.
+     */
+    public function deployStatus(string $jobId)
+    {
+        $state = Cache::get("demodeploy_job_{$jobId}");
+
+        if (!$state) {
+            return response()->json(['error' => 'Job not found or expired.'], 404);
+        }
+
+        $outFile = $state['outFile'];
+        $lines   = [];
+
+        if (file_exists($outFile)) {
+            $lines = file($outFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        }
+
+        return response()->json([
+            'done'    => (bool) $state['done'],
+            'passed'  => $state['passed'],
+            'lines'   => $lines,
+            'started' => $state['started'],
+        ]);
+    }
+
+    /**
+     * Cleanup log file for deploy.
+     */
+    public function deployCleanup(string $jobId)
+    {
+        $state = Cache::get("demodeploy_job_{$jobId}");
+
+        if ($state && isset($state['outFile']) && file_exists($state['outFile'])) {
+            @unlink($state['outFile']);
+        }
+
+        Cache::forget("demodeploy_job_{$jobId}");
+
+        return response()->json(['ok' => true]);
     }
 
     /**

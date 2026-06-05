@@ -39,7 +39,7 @@ function seedRawMaterial(object $tenant, string $warehouseId, Product $product, 
 
 // ─── Test 1: BOM Defined Correctly ───────────────────────────────────────────
 test('bill_of_materials_defined_correctly', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(null, 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
@@ -80,7 +80,7 @@ test('bill_of_materials_defined_correctly', function () {
 
 // ─── Test 2: Production Run Consumes Raw Materials ────────────────────────────
 test('production run consumes raw materials', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(null, 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
@@ -133,7 +133,7 @@ test('production run consumes raw materials', function () {
 
 // ─── Test 3: Production Run Produces Finished Goods ──────────────────────────
 test('production run produces finished goods', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(null, 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
@@ -188,7 +188,7 @@ test('production run produces finished goods', function () {
 
 // ─── Test 4: Auto-Calculate Assembly Cost ────────────────────────────────────
 test('auto calculate assembly cost', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(null, 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 

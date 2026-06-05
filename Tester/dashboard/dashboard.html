@@ -183,7 +183,10 @@
       <!-- CONSOLE OUTPUT -->
       <article class="minimal-card rounded-lg p-4 flex flex-col" style="height:280px">
         <div class="flex items-center justify-between border-b border-zinc-800 pb-2 mb-3 flex-shrink-0">
-          <span class="font-mono text-[10px] text-zinc-400 tracking-wider">CONSOLE OUTPUT STREAM</span>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] text-zinc-400 tracking-wider">CONSOLE OUTPUT STREAM</span>
+            <button onclick="copyConsoleLogs()" class="text-[9px] font-mono text-zinc-500 hover:text-zinc-300 font-bold border border-zinc-800 px-1.5 py-0.5 rounded transition-all bg-zinc-900/40 hover:bg-zinc-900">COPY LOGS</button>
+          </div>
           <span class="text-[8px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-1.5 rounded hidden animate-pulse font-mono" id="live-badge">REALTIME</span>
         </div>
         <div class="flex-1 overflow-y-auto font-mono text-[11px] space-y-1 pr-1 text-zinc-400" id="log-body">
@@ -224,7 +227,10 @@
       <!-- EXCEPTION LOGS -->
       <article class="minimal-card rounded-lg p-4 flex flex-col" style="height:200px">
         <div class="flex items-center justify-between border-b border-zinc-800 pb-2 mb-2 flex-shrink-0">
-          <span class="font-mono text-[10px] text-zinc-400 tracking-wider">EXCEPTION LOGS</span>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-[10px] text-zinc-400 tracking-wider">EXCEPTION LOGS</span>
+            <button onclick="copyExceptionLogs()" class="text-[9px] font-mono text-zinc-500 hover:text-zinc-300 font-bold border border-zinc-800 px-1.5 py-0.5 rounded transition-all bg-zinc-900/40 hover:bg-zinc-900">COPY FAULTS</button>
+          </div>
           <span class="text-[10px] bg-rose-500/10 text-rose-400 font-bold border border-rose-500/20 px-1.5 rounded font-mono" id="bug-count">0</span>
         </div>
         <div class="flex-1 overflow-y-auto space-y-1.5 pr-1" id="bug-list">
@@ -263,7 +269,8 @@ let ws = null;
 let running = false;
 let modulesDone = 0;
 let projectPath = '';
-const TOTAL_MODULES = 30;
+const TOTAL_MODULES = 60;
+const completedModules = new Set();
 
 const MODULE_NAMES = {
   'Module01': 'Auth & Tenancy Integrity',
@@ -296,6 +303,36 @@ const MODULE_NAMES = {
   'ImportMappingTest': 'Bulk XLS Field Mapper',
   'StoreUniqueNameTest': 'Store Namespace Integrity',
   'MigrateOpeningBalancesTest': 'Historical Ledger Balance',
+  'Chat': 'Vena AI Chat & Smart Capture',
+  'PlanManagementTest': 'Plan & Feature Matrix Management',
+  'Billing': 'Lemon Squeezy Billing Integration',
+  'PlanLimitsEnforcerTest': 'Tenant Plan Limits Enforcer',
+  'ProductDeletionTest': 'Product Safe Deletion Audit',
+  'all frontend route calls have registered routes': 'Ziggy: Frontend Routes Exist in Laravel',
+  'owner daily pulse routes are all registered': 'Ziggy: Owner Daily Pulse Route Registration',
+  'backup routes use correct store prefix': 'Ziggy: Backup Route Namespace Fixes',
+  'recycle bin routes use admin prefix': 'Ziggy: Recycle Bin Admin Prefixes',
+  'migration routes use store legacy prefix': 'Ziggy: Legacy Migration Namespace Fixes',
+  'returns route uses history suffix': 'Ziggy: Returns History Endpoint Alignment',
+  'no route registered without store slug parameter when expected': 'Ziggy: Multi-Tenant Slug Parameter Safeguard',
+  'frontend codebase has no eslint errors': 'ESLint: Frontend Reference & Syntax Integrity',
+  'route parameter names match frontend expectations': 'Route Param Names Match Frontend Expectations',
+  'all pulse routes are registered': 'Daily Pulse: Endpoint Configuration',
+  'unauthenticated user cannot access pulse dashboard': 'Daily Pulse: Guest Access Prevention',
+  'authenticated owner can access pulse dashboard': 'Daily Pulse: Owner Authorized Loading',
+  'verify endpoint returns success for valid passcode': 'Daily Pulse: Valid Passcode Verification',
+  'verify endpoint returns 403 for invalid passcode': 'Daily Pulse: Invalid Passcode Rejection',
+  'verify endpoint validates passcode is required': 'Daily Pulse: Passcode Validation Required Check',
+  'setup endpoint can enable passcode': 'Daily Pulse: Enable Secure Passcode Pin',
+  'setup endpoint can disable passcode': 'Daily Pulse: Disable Passcode Lock',
+  'setup requires passcode when action is set': 'Daily Pulse: Setup Field Validation',
+  'lock endpoint clears session and redirects': 'Daily Pulse: Dynamic Vault Lock & Redirection',
+  'note endpoint saves memo when authorized': 'Daily Pulse: Secure Notes Save DB Sync',
+  'note endpoint rejects unauthorized access': 'Daily Pulse: Notes Post Authorization Check',
+  'note endpoint validates date format': 'Daily Pulse: Snapshots Date Format Check',
+  'ModalValidationRegressionTest': 'System-Wide Validation Safety',
+  'ExampleTest': 'Feature Example Sanity',
+  'Unit': 'Unit Core Sanity',
 };
 const MODULE_KEYS = Object.keys(MODULE_NAMES);
 
@@ -442,7 +479,14 @@ function initGrid() {
   MODULE_KEYS.forEach((key) => {
     const name = MODULE_NAMES[key];
     const isModule = key.startsWith('Module');
-    const label = isModule ? `MODULE ${key.replace('Module', '')}` : 'GLOBAL CORE';
+    let label = 'GLOBAL CORE';
+    if (isModule) {
+      label = `MODULE ${key.replace('Module', '')}`;
+    } else if (key.includes('route') || key.includes('parameter') || key.includes('backup') || key.includes('recycle') || key.includes('migration')) {
+      label = 'ROUTING TEST';
+    } else if (key.includes('pulse') || key.includes('passcode') || key.includes('lock') || key.includes('note')) {
+      label = 'PULSE TEST';
+    }
     grid.innerHTML += `
       <div class="minimal-card p-3 rounded transition-all duration-300 relative overflow-hidden" id="card-${key}">
         <div class="absolute bottom-0 left-0 w-full h-[2px] bg-zinc-800" id="accent-${key}"></div>
@@ -503,8 +547,8 @@ function handleMessage(msg) {
     }
     case 'module_done': {
       setModuleStatus(msg.module, msg.status, msg.data);
-      modulesDone++;
-      updateProgress(modulesDone / TOTAL_MODULES * 100);
+      completedModules.add(msg.module);
+      updateProgress(completedModules.size / TOTAL_MODULES * 100);
       break;
     }
     case 'test_pass': {
@@ -582,6 +626,7 @@ function stopRun() {
 function onRunStart() {
   running = true;
   modulesDone = 0;
+  completedModules.clear();
   passCount = 0; failCount = 0; todoCount = 0;
 
   document.getElementById('run-btn').textContent = 'SCANNING...';
@@ -914,6 +959,34 @@ function formatTime(ts) {
   if (!ts) return '·';
   const d = new Date(ts);
   return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function copyConsoleLogs() {
+  const lines = Array.from(document.querySelectorAll('#log-body div')).map(el => el.textContent).join('\n');
+  navigator.clipboard.writeText(lines).then(() => {
+    alert('Console logs copied to clipboard!');
+  }).catch(err => {
+    console.error('Failed to copy console logs:', err);
+  });
+}
+
+function copyExceptionLogs() {
+  const items = Array.from(document.querySelectorAll('#bug-list .bug-item')).map(el => {
+    const moduleLabel = el.querySelector('div > div:first-child')?.textContent || 'EXCEPTION';
+    const nameLabel = el.querySelector('div > div:last-child')?.textContent || '';
+    return `[${moduleLabel}] ${nameLabel}`;
+  }).join('\n');
+  
+  if (!items) {
+    alert('No exceptions to copy!');
+    return;
+  }
+  
+  navigator.clipboard.writeText(items).then(() => {
+    alert('Exceptions copied to clipboard!');
+  }).catch(err => {
+    console.error('Failed to copy exceptions:', err);
+  });
 }
 
 function togglePathBanner() {

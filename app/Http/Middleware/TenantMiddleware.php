@@ -46,6 +46,20 @@ class TenantMiddleware
             ->with('tenant')
             ->first();
 
+        if (!$membership && $user && $user->isPlatformAdmin()) {
+            $tenant = Tenant::where('slug', $storeSlug)->first();
+            if ($tenant) {
+                // Create a virtual/mock membership for the platform admin so they can access the store
+                $membership = new TenantUser([
+                    'user_id' => $user->id,
+                    'tenant_id' => $tenant->id,
+                    'role' => 'owner', // Platform superadmin acts as owner inside store contexts
+                    'status' => 'active',
+                ]);
+                $membership->setRelation('tenant', $tenant);
+            }
+        }
+
         if (!$membership) {
             // Not a member of this store — stale bookmark or wrong URL
             return redirect()->route('hub')
@@ -53,6 +67,53 @@ class TenantMiddleware
         }
 
         $tenant = $membership->tenant;
+
+        // ── Plan Limits Exceed Check ───────────────────────────────────────
+        $limitStatus = $tenant->checkLimitsStatus();
+        if ($limitStatus['is_over_limit']) {
+            if ($tenant->limit_grace_ends_at === null) {
+                // Set grace period to exactly 3 days from now
+                $tenant->update([
+                    'limit_grace_ends_at' => now()->addDays(3)
+                ]);
+                $limitStatus['grace_ends_at'] = $tenant->limit_grace_ends_at->toIso8601String();
+            } elseif ($tenant->limit_grace_ends_at->isPast()) {
+                // Grace expired: automatically lock store to View-Only mode if not already locked
+                if ($tenant->view_only_since === null) {
+                    $tenant->update([
+                        'view_only_since' => now()
+                    ]);
+                }
+            }
+        } else {
+            // Self-Healing: if they deleted the extra resources and are back below limit, clear grace & lock
+            if ($tenant->limit_grace_ends_at !== null || $tenant->view_only_since !== null) {
+                $tenant->update([
+                    'limit_grace_ends_at' => null,
+                    'view_only_since' => null
+                ]);
+                $limitStatus['grace_ends_at'] = null;
+            }
+        }
+
+        // ── Pending plan downgrade check (Local simulated proration/downgrade) ──
+        if (is_array($tenant->plan_limits) && isset($tenant->plan_limits['pending_downgrade'])) {
+            $pd = $tenant->plan_limits['pending_downgrade'];
+            if (isset($pd['plan']) && isset($pd['effective_at']) && now()->parse($pd['effective_at'])->isPast()) {
+                $newLimits = $tenant->plan_limits;
+                unset($newLimits['pending_downgrade']);
+                
+                $tenant->update([
+                    'plan' => $pd['plan'],
+                    'plan_limits' => $newLimits
+                ]);
+                
+                // Clear cache
+                \App\Services\PlanRepository::invalidatePlanCache($pd['plan']);
+                \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+                \Illuminate\Support\Facades\Log::info("Tenant {$tenant->id} successfully downgraded to {$pd['plan']} at scheduled time {$pd['effective_at']}.");
+            }
+        }
 
         // ── Trial expiry check ─────────────────────────────────────────────
         if ($tenant->status === 'trial' && $tenant->trial_ends_at?->isPast()) {
@@ -115,7 +176,10 @@ class TenantMiddleware
                 'onboarding_step' => $tenant->onboarding_step,
                 'logo_url'        => $tenant->logo_url,
                 'logo_style'      => $tenant->logo_style,
-                'features'        => $tenant->featuresArray(),
+                'features'        => array_merge($tenant->featuresArray(), [
+                    'chat_support'     => (bool)$tenant->getLimit('chat_support'),
+                    'live_chat_widget' => (bool)$tenant->getLimit('live_chat_widget'),
+                ]),
             ],
             'membership'      => $membership,
             'userRole'        => $membership->role,
@@ -125,6 +189,14 @@ class TenantMiddleware
             'is_demo'         => (bool)$tenant->is_demo,
             'demo_reset_at'   => $tenant->is_demo ? $this->getNextResetTime() : null,
             'demo_live_users' => $tenant->is_demo ? \Illuminate\Support\Facades\Cache::get('demo_visit_live', 0) : null,
+            'limit_grace_status' => [
+                'is_over_limit'     => $limitStatus['is_over_limit'],
+                'exceeded_feature'  => $limitStatus['exceeded_feature'],
+                'current_count'     => $limitStatus['current_count'],
+                'limit'             => $limitStatus['limit'],
+                'grace_ends_at'     => $limitStatus['grace_ends_at'],
+                'is_trial'          => $tenant->status === 'trial',
+            ],
 
             // ── Plan Usage Banner (GAP 7 — AppSumo LTD) ──────────────────
             // Lazy closure: only runs when Inertia serializes the response.

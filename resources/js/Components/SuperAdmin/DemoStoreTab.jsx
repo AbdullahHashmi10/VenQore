@@ -9,6 +9,8 @@ import {
     FileText, ChefHat, ExternalLink, Play, RotateCcw, Globe,
 } from 'lucide-react';
 
+import SmokeTestRunner from './SmokeTestRunner';
+
 // ─── Constants & Parsers for Test Runner ──────────────────────────────────────
 
 const STATUS = {
@@ -183,10 +185,22 @@ export default function DemoStoreTab() {
     const [runnerElapsed, setRunnerElapsed] = useState(0);
     const [runnerCounts, setRunnerCounts]   = useState({ pass: 0, fail: 0, skip: 0 });
 
+    const [activeTestTab, setActiveTestTab] = useState('page-health');
+
     const runnerPollRef  = useRef(null);
     const runnerTimerRef = useRef(null);
     const runnerJobRef   = useRef(null);
     const runnerTermRef  = useRef(null);
+
+    // Deploy runner state & refs
+    const [deployStatus, setDeployStatus]   = useState(STATUS.IDLE);
+    const [deployLines, setDeployLines]     = useState([]);
+    const [deployElapsed, setDeployElapsed] = useState(0);
+
+    const deployPollRef  = useRef(null);
+    const deployTimerRef = useRef(null);
+    const deployJobRef   = useRef(null);
+    const deployTermRef  = useRef(null);
 
     // Auto-scroll terminal output to bottom as lines arrive
     useEffect(() => {
@@ -195,10 +209,19 @@ export default function DemoStoreTab() {
         }
     }, [runnerLines]);
 
+    // Auto-scroll deploy terminal output to bottom as lines arrive
+    useEffect(() => {
+        if (deployTermRef.current) {
+            deployTermRef.current.scrollTop = deployTermRef.current.scrollHeight;
+        }
+    }, [deployLines]);
+
     // Cleanup on unmount
     useEffect(() => () => {
         clearInterval(runnerPollRef.current);
         clearInterval(runnerTimerRef.current);
+        clearInterval(deployPollRef.current);
+        clearInterval(deployTimerRef.current);
     }, []);
 
     const fetchStatus = useCallback(async () => {
@@ -239,8 +262,66 @@ export default function DemoStoreTab() {
         }
     };
 
+    const startDeployElapsedTimer = () => {
+        setDeployElapsed(0);
+        deployTimerRef.current = setInterval(() => setDeployElapsed(s => s + 1), 1000);
+    };
+
+    const stopDeployAll = () => {
+        clearInterval(deployPollRef.current);
+        clearInterval(deployTimerRef.current);
+    };
+
+    const pollDeploy = useCallback(async (jobId) => {
+        try {
+            const res = await fetch(route('platform.demo-store.deploy.status', { jobId }), {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            });
+            const resData = await res.json();
+            
+            // Parse raw lines
+            const parsed = (resData.lines || []).map(line => {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed === 'STARTED' || trimmed.startsWith('EXIT_CODE:')) return null;
+                let type = 'info';
+                if (trimmed.includes('✓') || trimmed.includes('✅') || trimmed.includes('complete') || trimmed.includes('Complete')) type = 'pass';
+                if (trimmed.includes('failed') || trimmed.includes('⚠️')) type = 'fail';
+                return { type, text: trimmed };
+            }).filter(Boolean);
+
+            setDeployLines(parsed);
+
+            if (resData.done) {
+                stopDeployAll();
+                setDeployStatus(resData.passed ? STATUS.PASSED : STATUS.FAILED);
+                setDeploying(false);
+                fetchStatus();
+
+                // Cleanup log file on server after 60s
+                setTimeout(() => {
+                    fetch(route('platform.demo-store.deploy.cleanup', { jobId }), {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    }).catch(() => {});
+                }, 60_000);
+            }
+        } catch {
+            stopDeployAll();
+            setDeployStatus(STATUS.FAILED);
+            setDeploying(false);
+            setDeployLines(prev => [...prev, { type: 'error', text: 'Lost connection to deploy process.' }]);
+        }
+    }, [fetchStatus]);
+
     const handleDeploy = async () => {
-        const activeModules = Object.keys(selectedModules).filter(k => selectedModules[k]);
+        const activeModules = data?.exists 
+            ? Object.keys(selectedModules).filter(k => selectedModules[k])
+            : Object.keys(selectedModules);
+
         if (activeModules.length === 0) {
             alert('Please select at least one module to seed!');
             return;
@@ -254,16 +335,20 @@ export default function DemoStoreTab() {
         if (!confirm(confirmMsg)) return;
 
         setDeploying(true);
+        setDeployStatus(STATUS.RUNNING);
+        setDeployLines([]);
+        startDeployElapsedTimer();
+
         setMsg({ 
             type: 'info', 
             text: isFull 
-                ? '🚀 Full deploy started. This takes 60–120 seconds. Please wait...' 
-                : `🚀 Selective deploy started for: ${activeModules.join(', ')}. Please wait...`
+                ? '🚀 Full deploy started. Streaming logs below...' 
+                : `🚀 Selective deploy started for: ${activeModules.join(', ')}. Streaming logs below...`
         });
 
         try {
             const queryParams = isFull ? '' : `?only=${activeModules.join(',')}`;
-            await fetch(route('platform.demo-store.deploy') + queryParams, {
+            const res = await fetch(route('platform.demo-store.deploy') + queryParams, {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content ?? '',
@@ -271,17 +356,14 @@ export default function DemoStoreTab() {
                     'X-Requested-With': 'XMLHttpRequest',
                 },
             });
-            
-            // Shorter timeout for selective seeding
-            const waitTime = isFull ? 90000 : 20000;
-            setTimeout(() => {
-                fetchStatus();
-                setMsg({ type: 'success', text: '✅ Seeding complete! Selected data has been successfully loaded.' });
-                setDeploying(false);
-            }, waitTime);
+            const resJson = await res.json();
+            deployJobRef.current = resJson.job_id;
+            deployPollRef.current = setInterval(() => pollDeploy(resJson.job_id), 1000);
         } catch {
-            setMsg({ type: 'error', text: 'Deploy failed. Check server logs.' });
+            stopDeployAll();
             setDeploying(false);
+            setDeployStatus(STATUS.FAILED);
+            setDeployLines([{ type: 'error', text: 'Failed to start demo deploy process.' }]);
         }
     };
 
@@ -392,21 +474,114 @@ export default function DemoStoreTab() {
 
     if (!data?.exists) {
         return (
-            <div style={{ textAlign: 'center', padding: 60, color: '#64748b' }}>
-                <Monitor size={40} style={{ margin: '0 auto 16px', opacity: 0.4 }} />
-                <p style={{ fontWeight: 600, marginBottom: 8 }}>No Demo Store Found</p>
-                <p style={{ fontSize: 14, marginBottom: 24 }}>No tenant with <code>is_demo = true</code> exists yet.</p>
-                <button
-                    onClick={handleDeploy}
-                    disabled={deploying}
-                    style={{
-                        padding: '10px 24px', borderRadius: 10, border: 'none', cursor: 'pointer',
-                        background: '#6366f1', color: '#fff', fontWeight: 600, fontSize: 14,
-                    }}
-                >
-                    <Zap size={14} style={{ display: 'inline', marginRight: 6 }} />
-                    Create & Deploy Demo Store
-                </button>
+            <div style={{ maxWidth: '600px', margin: '40px auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                <div style={{
+                    background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.6) 100%)',
+                    border: '1px solid rgba(255, 255, 255, 0.08)',
+                    borderRadius: 16,
+                    padding: '32px',
+                    textAlign: 'center',
+                    color: '#64748b',
+                    boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.25)',
+                    backdropFilter: 'blur(16px)',
+                }}>
+                    <Monitor size={40} style={{ margin: '0 auto 16px', color: '#6366f1', opacity: 0.8 }} />
+                    <h3 style={{ fontWeight: 700, fontSize: '1.25rem', color: '#f8fafc', marginBottom: 8 }}>No Demo Store Found</h3>
+                    <p style={{ fontSize: 14, color: '#94a3b8', marginBottom: 24 }}>
+                        No tenant with <code>is_demo = true</code> exists yet.
+                    </p>
+
+                    {deployStatus === STATUS.IDLE ? (
+                        <button
+                            onClick={handleDeploy}
+                            disabled={deploying}
+                            style={{
+                                display: 'inline-flex', alignItems: 'center', gap: 8,
+                                padding: '12px 28px', borderRadius: 10, border: 'none', cursor: 'pointer',
+                                background: '#6366f1', color: '#fff', fontWeight: 600, fontSize: 14,
+                                transition: 'all 0.2s', margin: '0 auto',
+                            }}
+                        >
+                            <Zap size={14} />
+                            Create & Deploy Demo Store
+                        </button>
+                    ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, color: '#cbd5e1', fontSize: 14, fontWeight: 600 }}>
+                            <RefreshCw size={16} className="animate-spin" style={{ color: '#6366f1' }} />
+                            <span>Deploying Demo Store...</span>
+                            <span style={{ color: '#64748b', fontWeight: 400, marginLeft: 6 }}>
+                                ⏱ {deployElapsed < 60 ? `${deployElapsed}s` : `${Math.floor(deployElapsed / 60)}m ${deployElapsed % 60}s`}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
+                {/* Real-time Seeding Log Terminal */}
+                {deployLines.length > 0 && (
+                    <div style={{
+                        background: 'rgba(15, 23, 42, 0.65)',
+                        backdropFilter: 'blur(12px)',
+                        border: `1px solid ${
+                            deployStatus === STATUS.RUNNING ? '#f59e0b' :
+                            deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444'
+                        }`,
+                        borderRadius: '16px',
+                        padding: '20px 24px',
+                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: 13, fontWeight: 700, color: '#f8fafc' }}>
+                                🛠️ Seeding Logs
+                            </span>
+                            <span style={{
+                                fontSize: 11, fontWeight: 600, color: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                display: 'inline-flex', alignItems: 'center', gap: 4
+                            }}>
+                                <span style={{
+                                    width: 6, height: 6, borderRadius: '50%',
+                                    background: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                    animation: deployStatus === STATUS.RUNNING ? 'demoRunnerPulse 1.2s infinite' : 'none',
+                                }} />
+                                {deployStatus === STATUS.RUNNING ? 'Running...' : deployStatus === STATUS.PASSED ? 'Complete' : 'Failed'}
+                            </span>
+                        </div>
+
+                        <div
+                            ref={deployTermRef}
+                            style={{
+                                background: '#080d17',
+                                border: '1px solid #1e293b',
+                                borderRadius: '10px',
+                                padding: '14px 16px',
+                                maxHeight: '300px',
+                                overflowY: 'auto',
+                                fontFamily: '"JetBrains Mono", "Fira Code", "Courier New", monospace',
+                                fontSize: '0.74rem',
+                                lineHeight: 1.7,
+                                scrollbarWidth: 'thin',
+                                scrollbarColor: '#1e293b #080d17',
+                                textAlign: 'left',
+                            }}
+                        >
+                            {deployLines.map((line, i) => (
+                                <RunnerLineRow key={i} item={line} index={i} />
+                            ))}
+
+                            {deployStatus === STATUS.RUNNING && (
+                                <span style={{
+                                    color: '#f59e0b',
+                                    animation: 'demoRunnerBlink 1s step-end infinite',
+                                    fontSize: '0.9rem',
+                                }}>
+                                    ▌
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -527,6 +702,111 @@ export default function DemoStoreTab() {
                     </button>
                 </div>
             </div>
+
+            {/* Deploy log terminal (when running/completed from dashboard) */}
+            {deployStatus !== STATUS.IDLE && (
+                <div style={{
+                    background:   'rgba(15, 23, 42, 0.65)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    border:       `1px solid ${
+                        deployStatus === STATUS.RUNNING ? '#f59e0b' :
+                        deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444'
+                    }`,
+                    borderRadius: '16px',
+                    padding:      '20px 24px',
+                    boxShadow:    '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{
+                                width: 38, height: 38, borderRadius: '10px',
+                                background: 'rgba(99, 102, 241, 0.12)',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '1.1rem',
+                            }}>
+                                🚀
+                            </div>
+                            <div>
+                                <h3 style={{ color: '#f8fafc', margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                                    Demo Store Seeding & Deploy Logs
+                                </h3>
+                                <p style={{ color: '#94a3b8', margin: '2px 0 0', fontSize: '0.75rem' }}>
+                                    Wiping and seeding data modules in real-time
+                                </p>
+                            </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {deployStatus === STATUS.RUNNING && (
+                                <span style={{ color: '#64748b', fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
+                                    ⏱ {deployElapsed < 60 ? `${deployElapsed}s` : `${Math.floor(deployElapsed / 60)}m ${deployElapsed % 60}s`}
+                                </span>
+                            )}
+                            
+                            {deployStatus !== STATUS.RUNNING && (
+                                <button onClick={() => setDeployStatus(STATUS.IDLE)} style={{
+                                    background:   'transparent',
+                                    border:       '1px solid rgba(255, 255, 255, 0.12)',
+                                    color:        '#cbd5e1',
+                                    padding:      '6px 14px',
+                                    borderRadius: '8px',
+                                    cursor:       'pointer',
+                                    fontSize:     '0.78rem',
+                                    fontWeight:   500,
+                                    transition:   'all 0.2s',
+                                }}>
+                                    Dismiss
+                                </button>
+                            )}
+
+                            <span style={{
+                                display: 'inline-flex', alignItems: 'center', gap: '5px',
+                                padding: '5px 12px', borderRadius: '20px',
+                                background: deployStatus === STATUS.RUNNING ? 'rgba(245,158,11,0.1)' : deployStatus === STATUS.PASSED ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+                                color: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                fontSize: '0.72rem', fontWeight: 600,
+                            }}>
+                                <span style={{
+                                    width: 6, height: 6, borderRadius: '50%',
+                                    background: deployStatus === STATUS.RUNNING ? '#f59e0b' : deployStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                    animation: deployStatus === STATUS.RUNNING ? 'demoRunnerPulse 1.2s infinite' : 'none',
+                                }} />
+                                {deployStatus === STATUS.RUNNING ? 'Deploying...' : deployStatus === STATUS.PASSED ? 'Completed' : 'Failed'}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div
+                        ref={deployTermRef}
+                        style={{
+                            background:   '#080d17',
+                            border:       '1px solid #1e293b',
+                            borderRadius: '10px',
+                            padding:      '14px 16px',
+                            maxHeight:    '300px',
+                            overflowY:    'auto',
+                            fontFamily:   '"JetBrains Mono", "Fira Code", "Courier New", monospace',
+                            fontSize:     '0.74rem',
+                            lineHeight:   1.7,
+                        }}
+                    >
+                        {deployLines.map((line, i) => (
+                            <RunnerLineRow key={i} item={line} index={i} />
+                        ))}
+
+                        {deployStatus === STATUS.RUNNING && (
+                            <span style={{
+                                color:     '#f59e0b',
+                                animation: 'demoRunnerBlink 1s step-end infinite',
+                                fontSize:  '0.9rem',
+                            }}>
+                                ▌
+                            </span>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* KPI Cards */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 12 }}>
@@ -668,216 +948,258 @@ export default function DemoStoreTab() {
                 )}
             </div>
 
-            {/* ─── Page Health Tests (Pillar 5) ─── */}
-            <div style={{
-                background:   'rgba(15, 23, 42, 0.65)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                border:       `1px solid ${
-                    runnerStatus === STATUS.RUNNING ? '#f59e0b' :
-                    runnerStatus === STATUS.PASSED ? '#10b981' :
-                    runnerStatus === STATUS.FAILED ? '#ef4444' : 'rgba(255, 255, 255, 0.08)'
-                }`,
-                borderRadius: '16px',
-                padding:      '20px 24px',
-                boxShadow:    '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
-                transition:   'border-color 0.4s ease, box-shadow 0.4s ease',
-            }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifycontent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <div style={{
-                            width: 38, height: 38, borderRadius: '10px',
-                            background: 'rgba(16, 185, 129, 0.12)',
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
-                            fontSize: '1.1rem',
-                        }}>
-                            🧪
-                        </div>
-                        <div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                                <h3 style={{ color: '#f8fafc', margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
-                                    Demo Store Page Health Tests
-                                </h3>
-                                <RunnerStatusBadge status={runnerStatus} />
-                            </div>
-                            <p style={{ color: '#94a3b8', margin: '2px 0 0', fontSize: '0.75rem' }}>
-                                35+ Authenticated GET checks across all active module sections
-                            </p>
-                        </div>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        {runnerStatus === STATUS.RUNNING && (
-                            <span style={{ color: '#64748b', fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
-                                ⏱ {runnerElapsed < 60 ? `${runnerElapsed}s` : `${Math.floor(runnerElapsed / 60)}m ${runnerElapsed % 60}s`}
-                            </span>
-                        )}
-
-                        {runnerStatus !== STATUS.IDLE && (
-                            <>
-                                <button onClick={copyLogsToClipboard} style={{
-                                    background:   'transparent',
-                                    border:       '1px solid rgba(255, 255, 255, 0.12)',
-                                    color:        '#cbd5e1',
-                                    padding:      '6px 14px',
-                                    borderRadius: '8px',
-                                    cursor:       'pointer',
-                                    fontSize:     '0.78rem',
-                                    fontWeight:   500,
-                                    transition:   'all 0.2s',
-                                }}>
-                                    📋 Copy Logs
-                                </button>
-                                <button onClick={resetRunner} style={{
-                                    background:   'transparent',
-                                    border:       '1px solid rgba(255, 255, 255, 0.12)',
-                                    color:        '#cbd5e1',
-                                    padding:      '6px 14px',
-                                    borderRadius: '8px',
-                                    cursor:       'pointer',
-                                    fontSize:     '0.78rem',
-                                    fontWeight:   500,
-                                    transition:   'all 0.2s',
-                                }}>
-                                    Reset
-                                </button>
-                            </>
-                        )}
-
-                        <button
-                            onClick={runnerStatus === STATUS.IDLE ? runPageTests : undefined}
-                            disabled={runnerStatus === STATUS.RUNNING || deploying || resetting}
-
-                            style={{
-                                background:   runnerStatus === STATUS.RUNNING ? 'transparent' : (runnerStatus !== STATUS.IDLE ? 'transparent' : '#10b981'),
-                                border:       `1px solid ${
-                                    runnerStatus === STATUS.RUNNING ? '#f59e0b' :
-                                    runnerStatus === STATUS.PASSED ? '#10b981' :
-                                    runnerStatus === STATUS.FAILED ? '#ef4444' : '#10b981'
-                                }`,
-                                color:        runnerStatus === STATUS.RUNNING ? '#f59e0b' : (runnerStatus === STATUS.PASSED ? '#10b981' : runnerStatus === STATUS.FAILED ? '#ef4444' : '#fff'),
-                                padding:      '8px 18px',
-                                borderRadius: '10px',
-                                cursor:       runnerStatus === STATUS.RUNNING ? 'not-allowed' : 'pointer',
-                                fontSize:     '0.82rem',
-                                fontWeight:   600,
-                                transition:   'all 0.25s',
-                                whiteSpace:   'nowrap',
-                            }}
-                        >
-                            {runnerStatus === STATUS.IDLE    && '▶ Run Page Tests'}
-                            {runnerStatus === STATUS.RUNNING && '⟳ Running…'}
-                            {runnerStatus === STATUS.PASSED  && '✓ All Healthy'}
-                            {runnerStatus === STATUS.FAILED  && '✗ Issues Found'}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Progress Indicators */}
-                {(runnerStatus === STATUS.RUNNING || runnerStatus !== STATUS.IDLE) && (
-                    <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
-                        {[
-                            { label: 'Passed',  count: runnerCounts.pass, color: '#10b981' },
-                            { label: 'Failed',  count: runnerCounts.fail, color: '#ef4444' },
-                            { label: 'Skipped', count: runnerCounts.skip, color: '#f59e0b' },
-                        ].map(({ label, count, color }) => (
-                            <div key={label} style={{
-                                padding:      '5px 14px',
-                                borderRadius: '8px',
-                                background:   `${color}15`,
-                                border:       `1px solid ${color}30`,
-                                color,
-                                fontSize:     '0.76rem',
-                                fontWeight:   600,
-                            }}>
-                                {count} {label}
-                            </div>
-                        ))}
-                    </div>
-                )}
-
-                {/* Terminal Window */}
-                {runnerLines.length > 0 && (
-                    <div
-                        ref={runnerTermRef}
+            {/* ─── Test Suite Diagnostics Center (Pillars 3 & 5) ─── */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {/* Tab Switcher */}
+                <div style={{ display: 'flex', gap: 8, borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: 12 }}>
+                    <button
+                        onClick={() => setActiveTestTab('page-health')}
                         style={{
-                            background:   '#080d17',
-                            border:       '1px solid #1e293b',
-                            borderRadius: '10px',
-                            padding:      '14px 16px',
-                            maxHeight:    '300px',
-                            overflowY:    'auto',
-                            fontFamily:   '"JetBrains Mono", "Fira Code", "Courier New", monospace',
-                            fontSize:     '0.74rem',
-                            lineHeight:   1.7,
-                            scrollbarWidth: 'thin',
-                            scrollbarColor: '#1e293b #080d17',
+                            background: activeTestTab === 'page-health' ? 'rgba(16, 185, 129, 0.12)' : 'transparent',
+                            color: activeTestTab === 'page-health' ? '#10b981' : '#94a3b8',
+                            border: `1px solid ${activeTestTab === 'page-health' ? 'rgba(16, 185, 129, 0.2)' : 'transparent'}`,
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
                         }}
                     >
-                        {runnerLines.map((line, i) => (
-                            <RunnerLineRow key={i} item={line} index={i} />
-                        ))}
+                        🧪 Page Health Tests
+                    </button>
+                    <button
+                        onClick={() => setActiveTestTab('smoke')}
+                        style={{
+                            background: activeTestTab === 'smoke' ? 'rgba(99, 102, 241, 0.12)' : 'transparent',
+                            color: activeTestTab === 'smoke' ? '#818cf8' : '#94a3b8',
+                            border: `1px solid ${activeTestTab === 'smoke' ? 'rgba(99, 102, 241, 0.2)' : 'transparent'}`,
+                            padding: '8px 16px',
+                            borderRadius: '8px',
+                            fontSize: '0.85rem',
+                            fontWeight: 600,
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                        }}
+                    >
+                        ⚙️ Platform Smoke Tests
+                    </button>
+                </div>
 
-                        {runnerStatus === STATUS.RUNNING && (
-                            <span style={{
-                                color:     '#f59e0b',
-                                animation: 'demoRunnerBlink 1s step-end infinite',
-                                fontSize:  '0.9rem',
-                            }}>
-                                ▌
-                            </span>
-                        )}
-                    </div>
-                )}
-
-                {/* Placeholder */}
-                {runnerStatus === STATUS.IDLE && runnerLines.length === 0 && (
+                {activeTestTab === 'page-health' ? (
                     <div style={{
-                        border:       '1px dashed #cbd5e1',
-                        borderRadius: '10px',
-                        padding:      '24px',
-                        textAlign:    'center',
-                        color:        '#64748b',
-                        fontSize:     '0.8rem',
+                        background:   'rgba(15, 23, 42, 0.65)',
+                        backdropFilter: 'blur(12px)',
+                        WebkitBackdropFilter: 'blur(12px)',
+                        border:       `1px solid ${
+                            runnerStatus === STATUS.RUNNING ? '#f59e0b' :
+                            runnerStatus === STATUS.PASSED ? '#10b981' :
+                            runnerStatus === STATUS.FAILED ? '#ef4444' : 'rgba(255, 255, 255, 0.08)'
+                        }`,
+                        borderRadius: '16px',
+                        padding:      '20px 24px',
+                        boxShadow:    '0 8px 32px 0 rgba(0, 0, 0, 0.1)',
+                        transition:   'border-color 0.4s ease, box-shadow 0.4s ease',
                     }}>
-                        Click <strong style={{ color: '#10b981' }}>Run Page Tests</strong> to initiate a live health scan of all frontend routes.
-                        <br />
-                        <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 6, display: 'block' }}>
-                            Simulates full Owner authentication · Scans P&L, POS, Staff, Inventory, Sales, CRM and 30+ pages
-                        </span>
-                    </div>
-                )}
-
-                {/* Verdict Banner */}
-                {runnerStatus !== STATUS.IDLE && runnerStatus !== STATUS.RUNNING && (
-                    <div style={{
-                        marginTop:    '14px',
-                        padding:      '12px 18px',
-                        borderRadius: '10px',
-                        background:   runnerStatus === STATUS.PASSED ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
-                        border:       `1px solid ${runnerStatus === STATUS.PASSED ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
-                        display:      'flex',
-                        alignItems:   'center',
-                        gap:          '10px',
-                    }}>
-                        <span style={{ fontSize: '1.1rem' }}>
-                            {runnerStatus === STATUS.PASSED ? '✅' : '🔴'}
-                        </span>
-                        <div>
-                            <div style={{
-                                color:      runnerStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
-                                fontSize:   '0.84rem',
-                                fontWeight: 600,
-                            }}>
-                                {runnerStatus === STATUS.PASSED
-                                    ? 'All page checks passed — the platform is 100% stable.'
-                                    : 'Page issues detected — some sections returned non-200 responses.'}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px', flexWrap: 'wrap', gap: 12 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{
+                                    width: 38, height: 38, borderRadius: '10px',
+                                    background: 'rgba(16, 185, 129, 0.12)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    fontSize: '1.1rem',
+                                }}>
+                                    🧪
+                                </div>
+                                <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                        <h3 style={{ color: '#f8fafc', margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
+                                            Demo Store Page Health Tests
+                                        </h3>
+                                        <RunnerStatusBadge status={runnerStatus} />
+                                    </div>
+                                    <p style={{ color: '#94a3b8', margin: '2px 0 0', fontSize: '0.75rem' }}>
+                                        35+ Authenticated GET checks across all active module sections
+                                    </p>
+                                </div>
                             </div>
-                            <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '2px' }}>
-                                {runnerCounts.pass} passed · {runnerCounts.fail} failed · {runnerCounts.skip} skipped · {runnerElapsed < 60 ? `${runnerElapsed}s` : `${Math.floor(runnerElapsed / 60)}m ${runnerElapsed % 60}s`} total
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {runnerStatus === STATUS.RUNNING && (
+                                    <span style={{ color: '#64748b', fontSize: '0.78rem', fontVariantNumeric: 'tabular-nums' }}>
+                                        ⏱ {runnerElapsed < 60 ? `${runnerElapsed}s` : `${Math.floor(runnerElapsed / 60)}m ${runnerElapsed % 60}s`}
+                                    </span>
+                                )}
+
+                                {runnerStatus !== STATUS.IDLE && (
+                                    <>
+                                        <button onClick={copyLogsToClipboard} style={{
+                                            background:   'transparent',
+                                            border:       '1px solid rgba(255, 255, 255, 0.12)',
+                                            color:        '#cbd5e1',
+                                            padding:      '6px 14px',
+                                            borderRadius: '8px',
+                                            cursor:       'pointer',
+                                            fontSize:     '0.78rem',
+                                            fontWeight:   500,
+                                            transition:   'all 0.2s',
+                                        }}>
+                                            📋 Copy Logs
+                                        </button>
+                                        <button onClick={resetRunner} style={{
+                                            background:   'transparent',
+                                            border:       '1px solid rgba(255, 255, 255, 0.12)',
+                                            color:        '#cbd5e1',
+                                            padding:      '6px 14px',
+                                            borderRadius: '8px',
+                                            cursor:       'pointer',
+                                            fontSize:     '0.78rem',
+                                            fontWeight:   500,
+                                            transition:   'all 0.2s',
+                                        }}>
+                                            Reset
+                                        </button>
+                                    </>
+                                )}
+
+                                <button
+                                    onClick={runnerStatus === STATUS.IDLE ? runPageTests : undefined}
+                                    disabled={runnerStatus === STATUS.RUNNING || deploying || resetting}
+
+                                    style={{
+                                        background:   runnerStatus === STATUS.RUNNING ? 'transparent' : (runnerStatus !== STATUS.IDLE ? 'transparent' : '#10b981'),
+                                        border:       `1px solid ${
+                                            runnerStatus === STATUS.RUNNING ? '#f59e0b' :
+                                            runnerStatus === STATUS.PASSED ? '#10b981' :
+                                            runnerStatus === STATUS.FAILED ? '#ef4444' : '#10b981'
+                                        }`,
+                                        color:        runnerStatus === STATUS.RUNNING ? '#f59e0b' : (runnerStatus === STATUS.PASSED ? '#10b981' : runnerStatus === STATUS.FAILED ? '#ef4444' : '#fff'),
+                                        padding:      '8px 18px',
+                                        borderRadius: '10px',
+                                        cursor:       runnerStatus === STATUS.RUNNING ? 'not-allowed' : 'pointer',
+                                        fontSize:     '0.82rem',
+                                        fontWeight:   600,
+                                        transition:   'all 0.25s',
+                                        whiteSpace:   'nowrap',
+                                    }}
+                                >
+                                    {runnerStatus === STATUS.IDLE    && '▶ Run Page Tests'}
+                                    {runnerStatus === STATUS.RUNNING && '⟳ Running…'}
+                                    {runnerStatus === STATUS.PASSED  && '✓ All Healthy'}
+                                    {runnerStatus === STATUS.FAILED  && '✗ Issues Found'}
+                                </button>
                             </div>
                         </div>
+
+                        {/* Progress Indicators */}
+                        {(runnerStatus === STATUS.RUNNING || runnerStatus !== STATUS.IDLE) && (
+                            <div style={{ display: 'flex', gap: '12px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                {[
+                                    { label: 'Passed',  count: runnerCounts.pass, color: '#10b981' },
+                                    { label: 'Failed',  count: runnerCounts.fail, color: '#ef4444' },
+                                    { label: 'Skipped', count: runnerCounts.skip, color: '#f59e0b' },
+                                ].map(({ label, count, color }) => (
+                                    <div key={label} style={{
+                                        padding:      '5px 14px',
+                                        borderRadius: '8px',
+                                        background:   `${color}15`,
+                                        border:       `1px solid ${color}30`,
+                                        color,
+                                        fontSize:     '0.76rem',
+                                        fontWeight:   600,
+                                    }}>
+                                        {count} {label}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Terminal Window */}
+                        {runnerLines.length > 0 && (
+                            <div
+                                ref={runnerTermRef}
+                                style={{
+                                    background:   '#080d17',
+                                    border:       '1px solid #1e293b',
+                                    borderRadius: '10px',
+                                    padding:      '14px 16px',
+                                    maxHeight:    '300px',
+                                    overflowY:    'auto',
+                                    fontFamily:   '"JetBrains Mono", "Fira Code", "Courier New", monospace',
+                                    fontSize:     '0.74rem',
+                                    lineHeight:   1.7,
+                                    scrollbarWidth: 'thin',
+                                    scrollbarColor: '#1e293b #080d17',
+                                }}
+                            >
+                                {runnerLines.map((line, i) => (
+                                    <RunnerLineRow key={i} item={line} index={i} />
+                                ))}
+
+                                {runnerStatus === STATUS.RUNNING && (
+                                    <span style={{
+                                        color:     '#f59e0b',
+                                        animation: 'demoRunnerBlink 1s step-end infinite',
+                                        fontSize:  '0.9rem',
+                                    }}>
+                                        ▌
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Placeholder */}
+                        {runnerStatus === STATUS.IDLE && runnerLines.length === 0 && (
+                            <div style={{
+                                border:       '1px dashed #cbd5e1',
+                                borderRadius: '10px',
+                                padding:      '24px',
+                                textAlign:    'center',
+                                color:        '#64748b',
+                                fontSize:     '0.8rem',
+                            }}>
+                                Click <strong style={{ color: '#10b981' }}>Run Page Tests</strong> to initiate a live health scan of all frontend routes.
+                                <br />
+                                <span style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 6, display: 'block' }}>
+                                    Simulates full Owner authentication · Scans P&L, POS, Staff, Inventory, Sales, CRM and 30+ pages
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Verdict Banner */}
+                        {runnerStatus !== STATUS.IDLE && runnerStatus !== STATUS.RUNNING && (
+                            <div style={{
+                                marginTop:    '14px',
+                                padding:      '12px 18px',
+                                borderRadius: '10px',
+                                background:   runnerStatus === STATUS.PASSED ? 'rgba(16,185,129,0.08)' : 'rgba(239,68,68,0.08)',
+                                border:       `1px solid ${runnerStatus === STATUS.PASSED ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                                display:      'flex',
+                                alignItems:   'center',
+                                gap:          '10px',
+                            }}>
+                                <span style={{ fontSize: '1.1rem' }}>
+                                    {runnerStatus === STATUS.PASSED ? '✅' : '🔴'}
+                                </span>
+                                <div>
+                                    <div style={{
+                                        color:      runnerStatus === STATUS.PASSED ? '#10b981' : '#ef4444',
+                                        fontSize:   '0.84rem',
+                                        fontWeight: 600,
+                                    }}>
+                                        {runnerStatus === STATUS.PASSED
+                                            ? 'All page checks passed — the platform is 100% stable.'
+                                            : 'Page issues detected — some sections returned non-200 responses.'}
+                                    </div>
+                                    <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '2px' }}>
+                                        {runnerCounts.pass} passed · {runnerCounts.fail} failed · {runnerCounts.skip} skipped · {runnerElapsed < 60 ? `${runnerElapsed}s` : `${Math.floor(runnerElapsed / 60)}m ${runnerElapsed % 60}s`} total
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
+                ) : (
+                    <SmokeTestRunner />
                 )}
             </div>
 

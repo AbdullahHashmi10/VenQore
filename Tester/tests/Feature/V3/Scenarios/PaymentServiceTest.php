@@ -7,11 +7,11 @@ use App\Services\V3\PaymentService;
 use App\Services\V3\AccountingService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class PaymentServiceTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     private PaymentService   $payments;
     private AccountingService $accounting;

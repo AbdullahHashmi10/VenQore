@@ -36,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
         // 3. Phase 1.2 — Immutable Lock: The Deadbolt
         Sale::observe(SaleObserver::class);
 
+        // Chatbot session state machine observer
+        \App\Models\ChatSession::observe(\App\Observers\ChatSessionObserver::class);
+
         // 4. Phase 1.7: Tenant-aware Rate Limiting
         // Limits are per-tenant (not per-IP) so one bad actor can't hurt others.
         RateLimiter::for('api', function (Request $request) {

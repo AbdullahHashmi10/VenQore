@@ -313,7 +313,15 @@ export default function AdminSettings({ settings = {} }) {
                 return <GeneralSettingsSection data={data} setData={setData} />;
 
             case 'ai':
-                return <AiSettingsSection data={data} setData={setData} />;
+                return (
+                    <AiSettingsSection
+                        data={data}
+                        setData={setData}
+                        handleVerifyKey={handleVerifyKey}
+                        verifyingKey={verifyingKey}
+                        verificationResult={verificationResult}
+                    />
+                );
 
             case 'transaction':
                 return <TransactionSettingsSection data={data} setData={setData} />;

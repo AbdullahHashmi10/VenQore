@@ -55,6 +55,140 @@ class ProvisionTenantJob implements ShouldQueue
 
         $tenantId       = data_get($this->payload, 'meta.custom_data.tenant_id') ?? data_get($this->payload, 'custom_data.tenant_id');
 
+        // ── Check if Onboarding Product Upload Service ──────────────────
+        $isOnboarding = data_get($this->payload, 'meta.custom_data.is_onboarding_service') 
+            ?? data_get($this->payload, 'custom_data.is_onboarding_service');
+
+        if ($isOnboarding === '1' || $isOnboarding === 1) {
+            if ($tenantId) {
+                $tenant = Tenant::find($tenantId);
+                if ($tenant) {
+                    $tier = data_get($this->payload, 'meta.custom_data.tier') ?? data_get($this->payload, 'custom_data.tier');
+                    $productsCount = data_get($this->payload, 'meta.custom_data.products_count') ?? data_get($this->payload, 'custom_data.products_count');
+                    $variantsCount = data_get($this->payload, 'meta.custom_data.variants_count') ?? data_get($this->payload, 'custom_data.variants_count');
+                    $totalPrice = data_get($this->payload, 'meta.custom_data.total_price') ?? data_get($this->payload, 'custom_data.total_price');
+                    $currency = data_get($this->payload, 'meta.custom_data.currency') ?? data_get($this->payload, 'custom_data.currency') ?? 'USD';
+
+                    $owner = $tenant->ownerMembership()->with('user')->first();
+                    
+                    app()->instance('current.tenant', $tenant);
+
+                    \App\Models\SupportTicket::create([
+                        'tenant_id'       => $tenant->id,
+                        'submitted_by'    => $owner?->user_id,
+                        'subject'         => "PRO UPLOAD JOB: " . ucfirst($tier) . " - " . $productsCount . " Products",
+                        'message'         => "Onboarding Product Upload Service purchased.\n\n" .
+                                             "Details:\n" .
+                                             "- Selected Tier: " . ucfirst($tier) . "\n" .
+                                             "- Products to upload: " . $productsCount . "\n" .
+                                             "- Avg Variants per product: " . $variantsCount . "\n" .
+                                             "- Total Paid: " . ($currency === 'PKR' ? 'Rs ' : '$') . $totalPrice . "\n\n" .
+                                             "Please contact the client (" . ($owner?->user?->email ?? $tenant->ownerEmail()) . ") to collect files and begin import.",
+                        'status'          => 'open',
+                        'priority'        => 'high',
+                        'requester_email' => $owner?->user?->email ?? $tenant->ownerEmail(),
+                        'requester_name'  => $owner?->user?->name ?? $tenant->name,
+                    ]);
+
+                    Log::info("ProvisionTenantJob: Auto-created support ticket for Onboarding Service on tenant {$tenant->id}");
+                }
+            }
+            return;
+        }
+
+        // ── Check if Subscription Add-on ────────────────────────────────
+        $variantIdStr = $variantId !== null ? (string)$variantId : '';
+        $isAddon = false;
+        $addonSyncs = [];
+        $aiStatus = null;
+        $aiQueries = 0;
+        $aiScans = 0;
+
+        $wooAddonId    = config('services.lemon_squeezy.woocommerce_addon_id');
+        $amazonAddonId = config('services.lemon_squeezy.amazon_addon_id');
+        $ebayAddonId   = config('services.lemon_squeezy.ebay_addon_id');
+        $tiktokAddonId = config('services.lemon_squeezy.tiktok_addon_id');
+
+        $aiStarterId   = config('services.lemon_squeezy.ai_starter_addon_id');
+        $aiLiteId      = config('services.lemon_squeezy.ai_lite_addon_id');
+        $aiProId       = config('services.lemon_squeezy.ai_pro_addon_id');
+        $aiUltimateId  = config('services.lemon_squeezy.ai_ultimate_addon_id');
+        $aiByokId      = config('services.lemon_squeezy.ai_byok_addon_id');
+
+        if ($wooAddonId && $variantIdStr === (string)$wooAddonId) {
+            $addonSyncs[] = 'woocommerce';
+            $isAddon = true;
+        }
+        if ($amazonAddonId && $variantIdStr === (string)$amazonAddonId) {
+            $addonSyncs[] = 'amazon';
+            $isAddon = true;
+        }
+        if ($ebayAddonId && $variantIdStr === (string)$ebayAddonId) {
+            $addonSyncs[] = 'ebay';
+            $isAddon = true;
+        }
+        if ($tiktokAddonId && $variantIdStr === (string)$tiktokAddonId) {
+            $addonSyncs[] = 'tiktok';
+            $isAddon = true;
+        }
+
+        if ($aiStarterId && $variantIdStr === (string)$aiStarterId) {
+            $aiStatus = 'managed';
+            $aiQueries = 110;
+            $aiScans = 90;
+            $isAddon = true;
+        }
+        if ($aiLiteId && $variantIdStr === (string)$aiLiteId) {
+            $aiStatus = 'managed';
+            $aiQueries = 300;
+            $aiScans = 200;
+            $isAddon = true;
+        }
+        if ($aiProId && $variantIdStr === (string)$aiProId) {
+            $aiStatus = 'managed';
+            $aiQueries = 1000;
+            $aiScans = 800;
+            $isAddon = true;
+        }
+        if ($aiUltimateId && $variantIdStr === (string)$aiUltimateId) {
+            $aiStatus = 'managed';
+            $aiQueries = 5000;
+            $aiScans = 4000;
+            $isAddon = true;
+        }
+        if ($aiByokId && $variantIdStr === (string)$aiByokId) {
+            $aiStatus = 'byok';
+            $aiQueries = 999999;
+            $aiScans = 999999;
+            $isAddon = true;
+        }
+
+        if ($isAddon) {
+            if ($tenantId) {
+                $tenant = Tenant::find($tenantId);
+                if ($tenant) {
+                    if (!empty($addonSyncs)) {
+                        $channels = $tenant->sync_channels ?? [];
+                        foreach ($addonSyncs as $ch) {
+                            if (!in_array($ch, $channels)) {
+                                $channels[] = $ch;
+                            }
+                        }
+                        $tenant->update(['sync_channels' => $channels]);
+                    }
+                    if ($aiStatus !== null) {
+                        $tenant->update([
+                            'ai_status'        => $aiStatus,
+                            'ai_queries_limit' => $aiQueries,
+                            'ai_scans_limit'   => $aiScans,
+                        ]);
+                    }
+                    Log::info("ProvisionTenantJob: Provisioned add-on for tenant {$tenant->id}");
+                }
+            }
+            return;
+        }
+
         $plan           = $this->resolvePlan($variantId, $productName);
 
         // ── Idempotency check ────────────────────────────────────────
@@ -172,20 +306,58 @@ class ProvisionTenantJob implements ShouldQueue
     {
         $variantIdStr = $variantId !== null ? (string)$variantId : '';
 
-        if (config('services.lemon_squeezy.starter_variant_id') && $variantIdStr === (string)config('services.lemon_squeezy.starter_variant_id')) {
+        // Starter variants (Monthly, Annual)
+        $starterVariants = [
+            (string) config('services.lemon_squeezy.starter_variant_id'),
+            (string) config('services.lemon_squeezy.starter_annual_variant_id'),
+        ];
+        if (in_array($variantIdStr, array_filter($starterVariants))) {
             return 'starter';
         }
-        if (config('services.lemon_squeezy.growth_variant_id') && $variantIdStr === (string)config('services.lemon_squeezy.growth_variant_id')) {
+
+        // Growth variants (Monthly, Annual)
+        $growthVariants = [
+            (string) config('services.lemon_squeezy.growth_variant_id'),
+            (string) config('services.lemon_squeezy.growth_annual_variant_id'),
+        ];
+        if (in_array($variantIdStr, array_filter($growthVariants))) {
             return 'growth';
         }
-        if (config('services.lemon_squeezy.business_variant_id') && $variantIdStr === (string)config('services.lemon_squeezy.business_variant_id')) {
+
+        // Business/Enterprise variants (Monthly, Annual)
+        $businessVariants = [
+            (string) config('services.lemon_squeezy.business_variant_id'),
+            (string) config('services.lemon_squeezy.business_annual_variant_id'),
+        ];
+        if (in_array($variantIdStr, array_filter($businessVariants))) {
             return 'business';
+        }
+
+        // LTD variants (map directly to ltd_1, ltd_2, ltd_3)
+        if (config('services.lemon_squeezy.starter_ltd_variant_id') && $variantIdStr === (string) config('services.lemon_squeezy.starter_ltd_variant_id')) {
+            return 'ltd_1';
+        }
+        if (config('services.lemon_squeezy.growth_ltd_variant_id') && $variantIdStr === (string) config('services.lemon_squeezy.growth_ltd_variant_id')) {
+            return 'ltd_2';
+        }
+        if (config('services.lemon_squeezy.business_ltd_variant_id') && $variantIdStr === (string) config('services.lemon_squeezy.business_ltd_variant_id')) {
+            return 'ltd_3';
         }
 
         if ($productName) {
             $normalizedName = strtolower($productName);
+            // AppSumo/LTD fallback checks:
+            if (str_contains($normalizedName, 'ltd solo') || str_contains($normalizedName, 'starter engine - ltd')) {
+                return 'ltd_1';
+            }
+            if (str_contains($normalizedName, 'ltd growth') || str_contains($normalizedName, 'growth engine - ltd')) {
+                return 'ltd_2';
+            }
+            if (str_contains($normalizedName, 'ltd pro') || str_contains($normalizedName, 'enterprise engine - ltd')) {
+                return 'ltd_3';
+            }
             if (str_contains($normalizedName, 'pro')) {
-                return 'pro';
+                return 'business';
             }
             if (str_contains($normalizedName, 'starter')) {
                 return 'starter';
@@ -193,7 +365,7 @@ class ProvisionTenantJob implements ShouldQueue
             if (str_contains($normalizedName, 'growth')) {
                 return 'growth';
             }
-            if (str_contains($normalizedName, 'business')) {
+            if (str_contains($normalizedName, 'enterprise') || str_contains($normalizedName, 'business')) {
                 return 'business';
             }
         }

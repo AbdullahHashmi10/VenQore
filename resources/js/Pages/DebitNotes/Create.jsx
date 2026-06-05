@@ -246,7 +246,7 @@ const Create = ({ debitNote }) => {
                 ? route("store.inventory.store", {
                 store_slug: store.slug
             })
-                : route("store.inventory.update", [store.slug, editingProduct.id]);
+                : (editingProduct?.id ? route("store.inventory.update", [store.slug, editingProduct.id]) : "");
 
             const response = await axios.post(url, data);
 
@@ -892,7 +892,7 @@ const Create = ({ debitNote }) => {
 
             let response;
             if (isEditMode) {
-                response = await axios.put(route('debit-notes.update', currentInvoice.id), payload);
+                response = await axios.put(route('store.debit-notes.update', { store_slug: store.slug, id: currentInvoice.id }), payload);
             } else {
                 response = await axios.post(route('store.debit-notes.store', { store_slug: store.slug }), payload);
             }
@@ -908,7 +908,7 @@ const Create = ({ debitNote }) => {
                 if (isEditMode) {
                     showAlert({ title: 'Success', message: 'Debit Note updated successfully.', type: 'success' });
                     if (shouldPrint) {
-                        window.open(route('debit-notes.print', newId), '_blank');
+                        window.open(route('store.debit-notes.print', { store_slug: store.slug, id: newId }), '_blank');
                     }
                     if (!shouldPrint) router.visit(route('store.debit-notes.index', { store_slug: store.slug }));
                 } else {

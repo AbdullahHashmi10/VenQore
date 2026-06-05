@@ -115,7 +115,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                             </p>
                         ))}
                         <Link
-                            href={route('store.v3.products.uom.index', { store_slug: store?.slug, product: product.id })}
+                            href={route('store.v3.products.uom.index', { store_slug: store?.slug, productId: product.id })}
                             className="text-blue-600 text-sm hover:underline mt-2 inline-block"
                         >
                             Manage UOM conversions →
@@ -132,7 +132,7 @@ export default function ProductEdit({ product, uomConversions, priceTiers }) {
                             </p>
                         ))}
                         <Link
-                            href={route('store.v3.products.tiers.index', { store_slug: store?.slug, product: product.id })}
+                            href={route('store.v3.products.tiers.index', { store_slug: store?.slug, productId: product.id })}
                             className="text-blue-600 text-sm hover:underline mt-2 inline-block"
                         >
                             Manage price tiers →

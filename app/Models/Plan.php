@@ -12,6 +12,8 @@ class Plan extends Model
     protected $fillable = [
         'platform_id', 'name', 'slug', 'type',
         'price_monthly', 'price_annual', 'price_lifetime', 'currency',
+        'price_monthly_pkr', 'price_annual_pkr', 'price_lifetime_pkr',
+        'checkout_url_usd', 'checkout_url_pkr',
         'display_name', 'description', 'is_featured', 'sort_order',
         'is_active', 'is_visible', 'is_ltd', 'trial_days', 'internal_notes',
     ];
@@ -24,6 +26,9 @@ class Plan extends Model
         'price_monthly'  => 'decimal:2',
         'price_annual'   => 'decimal:2',
         'price_lifetime' => 'decimal:2',
+        'price_monthly_pkr'  => 'decimal:2',
+        'price_annual_pkr'   => 'decimal:2',
+        'price_lifetime_pkr' => 'decimal:2',
     ];
 
     public function platform(): BelongsTo

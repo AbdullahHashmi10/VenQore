@@ -65,6 +65,7 @@ class CheckPermissions
             'audit'      => ['reports.audit'],
             'returns'    => ['sales.returns'],
             'pos'        => ['pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session'],
+            'purchases'  => ['purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers'],
         ];
 
         foreach ($permissions as $permission) {

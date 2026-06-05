@@ -24,7 +24,11 @@ class VenSynQController extends Controller
         private AmazonClient $amazon,
         private TikTokClient $tiktok,
         private EbayClient $ebay
-    ) {}
+    ) {
+        if (!config('vensynq.enabled', false)) {
+            abort(404);
+        }
+    }
 
     // ─── Command Center Dashboard ─────────────────────────────────────────────
 

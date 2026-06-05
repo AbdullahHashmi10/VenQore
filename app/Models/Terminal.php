@@ -13,6 +13,8 @@ class Terminal extends Model
 
     protected $fillable = [
         'name',
+        'device_id',
+        'tenant_id',
         'ip_address',
         'last_heartbeat_at',
         'status',

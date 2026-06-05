@@ -137,6 +137,7 @@ const PremiumSelect = ({
                         ))}
                         {onAddNew && (
                             <div
+                                id="tour-add-new-category-btn"
                                 onClick={() => {
                                     onAddNew();
                                     setIsOpen(false);

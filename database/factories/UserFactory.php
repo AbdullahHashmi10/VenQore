@@ -31,6 +31,7 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'is_platform_admin' => false,
             'platform_role' => 'none',
+            'staff_role' => null,
             'last_store_id' => null,
         ];
     }

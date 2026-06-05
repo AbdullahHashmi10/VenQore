@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amd-erp-v1';
+const CACHE_NAME = 'amd-erp-v2';
 
 const STATIC_ASSETS = [
     '/favicon.ico',

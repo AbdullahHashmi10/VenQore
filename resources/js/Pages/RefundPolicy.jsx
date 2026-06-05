@@ -100,7 +100,7 @@ export default function RefundPolicy() {
                             After this period, you have two options:
                         </p>
                         <ul className="list-disc list-inside mt-3 space-y-2 text-slate-400">
-                            <li><strong className="text-white">Continue hosted:</strong> $9/month (no feature limitations based on LTD tier)</li>
+                            <li><strong className="text-white">Continue hosted:</strong> $9/month to $30/month depending on plan tier (no feature limitations based on LTD tier)</li>
                             <li><strong className="text-white">Self-host:</strong> Export your data and run VenQore on your own server at no cost</li>
                         </ul>
                         <p className="mt-3">

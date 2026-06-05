@@ -18,6 +18,7 @@ import {
 import Pagination from '@/Components/Pagination';
 
 export default function BatchTracking({ batches, stats, filters }) {
+    const { store } = usePage().props;
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState('all');
     const [sortConfig, setSortConfig] = useState({ key: 'batch', direction: 'asc' });

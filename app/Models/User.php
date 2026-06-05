@@ -31,6 +31,12 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    /**
+     * Request-level memoized active membership.
+     */
+    protected ?TenantUser $resolvedMembership = null;
+    protected bool $membershipResolved = false;
+
     protected $fillable = [
         'name',
         'email',
@@ -38,6 +44,7 @@ class User extends Authenticatable
         'last_store_id',
         'is_platform_admin',
         'platform_role',
+        'staff_role',
         'platform_pin',
         'google_id',
         'avatar',
@@ -170,6 +177,13 @@ class User extends Authenticatable
         return (bool) $this->is_platform_admin;
     }
 
+    public function isPlatformStaff(): bool
+    {
+        return $this->isPlatformAdmin() || 
+            ($this->platform_role !== 'none' && !empty($this->platform_role)) || 
+            (!empty($this->staff_role) && in_array($this->staff_role, ['support', 'content', 'marketing', 'finance', 'sales']));
+    }
+
     /**
      * Legacy shim: check if user has a specific role.
      * checks global is_platform_admin AND store-specific roles.
@@ -205,28 +219,43 @@ class User extends Authenticatable
     // ──────────────────────────────────────────────────────────────────
 
     /**
+     * Get the active membership for this request, memoized.
+     */
+    public function getActiveMembership(): ?TenantUser
+    {
+        if (app()->bound('current.membership')) {
+            return app('current.membership');
+        }
+
+        if ($this->membershipResolved) {
+            return $this->resolvedMembership;
+        }
+
+        if (!$this->last_store_id) {
+            $firstMembership = $this->memberships()->where('status', 'active')->first();
+            if ($firstMembership) {
+                $this->resolvedMembership = $firstMembership;
+                $this->update(['last_store_id' => $firstMembership->tenant_id]);
+            }
+        } else {
+            $this->resolvedMembership = $this->memberships()
+                ->where('tenant_id', $this->last_store_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        $this->membershipResolved = true;
+        return $this->resolvedMembership;
+    }
+
+    /**
      * Shim: Get the role for the active store (last_store_id).
      */
     public function getRoleAttribute(): ?string
     {
         if ($this->is_platform_admin) return 'platform_admin';
         
-        // Priority 1: Current active tenant (set by routing middleware)
-        if (app()->bound('current.membership')) {
-            return app('current.membership')->role;
-        }
-
-        // Priority 2: Fallback to last store, or self-heal and assign the first available store
-        if (!$this->last_store_id) {
-            $firstMembership = $this->memberships()->where('status', 'active')->first();
-            if ($firstMembership) {
-                $this->update(['last_store_id' => $firstMembership->tenant_id]);
-                return $firstMembership->role;
-            }
-            return null;
-        }
-
-        return $this->roleIn($this->last_store_id);
+        return $this->getActiveMembership()?->role;
     }
 
     /**
@@ -268,9 +297,7 @@ class User extends Authenticatable
         if ($this->is_platform_admin) return ['*'];
 
         // Resolve the active membership
-        $membership = app()->bound('current.membership')
-            ? app('current.membership')
-            : $this->memberships()->where('tenant_id', $this->last_store_id)->where('status', 'active')->first();
+        $membership = $this->getActiveMembership();
 
         // If no membership found, return minimal default
         if (!$membership) return ['pos', 'sales_view'];

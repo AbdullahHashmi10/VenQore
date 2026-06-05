@@ -5,6 +5,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import ConfirmModal from '@/Components/ConfirmModal';
+import ExpenseTourGuide from '@/Components/ExpenseTourGuide';
 import {
     Receipt,
     Plus,
@@ -30,7 +31,8 @@ import {
     Check,
     User,
     Building2,
-    Monitor
+    Monitor,
+    AlertTriangle
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -182,7 +184,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
             </button>
 
             {open && (
-                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-[60] py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: '#1e293b' }}>
+                <div className="absolute top-full left-0 right-0 mt-1 rounded-xl shadow-2xl border border-white/10 z-[120] py-1 max-h-52 overflow-auto hide-scrollbar" style={{ background: '#1e293b' }}>
                     <button
                         type="button"
                         onClick={() => { onChange(''); setOpen(false); }}
@@ -211,6 +213,7 @@ function CustomSelect({ value, onChange, options, placeholder, error, onAddNew }
                     {/* Add New Option */}
                     {onAddNew && (
                         <button
+                            id="tour-add-expense-category-btn"
                             type="button"
                             onClick={() => { setOpen(false); onAddNew(); }}
                             className="w-full text-left px-4 py-2.5 text-sm text-indigo-400 font-bold hover:bg-indigo-500/10 transition-colors flex items-center gap-2 border-t border-white/5 mt-1"
@@ -554,7 +557,15 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                 });
             }
             setIsModalOpen(false);
-            router.reload({ only: ['expenses', 'stats'] });
+            if (store?.onboarding_step === 'expense_tour') {
+                router.post(
+                    route('store.onboarding.step', { store_slug: store?.slug }),
+                    { step: 'expense_congratulations' },
+                    { preserveScroll: true }
+                );
+            } else {
+                router.reload({ only: ['expenses', 'stats'] });
+            }
         } catch (error) {
             if (error.response?.status === 422) {
                 setErrors(error.response.data.errors || {});
@@ -713,6 +724,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                         <div className="flex items-center gap-2">
                             <button
+                                id="tour-expense-create-btn"
                                 onClick={handleCreate}
                                 className="px-4 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-rose-500/20 active:scale-95 font-bold text-sm"
                             >
@@ -828,11 +840,11 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             </div>
 
                             <div className="flex items-center gap-6">
-                                {grandTotal > 0 && (
+                                {grandTotalValue > 0 && (
                                     <div className="hidden lg:block text-right px-6 py-2.5 rounded-2xl bg-indigo-50/50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800/50 shadow-inner">
                                         <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1.5">Grand Total Impact</p>
                                         <p className="text-2xl font-black text-indigo-600 dark:text-indigo-400 tracking-tight">
-                                            {formatCurrency(grandTotal)}
+                                            {formatCurrency(grandTotalValue)}
                                         </p>
                                     </div>
                                 )}
@@ -847,6 +859,25 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
                         {/* -- Body -- */}
                         <div className="relative z-10 flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
+                            {errors && Object.keys(errors).length > 0 && (
+                                <div className="mb-6 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <AlertTriangle size={24} className="shrink-0 text-rose-500" />
+                                        <h4 className="text-base font-black uppercase tracking-wider">Please correct the following:</h4>
+                                    </div>
+                                    <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
+                                        {Object.entries(errors).map(([field, messages]) => {
+                                            const fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                            const msg = Array.isArray(messages) ? messages[0] : messages;
+                                            return (
+                                                <li key={field} className="tracking-tight">
+                                                    <span className="capitalize">{fieldLabel}</span>: {msg}
+                                                </li>
+                                            );
+                                        })}
+                                    </ul>
+                                </div>
+                            )}
                             <form encType="multipart/form-data">
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-12">
 
@@ -860,13 +891,14 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                         </div>
 
                                         <div className="space-y-6">
-                                            <div className="group">
+                                            <div id="tour-expense-category" className="group">
                                                 <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1 group-focus-within:text-indigo-500 transition-colors">Expense Category <span className="text-rose-500">*</span></label>
                                                 {isCreatingCategory && isModalOpen ? (
                                                     <div className="flex items-center gap-2 animate-in zoom-in-95 duration-200">
                                                         <div className="relative flex-1">
                                                             <Tag size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
                                                             <input
+                                                                id="tour-new-expense-category-name"
                                                                 autoFocus
                                                                 type="text"
                                                                 value={newCategoryName}
@@ -886,7 +918,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                     <CustomSelect
                                                         value={formData.expense_category_id}
                                                         onChange={(val) => setFormData({ ...formData, expense_category_id: val })}
-                                                        placeholder="— Select Category —"
+                                                        placeholder="â€” Select Category â€”"
                                                         error={errors.expense_category_id}
                                                         options={categories.map(c => ({ value: c.id, label: c.name }))}
                                                         onAddNew={() => setIsCreatingCategory(true)}
@@ -905,7 +937,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                 />
                                             </div>
 
-                                            <div className="group p-6 rounded-[2rem] bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden">
+                                            <div id="tour-expense-amount" className="group p-6 rounded-[2rem] bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 relative overflow-hidden">
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
                                                 <label className="block text-[9px] font-black text-indigo-200 uppercase tracking-widest mb-3">Amount (Excl. Tax) <span className="text-white">*</span></label>
                                                 <div className="relative flex items-center">
@@ -1043,7 +1075,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                                 />
                                             </div>
 
-                                            <div className="group">
+                                            <div id="tour-expense-description" className="group">
                                                 <label className="block text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Description <span className="text-rose-500">*</span></label>
                                                 <textarea
                                                     value={formData.description}
@@ -1098,7 +1130,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Total Payable</p>
                                     <div className="flex items-baseline gap-2">
                                         <p className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                                            {formatCurrency(grandTotal)}
+                                            {formatCurrency(grandTotalValue)}
                                         </p>
                                         <span className="text-[10px] font-bold text-rose-500 uppercase tracking-widest px-1.5 py-0.5 bg-rose-500/10 rounded-md border border-rose-500/20">OUT</span>
                                     </div>
@@ -1127,6 +1159,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     Cancel
                                 </button>
                                 <button
+                                    id="tour-expense-submit"
                                     type="button"
                                     onClick={handleSubmit}
                                     disabled={loading}
@@ -1156,6 +1189,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                 confirmLabel="Delete Expense"
                 isDangerous={true}
             />
+            <ExpenseTourGuide store={store} categories={categories} />
         </OneGlanceLayout>
     );
 }

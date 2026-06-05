@@ -50,8 +50,10 @@ class StoreSaleRequest extends FormRequest
 
             if (!$userId) return;
 
-            $role = \Illuminate\Support\Facades\DB::table('users')
-                ->where('id', $userId)
+            $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+            $role = \Illuminate\Support\Facades\DB::table('tenant_users')
+                ->where('user_id', $userId)
+                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
                 ->value('role');
 
             $maxDiscount = \Illuminate\Support\Facades\DB::table('discount_limits')

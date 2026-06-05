@@ -52,6 +52,10 @@ class SettingsController extends Controller
         }
 
         // Clear settings cache so new values take effect immediately
+        if ($tenant) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+        }
+        \Illuminate\Support\Facades\Cache::forget('settings:global');
         SettingsHelper::clearCache();
 
         return back()->with('success', 'Settings updated successfully');

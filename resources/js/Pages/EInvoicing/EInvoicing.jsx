@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     FileText,
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled = false }) {
+    const { store, errors } = usePage().props;
     const [activeTab, setActiveTab] = useState('e-invoice'); // 'e-invoice' or 'e-way-bill'
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,7 +58,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
 
     // Handle reporting to FBR
     const handleReport = (saleId) => {
-        router.post(route('store.e-invoicing.generate'), {
+        router.post(route('store.e-invoicing.generate', { store_slug: store?.slug }), {
             sale_id: saleId
         }, {
             preserveScroll: true
@@ -70,7 +71,7 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
         if (!selectedSale || !transporterName || !vehicleNumber) return;
 
         setIsSubmittingWaybill(true);
-        router.post(route('store.e-invoicing.waybill'), {
+        router.post(route('store.e-invoicing.waybill', { store_slug: store?.slug }), {
             sale_id: selectedSale.id,
             transporter_name: transporterName,
             vehicle_number: vehicleNumber
@@ -386,6 +387,19 @@ export default function EInvoicingIndex({ invoices = [], stats = {}, fbr_enabled
 
                         {/* Modal Content */}
                         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                            {errors && Object.keys(errors).length > 0 && (
+                                <div className="p-4 rounded-2xl bg-rose-500/10 border-2 border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-bold animate-in slide-in-from-top-4 duration-300">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <AlertTriangle size={16} className="text-rose-500" />
+                                        <p className="font-extrabold uppercase tracking-wide">Validation failed:</p>
+                                    </div>
+                                    <ul className="list-disc pl-5 space-y-0.5">
+                                        {Object.entries(errors).map(([field, msg]) => (
+                                            <li key={field}>{msg}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                             {selectedSale ? (
                                 <form onSubmit={handleWaybillSubmit} className="space-y-4">
                                     <div className="grid grid-cols-2 gap-4">

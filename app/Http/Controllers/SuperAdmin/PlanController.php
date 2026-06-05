@@ -41,6 +41,11 @@ class PlanController extends Controller
             'price_monthly'  => 'nullable|numeric|min:0',
             'price_annual'   => 'nullable|numeric|min:0',
             'price_lifetime' => 'nullable|numeric|min:0',
+            'price_monthly_pkr'  => 'nullable|numeric|min:0',
+            'price_annual_pkr'   => 'nullable|numeric|min:0',
+            'price_lifetime_pkr' => 'nullable|numeric|min:0',
+            'checkout_url_usd'   => 'nullable|string|url',
+            'checkout_url_pkr'   => 'nullable|string|url',
             'is_featured'    => 'boolean',
             'is_active'      => 'boolean',
             'is_visible'     => 'boolean',
@@ -62,6 +67,35 @@ class PlanController extends Controller
         return back()->with('success', "Plan \"{$plan->name}\" created. It is live immediately.");
     }
 
+    public function bulkUpdate(Request $request)
+    {
+        $validated = $request->validate([
+            'changes' => 'required|array',
+            'changes.*' => 'array',
+        ]);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
+            foreach ($validated['changes'] as $planId => $limits) {
+                $plan = Plan::find($planId);
+                if (!$plan) continue;
+
+                foreach ($limits as $key => $value) {
+                    $plan->limits()->updateOrCreate(
+                        ['key' => $key],
+                        [
+                            'value' => $value !== null ? (string)$value : null,
+                            'reset_period' => ($key === 'transactions_per_month') ? 'monthly' : 'never'
+                        ]
+                    );
+                }
+
+                PlanRepository::invalidatePlanCache($plan->slug);
+            }
+        });
+
+        return back()->with('success', 'Bulk feature matrix limits updated successfully.');
+    }
+
     public function update(Request $request, Plan $plan)
     {
         $validated = $request->validate([
@@ -71,6 +105,11 @@ class PlanController extends Controller
             'price_monthly'  => 'nullable|numeric|min:0',
             'price_annual'   => 'nullable|numeric|min:0',
             'price_lifetime' => 'nullable|numeric|min:0',
+            'price_monthly_pkr'  => 'nullable|numeric|min:0',
+            'price_annual_pkr'   => 'nullable|numeric|min:0',
+            'price_lifetime_pkr' => 'nullable|numeric|min:0',
+            'checkout_url_usd'   => 'nullable|string|url',
+            'checkout_url_pkr'   => 'nullable|string|url',
             'is_featured'    => 'boolean',
             'is_active'      => 'boolean',
             'is_visible'     => 'boolean',

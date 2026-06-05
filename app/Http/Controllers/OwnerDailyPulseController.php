@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\DailySnapshot;
+use App\Models\Setting;
 use App\Models\TenantUser;
 use App\Services\OwnerDailyPulseService;
+use App\Services\PlanGate;
 use App\Helpers\SettingsHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -19,6 +21,10 @@ class OwnerDailyPulseController extends Controller
     public function index(Request $request)
     {
         $tenant = app('current.tenant');
+
+        // ── Plan Gate: Owner's Daily Pulse ────────────────────────────────
+        PlanGate::enforce('owners_daily_pulse');
+
         $sessionKey = 'owner_pulse_authorized_' . $tenant->id;
         $isAuthorized = session()->get($sessionKey, false);
 
@@ -170,10 +176,19 @@ class OwnerDailyPulseController extends Controller
         ]);
 
         if ($request->action === 'disable') {
-            SettingsHelper::set('owner_pulse_setup_status_' . $tenant->id, 'disabled');
+            Setting::updateOrCreate(
+                ['key' => 'owner_pulse_setup_status_' . $tenant->id],
+                ['value' => 'disabled']
+            );
         } else {
-            SettingsHelper::set('owner_pulse_setup_status_' . $tenant->id, 'enabled');
-            SettingsHelper::set('owner_pulse_passcode_' . $tenant->id, Hash::make($request->passcode));
+            Setting::updateOrCreate(
+                ['key' => 'owner_pulse_setup_status_' . $tenant->id],
+                ['value' => 'enabled']
+            );
+            Setting::updateOrCreate(
+                ['key' => 'owner_pulse_passcode_' . $tenant->id],
+                ['value' => Hash::make($request->passcode)]
+            );
         }
 
         session()->put('owner_pulse_authorized_' . $tenant->id, true);
@@ -193,7 +208,7 @@ class OwnerDailyPulseController extends Controller
         $sessionKey = 'owner_pulse_authorized_' . $tenant->id;
         session()->forget($sessionKey);
 
-        return redirect()->route('reports.owner-daily-pulse', ['store_slug' => $tenant->slug])
+        return redirect()->route('store.reports.owner-daily-pulse', ['store_slug' => $tenant->slug])
             ->with('success', 'Terminal locked.');
     }
 

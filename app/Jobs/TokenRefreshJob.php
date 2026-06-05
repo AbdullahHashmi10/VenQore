@@ -26,6 +26,10 @@ class TokenRefreshJob implements ShouldQueue
         TikTokClient $tiktok,
         EbayClient $ebay
     ): void {
+        if (!config('vensynq.enabled', false)) {
+            return;
+        }
+
         Log::info('VenSynQ: TokenRefreshJob Started.');
 
         // Find connected channels whose access token is expiring within the next 15 minutes or already expired

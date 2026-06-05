@@ -32,6 +32,7 @@ import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
 import { getProductPrice, shouldStopNegativeStock } from '@/Utils/settings';
+import { db } from '@/Utils/db';
 
 import Toast from '@/Components/Toast';
 import AlertModal from '@/Components/AlertModal';
@@ -46,6 +47,7 @@ import { UserPlus, PackagePlus, AlertCircle } from 'lucide-react'; // Icons for 
 import SmartCombobox from '@/Components/SmartCombobox';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
+import PosTourGuide from '@/Components/PosTourGuide';
 
 const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = [] }) => {
     const { auth, store } = usePage().props;
@@ -511,10 +513,37 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const performSearch = async (query) => {
         setIsSearching(true);
         try {
-            const response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), { params: { q: query } });
-            setSearchResults(response.data.data || response.data || []);
+            if (isOnline) {
+                const response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), { params: { q: query } });
+                setSearchResults(response.data.data || response.data || []);
+            } else {
+                const lowerQuery = query.toLowerCase();
+                const results = await db.products
+                    .filter(p => 
+                        (p.name && p.name.toLowerCase().includes(lowerQuery)) ||
+                        (p.sku && p.sku.toLowerCase().includes(lowerQuery)) ||
+                        (p.barcode && p.barcode.includes(query))
+                    )
+                    .limit(50)
+                    .toArray();
+                setSearchResults(results);
+            }
         } catch (error) {
             console.error("Search error:", error);
+            try {
+                const lowerQuery = query.toLowerCase();
+                const results = await db.products
+                    .filter(p => 
+                        (p.name && p.name.toLowerCase().includes(lowerQuery)) ||
+                        (p.sku && p.sku.toLowerCase().includes(lowerQuery)) ||
+                        (p.barcode && p.barcode.includes(query))
+                    )
+                    .limit(50)
+                    .toArray();
+                setSearchResults(results);
+            } catch (localError) {
+                console.error("Local search failed:", localError);
+            }
         } finally {
             setIsSearching(false);
         }
@@ -634,9 +663,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
         setIsSearching(true);
         try {
-            // Check for exact match first
-            const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), { params: { query: val } });
-            const results = response.data;
+            let results = [];
+            if (isOnline) {
+                // Check for exact match first
+                const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), { params: { query: val } });
+                results = response.data;
+            } else {
+                results = await db.products
+                    .filter(p => p.sku === val || p.barcode === val)
+                    .toArray();
+            }
 
             // Should we prioritize Exact Match?
             const exactMatch = results.find(p => p.sku === val || p.barcode === val);
@@ -667,6 +703,21 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             }
         } catch (error) {
             console.error(error);
+            try {
+                const results = await db.products
+                    .filter(p => p.sku === val || p.barcode === val)
+                    .toArray();
+                const exactMatch = results.find(p => p.sku === val || p.barcode === val);
+                if (exactMatch) {
+                    handleProductSelect(exactMatch);
+                } else if (results.length === 1) {
+                    handleProductSelect(results[0]);
+                } else {
+                    addToast('No product found (offline)', 'warning');
+                }
+            } catch (err) {
+                console.error("Local scan lookup failed:", err);
+            }
         } finally {
             setIsSearching(false);
         }
@@ -895,32 +946,56 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             if (data.manufacturing_notifications && data.manufacturing_notifications.length > 0) {
                 message += '\n\n📦 Auto-Manufacturing:\n' + data.manufacturing_notifications.join('\n');
             }
-            showAlert('Sale Completed!', message, 'success');
+            if (store?.onboarding_step === 'pos_tour') {
+                router.post(
+                    route('store.onboarding.step', { store_slug: store?.slug }),
+                    { step: 'pos_congratulations' },
+                    { preserveScroll: true }
+                );
+            } else {
+                showAlert('Sale Completed!', message, 'success');
 
-            // Auto-close after 3 seconds to speed up workflow
-            setTimeout(() => {
-                setAlertState(prev => {
-                    // Only auto-close if the specific success modal is still open
-                    if (prev.show && prev.title === 'Sale Completed!') {
-                        return { ...prev, show: false };
-                    }
-                    return prev;
-                });
-                if (searchInputRef.current) searchInputRef.current.focus();
-            }, 3000);
+                // Auto-close after 3 seconds to speed up workflow
+                setTimeout(() => {
+                    setAlertState(prev => {
+                        // Only auto-close if the specific success modal is still open
+                        if (prev.show && prev.title === 'Sale Completed!') {
+                            return { ...prev, show: false };
+                        }
+                        return prev;
+                    });
+                    if (searchInputRef.current) searchInputRef.current.focus();
+                }, 3000);
+            }
         }
     };
 
     // Customer search function
     const searchCustomers = async (query) => {
         try {
-            const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), {
-                params: { search: query }
-            });
-            setCustomerResults(response.data || []);
+            if (isOnline) {
+                const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), {
+                    params: { search: query }
+                });
+                setCustomerResults(response.data || []);
+            } else {
+                throw new Error("Offline");
+            }
         } catch (error) {
-            console.error("Customer search error:", error);
-            setCustomerResults([]);
+            console.error("Customer search error, falling back locally:", error);
+            try {
+                const lowerQuery = query.toLowerCase();
+                const localCustomers = await db.customers
+                    .filter(c => 
+                        (c.name && c.name.toLowerCase().includes(lowerQuery)) ||
+                        (c.phone && c.phone.includes(query))
+                    )
+                    .toArray();
+                setCustomerResults(localCustomers);
+            } catch (localError) {
+                console.error("Local customer search failed:", localError);
+                setCustomerResults([]);
+            }
         }
     };
 
@@ -949,14 +1024,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     useEffect(() => {
         const loadInitialCustomers = async () => {
             try {
-                const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), { params: { search: '' } });
-                setInitialCustomers((response.data || []).slice(0, 50));
+                if (isOnline) {
+                    const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), { params: { search: '' } });
+                    setInitialCustomers((response.data || []).slice(0, 50));
+                } else {
+                    throw new Error("Offline");
+                }
             } catch (error) {
-                console.error('Failed to load initial customers:', error);
+                console.error('Failed to load initial customers, falling back locally:', error);
+                try {
+                    const localCustomers = await db.customers.limit(50).toArray();
+                    setInitialCustomers(localCustomers);
+                } catch (localError) {
+                    console.error("Local initial customers load failed:", localError);
+                }
             }
         };
         loadInitialCustomers();
-    }, []);
+    }, [isOnline]);
 
     // Print receipt function
     const printReceipt = (type = null) => {
@@ -1333,11 +1418,38 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Load categories
     const loadCategories = async () => {
         try {
-            const response = await axios.get(route('store.pos.categories', { store_slug: store?.slug }));
-            setCategories(response.data.data || response.data || []);
+            if (isOnline) {
+                const response = await axios.get(route('store.pos.categories', { store_slug: store?.slug }));
+                setCategories(response.data.data || response.data || []);
+            } else {
+                throw new Error("Offline");
+            }
         } catch (error) {
-            console.error("Error loading categories:", error);
-            setCategories([]);
+            console.error("Error loading categories, extracting locally:", error);
+            try {
+                const localProducts = await db.products.toArray();
+                const categoriesMap = {};
+                localProducts.forEach(p => {
+                    if (p.category) {
+                        const catId = p.category.id || p.category_id;
+                        const catName = p.category.name || p.category_name || 'General';
+                        categoriesMap[catId] = {
+                            id: catId,
+                            name: catName,
+                            product_count: (categoriesMap[catId]?.product_count || 0) + 1
+                        };
+                    }
+                });
+                const sorted = Object.values(categoriesMap).sort((a, b) => {
+                    if (a.name === 'Phones') return -1;
+                    if (b.name === 'Phones') return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                setCategories(sorted);
+            } catch (localError) {
+                console.error("Failed to load local categories:", localError);
+                setCategories([]);
+            }
         }
     };
 
@@ -1345,17 +1457,35 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const fetchCategoryProducts = async (catId) => {
         setIsLoadingProducts(true);
         try {
-            let response;
-            if (catId) {
-                response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), {
-                    params: { category_id: catId, q: '' }
-                });
+            if (isOnline) {
+                let response;
+                if (catId) {
+                    response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), {
+                        params: { category_id: catId, q: '' }
+                    });
+                } else {
+                    response = await axios.get(route('store.pos.featured', { store_slug: store?.slug }));
+                }
+                setCategoryProducts(response.data.data || response.data || []);
             } else {
-                response = await axios.get(route('store.pos.featured', { store_slug: store?.slug }));
+                throw new Error("Offline");
             }
-            setCategoryProducts(response.data.data || response.data || []);
         } catch (error) {
-            console.error("Error loading category products:", error);
+            console.error("Error loading category products, falling back locally:", error);
+            try {
+                let localProducts = [];
+                if (catId) {
+                    localProducts = await db.products
+                        .filter(p => p.category_id === catId || (p.category && p.category.id === catId))
+                        .toArray();
+                } else {
+                    localProducts = await db.products.limit(50).toArray();
+                }
+                setCategoryProducts(localProducts);
+            } catch (localError) {
+                console.error("Failed to load local products:", localError);
+                setCategoryProducts([]);
+            }
         } finally {
             setIsLoadingProducts(false);
         }
@@ -1364,7 +1494,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Load products when category changes (or on mount/reset)
     useEffect(() => {
         fetchCategoryProducts(selectedCategory);
-    }, [selectedCategory]);
+    }, [selectedCategory, isOnline]);
 
     // Load parked sales and categories on mount
     useEffect(() => {
@@ -1537,7 +1667,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         >
                             <PackagePlus size={20} />
                         </button>
-                        <div className="flex-1 relative">
+                        <div id="tour-pos-product" className="flex-1 relative">
                             {/* <ScanBarcode className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} /> */}
                             <AsyncProductCombobox
                                 defaultOptions={categoryProducts}
@@ -1896,7 +2026,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
 
                         {/* Customer Search Row - Full Width to prevent clipping */}
-                        <div className="relative z-[60]">
+                        <div id="tour-pos-customer" className="relative z-[60]">
                             {customerDropdownOpen ? (
                                 <div className="animate-in slide-in-from-top-2 duration-200">
                                     <AsyncPartyCombobox
@@ -2061,7 +2191,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         {/* Payment Button - Replaces Cash Calculator */}
                         {/* Payment Input Section - Restored "Fill in value" option */}
                         <div className="space-y-3 mb-2">
-                            <div className="bg-white/10 p-4 rounded-xl border border-white/5">
+                            <div id="tour-pos-paid" className="bg-white/10 p-4 rounded-xl border border-white/5">
                                 <div className="flex justify-between items-center mb-2">
                                     <label className="text-xs uppercase font-bold text-slate-400">Amount Tendered</label>
                                     <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
@@ -2118,6 +2248,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
 
                         <button
+                            id="tour-pos-checkout"
                             onClick={handleCheckoutClick}
                             disabled={processingPayment || activeSale.cart.length === 0}
                             className={`w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -2639,10 +2770,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 };
 
 export default function Pos({ settings, bankAccounts, recalledSale }) {
+    const { store } = usePage().props;
     return (
         <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true}>
             <Head title="POS" />
             <POSInterface settings={settings} recalledSale={recalledSale} bankAccounts={bankAccounts} />
+            <PosTourGuide store={store} />
         </OneGlanceLayout>
     );
 }

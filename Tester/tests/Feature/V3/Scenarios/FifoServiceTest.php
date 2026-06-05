@@ -151,8 +151,8 @@ class FifoServiceTest extends TestCase
     /** @test */
     public function database_constraint_blocks_negative_remaining_qty()
     {
-        if (DB::connection()->getDriverName() !== 'mysql') {
-            $this->markTestSkipped('Database CHECK constraint only enforced on MySQL.');
+        if (!in_array(DB::connection()->getDriverName(), ['mysql', 'sqlite'])) {
+            $this->markTestSkipped('Database CHECK constraint only enforced on MySQL or SQLite.');
             return;
         }
 

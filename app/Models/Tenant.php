@@ -69,6 +69,21 @@ class Tenant extends Model
         'onboarding_completed',
         'onboarding_skipped',
         'onboarding_steps_done',
+        'google_backup_enabled',
+        'google_backup_retention',
+        'google_backup_email',
+        'google_access_token',
+        'google_refresh_token',
+        'google_backup_folder_id',
+        'view_only_since',
+        'limit_grace_ends_at',
+        'ai_status',
+        'ai_queries_limit',
+        'ai_queries_used',
+        'ai_scans_limit',
+        'ai_scans_used',
+        'sync_channels',
+        'grace_ends_at',
     ];
 
     protected $casts = [
@@ -87,7 +102,33 @@ class Tenant extends Model
         'onboarding_completed'  => 'boolean',
         'onboarding_skipped'    => 'boolean',
         'onboarding_steps_done' => 'array',
+        'google_backup_enabled' => 'boolean',
+        'google_backup_retention'=> 'integer',
+        'google_access_token'   => 'encrypted',
+        'google_refresh_token'  => 'encrypted',
+        'view_only_since'       => 'datetime',
+        'limit_grace_ends_at'   => 'datetime',
+        'sync_channels'         => 'array',
+        'grace_ends_at'         => 'datetime',
     ];
+
+    protected $hidden = [
+        'google_access_token',
+        'google_refresh_token',
+    ];
+
+    protected $appends = [
+        'logo_url',
+        'google_connected',
+    ];
+
+    public function getGoogleConnectedAttribute(): bool
+    {
+        if (!array_key_exists('google_refresh_token', $this->attributes)) {
+            return false;
+        }
+        return !empty($this->google_refresh_token);
+    }
 
     // ──────────────────────────────────────────────────────────────────
     // Relationships
@@ -143,6 +184,9 @@ class Tenant extends Model
      */
     public function getLogoUrlAttribute(): ?string
     {
+        if (!array_key_exists('logo_path', $this->attributes)) {
+            return null;
+        }
         if (!$this->logo_path) {
             return null;
         }
@@ -232,6 +276,74 @@ class Tenant extends Model
             'serials'       => (bool)$this->feature_serials,
             'batches'       => (bool)$this->feature_batches,
             'manufacturing' => (bool)$this->feature_manufacturing,
+        ];
+    }
+
+    public function setPlanAttribute($value)
+    {
+        if (is_string($value) && str_starts_with($value, 'ltd_')) {
+            $this->attributes['plan'] = 'ltd';
+            $this->plan_limits = config("plans.{$value}");
+        } else {
+            $this->attributes['plan'] = $value;
+        }
+    }
+
+    /**
+     * Check current usage against plan limits for products, warehouses, and staff.
+     */
+    public function checkLimitsStatus(): array
+    {
+        // 1. Products (SKUs)
+        $skuLimit = $this->getLimit('sku_limit');
+        $skuCount = $skuLimit !== null ? $this->products()->count() : 0;
+        $skuExceeded = $skuLimit !== null && $skuCount > $skuLimit;
+
+        // 2. Warehouses (Locations)
+        $locationLimit = $this->getLimit('locations');
+        $locationCount = 0;
+        if ($locationLimit !== null) {
+            try {
+                $locationCount = \App\Models\Warehouse::count(); // scoped by HasTenant
+            } catch (\Throwable) {
+                $locationCount = 1;
+            }
+        }
+        $locationExceeded = $locationLimit !== null && $locationCount > $locationLimit;
+
+        // 3. Staff Accounts
+        $staffLimit = $this->getLimit('staff_limit');
+        $staffCount = 0;
+        if ($staffLimit !== null) {
+            $staffCount = $this->users()->wherePivot('status', 'active')->count();
+        }
+        $staffExceeded = $staffLimit !== null && $staffCount > $staffLimit;
+
+        // Determine which feature is exceeded (prioritize SKU, then staff, then locations)
+        $exceededFeature = null;
+        $currentCount = 0;
+        $limit = null;
+
+        if ($skuExceeded) {
+            $exceededFeature = 'sku_limit';
+            $currentCount = $skuCount;
+            $limit = $skuLimit;
+        } elseif ($staffExceeded) {
+            $exceededFeature = 'staff_limit';
+            $currentCount = $staffCount;
+            $limit = $staffLimit;
+        } elseif ($locationExceeded) {
+            $exceededFeature = 'locations';
+            $currentCount = $locationCount;
+            $limit = $locationLimit;
+        }
+
+        return [
+            'is_over_limit' => $exceededFeature !== null,
+            'exceeded_feature' => $exceededFeature,
+            'current_count' => $currentCount,
+            'limit' => $limit,
+            'grace_ends_at' => $this->limit_grace_ends_at?->toIso8601String(),
         ];
     }
 }

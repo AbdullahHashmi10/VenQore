@@ -95,8 +95,11 @@ class AiController extends Controller
                 $inputModel,
                 'gemini-2.5-flash',
                 'gemini-2.5-flash-lite',
+                'gemini-3.5-flash',
                 'gemini-3-flash',
-                'gemini-2.5-pro'
+                'gemini-2.5-pro',
+                'gemini-2.0-flash',
+                'gemini-2.0-flash-lite'
             ]);
 
             $firstError = null;
@@ -298,8 +301,11 @@ class AiController extends Controller
             $preferredModel,
             'gemini-2.5-flash',
             'gemini-2.5-flash-lite',
+            'gemini-3.5-flash',
             'gemini-3-flash',
-            'gemini-2.5-pro'
+            'gemini-2.5-pro',
+            'gemini-2.0-flash',
+            'gemini-2.0-flash-lite'
         ]);
 
         $lastException = null;

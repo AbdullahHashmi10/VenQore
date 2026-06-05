@@ -1,5 +1,5 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
-import { getCurrencySymbol } from '@/Utils/format';
+import React, { useState, useEffect, useRef } from 'react';
+import { getCurrencySymbol, formatCurrency } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SellModuleTabs from '@/Components/SellModuleTabs';
@@ -249,10 +249,8 @@ const CreatePreSale = ({ sale }) => {
     const handleProductSubmit = async (data, onError) => {
         try {
             const url = productModalMode === 'create'
-                ? route("store.inventory.store", {
-                store_slug: store.slug
-            })
-                : route("store.inventory.update", [store.slug, editingProduct.id]);
+                ? route("store.inventory.store", { store_slug: store.slug })
+                : (editingProduct?.id ? route("store.inventory.update", [store.slug, editingProduct.id]) : "");
 
             const response = await axios.post(url, data);
 

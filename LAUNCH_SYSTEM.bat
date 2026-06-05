@@ -9,7 +9,8 @@ echo ===================================================
 echo.
 
 REM --- CONFIGURATION ---
-set "TARGET_PHP=D:\Software\XAMPP\php\php.exe"
+set "TARGET_PHP=E:\Software\xampp\php\php.exe"
+if not exist "%TARGET_PHP%" set "TARGET_PHP=D:\Software\XAMPP\php\php.exe"
 set "PORT=8000"
 set "HOST=127.0.0.1"
 
@@ -49,6 +50,10 @@ REM Start Backend
 echo    - Starting Backend (Port %PORT%)...
 REM Using explicit call with title and quotes around exe path
 start /min "AMD_BACKEND" "%PHP_BIN%" artisan serve --host=%HOST% --port=%PORT%
+
+REM Start Reverb Websocket Server
+echo    - Starting Reverb Websocket Server (Port 8080)...
+start /min "AMD_REVERB" "%PHP_BIN%" artisan reverb:start --host=127.0.0.1 --port=8080
 
 REM Start Frontend
 echo    - Starting Frontend...

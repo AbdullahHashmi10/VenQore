@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
+use App\Services\PlanGate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -11,6 +12,9 @@ class BomController extends Controller
 {
     public function store(Request $request)
     {
+        // ── Plan Gate: Bill of Materials ─────────────────────────────────────
+        PlanGate::enforce('bill_of_materials');
+
         $validated = $request->validate([
             'product_id'     => ['required', 'string', 'exists:products,id'],
             'version'        => ['required', 'integer', 'min:1'],

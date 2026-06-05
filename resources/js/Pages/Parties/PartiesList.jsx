@@ -637,6 +637,7 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                 title={editingParty ? 'Edit Party' : 'Add Party'}
                 subtitle={editingParty ? 'Update party details' : 'Add a new customer or supplier'}
                 size="lg"
+                errors={errors}
                 footer={
                     <div className="flex justify-end gap-3">
                         <SecondaryButton onClick={() => setIsModalOpen(false)}>

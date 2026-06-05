@@ -9,11 +9,11 @@ use App\Services\V3\AccountingService;
 use App\Services\V3\FifoService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SettlementAndReportServiceTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     private SettlementService $settlement;
     private ReportService     $reports;

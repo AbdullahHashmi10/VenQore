@@ -16,6 +16,7 @@ test('ai_product_recommendation_returns_relevant_suggestions', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
+    $ownerId = auth()->id();
 
     $productA = Product::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Pizza Crust']);
     $productB = Product::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Tomato Sauce']);
@@ -41,7 +42,7 @@ test('ai_product_recommendation_returns_relevant_suggestions', function () {
         'status' => 'completed',
         'payment_status' => 'paid',
         'payment_method' => 'cash',
-        'user_id' => 1,
+        'user_id' => $ownerId,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -68,6 +69,7 @@ test('smart_reorder_alert_triggers_at_correct_threshold', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
+    $ownerId = auth()->id();
 
     $productA = Product::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Low Stock Item']);
     $productB = Product::factory()->create(['tenant_id' => $tenant->id, 'name' => 'High Stock Item']);
@@ -98,7 +100,7 @@ test('smart_reorder_alert_triggers_at_correct_threshold', function () {
         'status' => 'completed',
         'payment_status' => 'paid',
         'payment_method' => 'cash',
-        'user_id' => 1,
+        'user_id' => $ownerId,
         'created_at' => now()->subDays(10),
         'updated_at' => now()->subDays(10),
     ]);
@@ -143,7 +145,7 @@ test('predictive_cash_flow_forecast_is_reasonable', function () {
     $entry1 = Str::uuid()->toString();
     DB::table('journal_entries')->insert([
         'id' => $entry1, 'tenant_id' => $tenant->id, 'date' => now()->subDays(15)->toDateString(),
-        'reference_type' => 'manual', 'user_id' => 1, 'is_reversed' => 0, 'created_at' => now(), 'updated_at' => now()
+        'reference_type' => 'manual', 'user_id' => auth()->id(), 'is_reversed' => 0, 'created_at' => now(), 'updated_at' => now()
     ]);
     DB::table('journal_items')->insert([
         ['id' => Str::uuid(), 'tenant_id' => $tenant->id, 'journal_entry_id' => $entry1, 'account_id' => $acc1->id, 'debit' => 3000.0, 'credit' => 0.0],

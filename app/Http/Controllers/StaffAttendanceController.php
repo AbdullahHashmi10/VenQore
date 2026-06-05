@@ -54,10 +54,17 @@ class StaffAttendanceController extends Controller
         })->filter(fn($gap) => $gap->user_id !== null);
 
 
+        // Fetch terminal activity logs for the selected date
+        $terminalActivities = \App\Models\TerminalActivity::whereDate('away_at', $date)
+            ->with('terminal')
+            ->orderBy('away_at', 'desc')
+            ->get();
+
         return Inertia::render('StaffAttendance/StaffAttendance', [
             'staff' => $staff,
             'attendance' => $attendance,
             'gaps' => $gaps,
+            'terminalActivities' => $terminalActivities,
             'filters' => [
                 'date' => $date
             ]

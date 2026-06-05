@@ -4,14 +4,18 @@ import { Sparkles, Compass, Rocket, ArrowRight, X, ArrowLeft, Box, HelpCircle } 
 
 export default function WelcomeTourModal({ store }) {
     const [currentStep, setCurrentStep] = useState(() => {
-        if (store?.onboarding_step === 'purchase_tour_start' || store?.onboarding_step === 'purchase_tour_sidebar') {
-            return store.onboarding_step;
-        }
-        return 'welcome';
+        return store?.onboarding_step || 'welcome';
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+
+    // Sync currentStep with store state changes
+    useEffect(() => {
+        if (store?.onboarding_step) {
+            setCurrentStep(store.onboarding_step);
+        }
+    }, [store?.onboarding_step]);
 
     // Track screen width for responsiveness
     useEffect(() => {
@@ -114,6 +118,67 @@ export default function WelcomeTourModal({ store }) {
                 onFinish: () => setIsSubmitting(false),
             }
         );
+    };
+
+    const handleStartInvoiceTour = () => {
+        setIsSubmitting(true);
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'invoice_tour' },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.visit(route('store.sales.invoice.create', { store_slug: store?.slug }));
+                },
+                onFinish: () => setIsSubmitting(false),
+            }
+        );
+    };
+
+    const handleStartPosTour = () => {
+        setIsSubmitting(true);
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'pos_tour' },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.visit(route('store.pos', { store_slug: store?.slug }));
+                },
+                onFinish: () => setIsSubmitting(false),
+            }
+        );
+    };
+
+    const handleStartExpenseTour = () => {
+        setIsSubmitting(true);
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: 'expense_tour' },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    router.visit(route('store.expenses.index', { store_slug: store?.slug }));
+                },
+                onFinish: () => setIsSubmitting(false),
+            }
+        );
+    };
+
+    const handleSkipInvoiceOrPos = () => {
+        const doneSteps = store?.onboarding_steps_done || [];
+        const nextStep = !doneSteps.includes('pos') ? 'pos_tour_start' : 'expense_tour_start';
+        handleUpdateStep(nextStep);
+    };
+
+    const handleSkipPos = () => {
+        const doneSteps = store?.onboarding_steps_done || [];
+        const nextStep = !doneSteps.includes('invoice') ? 'invoice_tour_start' : 'expense_tour_start';
+        handleUpdateStep(nextStep);
+    };
+
+    const handleSkipExpense = () => {
+        handleUpdateStep('completed');
     };
 
     const handleFinalizeTour = () => {
@@ -265,6 +330,198 @@ export default function WelcomeTourModal({ store }) {
                                     className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
                                 >
                                     Skip Tour
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Invoice Tour Start Modal
+    if (currentStep === 'invoice_tour_start') {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                        
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <button
+                            onClick={handleSkipInvoiceOrPos}
+                            disabled={isSubmitting}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            title="Skip Step"
+                        >
+                            <X size={16} />
+                        </button>
+
+                        <div className="p-8 flex flex-col items-center text-center relative z-10">
+                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6 animate-bounce">
+                                <Sparkles className="text-white w-8 h-8" />
+                            </div>
+
+                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                                Generate B2B Invoice! 🧾
+                            </h2>
+
+                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                                Stage 3: Make Your First Wholesale/B2B Sale
+                            </p>
+
+                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                                To complete your onboarding, let's create a professional B2B sale invoice for a client purchase. We'll guide you step-by-step.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                <button
+                                    onClick={handleStartInvoiceTour}
+                                    disabled={isSubmitting}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <Rocket size={18} />
+                                    <span>Start Invoice Tour</span>
+                                    <ArrowRight size={16} className="ml-1" />
+                                </button>
+
+                                <button
+                                    onClick={handleSkipInvoiceOrPos}
+                                    disabled={isSubmitting}
+                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                >
+                                    Skip Step
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // POS Tour Start Modal
+    if (currentStep === 'pos_tour_start') {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                        
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <button
+                            onClick={handleSkipPos}
+                            disabled={isSubmitting}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            title="Skip Step"
+                        >
+                            <X size={16} />
+                        </button>
+
+                        <div className="p-8 flex flex-col items-center text-center relative z-10">
+                            <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-teal-500/30 mb-6 animate-bounce">
+                                <Sparkles className="text-white w-8 h-8" />
+                            </div>
+
+                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                                Open POS Register! 🛒
+                            </h2>
+
+                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                                Stage 3: Make Your First Retail POS Sale
+                            </p>
+
+                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                                Let's test checking out a retail sale using our high-speed, beautiful Point of Sale interface. We'll guide you step-by-step.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                <button
+                                    onClick={handleStartPosTour}
+                                    disabled={isSubmitting}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:via-teal-600 hover:to-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-teal-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <Rocket size={18} />
+                                    <span>Start POS Tour</span>
+                                    <ArrowRight size={16} className="ml-1" />
+                                </button>
+
+                                <button
+                                    onClick={handleSkipPos}
+                                    disabled={isSubmitting}
+                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                >
+                                    Skip Step
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // Expense Tour Start Modal
+    if (currentStep === 'expense_tour_start') {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                    <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                        
+                        <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                        <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                        <button
+                            onClick={handleSkipExpense}
+                            disabled={isSubmitting}
+                            className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
+                            title="Skip Step"
+                        >
+                            <X size={16} />
+                        </button>
+
+                        <div className="p-8 flex flex-col items-center text-center relative z-10">
+                            <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6 animate-bounce">
+                                <Sparkles className="text-white w-8 h-8" />
+                            </div>
+
+                            <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight mb-3">
+                                Record Store Expenses! 💸
+                            </h2>
+
+                            <p className="text-slate-400 text-sm font-semibold mb-2">
+                                Stage 4: Add Store Operation Expense
+                            </p>
+
+                            <p className="text-slate-300 text-sm leading-relaxed max-w-sm mb-8">
+                                To get an accurate picture of your net profits, let's record a store operating expense (like rent or utilities) in the expenses log. We'll guide you step-by-step.
+                            </p>
+
+                            <div className="flex flex-col sm:flex-row gap-3 w-full">
+                                <button
+                                    onClick={handleStartExpenseTour}
+                                    disabled={isSubmitting}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                                >
+                                    <Rocket size={18} />
+                                    <span>Start Expense Tour</span>
+                                    <ArrowRight size={16} className="ml-1" />
+                                </button>
+
+                                <button
+                                    onClick={handleSkipExpense}
+                                    disabled={isSubmitting}
+                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
+                                >
+                                    Skip Step
                                 </button>
                             </div>
                         </div>

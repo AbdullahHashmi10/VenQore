@@ -1,6 +1,9 @@
 <?php
 
 return [
+    // Master switch to toggle VenSynQ features platform-wide
+    'enabled' => env('VENSYNQ_ENABLED', false),
+
     /*
     |--------------------------------------------------------------------------
     | VenSynQ Multi-Channel E-Commerce Fulfillment Engine Config

@@ -66,3 +66,16 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// ── Close Inactive Chat Sessions ──────────────────────────────────────────
+\Illuminate\Support\Facades\Schedule::command('chat:close-inactive')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// ── Automated Google Drive backups ───────────────────────────────────────
+\Illuminate\Support\Facades\Schedule::command('backup:google-drive')
+    ->dailyAt('02:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+

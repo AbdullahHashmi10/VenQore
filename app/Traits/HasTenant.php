@@ -59,8 +59,8 @@ trait HasTenant
                 /** @var \App\Models\User $user */
                 $user = auth()->user();
 
-                // Platform Admins see everything at the global level.
-                if ($user->isPlatformAdmin()) {
+                // Platform Admins and Staff see everything at the global level.
+                if ($user->isPlatformAdmin() || $user->isPlatformStaff()) {
                     return;
                 }
 

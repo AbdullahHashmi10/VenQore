@@ -20,11 +20,47 @@ if (fs.existsSync(configFile)) {
   try { config = { ...config, ...JSON.parse(fs.readFileSync(configFile, 'utf8')) }; } catch (e) { }
 }
 
+const SUITE_TESTS = {
+  'FrontendSyntaxIntegrityTest': [
+    'frontend codebase has no eslint errors'
+  ],
+  'ZiggyRouteIntegrityTest': [
+    'all frontend route calls have registered routes',
+    'owner daily pulse routes are all registered',
+    'backup routes use correct store prefix',
+    'recycle bin routes use admin prefix',
+    'migration routes use store legacy prefix',
+    'returns route uses history suffix',
+    'no route registered without store slug parameter when expected'
+  ],
+  'RouteParameterRegressionTest': [
+    'route parameter names match frontend expectations'
+  ],
+  'OwnersDailyPulseTest': [
+    'all pulse routes are registered',
+    'unauthenticated user cannot access pulse dashboard',
+    'authenticated owner can access pulse dashboard',
+    'verify endpoint returns success for valid passcode',
+    'verify endpoint returns 403 for invalid passcode',
+    'verify endpoint validates passcode is required',
+    'setup endpoint can enable passcode',
+    'setup endpoint can disable passcode',
+    'setup requires passcode when action is set',
+    'lock endpoint clears session and redirects',
+    'note endpoint saves memo when authorized',
+    'note endpoint rejects unauthorized access',
+    'note endpoint validates date format'
+  ]
+};
+
 // ─── HTTP Server (serves dashboard.html) ───────────────────────────────────
 const server = http.createServer((req, res) => {
   if (req.method === 'GET' && (req.url === '/' || req.url === '/dashboard.html')) {
     const html = fs.readFileSync(path.join(__dirname, 'dashboard.html'), 'utf8');
-    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.writeHead(200, { 
+      'Content-Type': 'text/html',
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0'
+    });
     res.end(html);
     return;
   }
@@ -145,7 +181,20 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/ProfileTest.php',
     'Tester/tests/Feature/ImportMappingTest.php',
     'Tester/tests/Feature/StoreUniqueNameTest.php',
-    'Tester/tests/Feature/MigrateOpeningBalancesTest.php'
+    'Tester/tests/Feature/MigrateOpeningBalancesTest.php',
+    'Tester/tests/Feature/Chat',
+    'Tester/tests/Feature/PlanManagementTest.php',
+    'Tester/tests/Feature/Billing',
+    'Tester/tests/Feature/PlanLimitsEnforcerTest.php',
+    'Tester/tests/Feature/ProductDeletionTest.php',
+    'Tester/tests/Feature/FrontendSyntaxIntegrityTest.php',
+    'Tester/tests/Feature/RouteParameterRegressionTest.php',
+    'Tester/tests/Feature/ZiggyRouteIntegrityTest.php',
+    'Tester/tests/Feature/OwnersDailyPulseTest.php',
+    'Tester/tests/Feature/ModalValidationRegressionTest.php',
+    'Tester/tests/Feature/ExampleTest.php',
+    'Tester/tests/Feature/TerminalAppIntegrationTest.php',
+    'Tester/tests/Unit'
   ];
 
   const cmd = `"${config.phpBin || 'php'}" ${config.phpIni ? `-c "${config.phpIni}"` : ''} vendor/bin/pest ${modules.join(' ')} --configuration Tester/phpunit.xml --no-coverage`;
@@ -176,7 +225,38 @@ function runTests(projectPath, ws) {
     'ProfileTest',
     'ImportMappingTest',
     'StoreUniqueNameTest',
-    'MigrateOpeningBalancesTest'
+    'MigrateOpeningBalancesTest',
+    'Chat',
+    'PlanManagementTest',
+    'Billing',
+    'PlanLimitsEnforcerTest',
+    'ProductDeletionTest',
+    'TerminalAppIntegrationTest',
+    'all frontend route calls have registered routes',
+    'owner daily pulse routes are all registered',
+    'backup routes use correct store prefix',
+    'recycle bin routes use admin prefix',
+    'migration routes use store legacy prefix',
+    'returns route uses history suffix',
+    'no route registered without store slug parameter when expected',
+    'frontend codebase has no eslint errors',
+    'route parameter names match frontend expectations',
+    'all pulse routes are registered',
+    'unauthenticated user cannot access pulse dashboard',
+    'authenticated owner can access pulse dashboard',
+    'verify endpoint returns success for valid passcode',
+    'verify endpoint returns 403 for invalid passcode',
+    'verify endpoint validates passcode is required',
+    'setup endpoint can enable passcode',
+    'setup endpoint can disable passcode',
+    'setup requires passcode when action is set',
+    'lock endpoint clears session and redirects',
+    'note endpoint saves memo when authorized',
+    'note endpoint rejects unauthorized access',
+    'note endpoint validates date format',
+    'ModalValidationRegressionTest',
+    'ExampleTest',
+    'Unit'
   ];
 
   for (const key of keys) {
@@ -211,11 +291,17 @@ function runTests(projectPath, ws) {
     results.duration = ((Date.now() - startTime) / 1000).toFixed(2);
     results.exitCode = code;
 
-    // Mark pending or running modules as skipped and notify client
+    // Mark pending or running modules as passed (if they had passed tests) or skipped, and notify client
     for (const key of Object.keys(results.modules)) {
       if (results.modules[key].status === 'pending' || results.modules[key].status === 'running') {
-        results.modules[key].status = 'skipped';
-        ws.send(JSON.stringify({ type: 'module_done', module: key, status: 'skipped', data: results.modules[key] }));
+        if (results.modules[key].passed > 0 && results.modules[key].failed === 0) {
+          results.modules[key].status = 'passed';
+        } else if (results.modules[key].failed > 0) {
+          results.modules[key].status = 'failed';
+        } else {
+          results.modules[key].status = 'skipped';
+        }
+        ws.send(JSON.stringify({ type: 'module_done', module: key, status: results.modules[key].status, data: results.modules[key] }));
       }
     }
 
@@ -240,85 +326,129 @@ function runTests(projectPath, ws) {
 
 function parseLine(line, results, ws) {
   // Detect module
-  const moduleMatch = line.match(/(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const moduleMatch = line.match(/(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (moduleMatch) {
-    const key = moduleMatch[1];
+    const key = moduleMatch[1] === 'Unit' ? 'Unit' : moduleMatch[2];
     if (results.modules[key]) {
       results._currentModule = key;
       results.modules[key].status = 'running';
       ws.send(JSON.stringify({ type: 'module_start', module: key }));
+    } else if (SUITE_TESTS[key]) {
+      results._currentModule = key;
+      for (const tName of SUITE_TESTS[key]) {
+        if (results.modules[tName]) {
+          results.modules[tName].status = 'running';
+          ws.send(JSON.stringify({ type: 'module_start', module: tName }));
+        }
+      }
     }
   }
 
   // Detect PASS/FAIL suite
-  const passMatch = line.match(/PASS\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const passMatch = line.match(/PASS\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (passMatch) {
-    const key = passMatch[1];
+    const key = passMatch[1] === 'Unit' ? 'Unit' : passMatch[2];
     if (results.modules[key]) {
       results.modules[key].status = 'passed';
       ws.send(JSON.stringify({ type: 'module_done', module: key, status: 'passed', data: results.modules[key] }));
+    } else if (SUITE_TESTS[key]) {
+      for (const tName of SUITE_TESTS[key]) {
+        if (results.modules[tName] && results.modules[tName].status !== 'passed' && results.modules[tName].status !== 'failed') {
+          results.modules[tName].status = 'passed';
+          results.modules[tName].passed = 1;
+          ws.send(JSON.stringify({ type: 'module_done', module: tName, status: 'passed', data: results.modules[tName] }));
+        }
+      }
     }
   }
 
-  const failMatch = line.match(/FAIL\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const failMatch = line.match(/FAIL\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (failMatch) {
-    const key = failMatch[1];
+    const key = failMatch[1] === 'Unit' ? 'Unit' : failMatch[2];
     if (results.modules[key]) {
       results.modules[key].status = 'failed';
       ws.send(JSON.stringify({ type: 'module_done', module: key, status: 'failed', data: results.modules[key] }));
+    } else if (SUITE_TESTS[key]) {
+      for (const tName of SUITE_TESTS[key]) {
+        if (results.modules[tName] && results.modules[tName].status !== 'passed' && results.modules[tName].status !== 'failed') {
+          results.modules[tName].status = 'failed';
+          results.modules[tName].failed = 1;
+          ws.send(JSON.stringify({ type: 'module_done', module: tName, status: 'failed', data: results.modules[tName] }));
+        }
+      }
     }
   }
 
   // Detect TODO-only suite
-  const todoMatch = line.match(/TODO\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const todoMatch = line.match(/TODO\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (todoMatch) {
-    const key = todoMatch[1];
+    const key = todoMatch[1] === 'Unit' ? 'Unit' : todoMatch[2];
     if (results.modules[key]) {
       results.modules[key].status = 'skipped';
       ws.send(JSON.stringify({ type: 'module_done', module: key, status: 'skipped', data: results.modules[key] }));
+    } else if (SUITE_TESTS[key]) {
+      for (const tName of SUITE_TESTS[key]) {
+        if (results.modules[tName] && results.modules[tName].status !== 'passed' && results.modules[tName].status !== 'failed') {
+          results.modules[tName].status = 'skipped';
+          ws.send(JSON.stringify({ type: 'module_done', module: tName, status: 'skipped', data: results.modules[tName] }));
+        }
+      }
     }
   }
 
   // Individual test results
-  const testPass = line.match(/^\s+✓\s+(.+?)\s+[\d.]+s/);
+  const testPass = line.match(/^\s+✓\s+(.*?)(?:\s+\d+(?:\.\d+)?s)?\s*$/);
   if (testPass) {
     const testName = testPass[1].trim();
     ws.send(JSON.stringify({ type: 'test_pass', name: testName }));
     results.passed++;
-    if (results._currentModule && results.modules[results._currentModule]) {
+    if (results.modules[testName]) {
+      results.modules[testName].status = 'passed';
+      results.modules[testName].passed = 1;
+      ws.send(JSON.stringify({ type: 'module_done', module: testName, status: 'passed', data: results.modules[testName] }));
+    } else if (results._currentModule && results.modules[results._currentModule]) {
       results.modules[results._currentModule].tests.push({ name: testName, status: 'passed' });
       results.modules[results._currentModule].passed++;
       ws.send(JSON.stringify({ type: 'module_update', module: results._currentModule, data: results.modules[results._currentModule] }));
     }
   }
 
-  const testFail = line.match(/^\s+[✗×⨯]\s+(.+?)\s+[\d.]+s/);
+  const testFail = line.match(/^\s+[✗×⨯]\s+(.*?)(?:\s+\d+(?:\.\d+)?s)?\s*$/);
   if (testFail) {
     const testName = testFail[1].trim();
     ws.send(JSON.stringify({ type: 'test_fail', name: testName }));
     results.failed++;
     results.bugs.push({ test: testName, module: results._currentModule || 'unknown' });
-    if (results._currentModule && results.modules[results._currentModule]) {
+    if (results.modules[testName]) {
+      results.modules[testName].status = 'failed';
+      results.modules[testName].failed = 1;
+      ws.send(JSON.stringify({ type: 'module_done', module: testName, status: 'failed', data: results.modules[testName] }));
+    } else if (results._currentModule && results.modules[results._currentModule]) {
       results.modules[results._currentModule].tests.push({ name: testName, status: 'failed' });
       results.modules[results._currentModule].failed++;
       ws.send(JSON.stringify({ type: 'module_update', module: results._currentModule, data: results.modules[results._currentModule] }));
     }
   }
 
-  const testTodo = line.match(/^\s+↓\s+(.+?)\s+[\d.]+s/);
+  const testTodo = line.match(/^\s+↓\s+(.*?)(?:\s+\d+(?:\.\d+)?s)?\s*$/);
   if (testTodo) {
+    const testName = testTodo[1].trim();
     results.todos++;
-    if (results._currentModule && results.modules[results._currentModule]) {
+    if (results.modules[testName]) {
+      results.modules[testName].status = 'skipped';
+      results.modules[testName].todos = 1;
+      ws.send(JSON.stringify({ type: 'module_done', module: testName, status: 'skipped', data: results.modules[testName] }));
+    } else if (results._currentModule && results.modules[results._currentModule]) {
       results.modules[results._currentModule].todos++;
       ws.send(JSON.stringify({ type: 'module_update', module: results._currentModule, data: results.modules[results._currentModule] }));
     }
   }
 
   // Track current module from PASS/FAIL lines
-  const moduleTrack = line.match(/(?:PASS|FAIL|TODO|WARN)\s+(?:Tests|Tester[\/\\]tests)[\/\\]Feature[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const moduleTrack = line.match(/(?:PASS|FAIL|TODO|WARN)\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (moduleTrack) {
-    const key = moduleTrack[1];
-    if (results.modules[key]) {
+    const key = moduleTrack[1] === 'Unit' ? 'Unit' : moduleTrack[2];
+    if (results.modules[key] || SUITE_TESTS[key]) {
       results._currentModule = key;
     }
   }

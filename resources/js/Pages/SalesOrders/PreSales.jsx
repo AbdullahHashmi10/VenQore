@@ -422,7 +422,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                         case 'actions':
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2 relative" onClick={(e) => e.stopPropagation()}>
-                                                                    <a href={route("store.sales.print", [store.slug, row.id])} target="_blank" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors">
+                                                                    <a href={route("store.sales.print", { store_slug: store.slug, sale: row.id })} target="_blank" className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors">
                                                                         <Printer size={16} />
                                                                     </a>
                                                                     <div className="relative">

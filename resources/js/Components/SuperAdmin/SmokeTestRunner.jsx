@@ -269,7 +269,7 @@ export default function SmokeTestRunner() {
                             <StatusBadge status={status} />
                         </div>
                         <p style={{ color: '#475569', margin: '2px 0 0', fontSize: '0.75rem' }}>
-                            20 read-only checks · safe to run on live server
+                            38 read-only checks · safe to run on live server
                         </p>
                     </div>
                 </div>

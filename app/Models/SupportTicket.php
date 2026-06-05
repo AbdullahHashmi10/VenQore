@@ -15,6 +15,8 @@ class SupportTicket extends Model
     protected $fillable = [
         'tenant_id', 'submitted_by', 'subject', 'message',
         'status', 'priority', 'requester_email', 'requester_name', 'resolved_at',
+        'source',          // 'vena_chat' | 'manual' | null
+        'escalation_type', // 'ai_failure' | 'billing_or_complex' | 'user_requested' | 'repeated_failure'
     ];
 
     protected $casts = ['resolved_at' => 'datetime'];

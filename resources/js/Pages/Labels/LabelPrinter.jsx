@@ -7,6 +7,7 @@ import { Tag, Printer, Search, Plus, Trash2, Settings } from 'lucide-react';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 
 export default function LabelsIndex({ products }) {
+    const { store } = usePage().props;
     const [selectedItems, setSelectedItems] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [settings, setSettings] = useState({

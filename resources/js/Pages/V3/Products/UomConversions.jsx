@@ -1,4 +1,4 @@
-import { useForm, Link, router } from '@inertiajs/react'
+import { useForm, Link, router, usePage } from '@inertiajs/react'
 
 export default function UomConversions({ product, conversions }) {
     const { store } = usePage().props;

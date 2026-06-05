@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\PlanGate;
 use Inertia\Inertia;
 use App\Models\RecurringInvoice;
 use App\Models\Party;
@@ -13,6 +14,11 @@ class RecurringInvoiceController extends Controller
 {
     public function index()
     {
+        // ── Plan Gate: Recurring Auto-Invoicing ────────────────────────────
+        if (app()->bound('current.tenant')) {
+            PlanGate::enforce('recurring_invoicing');
+        }
+
         $invoices = RecurringInvoice::with('customer')->latest()->get();
         
         return Inertia::render('RecurringInvoices/RecurringInvoices', [
@@ -35,6 +41,11 @@ class RecurringInvoiceController extends Controller
 
     public function store(Request $request)
     {
+        // ── Plan Gate: Recurring Auto-Invoicing ────────────────────────────
+        if (app()->bound('current.tenant')) {
+            PlanGate::enforce('recurring_invoicing');
+        }
+
         $validated = $request->validate([
             'customer_id'   => 'nullable|exists:parties,id',
             'warehouse_id'  => 'nullable|exists:warehouses,id',

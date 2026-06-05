@@ -10,6 +10,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
     const [isValidating, setIsValidating] = useState(false);
     const [validationData, setValidationData] = useState(null);
     const [allowNegativeStock, setAllowNegativeStock] = useState(false);
+    const [importAction, setImportAction] = useState('import_all');
     const [overrides, setOverrides] = useState({}); 
     const [ignoredRows, setIgnoredRows] = useState([]);
     const [editingContext, setEditingContext] = useState(null); 
@@ -87,6 +88,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
             mapping,
             overrides,
             ignored_rows: ignoredRows,
+            import_action: importAction,
             options: {
                 allow_negative_stock: allowNegativeStock
             }
@@ -272,7 +274,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                 <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 pb-6">
 
                     {/* Mapping Controls */}
-                    <div className="lg:col-span-1 border border-white/10 rounded-xl bg-[#0F172A] p-6 shadow-2xl flex flex-col min-h-0">
+                    <div id="tour-mapping-container" className="lg:col-span-1 border border-white/10 rounded-xl bg-[#0F172A] p-6 shadow-2xl flex flex-col min-h-0">
                         <div className="mb-4 shrink-0">
                             <h2 className="text-lg font-medium text-white flex items-center">
                                 <CheckCircle2 className="w-5 h-5 text-emerald-400 mr-2" />
@@ -322,8 +324,59 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                             </div>
                         )}
 
+                        {validationData?.exceeds_limit && (
+                            <div className="mb-6 p-5 bg-amber-500/10 border border-amber-500/25 rounded-2xl shrink-0 space-y-4 text-left">
+                                <div className="flex items-start gap-3">
+                                    <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <h4 className="text-amber-400 font-bold text-sm">Resource Limit Exceeded</h4>
+                                        <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+                                            Importing these items will push your total catalog to <strong>{validationData.post_import_count}</strong> products, which exceeds your plan's limit of <strong>{validationData.limit}</strong>.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setImportAction('truncate')}
+                                        className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
+                                            ${importAction === 'truncate'
+                                                ? 'border-indigo-500 bg-indigo-500/10 text-white'
+                                                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'}`}
+                                    >
+                                        <div className="pr-4">
+                                            <div>Option A: Truncate Import</div>
+                                            <div className="text-[10px] opacity-80 mt-0.5">Only import the first {validationData.allowed_to_import} new products to stay within limits.</div>
+                                        </div>
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'truncate' ? 'border-indigo-500 bg-indigo-500 text-white' : 'border-gray-500'}`}>
+                                            {importAction === 'truncate' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setImportAction('import_all')}
+                                        className={`w-full py-2.5 px-4 rounded-xl text-left border transition-all text-xs font-semibold flex items-center justify-between
+                                            ${importAction === 'import_all'
+                                                ? 'border-amber-500 bg-amber-500/10 text-white'
+                                                : 'border-white/10 bg-white/5 text-gray-400 hover:border-white/20'}`}
+                                    >
+                                        <div className="pr-4">
+                                            <div>Option B: Import Everything</div>
+                                            <div className="text-[10px] opacity-80 mt-0.5">Import all {validationData.new_count} products. Starts a 3-day grace period to upgrade your plan.</div>
+                                        </div>
+                                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${importAction === 'import_all' ? 'border-amber-500 bg-amber-500 text-white' : 'border-gray-500'}`}>
+                                            {importAction === 'import_all' && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="mt-6 pt-6 border-t border-white/10 shrink-0 space-y-3">
                             <button
+                                id="tour-mapping-validate"
                                 onClick={() => runValidation()}
                                 disabled={isValidating || isProcessing}
                                 className={`w-full flex justify-center items-center py-2 px-4 rounded-xl text-white text-sm font-medium transition-all
@@ -334,6 +387,7 @@ export default function DataMapping({ file_path, type, file_headers, preview_dat
                             </button>
 
                             <button
+                                id="tour-mapping-submit"
                                 onClick={submitImport}
                                 disabled={isProcessing || !validationData}
                                 className={`w-full flex justify-center items-center py-3 px-4 rounded-xl text-white font-medium transition-all duration-300

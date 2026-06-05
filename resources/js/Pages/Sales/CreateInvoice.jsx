@@ -44,6 +44,7 @@ import QuickPartyModal from '@/Components/QuickPartyModal';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
 import WheelInput from '@/Components/WheelInput';
+import InvoiceTourGuide from '@/Components/InvoiceTourGuide';
 
 const CreateInvoice = ({ sale }) => {
     const {
@@ -274,7 +275,7 @@ const CreateInvoice = ({ sale }) => {
         try {
             const url = productModalMode === 'create'
                 ? route('store.inventory.store', { store_slug: store?.slug })
-                : route('store.inventory.update', { store_slug: store?.slug, id: editingProduct.id });
+                : (editingProduct?.id ? route('store.inventory.update', { store_slug: store?.slug, id: editingProduct.id }) : '');
 
             const response = await axios.post(url, data);
 
@@ -896,7 +897,7 @@ const CreateInvoice = ({ sale }) => {
 
             let response;
             if (isEditMode) {
-                response = await axios.put(route('store.sales.update', { store_slug: store?.slug, id: currentInvoice.id }), payload);
+                response = await axios.put(route('store.sales.update', { store_slug: store?.slug, sale: currentInvoice.id }), payload);
             } else {
                 response = await axios.post(route('store.sales.store', { store_slug: store?.slug }), payload);
             }
@@ -920,7 +921,15 @@ const CreateInvoice = ({ sale }) => {
                         PrintService.quickPrint(currentInvoice);
                     }
                     patchInvoice({ status: 'completed' });
-                    setShowSuccessModal(true);
+                    if (store?.onboarding_step === 'invoice_tour') {
+                        router.post(
+                            route('store.onboarding.step', { store_slug: store?.slug }),
+                            { step: 'invoice_congratulations' },
+                            { preserveScroll: true }
+                        );
+                    } else {
+                        setShowSuccessModal(true);
+                    }
                 }
             } else {
                 showAlert({
@@ -1145,7 +1154,7 @@ const CreateInvoice = ({ sale }) => {
                             </div>
 
                             {/* Center - Customer Search */}
-                            <div className="relative flex-1 max-w-xl">
+                            <div id="tour-invoice-customer" className="relative flex-1 max-w-xl">
                                 <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
                                     <User size={18} />
                                 </div>
@@ -1464,7 +1473,7 @@ const CreateInvoice = ({ sale }) => {
                                                 {idx + 1}
                                             </td>
                                             {/* Product Name */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 relative px-2">
+                                            <td id={idx === 0 ? "tour-invoice-product" : undefined} className="bg-slate-50 dark:bg-slate-800/50 py-3 relative px-2">
                                                 <AsyncProductCombobox
                                                     selectedItem={item.product}
                                                     onSelect={(product) => selectProduct(product, item.id)}
@@ -1895,7 +1904,7 @@ const CreateInvoice = ({ sale }) => {
                             )}
 
                             {/* Amount Paid Row */}
-                            <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
+                            <div id="tour-invoice-paid" className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
                                 <span className="text-xs text-emerald-400 font-bold">Amount Paid</span>
                                 <div className="flex items-center gap-2">
                                     <span className="text-emerald-600 text-xs">{getCurrencySymbol(store || settings)}</span>
@@ -1927,6 +1936,7 @@ const CreateInvoice = ({ sale }) => {
                             </div>
                             <div className="space-y-2">
                                 <button
+                                    id="tour-invoice-complete"
                                     onClick={() => initiateSave(false)}
                                     disabled={saving}
                                     className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
@@ -2024,7 +2034,7 @@ const CreateInvoice = ({ sale }) => {
                     <div className="grid grid-cols-1 gap-3 w-full">
                         <button
                             onClick={() => {
-                                window.open(route('store.sales.print', { store_slug: store?.slug, id: lastSaleId }), '_blank');
+                                window.open(route('store.sales.print', { store_slug: store?.slug, sale: lastSaleId }), '_blank');
                             }}
                             className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20"
                         >
@@ -2032,9 +2042,13 @@ const CreateInvoice = ({ sale }) => {
                         </button>
 
                         <button
+                            id="tour-new-transaction"
                             onClick={() => {
                                 setShowSuccessModal(false);
                                 removeInvoice(currentInvoice.id);
+                                if (store?.onboarding_step === 'invoice_tour') {
+                                    router.reload({ only: ['store'] });
+                                }
                             }}
                             className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 transition-all"
                         >
@@ -2615,6 +2629,7 @@ const CreateInvoice = ({ sale }) => {
                     </>
                 )
             }
+            <InvoiceTourGuide store={store} />
         </OneGlanceLayout >
     );
 };

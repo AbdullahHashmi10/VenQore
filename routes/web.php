@@ -23,10 +23,35 @@ use Inertia\Inertia;
 
 // ── Public Marketing Pages ──────────────────────────────────────────────
 Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
-Route::get('/pricing',  fn() => Inertia::render('Marketing/Pricing'))->name('marketing.pricing');
+Route::get('/pricing', function () {
+    $plans = \App\Models\Plan::with(['limits', 'features'])
+        ->where('is_active', true)
+        ->where('is_visible', true)
+        ->orderBy('sort_order')
+        ->get();
+
+    return Inertia::render('Marketing/Pricing', [
+        'plans' => $plans,
+    ]);
+})->name('marketing.pricing');
+Route::post('/pricing/currency-override', function (\Illuminate\Http\Request $request) {
+    $request->validate(['country' => 'required|string|size:2']);
+    $country = strtoupper($request->country);
+    
+    if ($country === 'PK') {
+        session(['geo_country_override' => 'PK']);
+    } else {
+        session(['geo_country_override' => 'US']);
+    }
+    
+    return back()->with('success', 'Region updated successfully.');
+})->name('marketing.pricing.override');
 Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marketing.about');
 Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->name('marketing.contact.submit');
+
+// Barcode Generator (Module 03)
+Route::get('/barcode/generate', [\App\Http\Controllers\BarcodeController::class, 'generate'])->name('barcode.generate');
 
 // Public static WordPress plugin download route (compiles on-the-fly)
 Route::get('/downloads/venqore-sync.zip', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadStaticPlugin']);
@@ -70,11 +95,17 @@ Route::get('/ebay/callback', [\App\Http\Controllers\VenSynQController::class, 'u
     ->name('vensynq.universal.callback.ebay')
     ->defaults('platform', 'ebay');
 
+Route::get('/google/callback', [\App\Http\Controllers\GoogleDriveAuthController::class, 'handleGoogleCallback'])
+    ->name('google.callback');
+
 // ── Auth (no store context) ──────────────────────────────────────────────
 Route::middleware(['auth', 'verified'])->group(function () {
     // Store hub (shown to users with 2+ stores)
     Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
     Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
+
+    // Staff Hub (unified dashboard for store employees)
+    Route::get('/staff/hub', [\App\Http\Controllers\StaffHubController::class, 'index'])->name('staff.hub');
 
     // Create / Join store
     Route::get('/start',     [\App\Http\Controllers\StoreController::class, 'createOrJoin'])->name('store.create-or-join');
@@ -100,7 +131,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // ── Store Context Routes ─────────────────────────────────────────────────
 // All routes under /s/{store_slug}/ require auth + valid store membership
-Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddleware::class])
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class])
     ->prefix('s/{store_slug}')
     ->name('store.')
     ->group(function () {
@@ -131,10 +162,29 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
+        Route::post('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->name('backup.export');
+        Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->name('backup.import');
+        Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->name('billing.cancel-trial');
+        Route::post('/billing/addon-trial',  [\App\Http\Controllers\BillingController::class, 'addonTrial'])->name('billing.addon-trial');
+        Route::post('/billing/change-plan',  [\App\Http\Controllers\BillingController::class, 'changePlan'])->name('billing.change-plan');
+        Route::post('/billing/deactivate-feature', [\App\Http\Controllers\BillingController::class, 'deactivateFeature'])->name('billing.deactivate-feature');
+        Route::post('/billing/checkout-upload-service', [\App\Http\Controllers\BillingController::class, 'checkoutUploadService'])->name('billing.checkout-upload-service');
+
+        // Google Drive Backups
+        Route::get('/google/redirect',      [\App\Http\Controllers\GoogleDriveAuthController::class, 'redirectToGoogle'])->name('google.redirect');
+        Route::post('/google/disconnect',   [\App\Http\Controllers\GoogleDriveAuthController::class, 'disconnect'])->name('google.disconnect');
+        Route::post('/google/settings',     [\App\Http\Controllers\GoogleDriveAuthController::class, 'updateSettings'])->name('google.settings');
+        Route::post('/google/sync-now',     [\App\Http\Controllers\VqBackupController::class, 'syncToGoogleDrive'])->name('google.sync-now');
 
         // Store settings
         Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings');
         Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+
+        // SmartCapture API
+        Route::prefix('smart-capture')->group(function () {
+            Route::post('/extract', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->name('smart-capture.extract');
+            Route::post('/confirm', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->name('smart-capture.confirm');
+        });
 
         // Trial expired landing (within store context)
         Route::get('/trial-expired', fn() => Inertia::render('Errors/TrialExpired'))->name('trial.expired');
@@ -152,7 +202,7 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
             Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
             Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
-            Route::get('/users',       function ($store_slug) { return redirect()->route('store.admin.attendance', ['store_slug' => $store_slug]); })->name('users');
+            Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
             Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
             Route::get('/staff',       function ($store_slug) { return redirect()->route('store.admin.attendance', ['store_slug' => $store_slug]); })->name('staff');
 
@@ -183,8 +233,42 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
             Route::get('/recycle-bin',         [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
             Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
             Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.force-delete');
+
+            Route::prefix('chatbot')->name('chatbot.')->middleware(\App\Http\Middleware\StoreChatbotMiddleware::class)->group(function () {
+                // Chatbot Settings (API key + custom rules for this store's bot)
+                Route::get('/settings',        [\App\Http\Controllers\StoreChatbotSettingsController::class, 'index'])->name('settings');
+                Route::post('/settings',       [\App\Http\Controllers\StoreChatbotSettingsController::class, 'update'])->name('settings.update');
+                Route::post('/settings/test',  [\App\Http\Controllers\StoreChatbotSettingsController::class, 'testConnection'])->name('ai.test');
+
+                // Agent Inbox (Inertia page)
+                Route::get('/inbox', function () {
+                    return \Inertia\Inertia::render('Admin/AgentInbox');
+                })->name('inbox');
+
+                // Agent API — chat session management for this store
+                Route::get('/sessions',                       [\App\Http\Controllers\AgentChatController::class, 'sessions'])->name('sessions');
+                Route::post('/sessions/{uuid}/claim',         [\App\Http\Controllers\AgentChatController::class, 'claim'])->name('claim');
+                Route::post('/sessions/{uuid}/reply',         [\App\Http\Controllers\AgentChatController::class, 'reply'])->name('reply');
+                Route::post('/sessions/{uuid}/typing',        [\App\Http\Controllers\AgentChatController::class, 'typing'])->name('typing.agent');
+                Route::post('/sessions/{uuid}/release',       [\App\Http\Controllers\AgentChatController::class, 'release'])->name('release');
+                Route::post('/sessions/{uuid}/resolve',       [\App\Http\Controllers\AgentChatController::class, 'resolve'])->name('resolve');
+                Route::post('/sessions/{uuid}/handoff-to-ai', [\App\Http\Controllers\AgentChatController::class, 'handoffToAi'])->name('handoff-to-ai');
+                Route::post('/sessions/{uuid}/refer',         [\App\Http\Controllers\AgentChatController::class, 'refer'])->name('refer');
+                Route::post('/sessions/{uuid}/set-status',     [\App\Http\Controllers\AgentChatController::class, 'setStatus'])->name('set-status');
+                Route::post('/sessions/{uuid}/log-learning',   [\App\Http\Controllers\AgentChatController::class, 'logLearning'])->name('log-learning');
+                Route::get('/sessions/{uuid}/assist-suggestion', [\App\Http\Controllers\AgentChatController::class, 'assistSuggestion'])->name('assist-suggestion');
+                Route::get('/canned-responses',               [\App\Http\Controllers\AgentChatController::class, 'cannedResponses'])->name('canned-responses');
+                Route::delete('/sessions/{uuid}',             [\App\Http\Controllers\AgentChatController::class, 'destroy'])->name('destroy');
+            });
+
+            // ── Vena Chat Tickets — store-level view (customers of THIS store only) ─
+            Route::get('/vena-tickets',                  [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeIndex'])->name('vena.tickets');
+            Route::post('/vena-tickets/create',          [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeCreateTicket'])->name('vena.ticket.create');
+            Route::get('/vena-tickets/{ticket}',         [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeShow'])->name('vena.ticket.show');
+            Route::post('/vena-tickets/{ticket}/status', [\App\Http\Controllers\Admin\VenaTicketsController::class, 'storeUpdateStatus'])->name('vena.ticket.status');
         });
     });
+
 
 // ── Platform Owner ───────────────────────────────────────────────────────────
 Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
@@ -192,6 +276,37 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
     ->name('platform.')
     ->group(function () {
         Route::get('/',                   [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('dashboard');
+
+        // Chatbot Settings
+        Route::get('/chatbot/settings',            [\App\Http\Controllers\ChatbotSettingsController::class, 'index'])->name('chatbot.settings');
+        Route::post('/chatbot/settings',           [\App\Http\Controllers\ChatbotSettingsController::class, 'update'])->name('chatbot.settings.update');
+        Route::post('/chatbot/settings/test',      [\App\Http\Controllers\ChatbotSettingsController::class, 'testConnection'])->name('ai.test');
+
+        // Agent Inbox page (Inertia React view)
+        Route::get('/chatbot/inbox', function () {
+            return Inertia::render('Admin/AgentInbox');
+        })->name('chatbot.inbox');
+
+        // Chatbot Admin API
+        Route::get('/api/chatbot/sessions', [\App\Http\Controllers\AgentChatController::class, 'sessions'])->name('chatbot.sessions');
+        Route::post('/api/chatbot/sessions/{uuid}/claim', [\App\Http\Controllers\AgentChatController::class, 'claim'])->name('chatbot.claim');
+        Route::post('/api/chatbot/sessions/{uuid}/reply', [\App\Http\Controllers\AgentChatController::class, 'reply'])->name('chatbot.reply');
+        Route::post('/api/chatbot/sessions/{uuid}/typing', [\App\Http\Controllers\AgentChatController::class, 'typing'])->name('chatbot.typing.agent');
+        Route::post('/api/chatbot/sessions/{uuid}/release', [\App\Http\Controllers\AgentChatController::class, 'release'])->name('chatbot.release');
+        Route::post('/api/chatbot/sessions/{uuid}/resolve', [\App\Http\Controllers\AgentChatController::class, 'resolve'])->name('chatbot.resolve');
+        Route::post('/api/chatbot/sessions/{uuid}/handoff-to-ai', [\App\Http\Controllers\AgentChatController::class, 'handoffToAi'])->name('chatbot.handoff-to-ai');
+        Route::post('/api/chatbot/sessions/{uuid}/refer', [\App\Http\Controllers\AgentChatController::class, 'refer'])->name('chatbot.refer');
+        Route::post('/api/chatbot/sessions/{uuid}/set-status', [\App\Http\Controllers\AgentChatController::class, 'setStatus'])->name('chatbot.set-status');
+        Route::post('/api/chatbot/sessions/{uuid}/log-learning', [\App\Http\Controllers\AgentChatController::class, 'logLearning'])->name('chatbot.log-learning');
+        Route::get('/api/chatbot/sessions/{uuid}/assist-suggestion', [\App\Http\Controllers\AgentChatController::class, 'assistSuggestion'])->name('chatbot.assist-suggestion');
+        Route::post('/api/chatbot/sessions/{uuid}/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist'])->name('chatbot.assist');
+        Route::get('/api/chatbot/canned-responses', [\App\Http\Controllers\AgentChatController::class, 'cannedResponses'])->name('chatbot.canned-responses');
+        Route::delete('/api/chatbot/sessions/{uuid}', [\App\Http\Controllers\AgentChatController::class, 'destroy'])->name('chatbot.destroy');
+
+        // Vena Autonomy Dashboard stats and promote endpoints
+        Route::get('/api/platform/vena/autonomy-stats', [\App\Http\Controllers\VenaAssistController::class, 'autonomyStats'])->name('chatbot.autonomy-stats');
+        Route::post('/api/platform/vena/autonomy-stats/promote', [\App\Http\Controllers\VenaAssistController::class, 'promoteCategory'])->name('chatbot.autonomy-stats.promote');
+
 
         Route::get('/run-migrations', function () {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
@@ -227,6 +342,11 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->name('ticket.reply');
         Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('ticket.status');
 
+        // ── Vena Chat Tickets (auto-generated from Vena widget escalations) ───
+        Route::get('/vena-tickets',              [\App\Http\Controllers\Admin\VenaTicketsController::class, 'index'])->name('vena.tickets');
+        Route::get('/vena-tickets/{ticket}',     [\App\Http\Controllers\Admin\VenaTicketsController::class, 'show'])->name('vena.ticket.show');
+        Route::post('/vena-tickets/{ticket}/status', [\App\Http\Controllers\Admin\VenaTicketsController::class, 'updateStatus'])->name('vena.ticket.status');
+
         // ── Webhook Logs ──────────────────────────────────────────────────
         Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
 
@@ -234,6 +354,7 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
 
         // ── System Health & Monitoring ────────────────────────────────────
+        Route::get('/health/check',                          [\App\Http\Controllers\Admin\HealthCheckController::class, 'check'])->name('health.check');
         Route::get('/health/errors',                         [\App\Http\Controllers\Admin\SuperAdminController::class, 'errorLogs'])->name('health.errors');
         Route::post('/health/errors/resolve-all',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'resolveAllErrors'])->name('health.errors.resolve-all');
         Route::post('/health/errors/detect-fixes',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'detectFixes'])->name('health.errors.detect-fixes');
@@ -251,10 +372,14 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('clear-passcode');
         Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('change-password');
 
+        // ── VenSynQ Module Control ─────────────────────────────────────────
+        Route::post('/vensynq/toggle', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleVenSynQ'])->name('vensynq.toggle');
+
         // ── Monetization — Plans & Platforms ──────────────────────────────
         Route::prefix('plans')->name('plans.')->group(function () {
             Route::get('/',                  [\App\Http\Controllers\SuperAdmin\PlanController::class, 'index'])->name('index');
             Route::post('/',                 [\App\Http\Controllers\SuperAdmin\PlanController::class, 'store'])->name('store');
+            Route::put('/bulk-update',       [\App\Http\Controllers\SuperAdmin\PlanController::class, 'bulkUpdate'])->name('bulk-update');
             Route::put('/{plan}',            [\App\Http\Controllers\SuperAdmin\PlanController::class, 'update'])->name('update');
             Route::post('/{plan}/duplicate', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'duplicate'])->name('duplicate');
             Route::delete('/{plan}',         [\App\Http\Controllers\SuperAdmin\PlanController::class, 'destroy'])->name('destroy');
@@ -378,6 +503,23 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::get('/run-migrations', function () {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
             return 'Migrations ran successfully! Output: ' . nl2br(e(\Illuminate\Support\Facades\Artisan::output()));
+        });
+
+        Route::prefix('demo-store')->name('demo-store.')->group(function () {
+            Route::get('/status',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'status'])->name('status');
+            Route::post('/reset',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'reset'])->name('reset');
+            Route::post('/deploy',              [\App\Http\Controllers\Admin\DemoStoreController::class, 'deploy'])->name('deploy');
+            Route::get('/deploy/status/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployStatus'])->name('deploy.status');
+            Route::delete('/deploy/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'deployCleanup'])->name('deploy.cleanup');
+            Route::post('/tests/run',           [\App\Http\Controllers\Admin\DemoStoreController::class, 'runTests'])->name('tests.run');
+            Route::get('/tests/status/{jobId}',  [\App\Http\Controllers\Admin\DemoStoreController::class, 'testStatus'])->name('tests.status');
+            Route::delete('/tests/cleanup/{jobId}', [\App\Http\Controllers\Admin\DemoStoreController::class, 'testCleanup'])->name('tests.cleanup');
+        });
+
+        Route::prefix('smoke-tests')->name('smoke-tests.')->group(function () {
+            Route::post('/run',                 [\App\Http\Controllers\Admin\SmokeTestController::class, 'run'])->name('run');
+            Route::get('/{job_id}',             [\App\Http\Controllers\Admin\SmokeTestController::class, 'status'])->name('status');
+            Route::delete('/{job_id}',          [\App\Http\Controllers\Admin\SmokeTestController::class, 'cleanup'])->name('cleanup');
         });
     });
 
@@ -596,7 +738,7 @@ Route::middleware([])->group(function () {
          ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
 });
 
-Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddleware::class])
+Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\DemoMiddleware::class])
     ->prefix('s/{store_slug}')
     ->group(function () {
         // Compatibility Aliases for POS & AJAX (Resolves Ziggy 'route not found' while keeping URL isolation)
@@ -692,6 +834,7 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
     // Reports
     Route::middleware('permission:reports')->group(function () {
         Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/daily-sales', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.daily-sales');
         Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
         Route::get('/reports/purchases', [\App\Http\Controllers\ReportController::class, 'purchases'])->name('reports.purchases');
         Route::get('/reports/day-book', [\App\Http\Controllers\ReportController::class, 'dayBook'])->name('reports.day-book');
@@ -736,6 +879,13 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
         Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->name('reports.stock-aging');
         Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->name('reports.sale-purchase-by-party-group');
         Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
+
+        // Owner's Daily Pulse (Secure Vault Dashboard)
+        Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->name('reports.owner-daily-pulse');
+        Route::post('/reports/owner-daily-pulse/verify', [\App\Http\Controllers\OwnerDailyPulseController::class, 'verifyPasscode'])->name('reports.owner-daily-pulse.verify');
+        Route::post('/reports/owner-daily-pulse/setup', [\App\Http\Controllers\OwnerDailyPulseController::class, 'setup'])->name('reports.owner-daily-pulse.setup');
+        Route::post('/reports/owner-daily-pulse/lock', [\App\Http\Controllers\OwnerDailyPulseController::class, 'lock'])->name('reports.owner-daily-pulse.lock');
+        Route::post('/reports/owner-daily-pulse/note', [\App\Http\Controllers\OwnerDailyPulseController::class, 'saveNote'])->name('reports.owner-daily-pulse.note');
     });
 
     // Cookbook
@@ -764,6 +914,9 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
     // AI Query
     Route::get('/ai/query', [\App\Http\Controllers\AiController::class, 'query'])->name('ai.query');
     Route::post('/ai/test-connection', [\App\Http\Controllers\AiController::class, 'testConnection'])->name('ai.test');
+    Route::get('/ai/recommendations', [\App\Http\Controllers\AiController::class, 'recommendations'])->name('ai.recommendations');
+    Route::get('/ai/smart-reorder', [\App\Http\Controllers\AiController::class, 'smartReorder'])->name('ai.smart-reorder');
+    Route::get('/ai/cash-flow-forecast', [\App\Http\Controllers\AiController::class, 'cashFlowForecast'])->name('ai.cash-flow-forecast');
 
 
 
@@ -1078,6 +1231,7 @@ Route::middleware(['auth', 'verified', 'tenant', \App\Http\Middleware\DemoMiddle
 
     // Staff Attendance
     Route::get('/staff-attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
+    Route::get('/terminal-activities/screenshot/{id}', [\App\Http\Controllers\Api\TerminalActivityController::class, 'viewScreenshot'])->name('terminal-activities.screenshot');
     Route::get('/staff-attendance/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'show'])->name('staff-attendance.show');
     Route::post('/staff-attendance/approve-gap/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'approveGap'])->name('staff-attendance.approve-gap');
     Route::post('/staff-attendance/reject-gap/{id}', [\App\Http\Controllers\StaffAttendanceController::class, 'rejectGap'])->name('staff-attendance.reject-gap');
@@ -1415,6 +1569,13 @@ Route::get('/api/app-version', function () {
 // Change every 5 mins in dev for testing
     return \response()->json(['version' => 'dev-' . floor(time() / 300)]);
 });
+
+Route::get('/error/{code}', function ($code) {
+    return Inertia::render('Error', [
+        'status' => (int) $code,
+        'message' => request('message'),
+    ]);
+})->name('error.page');
 
 if (app()->environment('local')) {
     // ── Emergency Rescue Route ──────────────────────────────────────────────────

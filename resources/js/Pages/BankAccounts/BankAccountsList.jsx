@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -314,6 +314,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                 title={editingAccount ? 'Edit Bank Account' : 'Add Bank Account'}
                 subtitle={editingAccount ? 'Update account details' : 'Add a new bank or cash account'}
                 size="lg"
+                errors={errors}
                 footer={
                     <div className="flex justify-end gap-3">
                         <SecondaryButton onClick={() => setIsModalOpen(false)}>

@@ -11,6 +11,10 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/heartbeat', [HeartbeatController::class, 'store']);
 
+use App\Http\Controllers\Api\TerminalActivityController;
+Route::post('/terminal/activities', [TerminalActivityController::class, 'store']);
+Route::post('/terminal/screenshot', [TerminalActivityController::class, 'uploadScreenshot']);
+
 use App\Http\Controllers\Api\SyncController;
 
 Route::get('/check-connection', [SyncController::class, 'checkConnection']);
@@ -65,5 +69,24 @@ Route::post('/drm/validate', [DrmLicenseController::class, 'validateLicense']);
 Route::middleware('drm.license')->get('/drm/protected', function () {
     return response()->json(['status' => 'access_granted']);
 });
+
+// ── Public Chatbot Visitor API Routes ──────────────────────────────────────
+use App\Http\Controllers\VisitorChatController;
+
+Route::post('/{store_slug}/chatbot/session', [VisitorChatController::class, 'startSession']);
+Route::post('/{store_slug}/chatbot/session/{uuid}/message', [VisitorChatController::class, 'sendMessage']);
+Route::post('/{store_slug}/chatbot/session/{uuid}/typing', [VisitorChatController::class, 'typing']);
+
+// ── Vena Subscription Context API ──────────────────────────────────────────
+// Returns plan, feature flags, limits, and geo signal for the Vena chat widget.
+// Called once at session start; cached client-side for the session lifetime.
+use App\Http\Controllers\VenaContextController;
+
+Route::get('/{store_slug}/vena/context', [VenaContextController::class, 'index']);
+
+// Vena Assist co-pilot endpoint
+Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist']);
+
+
 
 

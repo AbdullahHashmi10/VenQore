@@ -17,6 +17,7 @@ import {
 import { formatCurrency } from '@/Utils/format';
 
 export default function BankAccountTransactions({ bankAccount, transactions }) {
+    const { store } = usePage().props;
     // State for Infinite Scroll
     const [allTransactions, setAllTransactions] = useState(transactions.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(transactions.next_page_url);

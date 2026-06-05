@@ -148,3 +148,29 @@ test('credit_limit_exceeded_blocks_sale', function () {
         'Error response must mention credit limit. Got: ' . json_encode($body)
     );
 });
+
+test('quick party modal payload validation', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $response = $this->postJson("/s/{$tenant->slug}/parties", [
+        'name' => 'Test Party Validation',
+        'phone' => '',
+        'email' => '',
+        'type' => 'customer',
+        'opening_balance' => 0,
+        'opening_balance_type' => 'receivable',
+        'credit_limit' => '',
+        'address' => '',
+        'notes' => '',
+        'default_discount' => 0
+    ]);
+
+    if ($response->status() !== 200 && $response->status() !== 201) {
+        dd($response->json());
+    }
+
+    $response->assertStatus(200);
+});
+

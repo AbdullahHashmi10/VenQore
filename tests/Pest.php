@@ -29,7 +29,18 @@ foreach (glob(__DIR__ . '/Feature/*', GLOB_ONLYDIR) as $dir) {
     if (in_array(basename($dir), $standaloneDirectories, true)) {
         continue; // these files declare uses() themselves
     }
-    pest()->extend(VenQoreTestCase::class)->in(realpath($dir) ?: $dir);
+    $absPath = realpath($dir) ?: $dir;
+    $absPathNormalised = str_replace('\\', '/', $absPath);
+
+    // Register all path variants to prevent Windows path normalization mismatches in Pest
+    pest()->extend(VenQoreTestCase::class)->in($absPath);
+    pest()->extend(VenQoreTestCase::class)->in($absPathNormalised);
+
+    $dirName = basename($dir);
+    pest()->extend(VenQoreTestCase::class)->in("Tester/tests/Feature/{$dirName}");
+    pest()->extend(VenQoreTestCase::class)->in("Tester\\tests\\Feature\\{$dirName}");
+    pest()->extend(VenQoreTestCase::class)->in("tests/Feature/{$dirName}");
+    pest()->extend(VenQoreTestCase::class)->in("tests\\Feature\\{$dirName}");
 }
 
 // Root-level Feature test files (ProfileTest.php, ImportMappingTest.php, etc.)
@@ -37,11 +48,29 @@ foreach (glob(__DIR__ . '/Feature/*.php') as $file) {
     if (basename($file) === 'VenQoreTestCase.php') {
         continue; // base class, not a test file
     }
-    pest()->extend(VenQoreTestCase::class)->in(realpath($file) ?: $file);
+    $absPath = realpath($file) ?: $file;
+    $absPathNormalised = str_replace('\\', '/', $absPath);
+
+    pest()->extend(VenQoreTestCase::class)->in($absPath);
+    pest()->extend(VenQoreTestCase::class)->in($absPathNormalised);
+
+    $fileName = basename($file);
+    pest()->extend(VenQoreTestCase::class)->in("Tester/tests/Feature/{$fileName}");
+    pest()->extend(VenQoreTestCase::class)->in("Tester\\tests\\Feature\\{$fileName}");
+    pest()->extend(VenQoreTestCase::class)->in("tests/Feature/{$fileName}");
+    pest()->extend(VenQoreTestCase::class)->in("tests\\Feature\\{$fileName}");
 }
 
 // ─── Unit Tests ───────────────────────────────────────────────────────────────
-pest()->extend(TestCase::class)->in(realpath(__DIR__ . '/Unit') ?: __DIR__ . '/Unit');
+$absUnit = realpath(__DIR__ . '/Unit') ?: __DIR__ . '/Unit';
+$absUnitNormalised = str_replace('\\', '/', $absUnit);
+
+pest()->extend(TestCase::class)->in($absUnit);
+pest()->extend(TestCase::class)->in($absUnitNormalised);
+pest()->extend(TestCase::class)->in("Tester/tests/Unit");
+pest()->extend(TestCase::class)->in("Tester\\tests\\Unit");
+pest()->extend(TestCase::class)->in("tests/Unit");
+pest()->extend(TestCase::class)->in("tests\\Unit");
 
 /*
 |--------------------------------------------------------------------------

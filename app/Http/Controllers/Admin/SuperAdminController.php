@@ -594,5 +594,31 @@ class SuperAdminController extends Controller
         $contact->markRead();
         return back()->with('success', 'Message marked as read.');
     }
+
+    // ── VenSynQ Module Control ────────────────────────────────────────────
+
+    /**
+     * Toggle VenSynQ on/off platform-wide.
+     * State is persisted in the global `settings` table (tenant_id = null)
+     * so it survives deployments without touching .env files.
+     */
+    public function toggleVenSynQ(Request $request)
+    {
+        $enabled = $request->boolean('enabled');
+
+        \App\Models\Setting::withoutGlobalScopes()
+            ->updateOrCreate(
+                ['key' => 'vensynq_enabled', 'tenant_id' => null],
+                ['value' => $enabled ? '1' : '0']
+            );
+
+        // Flush shared caches so the new state propagates immediately
+        \Illuminate\Support\Facades\Cache::forget('settings:global');
+        \Illuminate\Support\Facades\Cache::forget('vensynq_enabled_flag');
+        \Illuminate\Support\Facades\Cache::forget('schema_db_ready');
+
+        $status = $enabled ? 'enabled' : 'disabled';
+        return back()->with('success', "VenSynQ has been {$status} platform-wide.");
+    }
 }
 

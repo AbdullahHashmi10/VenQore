@@ -33,7 +33,7 @@ import PrintService from '@/Utils/PrintService';
 import PrintButton from '@/Components/PrintButton';
 
 export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {} }) {
-    const { store } = usePage().props;
+    const { store, vensynq_enabled } = usePage().props;
     // Infinite Scroll State
     const [allPurchases, setAllPurchases] = useState(purchases.data || []);
     const [nextPageUrl, setNextPageUrl] = useState(purchases.next_page_url);
@@ -439,7 +439,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             return (
                                                                 <div className="flex items-center gap-2">
                                                                     <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">{row.invoice_number || row.reference_number || '-'}</span>
-                                                                    {row.is_jit && row.approval_status === 'draft' && (
+                                                                    {vensynq_enabled && row.is_jit && row.approval_status === 'draft' && (
                                                                         <span className="text-[10px] font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-1.5 py-0.5 rounded uppercase tracking-wide">
                                                                             JIT Draft
                                                                         </span>
@@ -481,7 +481,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                         }
                                                         case 'status': {
                                                             let paymentStatus = row.payment_status || 'unpaid';
-                                                            const isJitDraft = row.is_jit === 1 && row.approval_status === 'draft';
+                                                            const isJitDraft = row.is_jit === 1 && row.approval_status === 'draft' && vensynq_enabled;
                                                             const statusStyles = {
                                                                 paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
                                                                 partial: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
@@ -501,7 +501,7 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                                                             );
                                                         }
                                                         case 'actions':
-                                                            const isJitDraft = row.is_jit === 1 && row.approval_status === 'draft';
+                                                            const isJitDraft = row.is_jit === 1 && row.approval_status === 'draft' && vensynq_enabled;
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2 relative" onClick={(e) => e.stopPropagation()}>
                                                                     {isJitDraft && (

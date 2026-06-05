@@ -262,7 +262,7 @@ const CreateReturn = ({ sale }) => {
                 ? route("store.inventory.store", {
                 store_slug: store.slug
             })
-                : route("store.inventory.update", [store.slug, editingProduct.id]);
+                : (editingProduct?.id ? route("store.inventory.update", [store.slug, editingProduct.id]) : "");
 
             const response = await axios.post(url, data);
 
@@ -378,7 +378,7 @@ const CreateReturn = ({ sale }) => {
     useEffect(() => {
         const loadInitialCustomers = async () => {
             try {
-                const response = await axios.get(route('customers.search'), { params: { search: '' } });
+                const response = await axios.get(route('store.customers.search', { store_slug: store.slug }), { params: { search: '' } });
                 setInitialCustomers((response.data || []).slice(0, 50));
             } catch (error) {
                 console.error('Failed to load initial customers:', error);
@@ -437,7 +437,7 @@ const CreateReturn = ({ sale }) => {
         }
         const timer = setTimeout(async () => {
             try {
-                const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+                const response = await axios.get(route('store.customers.search', { store_slug: store.slug }), { params: { search: customerSearch } });
                 setCustomerResults(response.data || []);
             } catch (error) {
                 console.error('Customer search error:', error);

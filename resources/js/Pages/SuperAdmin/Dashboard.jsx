@@ -14,7 +14,8 @@ import {
     Newspaper, BarChart2, Ticket, Rss, UserCog, Sparkles,
     CalendarClock, Star, AlertCircle, Info, Lock, KeyRound, EyeOff,
     ShieldCheck, Hash, Menu, Trash2, RotateCcw, Monitor,
-    MoreHorizontal, Layers, Database, Plus
+    MoreHorizontal, Layers, Database, Plus, RefreshCcw, ToggleLeft,
+    ToggleRight, Boxes, ShoppingBag, Wifi, WifiOff, CheckSquare
 } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { useTheme as useGlobalTheme } from '@/Contexts/ThemeContext';
@@ -63,6 +64,7 @@ const TABS = [
     { id: 'support',   label: 'Support',         Icon: Ticket },
     { id: 'feed',      label: 'Activity Feed',   Icon: Rss },
     { id: 'demo',      label: '🎭 Demo Store',   Icon: Monitor },
+    { id: 'vensynq',   label: 'VenSynQ',         Icon: RefreshCcw },
     { id: 'settings',  label: 'Settings',        Icon: Settings },
 ];
 
@@ -1831,18 +1833,43 @@ function SupportTab({ tickets = [], open_count = 0, tickets_total = 0, active_fi
     const [selected, setSelected] = useState(null);
     const [reply, setReply] = useState('');
     const [filter, setFilter] = useState(active_filter);
+    const [loadingThread, setLoadingThread] = useState(false);
     const isMobile = typeof window !== 'undefined' && window.innerWidth <= 768;
+
+    function selectTicket(t) {
+        setSelected(t);
+        setLoadingThread(true);
+        fetch(window.route('platform.ticket.show', { ticket: t.id }))
+            .then(res => res.json())
+            .then(data => {
+                setSelected(data);
+                setLoadingThread(false);
+            })
+            .catch(err => {
+                console.error("Failed to load ticket thread:", err);
+                setLoadingThread(false);
+            });
+    }
 
     function sendReply() {
         if (!reply.trim() || !selected) return;
         router.post(window.route('platform.ticket.reply', { ticket: selected.id }), { body: reply }, {
-            onSuccess: () => { setReply(''); setSelected(null); },
+            onSuccess: () => {
+                setReply('');
+                fetch(window.route('platform.ticket.show', { ticket: selected.id }))
+                    .then(res => res.json())
+                    .then(data => setSelected(data));
+            },
         });
     }
 
     function setStatus(ticket, status) {
         router.post(window.route('platform.ticket.status', { ticket: ticket.id }), { status }, {
-            onSuccess: () => setSelected(null),
+            onSuccess: () => {
+                fetch(window.route('platform.ticket.show', { ticket: ticket.id }))
+                    .then(res => res.json())
+                    .then(data => setSelected(data));
+            },
         });
     }
 
@@ -1876,7 +1903,7 @@ function SupportTab({ tickets = [], open_count = 0, tickets_total = 0, active_fi
                                 const pr = PRIORITY_CONFIG[t.priority] ?? PRIORITY_CONFIG.normal;
                                 const st = TICKET_STATUS[t.status] ?? TICKET_STATUS.open;
                                 return (
-                                    <div key={t.id} onClick={() => setSelected(t)}
+                                    <div key={t.id} onClick={() => selectTicket(t)}
                                         style={{ padding: '14px 20px', borderBottom: i < tickets.length - 1 ? `1px solid ${T.border}` : 'none', cursor: 'pointer', background: selected?.id === t.id ? 'rgba(99,102,241,0.08)' : 'transparent', transition: 'background 0.15s' }}>
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                             <div style={{ flex: 1, minWidth: 0 }}>
@@ -1924,6 +1951,14 @@ function SupportTab({ tickets = [], open_count = 0, tickets_total = 0, active_fi
                                 {selected.message}
                                 <div style={{ fontSize: 10, color: T.textMuted, marginTop: 8, fontWeight: 700, textTransform: 'uppercase' }}>Original Inquiry</div>
                             </div>
+                            
+                            {loadingThread && (
+                                <div style={{ textAlign: 'center', padding: '12px 0', color: T.textMuted, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                    <RefreshCw size={12} style={{ animation: 'spin 1s linear infinite' }} />
+                                    Loading thread...
+                                </div>
+                            )}
+
                             {(selected.replies ?? []).map((r, i) => (
                                 <div key={i} style={{ background: r.is_platform_owner ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.03)', borderRadius: 12, padding: '14px', fontSize: 13, color: T.text, lineHeight: 1.6, border: `1px solid ${T.border}`, alignSelf: r.is_platform_owner ? 'flex-end' : 'flex-start', maxWidth: '95%' }}>
                                     {r.body}
@@ -2185,10 +2220,244 @@ function SecuritySection() {
     );
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Tab: VenSynQ Module Control
+// ─────────────────────────────────────────────────────────────────────────
+
+function VenSynQTab() {
+    const T = useDashboardTheme();
+    const { props } = usePage();
+    const [enabled, setEnabled] = useState(!!props.vensynq_enabled);
+    const [saving, setSaving] = useState(false);
+    const [localEnabled, setLocalEnabled] = useState(!!props.vensynq_enabled);
+
+    // Sync with server state on prop changes
+    useEffect(() => {
+        setEnabled(!!props.vensynq_enabled);
+        setLocalEnabled(!!props.vensynq_enabled);
+    }, [props.vensynq_enabled]);
+
+    const isDirty = localEnabled !== enabled;
+
+    function handleToggle() {
+        setLocalEnabled(prev => !prev);
+    }
+
+    function handleSave() {
+        setSaving(true);
+        router.post(window.route('platform.vensynq.toggle'), {
+            enabled: localEnabled,
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setEnabled(localEnabled);
+                setSaving(false);
+            },
+            onError: () => setSaving(false),
+        });
+    }
+
+    function handleDiscard() {
+        setLocalEnabled(enabled);
+    }
+
+    const FEATURES = [
+        { icon: Boxes,       label: 'Multi-Channel Sync',      desc: 'Sync products, inventory & orders across Amazon, TikTok, eBay' },
+        { icon: ShoppingBag, label: 'Dropshipping Engine',      desc: 'JIT procurement and supplier-direct fulfillment workflows' },
+        { icon: RefreshCcw,  label: 'Auto Token Refresh',       desc: 'Background OAuth token rotation for all connected channels' },
+        { icon: Zap,         label: 'Commission Isolation',      desc: 'Per-channel profit margin tracking and commission management' },
+        { icon: Database,    label: 'Bulk Tracking Sync',        desc: 'Mass upload of shipping tracking numbers to marketplaces' },
+        { icon: Activity,    label: 'Marketplace OAuth',         desc: 'Secure OAuth2 connect/disconnect for each sales channel' },
+    ];
+
+    return (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+
+            {/* Hero Status Card */}
+            <div style={{
+                background: localEnabled
+                    ? 'linear-gradient(135deg, rgba(16,185,129,0.08) 0%, rgba(5,150,105,0.04) 100%)'
+                    : 'linear-gradient(135deg, rgba(100,116,139,0.08) 0%, rgba(71,85,105,0.04) 100%)',
+                border: `1px solid ${localEnabled ? 'rgba(16,185,129,0.25)' : T.border}`,
+                borderRadius: 24,
+                padding: 32,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 24,
+                transition: 'all 0.4s ease',
+                position: 'relative',
+                overflow: 'hidden',
+            }}>
+                {/* Glow */}
+                <div style={{
+                    position: 'absolute', top: -60, right: -60,
+                    width: 200, height: 200,
+                    background: `radial-gradient(circle, ${localEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.08)'} 0%, transparent 70%)`,
+                    filter: 'blur(40px)', zIndex: 0,
+                    transition: 'all 0.4s ease',
+                }} />
+
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: 20 }}>
+                    <div style={{
+                        width: 64, height: 64, borderRadius: 20,
+                        background: localEnabled ? 'rgba(16,185,129,0.12)' : 'rgba(100,116,139,0.1)',
+                        border: `1px solid ${localEnabled ? 'rgba(16,185,129,0.3)' : 'rgba(100,116,139,0.2)'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        transition: 'all 0.3s ease',
+                    }}>
+                        {localEnabled
+                            ? <Wifi size={28} color="#10b981" />
+                            : <WifiOff size={28} color="#64748b" />}
+                    </div>
+                    <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                            <h2 style={{ fontSize: 22, fontWeight: 900, color: T.text, margin: 0 }}>VenSynQ Module</h2>
+                            <span style={{
+                                fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
+                                letterSpacing: '0.08em', padding: '3px 10px', borderRadius: 20,
+                                background: localEnabled ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)',
+                                color: localEnabled ? '#10b981' : '#64748b',
+                                border: `1px solid ${localEnabled ? 'rgba(16,185,129,0.3)' : 'rgba(100,116,139,0.2)'}`,
+                                transition: 'all 0.3s ease',
+                            }}>
+                                {localEnabled ? '● Active' : '○ Disabled'}
+                            </span>
+                            {isDirty && (
+                                <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', padding: '3px 8px', borderRadius: 20, letterSpacing: '0.05em' }}>Unsaved</span>
+                            )}
+                        </div>
+                        <p style={{ fontSize: 13, color: T.textMuted, margin: 0, maxWidth: 480, lineHeight: 1.6 }}>
+                            Multi-channel e-commerce synchronization engine. Controls all marketplace integrations,
+                            dropshipping workflows, and OAuth connections platform-wide.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Toggle Switch */}
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+                    <button
+                        onClick={handleToggle}
+                        style={{
+                            width: 72, height: 38, borderRadius: 19, border: 'none',
+                            background: localEnabled
+                                ? 'linear-gradient(135deg, #10b981, #059669)'
+                                : (T.isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'),
+                            cursor: 'pointer', position: 'relative',
+                            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: localEnabled ? '0 4px 14px rgba(16,185,129,0.4)' : 'none',
+                        }}
+                    >
+                        <div style={{
+                            width: 28, height: 28, borderRadius: '50%', background: '#fff',
+                            position: 'absolute', top: 5,
+                            left: localEnabled ? 39 : 5,
+                            transition: 'left 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        }} />
+                    </button>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: T.textMuted }}>
+                        {localEnabled ? 'Enabled' : 'Disabled'}
+                    </span>
+                </div>
+            </div>
+
+            {/* Save / Discard Bar */}
+            {isDirty && (
+                <div style={{
+                    padding: '14px 20px',
+                    background: 'rgba(99,102,241,0.08)',
+                    border: '1px solid rgba(99,102,241,0.2)',
+                    borderRadius: 14,
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12,
+                    animation: 'fadeIn 0.2s ease',
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <AlertCircle size={16} color="#818cf8" />
+                        <span style={{ fontSize: 13, fontWeight: 700, color: T.textSub }}>
+                            VenSynQ will be <strong style={{ color: localEnabled ? '#10b981' : '#ef4444' }}>{localEnabled ? 'enabled' : 'disabled'}</strong> platform-wide for all stores
+                        </span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                        <button onClick={handleDiscard} style={{ padding: '8px 16px', border: `1px solid ${T.border}`, background: 'transparent', color: T.textMuted, fontSize: 12, fontWeight: 700, borderRadius: 10, cursor: 'pointer' }}>
+                            Discard
+                        </button>
+                        <button onClick={handleSave} disabled={saving} style={{ padding: '8px 20px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 12, fontWeight: 800, borderRadius: 10, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: saving ? 0.7 : 1 }}>
+                            {saving ? <><RefreshCw size={13} className="animate-spin" /> Saving...</> : 'Apply Changes'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Features Grid */}
+            <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: 20, padding: 24 }}>
+                <div style={{ marginBottom: 20 }}>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: T.text, marginBottom: 4 }}>Module Features</div>
+                    <div style={{ fontSize: 12, color: T.textMuted }}>These capabilities are {localEnabled ? 'currently available' : 'currently hidden'} to all store subscribers.</div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 12 }}>
+                    {FEATURES.map(f => (
+                        <div key={f.label} style={{
+                            display: 'flex', alignItems: 'flex-start', gap: 14,
+                            padding: '14px 16px', borderRadius: 14,
+                            background: localEnabled ? 'rgba(16,185,129,0.04)' : T.isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
+                            border: `1px solid ${localEnabled ? 'rgba(16,185,129,0.12)' : T.border}`,
+                            transition: 'all 0.3s ease',
+                        }}>
+                            <div style={{
+                                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                                background: localEnabled ? 'rgba(16,185,129,0.1)' : 'rgba(100,116,139,0.08)',
+                                border: `1px solid ${localEnabled ? 'rgba(16,185,129,0.2)' : 'rgba(100,116,139,0.15)'}`,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'all 0.3s ease',
+                            }}>
+                                <f.icon size={16} color={localEnabled ? '#10b981' : '#64748b'} />
+                            </div>
+                            <div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 3 }}>
+                                    <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>{f.label}</span>
+                                    {localEnabled
+                                        ? <CheckSquare size={12} color="#10b981" />
+                                        : <span style={{ fontSize: 10, color: '#64748b', fontWeight: 600 }}>Hidden</span>}
+                                </div>
+                                <span style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.5 }}>{f.desc}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            {/* Warning / Info Box */}
+            <div style={{
+                padding: '14px 18px', borderRadius: 12,
+                background: 'rgba(245,158,11,0.06)', border: '1px solid rgba(245,158,11,0.2)',
+                display: 'flex', alignItems: 'flex-start', gap: 12,
+            }}>
+                <AlertTriangle size={16} color="#f59e0b" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: '#f59e0b', marginBottom: 4 }}>Important Notes</div>
+                    <ul style={{ fontSize: 12, color: T.textMuted, margin: 0, paddingLeft: 16, lineHeight: 1.8 }}>
+                        <li>Disabling VenSynQ hides all UI elements but <strong>does not delete any data</strong>.</li>
+                        <li>Existing OAuth connections and sync configurations are preserved.</li>
+                        <li>Background token refresh and order sync jobs are paused while disabled.</li>
+                        <li>Re-enabling instantly restores full functionality for all stores.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 function SettingsTab({ stores = [], webhooks = [] }) {
     const T = useDashboardTheme();
     const [activeSection, setActiveSection] = useState('security');
     const [selectedStore, setSelectedStore] = useState(null);
+    const [dirtyFlags, setDirtyFlags] = useState({});
+    const [isSavingFlags, setIsSavingFlags] = useState(false);
+
+    useEffect(() => {
+        setDirtyFlags({});
+    }, [selectedStore]);
 
     const TOGGLEABLE = [
         { key: 'woocommerce',       label: 'WooCommerce Sync',  sub: 'Enable WooCommerce product / order sync' },
@@ -2200,13 +2469,41 @@ function SettingsTab({ stores = [], webhooks = [] }) {
 
     const WEBHOOK_STATUS = { received: '#6366f1', processed: '#10b981', failed: '#ef4444' };
 
-    function toggle(tenant, feature, currentValue) {
-        router.post(route('platform.store.feature-flag', tenant.id), {
-            feature, enabled: !currentValue
-        }, { preserveScroll: true });
+    const store = selectedStore ? stores.find(s => s.id === selectedStore) : null;
+
+    function toggleLocal(featureKey, currentValue) {
+        if (!store) return;
+        setDirtyFlags(prev => {
+            const updated = { ...prev };
+            const originalVal = store.plan_limits?.[featureKey] === true || (store.plan_limits?.[featureKey] !== false && !!store.plan_limits?.[featureKey]);
+            const targetVal = !currentValue;
+            if (targetVal === originalVal) {
+                delete updated[featureKey];
+            } else {
+                updated[featureKey] = targetVal;
+            }
+            return updated;
+        });
     }
 
-    const store = selectedStore ? stores.find(s => s.id === selectedStore) : null;
+    function saveFeatureBatch() {
+        if (!store || Object.keys(dirtyFlags).length === 0) return;
+        setIsSavingFlags(true);
+        router.post(route('platform.store.feature-flag', store.id), {
+            features: dirtyFlags
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                setDirtyFlags({});
+                setIsSavingFlags(false);
+            },
+            onError: () => {
+                setIsSavingFlags(false);
+            }
+        });
+    }
+
+    const hasPendingChanges = Object.keys(dirtyFlags).length > 0;
 
     const sectBtnStyle = (id) => ({
         padding: '7px 16px', borderRadius: 9,
@@ -2254,20 +2551,44 @@ function SettingsTab({ stores = [], webhooks = [] }) {
                                 <div style={{ fontSize: 12, color: T.textMuted, marginBottom: 20 }}>Plan: {store.plan}</div>
                                 {TOGGLEABLE.map(f => {
                                     const override = store.plan_limits?.[f.key];
-                                    const isEnabled = override === true || (override !== false && !!store.plan_limits?.[f.key]);
+                                    const originalEnabled = override === true || (override !== false && !!store.plan_limits?.[f.key]);
+                                    const isDirty = dirtyFlags[f.key] !== undefined;
+                                    const isEnabled = isDirty ? dirtyFlags[f.key] : originalEnabled;
                                     return (
                                         <div key={f.key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 0', borderBottom: `1px solid ${T.border}` }}>
                                             <div>
-                                                <div style={{ fontWeight: 600, color: T.text, fontSize: 13 }}>{f.label}</div>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                                    <div style={{ fontWeight: 600, color: T.text, fontSize: 13 }}>{f.label}</div>
+                                                    {isDirty && (
+                                                        <span style={{ fontSize: 9, fontWeight: 800, textTransform: 'uppercase', background: 'rgba(99,102,241,0.15)', color: '#a5b4fc', padding: '2px 6px', borderRadius: 4, letterSpacing: '0.05em' }}>Modified</span>
+                                                    )}
+                                                </div>
                                                 <div style={{ fontSize: 12, color: T.textMuted, marginTop: 2 }}>{f.sub}</div>
                                             </div>
-                                            <button onClick={() => toggle(store, f.key, isEnabled)}
+                                            <button onClick={() => toggleLocal(f.key, isEnabled)}
                                                 style={{ width: 44, height: 24, borderRadius: 12, border: 'none', background: isEnabled ? '#6366f1' : (T.isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0'), cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
                                                 <div style={{ width: 18, height: 18, borderRadius: '50%', background: '#fff', position: 'absolute', top: 3, left: isEnabled ? 23 : 3, transition: 'left 0.2s', boxShadow: '0 1px 4px rgba(0,0,0,0.2)' }} />
                                             </button>
                                         </div>
                                     );
                                 })}
+
+                                {hasPendingChanges && (
+                                    <div style={{ marginTop: 20, padding: 14, background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, animation: 'fadeIn 0.2s ease' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <AlertCircle size={15} color="#818cf8" />
+                                            <span style={{ fontSize: 12, fontWeight: 700, color: T.textSub }}>Unsaved feature overrides detected!</span>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: 8 }}>
+                                            <button type="button" onClick={() => setDirtyFlags({})} style={{ padding: '6px 12px', border: `1px solid ${T.border}`, background: 'transparent', color: T.textMuted, fontSize: 11, fontWeight: 700, borderRadius: 8, cursor: 'pointer' }}>
+                                                Discard
+                                            </button>
+                                            <button type="button" onClick={saveFeatureBatch} disabled={isSavingFlags} style={{ padding: '6px 14px', border: 'none', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', color: '#fff', fontSize: 11, fontWeight: 800, borderRadius: 8, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }}>
+                                                {isSavingFlags ? 'Saving...' : 'Save Changes'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </>
                         )}
                     </div>
@@ -2377,11 +2698,12 @@ export default function PlatformOwnerDashboard({
     // Sync activeTab with URL params for sidebar consistency
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
-        const tab = params.get('tab') || 'overview';
-        if (tab !== activeTab) {
-            setActiveTab(tab);
+        const urlTab = params.get('tab');
+        const finalTab = urlTab || initialTab || 'overview';
+        if (finalTab !== activeTab) {
+            setActiveTab(finalTab);
         }
-    }, [window.location.search]);
+    }, [window.location.search, initialTab]);
 
 
     // Theme logic handled by context
@@ -2468,6 +2790,7 @@ export default function PlatformOwnerDashboard({
         'support': 'Support',
         'feed': 'Activity Feed',
         'demo': 'Demo Store',
+        'vensynq': 'VenSynQ',
         'settings': 'Settings'
     };
 
@@ -2709,6 +3032,7 @@ export default function PlatformOwnerDashboard({
                     )}
                     {activeTab === 'feed' && <FeedTab activity_feed={activity_feed || []} />}
                     {activeTab === 'demo' && <DemoStoreTab />}
+                    {activeTab === 'vensynq' && <VenSynQTab />}
                     {activeTab === 'settings' && (
                         <SettingsTab
                             stores={recent_stores || []}

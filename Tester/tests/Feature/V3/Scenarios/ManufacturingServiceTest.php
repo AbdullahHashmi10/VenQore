@@ -8,11 +8,11 @@ use App\Services\V3\FifoService;
 use App\Services\V3\AccountingService;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ManufacturingServiceTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     private ManufacturingService $manufacturing;
     private FifoService          $fifo;

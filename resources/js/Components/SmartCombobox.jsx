@@ -429,7 +429,7 @@ const SmartCombobox = ({
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 min-w-full w-max max-w-[350px] mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute top-full left-0 min-w-full w-max max-w-[350px] mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl z-[120] animate-in fade-in zoom-in-95 duration-100">
 
                     {/* Results Count Header */}
                     {filteredItems.length > 0 && (
@@ -622,6 +622,7 @@ const SmartCombobox = ({
                     {onAddNew && (
                         <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-800/80 dark:to-indigo-900/20">
                             <button
+                                id="tour-add-new-party-btn"
                                 onClick={() => {
                                     onAddNew(query);
                                     setIsOpen(false);

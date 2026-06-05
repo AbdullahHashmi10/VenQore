@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
+use App\Services\PlanGate;
 use App\Services\V3\AccountingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -17,6 +18,9 @@ class FiscalYearController extends Controller
 
     public function close(Request $request)
     {
+        // ── Plan Gate: Fiscal Year Closing Wizard ──────────────────────────
+        PlanGate::enforce('fiscal_year_closing');
+
         $validated = $request->validate([
             'fiscal_year_end' => ['required', 'date'],
             'approved_by'     => ['required', 'string', 'exists:users,id'],

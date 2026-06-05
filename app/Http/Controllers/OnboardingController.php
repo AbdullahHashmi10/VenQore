@@ -19,6 +19,24 @@ class OnboardingController extends Controller
             /** @var \App\Models\Tenant $tenant */
             $tenant = app('current.tenant');
             $tenant->onboarding_step = $request->step;
+            
+            if ($request->step === 'invoice_congratulations') {
+                $done = $tenant->onboarding_steps_done ?? [];
+                if (!in_array('invoice', $done)) {
+                    $done[] = 'invoice';
+                    $tenant->onboarding_steps_done = $done;
+                }
+            } elseif ($request->step === 'pos_congratulations') {
+                $done = $tenant->onboarding_steps_done ?? [];
+                if (!in_array('pos', $done)) {
+                    $done[] = 'pos';
+                    $tenant->onboarding_steps_done = $done;
+                }
+            }
+
+            if ($request->step === 'completed') {
+                $tenant->onboarding_completed = true;
+            }
             $tenant->save();
 
             if ($request->wantsJson()) {

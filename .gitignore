@@ -29,3 +29,14 @@ temp_vyb_inspect/
 inspect.zip
 
 release_hosting_VenQore_*.zip
+
+# Scratch files and test dashboard logs
+/scratch/
+/Tester/dashboard/
+
+# Ignore update directories and zip packages (v4+)
+AMD_POS_Update_*/
+AMD_POS_Update_v*.zip
+*.exe
+php_files_in_zip.txt
+zip_contents.txt

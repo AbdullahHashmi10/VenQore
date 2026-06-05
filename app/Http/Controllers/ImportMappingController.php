@@ -156,9 +156,30 @@ class ImportMappingController extends Controller
 
         try {
             if ($request->type === 'products') {
-                $importClass = new ProductsImport($request->mapping, $request->input('options', []));
+                $tenant = app('current.tenant');
+                $limit = $tenant->getLimit('sku_limit');
+                $currentCount = $tenant->products()->count();
+
+                $options = $request->input('options', []);
+                $importAction = $request->input('import_action', 'import_all');
+
+                if ($importAction === 'truncate' && $limit !== null) {
+                    $allowedToImport = max(0, $limit - $currentCount);
+                    $options['truncate_to'] = $allowedToImport;
+                }
+
+                $importClass = new ProductsImport($request->mapping, $options);
                 Excel::import($importClass, $fullPath);
                 $msg = "Successfully added {$importClass->importedCount} new products, and updated {$importClass->updatedCount} existing products!";
+                
+                if (app()->bound('current.tenant')) {
+                    $tenant = app('current.tenant');
+                    if ($tenant->onboarding_step === 'import_tour' || $tenant->onboarding_step === 'import_tour_start') {
+                        $tenant->onboarding_step = 'purchase_tour_start';
+                        $tenant->save();
+                    }
+                }
+
                 return redirect()->route('store.admin.data', ['store_slug' => $storeSlug])->with('success', $msg);
             } elseif ($request->type === 'parties') {
                 $importClass = new PartiesImport(
@@ -258,11 +279,25 @@ class ImportMappingController extends Controller
                 );
                 Excel::import($importClass, $fullPath);
 
+                $tenant = app('current.tenant');
+                $limit = $tenant->getLimit('sku_limit');
+                $currentCount = $tenant->products()->count();
+                $incomingCount = $importClass->importedCount;
+                
+                $postImportCount = $currentCount + $incomingCount;
+                $exceedsLimit = $limit !== null && $postImportCount > $limit;
+                $allowedToImport = $limit !== null ? max(0, $limit - $currentCount) : null;
+
                 return response()->json([
                     'success' => true,
                     'new_count' => $importClass->importedCount,
                     'update_count' => $importClass->updatedCount,
                     'warnings' => $importClass->warnings,
+                    'exceeds_limit' => $exceedsLimit,
+                    'current_count' => $currentCount,
+                    'allowed_to_import' => $allowedToImport,
+                    'limit' => $limit,
+                    'post_import_count' => $postImportCount,
                 ]);
             } elseif ($request->type === 'sales') {
                 $importClass = new \App\Imports\SalesImport(

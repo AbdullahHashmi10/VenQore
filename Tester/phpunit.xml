@@ -9,6 +9,18 @@
         <testsuite name="Smoke">
             <directory>tests/Feature/Smoke</directory>
         </testsuite>
+
+        <!--
+          ROUTING - Run before every deployment.
+          Catches Ziggy route-not-found errors before users do.
+          Use testsuite name: Routing
+        -->
+        <testsuite name="Routing">
+            <file>tests/Feature/ZiggyRouteIntegrityTest.php</file>
+            <file>tests/Feature/RouteParameterRegressionTest.php</file>
+            <file>tests/Feature/OwnersDailyPulseTest.php</file>
+        </testsuite>
+
         <testsuite name="Critical">
             <directory>tests/Feature/Module01</directory>
             <directory>tests/Feature/Module02</directory>
@@ -18,6 +30,10 @@
             <directory>tests/Feature/Module10</directory>
             <directory>tests/Feature/Module11</directory>
             <directory>tests/Feature/Module12</directory>
+            <!-- Route integrity tests included in Critical runs -->
+            <file>tests/Feature/ZiggyRouteIntegrityTest.php</file>
+            <file>tests/Feature/RouteParameterRegressionTest.php</file>
+            <file>tests/Feature/OwnersDailyPulseTest.php</file>
         </testsuite>
         <testsuite name="High">
             <directory>tests/Feature/Module06</directory>
@@ -53,11 +69,17 @@
         <env name="APP_MAINTENANCE_DRIVER"    value="file"/>
         <env name="BCRYPT_ROUNDS"             value="4"/>
         <env name="BROADCAST_CONNECTION"      value="null"/>
-        <!-- SQLite in-memory for fast, isolated tests -->
-        <env name="DB_CONNECTION"             value="sqlite"/>
-        <env name="DB_DATABASE"               value=":memory:"/>
-        <env name="CACHE_STORE"               value="array"/>
-        <env name="SESSION_DRIVER"            value="array"/>
+        <!-- Production smoke tests run against REAL MySQL — not SQLite.
+             DB credentials come from Tester/.env.testing (amd_pos_test). -->
+        <env name="DB_CONNECTION"             value="mysql"/>
+        <env name="DB_HOST"                   value="127.0.0.1"/>
+        <env name="DB_PORT"                   value="3306"/>
+        <env name="DB_DATABASE"               value="amd_pos_test"/>
+        <env name="DB_USERNAME"               value="root"/>
+        <env name="DB_PASSWORD"               value=""/>
+        <!-- SMOKE_DB_DATABASE: Override only for smoke tests that connect to a specific DB.
+             Set to the local test DB name. On live server, set this to 'venqore_pos'. -->
+        <env name="SMOKE_DB_DATABASE"         value="amd_pos_test"/>
         <env name="QUEUE_CONNECTION"          value="sync"/>
         <env name="MAIL_MAILER"               value="array"/>
         <!-- WooCommerce keys intentionally empty — regression test for isolation bug -->

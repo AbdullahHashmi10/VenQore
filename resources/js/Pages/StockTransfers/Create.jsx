@@ -17,6 +17,7 @@ import Swal from 'sweetalert2';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 
 export default function Create({ warehouses, products }) {
+    const { store } = usePage().props;
     const { data, setData, post, processing, errors } = useForm({
         from_warehouse_id: '',
         to_warehouse_id: '',

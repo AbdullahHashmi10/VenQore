@@ -1,31 +1,8 @@
 import { usePage } from '@inertiajs/react';
-import React, { useState } from 'react';
+import React from 'react';
 import { Sparkles, Check, AlertTriangle, Globe } from 'lucide-react';
 
-export default function AiSettingsSection({ data, setData }) {
-    const [verifyingKey, setVerifyingKey] = useState(false);
-    const [verificationResult, setVerificationResult] = useState(null);
-
-    const handleVerifyKey = async () => {
-        if ((data.ai_provider === 'openai' && !data.openai_api_key) || (data.ai_provider === 'gemini' && !data.openai_api_key)) return;
-
-        setVerifyingKey(true);
-        setVerificationResult(null);
-        try {
-            // In a real app we would call the verifiable route
-            // const res = await axios.post(route('store.ai.test', { store_slug: store.slug }), { ... });
-
-            // For now, simulate success after a delay
-            await new Promise(r => setTimeout(r, 1500));
-            setVerificationResult({ type: 'success', message: 'API Key Verified Successfully!' });
-
-        } catch (e) {
-            setVerificationResult({ type: 'error', message: e.message || 'Verification failed' });
-        } finally {
-            setVerifyingKey(false);
-        }
-    };
-
+export default function AiSettingsSection({ data, setData, handleVerifyKey, verifyingKey, verificationResult }) {
     return (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
             {/* Compact Banner */}

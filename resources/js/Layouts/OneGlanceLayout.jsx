@@ -39,6 +39,7 @@ import {
     Users,
     Clock,
     Sparkles,
+    MessageSquare,
     Check,
     X,
     ArrowRight,
@@ -60,19 +61,23 @@ import VersionChecker from '@/Components/VersionChecker';
 import TerminalStatusBadge from '@/Components/TerminalStatusBadge';
 import Toast from '@/Components/Toast';
 import UpgradeModal from '@/Components/UpgradeModal';
+import GlobalOnboardingWidget from '@/Components/GlobalOnboardingWidget';
 import ImpersonationBanner from '@/Components/ImpersonationBanner';
 import PlanUsageBanner from '@/Components/PlanUsageBanner';
 import PlanNotificationBell from '@/Components/PlanNotificationBell';
 import { useTheme } from '@/Contexts/ThemeContext';
+import LimitGraceBanner from '@/Components/LimitGraceBanner';
 
 export default function OneGlanceLayout({ children, title, activeMenu, defaultCollapsed = false, hideHeader = false, fullScreen = false, mode = 'app', noPadding = false }) {
     const {
         store
     } = usePage().props;
 
+    const isStarterOrLtd1 = store?.plan === 'starter' || store?.plan === 'ltd_1';
+
     const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
     const { url, props } = usePage();
-    const { settings, flash } = props;
+    const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled } = props;
 
     // Global Toast State
     const [toasts, setToasts] = useState([]);
@@ -334,7 +339,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             subs: [
                 { group: 'Multi-Channel', items: ['VenSynQ'] },
                 { group: 'Promotion', items: [{ label: 'Email Marketing', locked: true }, { label: 'SMS Marketing', locked: true }, { label: 'Campaigns', locked: true }] },
-                { group: 'Integrations', items: ['WooCommerce Sync'] },
+                { group: 'Integrations', items: [isStarterOrLtd1 ? { label: 'WooCommerce Sync', locked: true } : 'WooCommerce Sync'] },
                 { group: 'Configuration', items: ['VenSynQ Settings'] }
             ],
             route: store ? 'store.vensynq.index' : 'vensynq.index',
@@ -344,7 +349,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             name: 'Insights',
             icon: TrendingUp,
             subs: [
-                { group: 'Growth', items: ['Growth Engine'] },
+                { group: 'Growth', items: [isStarterOrLtd1 ? { label: 'Growth Engine', locked: true } : 'Growth Engine'] },
                 { group: 'Financial Health', items: ['Chart of Accounts', 'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Tax Report'] },
                 { group: 'Sales Analysis', items: ['Sales Report', 'Discount Report', 'Sale Aging'] },
                 { group: 'Purchase Analysis', items: ['Purchase Report', 'Expense Report'] },
@@ -356,7 +361,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         },
     ];
 
-    const userRole = props.auth?.user?.role;
+    const userRole = my_role || userRoleProp || props.auth?.user?.role;
     const isPlatformAdmin = !!props.auth?.user?.is_platform_admin;
 
     // ── CRITICAL SECURITY: If no store context and user landed here via a legacy bare route,
@@ -376,6 +381,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     const adminMenuItems = (mode === 'admin' && isPlatformAdmin && !store) ? [
         // ── Platform HQ (Unified SuperAdmin Experience) ─────────────────────────
         { name: 'Overview', icon: LayoutDashboard, subs: [], route: 'platform.dashboard' },
+        { name: 'System Health', icon: Activity, subs: [], route: 'platform.health.errors' },
         { name: 'Plans & Limits', icon: Layers, subs: [], route: 'platform.plans.index' },
         { name: 'Platforms', icon: Database, subs: [], route: 'platform.platforms.index' },
         { name: 'Coupons', icon: Ticket, subs: [], route: 'platform.coupons.index' },
@@ -385,6 +391,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         { name: 'Revenue', icon: TrendingUp, subs: [], route: 'platform.dashboard', routeParams: { tab: 'revenue' } },
         { name: 'Support', icon: Ticket, subs: [], route: 'platform.tickets' },
         { name: 'Activity Feed', icon: Rss, subs: [], route: 'platform.dashboard', routeParams: { tab: 'feed' } },
+        { name: 'Demo Store', icon: Monitor, subs: [], route: 'platform.dashboard', routeParams: { tab: 'demo' } },
+        { name: 'Agent Inbox', icon: MessageSquare, subs: [], route: 'platform.chatbot.inbox' },
+        { name: 'Chatbot Settings', icon: Sparkles, subs: [], route: 'platform.chatbot.settings' },
+        { name: 'VenSynQ', icon: RefreshCcw, subs: [], route: 'platform.dashboard', routeParams: { tab: 'vensynq' } },
         { name: 'Settings', icon: Settings, subs: [], route: 'platform.dashboard', routeParams: { tab: 'settings' } },
         { name: 'System Update', icon: Package, subs: [], route: 'updater.index' },
     ] : [
@@ -427,6 +437,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         { name: 'Subscription',        icon: CreditCard,      subs: [], 
           route: store ? 'store.billing' : null,         
           routeParams: store ? { store_slug: store.slug } : {} },
+
+        { name: 'Agent Inbox',         icon: MessageSquare,   subs: [], 
+          route: store ? 'store.admin.chatbot.inbox' : null,
+          routeParams: store ? { store_slug: store.slug } : {} },
+
+        { name: 'Chatbot Settings',    icon: Sparkles,        subs: [], 
+          route: store ? 'store.admin.chatbot.settings' : null,
+          routeParams: store ? { store_slug: store.slug } : {} },
     ];
 
     // RBAC Permission Map
@@ -440,10 +458,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         'VenSynQ': ['sales', 'inventory', 'discounts'],
         'Insights': ['reports'],
         'Activity Log': ['audit'],
-        'Recycle Bin': ['settings'],  // Moved to admin, but still restricted
+        'Recycle Bin': ['settings'],
+        'Agent Inbox': ['settings'],
+        'Chatbot Settings': ['settings'],
         // 'Settings': ['settings'],  // Removed
         // 'System': ['settings', 'audit'], // Removed
         'Overview': [],
+        'System Health': [],
         'Plans & Limits': [],
         'Platforms': [],
         'Coupons': [],
@@ -453,6 +474,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         'Revenue': [],
         'Support': [],
         'Activity Feed': [],
+        'Demo Store': [],
+        'VenSynQ': [],
         'Settings': [],
         'System Update': [],
         'Staff Summaries': ['users'],
@@ -466,8 +489,21 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     const rawMenuItems = mode === 'admin' ? adminMenuItems : appMenuItems;
 
     const menuItems = rawMenuItems.filter(item => {
-        // Platform admin in platform mode: sees all platform items
-        if (isPlatformAdmin && mode === 'admin') return true;
+        // Exclude VenSynQ if disabled platform-wide
+        if (item.name === 'VenSynQ' && !vensynq_enabled) {
+            return false;
+        }
+
+        // Exclude chatbot links for non-platform-staff
+        if (item.name === 'Agent Inbox' || item.name === 'Chatbot Settings') {
+            const isStaff = isPlatformAdmin || !!props.auth?.user?.is_platform_staff;
+            if (!isStaff) return false;
+            // Hide if the plan is Starter or LTD 1
+            if (isStarterOrLtd1) return false;
+        }
+
+        // Platform admin sees all items in any mode
+        if (isPlatformAdmin) return true;
 
         // Store owner and admin: see all store items
         if (userRole === 'owner' || userRole === 'admin') return true;
@@ -845,6 +881,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     {/* Admin Panel link — goes to new store-scoped route */}
                                     {store && (
                                          <Link 
+                                             id="tour-sidebar-admin"
                                              href={mode === 'admin' 
                                                  ? route('store.dashboard', {store_slug: store.slug})
                                                  : route('store.admin.home', {store_slug: store.slug})
@@ -907,6 +944,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                 {/* --- MAIN CONTENT --- */}
                 <main className={`flex-1 flex flex-col h-full min-w-0 relative bg-slate-50 dark:bg-slate-950 transition-opacity duration-500 ease-in-out opacity-100`}>
                     
+                    {/* Limit Grace Countdown Banner */}
+                    <LimitGraceBanner />
+
                     {/* Subscription/Trial Banner */}
                     {(() => {
                         if (!store) return null;
@@ -1309,6 +1349,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             <PwaInstallPrompt />
             <VersionChecker />
             <OnboardingDriver />
+            <GlobalOnboardingWidget store={store} />
             {/* Global Toast Notifications */}
             <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
         </>

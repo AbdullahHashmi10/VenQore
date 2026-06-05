@@ -36,6 +36,13 @@ class PlanLimitException extends Exception
             'growth_engine'=> 'The Growth Engine is not available on your current plan.',
             'multi_branch' => 'Multi-branch features require the Growth plan or above.',
             'transactions_per_month' => 'You\'ve reached your monthly transaction limit. Upgrade your plan or stack another AppSumo code to continue processing sales.',
+            'smart_capture'=> 'Smart Capture AI is not available on your current plan.',
+            'bill_of_materials' => 'Bill of Materials features require a plan upgrade.',
+            'fixed_asset_depreciation' => 'Fixed Asset Depreciation requires a plan upgrade.',
+            'fiscal_year_closing' => 'Fiscal Year Closing requires a plan upgrade.',
+            'live_chat_widget' => 'Live Chat Widget is not available on your current plan.',
+            'owners_daily_pulse' => 'Owners Daily Pulse requires a plan upgrade.',
+            'recurring_invoicing' => 'Recurring Invoicing requires a plan upgrade.',
         ];
 
         parent::__construct($messages[$feature] ?? "You've reached the limit for your current plan.");
@@ -54,7 +61,7 @@ class PlanLimitException extends Exception
             'message'      => $this->getMessage(),
             'upgrade_url'  => $tenant ? route('store.billing.upgrade', ['store_slug' => $tenant->slug]) : '#',
             'billing_url'  => $tenant ? route('store.billing', ['store_slug' => $tenant->slug]) : '#',
-            'portal_url'   => $tenant ? route('store.billing.portal', ['store_slug' => $tenant->slug]) : '#',
+            'portal_url'   => ($tenant && $tenant->lemon_squeezy_customer_id) ? route('store.billing.portal', ['store_slug' => $tenant->slug]) : '#',
             'current_plan' => $tenant?->plan,
             'current_count'=> $this->currentCount,
             'limit'        => $tenant?->getLimit($this->feature),

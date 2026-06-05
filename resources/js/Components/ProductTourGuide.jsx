@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { router } from '@inertiajs/react';
-import { Sparkles, ArrowRight, ArrowLeft, Box, HelpCircle, Trophy, Home, Plus } from 'lucide-react';
+import { Sparkles, ArrowRight, ArrowLeft, Box, HelpCircle, Trophy, Home, Plus, Upload, Minimize2 } from 'lucide-react';
 
-export default function ProductTourGuide({ isModalOpen, store }) {
-    const [currentStep, setCurrentStep] = useState(0); // 0: add button, 1: name, 2: sku, 3: category, 4: cost, 5: price, 6: barcode, 7: reservations, 8: extra, 9: save
+export default function ProductTourGuide({ isModalOpen, store, categories = [] }) {
+    const [isCategoryCreationPath, setIsCategoryCreationPath] = useState(() => categories.length === 0);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [isMinimized, setIsMinimized] = useState(() => {
+        return sessionStorage.getItem('amd_onboarding_minimized') === 'true';
+    });
+
+    const toggleMinimized = (val) => {
+        setIsMinimized(val);
+        sessionStorage.setItem('amd_onboarding_minimized', val ? 'true' : 'false');
+    };
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
     const [liveMargin, setLiveMargin] = useState(null);
@@ -27,20 +36,63 @@ export default function ProductTourGuide({ isModalOpen, store }) {
 
     // Get DOM IDs for each step
     const getTargetId = (step) => {
-        switch (step) {
-            case 0: return 'tour-add-product';
-            case 1: return 'tour-product-name';
-            case 2: return 'tour-product-sku-gen';
-            case 3: return 'tour-product-category';
-            case 4: return 'tour-product-cost';
-            case 5: return 'tour-product-price';
-            case 6: return 'tour-product-barcode';
-            case 7: return 'tour-tab-reservations';
-            case 8: return 'tour-tab-extra';
-            case 9: return 'tour-product-save';
-            default: return null;
+        if (isCategoryCreationPath) {
+            switch (step) {
+                case 0: return 'tour-add-product';
+                case 1: return 'tour-product-name';
+                case 2: return 'tour-product-sku-gen';
+                case 3: return 'tour-product-category';
+                case 4: return 'tour-add-new-category-btn';
+                case 5: return 'tour-new-category-name';
+                case 6: return 'tour-product-cost';
+                case 7: return 'tour-product-price';
+                case 8: return 'tour-product-barcode';
+                case 9: return 'tour-tab-reservations';
+                case 10: return 'tour-tab-extra';
+                case 11: return 'tour-product-save';
+                default: return null;
+            }
+        } else {
+            switch (step) {
+                case 0: return 'tour-add-product';
+                case 1: return 'tour-product-name';
+                case 2: return 'tour-product-sku-gen';
+                case 3: return 'tour-product-category';
+                case 4: return 'tour-product-cost';
+                case 5: return 'tour-product-price';
+                case 6: return 'tour-product-barcode';
+                case 7: return 'tour-tab-reservations';
+                case 8: return 'tour-tab-extra';
+                case 9: return 'tour-product-save';
+                default: return null;
+            }
         }
     };
+
+    // Auto-advance logic
+    useEffect(() => {
+        if (!isCategoryCreationPath) return;
+
+        const interval = setInterval(() => {
+            const activeId = document.activeElement?.id;
+
+            if (currentStep === 3) {
+                if (document.getElementById('tour-add-new-category-btn')) {
+                    setCurrentStep(4);
+                }
+            } else if (currentStep === 4) {
+                if (document.getElementById('tour-new-category-name')) {
+                    setCurrentStep(5);
+                }
+            } else if (currentStep === 5) {
+                if (activeId === 'tour-product-cost') {
+                    setCurrentStep(6);
+                }
+            }
+        }, 150);
+
+        return () => clearInterval(interval);
+    }, [currentStep, isCategoryCreationPath]);
 
     // Scroll active element into view and update coordinates
     useEffect(() => {
@@ -88,7 +140,7 @@ export default function ProductTourGuide({ isModalOpen, store }) {
                 modalContainer.removeEventListener('scroll', updateCoords, true);
             }
         };
-    }, [currentStep, isModalOpen]);
+    }, [currentStep, isModalOpen, isCategoryCreationPath]);
 
     // Live margin checker effect (Steps 4 & 5)
     useEffect(() => {
@@ -117,7 +169,7 @@ export default function ProductTourGuide({ isModalOpen, store }) {
     const handleMakeMore = () => {
         router.post(
             route('store.onboarding.step', { store_slug: store?.slug }),
-            { step: 'completed' },
+            { step: 'inventory_tour_more' },
             { preserveScroll: true }
         );
     };
@@ -125,7 +177,7 @@ export default function ProductTourGuide({ isModalOpen, store }) {
     const handleGoToDashboard = () => {
         router.post(
             route('store.onboarding.step', { store_slug: store?.slug }),
-            { step: 'completed' },
+            { step: 'purchase_tour_start' },
             {
                 preserveScroll: true,
                 onSuccess: () => {
@@ -135,7 +187,111 @@ export default function ProductTourGuide({ isModalOpen, store }) {
         );
     };
 
-    if (store?.onboarding_step !== 'inventory_tour' && store?.onboarding_step !== 'congratulations') return null;
+    const handleUpdateStep = (stepValue) => {
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: stepValue },
+            { preserveScroll: true }
+        );
+    };
+
+    if (
+        store?.onboarding_step !== 'inventory_tour' &&
+        store?.onboarding_step !== 'congratulations' &&
+        store?.onboarding_step !== 'inventory_tour_more'
+    ) return null;
+
+    if (store?.onboarding_step === 'inventory_tour_more') {
+        if (isMinimized) {
+            // Minimized Floating Progress Widget (Pie Chart / Ring)
+            const circumference = 2 * Math.PI * 18;
+            const progressOffset = circumference * (1 - 0.33); // 33% progress (Phase 1 of 3 complete)
+
+            return (
+                <div 
+                    onClick={() => toggleMinimized(false)}
+                    title="Onboarding Active: Cataloging Mode (33% Complete). Click to expand."
+                    className="fixed bottom-24 right-6 z-[100] w-14 h-14 bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/30 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-110 active:scale-95 hover:border-indigo-400/50 transition-all duration-300 group"
+                >
+                    <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 44 44">
+                        {/* Background Ring */}
+                        <circle
+                            className="text-slate-800 dark:text-slate-800"
+                            strokeWidth="3.5"
+                            stroke="currentColor"
+                            fill="transparent"
+                            r="18"
+                            cx="22"
+                            cy="22"
+                        />
+                        {/* Progress Segment */}
+                        <circle
+                            className="text-indigo-500 transition-all duration-500 ease-out"
+                            strokeWidth="3.5"
+                            strokeDasharray={circumference}
+                            strokeDashoffset={progressOffset}
+                            strokeLinecap="round"
+                            stroke="currentColor"
+                            fill="transparent"
+                            r="18"
+                            cx="22"
+                            cy="22"
+                        />
+                    </svg>
+                    {/* Inner Icon */}
+                    <div className="relative z-10 text-indigo-400 group-hover:text-white transition-colors duration-200">
+                        <Sparkles size={18} className="animate-pulse" />
+                    </div>
+                    {/* Small badge */}
+                    <span className="absolute -top-1 -right-1 bg-indigo-600 text-[8px] font-black text-white px-1.5 py-0.5 rounded-full shadow">
+                        33%
+                    </span>
+                </div>
+            );
+        }
+
+        // Expanded Glassmorphic Banner/Card
+        return (
+            <div className="fixed bottom-24 right-6 z-[100] max-w-sm w-full bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto">
+                {/* Minimize Button */}
+                <button 
+                    onClick={() => toggleMinimized(true)}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-slate-700/50"
+                    title="Minimize to widget"
+                >
+                    <Minimize2 size={12} />
+                </button>
+
+                <div className="flex items-start gap-3 mb-3">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
+                        <Sparkles size={20} className="animate-pulse" />
+                    </div>
+                    <div>
+                        <h4 className="text-sm font-bold text-white uppercase tracking-wider">Onboarding Active</h4>
+                        <p className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wide">Cataloging Mode (33%)</p>
+                    </div>
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed font-medium mb-4 pr-6">
+                    You can add as many products as you like. When you are done cataloging, click below to proceed or load products in bulk.
+                </p>
+                <div className="flex flex-col gap-2">
+                    <button
+                        onClick={handleGoToDashboard}
+                        className="w-full py-2.5 px-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold rounded-xl text-xs transition-all shadow-md cursor-pointer flex items-center justify-center gap-1.5 hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                        <span>Proceed to Buy Stock</span>
+                        <ArrowRight size={12} />
+                    </button>
+                    <button
+                        onClick={() => handleUpdateStep('completed')}
+                        className="w-full py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99]"
+                    >
+                        Exit Tour
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (store?.onboarding_step === 'congratulations') {
         return (
@@ -165,10 +321,10 @@ export default function ProductTourGuide({ isModalOpen, store }) {
                                 Great job setting up your initial inventory catalog. What would you like to do next?
                             </p>
 
-                            <div className="flex flex-col sm:flex-row gap-3 w-full">
+                            <div className="flex flex-col gap-3 w-full">
                                 <button
                                     onClick={handleGoToDashboard}
-                                    className="flex-1 flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
+                                    className="w-full flex items-center justify-center gap-2 py-3 px-5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
                                 >
                                     <Home size={18} />
                                     <span>Go to Dashboard</span>
@@ -176,7 +332,7 @@ export default function ProductTourGuide({ isModalOpen, store }) {
 
                                 <button
                                     onClick={handleMakeMore}
-                                    className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                                    className="w-full py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
                                 >
                                     <Plus size={18} />
                                     <span>Make More Products</span>
@@ -190,7 +346,17 @@ export default function ProductTourGuide({ isModalOpen, store }) {
     }
 
     const getTooltipStyle = () => {
-        if (!coords) return { display: 'none' };
+        if (!coords) {
+            return {
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 'calc(100% - 32px)',
+                maxWidth: '360px',
+                zIndex: 115,
+            };
+        }
 
         if (isMobile) {
             return {
@@ -253,7 +419,7 @@ export default function ProductTourGuide({ isModalOpen, store }) {
             )}
 
             {!coords && (
-                <div className="fixed inset-0 bg-slate-950/75 pointer-events-auto z-[90]"></div>
+                <div className="fixed inset-0 bg-slate-950/75 pointer-events-none z-[90]"></div>
             )}
 
             {/* Floating Tooltip */}
@@ -271,87 +437,148 @@ export default function ProductTourGuide({ isModalOpen, store }) {
                             {currentStep === 0 ? 'Create Product' : 'Product Guide'}
                         </h4>
                         <span className="text-[10px] font-semibold text-indigo-400">
-                            Step {currentStep + 1} of 10
+                            Step {currentStep + 1} of {isCategoryCreationPath ? 12 : 10}
                         </span>
                     </div>
                 </div>
 
                 <div className="space-y-4">
-                    {currentStep === 0 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Let's add your first product. Click on the highlighted <span className="text-white font-bold">Add Product</span> button to open the product creator form.
-                        </p>
-                    )}
-
-                    {currentStep === 1 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Type a <span className="text-white font-bold">Product Name</span> here (e.g. "Cold Brew Coffee" or "Cotton T-Shirt").
-                        </p>
-                    )}
-
-                    {currentStep === 2 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Type a custom product code in the <span className="text-white font-bold">SKU</span> box, or click the reload button to auto-generate a secure code.
-                        </p>
-                    )}
-
-                    {currentStep === 3 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Select a <span className="text-white font-bold">Category</span>. If you don't have categories created, click "Create New Category" to add one instantly.
-                        </p>
-                    )}
-
-                    {currentStep === 4 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            Set your <span className="text-white font-bold">Cost Price</span>. This is the amount it costs you to purchase or manufacture one unit of this product.
-                        </p>
-                    )}
-
-                    {currentStep === 5 && (
-                        <div className="space-y-2">
-                            <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                                Set your <span className="text-white font-bold">Selling Price</span>. This is the amount you will charge customers for this product.
-                            </p>
-                            {liveMargin ? (
-                                <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700/50">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
-                                    <p className="text-xs font-bold text-slate-200 mt-0.5">
-                                        Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
-                                    </p>
-                                    <p className="text-[10px] text-slate-400 leading-relaxed mt-1">
-                                        {liveMargin.margin >= 30 
-                                            ? '✅ Excellent margin! This will help you cover expenses and stay profitable.'
-                                            : '⚠️ Low margin. Consider increasing the selling price or negotiating a lower cost.'}
-                                    </p>
-                                </div>
-                            ) : (
-                                <p className="text-[10px] text-slate-500 italic">Enter cost and selling price to see live profit margin analysis.</p>
+                    {isCategoryCreationPath ? (
+                        <>
+                            {currentStep === 0 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Let's add your first product. Click on the highlighted <span className="text-white font-bold">Add Product</span> button to open the product creator form.
+                                </p>
                             )}
-                        </div>
-                    )}
-
-                    {currentStep === 6 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            In the <span className="text-white font-bold">Barcodes</span> section, you can add barcode tags if you have a barcode scanner configured. You can also skip this and do it later.
-                        </p>
-                    )}
-
-                    {currentStep === 7 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            The <span className="text-white font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices so they don't get double sold.
-                        </p>
-                    )}
-
-                    {currentStep === 8 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            The <span className="text-white font-bold">Extra</span> tab handles additional details like image galleries and descriptions. You can skip these for now and explore them later.
-                        </p>
-                    )}
-
-                    {currentStep === 9 && (
-                        <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                            All done! Click <span className="text-white font-bold">Save Changes</span> to create your product and finalize the setup tour.
-                        </p>
+                            {currentStep === 1 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Type a <span className="text-white font-bold">Product Name</span> here.
+                                </p>
+                            )}
+                            {currentStep === 2 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Type a custom product code in the <span className="text-white font-bold">SKU</span> box, or auto-generate one.
+                                </p>
+                            )}
+                            {currentStep === 3 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    You don't have any categories yet! Click on the <span className="text-white font-bold">Category</span> selection box.
+                                </p>
+                            )}
+                            {currentStep === 4 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Click <span className="text-white font-bold">+ Create New Category</span> at the bottom of the dropdown list.
+                                </p>
+                            )}
+                            {currentStep === 5 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Type a name for your new category (e.g. <span className="text-white font-bold">Beverages</span>) to create it inline.
+                                </p>
+                            )}
+                            {currentStep === 6 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Set your <span className="text-white font-bold">Cost Price</span>.
+                                </p>
+                            )}
+                            {currentStep === 7 && (
+                                <div className="space-y-2">
+                                    <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                        Set your <span className="text-white font-bold">Selling Price</span>.
+                                    </p>
+                                    {liveMargin ? (
+                                        <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700/50">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
+                                            <p className="text-xs font-bold text-slate-200 mt-0.5">
+                                                Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
+                                            </p>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            )}
+                            {currentStep === 8 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    In the <span className="text-white font-bold">Barcodes</span> section, you can add barcode tags if needed.
+                                </p>
+                            )}
+                            {currentStep === 9 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    The <span className="text-white font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices.
+                                </p>
+                            )}
+                            {currentStep === 10 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    The <span className="text-white font-bold">Extra</span> tab handles additional details like images and descriptions.
+                                </p>
+                            )}
+                            {currentStep === 11 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    All done! Click <span className="text-white font-bold">Save Changes</span> to create your product.
+                                </p>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            {currentStep === 0 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Let's add your first product. Click on the highlighted <span className="text-white font-bold">Add Product</span> button to open the product creator form.
+                                </p>
+                            )}
+                            {currentStep === 1 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Type a <span className="text-white font-bold">Product Name</span> here.
+                                </p>
+                            )}
+                            {currentStep === 2 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Type a custom product code in the <span className="text-white font-bold">SKU</span> box, or auto-generate one.
+                                </p>
+                            )}
+                            {currentStep === 3 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Select a <span className="text-white font-bold">Category</span>.
+                                </p>
+                            )}
+                            {currentStep === 4 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    Set your <span className="text-white font-bold">Cost Price</span>.
+                                </p>
+                            )}
+                            {currentStep === 5 && (
+                                <div className="space-y-2">
+                                    <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                        Set your <span className="text-white font-bold">Selling Price</span>.
+                                    </p>
+                                    {liveMargin ? (
+                                        <div className="p-2.5 rounded-xl bg-slate-800 border border-slate-700/50">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Live Profit Analysis</p>
+                                            <p className="text-xs font-bold text-slate-200 mt-0.5">
+                                                Margin: <span className={liveMargin.margin >= 30 ? 'text-emerald-400' : 'text-amber-400'}>{liveMargin.margin}%</span>
+                                            </p>
+                                        </div>
+                                    ) : null}
+                                </div>
+                            )}
+                            {currentStep === 6 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    In the <span className="text-white font-bold">Barcodes</span> section, you can add barcode tags if needed.
+                                </p>
+                            )}
+                            {currentStep === 7 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    The <span className="text-white font-bold">Reservations</span> tab tracks stock quantities currently held for unpaid invoices.
+                                </p>
+                            )}
+                            {currentStep === 8 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    The <span className="text-white font-bold">Extra</span> tab handles additional details like images and descriptions.
+                                </p>
+                            )}
+                            {currentStep === 9 && (
+                                <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                                    All done! Click <span className="text-white font-bold">Save Changes</span> to create your product and finalize the setup tour.
+                                </p>
+                            )}
+                        </>
                     )}
 
                     {/* Navigation Buttons */}
@@ -359,12 +586,15 @@ export default function ProductTourGuide({ isModalOpen, store }) {
                         {currentStep > 0 ? (
                             <button
                                 onClick={() => {
-                                    // Handle tab switches automatically when going back
-                                    if (currentStep === 7) {
+                                    const reservationsStep = isCategoryCreationPath ? 9 : 7;
+                                    const extraStep = isCategoryCreationPath ? 10 : 8;
+                                    const saveStep = isCategoryCreationPath ? 11 : 9;
+
+                                    if (currentStep === reservationsStep) {
                                         document.getElementById('tour-tab-details')?.click();
-                                    } else if (currentStep === 8) {
+                                    } else if (currentStep === extraStep) {
                                         document.getElementById('tour-tab-reservations')?.click();
-                                    } else if (currentStep === 9) {
+                                    } else if (currentStep === saveStep) {
                                         document.getElementById('tour-tab-extra')?.click();
                                     }
                                     setCurrentStep(currentStep - 1);
@@ -378,18 +608,18 @@ export default function ProductTourGuide({ isModalOpen, store }) {
                             <div /> // Spacer
                         )}
 
-                        {currentStep > 0 && currentStep < 9 && (
+                        {currentStep > 0 && currentStep < (isCategoryCreationPath ? 11 : 9) && (
                             <button
                                 onClick={() => {
-                                    // Handle tab switches automatically if transitioning past basic fields
-                                    if (currentStep === 6) {
-                                        // Activate reservations tab in parent
+                                    const barcodeStep = isCategoryCreationPath ? 8 : 6;
+                                    const reservationsStep = isCategoryCreationPath ? 9 : 7;
+                                    const extraStep = isCategoryCreationPath ? 10 : 8;
+
+                                    if (currentStep === barcodeStep) {
                                         document.getElementById('tour-tab-reservations')?.click();
-                                    } else if (currentStep === 7) {
-                                        // Activate extra tab in parent
+                                    } else if (currentStep === reservationsStep) {
                                         document.getElementById('tour-tab-extra')?.click();
-                                    } else if (currentStep === 8) {
-                                        // Switch back to details tab to show save button
+                                    } else if (currentStep === extraStep) {
                                         document.getElementById('tour-tab-details')?.click();
                                     }
                                     setCurrentStep(currentStep + 1);

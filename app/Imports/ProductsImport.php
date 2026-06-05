@@ -173,6 +173,13 @@ class ProductsDataSheetImport implements OnEachRow
         }
 
         // --- Final Import logic ---
+        $truncateTo = $this->options['truncate_to'] ?? null;
+        if ($truncateTo !== null && !$existing) {
+            if ($this->parent && $this->parent->importedCount >= $truncateTo) {
+                return; // Truncate: skip creating new products beyond the limit
+            }
+        }
+
         $categoryId = null;
         if (!empty($data['category'])) {
             $category = Category::firstOrCreate(['name' => trim($data['category'])]);

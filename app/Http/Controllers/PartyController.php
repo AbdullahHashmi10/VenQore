@@ -225,6 +225,7 @@ class PartyController extends Controller
             'default_discount' => 'nullable|numeric|between:0,100'
         ]);
 
+
         $ob = floatval($validated['opening_balance'] ?? 0);
         $validated['current_balance'] = $validated['opening_balance_type'] === 'receivable' ? abs($ob) : -abs($ob);
 

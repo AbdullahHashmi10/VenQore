@@ -176,7 +176,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                             />
                         </div>
                         <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <Link href={route("store.sales.presale.create", {
+                            <Link href={route("store.presales.create", {
                                 store_slug: store.slug
                             })} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
                                 <FileText size={14} /> New Quote
@@ -226,7 +226,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                             <p className="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">No pre-sales found</p>
                                             <p className="text-sm text-slate-500 mb-4">Create your first quotation</p>
                                             <Link
-                                                href={route("store.sales.presale.create", {
+                                                href={route("store.presales.create", {
                                                     store_slug: store.slug
                                                 })}
                                                 className="px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-bold hover:bg-amber-700 transition-colors flex items-center gap-2"
@@ -240,7 +240,7 @@ export default function BestPreSales({ presales = [], stats = {} }) {
                                 sortedData.map((row) => (
                                     <tr
                                         key={row.id}
-                                        onClick={() => {/* router.visit(route('store.pre-sales.show', row.id)) */ }}
+                                        onClick={() => {/* router.visit(route('store.pre-sales.index', { store_slug: store.slug })) */ }}
                                         className="hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all group cursor-pointer"
                                     >
                                         {tableColumns.map((col) => (

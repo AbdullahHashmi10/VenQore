@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useForm, usePage, router } from '@inertiajs/react';
-import { X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink } from 'lucide-react';
+import { X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink, AlertTriangle } from 'lucide-react';
 import PremiumButton from '@/Components/PremiumButton';
 import axios from 'axios';
 import PremiumSelect from '@/Components/PremiumSelect';
@@ -372,6 +372,10 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
         } else {
             // For updates with files, we MUST use POST with _method="PUT" because
             // PHP/Laravel cannot read files from native PUT requests due to standard limitations.
+            if (!product?.id) {
+                console.error("Product ID is missing for update route.");
+                return;
+            }
             post(route('store.inventory.update', { store_slug: store?.slug, id: product.id }), {
                 forceFormData: true,
                 transform: (data) => {
@@ -667,6 +671,25 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-slate-900/30">
+                    {errors && Object.keys(errors).length > 0 && (
+                        <div className="mx-8 mt-8 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
+                            <div className="flex items-center gap-3 mb-3">
+                                <AlertTriangle size={24} className="shrink-0 text-rose-500" />
+                                <h4 className="text-base font-black uppercase tracking-wider">Please correct the following:</h4>
+                            </div>
+                            <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
+                                {Object.entries(errors).map(([field, messages]) => {
+                                    const fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                    const msg = Array.isArray(messages) ? messages[0] : messages;
+                                    return (
+                                        <li key={field} className="tracking-tight">
+                                            <span className="capitalize">{fieldLabel}</span>: {msg}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
 
                     {/* DETAILS TAB */}
                     {activeTab === 'details' && (
@@ -738,6 +761,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                             <div className="col-span-2">
                                                 <label className="block text-xs font-bold text-indigo-500 mb-1.5">New Category Name</label>
                                                 <input
+                                                    id="tour-new-category-name"
                                                     type="text"
                                                     value={data.new_category_name}
                                                     onChange={e => setData('new_category_name', e.target.value)}

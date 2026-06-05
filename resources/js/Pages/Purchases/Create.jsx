@@ -305,7 +305,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                 ? route("store.inventory.store", {
                 store_slug: store.slug
             })
-                : route("store.inventory.update", [store.slug, editingProduct.id]);
+                : (editingProduct?.id ? route("store.inventory.update", [store.slug, editingProduct.id]) : "");
 
             const response = await axios.post(url, data);
 
@@ -939,7 +939,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
 
                 if (shouldPrint) {
                     // Logic for printing purchase receipt/voucher if available
-                    // window.open(route('purchases.print', response.data.id), '_blank');
+                    // window.open(route('store.purchases.print', { store_slug: store.slug, purchase: response.data.id }), '_blank');
                     showAlert({ title: 'Info', message: 'Printing not yet configured for purchases.', type: 'info' });
                 }
             } else {
@@ -2025,7 +2025,7 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                     <div className="grid grid-cols-1 gap-3 w-full">
                         <button
                             onClick={() => {
-                                // window.open(route('purchases.print', lastPurchaseId), '_blank');
+                                // window.open(route('store.purchases.print', { store_slug: store.slug, purchase: lastPurchaseId }), '_blank');
                                 showAlert({ title: 'Info', message: 'Print not configured yet.', type: 'info' });
                             }}
                             className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20"
@@ -2034,9 +2034,13 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
                         </button>
 
                         <button
+                            id="tour-new-transaction"
                             onClick={() => {
                                 setShowSuccessModal(false);
                                 resetToNewPurchase();
+                                if (store?.onboarding_step === 'purchase_tour') {
+                                    router.reload({ only: ['store'] });
+                                }
                             }}
                             className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black hover:bg-slate-200 transition-all"
                         >

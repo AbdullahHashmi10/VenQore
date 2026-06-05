@@ -233,7 +233,7 @@ test('sales_orders_stock_hold_and_conversion_to_sale', function () {
 });
 
 test('recurring invoice generation creates a correct new invoice with line items', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(null, 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SellModuleTabs from '@/Components/SellModuleTabs';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import FormModal from '@/Components/FormModal';
 import {
     Plus,
@@ -199,7 +199,7 @@ const CreatePreSale = ({ sale }) => {
         try {
             const url = productModalMode === 'create'
                 ? route('store.inventory.store', { store_slug: store?.slug })
-                : route('store.inventory.update', { store_slug: store?.slug, id: editingProduct.id });
+                : (editingProduct?.id ? route('store.inventory.update', { store_slug: store?.slug, id: editingProduct.id }) : '');
 
             const response = await axios.post(url, data);
 
@@ -1822,7 +1822,7 @@ const CreatePreSale = ({ sale }) => {
                     <div className="grid grid-cols-1 gap-3 w-full">
                         <button
                             onClick={() => {
-                                window.open(route('store.sales.print', { store_slug: store?.slug, id: lastSaleId }), '_blank');
+                                window.open(route('store.sales.print', { store_slug: store?.slug, sale: lastSaleId }), '_blank');
                             }}
                             className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20"
                         >

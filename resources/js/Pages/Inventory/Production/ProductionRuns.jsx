@@ -1,9 +1,9 @@
-﻿import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
-import { formatCurrency as globalFormatCurrency } from '@/Utils/format';
+import { formatCurrency } from '@/Utils/format';
 
 import SmartCombobox from '@/Components/SmartCombobox';
 import {
@@ -312,7 +312,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                 sortedData.map((row) => (
                                     <tr
                                         key={row.id}
-                                        onClick={() => router.visit(route('store.production.show', { store_slug: store?.slug, production: row.id }))}
+                                        onClick={() => router.visit(route('store.production.show', { store_slug: store?.slug, run: row.id }))}
                                         className={`
                                             hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer
                                             ${row.status === 'in_progress' ? 'bg-blue-50/30 dark:bg-blue-900/5' : ''}
@@ -357,7 +357,7 @@ export default function ProductionRunsIndex({ productionRuns = {}, stats = {}, f
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2">
                                                                     <Link
-                                                                        href={route('store.production.edit', { store_slug: store?.slug, production: row.id })}
+                                                                        href={route('store.production.edit', { store_slug: store?.slug, run: row.id })}
                                                                         className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors"
                                                                         onClick={(e) => e.stopPropagation()}
                                                                     >

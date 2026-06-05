@@ -200,6 +200,9 @@ test('drm offline lock restricts usage when license is invalid offline', functio
         ->where('id', $this->tenant->id)
         ->update(['last_online_at' => now()->subDays(31)->toDateTimeString()]);
 
+    // Explicitly clear the cached last_online_at value for this tenant
+    Cache::forget("tenant_{$this->tenant->id}_last_online_at");
+
     // Hit a standard authenticated POS endpoint — must be blocked
     $response = $this->get("/s/{$this->tenant->slug}/pos/products/featured");
 

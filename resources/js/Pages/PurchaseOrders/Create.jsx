@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -259,7 +259,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                 ? route("store.inventory.store", {
                 store_slug: store.slug
             })
-                : route("store.inventory.update", [store.slug, editingProduct.id]);
+                : (editingProduct?.id ? route("store.inventory.update", [store.slug, editingProduct.id]) : "");
 
             const response = await axios.post(url, data);
 

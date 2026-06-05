@@ -4,7 +4,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { formatCurrency } from '@/Utils/format';
 import { BarChart2, Layers, TrendingUp, Eye, FileText, Lock } from 'lucide-react';
 
-function ReportLink({ icon: Icon, label, sub, route: routeName, storeId }) {
+function ReportLink({ icon: Icon, label, sub, route: routeName, storeSlug }) {
     return (
         <button
             onClick={() => router.visit(window.route(routeName, { store_slug: storeSlug }))}
@@ -86,10 +86,10 @@ export default function ViewerDashboard({ plSummary, inventoryValue }) {
                 {/* Allowed Reports */}
                 <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text-main,#0f172a)', marginBottom: 12 }}>Available Reports</div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                    <ReportLink icon={BarChart2} label="Profit &amp; Loss Statement" sub="Income, expenses, and net profit" route="reports.profit-loss" storeId={storeId} />
-                    <ReportLink icon={Layers}    label="Balance Sheet"              sub="Assets, liabilities, and equity" route="reports.balance-sheet" storeId={storeId} />
-                    <ReportLink icon={TrendingUp} label="Inventory Valuation"       sub="FIFO cost-based stock value"    route="reports.inventory-valuation" storeId={storeId} />
-                    <ReportLink icon={FileText}  label="Trial Balance"              sub="Account-level debit/credit summary" route="reports.trial-balance" storeId={storeId} />
+                    <ReportLink icon={BarChart2} label="Profit &amp; Loss Statement" sub="Income, expenses, and net profit" route="reports.profit-loss" storeSlug={storeSlug} />
+                    <ReportLink icon={Layers}    label="Balance Sheet"              sub="Assets, liabilities, and equity" route="reports.balance-sheet" storeSlug={storeSlug} />
+                    <ReportLink icon={TrendingUp} label="Inventory Valuation"       sub="FIFO cost-based stock value"    route="reports.inventory-valuation" storeSlug={storeSlug} />
+                    <ReportLink icon={FileText}  label="Trial Balance"              sub="Account-level debit/credit summary" route="reports.trial-balance" storeSlug={storeSlug} />
                 </div>
             </div>
         </OneGlanceLayout>

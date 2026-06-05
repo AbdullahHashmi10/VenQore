@@ -17,7 +17,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
         name: '',
         phone: '',
         email: '',
-        type: type,
+        type: type === 'all' ? 'customer' : type,
         opening_balance: 0,
         opening_balance_type: 'receivable',
         credit_limit: '',
@@ -34,7 +34,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                     name: editingParty.name || '',
                     phone: editingParty.phone || '',
                     email: editingParty.email || '',
-                    type: editingParty.type || type,
+                    type: editingParty.type || (type === 'all' ? 'customer' : type),
                     opening_balance: editingParty.opening_balance || 0,
                     opening_balance_type: editingParty.opening_balance_type || 'receivable',
                     credit_limit: editingParty.credit_limit || '',
@@ -48,7 +48,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                     name: initialName,
                     phone: '',
                     email: '',
-                    type: type,
+                    type: type === 'all' ? 'customer' : type,
                     opening_balance: 0,
                     opening_balance_type: 'receivable',
                     credit_limit: '',
@@ -71,7 +71,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
             if (isEditMode) {
                 // Update existing party
                 const url = type === 'supplier'
-                    ? route('store.suppliers.update', editingParty.id)
+                    ? route('store.suppliers.update', [store.slug, editingParty.id])
                     : route("store.parties.update", [store.slug, editingParty.id]);
                 response = await axios.put(url, formData);
             } else {
@@ -97,7 +97,9 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
         }
     };
 
-    const typeLabel = type === 'customer' ? 'Customer' : 'Supplier';
+    const typeLabel = type === 'all'
+        ? (formData.type === 'customer' ? 'Customer' : 'Supplier')
+        : (type === 'customer' ? 'Customer' : 'Supplier');
 
     return (
         <FormModal
@@ -105,10 +107,24 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
             onClose={onClose}
             title={`${isEditMode ? 'Edit' : 'Create New'} ${typeLabel}`}
             size="md"
+            errors={errors}
         >
             <form onSubmit={handleSubmit} className="space-y-4 p-4">
+                {type === 'all' && !isEditMode && (
+                    <FormField label="Contact Type" error={errors.type} required>
+                        <FormSelect
+                            value={formData.type}
+                            onChange={e => setFormData({ ...formData, type: e.target.value })}
+                        >
+                            <option value="customer">Customer</option>
+                            <option value="supplier">Supplier</option>
+                        </FormSelect>
+                    </FormField>
+                )}
+
                 <FormField label="Name" error={errors.name} required>
                     <FormInput
+                        id="tour-party-name"
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                         autoFocus
@@ -118,6 +134,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                 <div className="grid grid-cols-2 gap-4">
                     <FormField label="Phone" error={errors.phone}>
                         <FormInput
+                            id="tour-party-phone"
                             value={formData.phone}
                             onChange={e => setFormData({ ...formData, phone: e.target.value })}
                         />
@@ -149,7 +166,6 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                     <div className="grid grid-cols-2 gap-4">
                         <FormField label="Opening Balance" error={errors.opening_balance}>
                             <FormInput
-                                type="number"
                                 value={formData.opening_balance}
                                 onChange={e => setFormData({ ...formData, opening_balance: e.target.value })}
                             />
@@ -168,6 +184,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
 
                 <FormField label="Address">
                     <FormTextarea
+                        id="tour-party-address"
                         value={formData.address}
                         onChange={e => setFormData({ ...formData, address: e.target.value })}
                     />
@@ -177,7 +194,7 @@ export default function QuickPartyModal({ isOpen, onClose, onSuccess, type = 'cu
                     <SecondaryButton onClick={onClose} disabled={submitting}>
                         Cancel
                     </SecondaryButton>
-                    <PrimaryButton type="submit" disabled={submitting} loading={submitting}>
+                    <PrimaryButton id="tour-party-submit" type="submit" disabled={submitting} loading={submitting}>
                         {isEditMode ? 'Update' : 'Create'} {typeLabel}
                     </PrimaryButton>
                 </div>

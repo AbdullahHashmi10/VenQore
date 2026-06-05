@@ -65,7 +65,7 @@ const EbayLogo = ({ size = 12 }) => {
 };
 
 export default function SalesIndex({ sales, filters, stats }) {
-    const { auth, flash, store } = usePage().props;
+    const { auth, flash, store, vensynq_enabled } = usePage().props;
     const isSuperAdmin = auth.user?.role === 'platform_admin' || auth.user?.role === 'admin' || auth.user?.role === 'owner';
 
     // Infinite Scroll State
@@ -257,7 +257,7 @@ export default function SalesIndex({ sales, filters, stats }) {
         if (clickTimeout) {
             clearTimeout(clickTimeout);
             setClickTimeout(null);
-            router.visit(route('store.sales.edit', { store_slug: store?.slug, id: row.id }));
+            router.visit(route('store.sales.edit', { store_slug: store?.slug, sale: row.id }));
         } else {
             const timeout = setTimeout(() => {
                 setQuickViewSale(row);
@@ -535,7 +535,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                             {row.ecommerce_channel?.platform === 'amazon' && <AmazonLogo size={12} />}
                                                                             {row.ecommerce_channel?.platform === 'tiktok' && <TikTokLogo size={12} />}
                                                                             {row.ecommerce_channel?.platform === 'ebay' && <EbayLogo size={12} />}
-                                                                            VenSynQ • {row.ecommerce_channel?.platform ? (row.ecommerce_channel.platform.toUpperCase()) : 'AMAZON'}
+                                                                            {vensynq_enabled ? 'VenSynQ • ' : ''}{row.ecommerce_channel?.platform ? (row.ecommerce_channel.platform.toUpperCase()) : 'AMAZON'}
                                                                         </span>
                                                                     )}
                                                                 </div>
@@ -609,13 +609,13 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                                             <Edit size={14} /> Open in POS
                                                                                         </a>
                                                                                     ) : (
-                                                                                        <Link href={route('store.sales.edit', { store_slug: store?.slug, id: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                                        <Link href={route('store.sales.edit', { store_slug: store?.slug, sale: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
                                                                                             <Edit size={14} /> View/Edit
                                                                                         </Link>
                                                                                     )}
 
                                                                                     {/* 2. Convert To Return */}
-                                                                                    <Link href={route('store.sales.show', { store_slug: store?.slug, id: row.id }) + '?action=return'} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><RefreshCcw size={14} /> Convert To Return</Link>
+                                                                                    <Link href={route('store.sales.show', { store_slug: store?.slug, sale: row.id }) + '?action=return'} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><RefreshCcw size={14} /> Convert To Return</Link>
 
                                                                                     {/* 3. Preview Delivery Challan */}
                                                                                     <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Truck size={14} /> Preview Delivery Challan</button>
@@ -624,7 +624,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                                     <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><History size={14} /> Payment History</button>
 
                                                                                     {/* 5. Cancel Invoice */}
-                                                                                    <button onClick={async () => { if (await confirm('Cancel invoice? Stock will be restored.')) router.post(route('store.sales.cancel', { store_slug: store?.slug, id: row.id })); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> Cancel Invoice</button>
+                                                                                    <button onClick={async () => { if (await confirm('Cancel invoice? Stock will be restored.')) router.post(route('store.sales.cancel', { store_slug: store?.slug, sale: row.id })); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> Cancel Invoice</button>
 
                                                                                     <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
 
@@ -633,7 +633,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                                         <button
                                                                                             onClick={() => {
                                                                                                 if (confirm('Are you sure you want to permanently delete this sale? This will restore stock.')) {
-                                                                                                    router.delete(route('store.sales.destroy', { store_slug: store?.slug, id: row.id }), {
+                                                                                                    router.delete(route('store.sales.destroy', { store_slug: store?.slug, sale: row.id }), {
                                                                                                         preserveScroll: true,
                                                                                                         onSuccess: () => setActiveActionMenu(null)
                                                                                                     });
@@ -649,7 +649,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                                     <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Copy size={14} /> Duplicate</button>
 
                                                                                     {/* 8. Open PDF */}
-                                                                                    <a href={route('store.sales.print', { store_slug: store?.slug, id: row.id })} target="_blank" className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><FileText size={14} /> Open PDF</a>
+                                                                                    <a href={route('store.sales.print', { store_slug: store?.slug, sale: row.id })} target="_blank" className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><FileText size={14} /> Open PDF</a>
 
                                                                                     {/* 9. Preview */}
                                                                                     <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Eye size={14} /> Preview</button>
@@ -724,7 +724,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         className="font-bold text-xs"
                                     />
                                     <Link
-                                        href={route('store.sales.edit', { store_slug: store?.slug, id: quickViewSale.id })}
+                                        href={route('store.sales.edit', { store_slug: store?.slug, sale: quickViewSale.id })}
                                         className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-bold rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1"
                                     >
                                         <Edit size={14} /> Edit Invoice
@@ -870,7 +870,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             <MessageCircle size={14} /> Share
                                         </button>
                                         <Link
-                                            href={route('store.sales.show', { store_slug: store?.slug, id: quickViewSale.id }) + '?action=return'}
+                                            href={route('store.sales.show', { store_slug: store?.slug, sale: quickViewSale.id }) + '?action=return'}
                                             className="px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 text-orange-600 text-xs font-bold rounded-lg hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors flex items-center gap-1"
                                         >
                                             <RefreshCcw size={14} /> Return
