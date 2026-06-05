@@ -82,6 +82,6 @@ class ProfileController extends Controller
 
         $user->save();
 
-        return Redirect::route('account.edit')->with('status', 'passcode-updated');
+        return Redirect::back()->with('status', 'passcode-updated');
     }
 }

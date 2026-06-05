@@ -33,6 +33,7 @@ return [
         'reports'      => 'basic',  // basic | advanced
         'growth_engine'=> false,    // AI retention engine
         'multi_branch' => false,
+        'owners_daily_pulse' => true, // Owner's Daily Pulse (all plans)
     ],
 
     'growth' => [
@@ -45,6 +46,7 @@ return [
         'reports'      => 'advanced',
         'growth_engine'=> true,
         'multi_branch' => true,
+        'owners_daily_pulse' => true,
     ],
 
     'business' => [
@@ -57,6 +59,7 @@ return [
         'reports'      => 'advanced',
         'growth_engine'=> true,
         'multi_branch' => true,
+        'owners_daily_pulse' => true,
     ],
 
     // ── AppSumo LTD Plans (Phase 7) ─────────────────────────────────────────
@@ -72,6 +75,7 @@ return [
         'reports'      => 'basic',
         'growth_engine'=> false,
         'multi_branch' => false,
+        'owners_daily_pulse' => true,
         'ltd'          => true,     // perpetual license flag
         'hosted_until' => '+2 years',
     ],
@@ -86,6 +90,7 @@ return [
         'reports'      => 'advanced',
         'growth_engine'=> true,
         'multi_branch' => true,
+        'owners_daily_pulse' => true,
         'ltd'          => true,
         'hosted_until' => '+2 years',
     ],
@@ -100,6 +105,7 @@ return [
         'reports'      => 'advanced',
         'growth_engine'=> true,
         'multi_branch' => true,
+        'owners_daily_pulse' => true,
         'ltd'          => true,
         'hosted_until' => '+2 years',
     ],
