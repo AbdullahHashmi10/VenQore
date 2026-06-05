@@ -365,7 +365,7 @@ export default function AdminDashboard({
                                             cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '3 3' }}
                                             formatter={(value) => `${currencySymbol} ${value.toLocaleString()}`}
                                         />
-                                        <Area type="monotone" dataKey="expenses" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6 }} />
+                                        <Area name="Purchases" type="monotone" dataKey="purchases" stroke="#6366f1" strokeWidth={3} fillOpacity={1} fill="url(#colorValue)" activeDot={{ r: 6 }} />
                                     </AreaChart>
                                 </ResponsiveContainer>
                             </div>

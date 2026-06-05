@@ -39,6 +39,13 @@ class Sale extends Model
         'gross_platform_fee'    => 'decimal:2',
     ];
 
+    protected $appends = ['paid_amount', 'total_amount'];
+
+    public function getTotalAmountAttribute()
+    {
+        return (float) ($this->invoice_total ?? $this->total ?? 0);
+    }
+
     // ─── Phase 1.2 Query Scopes ───────────────────────────────────────────────
 
     /**

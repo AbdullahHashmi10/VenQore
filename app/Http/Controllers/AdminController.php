@@ -71,7 +71,7 @@ class AdminController extends Controller
         }
 
         // 2. Profitability Trend (Last 6 Months) - Now using Cash Basis
-        $profitData = collect(range(5, 0))->map(function ($i) use ($reportSvc) {
+        $profitData = collect(range(5, 0))->map(function ($i) use ($reportSvc, $tenant) {
             $date = now()->subMonths($i);
             $monthName = $date->format('M');
             
@@ -79,12 +79,18 @@ class AdminController extends Controller
             $end = $date->copy()->endOfMonth();
             
             $movement = $reportSvc->getCashMovement($start, $end);
+            
+            $purchases = \App\Models\Invoice::where('type', 'purchase')
+                ->where('tenant_id', $tenant->id ?? null)
+                ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+                ->sum('total_amount');
 
             return [
                 'month' => $monthName,
                 'profit' => $movement['net'],
                 'expenses' => $movement['cash_out'],
-                'revenue' => $movement['cash_in']
+                'revenue' => $movement['cash_in'],
+                'purchases' => (float) $purchases
             ];
         })->values();
 

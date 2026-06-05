@@ -26,6 +26,62 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    private function resolveDateRange(Request $request)
+    {
+        $range = $request->input('range', 'this_month');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        switch ($range) {
+            case 'today':
+                $startDate = Carbon::today()->toDateString();
+                $endDate = Carbon::today()->toDateString();
+                break;
+            case 'yesterday':
+                $startDate = Carbon::yesterday()->toDateString();
+                $endDate = Carbon::yesterday()->toDateString();
+                break;
+            case 'this_week':
+                $startDate = Carbon::now()->startOfWeek()->toDateString();
+                $endDate = Carbon::now()->endOfWeek()->toDateString();
+                break;
+            case 'last_week':
+                $startDate = Carbon::now()->subWeek()->startOfWeek()->toDateString();
+                $endDate = Carbon::now()->subWeek()->endOfWeek()->toDateString();
+                break;
+            case 'this_month':
+                $startDate = Carbon::now()->startOfMonth()->toDateString();
+                $endDate = Carbon::now()->endOfMonth()->toDateString();
+                break;
+            case 'last_month':
+                $startDate = Carbon::now()->subMonth()->startOfMonth()->toDateString();
+                $endDate = Carbon::now()->subMonth()->endOfMonth()->toDateString();
+                break;
+            case 'this_year':
+                $startDate = Carbon::now()->startOfYear()->toDateString();
+                $endDate = Carbon::now()->endOfYear()->toDateString();
+                break;
+            case 'last_year':
+                $startDate = Carbon::now()->subYear()->startOfYear()->toDateString();
+                $endDate = Carbon::now()->subYear()->endOfYear()->toDateString();
+                break;
+            case 'custom':
+                if (!$startDate) {
+                    $startDate = Carbon::now()->startOfMonth()->toDateString();
+                }
+                if (!$endDate) {
+                    $endDate = Carbon::now()->endOfMonth()->toDateString();
+                }
+                break;
+            default:
+                $startDate = Carbon::now()->startOfMonth()->toDateString();
+                $endDate = Carbon::now()->endOfMonth()->toDateString();
+                break;
+        }
+
+        return [$startDate, $endDate, $range];
+    }
+
     public function index()
     {
         return Inertia::render('Reports/ReportsHub');
@@ -39,8 +95,7 @@ class ReportController extends Controller
 
     public function sales(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $customerId = $request->input('customer_id');
 
         $query = Sale::with(['party', 'payments', 'items.product'])
@@ -119,6 +174,7 @@ class ReportController extends Controller
             'stats' => $stats,
             'chartData' => $chartData,
             'filters' => [
+                'range' => $range,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'customer_id' => $customerId
@@ -129,8 +185,7 @@ class ReportController extends Controller
 
     public function dailySales(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Group sales by day in the range
         $sales = Sale::where('tenant_id', app('current.tenant')->id)
@@ -143,6 +198,7 @@ class ReportController extends Controller
         return Inertia::render('Reports/DailySales', [
             'reports' => $sales,
             'filters' => [
+                'range' => $range,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
             ],
@@ -157,23 +213,11 @@ class ReportController extends Controller
 
     public function purchases(Request $request)
     {
-        $range = $request->input('range', 'this_month');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $supplierId = $request->input('supplier_id');
 
-        $query = Invoice::with('party')->where('type', 'purchase');
-
-        if ($range === 'today') {
-            $query->whereDate('date', Carbon::today());
-        } elseif ($range === 'this_month') {
-            $query->whereMonth('date', Carbon::now()->month)
-                  ->whereYear('date', Carbon::now()->year);
-        } elseif ($range === 'this_year') {
-            $query->whereYear('date', Carbon::now()->year);
-        } elseif ($range === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('date', [$startDate, $endDate]);
-        }
+        $query = Invoice::with('party')->where('type', 'purchase')
+            ->whereBetween('date', [$startDate, $endDate]);
 
         if ($supplierId) {
             $query->where('party_id', $supplierId);
@@ -280,8 +324,7 @@ class ReportController extends Controller
 
     public function profitLoss(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 4 — Delegates entirely to FinancialReportingService.
         // This controller is now a thin HTTP adapter. No financial logic lives here.
@@ -299,6 +342,7 @@ class ReportController extends Controller
             'income_accounts'  => $pnl['income_accounts'],
             'expense_accounts' => $pnl['expense_accounts'],
             'filters' => [
+                'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
             ],
@@ -884,19 +928,30 @@ class ReportController extends Controller
 
     public function itemWiseProfit(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 2.2 — Delegates to FinancialReportingService.
         // Revenue = sale_items.net_amount (Phase 2.1 waterfall column, ex-tax ex-discount)
         // COGS    = sale_item_batches.total_cogs (FIFO locked-in cost)
         // Margin  = (gross_profit / net_revenue) × 100 — calculated dynamically, never stored
-        $items = (new FinancialReportingService())
+        $rawItems = (new FinancialReportingService())
             ->getGrossProfitByProduct($startDate, $endDate);
+
+        $items = $rawItems->map(function ($item) {
+            return [
+                'name' => $item['name'],
+                'sku' => $item['sku'],
+                'quantity' => $item['quantity'],
+                'revenue' => $item['net_revenue'],
+                'profit' => $item['gross_profit'],
+                'margin_pct' => $item['margin_pct'],
+            ];
+        });
 
         return Inertia::render('Reports/ItemWiseProfit', [
             'items'   => $items,
             'filters' => [
+                'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
             ],
@@ -905,8 +960,7 @@ class ReportController extends Controller
 
     public function partyWiseProfitLoss(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 2.2 — Delegates to FinancialReportingService.
         // COGS comes from sale_item_batches (FIFO), not products.cost_price.
@@ -927,19 +981,35 @@ class ReportController extends Controller
                 ['label' => 'Total Profit', 'value' => number_format($data->sum('gross_profit'), 2), 'type' => 'up'],
             ],
             'chartData' => $data->sortByDesc('gross_profit')->take(10)->map(fn($r) => ['name' => substr($r['party_name'], 0, 15), 'value' => $r['gross_profit']])->values(),
-            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#6366f1']
+            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#6366f1'],
+            'filters' => [
+                'range' => $range,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]
         ]);
     }
 
     public function discountReport(Request $request)
     {
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
+
         // FIX-17: Read from sales table (V3), not legacy invoices table
-        $sales = Sale::where('discount', '>', 0)->with('party')->orderBy('created_at', 'desc')->get();
+        $sales = Sale::where('discount', '>', 0)
+            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->with('party')
+            ->orderBy('created_at', 'desc')
+            ->get();
         $totalDiscount = $sales->sum('discount');
 
         return Inertia::render('Reports/DiscountReport', [
             'invoices'      => $sales,
-            'totalDiscount' => $totalDiscount
+            'totalDiscount' => $totalDiscount,
+            'filters'       => [
+                'range'      => $range,
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+            ]
         ]);
     }
 
