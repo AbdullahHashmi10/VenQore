@@ -35,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/webhooks/lemon-squeezy', [LemonSqueezyWebhookController::class, 'handle'])
     ->middleware('lemon-squeezy.signature');
 
+Route::post('/webhooks/pusher', [\App\Http\Controllers\PusherWebhookController::class, 'handle']);
+
 // ── Phase 3.1: POS Product Search API ─────────────────────────────────────
 // Replaces the Product::get() timebomb in PosController.
 // Rate-limited to 300 requests/min per tenant (config in bootstrap/app.php).
