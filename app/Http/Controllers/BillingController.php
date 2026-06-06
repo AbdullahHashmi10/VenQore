@@ -759,8 +759,8 @@ class BillingController extends Controller
 
         if ($currency === 'PKR') {
             // Convert PKR to USD using an exchange rate of 280 for Lemon Squeezy custom_price
-            $usdCost = $totalCost / 280.0;
-            $amountInCents = (int) round($usdCost * 100);
+            // Explicitly round the result after scaling to integer cents to prevent IEEE 754 floating point drift
+            $amountInCents = (int) round(($totalCost * 100) / 280.0);
         } else {
             $amountInCents = (int) round($totalCost * 100);
         }

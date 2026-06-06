@@ -55,6 +55,20 @@ class ProvisionTenantJob implements ShouldQueue
 
         $tenantId       = data_get($this->payload, 'meta.custom_data.tenant_id') ?? data_get($this->payload, 'custom_data.tenant_id');
 
+        if ($tenantId) {
+            $tenant = Tenant::find($tenantId);
+            if ($tenant) {
+                // Verify the email owns or is a member of this tenant
+                $hasAccess = $tenant->users()->where('email', $email)->exists();
+                if (!$hasAccess) {
+                    Log::warning("ProvisionTenantJob: Tenant ID {$tenantId} specified in custom_data does not have user with email {$email}. Disallowing tenant association.");
+                    $tenantId = null;
+                }
+            } else {
+                $tenantId = null;
+            }
+        }
+
         // ── Check if Onboarding Product Upload Service ──────────────────
         $isOnboarding = data_get($this->payload, 'meta.custom_data.is_onboarding_service') 
             ?? data_get($this->payload, 'custom_data.is_onboarding_service');

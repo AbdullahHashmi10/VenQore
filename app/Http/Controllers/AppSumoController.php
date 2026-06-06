@@ -66,36 +66,41 @@ class AppSumoController extends Controller
         $code = strtoupper(trim($request->code));
         $user = Auth::user();
 
-        $appsumoCode = AppSumoCode::where('code', $code)
-            ->where('is_redeemed', false)
-            ->lockForUpdate()
-            ->first();
+        $result = DB::transaction(function () use ($code, $user) {
+            $appsumoCode = AppSumoCode::where('code', $code)
+                ->where('is_redeemed', false)
+                ->lockForUpdate()
+                ->first();
 
-        if (!$appsumoCode) {
-            return response()->json([
-                'error' => 'This code is invalid or has already been redeemed.',
-            ], 422);
-        }
+            if (!$appsumoCode) {
+                return [
+                    'success' => false,
+                    'error' => 'This code is invalid or has already been redeemed.',
+                    'status' => 422
+                ];
+            }
 
-        // withoutTenantScope(): same reason as index() — no tenant bound on this public route.
-        $existingCodeCount = \App\Models\AppSumoCode::where('redeemed_by_email', $user->email)
-            ->where('is_redeemed', true)
-            ->count();
+            // withoutTenantScope(): same reason as index() — no tenant bound on this public route.
+            $existingCodeCount = \App\Models\AppSumoCode::where('redeemed_by_email', $user->email)
+                ->where('is_redeemed', true)
+                ->lockForUpdate()
+                ->count();
 
-        if ($existingCodeCount >= 3) {
-            return response()->json([
-                'error' => 'Maximum of 3 AppSumo codes can be redeemed per account.',
-            ], 422);
-        }
+            if ($existingCodeCount >= 3) {
+                return [
+                    'success' => false,
+                    'error' => 'Maximum of 3 AppSumo codes can be redeemed per account.',
+                    'status' => 422
+                ];
+            }
 
-        $newTotal = $existingCodeCount + 1;
-        $plan = match(true) {
-            $newTotal >= 3 => 'ltd_3',
-            $newTotal >= 2 => 'ltd_2',
-            default        => 'ltd_1',
-        };
+            $newTotal = $existingCodeCount + 1;
+            $plan = match(true) {
+                $newTotal >= 3 => 'ltd_3',
+                $newTotal >= 2 => 'ltd_2',
+                default        => 'ltd_1',
+            };
 
-        DB::transaction(function () use ($user, $appsumoCode, $plan, $existingCodeCount) {
             // Mark code as consumed
             $appsumoCode->update([
                 'is_redeemed' => true,
@@ -138,7 +143,22 @@ class AppSumoController extends Controller
                           ]);
                 }
             }
+
+            return [
+                'success' => true,
+                'newTotal' => $newTotal,
+                'plan' => $plan
+            ];
         });
+
+        if (!$result['success']) {
+            return response()->json([
+                'error' => $result['error'],
+            ], $result['status']);
+        }
+
+        $newTotal = $result['newTotal'];
+        $plan = $result['plan'];
 
         $messages = [
             1 => 'Code redeemed! You\'re on LTD Starter (ltd_1). Add a 2nd code to upgrade to LTD Growth.',

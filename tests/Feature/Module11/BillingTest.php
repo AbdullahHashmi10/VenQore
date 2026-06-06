@@ -122,6 +122,7 @@ test('two_codes_stacked_upgrades_to_ltd2', function () {
 
 test('lemon_squeezy_subscription_webhook_provisions_tenant', function () {
     $tenant = $this->createTenant();
+    $owner = $this->createTenantUser($tenant, 'owner');
 
     $payload = [
         'meta' => [
@@ -132,7 +133,8 @@ test('lemon_squeezy_subscription_webhook_provisions_tenant', function () {
         ],
         'data' => [
             'attributes' => [
-                'product_name' => 'Pro Plan'
+                'product_name' => 'Pro Plan',
+                'user_email' => $owner->email
             ]
         ]
     ];
@@ -309,4 +311,109 @@ test('subscription_updated_webhook_updates_tenant_plan', function () {
     $tenant->refresh();
     $this->assertEquals('growth', $tenant->plan);
     $this->assertEquals('active', $tenant->status);
+});
+
+test('appsumo_code_stacking_prevents_race_conditions_under_concurrency', function () {
+    $tenant = $this->createTenant();
+    $user = $this->actingAsOwner($tenant);
+
+    $appsumoCode = AppSumoCode::create([
+        'code' => 'CONCURRENT-CODE-001',
+        'is_redeemed' => false,
+        'plan_tier' => 'ltd_1'
+    ]);
+
+    $response1 = $this->postJson("/redeem", [
+        'code' => 'CONCURRENT-CODE-001'
+    ]);
+    $response1->assertOk();
+
+    // Second redemption must fail with 422
+    $response2 = $this->postJson("/redeem", [
+        'code' => 'CONCURRENT-CODE-001'
+    ]);
+    $response2->assertStatus(422);
+});
+
+test('lemon_squeezy_webhook_rejects_spoofed_tenant_id', function () {
+    $victimTenant = $this->createTenant();
+    $victimOwner = $this->createTenantUser($victimTenant, 'owner');
+    $victimTenant->update(['plan' => 'business']);
+
+    // Attacker payload specifies the victim's tenant_id, but the checkout email is the attacker's
+    $payload = [
+        'meta' => [
+            'event_name' => 'subscription_created',
+            'custom_data' => [
+                'tenant_id' => $victimTenant->id
+            ]
+        ],
+        'data' => [
+            'attributes' => [
+                'user_email' => 'attacker@example.com',
+                'user_name' => 'Attacker',
+                'variant_id' => config('services.lemon_squeezy.starter_variant_id'),
+                'product_name' => 'Starter Plan'
+            ]
+        ]
+    ];
+
+    config(['services.lemon_squeezy.signing_secret' => 'test_signing_secret']);
+    $signature = hash_hmac('sha256', json_encode($payload), 'test_signing_secret');
+
+    $response = $this->postJson('/api/webhooks/lemon-squeezy', $payload, [
+        'X-Signature' => $signature
+    ]);
+    $response->assertOk();
+
+    // Victim's tenant plan MUST NOT be modified or downgraded
+    $victimTenant->refresh();
+    $this->assertEquals('business', $victimTenant->plan);
+
+    // Verify a new tenant was created for the attacker instead of modifying the victim's tenant
+    $attackerTenant = \App\Models\Tenant::whereHas('users', function ($q) {
+        $q->where('email', 'attacker@example.com');
+    })->first();
+
+    $this->assertNotNull($attackerTenant);
+    $this->assertNotEquals($victimTenant->id, $attackerTenant->id);
+    $this->assertEquals('starter', $attackerTenant->plan);
+});
+
+test('checkout_upload_service_pkr_conversion_precision_scaling', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    config([
+        'services.lemon_squeezy.api_key' => 'mock_api_key',
+        'services.lemon_squeezy.store_id' => 'mock_store_id',
+        'services.lemon_squeezy.upload_service_variant_id' => 'mock_variant_id',
+    ]);
+
+    \Illuminate\Support\Facades\Http::fake([
+        'https://api.lemonsqueezy.com/v1/checkouts' => \Illuminate\Support\Facades\Http::response([
+            'data' => [
+                'attributes' => [
+                    'url' => 'https://venqore.lemonsqueezy.com/checkout/buy/mock-checkout-url-pkr'
+                ]
+              ]
+        ], 201)
+    ]);
+
+    // Request from Pakistan (Cloudflare header)
+    $response = $this->withHeaders(['HTTP_CF_IPCOUNTRY' => 'PK'])
+        ->postJson($this->storeUrl($tenant, 'billing/checkout-upload-service'), [
+            'tier' => 'basic', // 100 PKR base PK
+            'products' => 11,
+            'variants' => 5, // 0 extra blocks
+        ]); // Cost = 1100 PKR. 1100 PKR / 280.0 = 3.92857... USD.
+        // Cents = (int) round((1100 * 100) / 280.0) = 393 cents.
+
+    $response->assertOk();
+
+    \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+        $body = json_decode($request->body(), true);
+        $customPrice = data_get($body, 'data.attributes.custom_price');
+        return $customPrice === 393;
+    });
 });
