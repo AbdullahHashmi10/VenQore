@@ -64,20 +64,21 @@ class PartyController extends Controller
     public function destroy(string $id)
     {
         $tenantId = app('current.tenant')->id;
-        // Only soft-delete by clearing — hard delete blocked if linked to transactions
-        $hasTransactions = DB::table('sales')->where('sales.tenant_id', app('current.tenant')->id)->where('party_id', $id)->exists()
-            || DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)->where('party_id', $id)->exists();
+        $party = \App\Models\Party::where('tenant_id', $tenantId)->findOrFail($id);
 
-        if ($hasTransactions) {
+        $hasLedgerEntries = DB::table('journal_entries')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('journal_items')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('payments')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('sales')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('purchases')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists();
+
+        if ($hasLedgerEntries) {
             return redirect()->back()->withErrors([
                 'party' => 'Cannot delete a party with existing transactions.',
             ]);
         }
 
-        DB::table('parties')->where('parties.tenant_id', app('current.tenant')->id)
-            ->where('tenant_id', $tenantId)
-            ->where('id', $id)
-            ->delete();
+        $party->delete();
 
         return redirect()->back()->with('success', 'Party deleted.');
     }

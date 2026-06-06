@@ -115,6 +115,7 @@ class SaleController extends Controller
                 $customer = DB::table('parties')
                     ->where('tenant_id', app('current.tenant')->id)
                     ->where('id', $request->customer_id)
+                    ->lockForUpdate()
                     ->first();
 
                 if ($customer && $customer->credit_limit !== null) {

@@ -153,6 +153,7 @@ class SaleService
                 $customer = DB::table('parties')
                     ->where('tenant_id', $this->tenantId)
                     ->where('id', $data['customer_id'])
+                    ->lockForUpdate()
                     ->first();
 
                 if ($customer && $customer->credit_limit !== null) {

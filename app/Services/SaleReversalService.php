@@ -82,8 +82,10 @@ class SaleReversalService
         ];
 
         // ─── Step 1: Reverse the Journal Entry ───────────────────────────────
-        // Find the original journal entry for this sale
-        $originalEntry = JournalEntry::where('reference', $sale->reference_number)->first();
+        // Find the original journal entry for this sale (handles both UUID and reference_number)
+        $originalEntry = JournalEntry::where('reference', $sale->id)
+            ->orWhere('reference', $sale->reference_number)
+            ->first();
 
         if ($originalEntry) {
             // Create a new, counter journal entry — every debit becomes a credit and vice versa.
@@ -94,6 +96,7 @@ class SaleReversalService
                 'description' => "[{$type}] Reversal of {$sale->reference_number}: {$reason}",
                 'party_id'    => $sale->party_id,
                 'created_by'  => $userId,
+                'user_id'     => $userId,
             ]);
 
             // Mirror every journal item with flipped debit/credit

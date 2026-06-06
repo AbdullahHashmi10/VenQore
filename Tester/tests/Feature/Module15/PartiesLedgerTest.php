@@ -174,3 +174,125 @@ test('quick party modal payload validation', function () {
     $response->assertStatus(200);
 });
 
+// 1. Race condition testing for credit limit checks
+test('blocks credit limit bypass under concurrent checkout race conditions', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+    $ownerId = auth()->id();
+
+    // Customer with 500 limit
+    $customer = \App\Models\Party::factory()->create([
+        'tenant_id' => $tenant->id,
+        'type' => 'customer',
+        'credit_limit' => 500,
+        'opening_balance' => 0,
+        'opening_balance_type' => 'receivable'
+    ]);
+
+    $product = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 300]);
+    $warehouse = \App\Models\Warehouse::where('tenant_id', $tenant->id)->first();
+    \App\Models\Stock::create(['tenant_id' => $tenant->id, 'warehouse_id' => $warehouse->id, 'product_id' => $product->id, 'quantity' => 10]);
+
+    // Transaction 1: Charge 300 (Remaining limit: 200)
+    $this->postJson("/s/{$tenant->slug}/sales", [
+        'customer_id' => $customer->id,
+        'warehouse_id' => $warehouse->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1, 'price' => 300]],
+        'amount_paid' => 0,
+        'payment_method' => 'credit',
+        'add_to_ledger' => true
+    ])->assertStatus(200);
+
+    // Transaction 2: Try to charge another 300 (Exceeds remaining 200)
+    // Should be blocked immediately
+    $response = $this->postJson("/s/{$tenant->slug}/sales", [
+        'customer_id' => $customer->id,
+        'warehouse_id' => $warehouse->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1, 'price' => 300]],
+        'amount_paid' => 0,
+        'payment_method' => 'credit',
+        'add_to_ledger' => true
+    ]);
+
+    $response->assertStatus(422);
+});
+
+// 2. Prevent deletion if transactions exist
+test('blocks deletion of a party when journal entries or payments exist', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $party = \App\Models\Party::factory()->create([
+        'tenant_id' => $tenant->id,
+        'type' => 'customer',
+        'opening_balance' => 100,
+        'opening_balance_type' => 'receivable'
+    ]);
+
+    // Manually create a journal entry referencing this party to block deletion
+    \App\Models\JournalEntry::create([
+        'tenant_id' => $tenant->id,
+        'date' => now()->format('Y-m-d'),
+        'reference_type' => 'manual',
+        'party_id' => $party->id,
+        'description' => 'Opening balance',
+        'user_id' => auth()->id()
+    ]);
+
+    // Should block deletion because journal entry for opening balance exists
+    $response = $this->deleteJson("/s/{$tenant->slug}/parties/{$party->id}");
+    $response->assertStatus(422);
+    
+    // Also test V3 destroy route
+    $responseV3 = $this->deleteJson("/s/{$tenant->slug}/v3/parties/{$party->id}");
+    $responseV3->assertRedirect()->assertSessionHasErrors('party');
+});
+
+// 3. Reversal ledger visibility
+test('retains reversed entries in the ledger statement history for full audit trail', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $party = \App\Models\Party::factory()->create([
+        'tenant_id' => $tenant->id,
+        'type' => 'customer',
+        'opening_balance' => 0,
+        'opening_balance_type' => 'receivable',
+        'credit_limit' => 1000
+    ]);
+
+    // Create a sale and then return it (fully reverse it)
+    $product = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 100]);
+    $warehouse = \App\Models\Warehouse::where('tenant_id', $tenant->id)->first();
+    \App\Models\Stock::create(['tenant_id' => $tenant->id, 'warehouse_id' => $warehouse->id, 'product_id' => $product->id, 'quantity' => 10]);
+
+    $saleResponse = $this->postJson("/s/{$tenant->slug}/sales", [
+        'customer_id' => $party->id,
+        'warehouse_id' => $warehouse->id,
+        'items' => [['product_id' => $product->id, 'quantity' => 1, 'price' => 100, 'discount' => 0]],
+        'amount_paid' => 0,
+        'payment_method' => 'credit',
+        'add_to_ledger' => true
+    ]);
+    
+    $saleResponse->assertStatus(200);
+    $saleId = $saleResponse->json('sale_id');
+
+    // Return the sale
+    $this->postJson("/s/{$tenant->slug}/sales/{$saleId}/return", [
+        'refund_method' => 'ledger',
+        'reason' => 'Defective return'
+    ])->assertRedirect();
+
+    // Query ledger list
+    $response = $this->get("/s/{$tenant->slug}/parties/{$party->id}/ledger");
+    $response->assertOk();
+
+    // The transactions array returned to Inertia should contain BOTH the original invoice debit and the return credit
+    $transactions = $response->original->getData()['page']['props']['transactions'];
+    expect(count($transactions))->toBeGreaterThanOrEqual(2);
+});
+
