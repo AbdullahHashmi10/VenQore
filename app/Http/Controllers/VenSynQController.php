@@ -68,9 +68,10 @@ class VenSynQController extends Controller
     /**
      * Redirect to the official platform consent page (Click 1 / 2).
      */
-    public function connectChannel(string $store_slug, string $platform)
+    public function connectChannel(string $platform)
     {
         try {
+            $store_slug = app('current.tenant')->slug;
             // Store the store_slug in session so universalCallback can resolve
             // the correct tenant when TikTok / eBay / Amazon redirect back to
             // the fixed URL (e.g. https://venqore.com/tiktok/callback)
@@ -87,7 +88,7 @@ class VenSynQController extends Controller
     /**
      * Handle incoming OAuth callback, swap credentials, and register channel (Click 3).
      */
-    public function callbackChannel(string $store_slug, string $platform, Request $request)
+    public function callbackChannel(string $platform, Request $request)
     {
         $tenantId = app('current.tenant')->id;
         $tenantSlug = app('current.tenant')->slug;
@@ -200,7 +201,7 @@ class VenSynQController extends Controller
     /**
      * Disconnect a channel, revoking connection and credentials safely.
      */
-    public function disconnectChannel(string $store_slug, EcommerceChannel $channel)
+    public function disconnectChannel(EcommerceChannel $channel)
     {
         $this->authorizeChannel($channel);
 

@@ -130,6 +130,7 @@ class StaffInvitationController extends Controller
                 'pos_pin_set'   => !is_null($m->pos_pin),
                 'joined_at'     => $m->joined_at,
                 'created_at'    => $m->joined_at ?? $m->created_at,
+                'permissions'   => $m->permissions ?? [],
             ])
             ->toArray();
 

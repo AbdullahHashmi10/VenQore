@@ -35,7 +35,7 @@ class WooConnectionController extends Controller
     /**
      * Entry point redirect from Sidebar (handles /s/{store_slug}/woocommerce-sync)
      */
-    public function indexRedirect(Request $request, $store_slug = null)
+    public function indexRedirect(Request $request)
     {
         return redirect()->route('store.woo.connections.index', [
             'store_slug' => $this->storeSlug($store_slug)
@@ -45,7 +45,7 @@ class WooConnectionController extends Controller
     /**
      * GET /s/{store_slug}/woo/connections
      */
-    public function index(Request $request, $store_slug = null)
+    public function index(Request $request)
     {
         $tenantId = $this->tenantId();
 
@@ -64,7 +64,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections
      */
-    public function store(Request $request, $store_slug = null)
+    public function store(Request $request)
     {
         $tenantId = $this->tenantId();
         $slug     = $this->storeSlug($store_slug);
@@ -98,7 +98,7 @@ class WooConnectionController extends Controller
     /**
      * GET /s/{store_slug}/woo/connections/{connection}/setup
      */
-    public function setup(Request $request, $store_slug, $connection)
+    public function setup(Request $request, $connection)
     {
         $tenantId   = $this->tenantId();
         $conn       = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -117,7 +117,7 @@ class WooConnectionController extends Controller
     /**
      * GET /s/{store_slug}/woo/connections/{connection}/status
      */
-    public function statusJson(Request $request, $store_slug, $connection)
+    public function statusJson(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -131,7 +131,7 @@ class WooConnectionController extends Controller
     /**
      * GET /s/{store_slug}/woo/connections/{connection}/sync
      */
-    public function syncPage(Request $request, $store_slug, $connection)
+    public function syncPage(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -181,7 +181,7 @@ class WooConnectionController extends Controller
     /**
      * DELETE /s/{store_slug}/woo/connections/{connection}
      */
-    public function destroy(Request $request, $store_slug, $connection)
+    public function destroy(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $slug     = $this->storeSlug($store_slug);
@@ -210,7 +210,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections/{connection}/approve
      */
-    public function approveSync(Request $request, $store_slug, $connection)
+    public function approveSync(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -245,7 +245,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections/{connection}/push
      */
-    public function forcePush(Request $request, $store_slug, $connection)
+    public function forcePush(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -262,7 +262,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections/{connection}/pull
      */
-    public function forcePull(Request $request, $store_slug, $connection)
+    public function forcePull(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -295,7 +295,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections/{connection}/resolve
      */
-    public function resolveConflict(Request $request, $store_slug, $connection)
+    public function resolveConflict(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -319,7 +319,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections/{connection}/ignore
      */
-    public function ignore(Request $request, $store_slug, $connection)
+    public function ignore(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -347,7 +347,7 @@ class WooConnectionController extends Controller
     /**
      * PUT /s/{store_slug}/woo/connections/{connection}/settings
      */
-    public function updateSettings(Request $request, $store_slug, $connection)
+    public function updateSettings(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -372,7 +372,7 @@ class WooConnectionController extends Controller
     /**
      * GET /s/{store_slug}/woo/connections/{connection}/logs
      */
-    public function logs(Request $request, $store_slug, $connection)
+    public function logs(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -388,7 +388,7 @@ class WooConnectionController extends Controller
     /**
      * GET /s/{store_slug}/woo/plugin/download
      */
-    public function downloadPlugin(Request $request, $store_slug, $connection)
+    public function downloadPlugin(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
@@ -490,7 +490,7 @@ class WooConnectionController extends Controller
     /**
      * POST /s/{store_slug}/woo/connections/{connection}/scan
      */
-    public function scanCatalog(Request $request, $store_slug, $connection)
+    public function scanCatalog(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);

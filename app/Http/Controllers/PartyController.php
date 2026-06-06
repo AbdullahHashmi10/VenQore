@@ -294,7 +294,7 @@ class PartyController extends Controller
         ]);
     }
 
-    public function update(Request $request, $store_slug, $id)
+    public function update(Request $request, $id)
     {
         $party = Party::findOrFail($id);
 
@@ -429,7 +429,7 @@ class PartyController extends Controller
         ]);
     }
 
-    public function destroy(Request $request, $store_slug, $id)
+    public function destroy(Request $request, $id)
     {
         $party = Party::findOrFail($id);
 
@@ -632,7 +632,7 @@ class PartyController extends Controller
     }
 
 
-    public function ledger($store_slug, $id)
+    public function ledger($id)
     {
         $party = Party::findOrFail($id);
 

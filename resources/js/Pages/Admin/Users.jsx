@@ -964,7 +964,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                         </div>
                         <div className="flex-1 min-h-[300px] w-full bg-slate-50/50 dark:bg-slate-800/20 rounded-3xl border border-slate-100 dark:border-slate-800 p-6 relative overflow-hidden">
                             <div className="absolute inset-6">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
                                     <AreaChart data={chartData}>
                                         <defs>
                                             <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
@@ -1058,7 +1058,17 @@ function EditMemberModal({ member, onClose }) {
         role: member.role,
         display_name: member.display_name ?? '',
         status: member.status,
+        permissions: member.permissions ?? ROLE_PERMISSIONS[member.role] ?? [],
+        passcode: '',
     });
+
+    const toggleRole = (roleKey) => {
+        setData(d => ({
+            ...d,
+            role: roleKey,
+            permissions: ROLE_PERMISSIONS[roleKey] || []
+        }));
+    };
 
     const submit = (e) => {
         e.preventDefault();
@@ -1068,72 +1078,152 @@ function EditMemberModal({ member, onClose }) {
     };
 
     return (
-        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 md:p-8">
-            <div className="bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-[500px] border border-slate-700/50 p-8 relative flex flex-col text-left">
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4 md:p-8 overflow-y-auto custom-scrollbar">
+            <div className="bg-[#0f172a] rounded-[2rem] shadow-2xl w-full max-w-[1200px] border border-slate-700/50 flex flex-col md:flex-row relative mt-auto mb-auto">
+                
                 <button onClick={onClose}
                     className="absolute top-6 right-6 p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors z-20">
                     <X size={20} />
                 </button>
 
-                <div className="flex items-center gap-4 mb-8">
-                    <h3 className="font-extrabold text-2xl text-white tracking-tight">Edit Member</h3>
-                    <div className="h-4 w-px bg-slate-700"></div>
-                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{member.name}</span>
+                {/* LEFT COLUMN: Form & Roles */}
+                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-[#0f172a] rounded-l-[2rem]">
+                    <div className="flex items-center gap-4 mb-10">
+                        <h3 className="font-extrabold text-2xl text-white tracking-tight">Edit Member</h3>
+                        <div className="h-4 w-px bg-slate-700"></div>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{member.name}</span>
+                    </div>
+
+                    <form id="edit-member-form" onSubmit={submit} className="flex flex-col gap-10 flex-1">
+                        
+                        {/* Member Profile */}
+                        <div className="space-y-5">
+                            <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                <User size={14} /> MEMBER PROFILE
+                            </h4>
+                            
+                            <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Display Name</label>
+                                <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
+                                    className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
+                                    placeholder="Display Name" required />
+                                {errors.display_name && <p className="text-[10px] text-red-400 ml-1">{errors.display_name}</p>}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Status</label>
+                                    <select value={data.status} onChange={e => setData('status', e.target.value)}
+                                        disabled={member.role === 'owner'}
+                                        className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                                        <option value="active">Active</option>
+                                        <option value="suspended">Suspended</option>
+                                    </select>
+                                    {errors.status && <p className="text-[10px] text-red-400 ml-1">{errors.status}</p>}
+                                </div>
+                                
+                                <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Passcode PIN</label>
+                                    <input type="password" value={data.passcode} onChange={e => setData('passcode', e.target.value)}
+                                        className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500 font-mono"
+                                        placeholder="Keep original PIN" maxLength={6} />
+                                    {errors.passcode && <p className="text-[10px] text-red-400 ml-1">{errors.passcode}</p>}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Roles */}
+                        <div className="space-y-5">
+                            <div className="flex items-center justify-between">
+                                <h4 className="flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    <Crown size={14} /> ASSIGN ROLE
+                                </h4>
+                                <span className="text-[10px] font-bold text-indigo-400 tracking-wider">
+                                    {data.role ? ROLES[data.role]?.name?.toUpperCase() : 'NONE'}
+                                </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3">
+                                {Object.entries(ROLES).map(([key, role]) => {
+                                    const isSelected = data.role === key;
+                                    const isOwner = member.role === 'owner';
+                                    return (
+                                        <button key={key} type="button" 
+                                            disabled={isOwner}
+                                            onClick={() => toggleRole(key)}
+                                            className={`p-3 rounded-xl border flex gap-3 text-left transition-all ${
+                                                isSelected
+                                                    ? 'bg-indigo-600 border-indigo-500 shadow-xl shadow-indigo-600/20'
+                                                    : 'bg-[#1e293b] border-[#334155] hover:border-indigo-400/50 hover:bg-[#1e293b]/80'
+                                            } ${isOwner ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                            <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-white' : 'text-slate-500'}`}>
+                                                <role.icon size={16} />
+                                            </div>
+                                            <div>
+                                                <div className={`text-xs font-bold leading-tight ${isSelected ? 'text-white' : 'text-slate-300'}`}>{role.name}</div>
+                                                <div className={`text-[9px] font-medium leading-tight mt-0.5 ${isSelected ? 'text-indigo-200' : 'text-slate-500'}`}>{role.description}</div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {errors.role && <p className="text-[10px] text-red-400 ml-1">{errors.role}</p>}
+                        </div>
+                        
+                    </form>
                 </div>
 
-                <form onSubmit={submit} className="flex flex-col gap-6">
-                    {/* Role */}
-                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Role</label>
-                        <select value={data.role} onChange={e => setData('role', e.target.value)}
-                            disabled={member.role === 'owner'}
-                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
-                            <option value="admin">Admin</option>
-                            <option value="manager">Manager</option>
-                            <option value="cashier">Cashier</option>
-                            <option value="accountant">Accountant</option>
-                            <option value="purchasing_officer">Purchasing Officer</option>
-                            <option value="viewer">Viewer</option>
-                        </select>
-                        {member.role === 'owner' && (
-                            <p className="text-[10px] text-slate-500 ml-1">Owner role cannot be changed.</p>
-                        )}
-                        {errors.role && <p className="text-[10px] text-red-400 ml-1">{errors.role}</p>}
+                {/* RIGHT COLUMN: Permissions Visualization */}
+                <div className="flex-1 p-8 md:p-10 bg-[#0f172a] rounded-r-[2rem] flex flex-col relative overflow-hidden">
+                    {/* Ambient glow in right panel */}
+                    <div className="absolute top-1/4 right-1/4 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+                    
+                    <div className="flex items-center justify-between mb-8 relative z-10">
+                        <div className="space-y-1">
+                            <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                                <Shield size={14} className="text-indigo-400" /> System Visibility
+                            </h4>
+                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest pl-6">
+                                Module Access Control
+                            </p>
+                        </div>
+                        <div className="px-4 py-2 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-[10px] font-black text-indigo-400 flex items-center gap-2 tracking-widest uppercase">
+                            <Sparkles size={12} /> Live Permissions Preview
+                        </div>
                     </div>
+                    
+                    <PermissionsSelector
+                        selectedPermissions={data.permissions}
+                        onChange={(perms) => setData(d => ({ ...d, role: 'custom', permissions: perms }))}
+                        disabled={member.role === 'owner'}
+                    />
+                    
+                    {/* Bottom Footer Actions inside Right Panel */}
+                    <div className="mt-8 pt-8 border-t border-slate-800/50 flex items-center justify-between relative z-10">
+                        <div className="space-y-1">
+                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                Summary
+                            </div>
+                            <div className="text-sm font-black text-white">
+                                <span className={data.permissions.length > 0 ? 'text-indigo-400' : 'text-slate-500'}>
+                                     {data.permissions.length} Action Items Enabled
+                                </span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <button type="button" onClick={onClose}
+                                className="px-6 py-3 text-slate-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
+                                Discard
+                            </button>
+                            <button type="submit" form="edit-member-form" disabled={processing}
+                                className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
+                                <Check size={16} />
+                                Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                    {/* Display Name */}
-                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Display Name</label>
-                        <input type="text" value={data.display_name} onChange={e => setData('display_name', e.target.value)}
-                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-500"
-                            placeholder="Display Name" />
-                        {errors.display_name && <p className="text-[10px] text-red-400 ml-1">{errors.display_name}</p>}
-                    </div>
-
-                    {/* Status */}
-                    <div className="space-y-1.5 focus-within:text-indigo-400 transition-colors text-slate-500">
-                        <label className="text-[10px] font-bold uppercase tracking-wider ml-1">Status</label>
-                        <select value={data.status} onChange={e => setData('status', e.target.value)}
-                            disabled={member.role === 'owner'}
-                            className="w-full px-4 py-3 bg-[#1e293b] border border-[#334155] rounded-xl text-sm font-semibold text-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
-                            <option value="active">Active</option>
-                            <option value="suspended">Suspended</option>
-                        </select>
-                        {errors.status && <p className="text-[10px] text-red-400 ml-1">{errors.status}</p>}
-                    </div>
-
-                    {/* Actions */}
-                    <div className="mt-4 flex items-center justify-end gap-4 border-t border-slate-800/50 pt-6">
-                        <button type="button" onClick={onClose}
-                            className="px-6 py-3 text-slate-500 hover:text-white text-xs font-black uppercase tracking-widest transition-colors">
-                            Cancel
-                        </button>
-                        <button type="submit" disabled={processing}
-                            className="px-10 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black uppercase tracking-[0.2em] shadow-[0_10px_30px_rgba(79,70,229,0.3)] active:scale-95 transition-all flex items-center gap-3">
-                            Save Changes
-                        </button>
-                    </div>
-                </form>
             </div>
         </div>
     );

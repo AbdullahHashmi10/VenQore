@@ -1173,7 +1173,7 @@ function AttendanceDetailModal({ user, history, onClose }) {
                     {/* TIMELINE AREA CHART CONTAINER */}
                     <div className="flex-1 min-h-[220px] bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 relative overflow-hidden">
                         <div className="absolute inset-4">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
                                 <AreaChart data={chartData}>
                                     <defs>
                                         <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">

@@ -288,6 +288,36 @@ class StaffController extends Controller
             'display_name' => 'nullable|string|max:50',
             'status'       => 'nullable|in:active,suspended',
             'permissions'  => 'nullable|array',
+            'passcode'     => [
+                'nullable',
+                'string',
+                'min:4',
+                'max:6',
+                function ($attribute, $value, $fail) use ($member) {
+                    $tenant = app('current.tenant');
+                    $exists = \App\Models\User::whereNotNull('passcode')
+                        ->where('id', '!=', $member->user_id)
+                        ->when($tenant, function($q) use ($tenant) {
+                            $q->whereHas('memberships', function($m) use ($tenant) {
+                                $m->where('tenant_id', $tenant->id);
+                            });
+                        })
+                        ->get()->first(function($u) use ($value) {
+                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
+                        });
+                    if ($exists) {
+                        $phrases = [
+                            "That's a bit too simple, try another.",
+                            "Common pattern detected, please choose something unique.",
+                            "Security check failed, try a different combination.",
+                            "This sequence is reserved, pick another.",
+                            "Too easy to guess, make it harder.",
+                            "System suggests choosing a different PIN."
+                        ];
+                        $fail($phrases[array_rand($phrases)]);
+                    }
+                },
+            ],
         ]);
 
         // Cannot change role of owner
@@ -296,6 +326,23 @@ class StaffController extends Controller
         }
 
         $member->update($request->only(['role', 'display_name', 'status', 'permissions']));
+
+        if ($request->filled('passcode')) {
+            $hashed = \Illuminate\Support\Facades\Hash::make($request->passcode);
+            $member->update(['pos_pin' => $hashed]);
+            
+            $user = $member->user;
+            if ($user) {
+                $user->update(['passcode' => $hashed]);
+            }
+        }
+
+        $user = $member->user;
+        if ($user) {
+            $user->role = $request->role ?? $user->role;
+            $user->permissions = $request->permissions ?? $user->permissions;
+            $user->save();
+        }
 
         return back()->with('success', 'Member updated.');
     }
