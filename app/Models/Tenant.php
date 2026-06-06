@@ -260,6 +260,9 @@ class Tenant extends Model
         // 'basic'/'advanced' = feature variant
 
         if ($value === null)        return null;   // unlimited
+        if (in_array($key, ['transactions_per_month', 'locations', 'sku_limit', 'staff_limit'])) {
+            return is_numeric($value) ? (int) $value : null;
+        }
         if ($value === '0')         return false;  // feature disabled
         if ($value === '1')         return true;   // feature enabled
         if (is_numeric($value))     return (int) $value;

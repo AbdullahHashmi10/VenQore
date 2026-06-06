@@ -20,46 +20,59 @@ class SupplierPaymentController extends Controller
     {
         $validated = $request->validated();
 
-        DB::transaction(function () use ($validated) {
+        try {
+            DB::transaction(function () use ($validated) {
 
-            $paymentAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
+                $paymentAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
 
-            // B5 Journal:
-            // DR 2000 Accounts Payable  (liability reduces)
-            // CR 1000/1010 Cash or Bank (asset reduces)
-            $journalEntry = $this->accounting->createEntry([
-                'date'     => $validated['payment_date'],
-                'reference_type' => 'supplier_payment',
-                'reference'   => Str::uuid()->toString(),
-                'description'    => 'Supplier payment — ' . ($validated['reference'] ?? ''),
-                'party_id'       => $validated['supplier_id'],
-            ], [
-                [
-                    'account_code' => '2000',
-                    'debit'        => $validated['amount'],
-                    'credit'       => 0,
-                    'party_id'     => $validated['supplier_id'],
-                ],
-                [
-                    'account_code' => $paymentAccount,
-                    'debit'        => 0,
-                    'credit'       => $validated['amount'],
-                ],
-            ]);
+                // B5 Journal:
+                // DR 2000 Accounts Payable  (liability reduces)
+                // CR 1000/1010 Cash or Bank (asset reduces)
+                $journalEntry = $this->accounting->createEntry([
+                    'date'     => $validated['payment_date'],
+                    'reference_type' => 'supplier_payment',
+                    'reference'   => Str::uuid()->toString(),
+                    'description'    => 'Supplier payment — ' . ($validated['reference'] ?? ''),
+                    'party_id'       => $validated['supplier_id'],
+                ], [
+                    [
+                        'account_code' => '2000',
+                        'debit'        => $validated['amount'],
+                        'credit'       => 0,
+                        'party_id'     => $validated['supplier_id'],
+                    ],
+                    [
+                        'account_code' => $paymentAccount,
+                        'debit'        => 0,
+                        'credit'       => $validated['amount'],
+                    ],
+                ]);
 
-            // Allocate payment to purchase invoices
-            $allocations = array_map(fn($a) => [
-                'purchase_id' => $a['purchase_id'],
-                'amount'      => $a['amount'],
-            ], $validated['allocations']);
+                // Allocate payment to purchase invoices
+                $allocations = array_map(fn($a) => [
+                    'purchase_id' => $a['purchase_id'],
+                    'amount'      => $a['amount'],
+                ], $validated['allocations']);
 
-            $this->payments->allocate($journalEntry->id, $allocations);
+                $this->payments->allocate($journalEntry->id, $allocations);
 
-            // Update payment_status badge on each allocated purchase
-            foreach ($validated['allocations'] as $alloc) {
-                $this->updatePurchaseBadge($alloc['purchase_id']);
+                // Update payment_status badge on each allocated purchase
+                foreach ($validated['allocations'] as $alloc) {
+                    $this->updatePurchaseBadge($alloc['purchase_id']);
+                }
+            });
+        } catch (\App\Exceptions\OverAllocationException $e) {
+            if (request()->expectsJson() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors'  => ['allocations' => [$e->getMessage()]],
+                    'message' => $e->getMessage()
+                ], 422);
             }
-        });
+            return redirect()->back()->withErrors([
+                'allocations' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()->back()->with('success', 'Supplier payment posted.');
     }

@@ -131,6 +131,29 @@ class SaleReversalService
             Log::warning("SaleReversalService: No journal entry found for {$sale->reference_number}. Stock will still be restored.");
         }
 
+        // ─── Step 1.5: Create Proportional Counter-Balancing Payments ─────────
+        $payments = DB::table('payments')->where('sale_id', $sale->id)->get();
+        foreach ($payments as $payment) {
+            $exists = DB::table('payments')
+                ->where('sale_id', $sale->id)
+                ->where('amount', -$payment->amount)
+                ->where('method', $payment->method)
+                ->where('reference', 'like', 'REVERSAL%')
+                ->exists();
+
+            if (!$exists) {
+                \App\Models\Payment::create([
+                    'sale_id'   => $sale->id,
+                    'party_id'  => $payment->party_id,
+                    'amount'    => -$payment->amount,
+                    'type'      => $payment->type === 'in' ? 'out' : 'in',
+                    'method'    => $payment->method,
+                    'reference' => 'REVERSAL of payment: ' . $payment->reference,
+                    'date'      => now()->toDateString(),
+                ]);
+            }
+        }
+
         // ─── Step 2: Restore FIFO Stock ───────────────────────────────────────
         // Read the sale_item_batches paper trail — this tells us EXACTLY which
         // inventory_batch was decremented and by how much. We put it back precisely.

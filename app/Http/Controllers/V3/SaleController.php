@@ -16,20 +16,28 @@ class SaleController extends Controller
 
     public function store(StoreSaleRequest $request)
     {
-        // ── Plan Guard: Monthly transaction limit ─────────────────────────
-        // Count posted sales for this tenant in the current calendar month.
-        // Uses indexed columns (tenant_id + status + created_at) — runs in < 1ms.
-        // No Redis needed at this scale; a simple COUNT query is sufficient.
-        $monthlyCount = Sale::where('status', 'posted')
-            ->whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
-            ->count();
+        $tenantId = app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("tenant_{$tenantId}_checkout_lock", 10);
 
-        PlanGate::enforce('transactions_per_month', $monthlyCount);
-        // ─────────────────────────────────────────────────────────────────
+        try {
+            $lock->block(5); // Wait up to 5 seconds to acquire the lock
 
+            // ── Plan Guard: Monthly transaction limit ─────────────────────────
+            // Count posted sales for this tenant in the current calendar month.
+            // Uses indexed columns (tenant_id + status + created_at) — runs in < 1ms.
+            // No Redis needed at this scale; a simple COUNT query is sufficient.
+            $monthlyCount = Sale::where('status', 'posted')
+                ->whereYear('created_at', now()->year)
+                ->whereMonth('created_at', now()->month)
+                ->count();
 
-        $sale = $this->sales->post($request->validated());
+            PlanGate::enforce('transactions_per_month', $monthlyCount);
+            // ─────────────────────────────────────────────────────────────────
+
+            $sale = $this->sales->post($request->validated());
+        } finally {
+            $lock->release();
+        }
 
         return redirect()->back()->with([
             'success'    => 'Sale posted successfully.',

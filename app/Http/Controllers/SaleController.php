@@ -746,21 +746,23 @@ class SaleController extends Controller
                 // ─── Record the Refund Payment ─────────────────────────────────
                 // A Payment row records which physical instrument was used for the refund.
                 // The financial reversal is already in the journal — this is an operational record.
-                $refLabel = match($refundSource) {
-                    'bank_account' => 'BANK TRANSFER REFUND',
-                    'online'       => 'ONLINE/CARD REFUND',
-                    default        => 'CASH REFUND',
-                };
+                if (!$isFullReturn) {
+                    $refLabel = match($refundSource) {
+                        'bank_account' => 'BANK TRANSFER REFUND',
+                        'online'       => 'ONLINE/CARD REFUND',
+                        default        => 'CASH REFUND',
+                    };
 
-                Payment::create([
-                    'sale_id'   => $sale->id,
-                    'party_id'  => $sale->party_id,
-                    'amount'    => -$returnTotal,
-                    'type'      => 'out',
-                    'method'    => $refundMethod === 'ledger' ? 'ledger_credit' : ($refundSource === 'bank_account' ? 'bank' : 'cash'),
-                    'reference' => ($refundMethod === 'ledger' ? 'KHATA CREDIT' : $refLabel) . ': Return of ' . $sale->reference_number,
-                    'date'      => now()->toDateString(),
-                ]);
+                    Payment::create([
+                        'sale_id'   => $sale->id,
+                        'party_id'  => $sale->party_id,
+                        'amount'    => -$returnTotal,
+                        'type'      => 'out',
+                        'method'    => $refundMethod === 'ledger' ? 'ledger_credit' : ($refundSource === 'bank_account' ? 'bank' : 'cash'),
+                        'reference' => ($refundMethod === 'ledger' ? 'KHATA CREDIT' : $refLabel) . ': Return of ' . $sale->reference_number,
+                        'date'      => now()->toDateString(),
+                    ]);
+                }
             });
 
             $sourceLabel = match($refundSource) {

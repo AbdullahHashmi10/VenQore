@@ -38,44 +38,57 @@ class CustomerPaymentController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($validated) {
+        try {
+            DB::transaction(function () use ($validated) {
 
-            $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
+                $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
 
-            // B4 Journal:
-            // DR 1000/1010 Cash or Bank
-            // CR 1200 Accounts Receivable
-            $journalEntry = $this->accounting->createEntry([
-                'date'     => $validated['payment_date'],
-                'reference_type' => 'customer_payment',
-                'reference'   => Str::uuid()->toString(),
-                'description'    => 'Customer payment' .
-                                    (isset($validated['reference']) && $validated['reference']
-                                        ? ' — ' . $validated['reference']
-                                        : ''),
-                'party_id'       => $validated['customer_id'],
-            ], [
-                [
-                    'account_code' => $cashAccount,
-                    'debit'        => $validated['amount'],
-                    'credit'       => 0,
-                ],
-                [
-                    'account_code' => '1200',
-                    'debit'        => 0,
-                    'credit'       => $validated['amount'],
-                    'party_id'     => $validated['customer_id'],
-                ],
+                // B4 Journal:
+                // DR 1000/1010 Cash or Bank
+                // CR 1200 Accounts Receivable
+                $journalEntry = $this->accounting->createEntry([
+                    'date'     => $validated['payment_date'],
+                    'reference_type' => 'customer_payment',
+                    'reference'   => Str::uuid()->toString(),
+                    'description'    => 'Customer payment' .
+                                        (isset($validated['reference']) && $validated['reference']
+                                            ? ' — ' . $validated['reference']
+                                            : ''),
+                    'party_id'       => $validated['customer_id'],
+                ], [
+                    [
+                        'account_code' => $cashAccount,
+                        'debit'        => $validated['amount'],
+                        'credit'       => 0,
+                    ],
+                    [
+                        'account_code' => '1200',
+                        'debit'        => 0,
+                        'credit'       => $validated['amount'],
+                        'party_id'     => $validated['customer_id'],
+                    ],
+                ]);
+
+                // Allocate to sale invoices
+                $allocations = array_map(fn($a) => [
+                    'sale_id' => $a['sale_id'],
+                    'amount'  => $a['amount'],
+                ], $validated['allocations']);
+
+                $this->payments->allocate($journalEntry->id, $allocations);
+            });
+        } catch (\App\Exceptions\OverAllocationException $e) {
+            if (request()->expectsJson() || request()->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'errors'  => ['allocations' => [$e->getMessage()]],
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->withErrors([
+                'allocations' => $e->getMessage(),
             ]);
-
-            // Allocate to sale invoices
-            $allocations = array_map(fn($a) => [
-                'sale_id' => $a['sale_id'],
-                'amount'  => $a['amount'],
-            ], $validated['allocations']);
-
-            $this->payments->allocate($journalEntry->id, $allocations);
-        });
+        }
 
         return redirect()->back()->with('success', 'Customer payment posted.');
     }

@@ -12,6 +12,7 @@ use App\Services\PlanRepository;
 use App\Helpers\SettingsHelper;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\PlanLimitException;
+use App\Models\Sale;
 
 beforeEach(function () {
     $this->tenant = $this->createTenant('store-1');
@@ -382,4 +383,148 @@ test('discount waterfall calculations are precise and correct', function () {
     $this->assertEquals($expectedNetSales, $sale->net_sales);
     $this->assertEquals($expectedTax, $sale->total_tax);
     $this->assertEquals($expectedTotal, $sale->invoice_total);
+});
+
+test('correctly voids all payment table rows when a split-paid sale is cancelled', function () {
+    $customer = Party::factory()->create(['tenant_id' => $this->tenant->id, 'type' => 'customer']);
+    $product = Product::factory()->create(['tenant_id' => $this->tenant->id, 'price' => 1000.00]);
+    Stock::updateOrCreate(['product_id' => $product->id, 'warehouse_id' => $this->warehouseId], ['quantity' => 10]);
+
+    // Create a sale paid with: Cash 400 + Bank 350 + Credit 250
+    $data = [
+        'customer_id' => $customer->id,
+        'warehouse_id' => $this->warehouseId,
+        'items' => [['product_id' => $product->id, 'quantity' => 1, 'price' => 1000.00]],
+        'payment_method' => 'split',
+        'amount_paid' => 1000.00,
+        'payments' => [
+            ['method' => 'cash', 'amount' => 400.00],
+            ['method' => 'bank', 'amount' => 350.00],
+            ['method' => 'credit', 'amount' => 250.00],
+        ],
+        'add_to_ledger' => true,
+    ];
+
+    $response = $this->post("/s/{$this->tenant->slug}/sales", $data);
+    $response->assertStatus(200);
+    $saleId = $response->json('sale_id');
+    $sale = Sale::find($saleId);
+
+    // Cancel the sale
+    $cancelResponse = $this->post("/s/{$this->tenant->slug}/sales/{$sale->id}/cancel", ['reason' => 'Customer return']);
+    $cancelResponse->assertStatus(302); // Redirect back
+
+    // Assert that counter payment rows are generated to balance the payments ledger
+    $payments = Payment::where('sale_id', $saleId)->get();
+    // Original 3 payments + 3 reversal payments = 6 payments total
+    expect($payments)->toHaveCount(6);
+    expect($payments->where('amount', -400.00)->where('method', 'cash'))->not->toBeNull();
+    expect($payments->where('amount', -350.00)->where('method', 'bank'))->not->toBeNull();
+    expect($payments->where('amount', -250.00)->where('method', 'credit'))->not->toBeNull();
+});
+
+test('returns a graceful 422 validation error when allocating an overpayment instead of crashing with 500', function () {
+    $customer = Party::factory()->create(['tenant_id' => $this->tenant->id, 'type' => 'customer']);
+    $sale = Sale::factory()->create([
+        'tenant_id' => $this->tenant->id,
+        'party_id' => $customer->id,
+        'total' => 100.00,
+        'payment_status' => 'unpaid',
+    ]);
+
+    // Attempt to allocate 120.00 to a 100.00 invoice
+    $response = $this->postJson("/s/{$this->tenant->slug}/v3/customer-payments", [
+        'customer_id' => $customer->id,
+        'payment_date' => now()->toDateString(),
+        'payment_method' => 'cash',
+        'amount' => 120.00,
+        'allocations' => [
+            ['sale_id' => $sale->id, 'amount' => 120.00]
+        ]
+    ]);
+
+    // Assert status is 422 and not 500
+    expect($response->status())->toBe(422);
+    expect($response->json('errors.allocations.0'))->toContain('Over-allocation blocked');
+});
+
+test('routes sale checkout cash overpayment to Customer Advances Account 2100 in double-entry ledgers', function () {
+    $customer = Party::factory()->create(['tenant_id' => $this->tenant->id, 'type' => 'customer']);
+    $product = Product::factory()->create(['tenant_id' => $this->tenant->id, 'price' => 1000.00]);
+    Stock::updateOrCreate(['product_id' => $product->id, 'warehouse_id' => $this->warehouseId], ['quantity' => 10]);
+
+    // Purchase PKR 1,000 invoice, but customer pays PKR 1,200 (overpayment PKR 200)
+    $data = [
+        'tenant_id' => $this->tenant->id,
+        'customer_id' => $customer->id,
+        'warehouse_id' => $this->warehouseId,
+        'sale_date' => now()->toDateString(),
+        'items' => [['product_id' => $product->id, 'qty' => 1, 'sale_uom' => 'PCS', 'unit_price' => 1000.00]],
+        'payment_method' => 'cash',
+        'amount_received' => 1200.00,
+    ];
+
+    $response = $this->post("/s/{$this->tenant->slug}/v3/sales", $data);
+    $response->assertStatus(302);
+
+    // Verify double-entry ledger has PKR 200 credit on Customer Advances (Account 2100)
+    $this->assertJournalEntry([
+        'tenant_id' => $this->tenant->id,
+        'account_code' => '2100', // Customer Advances
+        'credit' => 200.00,
+    ]);
+});
+
+test('blocks concurrent checkout requests that attempt to exceed the monthly transaction limit', function () {
+    // Set monthly transaction limit to 1
+    TenantPlanOverride::create([
+        'tenant_id' => $this->tenant->id,
+        'override_key' => 'transactions_per_month',
+        'override_value' => '1',
+        'applied_by' => 1,
+    ]);
+    \App\Services\PlanRepository::invalidateTenantCache($this->tenant->id);
+
+    $product = Product::factory()->create([
+        'tenant_id' => $this->tenant->id,
+        'price' => 100.00,
+        'cost_price' => 50.00,
+    ]);
+    Stock::updateOrCreate(['product_id' => $product->id, 'warehouse_id' => $this->warehouseId], ['quantity' => 10]);
+
+    DB::table('inventory_batches')->insert([
+        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id' => $this->tenant->id,
+        'product_id' => $product->id,
+        'warehouse_id' => $this->warehouseId,
+        'unit_cost' => 50.00,
+        'original_qty' => 10,
+        'initial_qty' => 10,
+        'remaining_qty' => 10,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $data = [
+        'customer_id' => Party::factory()->create(['tenant_id' => $this->tenant->id, 'type' => 'customer'])->id,
+        'warehouse_id' => $this->warehouseId,
+        'sale_date' => now()->toDateString(),
+        'payment_method' => 'cash',
+        'amount_received' => 100.00,
+        'items' => [[
+            'product_id' => $product->id,
+            'qty' => 1,
+            'sale_uom' => 'PCS',
+            'unit_price' => 100.00,
+        ]]
+    ];
+
+    // Simulate concurrent requests
+    // First checkout should succeed
+    $response1 = $this->post("/s/{$this->tenant->slug}/v3/sales", $data);
+    $response1->assertStatus(302);
+
+    // Second checkout should immediately fail with 403 or 422 plan limit error
+    $response2 = $this->post("/s/{$this->tenant->slug}/v3/sales", $data);
+    expect($response2->status())->toBe(403);
 });

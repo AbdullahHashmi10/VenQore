@@ -230,11 +230,10 @@ class SaleService
                 // B1 — cash or bank
                 $cashAccount    = $data['payment_method'] === 'bank' ? '1010' : '1000';
                 $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
-                $journalAmount  = min($amountReceived, $invoiceTotal);
 
                 $journalLines[] = [
                     'account_code' => $cashAccount,
-                    'debit'        => $journalAmount,
+                    'debit'        => $amountReceived,
                     'credit'       => 0,
                 ];
 
@@ -248,6 +247,16 @@ class SaleService
                         'party_id'     => $data['customer_id'],
                     ];
                     $paymentStatus = 'partial';
+                } elseif (round($amountReceived, 2) > round($invoiceTotal, 2)) {
+                    // Overpayment — record surplus as Customer Advance (Account 2100)
+                    $surplus = round($amountReceived - $invoiceTotal, 2);
+                    $journalLines[] = [
+                        'account_code' => '2100',
+                        'debit'        => 0,
+                        'credit'       => $surplus,
+                        'party_id'     => $data['customer_id'],
+                    ];
+                    $paymentStatus = 'paid';
                 } else {
                     $paymentStatus = 'paid';
                 }
@@ -433,6 +442,29 @@ class SaleService
 
             // Reverse the journal entry (auto-voids payment allocations)
             $this->accounting->reverseEntry($sale->journal_entry_id, $reason);
+
+            // Reverse payments in the payments table
+            $payments = DB::table('payments')->where('sale_id', $sale->id)->get();
+            foreach ($payments as $payment) {
+                $exists = DB::table('payments')
+                    ->where('sale_id', $sale->id)
+                    ->where('amount', -$payment->amount)
+                    ->where('method', $payment->method)
+                    ->where('reference', 'like', 'REVERSAL%')
+                    ->exists();
+
+                if (!$exists) {
+                    \App\Models\Payment::create([
+                        'sale_id'   => $sale->id,
+                        'party_id'  => $payment->party_id,
+                        'amount'    => -$payment->amount,
+                        'type'      => $payment->type === 'in' ? 'out' : 'in',
+                        'method'    => $payment->method,
+                        'reference' => 'REVERSAL of payment: ' . $payment->reference,
+                        'date'      => $returnDate ?? now()->toDateString(),
+                    ]);
+                }
+            }
 
             // Mark sale as returned
             DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->update([
