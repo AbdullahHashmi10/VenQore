@@ -1158,13 +1158,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     Route::get('/api/bank-accounts', \App\Http\Controllers\Api\BankAccountController::class)->name('api.bank-accounts');
 
-    // Settings Route — DEPRECATED at bare /settings
-    // Store settings now live at /s/{store_slug}/settings
-    // Redirect to hub — the hub will route them into the correct store
-    Route::get('/settings', function () {
-        return \redirect()->route('hub');
-    })->name('settings');
-    Route::post('/settings', [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
+    // Custom Charges
     Route::post('/settings/charges', [\App\Http\Controllers\SettingsController::class, 'storeCharge'])->name('settings.charges.store');
     Route::put('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'updateCharge'])->name('settings.charges.update');
     Route::delete('/settings/charges/{charge}', [\App\Http\Controllers\SettingsController::class, 'deleteCharge'])->name('settings.charges.delete');

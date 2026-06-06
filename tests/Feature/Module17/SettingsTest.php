@@ -180,3 +180,172 @@ test('store_name_update_reflects_on_dashboard', function () {
     $page = $responseDashboard->viewData('page');
     $this->assertEquals('Super POS Express', data_get($page, 'props.store.name'));
 });
+
+test('prevents platform admin settings cache from bleeding into global fallback cache', function () {
+    // Clear beforeEach tenant context to simulate a true global request
+    app()->forgetInstance('current.tenant');
+    app()->forgetInstance('current.membership');
+
+    // 1. Create two tenants
+    $tenantA = $this->createTenant('store-a');
+    $tenantB = $this->createTenant('store-b');
+    
+    // 2. Set distinct settings values in database for Tenant A
+    Setting::withoutGlobalScopes()->create([
+        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id' => $tenantA->id,
+        'key' => 'stop_sale_negative_stock',
+        'value' => '1',
+        'group' => 'pos'
+    ]);
+    
+    // 3. Set global default setting (tenant_id = null)
+    DB::table('settings')->insert([
+        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id' => null,
+        'key' => 'stop_sale_negative_stock',
+        'value' => '0',
+        'group' => 'pos',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    SettingsHelper::clearCache();
+    
+    // 4. Authenticate as a Platform Admin in global context (unbound tenant)
+    $admin = \App\Models\User::factory()->create(['role' => 'platform_admin']);
+    $this->actingAs($admin);
+    
+    // 5. Trigger all settings load in global context (populates cache)
+    expect(app()->bound('current.tenant'))->toBeFalse();
+    $globalSettings = SettingsHelper::all();
+    
+    // 6. Now authenticate as a regular cashier in Tenant B
+    $cashier = \App\Models\User::factory()->create(['role' => 'cashier']);
+    $this->actingAs($cashier);
+    
+    // Bind Tenant B context
+    app()->instance('current.tenant', $tenantB);
+    
+    // 7. Get setting value - should fall back to global value ('0'), NOT Tenant A value ('1')
+    $value = SettingsHelper::get('stop_sale_negative_stock');
+    expect($value)->toBe('0');
+    
+    // Cleanup container binding
+    app()->forgetInstance('current.tenant');
+});
+
+test('restricts chatbot settings updates to store owner or administrator', function () {
+    $tenant = $this->createTenant('store-chatbot-test');
+    
+    // Create Owner & Cashier users
+    $owner = \App\Models\User::factory()->create();
+    $cashier = \App\Models\User::factory()->create();
+    
+    \App\Models\TenantUser::create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $owner->id,
+        'role' => 'owner',
+        'status' => 'active',
+        'display_name' => 'Store Owner'
+    ]);
+    
+    \App\Models\TenantUser::create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $cashier->id,
+        'role' => 'cashier',
+        'status' => 'active',
+        'display_name' => 'Store Cashier'
+    ]);
+    
+    // Enable AI status on the store to bypass the plan limits block
+    $tenant->update(['ai_status' => 'active']);
+    
+    // 1. Cashier attempts to update chatbot settings - should return 403 Forbidden
+    $this->actingAs($cashier);
+    $responseBlocked = $this->postJson("/s/{$tenant->slug}/admin/chatbot/settings", [
+        'chatbot_api_key' => 'blocked-key-value',
+        'chatbot_custom_rules' => 'unprivileged rule change'
+    ]);
+    $responseBlocked->assertStatus(403);
+    
+    // 2. Owner updates chatbot settings - should succeed (302 redirect back)
+    $this->actingAs($owner);
+    $responseSuccess = $this->postJson("/s/{$tenant->slug}/admin/chatbot/settings", [
+        'chatbot_api_key' => 'authorized-key-value',
+        'chatbot_custom_rules' => 'authorized rule change'
+    ]);
+    $responseSuccess->assertStatus(302);
+    
+    // Verify changes persisted securely
+    $savedApiKey = Setting::withoutGlobalScopes()
+        ->where('tenant_id', $tenant->id)
+        ->where('key', 'chatbot_api_key')
+        ->value('value');
+    expect($savedApiKey)->toBe('authorized-key-value');
+});
+
+test('enforces tenant bounds when settings are updated globally or via platform commands', function () {
+    // Clear beforeEach tenant context to simulate a true global request
+    app()->forgetInstance('current.tenant');
+    app()->forgetInstance('current.membership');
+
+    $tenantA = $this->createTenant('tenant-bounds-a');
+    $tenantB = $this->createTenant('tenant-bounds-b');
+    
+    // Create a setting for Tenant A
+    Setting::withoutGlobalScopes()->create([
+        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id' => $tenantA->id,
+        'key' => 'stop_sale_negative_stock',
+        'value' => '1',
+        'group' => 'pos'
+    ]);
+    
+    // Authenticate as platform admin
+    $admin = \App\Models\User::factory()->create(['role' => 'platform_admin']);
+    $this->actingAs($admin);
+    
+    // Ensure current.tenant is not bound (global context)
+    expect(app()->bound('current.tenant'))->toBeFalse();
+    
+    // Try to update settings - it should NOT overwrite Tenant A's settings record
+    // when we want to write a global/system settings record.
+    Setting::withoutGlobalScopes()->updateOrCreate(
+        ['key' => 'stop_sale_negative_stock', 'tenant_id' => null],
+        ['value' => '0']
+    );
+    
+    $tenantASetting = Setting::withoutGlobalScopes()
+        ->where('tenant_id', $tenantA->id)
+        ->where('key', 'stop_sale_negative_stock')
+        ->value('value');
+        
+    $globalSetting = Setting::withoutGlobalScopes()
+        ->whereNull('tenant_id')
+        ->where('key', 'stop_sale_negative_stock')
+        ->value('value');
+        
+    // Tenant A's setting must remain untouched
+    expect($tenantASetting)->toBe('1');
+    expect($globalSetting)->toBe('0');
+});
+
+test('resolves the settings panel without redirecting to the hub', function () {
+    $tenant = $this->createTenant('routing-safety-test');
+    $owner = \App\Models\User::factory()->create();
+    
+    \App\Models\TenantUser::create([
+        'tenant_id' => $tenant->id,
+        'user_id' => $owner->id,
+        'role' => 'owner',
+        'status' => 'active',
+        'display_name' => 'Store Owner'
+    ]);
+    
+    $this->actingAs($owner);
+    
+    // Request Settings Panel - must return 200 OK and render Settings panel view
+    $response = $this->get("/s/{$tenant->slug}/settings");
+    $response->assertStatus(200);
+    $response->assertInertia(fn ($page) => $page->component('Settings/SettingsPanel'));
+});

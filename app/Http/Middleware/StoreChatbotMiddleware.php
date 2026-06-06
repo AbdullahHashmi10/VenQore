@@ -21,15 +21,23 @@ class StoreChatbotMiddleware
 
         $tenant = app('current.tenant');
         if ($tenant) {
-            $isMember = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+            $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
                 ->where('user_id', $user->id)
                 ->where('status', 'active')
-                ->exists();
+                ->first();
 
-            if ($isMember) {
+            if ($membership) {
                 if ($tenant->ai_status === 'none') {
                     throw new \App\Exceptions\PlanLimitException('ai_access');
                 }
+
+                // Strictly require owner or admin membership status for any write modifications
+                if ($request->isMethod('POST') || $request->isMethod('PUT') || $request->isMethod('PATCH') || $request->isMethod('DELETE')) {
+                    if (!in_array($membership->role, ['owner', 'admin'])) {
+                        abort(403, 'Unauthorized. Only store owners or administrators can modify chatbot settings.');
+                    }
+                }
+
                 return $next($request);
             }
         }

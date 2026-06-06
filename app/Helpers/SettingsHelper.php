@@ -44,7 +44,7 @@ class SettingsHelper
 
         // Fallback to global setting if not found/empty in tenant scope
         if (app()->bound('current.tenant')) {
-            $globalSettings = Cache::remember('settings:global', 300, function () {
+            $globalSettings = Cache::remember('settings:system_defaults', 300, function () {
                 return Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
             });
             if (array_key_exists($key, $globalSettings) && !is_null($globalSettings[$key]) && $globalSettings[$key] !== '') {
@@ -71,6 +71,7 @@ class SettingsHelper
     public static function clearCache(): void
     {
         Cache::forget(static::cacheKey());
+        Cache::forget('settings:system_defaults');
     }
 
     /**

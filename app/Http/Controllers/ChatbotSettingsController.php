@@ -85,6 +85,7 @@ class ChatbotSettingsController extends Controller
 
         // Clear settings cache
         \Illuminate\Support\Facades\Cache::forget('settings:global');
+        \Illuminate\Support\Facades\Cache::forget('settings:system_defaults');
 
         return back()->with('success', 'Chatbot settings updated successfully.');
     }
