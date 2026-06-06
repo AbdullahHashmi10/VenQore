@@ -229,3 +229,164 @@ test('auto calculate assembly cost', function () {
     // (3 mat1 × 2 × $20) + (1 mat2 × 2 × $50) = 120 + 100 = $220
     $this->assertEquals(220.0, (float) $run->material_cost, 'Assembly material_cost should be auto-calculated from FIFO batch unit costs.');
 });
+
+test('v3_production_runs_synchronize_physical_stock_and_movement_records', function () {
+    $tenant = $this->createTenant(null, 'business');
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $warehouseId = \Illuminate\Support\Facades\DB::table('warehouses')->where('tenant_id', $tenant->id)->value('id');
+    $cake = Product::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Cake FG', 'is_manufactured' => 1]);
+    $flour = Product::factory()->create(['tenant_id' => $tenant->id, 'name' => 'Flour RM', 'is_manufactured' => 0]);
+
+    seedRawMaterial($tenant, $warehouseId, $flour, 20.0, 50.0);
+
+    $bomId = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('bill_of_materials')->insert([
+        'id'             => $bomId,
+        'tenant_id'      => $tenant->id,
+        'product_id'     => $cake->id,
+        'version'        => 1,
+        'effective_from' => today()->toDateString(),
+        'is_active'      => 1,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+    \Illuminate\Support\Facades\DB::table('bom_items')->insert([
+        'id' => \Illuminate\Support\Str::uuid(), 'tenant_id' => $tenant->id, 'bom_id' => $bomId,
+        'product_id' => $flour->id, 'qty_per_unit' => 2.0, 'is_byproduct' => 0,
+        'byproduct_nrv' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // Start run (consumes 10 flour)
+    $response = $this->post("/s/{$tenant->slug}/v3/production-runs", [
+        'bom_id'       => $bomId,
+        'warehouse_id' => $warehouseId,
+        'planned_qty'  => 5,
+        'run_date'     => today()->toDateString(),
+    ]);
+    $response->assertRedirect();
+
+    // Assert physical Flour stock decremented to 10
+    $flourStock = \App\Models\Stock::where('product_id', $flour->id)->where('warehouse_id', $warehouseId)->first()->quantity;
+    expect((float) $flourStock)->toEqual(10.0);
+
+    // Assert Flour stock movement logged
+    $flourMovement = \Illuminate\Support\Facades\DB::table('stock_movements')
+        ->where('product_id', $flour->id)
+        ->where('warehouse_id', $warehouseId)
+        ->where('quantity', -10.0)
+        ->first();
+    expect($flourMovement)->not->toBeNull();
+
+    $run = \Illuminate\Support\Facades\DB::table('production_runs')->where('bom_id', $bomId)->first();
+
+    // Complete run
+    $responseComplete = $this->post("/s/{$tenant->slug}/v3/production-runs/{$run->id}/complete", [
+        'actual_qty' => 5,
+    ]);
+    $responseComplete->assertRedirect();
+
+    // Assert physical Cake stock incremented to 5
+    $cakeStock = \App\Models\Stock::where('product_id', $cake->id)->where('warehouse_id', $warehouseId)->first()->quantity;
+    expect((float) $cakeStock)->toEqual(5.0);
+
+    // Assert Cake stock movement logged
+    $cakeMovement = \Illuminate\Support\Facades\DB::table('stock_movements')
+        ->where('product_id', $cake->id)
+        ->where('warehouse_id', $warehouseId)
+        ->where('quantity', 5.0)
+        ->first();
+    expect($cakeMovement)->not->toBeNull();
+});
+
+test('prevents_concurrent_deductions_from_violating_negative_stock_helper_rule', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $warehouseId = \Illuminate\Support\Facades\DB::table('warehouses')->where('tenant_id', $tenant->id)->value('id');
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 50.0]);
+
+    // Seed 10 items
+    seedRawMaterial($tenant, $warehouseId, $product, 10.0, 50.0);
+
+    // Enforce stop negative stock
+    $setting = \Illuminate\Support\Facades\DB::table('settings')
+        ->where('tenant_id', $tenant->id)
+        ->where('key', 'stop_sale_negative_stock')
+        ->first();
+
+    if ($setting) {
+        \Illuminate\Support\Facades\DB::table('settings')
+            ->where('id', $setting->id)
+            ->update(['value' => '1', 'updated_at' => now()]);
+    } else {
+        \Illuminate\Support\Facades\DB::table('settings')->insert([
+            'id'         => \Illuminate\Support\Str::uuid()->toString(),
+            'tenant_id'  => $tenant->id,
+            'key'        => 'stop_sale_negative_stock',
+            'value'      => '1',
+            'group'      => 'general',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    \App\Helpers\SettingsHelper::clearCache();
+
+    $fifo = resolve(\App\Services\V3\FifoService::class);
+
+    // Deducting 8 should succeed
+    $fifo->deductStock($product->id, $warehouseId, 8.0);
+
+    // Deducting another 8 should throw InsufficientStockException and NOT generate negative stock
+    $failed = false;
+    try {
+        $fifo->deductStock($product->id, $warehouseId, 8.0);
+    } catch (\App\Exceptions\InsufficientStockException $e) {
+        $failed = true;
+    }
+
+    expect($failed)->toBeTrue();
+    $remaining = \Illuminate\Support\Facades\DB::table('inventory_batches')
+        ->where('product_id', $product->id)
+        ->where('warehouse_id', $warehouseId)
+        ->sum('remaining_qty');
+    expect((float) $remaining)->toEqual(2.0); // Remains at 2, not -6
+});
+
+test('prevents_deleting_or_archiving_product_when_active_in_any_bom', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $rawMaterial = Product::factory()->create(['tenant_id' => $tenant->id, 'is_manufactured' => 0]);
+    $finishedGood = Product::factory()->create(['tenant_id' => $tenant->id, 'is_manufactured' => 1]);
+
+    $bomId = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('bill_of_materials')->insert([
+        'id'             => $bomId,
+        'tenant_id'      => $tenant->id,
+        'product_id'     => $finishedGood->id,
+        'version'        => 1,
+        'effective_from' => today()->toDateString(),
+        'is_active'      => 1,
+        'created_at'     => now(),
+        'updated_at'     => now(),
+    ]);
+    \Illuminate\Support\Facades\DB::table('bom_items')->insert([
+        'id' => \Illuminate\Support\Str::uuid(), 'tenant_id' => $tenant->id, 'bom_id' => $bomId,
+        'product_id' => $rawMaterial->id, 'qty_per_unit' => 2.0, 'is_byproduct' => 0,
+        'byproduct_nrv' => 0, 'created_at' => now(), 'updated_at' => now(),
+    ]);
+
+    // Attempting to delete $rawMaterial should fail with validation error because it is in a BOM
+    $response = $this->delete("/s/{$tenant->slug}/v3/products/{$rawMaterial->id}");
+    $response->assertSessionHasErrors();
+
+    // Verify product is still active and in database
+    $rawMaterial = $rawMaterial->fresh();
+    expect($rawMaterial->deleted_at)->toBeNull();
+    expect($rawMaterial->is_active)->toEqual(1);
+});

@@ -70,6 +70,46 @@ class ManufacturingService
                 $lineCost = array_sum(array_column($deductions, 'total_cost'));
                 $materialCost += $lineCost;
 
+                // Physical Stock Updates
+                $stock = DB::table('stocks')->where('tenant_id', $tid)
+                    ->where('product_id', $bomItem->product_id)
+                    ->where('warehouse_id', $warehouseId)
+                    ->first();
+                if ($stock) {
+                    DB::table('stocks')->where('tenant_id', $tid)
+                        ->where('id', $stock->id)
+                        ->decrement('quantity', $requiredQty);
+                } else {
+                    DB::table('stocks')->insert([
+                        'id'           => Str::uuid()->toString(),
+                        'tenant_id'    => $tid,
+                        'product_id'   => $bomItem->product_id,
+                        'warehouse_id' => $warehouseId,
+                        'quantity'     => -$requiredQty,
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
+
+                DB::table('products')->where('tenant_id', $tid)
+                    ->where('id', $bomItem->product_id)
+                    ->decrement('stock_quantity', $requiredQty);
+
+                // Stock Movement Logging
+                DB::table('stock_movements')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $bomItem->product_id,
+                    'warehouse_id' => $warehouseId,
+                    'quantity'     => -$requiredQty,
+                    'type'         => 'production_consume',
+                    'reference_id' => $runId,
+                    'description'  => "Production Run Ingredient Consumption — Run #{$runId}",
+                    'user_id'      => auth()->id() ?? 1,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+
                 // Store deduction detail for production_run_materials table
                 foreach ($deductions as $d) {
                     DB::table('production_run_materials')->insertOrIgnore([
@@ -206,6 +246,46 @@ class ManufacturingService
                     batchType:   'manufactured',
                     productionRunId: $runId
                 );
+
+                // Physical Stock Updates for By-product
+                $bpStock = DB::table('stocks')->where('tenant_id', $tid)
+                    ->where('product_id', $byproduct->product_id)
+                    ->where('warehouse_id', $run->warehouse_id)
+                    ->first();
+                if ($bpStock) {
+                    DB::table('stocks')->where('tenant_id', $tid)
+                        ->where('id', $bpStock->id)
+                        ->increment('quantity', $byproductQty);
+                } else {
+                    DB::table('stocks')->insert([
+                        'id'           => Str::uuid()->toString(),
+                        'tenant_id'    => $tid,
+                        'product_id'   => $byproduct->product_id,
+                        'warehouse_id' => $run->warehouse_id,
+                        'quantity'     => $byproductQty,
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
+
+                DB::table('products')->where('tenant_id', $tid)
+                    ->where('id', $byproduct->product_id)
+                    ->increment('stock_quantity', $byproductQty);
+
+                // Stock Movement Logging for By-product
+                DB::table('stock_movements')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $byproduct->product_id,
+                    'warehouse_id' => $run->warehouse_id,
+                    'quantity'     => $byproductQty,
+                    'type'         => 'production_produce',
+                    'reference_id' => $runId,
+                    'description'  => "Production Run By-Product Production — Run #{$runId}",
+                    'user_id'      => auth()->id() ?? 1,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
             }
 
             // Net cost of finished good = total cost minus by-product NRV
@@ -262,6 +342,46 @@ class ManufacturingService
                 productionRunId: $runId
             );
 
+            // Physical Stock Updates for Finished Good
+            $fgStock = DB::table('stocks')->where('tenant_id', $tid)
+                ->where('product_id', $bom->product_id)
+                ->where('warehouse_id', $run->warehouse_id)
+                ->first();
+            if ($fgStock) {
+                DB::table('stocks')->where('tenant_id', $tid)
+                    ->where('id', $fgStock->id)
+                    ->increment('quantity', $actualQty);
+            } else {
+                DB::table('stocks')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $bom->product_id,
+                    'warehouse_id' => $run->warehouse_id,
+                    'quantity'     => $actualQty,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+            }
+
+            DB::table('products')->where('tenant_id', $tid)
+                ->where('id', $bom->product_id)
+                ->increment('stock_quantity', $actualQty);
+
+            // Stock Movement Logging for Finished Good
+            DB::table('stock_movements')->insert([
+                'id'           => Str::uuid()->toString(),
+                'tenant_id'    => $tid,
+                'product_id'   => $bom->product_id,
+                'warehouse_id' => $run->warehouse_id,
+                'quantity'     => $actualQty,
+                'type'         => 'production_produce',
+                'reference_id' => $runId,
+                'description'  => "Production Run Finished Goods Production — Run #{$runId}",
+                'user_id'      => auth()->id() ?? 1,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+
             // ── Update production run ──────────────────────────────────
             DB::table('production_runs')->where('tenant_id', $tid)->where('id', $runId)->update([
                 'actual_qty'   => $actualQty,
@@ -311,15 +431,57 @@ class ManufacturingService
             $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
             $this->accounting->getAccountByCode('6400', 'Manufacturing Cost', 'expense');
 
+            $fgProductId = DB::table('bill_of_materials')
+                ->where('tenant_id', $tid)
+                ->where('id', $run->bom_id)
+                ->value('product_id');
+
             // Remove finished goods from inventory (FIFO deduction on the run's batch)
             $this->fifo->deductStock(
-                productId:   DB::table('bill_of_materials')
-                                ->where('tenant_id', $tid)
-                                ->where('id', $run->bom_id)
-                                ->value('product_id'),
+                productId:   $fgProductId,
                 warehouseId: $run->warehouse_id,
                 qty:         $reverseQty
             );
+
+            // Physical Stock Updates for Finished Good Reversal
+            $fgStock = DB::table('stocks')->where('tenant_id', $tid)
+                ->where('product_id', $fgProductId)
+                ->where('warehouse_id', $run->warehouse_id)
+                ->first();
+            if ($fgStock) {
+                DB::table('stocks')->where('tenant_id', $tid)
+                    ->where('id', $fgStock->id)
+                    ->decrement('quantity', $reverseQty);
+            } else {
+                DB::table('stocks')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $fgProductId,
+                    'warehouse_id' => $run->warehouse_id,
+                    'quantity'     => -$reverseQty,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+            }
+
+            DB::table('products')->where('tenant_id', $tid)
+                ->where('id', $fgProductId)
+                ->decrement('stock_quantity', $reverseQty);
+
+            // Stock Movement Logging for Finished Good Reversal
+            DB::table('stock_movements')->insert([
+                'id'           => Str::uuid()->toString(),
+                'tenant_id'    => $tid,
+                'product_id'   => $fgProductId,
+                'warehouse_id' => $run->warehouse_id,
+                'quantity'     => -$reverseQty,
+                'type'         => 'production_reversal',
+                'reference_id' => $runId,
+                'description'  => "Production Run Reversal — Run #{$runId}",
+                'user_id'      => auth()->id() ?? 1,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
 
             // Reverse the cost journal
             $this->accounting->createEntry([
@@ -379,6 +541,46 @@ class ManufacturingService
 
             $totalSetCost = array_sum(array_column($deductions, 'total_cost'));
 
+            // Physical Stock Updates for Parent Set Disassembly
+            $parentStock = DB::table('stocks')->where('tenant_id', $tid)
+                ->where('product_id', $productId)
+                ->where('warehouse_id', $warehouseId)
+                ->first();
+            if ($parentStock) {
+                DB::table('stocks')->where('tenant_id', $tid)
+                    ->where('id', $parentStock->id)
+                    ->decrement('quantity', $qty);
+            } else {
+                DB::table('stocks')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $productId,
+                    'warehouse_id' => $warehouseId,
+                    'quantity'     => -$qty,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
+            }
+
+            DB::table('products')->where('tenant_id', $tid)
+                ->where('id', $productId)
+                ->decrement('stock_quantity', $qty);
+
+            // Stock Movement Logging for Parent Set Disassembly
+            DB::table('stock_movements')->insert([
+                'id'           => Str::uuid()->toString(),
+                'tenant_id'    => $tid,
+                'product_id'   => $productId,
+                'warehouse_id' => $warehouseId,
+                'quantity'     => -$qty,
+                'type'         => 'disassembly_out',
+                'reference_id' => $disassemblyBom->id,
+                'description'  => "Disassembly Parent Out — Product {$productId}",
+                'user_id'      => auth()->id() ?? 1,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+
             // Ensure necessary accounts exist
             $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
 
@@ -401,6 +603,46 @@ class ManufacturingService
                     unitCost:    $componentCost / max($qty, 0.0001),
                     batchType:   'disassembly'
                 );
+
+                // Physical Stock Updates for Disassembled Component
+                $compStock = DB::table('stocks')->where('tenant_id', $tid)
+                    ->where('product_id', $component->component_product_id)
+                    ->where('warehouse_id', $warehouseId)
+                    ->first();
+                if ($compStock) {
+                    DB::table('stocks')->where('tenant_id', $tid)
+                        ->where('id', $compStock->id)
+                        ->increment('quantity', $qty);
+                } else {
+                    DB::table('stocks')->insert([
+                        'id'           => Str::uuid()->toString(),
+                        'tenant_id'    => $tid,
+                        'product_id'   => $component->component_product_id,
+                        'warehouse_id' => $warehouseId,
+                        'quantity'     => $qty,
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ]);
+                }
+
+                DB::table('products')->where('tenant_id', $tid)
+                    ->where('id', $component->component_product_id)
+                    ->increment('stock_quantity', $qty);
+
+                // Stock Movement Logging for Disassembled Component
+                DB::table('stock_movements')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => $tid,
+                    'product_id'   => $component->component_product_id,
+                    'warehouse_id' => $warehouseId,
+                    'quantity'     => $qty,
+                    'type'         => 'disassembly_in',
+                    'reference_id' => $disassemblyBom->id,
+                    'description'  => "Disassembly Component In — Product {$component->component_product_id}",
+                    'user_id'      => auth()->id() ?? 1,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
 
                 $journalLines[] = [
                     'account_code' => '1100',

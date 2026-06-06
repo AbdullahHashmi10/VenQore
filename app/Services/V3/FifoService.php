@@ -33,22 +33,6 @@ class FifoService
 
         return DB::transaction(function () use ($productId, $warehouseId, $qty) {
 
-            // Pre-flight: check total available FIRST
-            $totalAvailable = DB::table('inventory_batches')
-                ->where('tenant_id', $this->tenantId)
-                ->where('product_id', $productId)
-                ->where('warehouse_id', $warehouseId)
-                ->where('remaining_qty', '>', 0)
-                ->sum('remaining_qty');
-                
-            $stopNegative = \App\Helpers\SettingsHelper::shouldStopNegativeStock();
-
-            if ($totalAvailable < $qty && $stopNegative) {
-                throw new InsufficientStockException(
-                    $productId, $warehouseId, $qty, $totalAvailable
-                );
-            }
-
             // Lock batches for this product+warehouse, oldest first
             $batches = DB::table('inventory_batches')
                 ->where('tenant_id', $this->tenantId)
@@ -58,6 +42,16 @@ class FifoService
                 ->orderBy('created_at', 'ASC') // FIFO — Golden Rule 3
                 ->lockForUpdate()
                 ->get();
+
+            $totalAvailable = (float) $batches->sum('remaining_qty');
+                
+            $stopNegative = \App\Helpers\SettingsHelper::shouldStopNegativeStock();
+
+            if ($totalAvailable < $qty && $stopNegative) {
+                throw new InsufficientStockException(
+                    $productId, $warehouseId, $qty, $totalAvailable
+                );
+            }
 
             $deductions    = [];
             $remaining     = $qty;

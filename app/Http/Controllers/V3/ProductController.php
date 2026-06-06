@@ -156,6 +156,20 @@ class ProductController extends Controller
         // Instead, we check first and either archive or soft-delete cleanly.
 
         $tenantId = app('current.tenant')->id;
+
+        // Prevent deleting or archiving if the product is a component in an active BOM
+        $existsInActiveBom = DB::table('bom_items')
+            ->join('bill_of_materials', 'bom_items.bom_id', '=', 'bill_of_materials.id')
+            ->where('bom_items.tenant_id', $tenantId)
+            ->where('bill_of_materials.is_active', 1)
+            ->where('bom_items.product_id', $id)
+            ->exists();
+
+        if ($existsInActiveBom) {
+            return redirect()->back()->withErrors([
+                'product' => 'Cannot delete or archive product because it is a component in an active BOM.',
+            ]);
+        }
         $hasSalesHistory = DB::table('sale_items')->where('sale_items.tenant_id', app('current.tenant')->id)->where('product_id', $id)->exists()
             || DB::table('invoice_items')->where('invoice_items.tenant_id', app('current.tenant')->id)->where('product_id', $id)->exists()
             || DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)->where('product_id', $id)->exists();

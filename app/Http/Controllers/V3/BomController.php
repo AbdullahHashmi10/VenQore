@@ -48,6 +48,7 @@ class BomController extends Controller
 
             DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->insert([
                 'id'             => $bomId,
+                'tenant_id'      => app('current.tenant')->id,
                 'product_id'     => $validated['product_id'],
                 'version'        => $validated['version'],
                 'effective_from' => $validated['effective_from'],
@@ -61,6 +62,7 @@ class BomController extends Controller
                 DB::table('bom_items')->where('bom_items.tenant_id', app('current.tenant')->id)->insert([
                     'id'            => Str::uuid()->toString(),
                     'bom_id'        => $bomId,
+                    'tenant_id'     => app('current.tenant')->id,
                     'product_id'    => $item['product_id'],
                     'qty_per_unit'  => $item['qty_per_unit'],
                     'is_byproduct'  => $item['is_byproduct']  ?? 0,
