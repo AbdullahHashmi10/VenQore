@@ -149,3 +149,89 @@ test('guest cannot access venqore routes', function () {
     
     $response->assertStatus(404);
 });
+
+test('user can log in via POS PIN with valid credentials', function () {
+    $tenant = $this->createTenant('pos-pin-store');
+    $user = $this->createTenantUser($tenant, 'cashier');
+
+    // Create a hashed PIN for the membership
+    $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+        ->where('user_id', $user->id)
+        ->first();
+    $membership->update([
+        'pos_pin' => bcrypt('1234'),
+    ]);
+
+    // Send a POST request to our newly mapped login/pin endpoint
+    $response = $this->post('/login/pin', [
+        'store_id' => $tenant->id,
+        'pin' => '1234',
+    ]);
+
+    // Assert redirection to the store dashboard
+    $response->assertRedirect(route('store.dashboard', ['store_slug' => $tenant->slug]));
+    $this->assertAuthenticatedAs($user);
+});
+
+test('user cannot log in via POS PIN with invalid credentials', function () {
+    $tenant = $this->createTenant('pos-pin-store');
+    $user = $this->createTenantUser($tenant, 'cashier');
+
+    $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+        ->where('user_id', $user->id)
+        ->first();
+    $membership->update([
+        'pos_pin' => bcrypt('1234'),
+    ]);
+
+    // Send an invalid PIN request
+    $response = $this->post('/login/pin', [
+        'store_id' => $tenant->id,
+        'pin' => '9999',
+    ]);
+
+    $response->assertSessionHasErrors('pin');
+    $this->assertGuest();
+});
+
+test('session switching regenerates session id and clears store specific session keys', function () {
+    $tenantA = $this->createTenant('store-a');
+    $tenantB = $this->createTenant('store-b');
+
+    // User is a member of both stores
+    $user = $this->createTenantUser($tenantA, 'owner');
+    \App\Models\TenantUser::create([
+        'tenant_id' => $tenantB->id,
+        'user_id' => $user->id,
+        'role' => 'owner',
+        'status' => 'active',
+        'display_name' => $user->name,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+
+    // Seed session data for Store A
+    session()->put([
+        'store_active_cart' => ['item1', 'item2'],
+        'register_open_balance' => 500,
+        'owner_pulse_authorized_' . $tenantA->id => true,
+        'other_global_key' => 'global-value',
+    ]);
+
+    $initialSessionId = session()->getId();
+
+    // Trigger store switch middleware by visiting Store B dashboard
+    $response = $this->get($this->storeUrl($tenantB, 'dashboard'));
+
+    // Assert that the session ID has changed (regenerated)
+    $this->assertNotEquals($initialSessionId, session()->getId());
+
+    // Assert store-specific keys are forgotten/cleared
+    $this->assertFalse(session()->has('store_active_cart'));
+    $this->assertFalse(session()->has('register_open_balance'));
+    $this->assertFalse(session()->has('owner_pulse_authorized_' . $tenantA->id));
+
+    // Assert non-store-specific global session keys are preserved
+    $this->assertEquals('global-value', session()->get('other_global_key'));
+});

@@ -154,6 +154,24 @@ class TenantMiddleware
 
         // ── Update last_store_id (deferred — zero latency) ─────────────────
         if ($user->last_store_id !== $tenant->id) {
+            // Regenerate session ID to prevent cross-tenant session fixation
+            $request->session()->regenerate();
+
+            // Clear store-specific session variables to prevent state leakage
+            $keysToForget = [];
+            foreach ($request->session()->all() as $key => $value) {
+                if (
+                    str_starts_with($key, 'store_') || 
+                    str_starts_with($key, 'owner_pulse_') || 
+                    str_starts_with($key, 'register_')
+                ) {
+                    $keysToForget[] = $key;
+                }
+            }
+            if (!empty($keysToForget)) {
+                $request->session()->forget($keysToForget);
+            }
+
             dispatch(function () use ($user, $tenant) {
                 $user->update(['last_store_id' => $tenant->id]);
             })->afterResponse();
