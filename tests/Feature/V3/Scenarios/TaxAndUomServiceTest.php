@@ -244,9 +244,10 @@ class TaxAndUomServiceTest extends TestCase
             ['4000', 'Sales Revenue',          'income',    'credit'],
         ];
         foreach ($accounts as [$code, $name, $type, $balance]) {
-            if (!DB::table('accounts')->where('code', $code)->exists()) {
+            if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
                 DB::table('accounts')->insert([
                     'id'             => Str::uuid()->toString(),
+                    'tenant_id'      => null,
                     'code'           => $code,
                     'name'           => $name,
                     'type'           => $type,
@@ -261,9 +262,10 @@ class TaxAndUomServiceTest extends TestCase
     private function seedAccount(
         string $code, string $name, string $type, string $normalBalance
     ): void {
-        if (!DB::table('accounts')->where('code', $code)->exists()) {
+        if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
             DB::table('accounts')->insert([
                 'id'             => Str::uuid()->toString(),
+                'tenant_id'      => null,
                 'code'           => $code,
                 'name'           => $name,
                 'type'           => $type,

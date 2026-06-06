@@ -359,9 +359,10 @@ class InventoryAndPartyServiceTest extends TestCase
         ];
 
         foreach ($accounts as [$code, $name, $type, $balance]) {
-            if (!DB::table('accounts')->where('code', $code)->exists()) {
+            if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
                 DB::table('accounts')->insert([
                     'id'             => Str::uuid()->toString(),
+                    'tenant_id'      => null,
                     'code'           => $code,
                     'name'           => $name,
                     'type'           => $type,

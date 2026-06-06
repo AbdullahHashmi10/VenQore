@@ -257,10 +257,11 @@ class PaymentServiceTest extends TestCase
     // ─── Helpers ──────────────────────────────────────────────────────
     private function seedAccount(string $code, string $name, string $type, string $normalBalance): void
     {
-        $exists = DB::table('accounts')->where('code', $code)->exists();
+        $exists = DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists();
         if (!$exists) {
             DB::table('accounts')->insert([
                 'id'             => Str::uuid()->toString(),
+                'tenant_id'      => null,
                 'code'           => $code,
                 'name'           => $name,
                 'type'           => $type,
