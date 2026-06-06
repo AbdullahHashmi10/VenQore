@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * User Model — Definitive Plan
@@ -48,6 +49,9 @@ class User extends Authenticatable
         'platform_pin',
         'google_id',
         'avatar',
+        'role',
+        'permissions',
+        'passcode',
     ];
 
     protected $hidden = [
@@ -62,6 +66,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'is_platform_admin' => 'boolean',
+            'permissions'       => 'array',
         ];
     }
 
@@ -223,19 +228,40 @@ class User extends Authenticatable
      */
     public function getActiveMembership(): ?TenantUser
     {
-        if (app()->bound('current.membership')) {
-            return app('current.membership');
-        }
-
         if ($this->membershipResolved) {
             return $this->resolvedMembership;
         }
 
+        // 1. If we are in a tenant context, query/match the membership for this specific tenant first
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            $membership = $this->memberships()
+                ->where('tenant_id', $tenant->id)
+                ->where('status', 'active')
+                ->first();
+            if ($membership) {
+                $this->resolvedMembership = $membership;
+                $this->membershipResolved = true;
+                return $membership;
+            }
+        }
+
+        // 2. Fallback to globally bound current.membership if it matches this user
+        if (app()->bound('current.membership')) {
+            $membership = app('current.membership');
+            if ($membership->user_id === $this->id) {
+                $this->resolvedMembership = $membership;
+                $this->membershipResolved = true;
+                return $membership;
+            }
+        }
+
+        // 3. Fallback to last store or first available store
         if (!$this->last_store_id) {
             $firstMembership = $this->memberships()->where('status', 'active')->first();
             if ($firstMembership) {
                 $this->resolvedMembership = $firstMembership;
-                $this->update(['last_store_id' => $firstMembership->tenant_id]);
+                $this->updateQuietly(['last_store_id' => $firstMembership->tenant_id]);
             }
         } else {
             $this->resolvedMembership = $this->memberships()
@@ -249,13 +275,46 @@ class User extends Authenticatable
     }
 
     /**
+     * Helper to ensure passcode is properly hashed.
+     */
+    protected function ensureHashed(?string $value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+        if (str_starts_with($value, '$2y$') || str_starts_with($value, '$argon2')) {
+            return $value;
+        }
+        return Hash::make($value);
+    }
+
+    /**
      * Shim: Get the role for the active store (last_store_id).
      */
     public function getRoleAttribute(): ?string
     {
         if ($this->is_platform_admin) return 'platform_admin';
         
+        if (!empty($this->attributes['role'])) {
+            return $this->attributes['role'];
+        }
+
         return $this->getActiveMembership()?->role;
+    }
+
+    /**
+     * Mutator: Set user role and sync with pivot if in tenant context.
+     */
+    public function setRoleAttribute(?string $value): void
+    {
+        $this->attributes['role'] = $value;
+
+        if (app()->bound('current.tenant')) {
+            $membership = $this->getActiveMembership();
+            if ($membership && $membership->role !== $value) {
+                $membership->update(['role' => $value]);
+            }
+        }
     }
 
     /**
@@ -263,10 +322,30 @@ class User extends Authenticatable
      */
     public function getPasscodeAttribute(): ?string
     {
+        if (!empty($this->attributes['passcode'])) {
+            return $this->attributes['passcode'];
+        }
+
         if (!$this->last_store_id) return null;
         return $this->memberships()
                     ->where('tenant_id', $this->last_store_id)
                     ->value('pos_pin');
+    }
+
+    /**
+     * Mutator: Set user passcode (POS PIN) and sync with pivot if in tenant context.
+     */
+    public function setPasscodeAttribute(?string $value): void
+    {
+        $hashed = $this->ensureHashed($value);
+        $this->attributes['passcode'] = $hashed;
+
+        if (app()->bound('current.tenant')) {
+            $membership = $this->getActiveMembership();
+            if ($membership && $membership->pos_pin !== $hashed) {
+                $membership->update(['pos_pin' => $hashed]);
+            }
+        }
     }
 
     /**
@@ -296,6 +375,16 @@ class User extends Authenticatable
         // Platform level super admin only
         if ($this->is_platform_admin) return ['*'];
 
+        if (!empty($this->attributes['permissions'])) {
+            $perms = $this->attributes['permissions'];
+            if (is_string($perms)) {
+                $perms = json_decode($perms, true) ?? [];
+            }
+            if (!empty($perms)) {
+                return $perms;
+            }
+        }
+
         // Resolve the active membership
         $membership = $this->getActiveMembership();
 
@@ -310,6 +399,22 @@ class User extends Authenticatable
         // 2. Delegate to config/permissions.php — the CANONICAL permission map
         $role = $membership->role ?? 'viewer';
         return config('permissions.' . $role, ['pos', 'sales_view']);
+    }
+
+    /**
+     * Mutator: Set user permissions and sync with pivot if in tenant context.
+     */
+    public function setPermissionsAttribute(mixed $value): void
+    {
+        $perms = is_array($value) ? $value : (json_decode($value, true) ?? []);
+        $this->attributes['permissions'] = json_encode($perms);
+
+        if (app()->bound('current.tenant')) {
+            $membership = $this->getActiveMembership();
+            if ($membership) {
+                $membership->update(['permissions' => $perms]);
+            }
+        }
     }
 
     public function activityLogs(): HasMany

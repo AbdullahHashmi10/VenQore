@@ -960,6 +960,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::delete('/parties', [\App\Http\Controllers\PartyController::class, 'bulkDestroy'])->middleware('permission:customers')->name('parties.bulk-destroy');
     Route::get('/parties/ledgers', [\App\Http\Controllers\PartyController::class, 'index'])->name('parties.ledgers');
     Route::get('/parties/{party}/ledger', [\App\Http\Controllers\PartyController::class, 'ledger'])->name('parties.ledger');
+    Route::get('/parties/{party}', fn($store_slug, $party) => redirect()->route('store.parties.ledger', ['store_slug' => $store_slug, 'party' => $party]))->name('parties.show');
 
     // Expenses
     // Expenses

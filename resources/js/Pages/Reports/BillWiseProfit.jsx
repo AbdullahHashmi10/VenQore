@@ -22,9 +22,20 @@ export default function BillWiseProfit({ invoices = [], filters = {} }) {
     const [customStart, setCustomStart] = useState('');
     const [customEnd, setCustomEnd] = useState('');
 
+    const normalizedInvoices = useMemo(() => {
+        return invoices.map(inv => ({
+            ...inv,
+            invoice_number: inv.reference_number || inv.id || '',
+            revenue: Number(inv.net_revenue || 0),
+            cost: Number(inv.cogs || 0),
+            profit: Number(inv.gross_profit || 0),
+            margin: Number(inv.margin_pct || 0)
+        }));
+    }, [invoices]);
+
     // --- Derived Data & Sorting ---
     const processedInvoices = useMemo(() => {
-        let data = [...invoices];
+        let data = [...normalizedInvoices];
 
         // 1. Filter
         if (searchQuery) {

@@ -1,19 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReportPage from './Components/ReportPage';
-import { RefreshCw } from 'lucide-react';
-import { usePage } from '@inertiajs/react';
+import { RefreshCw, Calendar } from 'lucide-react';
+import { usePage, router } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
 
-export default function CashFlow({ operating, investing, financing }) {
+export default function CashFlow({ operating, investing, financing, filters = {} }) {
     const { store } = usePage().props;
+    const [startDate, setStartDate] = useState(filters.start_date || '');
+    const [endDate, setEndDate] = useState(filters.end_date || '');
+
     const netCashFlow = operating + investing + financing;
+
+    const applyDateFilter = () => {
+        router.get(route("store.reports.cash-flow", {
+            store_slug: store.slug
+        }), {
+            start_date: startDate,
+            end_date: endDate
+        }, { preserveState: true, preserveScroll: true });
+    };
 
     return (
         <ReportPage
             title="Cash Flow Statement"
-            subtitle="Analysis of cash movement in the business"
+            subtitle={`Analysis of cash movement in the business from ${filters.start_date || ''} to ${filters.end_date || ''}`}
             icon={RefreshCw}
         >
+            {/* Interactive Date Filter Row */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Filter Cash Flow Period</span>
+                <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl shadow-sm">
+                        <Calendar size={14} className="text-slate-400" />
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="bg-transparent text-xs border-none outline-none text-slate-700 dark:text-slate-200"
+                        />
+                        <span className="text-slate-400 text-xs font-bold px-1">TO</span>
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="bg-transparent text-xs border-none outline-none text-slate-700 dark:text-slate-200"
+                        />
+                    </div>
+                    <button
+                        onClick={applyDateFilter}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold uppercase tracking-wide transition-all shadow-sm shadow-indigo-500/10 active:scale-95"
+                    >
+                        Apply Filter
+                    </button>
+                </div>
+            </div>
+
             <div className="p-8 space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-800">
@@ -30,12 +71,12 @@ export default function CashFlow({ operating, investing, financing }) {
                     </div>
                 </div>
 
-                <div className="bg-slate-900 text-white p-8 rounded-3xl flex justify-between items-center">
+                <div className="bg-slate-900 text-white p-8 rounded-3xl flex justify-between items-center shadow-lg">
                     <div>
                         <h3 className="text-lg font-bold text-slate-400 uppercase tracking-widest mb-1">Net Cash Flow</h3>
                         <p className="text-4xl font-black text-white">{formatCurrency(netCashFlow, store)}</p>
                     </div>
-                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${netCashFlow >= 0 ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                    <div className={`w-16 h-16 rounded-2xl flex items-center justify-center ${netCashFlow >= 0 ? 'bg-emerald-500' : 'bg-red-500'} shadow-lg`}>
                         <RefreshCw size={32} className="text-white" />
                     </div>
                 </div>
@@ -51,7 +92,7 @@ export default function CashFlow({ operating, investing, financing }) {
                             <span className="text-slate-600 dark:text-slate-400">Net Increase/Decrease in Cash</span>
                             <span className={`font-bold ${netCashFlow >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(netCashFlow, store)}</span>
                         </div>
-                        <div className="flex justify-between p-4 bg-indigo-600 text-white rounded-xl font-bold">
+                        <div className="flex justify-between p-4 bg-indigo-600 text-white rounded-xl font-bold shadow-md">
                             <span>Cash at End of Period</span>
                             <span>{formatCurrency(netCashFlow, store)}</span>
                         </div>

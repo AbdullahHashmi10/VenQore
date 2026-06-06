@@ -53,6 +53,12 @@ class RouteParameterRegressionTest extends TestCase
 
             // ── Customers search (fixed 2026-06-04) ───────────────────────────
             'store.customers.search'                    => ['store_slug'],
+
+            // ── Regression Fixes (added 2026-06-06) ───────────────────────────
+            'store.bank-accounts.transactions'          => ['store_slug', 'bankAccount'],
+            'store.expenses.category.store'             => ['store_slug'],
+            'store.parties.show'                        => ['store_slug', 'party'],
+            'store.parties.ledger'                      => ['store_slug', 'party'],
         ];
 
         foreach ($expectedRoutes as $name => $expectedParams) {

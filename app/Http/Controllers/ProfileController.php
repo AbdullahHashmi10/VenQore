@@ -64,10 +64,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's quick-login PIN (pos_pin on the tenant_users membership).
-     *
-     * The 'passcode' column was removed from users table and moved to
-     * tenant_users.pos_pin — so we must update the membership record.
+     * Update the user's quick-login PIN (passcode on users table, synced to pos_pin on tenant_users).
      */
     public function updatePasscode(Request $request): RedirectResponse
     {
@@ -77,21 +74,9 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if (!$user->last_store_id) {
-            return Redirect::back()->withErrors(['passcode' => 'No active store selected.']);
-        }
-
-        $membership = TenantUser::where('tenant_id', $user->last_store_id)
-            ->where('user_id', $user->id)
-            ->first();
-
-        if (!$membership) {
-            return Redirect::back()->withErrors(['passcode' => 'Membership not found for the active store.']);
-        }
-
-        // pos_pin stores the quick-login PIN (4-6 digits, plain — used for POS PIN entry)
-        $membership->pos_pin = $request->passcode ?: null;
-        $membership->save();
+        // Write directly to user model (this will automatically hash and sync with tenant membership)
+        $user->passcode = $request->passcode ?: null;
+        $user->save();
 
         return Redirect::back()->with('status', 'passcode-updated');
     }

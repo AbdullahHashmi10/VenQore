@@ -50,6 +50,11 @@ const SUITE_TESTS = {
     'note endpoint saves memo when authorized',
     'note endpoint rejects unauthorized access',
     'note endpoint validates date format'
+  ],
+  'LegacyAdminPasscodeTest': [
+    'store user creates membership and sets hashed pos pin',
+    'update user modifies membership and hashes pos pin',
+    'store user validates passcode uniqueness within same store'
   ]
 };
 
@@ -194,6 +199,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/ModalValidationRegressionTest.php',
     'Tester/tests/Feature/ExampleTest.php',
     'Tester/tests/Feature/TerminalAppIntegrationTest.php',
+    'Tester/tests/Feature/LegacyAdminPasscodeTest.php',
     'Tester/tests/Unit'
   ];
 
@@ -254,6 +260,9 @@ function runTests(projectPath, ws) {
     'note endpoint saves memo when authorized',
     'note endpoint rejects unauthorized access',
     'note endpoint validates date format',
+    'store user creates membership and sets hashed pos pin',
+    'update user modifies membership and hashes pos pin',
+    'store user validates passcode uniqueness within same store',
     'ModalValidationRegressionTest',
     'ExampleTest',
     'Unit'

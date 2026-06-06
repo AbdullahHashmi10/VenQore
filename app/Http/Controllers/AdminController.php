@@ -468,7 +468,17 @@ class AdminController extends Controller
                 'min:4',
                 'max:6',
                 function ($attribute, $value, $fail) {
-                    if (\App\Models\User::where('passcode', $value)->exists()) {
+                    $tenant = app('current.tenant');
+                    $exists = \App\Models\User::whereNotNull('passcode')
+                        ->when($tenant, function($q) use ($tenant) {
+                            $q->whereHas('memberships', function($m) use ($tenant) {
+                                $m->where('tenant_id', $tenant->id);
+                            });
+                        })
+                        ->get()->first(function($u) use ($value) {
+                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
+                        });
+                    if ($exists) {
                         $phrases = [
                             "That's a bit too simple, try another.",
                             "Common pattern detected, please choose something unique.",
@@ -490,14 +500,29 @@ class AdminController extends Controller
             PlanGate::enforce('staff_limit', $staffCount);
         }
 
-        \App\Models\User::create([
+        $user = \App\Models\User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'role' => $validated['role'] ?? 'cashier',
             'permissions' => $validated['permissions'] ?? [],
             'passcode' => $validated['passcode'] ?? null,
+            'last_store_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
         ]);
+
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            \App\Models\TenantUser::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'role' => $validated['role'] ?? 'cashier',
+                'status' => 'active',
+                'display_name' => $user->name,
+                'joined_at' => now(),
+                'pos_pin' => $user->passcode,
+                'permissions' => $validated['permissions'] ?? [],
+            ]);
+        }
 
         return redirect()->back()->with('success', 'User created successfully');
     }
@@ -518,7 +543,18 @@ class AdminController extends Controller
                 'min:4',
                 'max:6',
                 function ($attribute, $value, $fail) use ($id) {
-                    if (\App\Models\User::where('passcode', $value)->where('id', '!=', $id)->exists()) {
+                    $tenant = app('current.tenant');
+                    $exists = \App\Models\User::whereNotNull('passcode')
+                        ->where('id', '!=', $id)
+                        ->when($tenant, function($q) use ($tenant) {
+                            $q->whereHas('memberships', function($m) use ($tenant) {
+                                $m->where('tenant_id', $tenant->id);
+                            });
+                        })
+                        ->get()->first(function($u) use ($value) {
+                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
+                        });
+                    if ($exists) {
                         $phrases = [
                             "That's a bit too simple, try another.",
                             "Common pattern detected, please choose something unique.",
@@ -542,6 +578,18 @@ class AdminController extends Controller
         $user->permissions = $validated['permissions'] ?? $user->permissions;
         $user->passcode = $validated['passcode'] ?? $user->passcode;
         $user->save();
+
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            \App\Models\TenantUser::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'user_id' => $user->id],
+                [
+                    'role' => $user->role,
+                    'pos_pin' => $user->passcode,
+                    'permissions' => $user->permissions,
+                ]
+            );
+        }
 
         return redirect()->back()->with('success', 'User updated successfully');
     }

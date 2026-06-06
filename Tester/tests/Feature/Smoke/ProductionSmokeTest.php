@@ -428,4 +428,20 @@ test('[SMOKE-38] E-invoicing dashboard redirects guests to login', function () {
     expect($response->status())->toBeIn([302, 401, 404]);
 });
 
+test('[SMOKE-39] reporting dashboard pages redirect guests to login', function () {
+    $response = $this->get('/s/dummy-store/reports/sales');
+    expect($response->status())->toBeIn([302, 401, 404]);
+});
+
+test('[SMOKE-40] admin panel users lists redirect guests to login', function () {
+    $response = $this->get('/admin-panel/users');
+    expect($response->status())->toBeIn([302, 401, 404]);
+});
+
+test('[SMOKE-41] platform owners settings page redirects guests to login', function () {
+    $response = $this->get('/admin-panel/settings');
+    expect($response->status())->toBeIn([302, 401, 404]);
+});
+
+
 

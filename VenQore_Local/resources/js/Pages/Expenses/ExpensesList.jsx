@@ -499,7 +499,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
 
         try {
             // Using /expenses/category endpoint (ensure route exists)
-            const res = await axios.post('/expenses/category', { name: nameToUse });
+            const res = await axios.post(route('store.expenses.category.store', { store_slug: store.slug }), { name: nameToUse });
 
             if (res.data.success) {
                 setNewCategoryName('');

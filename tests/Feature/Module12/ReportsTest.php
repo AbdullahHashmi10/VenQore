@@ -241,3 +241,92 @@ test('tax report calculates correct tax payable', function () {
     $this->assertEquals(30.00, (float) $data['input_tax']);
     $this->assertEquals(20.00, (float) $data['net_payable']);
 });
+
+test('sales_orders_and_sales_order_items_reports_load_real_data', function () {
+    $tenant = $this->createTenant(null, 'ltd_3');
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $customer = \App\Models\Party::factory()->create(['tenant_id' => $tenant->id, 'type' => 'customer']);
+    $product = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 100]);
+
+    // Create a Sales Order
+    $order = \App\Models\SalesOrder::create([
+        'tenant_id' => $tenant->id,
+        'order_number' => 'SO-' . time() . '-' . rand(1000, 9999),
+        'customer_id' => $customer->id,
+        'customer_name' => $customer->name,
+        'order_date' => now()->toDateString(),
+        'status' => 'pending',
+        'total_amount' => 500,
+        'user_id' => auth()->id(),
+    ]);
+
+    // Create a Sales Order Item
+    \App\Models\SalesOrderItem::create([
+        'tenant_id' => $tenant->id,
+        'sales_order_id' => $order->id,
+        'product_id' => $product->id,
+        'quantity_requested' => 5,
+        'quantity_reserved' => 5,
+        'unit_price' => 100,
+        'subtotal' => 500,
+    ]);
+
+    // Hit the sale-orders report endpoint
+    $responseOrders = $this->get("/s/{$tenant->slug}/reports/sale-orders");
+    $responseOrders->assertOk();
+    $ordersProps = $responseOrders->viewData('page')['props'];
+    expect($ordersProps['orders'])->not->toBeEmpty();
+    expect($ordersProps['orders'][0]['order_number'])->toBe($order->order_number);
+
+    // Hit the sale-order-items report endpoint
+    $responseItems = $this->get("/s/{$tenant->slug}/reports/sale-order-items");
+    $responseItems->assertOk();
+    $itemsProps = $responseItems->viewData('page')['props'];
+    expect($itemsProps['items'])->not->toBeEmpty();
+    expect($itemsProps['items'][0]['sales_order']['order_number'])->toBe($order->order_number);
+    expect($itemsProps['items'][0]['product']['name'])->toBe($product->name);
+});
+
+test('cash_flow_report_loads_with_filters_and_data', function () {
+    $tenant = $this->createTenant(null, 'ltd_3');
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $response = $this->get("/s/{$tenant->slug}/reports/cash-flow");
+    $response->assertOk();
+    $props = $response->viewData('page')['props'];
+    expect($props)->toHaveKeys(['operating', 'investing', 'financing', 'stats']);
+});
+
+test('tax_report_returns_mapped_columns_to_match_tax_jsx', function () {
+    $tenant = $this->createTenant(null, 'ltd_3');
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $response = $this->get("/s/{$tenant->slug}/reports/tax");
+    $response->assertOk();
+    $props = $response->viewData('page')['props'];
+    expect($props)->toHaveKeys(['tax_records', 'stats', 'filters']);
+});
+
+test('customer_and_item_party_reports_render_correct_inertia_views', function () {
+    $tenant = $this->createTenant(null, 'ltd_3');
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    // Hit Item Report by Customer
+    $responseItemReport = $this->get("/s/{$tenant->slug}/reports/item-report-by-party");
+    $responseItemReport->assertOk();
+    $propsItem = $responseItemReport->viewData('page')['props'];
+    expect($propsItem)->toHaveKeys(['data', 'stats', 'filters']);
+
+    // Hit Customer Report by Item
+    $responsePartyReport = $this->get("/s/{$tenant->slug}/reports/party-report-by-item");
+    $responsePartyReport->assertOk();
+    $propsParty = $responsePartyReport->viewData('page')['props'];
+    expect($propsParty)->toHaveKeys(['data', 'stats', 'filters']);
+});
+
+
