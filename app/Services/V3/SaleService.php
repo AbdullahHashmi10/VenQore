@@ -441,7 +441,15 @@ class SaleService
             }
 
             // Reverse the journal entry (auto-voids payment allocations)
-            $this->accounting->reverseEntry($sale->journal_entry_id, $reason);
+            $journalEntryId = DB::table('journal_entries')
+                ->where('tenant_id', $this->tenantId)
+                ->where('reference_type', 'sale')
+                ->where('reference', $saleId)
+                ->value('id');
+
+            if ($journalEntryId) {
+                $this->accounting->reverseEntry($journalEntryId, $reason);
+            }
 
             // Reverse payments in the payments table
             $payments = DB::table('payments')->where('sale_id', $sale->id)->get();

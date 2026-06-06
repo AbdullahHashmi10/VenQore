@@ -329,4 +329,173 @@ test('customer_and_item_party_reports_render_correct_inertia_views', function ()
     expect($propsParty)->toHaveKeys(['data', 'stats', 'filters']);
 });
 
+test('excludes returned sales and reversed cogs from gross profit calculations', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $warehouse = \App\Models\Warehouse::create(['tenant_id' => $tenant->id, 'name' => 'Valuation Main', 'code' => 'VM-1']);
+    $product = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 100, 'cost_price' => 50]);
+
+    // Seed stock batch
+    $batchId = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenant->id,
+        'id' => $batchId,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 50.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Create a sale service instance and post it
+    $saleService = app(\App\Services\V3\SaleService::class);
+    $sale = $saleService->post([
+        'tenant_id' => $tenant->id,
+        'customer_id' => null,
+        'warehouse_id' => $warehouse->id,
+        'sale_date' => now()->toDateString(),
+        'payment_method' => 'cash',
+        'items' => [
+            [
+                'product_id' => $product->id,
+                'qty' => 2,
+                'sale_uom' => 'PCS',
+                'unit_price' => 100,
+            ]
+        ]
+    ]);
+
+    // Gross profit check before return: net revenue = 200, COGS = 100, profit = 100
+    $report = app(\App\Services\FinancialReportingService::class)->getGrossProfitByProduct(
+        now()->toDateString(),
+        now()->toDateString()
+    );
+    
+    $row = $report->firstWhere('product_id', $product->id);
+    expect($row)->not->toBeNull();
+    expect((float) $row['net_revenue'])->toBe(200.0);
+    expect((float) $row['cogs'])->toBe(100.0);
+    expect((float) $row['gross_profit'])->toBe(100.0);
+
+    // Now reverse/return the sale
+    $saleService->reverse($sale->id, 'Returned by customer');
+
+    // Gross profit check after return: should reflect 0 revenue/COGS/profit
+    $reportAfter = app(\App\Services\FinancialReportingService::class)->getGrossProfitByProduct(
+        now()->toDateString(),
+        now()->toDateString()
+    );
+
+    $rowAfter = $reportAfter->firstWhere('product_id', $product->id);
+    // Since it's fully returned, it should not contribute to gross profit or be returned as 0
+    if ($rowAfter) {
+        expect((float) $rowAfter['net_revenue'])->toBe(0.0);
+        expect((float) $rowAfter['cogs'])->toBe(0.0);
+        expect((float) $rowAfter['gross_profit'])->toBe(0.0);
+    } else {
+        expect($rowAfter)->toBeNull();
+    }
+});
+
+test('excludes reversed journal entries from party statement reports', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $party = \App\Models\Party::factory()->create(['tenant_id' => $tenant->id, 'type' => 'customer']);
+    $arAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '1200')->first();
+    $cashAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '1000')->first();
+
+    $accountingSvc = app(\App\Services\V3\AccountingService::class);
+    
+    // Post transaction
+    $entry = \Illuminate\Support\Facades\DB::transaction(function () use ($accountingSvc, $party, $arAccount, $cashAccount) {
+        return $accountingSvc->createEntry([
+            'date'           => now()->format('Y-m-d'),
+            'reference_type' => 'sale',
+            'reference'      => 'REV-TEST-SALE',
+            'description'    => 'Test party entry',
+            'party_id'       => $party->id,
+            'created_by'     => auth()->id(),
+        ], [
+            ['account_id' => $arAccount->id,   'debit' => 150, 'credit' => 0, 'party_id' => $party->id],
+            ['account_id' => $cashAccount->id, 'debit' => 0,   'credit' => 150],
+        ]);
+    });
+
+    // Reverse it
+    $accountingSvc->reverseEntry($entry->id, 'Returned');
+
+    // Fetch party statement via controller logic simulation or HTTP endpoint
+    $response = $this->get("/s/{$tenant->slug}/reports/party-statement?party_id={$party->id}");
+    $response->assertOk();
+
+    $props = $response->viewData('page')['props'];
+    
+    // Both opening and closing balances should remain 0, and the transactions list should be empty
+    expect((float) $props['openingBalance'])->toBe(0.0);
+    expect((float) $props['closingBalance'])->toBe(0.0);
+    expect($props['transactions'])->toBeEmpty();
+});
+
+test('strictly isolates tenant data in v3 reports and exports', function () {
+    $tenantA = $this->createTenant();
+    $tenantB = $this->createTenant();
+
+    // Create data in Tenant B
+    $partyB = \App\Models\Party::factory()->create(['tenant_id' => $tenantB->id, 'type' => 'customer', 'name' => 'Foreign Client']);
+
+    // Act as Tenant A
+    $this->actingAsOwner($tenantA);
+    $this->seedTenantDefaults($tenantA);
+
+    // Attempt to access party statement of Tenant B's customer under Tenant A's route
+    $response = $this->get("/s/{$tenantA->slug}/reports/party-statement?party_id={$partyB->id}");
+    $response->assertOk();
+
+    // Verify B's customer and its transactions are completely invisible to A
+    $props = $response->viewData('page')['props'];
+    expect($props['party'])->toBeNull();
+    expect($props['transactions'])->toBeEmpty();
+});
+
+test('prevents DivisionByZeroError on zero or fractional stock quantities in valuation reports', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $warehouse = \App\Models\Warehouse::create(['tenant_id' => $tenant->id, 'name' => 'Zero Val Store', 'code' => 'ZVS-1']);
+    $product = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 100]);
+
+    // Seed an inventory batch with extremely tiny fractional remaining quantity (simulating rounding errors)
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenant->id,
+        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 50.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 0.0001, // extremely small quantity that fits in decimal(12,4)
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Request valuation report
+    $response = $this->getJson("/s/{$tenant->slug}/v3/reports/inventory-valuation");
+    
+    // Should load successfully without dividing by zero or throwing float precision crashes
+    $response->assertOk();
+    
+    $data = $response->json();
+    expect($data['rows'])->not->toBeEmpty();
+});
+
 

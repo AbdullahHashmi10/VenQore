@@ -442,6 +442,7 @@ class ReportController extends Controller
                     ->where('journal_items.account_id', $accountId)
                     ->where('journal_entries.party_id', $partyId)
                     ->where('journal_entries.date', '<', $startDate)
+                    ->where('journal_entries.is_reversed', 0)
                     ->sum('journal_items.debit');
                 $openingCredits = (float) DB::table('journal_items')
                     ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
@@ -449,6 +450,7 @@ class ReportController extends Controller
                     ->where('journal_items.account_id', $accountId)
                     ->where('journal_entries.party_id', $partyId)
                     ->where('journal_entries.date', '<', $startDate)
+                    ->where('journal_entries.is_reversed', 0)
                     ->sum('journal_items.credit');
                 $openingBalance = $openingDebits - $openingCredits;
 
@@ -459,6 +461,7 @@ class ReportController extends Controller
                     ->where('journal_items.account_id', $accountId)
                     ->where('journal_entries.party_id', $partyId)
                     ->whereBetween('journal_entries.date', [$startDate, $endDate])
+                    ->where('journal_entries.is_reversed', 0)
                     ->select(
                         'journal_entries.date',
                         'journal_entries.reference as ref',

@@ -213,11 +213,13 @@ class FinancialReportingService
             ->leftJoin(
                 DB::raw("(SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
                           FROM sale_item_batches
+                          WHERE tenant_id = '{$tenantId}'
+                          AND is_reversed = 0
                           GROUP BY sale_item_id) as sib"),
                 'sib.sale_item_id', '=', 'sale_items.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'returned'])
+            ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'products.id as product_id',
@@ -270,13 +272,17 @@ class FinancialReportingService
                                               si.cost_price * (si.quantity + COALESCE(si.free_quantity,0)))) as total_cogs
                           FROM sale_items si
                           LEFT JOIN (SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
-                                     FROM sale_item_batches GROUP BY sale_item_id) sib_agg
+                                     FROM sale_item_batches 
+                                     WHERE tenant_id = '{$tenantId}'
+                                     AND is_reversed = 0
+                                     GROUP BY sale_item_id) sib_agg
                                ON sib_agg.sale_item_id = si.id
+                          WHERE si.tenant_id = '{$tenantId}'
                           GROUP BY si.sale_id) as line_totals"),
                 'line_totals.sale_id', '=', 'sales.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'returned'])
+            ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'sales.id',
@@ -324,11 +330,13 @@ class FinancialReportingService
             ->leftJoin(
                 DB::raw("(SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
                           FROM sale_item_batches
+                          WHERE tenant_id = '{$tenantId}'
+                          AND is_reversed = 0
                           GROUP BY sale_item_id) as sib"),
                 'sib.sale_item_id', '=', 'sale_items.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'returned'])
+            ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'categories.id as category_id',
@@ -374,13 +382,17 @@ class FinancialReportingService
                                               si.cost_price * (si.quantity + COALESCE(si.free_quantity,0)))) as total_cogs
                           FROM sale_items si
                           LEFT JOIN (SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
-                                     FROM sale_item_batches GROUP BY sale_item_id) sib_agg
+                                     FROM sale_item_batches 
+                                     WHERE tenant_id = '{$tenantId}'
+                                     AND is_reversed = 0
+                                     GROUP BY sale_item_id) sib_agg
                                ON sib_agg.sale_item_id = si.id
+                          WHERE si.tenant_id = '{$tenantId}'
                           GROUP BY si.sale_id) as line_totals"),
                 'line_totals.sale_id', '=', 'sales.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'returned'])
+            ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'parties.id as party_id',
@@ -689,6 +701,7 @@ class FinancialReportingService
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
             ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
             ->whereIn('journal_items.account_id', $cashAccounts)
             ->where('journal_items.debit', '>', 0)
             ->whereBetween('journal_entries.date', [$start, $end])
@@ -699,6 +712,7 @@ class FinancialReportingService
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
             ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
             ->whereIn('journal_items.account_id', $cashAccounts)
             ->where('journal_items.credit', '>', 0)
             ->whereBetween('journal_entries.date', [$start, $end])
@@ -818,6 +832,7 @@ class FinancialReportingService
             ->where('journal_items.tenant_id', $tenantId)
             ->where('journal_items.account_id', $accountId)
             ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
             ->whereBetween('journal_entries.date', [$start, $end])
             ->sum("journal_items.{$column}");
     }

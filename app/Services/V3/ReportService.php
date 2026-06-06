@@ -811,7 +811,11 @@ class ReportService
 
         // Opening balance: everything before $from
         $openingBalance = (float) DB::table('journal_items as ji')
-            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->where('ji.tenant_id', $tid)
+            ->join('journal_entries as je', function($join) use ($tid) {
+                $join->on('ji.journal_entry_id', '=', 'je.id')
+                     ->where('je.tenant_id', $tid);
+            })
             ->where('ji.party_id', $partyId)
             ->where('je.is_reversed', 0)
             ->where('je.date', '<', $from->toDateString())
@@ -941,7 +945,11 @@ class ReportService
         if (!$account) return 0.0;
 
         $result = DB::table('journal_items as ji')
-            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->where('ji.tenant_id', $this->tenantId)
+            ->join('journal_entries as je', function($join) {
+                $join->on('ji.journal_entry_id', '=', 'je.id')
+                     ->where('je.tenant_id', $this->tenantId);
+            })
             ->where('ji.account_id', $account->id)
             ->where('je.is_reversed', 0)
             ->whereDate('je.date', '>=', $from->toDateString())
