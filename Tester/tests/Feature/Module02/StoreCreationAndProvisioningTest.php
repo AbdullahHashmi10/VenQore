@@ -407,7 +407,7 @@ test('woocommerce webhook isolation regression', function () {
     );
     $request->headers->set('x-wc-webhook-signature', $signature);
 
-    $controller->webhook($request);
+    $controller->webhook($request, $connection->uuid);
 });
 
 test('woocommerce webhook requires a valid signature', function () {
@@ -433,18 +433,18 @@ test('woocommerce webhook requires a valid signature', function () {
     $body = json_encode($payload);
 
     // Request with missing signature -> 401 Unauthorized
-    $response = $this->postJson('/woocommerce/webhook', $payload);
+    $response = $this->postJson("/woocommerce/webhook/{$connection->uuid}", $payload);
     $response->assertStatus(401);
 
     // Request with invalid signature -> 401 Unauthorized
-    $response = $this->postJson('/woocommerce/webhook', $payload, [
+    $response = $this->postJson("/woocommerce/webhook/{$connection->uuid}", $payload, [
         'x-wc-webhook-signature' => 'invalid-hmac-signature-here'
     ]);
     $response->assertStatus(401);
 
     // Request with valid signature (HMAC-SHA256 of payload signed with secret)
     $validSignature = base64_encode(hash_hmac('sha256', $body, 'my-super-secret-key', true));
-    $response = $this->postJson('/woocommerce/webhook', $payload, [
+    $response = $this->postJson("/woocommerce/webhook/{$connection->uuid}", $payload, [
         'x-wc-webhook-signature' => $validSignature
     ]);
 

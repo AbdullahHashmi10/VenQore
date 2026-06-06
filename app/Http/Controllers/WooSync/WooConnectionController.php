@@ -38,7 +38,7 @@ class WooConnectionController extends Controller
     public function indexRedirect(Request $request)
     {
         return redirect()->route('store.woo.connections.index', [
-            'store_slug' => $this->storeSlug($store_slug)
+            'store_slug' => $this->storeSlug()
         ]);
     }
 
@@ -57,7 +57,7 @@ class WooConnectionController extends Controller
 
         return Inertia::render('WooCommerce/Connections', [
             'connections' => $connections,
-            'store_slug'  => $this->storeSlug($store_slug),
+            'store_slug'  => $this->storeSlug(),
         ]);
     }
 
@@ -67,7 +67,7 @@ class WooConnectionController extends Controller
     public function store(Request $request)
     {
         $tenantId = $this->tenantId();
-        $slug     = $this->storeSlug($store_slug);
+        $slug     = $this->storeSlug();
 
         $validated = $request->validate([
             'name'            => 'required|string|max:100',
@@ -109,8 +109,8 @@ class WooConnectionController extends Controller
             'plain_token'         => $plainToken,
             'setup_token'         => $conn->setup_token,
             'webhook_url'         => $conn->webhookUrl(),
-            'store_slug'          => $this->storeSlug($store_slug),
-            'plugin_download_url' => route('store.woo.plugin.download', ['store_slug' => $this->storeSlug($store_slug), 'connection' => $conn->id]),
+            'store_slug'          => $this->storeSlug(),
+            'plugin_download_url' => route('store.woo.plugin.download', ['store_slug' => $this->storeSlug(), 'connection' => $conn->id]),
         ]);
     }
 
@@ -174,7 +174,7 @@ class WooConnectionController extends Controller
             'stats'        => $stats,
             'filter'       => $filter,
             'search'       => $search,
-            'store_slug'   => $this->storeSlug($store_slug),
+            'store_slug'   => $this->storeSlug(),
         ]);
     }
 
@@ -184,7 +184,7 @@ class WooConnectionController extends Controller
     public function destroy(Request $request, $connection)
     {
         $tenantId = $this->tenantId();
-        $slug     = $this->storeSlug($store_slug);
+        $slug     = $this->storeSlug();
         $conn     = WooConnection::where('tenant_id', $tenantId)->findOrFail($connection);
 
         try {
