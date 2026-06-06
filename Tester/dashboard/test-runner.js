@@ -200,6 +200,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/ExampleTest.php',
     'Tester/tests/Feature/TerminalAppIntegrationTest.php',
     'Tester/tests/Feature/LegacyAdminPasscodeTest.php',
+    'Tester/tests/Feature/RegressionFixesTest.php',
     'Tester/tests/Unit'
   ];
 
@@ -264,6 +265,7 @@ function runTests(projectPath, ws) {
     'update user modifies membership and hashes pos pin',
     'store user validates passcode uniqueness within same store',
     'ModalValidationRegressionTest',
+    'RegressionFixesTest',
     'ExampleTest',
     'Unit'
   ];
