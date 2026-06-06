@@ -37,35 +37,48 @@ class AttendanceController extends Controller
                  // Should be caught by middleware, but just in case
                  return response()->json(['success' => false, 'message' => 'User not found'], 401);
             }
-            $today = Carbon::today();
 
-            // Check if already checked in
-            $existing = StaffAttendance::where('user_id', $user->id)
-                ->whereDate('created_at', $today)
-                ->whereNull('check_out')
-                ->first();
-
-            if ($existing) {
-                // Just update last active if already checked in
-                $existing->update(['last_active_at' => now()]);
+            $lock = \Illuminate\Support\Facades\Cache::lock("user_{$user->id}_checkin_lock", 10);
+            if (!$lock->get()) {
                 return response()->json([
-                    'success' => true,
-                    'attendance' => $existing
-                ]);
+                    'success' => false,
+                    'message' => 'Check-in is currently processing. Please try again.'
+                ], 422);
             }
 
-            $attendance = StaffAttendance::create([
-                'user_id' => $user->id,
-                'check_in' => now(),
-                'last_active_at' => now(),
-                'status' => 'present',
-            ]);
+            try {
+                $today = Carbon::today();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Checked in successfully',
-                'attendance' => $attendance
-            ]);
+                // Check if already checked in
+                $existing = StaffAttendance::where('user_id', $user->id)
+                    ->whereDate('created_at', $today)
+                    ->whereNull('check_out')
+                    ->first();
+
+                if ($existing) {
+                    // Just update last active if already checked in
+                    $existing->update(['last_active_at' => now()]);
+                    return response()->json([
+                        'success' => true,
+                        'attendance' => $existing
+                    ]);
+                }
+
+                $attendance = StaffAttendance::create([
+                    'user_id' => $user->id,
+                    'check_in' => now(),
+                    'last_active_at' => now(),
+                    'status' => 'present',
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Checked in successfully',
+                    'attendance' => $attendance
+                ]);
+            } finally {
+                $lock->release();
+            }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error('Check-in failed: ' . $e->getMessage());
             return response()->json([

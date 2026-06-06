@@ -288,6 +288,8 @@ class StaffInvitationController extends Controller
             ]);
         }
 
+        $this->verifyAcceptanceTenant($invitation, $request);
+
         $tenant = $invitation->tenant;
 
         return Inertia::render('Invite/Accept', [
@@ -317,6 +319,11 @@ class StaffInvitationController extends Controller
 
         if (!$invitation || !$invitation->isValid()) {
             return response()->json(['valid' => false, 'message' => 'Invalid or expired invite code.'], 422);
+        }
+
+        $tenantCheck = $this->verifyAcceptanceTenantJson($invitation, $request);
+        if ($tenantCheck) {
+            return $tenantCheck;
         }
 
         // Email match check: if logged in, enforce it
@@ -353,6 +360,8 @@ class StaffInvitationController extends Controller
         if (!$invitation || !$invitation->isValid()) {
             return back()->with('error', 'This invitation link is invalid or has expired.');
         }
+
+        $this->verifyAcceptanceTenant($invitation, $request);
 
         $user = Auth::user();
         if (!$user) {
@@ -397,6 +406,7 @@ class StaffInvitationController extends Controller
         $invitation = StaffInvitation::where('token', $request->token)->first();
 
         if ($invitation && $invitation->isValid()) {
+            $this->verifyAcceptanceTenant($invitation, $request);
             $invitation->update(['status' => 'declined']);
         }
 
@@ -404,6 +414,37 @@ class StaffInvitationController extends Controller
     }
 
     // ─── Private ─────────────────────────────────────────────────────
+
+    private function verifyAcceptanceTenant(StaffInvitation $invitation, Request $request): void
+    {
+        if (app()->bound('current.tenant') && $invitation->tenant_id !== app('current.tenant')->id) {
+            abort(403, 'This invitation does not belong to the current store.');
+        }
+
+        $routeStoreSlug = $request->route('store_slug') ?? $request->input('store_slug') ?? $request->query('store_slug');
+        if ($routeStoreSlug) {
+            $routeTenant = \App\Models\Tenant::where('slug', $routeStoreSlug)->first();
+            if ($routeTenant && $invitation->tenant_id !== $routeTenant->id) {
+                abort(403, 'This invitation does not belong to the requested store.');
+            }
+        }
+    }
+
+    private function verifyAcceptanceTenantJson(StaffInvitation $invitation, Request $request): ?\Illuminate\Http\JsonResponse
+    {
+        if (app()->bound('current.tenant') && $invitation->tenant_id !== app('current.tenant')->id) {
+            return response()->json(['valid' => false, 'message' => 'This invite code does not belong to this store.'], 403);
+        }
+
+        $routeStoreSlug = $request->route('store_slug') ?? $request->input('store_slug') ?? $request->query('store_slug');
+        if ($routeStoreSlug) {
+            $routeTenant = \App\Models\Tenant::where('slug', $routeStoreSlug)->first();
+            if ($routeTenant && $invitation->tenant_id !== $routeTenant->id) {
+                return response()->json(['valid' => false, 'message' => 'This invite code does not belong to the requested store.'], 403);
+            }
+        }
+        return null;
+    }
 
     private function authorizeTenant(StaffInvitation $invitation): void
     {
