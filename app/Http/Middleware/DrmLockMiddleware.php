@@ -39,6 +39,27 @@ class DrmLockMiddleware
             ], 403);
         }
 
+        // Clock tampering check
+        if ($license->last_validated_at && now()->lt(Carbon::parse($license->last_validated_at))) {
+            return response()->json([
+                'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
+            ], 403);
+        }
+
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : $license->tenant_id;
+        if ($tenantId) {
+            $maxPostedAt = DB::table('sales')
+                ->where('tenant_id', $tenantId)
+                ->where('status', 'posted')
+                ->max('posted_at');
+            
+            if ($maxPostedAt && now()->lt(Carbon::parse($maxPostedAt))) {
+                return response()->json([
+                    'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
+                ], 403);
+            }
+        }
+
         // Grace period check
         if ($license->last_validated_at) {
             $lastValidated = Carbon::parse($license->last_validated_at);

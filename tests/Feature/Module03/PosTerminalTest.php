@@ -280,3 +280,162 @@ test('barcode generator renders valid barcode svg or png', function () {
     // Must contain at least one bar rectangle
     $this->assertStringContainsString('<rect', $body);
 });
+
+test('throws 400 validation error if barcode generator value is an array to prevent 500 TypeError crash', function () {
+    $response = $this->get('/barcode/generate?value[]=123&value[]=456');
+
+    $response->assertStatus(400);
+    $response->assertJson(['error' => 'Invalid string type for barcode parameter.']);
+});
+
+test('blocks access if client clock is tampered to be before last_validated_at or last_online_at', function () {
+    $licenseKey = 'LIC-CLOCK-TAMPER';
+
+    DB::table('drm_licenses')->insert([
+        'id'                   => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id'            => $this->tenant->id,
+        'license_key'          => $licenseKey,
+        'hardware_fingerprint' => 'HW-CLOCK-1',
+        'last_validated_at'    => \Carbon\Carbon::parse('2026-06-06 12:00:00'),
+        'grace_period_days'    => 30,
+        'is_active'            => 1,
+        'created_at'           => \Carbon\Carbon::parse('2026-06-06 12:00:00'),
+        'updated_at'           => \Carbon\Carbon::parse('2026-06-06 12:00:00'),
+    ]);
+
+    // Set the system clock backward (e.g. to 2026-06-05) - before last_validated_at
+    \Carbon\Carbon::setTestNow('2026-06-05 12:00:00');
+
+    $response = $this->withHeaders([
+        'X-DRM-License-Key'          => $licenseKey,
+        'X-DRM-Hardware-Fingerprint' => 'HW-CLOCK-1',
+    ])->getJson('/api/drm/protected');
+
+    $response->assertStatus(403);
+    $response->assertJsonFragment([
+        'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
+    ]);
+
+    \Carbon\Carbon::setTestNow(); // Reset clock
+});
+
+test('blocks access if client clock is set backward to be before latest transaction timestamp in the database', function () {
+    $licenseKey = 'LIC-CLOCK-TAMPER-2';
+
+    DB::table('drm_licenses')->insert([
+        'id'                   => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id'            => $this->tenant->id,
+        'license_key'          => $licenseKey,
+        'hardware_fingerprint' => 'HW-CLOCK-2',
+        'last_validated_at'    => \Carbon\Carbon::parse('2026-06-01 12:00:00'),
+        'grace_period_days'    => 30,
+        'is_active'            => 1,
+        'created_at'           => \Carbon\Carbon::parse('2026-06-01 12:00:00'),
+        'updated_at'           => \Carbon\Carbon::parse('2026-06-01 12:00:00'),
+    ]);
+
+    // Create a transaction on 2026-06-05
+    DB::table('sales')->insert([
+        'id'               => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id'        => $this->tenant->id,
+        'user_id'          => auth()->id(),
+        'reference_number' => 'INV-TEST-001',
+        'warehouse_id'     => $this->warehouseId,
+        'subtotal'         => 100,
+        'invoice_total'    => 100,
+        'payment_status'   => 'paid',
+        'payment_method'   => 'cash',
+        'status'           => 'posted',
+        'posted_at'        => '2026-06-05 12:00:00',
+        'created_at'       => '2026-06-05 12:00:00',
+        'updated_at'       => '2026-06-05 12:00:00',
+    ]);
+
+    // Set the system clock backward to 2026-06-03 (after last_validated_at, but before the latest sale)
+    \Carbon\Carbon::setTestNow('2026-06-03 12:00:00');
+
+    // Clear offline lock cache
+    Cache::forget("tenant_{$this->tenant->id}_last_online_at");
+
+    // Set tenant last_online_at to 2026-06-05
+    DB::table('tenants')->where('id', $this->tenant->id)->update(['last_online_at' => '2026-06-05 12:00:00']);
+
+    $response = $this->get("/s/{$this->tenant->slug}/pos");
+
+    $response->assertStatus(403);
+    $response->assertSee('Clock tampering detected. Please set your system clock to the correct time.');
+
+    \Carbon\Carbon::setTestNow(); // Reset clock
+});
+
+test('applies product default price when quantity is below first price tier minimum quantity', function () {
+    $product = Product::factory()->create([
+        'tenant_id' => $this->tenant->id,
+        'price'     => 100.00,
+    ]);
+
+    // Tier: min = 10, unit_price = 80.00
+    DB::table('product_price_tiers')->insert([
+        'id'          => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id'   => $this->tenant->id,
+        'product_id'  => $product->id,
+        'min_qty'     => 10.00,
+        'max_qty'     => 20.00,
+        'unit_price'  => 80.00,
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ]);
+
+    // Act: Post a sale of 5 units (below min_qty of 10)
+    $customer = Party::factory()->create(['tenant_id' => $this->tenant->id, 'type' => 'customer']);
+
+    $payload = [
+        'customer_id'    => $customer->id,
+        'warehouse_id'   => $this->warehouseId,
+        'payment_method' => 'cash',
+        'amount_paid'    => 500.00,
+        'items'          => [[
+            'product_id' => $product->id,
+            'quantity'   => 5.00,
+            'price'      => 100.00, // Submitted price
+        ]],
+    ];
+
+    $response = $this->postJson("/s/{$this->tenant->slug}/sales", $payload);
+    $response->assertStatus(200);
+
+    // Verify that the sale items record used the product's regular price (100.00)
+    $this->assertDatabaseHas('sale_items', [
+        'product_id' => $product->id,
+        'unit_price' => 100.00,
+        'net_amount' => 500.00,
+    ]);
+});
+
+test('applies wholesale price when settings allow and meets wholesale customer rule', function () {
+    // Create a wholesale product
+    $product = Product::factory()->create([
+        'tenant_id'              => $this->tenant->id,
+        'price'                  => 100.00,
+        'wholesale_price'        => 70.00,
+        'wholesale_min_quantity' => 5,
+    ]);
+
+    Setting::updateOrCreate(
+        ['tenant_id' => $this->tenant->id, 'key' => 'wholesale_price_enabled'],
+        ['value' => '1']
+    );
+    SettingsHelper::clearCache();
+
+    // Check helper with quantity = 1 (wholesale customer)
+    $priceForWholesale = SettingsHelper::getProductPrice($product, 1, true);
+    $this->assertEquals(70.00, $priceForWholesale);
+
+    // Check helper with quantity = 1 (regular customer) -> retail price
+    $priceForRegular = SettingsHelper::getProductPrice($product, 1, false);
+    $this->assertEquals(100.00, $priceForRegular);
+
+    // Check helper with quantity = 5 (regular customer) -> wholesale price
+    $priceForRegularBulk = SettingsHelper::getProductPrice($product, 5, false);
+    $this->assertEquals(70.00, $priceForRegularBulk);
+});

@@ -35,6 +35,16 @@ class DrmOfflineLockMiddleware
             if ($lastOnlineRaw !== null) {
                 $lastOnline = \Carbon\Carbon::parse($lastOnlineRaw);
 
+                // Clock tampering check: now < last_online
+                if (\Carbon\Carbon::now()->lt($lastOnline)) {
+                    if ($request->expectsJson()) {
+                        return response()->json([
+                            'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
+                        ], 403);
+                    }
+                    abort(403, 'Clock tampering detected. Please set your system clock to the correct time.');
+                }
+
                 if ($lastOnline->diffInDays(now()) > 30) {
                     if ($request->expectsJson()) {
                         return response()->json([
@@ -44,6 +54,21 @@ class DrmOfflineLockMiddleware
 
                     abort(403, 'License offline lock active. Please connect to the internet to reactivate.');
                 }
+            }
+
+            // Also check latest transaction to prevent date inversion clock manipulation
+            $maxPostedAt = \Illuminate\Support\Facades\DB::table('sales')
+                ->where('tenant_id', $tenant->id)
+                ->where('status', 'posted')
+                ->max('posted_at');
+            
+            if ($maxPostedAt && \Carbon\Carbon::now()->lt(\Carbon\Carbon::parse($maxPostedAt))) {
+                if ($request->expectsJson()) {
+                    return response()->json([
+                        'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
+                    ], 403);
+                }
+                abort(403, 'Clock tampering detected. Please set your system clock to the correct time.');
             }
         }
 

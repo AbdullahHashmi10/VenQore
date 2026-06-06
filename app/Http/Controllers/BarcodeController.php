@@ -14,8 +14,12 @@ use Illuminate\Http\Response;
  */
 class BarcodeController extends Controller
 {
-    public function generate(Request $request): Response
+    public function generate(Request $request): \Symfony\Component\HttpFoundation\Response
     {
+        if (is_array($request->input('value'))) {
+            return response()->json(['error' => 'Invalid string type for barcode parameter.'], 400);
+        }
+
         $value = $request->input('value', '');
 
         if (empty($value)) {

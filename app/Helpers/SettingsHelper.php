@@ -367,6 +367,22 @@ class SettingsHelper
      */
     public static function getProductPrice($product, int $quantity = 1, bool $isWholesaleCustomer = false): float
     {
+        // Check database-driven price tiers first
+        if (app()->bound('current.tenant') && isset($product->id)) {
+            $tiers = \Illuminate\Support\Facades\DB::table('product_price_tiers')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->where('product_id', $product->id)
+                ->orderBy('min_qty', 'asc')
+                ->get();
+            
+            foreach ($tiers as $tier) {
+                $maxQty = $tier->max_qty !== null ? (float) $tier->max_qty : PHP_FLOAT_MAX;
+                if ($quantity >= (float) $tier->min_qty && $quantity <= $maxQty) {
+                    return (float) $tier->unit_price;
+                }
+            }
+        }
+
         // If wholesale pricing is enabled and conditions are met
         if (self::isWholesalePricingEnabled()) {
             $wholesalePrice = $product->wholesale_price ?? null;

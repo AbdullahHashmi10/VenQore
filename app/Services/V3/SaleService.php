@@ -472,6 +472,10 @@ class SaleService
         foreach ($tiers as $tier) {
             if ($remaining <= 0.0001) break;
 
+            if ($totalQty < (float) $tier->min_qty) {
+                continue;
+            }
+
             $tierMax = $tier->max_qty !== null ? (float) $tier->max_qty : PHP_FLOAT_MAX;
 
             // How much of the TOTAL qty falls within this tier's range
