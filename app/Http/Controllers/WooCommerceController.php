@@ -36,27 +36,32 @@ class WooCommerceController extends Controller
         ]);
     }
 
-    public function webhook(Request $request)
+    public function webhook(Request $request, string $uuid)
     {
-        // Verify HMAC-SHA256 signature and resolve tenant container binding
+        // Find the active connection matching this UUID
+        $connection = \App\Models\WooConnection::where('uuid', $uuid)
+            ->where('status', 'active')
+            ->first();
+
+        if (!$connection) {
+            Log::warning('WooCommerce webhook received for unknown/inactive connection', ['uuid' => $uuid]);
+            return response()->json(['error' => 'Connection not found.'], 404);
+        }
+
+        // Verify HMAC-SHA256 signature
         $signature = $request->header('x-wc-webhook-signature');
         if (!$signature) {
             return response()->json(['error' => 'Missing webhook signature.'], 401);
         }
 
         $body = $request->getContent();
-        
-        // Find the active connection matching this signature
-        $connection = \App\Models\WooConnection::get()->first(function ($conn) use ($body, $signature) {
-            $secret = $conn->webhook_secret;
-            if (!$secret) return false;
+        $secret = $connection->webhook_secret;
+        if ($secret) {
             $computed = base64_encode(hash_hmac('sha256', $body, $secret, true));
-            return hash_equals($computed, $signature);
-        });
-
-        if (!$connection) {
-            Log::warning('WooCommerce webhook signature mismatch or no matching connection');
-            return response()->json(['error' => 'Invalid webhook signature.'], 401);
+            if (!hash_equals($computed, $signature)) {
+                Log::warning('WooCommerce webhook signature mismatch', ['connection_id' => $connection->id]);
+                return response()->json(['error' => 'Invalid webhook signature.'], 401);
+            }
         }
 
         // Bind the resolved tenant to the DI container

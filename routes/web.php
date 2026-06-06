@@ -1412,7 +1412,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     });
 });
 
-Route::post('/woocommerce/webhook', [\App\Http\Controllers\WooCommerceController::class, 'webhook']);
+Route::post('/woocommerce/webhook/{uuid}', [\App\Http\Controllers\WooCommerceController::class, 'webhook']);
 
 // ── Phase 4.3 & 4.4: Billing + Plan Usage ─────────────────────────────────
 // MIGRATED: Added to tenant specific block above to prevent 403 context loss.

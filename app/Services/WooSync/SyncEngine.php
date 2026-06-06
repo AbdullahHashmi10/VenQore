@@ -32,6 +32,15 @@ class SyncEngine
         $this->connection = $connection;
         $this->mapper     = new FieldMapper();
         $this->client     = new WooApiClient($connection);
+
+        if ($connection->relationLoaded('tenant') && $connection->tenant) {
+            app()->instance('current.tenant', $connection->tenant);
+        } else {
+            $tenant = $connection->tenant;
+            if ($tenant) {
+                app()->instance('current.tenant', $tenant);
+            }
+        }
     }
 
     // ─── Initial Import ───────────────────────────────────────────────────────
@@ -354,23 +363,40 @@ class SyncEngine
             }
         } else {
             // Create a new VenQore product from WooCommerce data
-            $venqoreData['tenant_id'] = $this->connection->tenant_id;
-            $venqoreData['sku']       = $sku;
-            $venqoreData['name']      = $venqoreData['name'] ?? $payload['name'] ?? 'Imported from WooCommerce';
+            // First check if a product with this SKU already exists in VenQore to prevent database unique constraints crash
+            $product = Product::where('sku', $sku)->first();
 
-            $product = Product::create($venqoreData);
+            if ($product) {
+                // Link to the existing product instead of creating a duplicate
+                $link = $this->createLink($product, $payload['id'], $sku, 'synced');
+                
+                WooSyncLog::record(
+                    $this->connection->id,
+                    'product_linked_from_woo',
+                    'from_woo',
+                    null,
+                    $venqoreData,
+                    $link->id
+                );
+            } else {
+                $venqoreData['tenant_id'] = $this->connection->tenant_id;
+                $venqoreData['sku']       = $sku;
+                $venqoreData['name']      = $venqoreData['name'] ?? $payload['name'] ?? 'Imported from WooCommerce';
 
-            // Create the link
-            $link = $this->createLink($product, $payload['id'], $sku, 'synced');
+                $product = Product::create($venqoreData);
 
-            WooSyncLog::record(
-                $this->connection->id,
-                'product_created_from_woo',
-                'from_woo',
-                null,
-                $venqoreData,
-                $link->id
-            );
+                // Create the link
+                $link = $this->createLink($product, $payload['id'], $sku, 'synced');
+
+                WooSyncLog::record(
+                    $this->connection->id,
+                    'product_created_from_woo',
+                    'from_woo',
+                    null,
+                    $venqoreData,
+                    $link->id
+                );
+            }
 
             return true;
         }
