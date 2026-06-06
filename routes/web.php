@@ -1556,7 +1556,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->name('reports.export');
 
     // Dashboard
-    Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index']);
+    Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index'])->name('dashboard');
 });
 
 require __DIR__ . '/auth.php';

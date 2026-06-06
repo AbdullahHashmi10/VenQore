@@ -78,3 +78,165 @@ test('todays_revenue_widget_returns_net_sales_not_gross', function () {
     $this->assertEquals(500.0, (float) $revenue, 'revenue_mtd must equal sum of income credits (200+300=500), driven by journal, not gross column');
 });
 
+test('attributes revenue and COGS to posted_at date range instead of created_at date range', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $product = \App\Models\Product::factory()->create([
+        'tenant_id' => $tenant->id,
+        'min_stock_alert' => 5,
+    ]);
+
+    // Create a sale created in May but posted in June
+    $sale = \App\Models\Sale::create([
+        'tenant_id' => $tenant->id,
+        'user_id' => auth()->id(),
+        'status' => 'posted',
+        'net_sales' => 1200.0,
+        'invoice_total' => 1200.0,
+        'created_at' => '2026-05-31 23:59:00',
+        'posted_at' => '2026-06-01 00:01:00',
+    ]);
+
+    // Hitting dashboard for June should see 1200 sales
+    \Carbon\Carbon::setTestNow('2026-06-02 12:00:00');
+
+    $response = $this->getJson("/s/{$tenant->slug}/dashboard");
+    $response->assertOk();
+
+    $props = $response->original->getData()['page']['props'];
+    expect((float)$props['performance']['Month']['sales'])->toBe(1200.0);
+
+    // Now set test now to May 2026: the sale posted in June should not count
+    \Carbon\Carbon::setTestNow(); // Reset temporarily to allow tenant creation at current time
+    
+    $tenant2 = $this->createTenant();
+    $this->actingAsOwner($tenant2);
+    $this->seedTenantDefaults($tenant2);
+
+    \Carbon\Carbon::setTestNow('2026-05-31 20:00:00');
+    $response = $this->getJson("/s/{$tenant2->slug}/dashboard");
+    $response->assertOk();
+    $props = $response->original->getData()['page']['props'];
+    expect((float)$props['performance']['Month']['sales'])->toBe(0.0);
+
+    \Carbon\Carbon::setTestNow(); // Reset
+});
+
+test('computes dashboard net profit and P&L summary using accrual journal entry credits/debits, not cash movement', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $incomeAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('type', 'income')->first();
+    $receivablesAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '1200')->first();
+
+    $accountingSvc = app(\App\Services\V3\AccountingService::class);
+
+    // Create a credit sale: Debit Receivables (1200) Rs 1000, Credit Income (4000) Rs 1000
+    // No cash/bank accounts involved. Cash movement = 0.
+    $accountingSvc->createEntry([
+        'date'           => now()->format('Y-m-d'),
+        'reference_type' => 'sale',
+        'reference'      => 'TEST-CREDIT-001',
+        'description'    => 'Credit sale 1000',
+        'created_by'     => auth()->id(),
+    ], [
+        ['account_id' => $receivablesAccount->id, 'debit' => 1000, 'credit' => 0],
+        ['account_id' => $incomeAccount->id,      'debit' => 0,    'credit' => 1000],
+    ]);
+
+    $response = $this->getJson("/s/{$tenant->slug}/dashboard");
+    $response->assertOk();
+
+    $props = $response->original->getData()['page']['props'];
+    // Under correct Accrual P&L logic, netProfit.Month.value = 1000.
+    expect((float) $props['netProfit']['Month']['value'])->toBe(1000.0);
+    expect((float) $props['plSummary']['Month']['income'])->toBe(1000.0);
+});
+
+test('scopes all cashier dashboard widgets and session stats strictly to the current tenant', function () {
+    $tenantA = $this->createTenant();
+    $tenantB = $this->createTenant();
+
+    // Create cashier membership on Tenant A
+    $user = \App\Models\User::factory()->create();
+    $membership = \App\Models\TenantUser::create([
+        'user_id' => $user->id,
+        'tenant_id' => $tenantA->id,
+        'role' => 'cashier',
+        'status' => 'active',
+        'display_name' => $user->name,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($user);
+    app()->instance('current.membership', $membership);
+    app()->instance('current.tenant', $tenantA);
+
+    // Seed sale on Tenant A
+    \App\Models\Sale::create([
+        'tenant_id' => $tenantA->id,
+        'user_id' => $user->id,
+        'status' => 'posted',
+        'net_sales' => 500.0,
+        'invoice_total' => 500.0,
+        'created_at' => now(),
+        'posted_at' => now(),
+    ]);
+
+    // Seed sale on Tenant B (should be isolated)
+    \App\Models\Sale::create([
+        'tenant_id' => $tenantB->id,
+        'user_id' => $user->id,
+        'status' => 'posted',
+        'net_sales' => 1000.0,
+        'invoice_total' => 1000.0,
+        'created_at' => now(),
+        'posted_at' => now(),
+    ]);
+
+    $response = $this->getJson("/s/{$tenantA->slug}/dashboard");
+    $response->assertOk();
+
+    $props = $response->original->getData()['page']['props'];
+    expect((float)$props['session']['session_total'])->toBe(500.0);
+    expect((int)$props['session']['transaction_count'])->toBe(1);
+});
+
+test('handles zero activity onboarding state without throwing unhandled exceptions', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    $response = $this->getJson("/s/{$tenant->slug}/dashboard");
+    $response->assertOk();
+
+    $props = $response->original->getData()['page']['props'];
+    expect((float)$props['performance']['Today']['sales'])->toBe(0.0);
+    expect((float)$props['outstanding']['Today']['receivables'])->toBe(0.0);
+    expect((float)$props['netProfit']['Today']['value'])->toBe(0.0);
+    expect($props['recentTransactions'])->toBeEmpty();
+    expect($props['cashData'])->toBeNull();
+});
+
+test('restricts V3 dashboard endpoint to users without financial permissions', function () {
+    $tenant = $this->createTenant();
+    $cashierUser = \App\Models\User::factory()->create();
+    \App\Models\TenantUser::create([
+        'user_id' => $cashierUser->id,
+        'tenant_id' => $tenant->id,
+        'role' => 'cashier', // cashier has no finance or reports permission
+        'status' => 'active',
+        'display_name' => $cashierUser->name,
+        'joined_at' => now(),
+    ]);
+
+    $this->actingAs($cashierUser);
+    app()->instance('current.tenant', $tenant);
+
+    $response = $this->getJson("/s/{$tenant->slug}/v3/dashboard");
+    $response->assertStatus(403);
+});
+
+

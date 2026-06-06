@@ -49,17 +49,18 @@ class DashboardController extends Controller
 
     private function cashierDashboard($user, $membership)
     {
-        $storeId = $membership?->tenant_id;
+        $storeId = $membership?->tenant_id ?? app('current.tenant')?->id;
+        abort_unless($storeId, 403, 'Tenant context not resolved.');
 
         // Session totals for today (sales created by this user today)
         $session = [
             'transaction_count' => \App\Models\Sale::where('status', 'posted')
-                ->whereDate('created_at', today())
-                ->when($storeId, fn($q) => $q->where('tenant_id', $storeId))
+                ->where('tenant_id', $storeId)
+                ->whereDate('posted_at', today())
                 ->count(),
             'session_total' => \App\Models\Sale::where('status', 'posted')
-                ->whereDate('created_at', today())
-                ->when($storeId, fn($q) => $q->where('tenant_id', $storeId))
+                ->where('tenant_id', $storeId)
+                ->whereDate('posted_at', today())
                 ->sum('net_sales'),
         ];
 
@@ -571,7 +572,7 @@ class DashboardController extends Controller
         $tenantId = app('current.tenant')->id;
         $query = Sale::where('status', 'posted');
         if ($start && $end) {
-            $query->whereBetween('created_at', [$start, $end]);
+            $query->whereBetween('posted_at', [$start, $end]);
         }
 
         $netSalesTotal = $query->sum('net_sales');
@@ -582,14 +583,14 @@ class DashboardController extends Controller
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
-            ->when($start && $end, fn($q) => $q->whereBetween('sales.created_at', [$start, $end]))
+            ->when($start && $end, fn($q) => $q->whereBetween('sales.posted_at', [$start, $end]))
             ->sum('sale_item_batches.total_cogs');
 
         $staticCogs = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
-            ->when($start && $end, fn($q) => $q->whereBetween('sales.created_at', [$start, $end]))
+            ->when($start && $end, fn($q) => $q->whereBetween('sales.posted_at', [$start, $end]))
             ->whereNotIn('sale_items.id', function ($q) use ($tenantId) {
                 $q->select('sale_item_id')
                     ->from('sale_item_batches')
@@ -663,11 +664,11 @@ class DashboardController extends Controller
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : $end;
 
         $reportSvc = app(\App\Services\V3\ReportService::class);
-        $movement = $reportSvc->getCashMovement(Carbon::parse($startStr), Carbon::parse($endStr));
+        $pl = $reportSvc->profitAndLoss(Carbon::parse($startStr), Carbon::parse($endStr));
 
-        $income  = $movement['cash_in'];
-        $expense = $movement['cash_out'];
-        $profit  = $movement['net'];
+        $income  = (float) $pl['total_revenue'];
+        $expense = (float) ($pl['total_cogs'] + $pl['total_expenses']);
+        $profit  = (float) $pl['net_profit'];
 
         return [
             'value'   => $profit,
@@ -681,13 +682,20 @@ class DashboardController extends Controller
     private function getPLSummary($start, $end)
     {
         $reportSvc = app(\App\Services\V3\ReportService::class);
-        $movement = $reportSvc->getCashMovement($start, $end);
+        $pl = $reportSvc->profitAndLoss(
+            $start instanceof \Carbon\Carbon ? $start : Carbon::parse($start),
+            $end instanceof \Carbon\Carbon ? $end : Carbon::parse($end)
+        );
+
+        $income  = (float) $pl['total_revenue'];
+        $expense = (float) ($pl['total_cogs'] + $pl['total_expenses']);
+        $profit  = (float) $pl['net_profit'];
 
         return [
-            'income'  => $movement['cash_in'],
-            'expense' => $movement['cash_out'],
-            'profit'  => $movement['net'],
-            'status'  => $movement['net'] >= 0 ? 'good' : 'bad'
+            'income'  => $income,
+            'expense' => $expense,
+            'profit'  => $profit,
+            'status'  => $profit >= 0 ? 'good' : 'bad'
         ];
     }
 
@@ -699,9 +707,9 @@ class DashboardController extends Controller
             // net_sales is the only correct revenue metric.
             // All records (including legacy) are permanently normalised by the backfill migration.
             $sales = Sale::whereIn('status', ['posted', 'returned'])
-                ->whereBetween('created_at', [$start, $end])
+                ->whereBetween('posted_at', [$start, $end])
                 ->select(
-                    DB::raw("DATE_FORMAT(created_at, '$groupByFormat') as period"),
+                    DB::raw("DATE_FORMAT(posted_at, '$groupByFormat') as period"),
                     DB::raw('SUM(net_sales) as total')
                 )
                 ->groupBy('period')
@@ -713,9 +721,9 @@ class DashboardController extends Controller
                 ->join('sale_items', 'sale_item_batches.sale_item_id', '=', 'sale_items.id')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->where('sales.tenant_id', $tenantId)
-                ->whereBetween('sales.created_at', [$start, $end])
+                ->whereBetween('sales.posted_at', [$start, $end])
                 ->select(
-                    DB::raw("DATE_FORMAT(sales.created_at, '$groupByFormat') as period"),
+                    DB::raw("DATE_FORMAT(sales.posted_at, '$groupByFormat') as period"),
                     DB::raw('SUM(sale_item_batches.total_cogs) as cogs')
                 )
                 ->groupBy('period')
@@ -726,7 +734,7 @@ class DashboardController extends Controller
             $staticCogs = DB::table('sale_items')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->where('sales.tenant_id', $tenantId)
-                ->whereBetween('sales.created_at', [$start, $end])
+                ->whereBetween('sales.posted_at', [$start, $end])
                 ->whereNotIn('sale_items.id', function ($q) use ($tenantId) {
                     $q->select('sale_item_id')
                         ->from('sale_item_batches')
@@ -735,7 +743,7 @@ class DashboardController extends Controller
                         ->where('s2.tenant_id', $tenantId);
                 })
                 ->select(
-                    DB::raw("DATE_FORMAT(sales.created_at, '$groupByFormat') as period"),
+                    DB::raw("DATE_FORMAT(sales.posted_at, '$groupByFormat') as period"),
                     DB::raw('SUM(sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) as cogs')
                 )
                 ->groupBy('period')
