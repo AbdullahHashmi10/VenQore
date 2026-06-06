@@ -887,12 +887,20 @@ class AiController extends Controller
         $productId = $request->query('product_id');
         $limit = $request->query('limit', 5);
 
+        $tenantId = app('current.tenant')->id;
+
         $recommendations = DB::table('sale_items as a')
-            ->join('sale_items as b', 'a.sale_id', '=', 'b.sale_id')
-            ->join('products as p', 'b.product_id', '=', 'p.id')
+            ->join('sale_items as b', function($join) use ($tenantId) {
+                $join->on('a.sale_id', '=', 'b.sale_id')
+                     ->where('b.tenant_id', '=', $tenantId);
+            })
+            ->join('products as p', function($join) use ($tenantId) {
+                $join->on('b.product_id', '=', 'p.id')
+                     ->where('p.tenant_id', '=', $tenantId);
+            })
             ->where('a.product_id', $productId)
             ->where('b.product_id', '<>', $productId)
-            ->where('a.tenant_id', app('current.tenant')->id)
+            ->where('a.tenant_id', $tenantId)
             ->select('b.product_id', 'p.name', DB::raw('COUNT(*) as correlation_count'))
             ->groupBy('b.product_id', 'p.name')
             ->orderByDesc('correlation_count')
@@ -935,6 +943,7 @@ class AiController extends Controller
     public function cashFlowForecast(Request $request)
     {
         $daysToProject = (int) $request->query('days', 30);
+        $daysToProject = max(1, min(90, $daysToProject));
         $tenantId = app('current.tenant')->id;
 
         $movements = DB::table('journal_items as ji')
@@ -954,7 +963,8 @@ class AiController extends Controller
             ->join('accounts as a', 'ji.account_id', '=', 'a.id')
             ->where('ji.tenant_id', $tenantId)
             ->whereIn('a.code', ['1000', '1010'])
-            ->sum(DB::raw('ji.debit - ji.credit'));
+            ->sum(DB::raw('ji.debit - ji.credit')) ?? 0.0;
+        $currentCash = (float) $currentCash;
 
         $forecast = [];
         for ($i = 1; $i <= $daysToProject; $i++) {

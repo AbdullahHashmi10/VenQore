@@ -169,7 +169,23 @@ class GrowthEngineController extends Controller
      */
     public function settings()
     {
-        $settings = DB::table('ai_settings')->pluck('value', 'key');
+        $tenantId = app('current.tenant')->id;
+        $dbSettings = DB::table('ai_settings')
+            ->where('tenant_id', $tenantId)
+            ->pluck('value', 'key')
+            ->toArray();
+
+        $defaults = [
+            'regular_customer_min_orders' => '3',
+            'regular_customer_period_days' => '60',
+            'min_order_value_filter' => '5000',
+            'lookahead_days' => '7',
+            'loyalty_points_per_amount' => '100',
+            'loyalty_points_earned_per_unit' => '1',
+            'loyalty_redemption_rate' => '10',
+        ];
+
+        $settings = array_merge($defaults, $dbSettings);
 
         return Inertia::render('GrowthEngine/Settings', [
             'settings' => $settings,
@@ -191,11 +207,32 @@ class GrowthEngineController extends Controller
             'loyalty_redemption_rate' => 'required|integer|min:1',
         ]);
 
+        $tenantId = app('current.tenant')->id;
+
         foreach ($validated as $key => $value) {
-            DB::table('ai_settings')->updateOrInsert(
-                ['key' => $key],
-                ['value' => $value, 'updated_at' => now()]
-            );
+            $exists = DB::table('ai_settings')
+                ->where('tenant_id', $tenantId)
+                ->where('key', $key)
+                ->exists();
+
+            if ($exists) {
+                DB::table('ai_settings')
+                    ->where('tenant_id', $tenantId)
+                    ->where('key', $key)
+                    ->update([
+                        'value' => $value,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::table('ai_settings')->insert([
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'tenant_id' => $tenantId,
+                    'key' => $key,
+                    'value' => $value,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
 
         return back()->with('success', 'AI Settings updated successfully!');
@@ -264,7 +301,11 @@ class GrowthEngineController extends Controller
             );
 
             // Calculate value (default: 10 points = 1 PKR)
-            $rate = DB::table('ai_settings')->where('key', 'loyalty_redemption_rate')->value('value') ?? 10;
+            $tenantId = app('current.tenant')->id;
+            $rate = DB::table('ai_settings')
+                ->where('tenant_id', $tenantId)
+                ->where('key', 'loyalty_redemption_rate')
+                ->value('value') ?? 10;
             $value = $validated['points'] / $rate;
 
             return response()->json([

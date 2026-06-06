@@ -257,6 +257,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
                 Route::post('/sessions/{uuid}/set-status',     [\App\Http\Controllers\AgentChatController::class, 'setStatus'])->name('set-status');
                 Route::post('/sessions/{uuid}/log-learning',   [\App\Http\Controllers\AgentChatController::class, 'logLearning'])->name('log-learning');
                 Route::get('/sessions/{uuid}/assist-suggestion', [\App\Http\Controllers\AgentChatController::class, 'assistSuggestion'])->name('assist-suggestion');
+                Route::post('/sessions/{uuid}/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist'])->name('assist');
                 Route::get('/canned-responses',               [\App\Http\Controllers\AgentChatController::class, 'cannedResponses'])->name('canned-responses');
                 Route::delete('/sessions/{uuid}',             [\App\Http\Controllers\AgentChatController::class, 'destroy'])->name('destroy');
             });

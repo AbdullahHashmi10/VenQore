@@ -25,9 +25,30 @@ class VenaAssistController extends Controller
      */
     public function assist(Request $request, string $slug = null)
     {
-        $uuid = $request->input('session_uuid') ?? $request->input('uuid');
+        $uuid = $request->input('session_uuid') ?? $request->input('uuid') ?? $request->route('uuid') ?? $slug;
         if (!$uuid) {
             return response()->json(['error' => 'session_uuid is required'], 422);
+        }
+
+        // Resolve and bind tenant context if not already bound or if dummy tenant exists (e.g. in test envs)
+        if (!app()->bound('current.tenant') || is_null(app('current.tenant')->id)) {
+            $storeSlug = $request->route('store_slug');
+            $tenant = null;
+            if ($storeSlug) {
+                $tenant = \App\Models\Tenant::where('slug', $storeSlug)->first();
+            }
+            if (!$tenant) {
+                // Try to find the tenant from the session UUID
+                $tempSession = ChatSession::withoutTenantScope()->where('session_uuid', $uuid)->first();
+                if ($tempSession) {
+                    $tenant = \App\Models\Tenant::find($tempSession->tenant_id);
+                }
+            }
+            if ($tenant) {
+                app()->instance('current.tenant', $tenant);
+            } else {
+                return response()->json(['error' => 'Store context not resolved.'], 400);
+            }
         }
 
         $session = ChatSession::where('session_uuid', $uuid)->firstOrFail();

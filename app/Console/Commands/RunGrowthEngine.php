@@ -75,8 +75,19 @@ class RunGrowthEngine extends Command
 
     private function loadSettings(int $tenantId): array
     {
-        // ai_settings are global config — no tenant scope needed here
-        $settings = DB::table('ai_settings')->pluck('value', 'key')->toArray();
+        $settings = DB::table('ai_settings')
+            ->where('tenant_id', $tenantId)
+            ->pluck('value', 'key')
+            ->toArray();
+
+        $defaults = [
+            'regular_customer_min_orders' => '3',
+            'regular_customer_period_days' => '60',
+            'min_order_value_filter' => '5000',
+            'lookahead_days' => '7',
+        ];
+
+        $settings = array_merge($defaults, $settings);
 
         return [
             'min_orders'      => (int) ($settings['regular_customer_min_orders'] ?? 3),

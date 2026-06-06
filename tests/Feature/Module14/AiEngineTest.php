@@ -4,6 +4,7 @@ namespace Tests\Feature\Module14;
 
 use App\Models\Product;
 use App\Models\Account;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Tests\Feature\VenQoreTestCase;
@@ -169,4 +170,131 @@ test('predictive_cash_flow_forecast_is_reasonable', function () {
             ]
         ]
     ]);
+});
+
+test('prevents co-purchase recommendations from leaking across tenants', function () {
+    $tenantA = $this->createTenant();
+    $tenantB = $this->createTenant();
+
+    // Seed same product IDs or names in both stores
+    $productA1 = Product::factory()->create(['tenant_id' => $tenantA->id, 'name' => 'Pizza Crust']);
+    $productA2 = Product::factory()->create(['tenant_id' => $tenantA->id, 'name' => 'Tomato Sauce']);
+
+    $productB1 = Product::factory()->create(['tenant_id' => $tenantB->id, 'name' => 'Pizza Crust']);
+    $productB2 = Product::factory()->create(['tenant_id' => $tenantB->id, 'name' => 'Napkins']);
+
+    $warehouseA = DB::table('warehouses')->where('tenant_id', $tenantA->id)->value('id');
+    $warehouseB = DB::table('warehouses')->where('tenant_id', $tenantB->id)->value('id');
+
+    // Create a sale for Tenant B containing Pizza Crust and Napkins
+    $saleIdB = Str::uuid()->toString();
+    DB::table('sales')->insert([
+        'id' => $saleIdB, 'tenant_id' => $tenantB->id, 'reference_number' => 'INV-TB-1',
+        'warehouse_id' => $warehouseB, 'subtotal' => 150, 'subtotal_gross' => 150,
+        'total_item_discounts' => 0, 'net_sales' => 150, 'total_tax' => 0, 'tax' => 0,
+        'invoice_total' => 150, 'total' => 150, 'status' => 'completed', 'payment_status' => 'paid',
+        'payment_method' => 'cash', 'user_id' => User::factory()->create()->id, 'created_at' => now(), 'posted_at' => now()
+    ]);
+    DB::table('sale_items')->insert([
+        ['id' => Str::uuid(), 'tenant_id' => $tenantB->id, 'sale_id' => $saleIdB, 'product_id' => $productB1->id, 'quantity' => 1, 'unit_price' => 100, 'gross_amount' => 100, 'discount_amount' => 0, 'net_amount' => 100, 'tax_amount' => 0, 'subtotal' => 100, 'line_total' => 100, 'created_at' => now()],
+        ['id' => Str::uuid(), 'tenant_id' => $tenantB->id, 'sale_id' => $saleIdB, 'product_id' => $productB2->id, 'quantity' => 1, 'unit_price' => 50, 'gross_amount' => 50, 'discount_amount' => 0, 'net_amount' => 50, 'tax_amount' => 0, 'subtotal' => 50, 'line_total' => 50, 'created_at' => now()],
+    ]);
+
+    // Query Tenant A co-purchases for Pizza Crust (A1).
+    // Since it is Tenant A, it should return 0 recommendations (Napkins should not leak).
+    $this->actingAsOwner($tenantA);
+    $response = $this->getJson("/s/{$tenantA->slug}/ai/recommendations?product_id={$productA1->id}");
+    
+    $response->assertStatus(200);
+    $response->assertJsonCount(0, 'data');
+});
+
+test('isolates ai settings per tenant', function () {
+    $tenantA = $this->createTenant();
+    $tenantB = $this->createTenant();
+
+    // Configure settings for Tenant A
+    $this->actingAsOwner($tenantA);
+    $responseA = $this->postJson("/s/{$tenantA->slug}/growth-engine/settings", [
+        'regular_customer_min_orders' => 5,
+        'regular_customer_period_days' => 15,
+        'min_order_value_filter' => 1000,
+        'lookahead_days' => 10,
+        'loyalty_points_per_amount' => 100,
+        'loyalty_points_earned_per_unit' => 2,
+        'loyalty_redemption_rate' => 5,
+    ]);
+    $responseA->assertRedirect();
+
+    // Verify Tenant B has original defaults and not Tenant A's settings
+    $this->actingAsOwner($tenantB);
+    $responseB = $this->get("/s/{$tenantB->slug}/growth-engine/settings");
+    $responseB->assertOk();
+    
+    $props = $responseB->original->getData()['page']['props']['settings'];
+    expect((int)$props['regular_customer_min_orders'])->toBe(3); // Default value, not 5
+});
+
+test('clamps days parameter in cash flow forecast to prevent memory overflow', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    $response = $this->getJson("/s/{$tenant->slug}/ai/cash-flow-forecast?days=1000000");
+    $response->assertStatus(200);
+    
+    // The forecast count should be clamped to maximum (90 days) instead of 1 million
+    $data = $response->json('forecast');
+    expect(count($data))->toBeLessThanOrEqual(90);
+});
+
+test('handles onboarding cash flow forecast with empty tables gracefully', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    // No journal items are seeded. Request forecast.
+    $response = $this->getJson("/s/{$tenant->slug}/ai/cash-flow-forecast?days=30");
+    $response->assertStatus(200);
+    $response->assertJsonPath('current_balance', 0);
+    $response->assertJsonPath('avg_daily_net', 0);
+});
+
+test('resolves tenant context for Vena Assist chatbot widget', function () {
+    $tenant = $this->createTenant();
+    $session = \App\Models\ChatSession::create([
+        'tenant_id' => $tenant->id,
+        'session_uuid' => Str::uuid()->toString(),
+        'visitor_name' => 'John Doe',
+        'status' => 'bot_active'
+    ]);
+
+    // Seed a message in the session
+    \App\Models\ChatMessage::create([
+        'session_id' => $session->id,
+        'sender_type' => 'visitor',
+        'body' => 'How can I pay my invoice?'
+    ]);
+
+    // Seed similar verified KB answer
+    \App\Models\VenaKnowledgeBase::create([
+        'category' => 'billing',
+        'question' => 'How do I pay invoices?',
+        'agent_answer' => 'You can pay online via cards.',
+        'times_seen' => 5,
+        'ai_autonomous' => true
+    ]);
+
+    // Mock ChatAIService responses
+    $this->mock(\App\Services\ChatAIService::class, function ($mock) {
+        $mock->shouldReceive('respond')->andReturn(['text' => 'You can pay online via cards.']);
+        $mock->shouldReceive('classifyCategory')->andReturn('billing');
+    });
+
+    // Call public/agent assist co-pilot endpoint with slug
+    $response = $this->postJson("/api/{$tenant->slug}/vena/assist", [
+        'session_uuid' => $session->session_uuid
+    ]);
+
+    $response->assertStatus(200);
+    $response->assertJsonPath('success', true);
+    $response->assertJsonPath('confidence', 'high');
 });
