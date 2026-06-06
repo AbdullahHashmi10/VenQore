@@ -69,6 +69,14 @@ class SetupController extends Controller
             'logo_file' => 'nullable|image|max:5120',
         ]);
 
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : auth()->id();
+        $lockKey = 'setup_complete_lock_' . $tenantId;
+        $lock = \Illuminate\Support\Facades\Cache::lock($lockKey, 10);
+
+        if (!$lock->get()) {
+            return back()->withErrors(['error' => 'Setup is already in progress. Please wait.']);
+        }
+
         try {
             DB::beginTransaction();
 
@@ -212,10 +220,11 @@ class SetupController extends Controller
             // Fallback (Single-tenant or detached context)
             return redirect()->route('dashboard')->with('success', 'Setup completed successfully!');
 
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'Setup failed: ' . $e->getMessage()]);
+        } finally {
+            $lock->release();
         }
     }
 }

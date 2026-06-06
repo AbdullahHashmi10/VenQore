@@ -13,6 +13,7 @@ use App\Models\Account;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Exceptions\PlanLimitException;
+use App\Jobs\WooSync\ProcessWebhookJob;
 
 test('owner can create store successfully', function () {
     $user = User::factory()->create([
@@ -372,16 +373,184 @@ test('woocommerce webhook isolation regression', function () {
     $this->actingAs($user);
     $this->bindTenantContext($tenant, $user);
 
+    // Create WooConnection with a secret
+    $connection = \App\Models\WooConnection::create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Test Isolation Connection',
+        'site_url' => 'https://test-iso.com',
+        'uuid' => 'test-iso-uuid',
+        'status' => 'active',
+        'webhook_secret' => 'iso-secret-key'
+    ]);
+
     // Sending orders to WooCommerce webhook on a plan with woocommerce => false
     // should throw PlanLimitException because woocommerce integration is not allowed.
     $this->expectException(PlanLimitException::class);
 
     // Act
     $controller = app(\App\Http\Controllers\WooCommerceController::class);
-    $request = \Illuminate\Http\Request::create('/woocommerce/webhook', 'POST', [
+    $payload = [
         'id' => 1234,
         'line_items' => []
-    ]);
+    ];
+    $body = json_encode($payload);
+    $signature = base64_encode(hash_hmac('sha256', $body, 'iso-secret-key', true));
+
+    $request = \Illuminate\Http\Request::create(
+        '/woocommerce/webhook', 
+        'POST', 
+        [], 
+        [], 
+        [], 
+        ['CONTENT_TYPE' => 'application/json'], 
+        $body
+    );
+    $request->headers->set('x-wc-webhook-signature', $signature);
 
     $controller->webhook($request);
+});
+
+test('woocommerce webhook requires a valid signature', function () {
+    $tenant = $this->createTenant('woo-webhook-sec', 'growth');
+    
+    // Create a WooConnection with the webhook secret
+    $connection = \App\Models\WooConnection::create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Test Connection',
+        'site_url' => 'https://test.com',
+        'uuid' => 'test-uuid-1',
+        'status' => 'active',
+        'webhook_secret' => 'my-super-secret-key'
+    ]);
+
+    $payload = [
+        'id' => 9999,
+        'line_items' => [
+            ['sku' => 'PROD-123', 'quantity' => 1]
+        ]
+    ];
+
+    $body = json_encode($payload);
+
+    // Request with missing signature -> 401 Unauthorized
+    $response = $this->postJson('/woocommerce/webhook', $payload);
+    $response->assertStatus(401);
+
+    // Request with invalid signature -> 401 Unauthorized
+    $response = $this->postJson('/woocommerce/webhook', $payload, [
+        'x-wc-webhook-signature' => 'invalid-hmac-signature-here'
+    ]);
+    $response->assertStatus(401);
+
+    // Request with valid signature (HMAC-SHA256 of payload signed with secret)
+    $validSignature = base64_encode(hash_hmac('sha256', $body, 'my-super-secret-key', true));
+    $response = $this->postJson('/woocommerce/webhook', $payload, [
+        'x-wc-webhook-signature' => $validSignature
+    ]);
+
+    // Should now pass signature check and proceed
+    $response->assertStatus(200);
+});
+
+test('store creation has double submit prevention via cache lock', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    // Set up available store license
+    $license = StoreLicense::create([
+        'user_id' => $user->id,
+        'type'    => 'subscription',
+        'status'  => 'available',
+        'plan'    => 'starter',
+        'source'  => 'lemon_squeezy',
+    ]);
+
+    // Acquire lock manually to simulate an active concurrent request
+    $lockKey = 'store_create_lock_' . $user->id;
+    $lock = \Illuminate\Support\Facades\Cache::lock($lockKey, 10);
+    $lock->acquire();
+
+    // Send a store creation request while locked
+    $response = $this->post('/new-store', [
+        'name' => 'Concurrent Store Attempt',
+    ]);
+
+    // Should redirect back with validation/concurrency errors
+    $response->assertStatus(302);
+    $response->assertSessionHasErrors(['name']);
+
+    $errors = session('errors')->get('name');
+    $this->assertStringContainsString('creation is already in progress', $errors[0]);
+
+    // Release lock and try again
+    $lock->release();
+    $response = $this->post('/new-store', [
+        'name' => 'Successful Store Attempt',
+    ]);
+    $response->assertRedirect('/hub');
+});
+
+test('onboarding setup completion has double submit lock', function () {
+    $tenant = $this->createTenant('setup-lock-store');
+    $user = $this->createTenantUser($tenant, 'owner');
+    
+    $this->actingAs($user);
+    $this->bindTenantContext($tenant, $user);
+
+    // Acquire lock manually to simulate an active concurrent request
+    $lockKey = 'setup_complete_lock_' . $tenant->id;
+    $lock = \Illuminate\Support\Facades\Cache::lock($lockKey, 10);
+    $lock->acquire();
+
+    // Send setup completion request
+    $response = $this->post($this->storeUrl($tenant, 'setup'), [
+        'business_name' => 'Concurrent Biz',
+        'email' => 'biz@test.com',
+        'phone' => '1234567',
+        'address' => 'Test Address',
+        'currency_symbol' => 'Rs.',
+        'currency_code' => 'PKR',
+        'industry_key' => 'retail',
+    ]);
+
+    // Should redirect back with errors due to active lock
+    $response->assertStatus(302);
+    $response->assertSessionHasErrors(['error']);
+
+    $errors = session('errors')->get('error');
+    $this->assertStringContainsString('Setup is already in progress', $errors[0]);
+
+    // Release lock
+    $lock->release();
+});
+
+test('process webhook job binds tenant context in queue', function () {
+    $tenant = $this->createTenant('woo-job-store');
+    
+    // Create a connection for this tenant
+    $connection = \App\Models\WooConnection::create([
+        'tenant_id' => $tenant->id,
+        'name' => 'Test Woo Connection',
+        'site_url' => 'https://test-woo-site.com',
+        'uuid' => 'test-connection-uuid-123',
+        'status' => 'active'
+    ]);
+
+    // Ensure app('current.tenant') is unbound initially (simulating background worker)
+    if (app()->bound('current.tenant')) {
+        app()->forgetInstance('current.tenant');
+    }
+
+    // Dispatch job
+    $job = new ProcessWebhookJob($connection->id, 'product.created', [
+        'id' => 101,
+        'sku' => 'PROD-SKU-1',
+        'name' => 'Background Product'
+    ]);
+    
+    $job->handle();
+
+    // Assert that the job successfully bound the tenant to the DI container during execution
+    $this->assertTrue(app()->bound('current.tenant'));
+    $this->assertEquals($tenant->id, app('current.tenant')->id);
 });

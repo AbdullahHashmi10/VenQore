@@ -38,12 +38,32 @@ class WooCommerceController extends Controller
 
     public function webhook(Request $request)
     {
-        // ── Phase 4.3: WooCommerce Feature Gate (API webhook) ───────────────
-        if (app()->bound('current.tenant')) {
-            PlanGate::enforce('woocommerce');
+        // Verify HMAC-SHA256 signature and resolve tenant container binding
+        $signature = $request->header('x-wc-webhook-signature');
+        if (!$signature) {
+            return response()->json(['error' => 'Missing webhook signature.'], 401);
         }
-        // Verify Webhook Secret (Add your logic here)
-        // $signature = $request->header('x-wc-webhook-signature');
+
+        $body = $request->getContent();
+        
+        // Find the active connection matching this signature
+        $connection = \App\Models\WooConnection::get()->first(function ($conn) use ($body, $signature) {
+            $secret = $conn->webhook_secret;
+            if (!$secret) return false;
+            $computed = base64_encode(hash_hmac('sha256', $body, $secret, true));
+            return hash_equals($computed, $signature);
+        });
+
+        if (!$connection) {
+            Log::warning('WooCommerce webhook signature mismatch or no matching connection');
+            return response()->json(['error' => 'Invalid webhook signature.'], 401);
+        }
+
+        // Bind the resolved tenant to the DI container
+        app()->instance('current.tenant', $connection->tenant);
+
+        // ── Phase 4.3: WooCommerce Feature Gate (API webhook) ───────────────
+        PlanGate::enforce('woocommerce');
 
         $payload = $request->all();
         Log::info('WooCommerce Webhook Received', ['id' => $payload['id'] ?? 'unknown']);

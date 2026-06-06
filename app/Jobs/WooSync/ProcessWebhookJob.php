@@ -32,13 +32,17 @@ class ProcessWebhookJob implements ShouldQueue
 
     public function handle(): void
     {
-        $connection = WooConnection::find($this->connectionId);
+        $connection = WooConnection::with('tenant')->find($this->connectionId);
 
         if (!$connection || $connection->status !== 'active') {
             Log::info('[ProcessWebhookJob] Skipping — connection not active', [
                 'connection_id' => $this->connectionId,
             ]);
             return;
+        }
+
+        if ($connection->tenant) {
+            app()->instance('current.tenant', $connection->tenant);
         }
 
         Log::info('[ProcessWebhookJob] Processing', [
