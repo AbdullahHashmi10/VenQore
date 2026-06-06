@@ -94,6 +94,32 @@ class PurchaseReturnController extends Controller
                 DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
                     ->where('id', $batch->id)
                     ->decrement('remaining_qty', $returnQty);
+
+                // Deduct from physical product stock
+                DB::table('products')->where('tenant_id', app('current.tenant')->id)
+                    ->where('id', $batch->product_id)
+                    ->decrement('stock_quantity', $returnQty);
+
+                // Deduct from warehouse stock
+                DB::table('stocks')->where('tenant_id', app('current.tenant')->id)
+                    ->where('product_id', $batch->product_id)
+                    ->where('warehouse_id', $batch->warehouse_id)
+                    ->decrement('quantity', $returnQty);
+
+                // Log a negative stock movement
+                DB::table('stock_movements')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => app('current.tenant')->id,
+                    'product_id'   => $batch->product_id,
+                    'warehouse_id' => $batch->warehouse_id,
+                    'quantity'     => -$returnQty,
+                    'type'         => 'purchase_return',
+                    'reference_id' => $purchase->invoice_number,
+                    'description'  => "Purchase return for invoice {$purchase->invoice_number}",
+                    'user_id'      => auth()->id() ?? 1,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
             }
 
             // B18 Journal:

@@ -178,6 +178,13 @@ class FifoService
         string|int|null $productionRunId = null,
         string|null     $expiryDate      = null
     ): object {
+        if ($qty <= 0) {
+            throw new \InvalidArgumentException('Quantity must be strictly positive.');
+        }
+        if ($unitCost < 0) {
+            throw new \InvalidArgumentException('Unit cost cannot be negative.');
+        }
+
         $id = Str::uuid()->toString();
 
         DB::table('inventory_batches')->insert([

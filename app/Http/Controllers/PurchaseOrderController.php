@@ -11,6 +11,7 @@ use App\Models\StockMovement;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class PurchaseOrderController extends Controller
 {
@@ -261,43 +262,62 @@ class PurchaseOrderController extends Controller
 
     public function receive(Request $request, PurchaseOrder $purchaseOrder)
     {
-        if ($purchaseOrder->status === 'received') {
-            return redirect()->back()->with('error', 'Order already received.');
-        }
+        $lock = Cache::lock("purchase_order_receive_lock_{$purchaseOrder->id}", 10);
+        try {
+            $lock->block(5);
+            $purchaseOrder = $purchaseOrder->fresh();
 
-        DB::transaction(function () use ($purchaseOrder) {
-            foreach ($purchaseOrder->items as $item) {
-                // V3 Inventory: Create Batch
-                app(\App\Services\V3\FifoService::class)->receiveBatch(
-                    $item->product_id,
-                    $purchaseOrder->warehouse_id,
-                    $item->quantity,
-                    $item->unit_cost,
-                    'purchase',
-                    $purchaseOrder->id
-                );
-
-                // Log Movement
-                StockMovement::create([
-                    'product_id' => $item->product_id,
-                    'warehouse_id' => $purchaseOrder->warehouse_id,
-                    'quantity' => $item->quantity,
-                    'type' => 'purchase',
-                    'description' => "Received PO #{$purchaseOrder->reference_number}",
-                    'user_id' => auth()->id(),
-                ]);
-
-                // Update item received qty
-                $item->update(['received_quantity' => $item->quantity]);
-
-                // Update Product Cost Price (Last Price)
-                $item->product->update(['cost_price' => $item->unit_cost]);
+            if ($purchaseOrder->status === 'received') {
+                if ($request->wantsJson()) {
+                    return response()->json(['success' => false, 'message' => 'Order already received.'], 422);
+                }
+                return redirect()->back()->with('error', 'Order already received.');
             }
 
-            $purchaseOrder->update(['status' => 'received']);
-        });
+            DB::transaction(function () use ($purchaseOrder) {
+                foreach ($purchaseOrder->items as $item) {
+                    // V3 Inventory: Create Batch
+                    app(\App\Services\V3\FifoService::class)->receiveBatch(
+                        $item->product_id,
+                        $purchaseOrder->warehouse_id,
+                        $item->quantity,
+                        $item->unit_cost,
+                        'purchase',
+                        $purchaseOrder->id
+                    );
 
-        return redirect()->back()->with('success', 'Stock received successfully.');
+                    // Log Movement
+                    StockMovement::create([
+                        'product_id' => $item->product_id,
+                        'warehouse_id' => $purchaseOrder->warehouse_id,
+                        'quantity' => $item->quantity,
+                        'type' => 'purchase',
+                        'description' => "Received PO #{$purchaseOrder->reference_number}",
+                        'user_id' => auth()->id(),
+                    ]);
+
+                    // Update item received qty
+                    $item->update(['received_quantity' => $item->quantity]);
+
+                    // Update Product Cost Price (Last Price)
+                    $item->product->update(['cost_price' => $item->unit_cost]);
+                }
+
+                $purchaseOrder->update(['status' => 'received']);
+            });
+
+            if ($request->wantsJson()) {
+                return response()->json(['id' => $purchaseOrder->id, 'success' => true, 'message' => 'Stock received successfully.']);
+            }
+            return redirect()->back()->with('success', 'Stock received successfully.');
+        } catch (\Illuminate\Contracts\Cache\LockTimeoutException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => 'Another process is currently processing this order.'], 422);
+            }
+            return redirect()->back()->with('error', 'Another process is currently processing this order.');
+        } finally {
+            optional($lock)->release();
+        }
     }
     public function print(PurchaseOrder $purchaseOrder)
     {
