@@ -564,3 +564,72 @@ test('finance:audit command creates missing payment record for a paid sale', fun
     $this->assertMoneyEquals(500.00, $payments->sum('amount'));
     expect($payments->first()->reference)->toBe('SYSTEM-AUDIT-FIX');
 });
+
+// ─── Test 21: createEntry rounds line items to 2 decimal places before validation ────────
+
+test('createEntry rounds each line item to two decimal places before validation to prevent database imbalance', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $svc = makeAccountingService();
+
+    // Setup lines with fractional float values:
+    // Debits sum to 200.008 (100.004 + 100.004) -> rounded to 100.00 + 100.00 = 200.00
+    // Credit sums to 200.008 -> rounded to 200.01
+    // If validation rounds before validation, it will throw an exception (unbalanced by 0.01)
+    expect(fn () => DB::transaction(fn () => $svc->createEntry(
+        [
+            'date'           => today()->toDateString(),
+            'reference_type' => 'test',
+            'reference'      => 'ROUND-ERR-1',
+        ],
+        [
+            ['account_code' => '1000', 'debit' => 100.004, 'credit' => 0],
+            ['account_code' => '1010', 'debit' => 100.004, 'credit' => 0],
+            ['account_code' => '4000', 'debit' => 0,       'credit' => 200.008],
+        ]
+    )))->toThrow(\InvalidArgumentException::class, 'unbalanced');
+});
+
+// ─── Test 22: recalculate command transaction rollback on failure ────────
+
+test('recalculate command wraps updates in a database transaction to prevent partial writes', function () {
+    $tenant = $this->createTenant('recalc-tx-test', 'trial', 'active');
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $svc = makeAccountingService();
+    postCashSale($svc, 100.00);
+
+    // Corrupt cash account balance
+    DB::table('accounts')
+        ->where('tenant_id', $tenant->id)
+        ->where('code', '1000')
+        ->update(['balance' => 0]);
+
+    // Force exception on model saving to trigger transaction rollback
+    Account::flushEventListeners();
+    Account::saving(function ($account) {
+        throw new \RuntimeException('Database transaction failure simulated');
+    });
+
+    try {
+        Artisan::call('accounts:recalculate', [
+            '--tenant' => $tenant->id,
+        ]);
+    } catch (\RuntimeException $e) {
+        expect($e->getMessage())->toBe('Database transaction failure simulated');
+    } finally {
+        // Cleanup listener to prevent affecting other tests
+        Account::flushEventListeners();
+    }
+
+    // The account balance should NOT have been updated (rolled back)
+    $balance = DB::table('accounts')
+        ->where('tenant_id', $tenant->id)
+        ->where('code', '1000')
+        ->value('balance');
+
+    expect((float) $balance)->toBe(0.0);
+});

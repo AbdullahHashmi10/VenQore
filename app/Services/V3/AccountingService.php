@@ -55,18 +55,25 @@ class AccountingService
      */
     public function createEntry(array $data, array $lines): JournalEntry
     {
-        $totalDebit  = array_sum(array_column($lines, 'debit'));
-        $totalCredit = array_sum(array_column($lines, 'credit'));
+        // Round all line items to 2 decimal places first
+        $normalizedLines = array_map(function($line) {
+            $line['debit']  = round((float)($line['debit']  ?? 0), 2);
+            $line['credit'] = round((float)($line['credit'] ?? 0), 2);
+            return $line;
+        }, $lines);
 
-        if (round(abs($totalDebit - $totalCredit), 2) > 0.001) {
+        $totalDebit  = array_sum(array_column($normalizedLines, 'debit'));
+        $totalCredit = array_sum(array_column($normalizedLines, 'credit'));
+
+        if (abs($totalDebit - $totalCredit) > 0.001) {
             throw new \InvalidArgumentException(
                 "Journal entry is unbalanced. Debits: {$totalDebit}, Credits: {$totalCredit}"
             );
         }
 
-        foreach ($lines as $line) {
-            $debit  = (float)($line['debit']  ?? 0);
-            $credit = (float)($line['credit'] ?? 0);
+        foreach ($normalizedLines as $line) {
+            $debit  = $line['debit'];
+            $credit = $line['credit'];
 
             if ($debit > 0 && $credit > 0) {
                 throw new \InvalidArgumentException(
@@ -99,7 +106,7 @@ class AccountingService
 
         $partyIds = [];
 
-        foreach ($lines as $line) {
+        foreach ($normalizedLines as $line) {
             if (!empty($line['account_code'])) {
                 $account = Account::where('tenant_id', $tenantId)->where('code', $line['account_code'])->first();
                 if (!$account) {
@@ -117,8 +124,8 @@ class AccountingService
                 'journal_entry_id' => $entry->id,
                 'account_id'       => $accountId,
                 'party_id'         => $line['party_id'] ?? null,
-                'debit'            => (float)($line['debit']  ?? 0),
-                'credit'           => (float)($line['credit'] ?? 0),
+                'debit'            => $line['debit'],
+                'credit'           => $line['credit'],
             ]);
 
             if (!empty($line['party_id'])) {
