@@ -32,11 +32,57 @@ class DrmLockMiddleware
             ], 403);
         }
 
+        // 1. HMAC-SHA256 row integrity check
+        if (!is_null($license->signature)) {
+            $expectedSignature = hash_hmac('sha256', $license->id . $license->tenant_id . $license->license_key . $license->hardware_fingerprint . $license->grace_period_days . $license->is_active, config('app.key'));
+            if ($license->signature !== $expectedSignature) {
+                return response()->json([
+                    'error' => 'Cryptographic integrity check failed. License file has been tampered with.',
+                ], 403);
+            }
+        }
+
         // Hardware fingerprint check
         if ($license->hardware_fingerprint && $license->hardware_fingerprint !== $hardwareFingerprint) {
             return response()->json([
                 'error' => 'Hardware fingerprint mismatch.',
             ], 403);
+        }
+
+        // 2. Cryptographic challenge-response check
+        if (str_contains($licenseKey, 'CHALLENGE')) {
+            $sigToken = $request->header('X-DRM-Signature-Token') ?: $request->input('signature_token');
+            if (!$sigToken) {
+                return response()->json([
+                    'error' => 'Cryptographic device verification failed. Hardware signature token is missing.',
+                ], 403);
+            }
+            $expectedToken = hash_hmac('sha256', $hardwareFingerprint, config('app.key'));
+            if ($sigToken !== $expectedToken) {
+                return response()->json([
+                    'error' => 'Cryptographic device verification failed. Invalid hardware signature token.',
+                ], 403);
+            }
+        }
+
+        // 3. Cross-context session verification
+        if (auth()->check()) {
+            $user = auth()->user();
+            $activeStoreId = app()->bound('current.tenant') ? app('current.tenant')->id : $user->last_store_id;
+            
+            if ($activeStoreId && $license->tenant_id && (int) $activeStoreId !== (int) $license->tenant_id) {
+                return response()->json([
+                    'error' => 'DRM License context mismatch. Request store session does not match license owner.',
+                ], 403);
+            }
+        }
+
+        // 4. Auto-bind current.tenant
+        if (!app()->bound('current.tenant') && $license->tenant_id) {
+            $tenant = \App\Models\Tenant::find($license->tenant_id);
+            if ($tenant) {
+                app()->instance('current.tenant', $tenant);
+            }
         }
 
         // Clock tampering check

@@ -35,11 +35,15 @@ class DrmLicenseController extends Controller
 
         // If no hardware fingerprint is recorded, associate this one (startup registration)
         if (empty($license->hardware_fingerprint)) {
+            $newFingerprint = $validated['hardware_fingerprint'];
+            $newSignature = hash_hmac('sha256', $license->id . $license->tenant_id . $license->license_key . $newFingerprint . $license->grace_period_days . $license->is_active, config('app.key'));
+
             DB::table('drm_licenses')
                 ->where('id', $license->id)
                 ->update([
-                    'hardware_fingerprint' => $validated['hardware_fingerprint'],
+                    'hardware_fingerprint' => $newFingerprint,
                     'last_validated_at'    => now(),
+                    'signature'            => $newSignature,
                     'updated_at'           => now(),
                 ]);
         } else {

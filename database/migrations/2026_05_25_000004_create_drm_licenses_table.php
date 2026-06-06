@@ -10,13 +10,14 @@ return new class extends Migration
     {
         Schema::create('drm_licenses', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->string('tenant_id')->nullable()->index();
+            $table->unsignedBigInteger('tenant_id')->nullable()->index();
             $table->string('license_key')->unique();
             $table->string('hardware_fingerprint')->nullable();
             $table->timestamp('last_validated_at')->nullable();
             $table->timestamp('expires_at')->nullable();
             $table->integer('grace_period_days')->default(30);
             $table->boolean('is_active')->default(true);
+            $table->string('signature')->nullable();
             $table->timestamps();
         });
     }
