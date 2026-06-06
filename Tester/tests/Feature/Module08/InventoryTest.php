@@ -28,6 +28,21 @@ test('stock transfer between warehouses preserves total stock', function () {
         ['quantity' => 10]
     );
 
+    // Seed inventory_batches table (V3)
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenant->id,
+        'id' => \Illuminate\Support\Str::uuid()->toString(),
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouseA->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 50.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     $payload = [
         'from_warehouse_id' => $warehouseA->id,
         'to_warehouse_id' => $warehouseB->id,
@@ -167,4 +182,205 @@ test('product edit does not reset stock', function () {
     $this->assertEquals('New Name', $product->name);
     $this->assertEquals(200, $product->price);
     $this->assertEquals(10, $product->stock_quantity); // Stock must remain 10
+});
+
+test('v3_stock_adjustments_synchronize_physical_stock_and_movement_records', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    // Create Stock Adjustment Loss (6300) and Gain (4200) accounts
+    \App\Models\Account::forceCreate([
+        'tenant_id' => $tenant->id,
+        'code' => '6300',
+        'name' => 'Stock Adjustment Loss',
+        'type' => 'expense',
+        'normal_balance' => 'debit',
+    ]);
+    \App\Models\Account::forceCreate([
+        'tenant_id' => $tenant->id,
+        'code' => '4200',
+        'name' => 'Stock Adjustment Gain',
+        'type' => 'revenue',
+        'normal_balance' => 'credit',
+    ]);
+
+    $warehouse = Warehouse::create(['tenant_id' => $tenant->id, 'name' => 'Main', 'code' => 'MAIN']);
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 100.00, 'stock_quantity' => 10]);
+
+    \App\Models\Stock::create([
+        'tenant_id' => $tenant->id,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'quantity' => 10,
+    ]);
+
+    // Seed a FIFO batch of 10
+    $batchId = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenant->id,
+        'id' => $batchId,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 100.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // 1. Trigger decrease of 3 units
+    $payloadDecrease = [
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'direction' => 'decrease',
+        'qty' => 3,
+        'reason' => 'Damaged inventory',
+    ];
+
+    $response1 = $this->post("/s/{$tenant->slug}/v3/stock-adjustments", $payloadDecrease);
+    $response1->assertRedirect();
+
+    // Assert stock levels decremented to 7
+    expect($product->fresh()->stock_quantity)->toEqual(7.0);
+    $stock = \Illuminate\Support\Facades\DB::table('stocks')->where('product_id', $product->id)->where('warehouse_id', $warehouse->id)->first();
+    expect((float) $stock->quantity)->toEqual(7.0);
+
+    // Assert FIFO batch decremented to 7
+    $batch = \Illuminate\Support\Facades\DB::table('inventory_batches')->where('id', $batchId)->first();
+    expect((float) $batch->remaining_qty)->toEqual(7.0);
+
+    // Assert stock movement logged
+    $movement = \Illuminate\Support\Facades\DB::table('stock_movements')
+        ->where('product_id', $product->id)
+        ->where('warehouse_id', $warehouse->id)
+        ->where('quantity', -3.0)
+        ->first();
+    expect($movement)->not->toBeNull();
+});
+
+test('v3_stock_transfers_enforce_tenant_isolation_and_update_physical_stock', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    $warehouseA = Warehouse::create(['tenant_id' => $tenant->id, 'name' => 'A', 'code' => 'W-A']);
+    $warehouseB = Warehouse::create(['tenant_id' => $tenant->id, 'name' => 'B', 'code' => 'W-B']);
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 50, 'stock_quantity' => 10]);
+
+    \App\Models\Stock::create([
+        'tenant_id' => $tenant->id,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouseA->id,
+        'quantity' => 10,
+    ]);
+
+    $batchId = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenant->id,
+        'id' => $batchId,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouseA->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 50.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $payload = [
+        'product_id' => $product->id,
+        'from_warehouse_id' => $warehouseA->id,
+        'to_warehouse_id' => $warehouseB->id,
+        'qty' => 4,
+        'reason' => 'Internal transfer',
+    ];
+
+    $response = $this->post("/s/{$tenant->slug}/v3/stock-transfers", $payload);
+    $response->assertRedirect();
+
+    // Assert Warehouse A stock = 6, Warehouse B stock = 4
+    $stockA = \Illuminate\Support\Facades\DB::table('stocks')->where('product_id', $product->id)->where('warehouse_id', $warehouseA->id)->first();
+    expect((float) $stockA->quantity)->toEqual(6.0);
+
+    $stockB = \Illuminate\Support\Facades\DB::table('stocks')->where('product_id', $product->id)->where('warehouse_id', $warehouseB->id)->first();
+    expect((float) $stockB->quantity)->toEqual(4.0);
+
+    // Assert destination batch is created with correct tenant ID (isolation boundary)
+    $destBatch = \Illuminate\Support\Facades\DB::table('inventory_batches')
+        ->where('product_id', $product->id)
+        ->where('warehouse_id', $warehouseB->id)
+        ->first();
+    expect($destBatch)->not->toBeNull();
+    expect($destBatch->tenant_id)->toEqual($tenant->id);
+    expect((float) $destBatch->remaining_qty)->toEqual(4.0);
+
+    // Assert stock movements generated
+    $outMovement = \Illuminate\Support\Facades\DB::table('stock_movements')
+        ->where('product_id', $product->id)
+        ->where('warehouse_id', $warehouseA->id)
+        ->where('quantity', -4.0)
+        ->first();
+    expect($outMovement)->not->toBeNull();
+
+    $inMovement = \Illuminate\Support\Facades\DB::table('stock_movements')
+        ->where('product_id', $product->id)
+        ->where('warehouse_id', $warehouseB->id)
+        ->where('quantity', 4.0)
+        ->first();
+    expect($inMovement)->not->toBeNull();
+});
+
+test('prevents v3 stock transfer from reading or mutating another tenants batches', function () {
+    $tenantA = $this->createTenant();
+    $tenantB = $this->createTenant();
+
+    $this->actingAsOwner($tenantA);
+    $this->seedTenantDefaults($tenantA);
+
+    $warehouseA = Warehouse::create(['tenant_id' => $tenantA->id, 'name' => 'A', 'code' => 'W-A']);
+    $warehouseB = Warehouse::create(['tenant_id' => $tenantA->id, 'name' => 'B', 'code' => 'W-B']);
+    $product = Product::factory()->create(['tenant_id' => $tenantA->id, 'cost_price' => 50, 'stock_quantity' => 10]);
+
+    // Batch for Tenant B (should be invisible to Tenant A)
+    $batchIdB = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenantB->id,
+        'id' => $batchIdB,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouseA->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 50.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Attempt to transfer stock by tenant A (which has no batches in warehouse A)
+    $payload = [
+        'product_id' => $product->id,
+        'from_warehouse_id' => $warehouseA->id,
+        'to_warehouse_id' => $warehouseB->id,
+        'qty' => 4,
+        'reason' => 'Attacking tenant B stock',
+    ];
+
+    // Request should throw InsufficientStockException and fail
+    $failed = false;
+    try {
+        $this->withoutExceptionHandling()->post("/s/{$tenantA->slug}/v3/stock-transfers", $payload);
+    } catch (\App\Exceptions\InsufficientStockException $e) {
+        $failed = true;
+    }
+    expect($failed)->toBeTrue();
+
+    // Assert database has NOT modified Tenant B's batch
+    $batchB = \Illuminate\Support\Facades\DB::table('inventory_batches')->where('id', $batchIdB)->first();
+    expect((float) $batchB->remaining_qty)->toEqual(10.0);
 });

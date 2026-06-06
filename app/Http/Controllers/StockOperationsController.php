@@ -45,60 +45,19 @@ class StockOperationsController extends Controller
             'product_id' => 'required|exists:products,id',
             'from_warehouse_id' => 'required|exists:warehouses,id',
             'to_warehouse_id' => 'required|exists:warehouses,id|different:from_warehouse_id',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|numeric|min:0.001',
             'notes' => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($validated, $request) {
-            $product = Product::findOrFail($validated['product_id']);
-
-            // Check source warehouse stock
-            $sourceStock = Stock::where('product_id', $validated['product_id'])
-                ->where('warehouse_id', $validated['from_warehouse_id'])
-                ->first();
-
-            if (!$sourceStock || $sourceStock->quantity < $validated['quantity']) {
-                throw new \Exception('Insufficient stock in source warehouse');
-            }
-
-            // Deduct from source warehouse
-            $sourceStock->decrement('quantity', $validated['quantity']);
-
-            // Add to destination warehouse
-            $destStock = Stock::firstOrCreate(
-                [
-                    'product_id' => $validated['product_id'],
-                    'warehouse_id' => $validated['to_warehouse_id'],
-                ],
-                ['quantity' => 0]
-            );
-            $destStock->increment('quantity', $validated['quantity']);
-
-            // Record movements
-            StockMovement::create([
-                'product_id' => $validated['product_id'],
-                'warehouse_id' => $validated['from_warehouse_id'],
-                'type' => 'transfer_out',
-                'quantity' => -$validated['quantity'],
-                'reference' => 'Transfer to ' . Warehouse::find($validated['to_warehouse_id'])->name,
-                'notes' => $validated['notes'],
-                'user_id' => auth()->id(),
-            ]);
-
-            StockMovement::create([
-                'product_id' => $validated['product_id'],
-                'warehouse_id' => $validated['to_warehouse_id'],
-                'type' => 'transfer_in',
-                'quantity' => $validated['quantity'],
-                'reference' => 'Transfer from ' . Warehouse::find($validated['from_warehouse_id'])->name,
-                'notes' => $validated['notes'],
-                'user_id' => auth()->id(),
-            ]);
-
-            // Update product total stock
-            $product->stock_quantity = Stock::where('product_id', $product->id)->sum('quantity');
-            $product->save();
-        });
+        /** @var \App\Services\V3\InventoryService $v3Inventory */
+        $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
+        $v3Inventory->transferStock(
+            productId: $validated['product_id'],
+            fromWarehouseId: $validated['from_warehouse_id'],
+            toWarehouseId: $validated['to_warehouse_id'],
+            qty: (float) $validated['quantity'],
+            reason: $validated['notes']
+        );
 
         return redirect()->back()->with('success', 'Stock transferred successfully');
     }
@@ -114,57 +73,20 @@ class StockOperationsController extends Controller
             'notes' => 'required|string',
         ]);
 
-        DB::transaction(function () use ($validated, $request) {
-            $product = Product::findOrFail($validated['product_id']);
-            $quantity = (float) $validated['quantity'];
-            $direction = $validated['adjustment_type'] === 'add' ? 'increase' : 'decrease';
+        $product = Product::findOrFail($validated['product_id']);
+        $quantity = (float) $validated['quantity'];
+        $direction = $validated['adjustment_type'] === 'add' ? 'increase' : 'decrease';
 
-            // V3 Sync - This handles both inventory_batches and accounting
-            /** @var \App\Services\V3\InventoryService $v3Inventory */
-            $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
-            $v3Inventory->adjustStock(
-                productId:   $validated['product_id'],
-                warehouseId: $validated['warehouse_id'],
-                qty:         $quantity,
-                direction:   $direction,
-                unitCost:    (float) ($product->cost_price ?? 0),
-                reason:      "Manual Adjustment: " . $validated['reason']
-            );
-
-            // Legacy Sync (for UI list)
-            $stock = Stock::where('product_id', $validated['product_id'])
-                ->where('warehouse_id', $validated['warehouse_id'])
-                ->first();
-
-            if ($stock) {
-                if ($direction === 'increase') {
-                    $stock->increment('quantity', $quantity);
-                } else {
-                    $stock->decrement('quantity', $quantity);
-                }
-            } else if ($direction === 'increase') {
-                Stock::create([
-                    'product_id' => $validated['product_id'],
-                    'warehouse_id' => $validated['warehouse_id'],
-                    'quantity' => $quantity
-                ]);
-            }
-
-            // Record Movement
-            StockMovement::create([
-                'product_id' => $validated['product_id'],
-                'warehouse_id' => $validated['warehouse_id'],
-                'type' => 'adjustment',
-                'quantity' => $direction === 'increase' ? $quantity : -$quantity,
-                'reference' => 'Adjustment: ' . $validated['reason'],
-                'notes' => $validated['notes'],
-                'user_id' => auth()->id(),
-            ]);
-
-            // Update product total stock
-            $product->stock_quantity = Stock::where('product_id', $product->id)->sum('quantity');
-            $product->save();
-        });
+        /** @var \App\Services\V3\InventoryService $v3Inventory */
+        $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
+        $v3Inventory->adjustStock(
+            productId:   $validated['product_id'],
+            warehouseId: $validated['warehouse_id'],
+            qty:         $quantity,
+            direction:   $direction,
+            unitCost:    (float) ($product->cost_price ?? 0),
+            reason:      "Manual Adjustment: " . $validated['reason'] . " (" . $validated['notes'] . ")"
+        );
 
         return redirect()->back()->with('success', 'Stock adjusted successfully');
     }
@@ -193,47 +115,18 @@ class StockOperationsController extends Controller
                 $difference = (float) $item['physical_count'] - $currentQty;
 
                 if ($difference != 0) {
-                    // V3 Sync - This handles both inventory_batches and accounting
                     $v3Inventory->adjustStock(
                         productId:   $item['product_id'],
                         warehouseId: $validated['warehouse_id'],
                         qty:         abs($difference),
                         direction:   $difference > 0 ? 'increase' : 'decrease',
                         unitCost:    (float) ($product->cost_price ?? 0),
-                        reason:      "Audit Adjustment"
-                    );
-
-                    // Legacy Sync
-                    if ($stock) {
-                        $stock->quantity = $item['physical_count'];
-                        $stock->save();
-                    } else {
-                        Stock::create([
-                            'product_id' => $item['product_id'],
-                            'warehouse_id' => $validated['warehouse_id'],
-                            'quantity' => $item['physical_count']
-                        ]);
-                    }
-
-                    // Record adjustment movement
-                    StockMovement::create([
-                        'product_id' => $item['product_id'],
-                        'warehouse_id' => $validated['warehouse_id'],
-                        'type' => 'audit_adjustment',
-                        'quantity' => $difference,
-                        'reference' => 'Stock Take Adjustment',
-                        'notes' => sprintf(
-                            'Physical count: %d, System count: %d, Difference: %d',
+                        reason:      sprintf(
+                            "Stock Take Adjustment. Physical: %s, System: %s",
                             $item['physical_count'],
-                            $currentQty,
-                            $difference
-                        ),
-                        'user_id' => auth()->id(),
-                    ]);
-
-                    // Update product total stock
-                    $product->stock_quantity = Stock::where('product_id', $product->id)->sum('quantity');
-                    $product->save();
+                            $currentQty
+                        )
+                    );
                 }
             }
         });

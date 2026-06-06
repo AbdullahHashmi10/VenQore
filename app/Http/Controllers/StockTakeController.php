@@ -97,17 +97,6 @@ class StockTakeController extends Controller
 
     protected function adjustStock($productId, $warehouseId, $difference, $reference)
     {
-        $stock = \App\Models\Stock::firstOrCreate(
-            ['product_id' => $productId, 'warehouse_id' => $warehouseId],
-            ['quantity' => 0]
-        );
-        
-        // Difference: +2 means we counted 2 more than expected -> Add 2
-        // Difference: -2 means we counted 2 less -> Deduct 2
-        
-        // $stock->increment('quantity', $difference); // Legacy sync
-
-        // V3 Logic: Must sync with inventory_batches for valuation
         /** @var \App\Services\V3\InventoryService $v3Inventory */
         $v3Inventory = resolve(\App\Services\V3\InventoryService::class);
         $v3Inventory->adjustStock(
@@ -118,17 +107,6 @@ class StockTakeController extends Controller
             unitCost:    (float) (\App\Models\Product::find($productId)?->cost_price ?? 0),
             reason:      "Stock Take Adjustment ($reference)"
         );
-
-        // Legacy movement logging (for reports that use it)
-        \App\Models\StockMovement::create([
-             'product_id' => $productId,
-             'warehouse_id' => $warehouseId,
-             'type' => $difference > 0 ? 'adjust_in' : 'adjust_out',
-             'quantity' => $difference,
-             'reference_id' => $reference,
-             'user_id' => auth()->id(),
-             'description' => "Stock Take Adjustment ($reference)"
-        ]);
     }
 
     public function show($id) 
