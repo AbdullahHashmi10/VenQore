@@ -289,121 +289,175 @@ class ProposalController extends Controller
 
     public function convertToSale(Proposal $proposal)
     {
-        DB::transaction(function () use ($proposal) {
-            // Create Sale
-            $sale = Sale::create([
-                'reference_number' => 'INV-' . date('Ymd') . '-' . rand(1000, 9999),
-                'party_id' => $proposal->customer_id,
-                'status' => 'completed',
-                'payment_status' => 'pending',
-                'subtotal' => $proposal->total_amount,
-                'total' => $proposal->total_amount,
-                'user_id' => auth()->id(),
-                // Add default cash account/warehouse for now, or make user select in future steps
-                'warehouse_id' => \App\Models\Warehouse::first()?->id ?? 1
-            ]);
+        $tenantId = app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("proposal_convert_lock_{$proposal->id}", 10);
 
-            $fifo = app(\App\Services\V3\FifoService::class);
+        try {
+            $lock->block(5);
 
-            foreach ($proposal->items as $item) {
-                // Deduct stock using FIFO
-                $lineCogs = 0;
-                $warehouseId = $sale->warehouse_id;
-                try {
-                    $deductions = $fifo->deductStock($item->product_id, $warehouseId, (float)$item->quantity);
-                    $lineCogs = collect($deductions)->sum('total_cost');
-                } catch (\App\Exceptions\InsufficientStockException $e) {
-                    $product = \App\Models\Product::find($item->product_id);
-                    $lineCogs = ($product->cost_price ?? 0) * $item->quantity;
-                }
-
-                $saleItem = SaleItem::create([
-                    'sale_id' => $sale->id,
-                    'product_id' => $item->product_id,
-                    'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'cost_price' => $item->quantity > 0 ? $lineCogs / $item->quantity : 0,
-                    'subtotal' => $item->total,
-                ]);
-
-                // Record batches if FIFO succeeded
-                if (isset($deductions)) {
-                    foreach ($deductions as $deduction) {
-                        DB::table('sale_item_batches')->insert([
-                            'id' => \Illuminate\Support\Str::uuid()->toString(),
-                            'sale_item_id' => $saleItem->id,
-                            'inventory_batch_id' => $deduction['batch_id'],
-                            'qty_deducted' => $deduction['qty_taken'],
-                            'unit_cost' => $deduction['unit_cost'],
-                            'total_cogs' => $deduction['total_cost'],
-                            'is_reversed' => 0,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    }
-                }
+            $proposal->refresh();
+            if (in_array($proposal->status, ['accepted', 'completed'])) {
+                return redirect()->back()->with('error', 'Proposal has already been converted.');
             }
 
-            $proposal->update(['status' => 'accepted']);
-        });
+            DB::transaction(function () use ($proposal, $tenantId) {
+                // Compute totals
+                $subtotalGross = 0;
+                $totalDiscount = 0;
+                foreach ($proposal->items as $item) {
+                    $subtotalGross += $item->unit_price * $item->quantity;
+                    $totalDiscount += $item->discount;
+                }
 
-        $tenantSlug = request()->route('tenant') ?? 'default';
-        return redirect("/s/{$tenantSlug}/sales")->with('success', 'Proposal converted to Sale.');
+                $netSales = $subtotalGross - $totalDiscount;
+
+                // Create Sale
+                $sale = Sale::create([
+                    'reference_number' => 'INV-' . date('Ymd') . '-' . rand(1000, 9999),
+                    'party_id' => $proposal->customer_id,
+                    'status' => 'completed',
+                    'payment_status' => 'pending',
+                    'subtotal' => $subtotalGross,
+                    'discount' => $totalDiscount,
+                    'tax' => 0,
+                    'total' => $netSales,
+                    'subtotal_gross' => $subtotalGross,
+                    'net_sales' => $netSales,
+                    'total_tax' => 0,
+                    'invoice_total' => $netSales,
+                    'user_id' => auth()->id(),
+                    'warehouse_id' => \App\Models\Warehouse::first()?->id ?? 1,
+                    'tenant_id' => $tenantId
+                ]);
+
+                $fifo = app(\App\Services\V3\FifoService::class);
+
+                foreach ($proposal->items as $item) {
+                    // Deduct stock using FIFO
+                    $lineCogs = 0;
+                    $warehouseId = $sale->warehouse_id;
+                    try {
+                        $deductions = $fifo->deductStock($item->product_id, $warehouseId, (float)$item->quantity);
+                        $lineCogs = collect($deductions)->sum('total_cost');
+                    } catch (\App\Exceptions\InsufficientStockException $e) {
+                        $product = \App\Models\Product::find($item->product_id);
+                        $lineCogs = ($product->cost_price ?? 0) * $item->quantity;
+                    }
+
+                    $saleItem = SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $item->product_id,
+                        'quantity' => $item->quantity,
+                        'unit_price' => $item->unit_price,
+                        'cost_price' => $item->quantity > 0 ? $lineCogs / $item->quantity : 0,
+                        'subtotal' => $item->total,
+                        'gross_amount' => $item->unit_price * $item->quantity,
+                        'net_amount' => $item->total,
+                        'discount_amount' => $item->discount,
+                        'line_total' => $item->total,
+                        'tax_amount' => 0,
+                        'tenant_id' => $tenantId
+                    ]);
+
+                    // Record batches if FIFO succeeded
+                    if (isset($deductions)) {
+                        foreach ($deductions as $deduction) {
+                            DB::table('sale_item_batches')->insert([
+                                'id' => \Illuminate\Support\Str::uuid()->toString(),
+                                'sale_item_id' => $saleItem->id,
+                                'inventory_batch_id' => $deduction['batch_id'],
+                                'qty_deducted' => $deduction['qty_taken'],
+                                'unit_cost' => $deduction['unit_cost'],
+                                'total_cogs' => $deduction['total_cost'],
+                                'is_reversed' => 0,
+                                'created_at' => now(),
+                                'updated_at' => now(),
+                            ]);
+                        }
+                    }
+                }
+
+                $proposal->update(['status' => 'accepted']);
+            });
+
+            $tenantSlug = app('current.tenant')?->slug ?? request()->route('store_slug') ?? 'default';
+            return redirect("/s/{$tenantSlug}/sales")->with('success', 'Proposal converted to Sale.');
+
+        } finally {
+            $lock->release();
+        }
     }
 
     public function convertToPreSale(Proposal $proposal)
     {
-        DB::transaction(function () use ($proposal) {
-            // Create Sales Order (Pre-Sale)
-            $salesOrder = \App\Models\SalesOrder::create([
-                'reference_number' => 'SO-' . date('Ymd') . '-' . rand(1000, 9999),
-                'customer_id' => $proposal->customer_id,
-                'customer_name' => $proposal->customer_name,
-                'status' => 'pending',
-                'total' => $proposal->total_amount,
-                'user_id' => auth()->id(),
-                'notes' => 'Converted from Proposal #' . $proposal->reference_number,
-            ]);
+        $tenantId = app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("proposal_convert_lock_{$proposal->id}", 10);
 
-            $totalAmount = 0;
-            foreach ($proposal->items as $item) {
-                // V3 Inventory Reservation Logic
-                $totalStock = \Illuminate\Support\Facades\DB::table('inventory_batches')
-                    ->where('product_id', $item->product_id)
-                    ->whereNull('deleted_at')
-                    ->sum('remaining_qty');
+        try {
+            $lock->block(5);
 
-                $currentlyReserved = \Illuminate\Support\Facades\DB::table('sales_order_items')
-                    ->join('sales_orders', 'sales_order_items.sales_order_id', '=', 'sales_orders.id')
-                    ->where('sales_order_items.product_id', $item->product_id)
-                    ->whereNull('sales_orders.deleted_at')
-                    ->whereNull('sales_order_items.deleted_at')
-                    ->whereNotIn('sales_orders.status', ['cancelled', 'completed'])
-                    ->sum('sales_order_items.quantity_reserved');
-
-                $available = max(0, $totalStock - $currentlyReserved);
-                $reservedAmount = min($available, $item->quantity);
-
-                \App\Models\SalesOrderItem::create([
-                    'sales_order_id' => $salesOrder->id,
-                    'product_id' => $item->product_id,
-                    'quantity_requested' => $item->quantity,
-                    'quantity_reserved' => $reservedAmount,
-                    'unit_price' => $item->unit_price,
-                    'discount' => $item->discount ?? 0,
-                    'subtotal' => $item->total // Use subtotal field to match actual schema
-                ]);
-
-                $totalAmount += $item->total;
+            $proposal->refresh();
+            if (in_array($proposal->status, ['accepted', 'completed'])) {
+                return redirect()->back()->with('error', 'Proposal has already been converted.');
             }
 
-            // Update total to be accurate
-            $salesOrder->update(['total_amount' => $totalAmount]);
+            DB::transaction(function () use ($proposal, $tenantId) {
+                // Create Sales Order (Pre-Sale)
+                $salesOrder = \App\Models\SalesOrder::create([
+                    'reference_number' => 'SO-' . date('Ymd') . '-' . rand(1000, 9999),
+                    'customer_id' => $proposal->customer_id,
+                    'customer_name' => $proposal->customer_name,
+                    'status' => 'pending',
+                    'total' => $proposal->total_amount,
+                    'user_id' => auth()->id(),
+                    'notes' => 'Converted from Proposal #' . $proposal->reference_number,
+                    'tenant_id' => $tenantId
+                ]);
 
-            $proposal->update(['status' => 'accepted']);
-        });
+                $totalAmount = 0;
+                foreach ($proposal->items as $item) {
+                    // V3 Inventory Reservation Logic
+                    $totalStock = \Illuminate\Support\Facades\DB::table('inventory_batches')
+                        ->where('product_id', $item->product_id)
+                        ->whereNull('deleted_at')
+                        ->sum('remaining_qty');
 
-        return redirect()->route('pre-sales.index')->with('success', 'Proposal converted to Pre-Sale. Inventory has been reserved.');
+                    $currentlyReserved = \Illuminate\Support\Facades\DB::table('sales_order_items')
+                        ->join('sales_orders', 'sales_order_items.sales_order_id', '=', 'sales_orders.id')
+                        ->where('sales_order_items.product_id', $item->product_id)
+                        ->whereNull('sales_orders.deleted_at')
+                        ->whereNull('sales_order_items.deleted_at')
+                        ->whereNotIn('sales_orders.status', ['cancelled', 'completed'])
+                        ->sum('sales_order_items.quantity_reserved');
+
+                    $available = max(0, $totalStock - $currentlyReserved);
+                    $reservedAmount = min($available, $item->quantity);
+
+                    \App\Models\SalesOrderItem::create([
+                        'sales_order_id' => $salesOrder->id,
+                        'product_id' => $item->product_id,
+                        'quantity_requested' => $item->quantity,
+                        'quantity_reserved' => $reservedAmount,
+                        'unit_price' => $item->unit_price,
+                        'discount' => $item->discount ?? 0,
+                        'subtotal' => $item->total, // Use subtotal field to match actual schema
+                        'tenant_id' => $tenantId
+                    ]);
+
+                    $totalAmount += $item->total;
+                }
+
+                // Update total to be accurate
+                $salesOrder->update(['total_amount' => $totalAmount]);
+
+                $proposal->update(['status' => 'accepted']);
+            });
+
+            return redirect()->route('pre-sales.index')->with('success', 'Proposal converted to Pre-Sale. Inventory has been reserved.');
+
+        } finally {
+            $lock->release();
+        }
     }
 
     public function print(Proposal $proposal)

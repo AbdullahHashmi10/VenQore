@@ -303,3 +303,195 @@ test('recurring invoice generation creates a correct new invoice with line items
     $this->assertEquals(8.0, (float) $batchRemaining);
 });
 
+test('duplicate conversion prevention via status guards and locks', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 10]);
+    Stock::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 100]);
+
+    // 1. Proposal conversion status guard
+    $proposal = Proposal::create([
+        'reference_number' => 'PROP-DUP',
+        'customer_id' => $party->id,
+        'customer_name' => $party->name,
+        'status' => 'accepted', // already converted
+        'total_amount' => 100,
+        'user_id' => auth()->id() ?? 1,
+        'tenant_id' => $tenant->id,
+    ]);
+    ProposalItem::create(['proposal_id' => $proposal->id, 'product_id' => $product->id, 'product_name' => $product->name, 'quantity' => 1, 'unit_price' => 100, 'total' => 100]);
+
+    $response = $this->post("/s/{$tenant->slug}/proposals/{$proposal->id}/convert");
+    $response->assertRedirect();
+    $response->assertSessionHas('error', 'Proposal has already been converted.');
+
+    // 2. Sales Order conversion status guard
+    $salesOrder = SalesOrder::create([
+        'order_number' => 'SO-DUP',
+        'customer_id' => $party->id,
+        'customer_name' => $party->name,
+        'order_date' => now()->toDateString(),
+        'status' => 'completed', // already converted
+        'user_id' => auth()->id() ?? 1,
+        'total_amount' => 100,
+        'tenant_id' => $tenant->id,
+    ]);
+    SalesOrderItem::create([
+        'sales_order_id' => $salesOrder->id,
+        'product_id' => $product->id,
+        'name' => $product->name,
+        'quantity_requested' => 1,
+        'quantity_reserved' => 0,
+        'unit_price' => 100,
+        'subtotal' => 100,
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $responseSO = $this->post("/s/{$tenant->slug}/sales-orders/{$salesOrder->id}/convert");
+    $responseSO->assertStatus(422);
+    $responseSO->assertJson(['success' => false, 'message' => 'Sales Order has already been converted or cancelled.']);
+
+    // 3. Quotation conversion status guard
+    $quotation = Quotation::create([
+        'quotation_number' => 'QUO-DUP',
+        'party_id' => $party->id,
+        'quotation_date' => now()->toDateString(),
+        'status' => 'accepted', // already converted
+        'total_amount' => 100,
+        'created_by' => auth()->id() ?? 1,
+        'tenant_id' => $tenant->id,
+    ]);
+    QuotationItem::create([
+        'quotation_id' => $quotation->id,
+        'product_id' => $product->id,
+        'qty' => 1,
+        'sale_uom' => 'pcs',
+        'unit_price' => 100,
+        'line_total' => 100,
+    ]);
+
+    $responseQuo = $this->post("/s/{$tenant->slug}/v3/quotations/{$quotation->id}/convert-to-order", [
+        'warehouse_id' => $warehouse->id,
+    ]);
+    $responseQuo->assertRedirect();
+    $responseQuo->assertSessionHasErrors(['quotation']);
+});
+
+test('sales conversion mapping retains discounts tax and net sales', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 30]);
+    Stock::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 100]);
+
+    // Create a Sales Order with item-level discount
+    $salesOrder = SalesOrder::create([
+        'order_number' => 'SO-DISC',
+        'customer_id' => $party->id,
+        'customer_name' => $party->name,
+        'order_date' => now()->toDateString(),
+        'status' => 'confirmed',
+        'user_id' => auth()->id() ?? 1,
+        'total_amount' => 100,
+        'tenant_id' => $tenant->id,
+    ]);
+    SalesOrderItem::create([
+        'sales_order_id' => $salesOrder->id,
+        'product_id' => $product->id,
+        'name' => $product->name,
+        'quantity_requested' => 2,
+        'quantity_reserved' => 2,
+        'unit_price' => 50,
+        'discount' => 15.00, // $15 discount
+        'subtotal' => 85.00, // 2 * 50 - 15 = 85
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $response = $this->post("/s/{$tenant->slug}/sales-orders/{$salesOrder->id}/convert");
+    $response->assertStatus(200);
+
+    // Verify Sale calculations
+    $sale = Sale::where('party_id', $party->id)->first();
+    $this->assertNotNull($sale);
+    $this->assertEquals(100.00, $sale->subtotal_gross);
+    $this->assertEquals(15.00, $sale->discount);
+    $this->assertEquals(0.00, $sale->total_tax);
+    $this->assertEquals(85.00, $sale->net_sales);
+    $this->assertEquals(85.00, $sale->invoice_total);
+
+    // Verify SaleItem calculations
+    $saleItem = $sale->items()->first();
+    $this->assertNotNull($saleItem);
+    $this->assertEquals(100.00, $saleItem->gross_amount);
+    $this->assertEquals(15.00, $saleItem->discount_amount);
+    $this->assertEquals(85.00, $saleItem->net_amount);
+    $this->assertEquals(0.00, $saleItem->tax_amount);
+    $this->assertEquals(85.00, $saleItem->line_total);
+});
+
+test('sales order completion and cancellation releases inventory', function () {
+    $tenant = $this->createTenant();
+    $this->actingAsOwner($tenant);
+
+    $warehouse = Warehouse::create(['name' => 'Main', 'tenant_id' => $tenant->id]);
+    $party = Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 20]);
+    Stock::create(['product_id' => $product->id, 'warehouse_id' => $warehouse->id, 'quantity' => 100]);
+
+    // Case A: Cancellation releases reservation
+    $order1 = SalesOrder::create([
+        'order_number' => 'SO-CANCEL',
+        'customer_id' => $party->id,
+        'customer_name' => $party->name,
+        'order_date' => now()->toDateString(),
+        'status' => 'confirmed',
+        'user_id' => auth()->id() ?? 1,
+        'total_amount' => 100,
+        'tenant_id' => $tenant->id,
+    ]);
+    $item1 = SalesOrderItem::create([
+        'sales_order_id' => $order1->id,
+        'product_id' => $product->id,
+        'name' => $product->name,
+        'quantity_requested' => 5,
+        'quantity_reserved' => 5,
+        'unit_price' => 20,
+        'subtotal' => 100,
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $response1 = $this->post("/s/{$tenant->slug}/sales-orders/{$order1->id}/cancel");
+    $response1->assertRedirect();
+    $this->assertEquals(0, $item1->fresh()->quantity_reserved);
+
+    // Case B: Completion (conversion to Sale) releases reservation
+    $order2 = SalesOrder::create([
+        'order_number' => 'SO-COMPLETE',
+        'customer_id' => $party->id,
+        'customer_name' => $party->name,
+        'order_date' => now()->toDateString(),
+        'status' => 'confirmed',
+        'user_id' => auth()->id() ?? 1,
+        'total_amount' => 100,
+        'tenant_id' => $tenant->id,
+    ]);
+    $item2 = SalesOrderItem::create([
+        'sales_order_id' => $order2->id,
+        'product_id' => $product->id,
+        'name' => $product->name,
+        'quantity_requested' => 3,
+        'quantity_reserved' => 3,
+        'unit_price' => 20,
+        'subtotal' => 60,
+        'tenant_id' => $tenant->id,
+    ]);
+
+    $response2 = $this->post("/s/{$tenant->slug}/sales-orders/{$order2->id}/convert");
+    $response2->assertStatus(200);
+    $this->assertEquals(0, $item2->fresh()->quantity_reserved);
+});
