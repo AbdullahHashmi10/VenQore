@@ -19,12 +19,24 @@ return new class extends Migration
                 $table->string('passcode')->nullable()->after('password');
             }
         });
+
+        Schema::table('tenant_users', function (Blueprint $table) {
+            if (Schema::hasColumn('tenant_users', 'pos_pin')) {
+                $table->string('pos_pin', 60)->nullable()->change();
+            }
+        });
     }
 
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn(['role', 'permissions', 'passcode']);
+        });
+
+        Schema::table('tenant_users', function (Blueprint $table) {
+            if (Schema::hasColumn('tenant_users', 'pos_pin')) {
+                $table->string('pos_pin', 6)->nullable()->change();
+            }
         });
     }
 };

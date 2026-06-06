@@ -32,7 +32,6 @@ class LegacyAdminPasscodeTest extends VenQoreTestCase
 
         $user = User::where('email', 'staff@example.com')->first();
         $this->assertNotNull($user);
-        dd(Hash::info($user->getRawOriginal('passcode')));
 
         // Assert role and passcode are stored directly in the users table
         $this->assertEquals('cashier', $user->getRawOriginal('role'));
@@ -68,10 +67,6 @@ class LegacyAdminPasscodeTest extends VenQoreTestCase
         $response->assertRedirect();
 
         $staffUser->refresh();
-        dd(
-            'staffUser passcode: ' . $staffUser->getRawOriginal('passcode'),
-            'membership pos_pin: ' . TenantUser::where('tenant_id', $tenant->id)->where('user_id', $staffUser->id)->value('pos_pin')
-        );
         $this->assertEquals('Updated Staff Name', $staffUser->name);
         $this->assertEquals('manager', $staffUser->getRawOriginal('role'));
         $this->assertTrue(Hash::check('5678', $staffUser->getRawOriginal('passcode')));
