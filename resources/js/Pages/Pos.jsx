@@ -1538,7 +1538,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     return (
         <>
-            <div className="h-full w-full flex flex-col px-6 pb-0 pt-4 animate-in fade-in zoom-in-95 duration-300">
+            <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-300">
             {/* TOP BAR */}
             <div className="h-10 flex items-end gap-1 shrink-0 px-2 select-none">
                 {sales.map(sale => (
@@ -1654,12 +1654,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* MAIN WORKSPACE */}
-            <div className="flex-1 flex gap-6 min-h-0 bg-white dark:bg-slate-900 rounded-t-3xl rounded-b-none shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden z-0 relative">
+            <div className="flex-1 flex gap-0 min-h-0 bg-white dark:bg-slate-900 rounded-t-3xl rounded-b-none shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
-                <div className="flex-1 flex flex-col min-w-0 relative">
+                <div className="w-[40%] flex flex-col min-w-0 relative">
                     {/* Search Bar */}
-                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex gap-4 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
+                    <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex gap-3 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
                         <button
                             onClick={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
                             className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-colors"
@@ -1728,7 +1728,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="flex-1 flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
 
                             {/* Product Header & Senior Mode */}
-                            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-10">
+                            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-10">
                                 <h2 className="font-black text-xl text-slate-800 dark:text-white uppercase tracking-tighter">
                                     {selectedCategory ? (categories.find(c => c.id === selectedCategory)?.name || 'Category') : 'All Products'}
                                 </h2>
@@ -1738,7 +1738,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </div>
 
                             {/* Grid Content */}
-                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                                 {isLoadingProducts ? (
                                     <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
                                         <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
@@ -1809,10 +1809,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Cart & Payment Panel */}
-                <div className="w-[450px] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-900/80 border-l border-slate-100 dark:border-slate-800">
+                <div className="w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-900/80 border-l border-slate-100 dark:border-slate-800">
 
                     {/* Cart Header */}
-                    <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div className="p-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
                         <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
                             <ShoppingCart size={20} className="text-indigo-600" />
                             CURRENT ORDER
@@ -1823,7 +1823,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
 
                     {/* Cart List (Moved from Left) */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
                         {activeSale.cart.map((item, index) => (
                             <div key={item.cartItemId} className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm relative group overflow-hidden pl-10">
                                 <div className="absolute top-1/2 -translate-y-1/2 left-3 w-5 h-5 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500">
@@ -1945,17 +1945,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Payment & Summary Panel */}
-                <div className="w-96 shrink-0 bg-slate-900 text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-800">
+                <div className="w-[20%] shrink-0 bg-slate-900 text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-800">
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
-                    <div className="p-6 border-b border-white/10">
+                    <div className="p-4 border-b border-white/10">
                         <h2 className="text-xl font-bold flex items-center gap-2">
                             <Receipt className="text-emerald-400" /> Payment Details
                         </h2>
                         <p className="text-xs text-slate-400 mt-1">Transaction ID: #{activeSale.id}</p>
                     </div>
 
-                    <div className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                         {/* Summary Block - Compact */}
                         <div className="space-y-2 bg-white/5 p-3 rounded-xl">
                             <div className="flex justify-between text-slate-400 text-xs">
@@ -2189,7 +2189,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
                     </div>
 
-                    <div className="p-6 bg-black/20 backdrop-blur-sm space-y-3">
+                    <div className="p-4 bg-black/20 backdrop-blur-sm space-y-2">
                         {/* Print Settings Toggle */}
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-xs text-slate-400">Auto-print on complete</span>
