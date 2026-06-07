@@ -7,8 +7,13 @@ import { usePage } from '@inertiajs/react';
 export default function DangerSettingsSection({ data, setData }) {
     const [resetting, setResetting] = useState(false);
 
-    const { store } = usePage().props;
+    const { store, auth } = usePage().props;
     const storeSlug = store?.slug || 'demo';
+    const user = auth?.user;
+
+    // A Google-only user has google_id set but NO password hash stored.
+    // They use their email address to confirm dangerous operations instead.
+    const isGoogleNoPassword = !!(user?.google_id && !user?.has_password);
 
     const handleFactoryReset = async (type = 'all') => {
         let title = 'Are you sure?';
@@ -22,9 +27,9 @@ export default function DangerSettingsSection({ data, setData }) {
             confirmText = 'I UNDERSTAND, WIPE EVERYTHING';
             // url remains /s/{storeSlug}/api/system/reset
         } else {
-            // For selective delete, we use a different endpoint format if backend supports distinct routes, 
+            // For selective delete, we use a different endpoint format if backend supports distinct routes,
             // but SystemResetController uses `deleteEntity` method usually mapped to something dynamic.
-            // Based on previous code, it seemed to be /api/system/reset/{entity}. 
+            // Based on previous code, it seemed to be /api/system/reset/{entity}.
             // SystemResetController code showed "deleteEntity" method. Routes must map it.
             // Let's assume the router handles it.
             url = `/s/${storeSlug}/api/system/reset/${type}`;
@@ -47,12 +52,24 @@ export default function DangerSettingsSection({ data, setData }) {
 
         if (!result.isConfirmed) return;
 
-        // 2. Password Authentication Prompt
+        // 2. Authentication Prompt — adapts based on whether the user has a password
+        const promptTitle = isGoogleNoPassword
+            ? 'Confirm with Email'
+            : 'Authentication Required';
+        const promptText = isGoogleNoPassword
+            ? 'You signed in with Google and have not set a password. Type your registered email address to confirm this action.'
+            : 'Please enter your password or admin passcode to confirm.';
+        const promptInputType = isGoogleNoPassword ? 'email' : 'password';
+        const promptPlaceholder = isGoogleNoPassword ? 'your@email.com' : 'Enter your password';
+        const promptValidatorMsg = isGoogleNoPassword
+            ? 'Please enter your email address!'
+            : 'You need to enter your password!';
+
         const { value: password } = await Swal.fire({
-            title: 'Authentication Required',
-            text: 'Please enter your password or admin passcode to confirm.',
-            input: 'password',
-            inputPlaceholder: 'Enter your password',
+            title: promptTitle,
+            text: promptText,
+            input: promptInputType,
+            inputPlaceholder: promptPlaceholder,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -62,7 +79,7 @@ export default function DangerSettingsSection({ data, setData }) {
             color: '#fff',
             inputValidator: (value) => {
                 if (!value) {
-                    return 'You need to enter your password!'
+                    return promptValidatorMsg;
                 }
             }
         });

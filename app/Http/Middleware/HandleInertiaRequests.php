@@ -61,6 +61,10 @@ class HandleInertiaRequests extends Middleware
                         // pos_pin (quick-login) and security_pin live on tenant_users, not users
                         'has_passcode'      => !empty($user->passcode),
                         'security_pin'      => !empty($user->security_pin) ? '****' : null,
+                        // Google Auth flags — used by DangerSettingsSection to determine
+                        // whether to ask for password or email address for confirmation.
+                        'google_id'         => !empty($user->google_id),
+                        'has_password'      => !empty($user->password),
                     ]
                 ) : null,
                 'notifications' => $user ? \Illuminate\Support\Facades\Cache::remember("user_notifications:{$user->id}", 15, function () use ($user) {

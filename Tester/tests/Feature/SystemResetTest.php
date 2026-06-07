@@ -162,4 +162,58 @@ class SystemResetTest extends VenQoreTestCase
 
         $response->assertStatus(405);
     }
+
+    /** @test */
+    public function google_user_without_password_can_reset_system_using_email_address()
+    {
+        $tenant = $this->createTenant();
+        $user = $this->createTenantUser($tenant, 'owner');
+
+        // Google user with no password set
+        $user->google_id = 'google-oauth-67890';
+        $user->password  = null;
+        $user->save();
+
+        $this->actingAsTenantUserModel($user, $tenant);
+
+        // Seed some dummy data
+        Product::factory()->create(['tenant_id' => $tenant->id]);
+        $this->assertGreaterThan(0, Product::count());
+
+        // Confirm with their own email address (the fallback for Google users)
+        $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
+            'password' => $user->email,   // backend accepts email as fallback
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'message' => 'System successfully reset to factory settings.'
+        ]);
+
+        $this->assertEquals(0, Product::count());
+    }
+
+    /** @test */
+    public function google_user_without_password_cannot_reset_with_wrong_email()
+    {
+        $tenant = $this->createTenant();
+        $user = $this->createTenantUser($tenant, 'owner');
+
+        // Google user with no password set
+        $user->google_id = 'google-oauth-99999';
+        $user->password  = null;
+        $user->save();
+
+        $this->actingAsTenantUserModel($user, $tenant);
+
+        // Attempt with an incorrect email
+        $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
+            'password' => 'wrong@email.com',
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJsonFragment([
+            'message' => 'Invalid password or admin passcode.'
+        ]);
+    }
 }

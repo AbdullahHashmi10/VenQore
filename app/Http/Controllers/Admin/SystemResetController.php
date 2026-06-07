@@ -13,12 +13,23 @@ use Illuminate\Validation\ValidationException;
 class SystemResetController extends Controller
 {
     /**
-     * Helper to verify password or passcode
+     * Verify the credential supplied for a dangerous operation.
+     *
+     * Priority order:
+     *   1. Password  — any user who has set a password must supply it.
+     *   2. Admin passcode — store-level passcode set in Settings.
+     *   3. Email address (Google-only fallback) — a Google user who has
+     *      never set a password can confirm by typing their own email.
+     *      This is safe because the endpoint is already protected by
+     *      auth + tenant middleware; the attacker would have to be
+     *      already logged in as that user.
      */
     private function verifyCredential($input)
     {
-        // 1. Check User Password
-        if (auth()->user()->password && Hash::check($input, auth()->user()->password)) {
+        $user = auth()->user();
+
+        // 1. Check User Password (works for everyone who has one)
+        if ($user->password && Hash::check($input, $user->password)) {
             return true;
         }
 
@@ -26,6 +37,14 @@ class SystemResetController extends Controller
         $passcode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
         if ($passcode && $input === $passcode) {
             return true;
+        }
+
+        // 3. Email fallback — ONLY for Google-authenticated users who have
+        //    never set a password. They confirm by typing their own email.
+        if (!$user->password && $user->google_id) {
+            if (strtolower(trim($input)) === strtolower(trim($user->email))) {
+                return true;
+            }
         }
 
         return false;
