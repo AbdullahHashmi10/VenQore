@@ -26,7 +26,11 @@ abstract class SmokeTestCase extends BaseTestCase
         // Allow an explicit override for live-server runs via env var.
         // Locally, DB_DATABASE from phpunit.xml ('amd_pos_test') is used as-is.
         $smokeDb = env('SMOKE_DB_DATABASE');
-        if ($smokeDb) {
+        $currentDbUser = config('database.connections.mysql.username');
+
+        // On the live server, we want to use the live database configured in the environment config.
+        // We detect the live server if the database username is not 'root' and the database name in config is different from the default test database 'amd_pos_test'.
+        if ($smokeDb && ($currentDbUser === 'root' || $smokeDb !== 'amd_pos_test')) {
             config(['database.connections.mysql.database' => $smokeDb]);
             DB::purge('mysql');
             DB::reconnect('mysql');

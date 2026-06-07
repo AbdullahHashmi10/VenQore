@@ -2,28 +2,32 @@ import React, { useState } from 'react';
 import { Trash2, AlertOctagon, Loader2, AlertTriangle } from 'lucide-react';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { usePage } from '@inertiajs/react';
 
 export default function DangerSettingsSection({ data, setData }) {
     const [resetting, setResetting] = useState(false);
+
+    const { store } = usePage().props;
+    const storeSlug = store?.slug || 'demo';
 
     const handleFactoryReset = async (type = 'all') => {
         let title = 'Are you sure?';
         let text = 'This action cannot be undone.';
         let confirmText = 'Yes, delete it!';
-        let url = '/api/system/reset'; // Default URL for factory reset
+        let url = `/s/${storeSlug}/api/system/reset`; // Default URL for factory reset
 
         if (type === 'all') {
             title = 'FACTORY RESET';
             text = 'WARNING: This will delete ALL sales, products, customers, and transactions. Only your admin account will remain. This process is IRREVERSIBLE.';
             confirmText = 'I UNDERSTAND, WIPE EVERYTHING';
-            // url remains /api/system/reset
+            // url remains /s/{storeSlug}/api/system/reset
         } else {
             // For selective delete, we use a different endpoint format if backend supports distinct routes, 
             // but SystemResetController uses `deleteEntity` method usually mapped to something dynamic.
             // Based on previous code, it seemed to be /api/system/reset/{entity}. 
             // SystemResetController code showed "deleteEntity" method. Routes must map it.
             // Let's assume the router handles it.
-            url = `/api/system/reset/${type}`;
+            url = `/s/${storeSlug}/api/system/reset/${type}`;
             text = `This will permanently delete all ${type} data.`;
             confirmText = `Yes, delete ${type}`;
         }
@@ -46,9 +50,15 @@ export default function DangerSettingsSection({ data, setData }) {
         // 2. Password Authentication Prompt
         const { value: password } = await Swal.fire({
             title: 'Authentication Required',
-            text: 'Please enter your password or admin passcode to confirm.',
-            input: 'password',
-            inputPlaceholder: 'Enter your password',
+            html: `
+                <p class="text-slate-300 text-sm mb-4 text-left">Please enter your password, admin passcode, or email verification code to confirm.</p>
+                <input id="swal-input-password" type="password" class="swal2-input w-full" placeholder="Enter password, passcode, or OTP" style="margin: 10px 0; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px;">
+                <div class="mt-2 text-right">
+                    <button id="swal-btn-send-otp" class="text-red-400 hover:text-red-300 text-xs font-semibold focus:outline-none transition-colors bg-transparent border-none cursor-pointer">
+                        Send verification code to my email
+                    </button>
+                </div>
+            `,
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -56,9 +66,34 @@ export default function DangerSettingsSection({ data, setData }) {
             cancelButtonColor: '#3085d6',
             background: '#1e293b',
             color: '#fff',
-            inputValidator: (value) => {
-                if (!value) {
-                    return 'You need to enter your password!'
+            preConfirm: () => {
+                const inputVal = Swal.getHtmlContainer().querySelector('#swal-input-password').value;
+                if (!inputVal) {
+                    Swal.showValidationMessage('Password, passcode, or OTP is required');
+                    return false;
+                }
+                return inputVal;
+            },
+            didOpen: () => {
+                const btn = Swal.getHtmlContainer().querySelector('#swal-btn-send-otp');
+                if (btn) {
+                    btn.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        btn.disabled = true;
+                        btn.textContent = 'Sending...';
+                        try {
+                            const sendUrl = `/s/${storeSlug}/api/system/reset/send-otp`;
+                            await axios.post(sendUrl);
+                            Swal.showValidationMessage('Verification code sent! Check your email.');
+                            btn.textContent = 'Resend verification code';
+                            btn.disabled = false;
+                        } catch (err) {
+                            console.error(err);
+                            Swal.showValidationMessage('Failed to send verification code. Please try again.');
+                            btn.textContent = 'Send verification code to my email';
+                            btn.disabled = false;
+                        }
+                    });
                 }
             }
         });
