@@ -82,8 +82,10 @@ class SaleReversalService
         ];
 
         // ─── Step 1: Reverse the Journal Entry ───────────────────────────────
-        // Find the original journal entry for this sale
-        $originalEntry = JournalEntry::where('reference', $sale->reference_number)->first();
+        // Find the original journal entry for this sale (handles both UUID and reference_number)
+        $originalEntry = JournalEntry::where('reference', $sale->id)
+            ->orWhere('reference', $sale->reference_number)
+            ->first();
 
         if ($originalEntry) {
             // Create a new, counter journal entry — every debit becomes a credit and vice versa.
@@ -94,6 +96,7 @@ class SaleReversalService
                 'description' => "[{$type}] Reversal of {$sale->reference_number}: {$reason}",
                 'party_id'    => $sale->party_id,
                 'created_by'  => $userId,
+                'user_id'     => $userId,
             ]);
 
             // Mirror every journal item with flipped debit/credit
@@ -129,6 +132,29 @@ class SaleReversalService
             ]);
         } else {
             Log::warning("SaleReversalService: No journal entry found for {$sale->reference_number}. Stock will still be restored.");
+        }
+
+        // ─── Step 1.5: Create Proportional Counter-Balancing Payments ─────────
+        $payments = DB::table('payments')->where('sale_id', $sale->id)->get();
+        foreach ($payments as $payment) {
+            $exists = DB::table('payments')
+                ->where('sale_id', $sale->id)
+                ->where('amount', -$payment->amount)
+                ->where('method', $payment->method)
+                ->where('reference', 'like', 'REVERSAL%')
+                ->exists();
+
+            if (!$exists) {
+                \App\Models\Payment::create([
+                    'sale_id'   => $sale->id,
+                    'party_id'  => $payment->party_id,
+                    'amount'    => -$payment->amount,
+                    'type'      => $payment->type === 'in' ? 'out' : 'in',
+                    'method'    => $payment->method,
+                    'reference' => 'REVERSAL of payment: ' . $payment->reference,
+                    'date'      => now()->toDateString(),
+                ]);
+            }
         }
 
         // ─── Step 2: Restore FIFO Stock ───────────────────────────────────────

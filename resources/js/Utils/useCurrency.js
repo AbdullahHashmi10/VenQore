@@ -34,42 +34,43 @@ import { usePage } from '@inertiajs/react';
 export function useCurrency() {
     const { props } = usePage();
 
-    // SaaS (multi-tenant): TenantMiddleware shares this via Inertia::share('tenant', [...])
-    const tenantSymbol = props.tenant?.currency_symbol;
-
-    // Single-tenant: SetupController saves it to the settings table,
-    // HandleInertiaRequests shares the entire settings table as props.settings
-    const settingsSymbol = props.settings?.currency_symbol;
-
-    // Resolve with priority: tenant → settings → fallback
-    const symbol = tenantSymbol || settingsSymbol || 'Rs. ';
-    const code   = props.tenant?.currency_code || props.settings?.currency_code || 'PKR';
+    // Resolve with priority: store/tenant → settings → fallback
+    const symbol = props.store?.currency_symbol || props.tenant?.currency_symbol || props.settings?.currency_symbol || 'Rs. ';
+    const code   = props.store?.currency_code   || props.tenant?.currency_code   || props.settings?.currency_code || 'PKR';
+    const decimals = parseInt(props.settings?.decimal_places !== undefined ? props.settings.decimal_places : 2);
 
     /**
      * Format a numeric amount as a currency string.
      * e.g. format(1234.5) → "Rs. 1,234.50"
      */
-    const format = (amount, decimals = 2) => {
+    const format = (amount, d = null) => {
         const num = parseFloat(amount) || 0;
-        return `${symbol}${num.toLocaleString('en-US', {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
-        })}`;
+        const finalDecimals = d !== null ? d : decimals;
+        
+        const formattedNumber = num.toLocaleString('en-US', {
+            minimumFractionDigits: finalDecimals,
+            maximumFractionDigits: finalDecimals,
+        });
+
+        // Ensure single space between symbol and number if not already present
+        const s = symbol.trim();
+        return `${s} ${formattedNumber}`;
     };
 
     /**
      * Format a number with commas but no currency prefix.
      * e.g. formatNumber(1234567) → "1,234,567"
      */
-    const formatNumber = (amount, decimals = 0) => {
+    const formatNumber = (amount, d = null) => {
         const num = parseFloat(amount) || 0;
+        const finalDecimals = d !== null ? d : decimals;
         return num.toLocaleString('en-US', {
-            minimumFractionDigits: decimals,
-            maximumFractionDigits: decimals,
+            minimumFractionDigits: finalDecimals,
+            maximumFractionDigits: finalDecimals,
         });
     };
 
-    return { symbol, code, format, formatNumber };
+    return { symbol: symbol.trim(), code, format, formatNumber };
 }
 
 /**

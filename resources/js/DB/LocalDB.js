@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 
 export const db = new Dexie('VenQore_Offline_DB');
 
-db.version(2).stores({
+db.version(3).stores({
     products: 'id, name, sku, barcode, category_id, brand_id, unit_id', // Core product data
     customers: 'id, name, phone, email, balance', // Parties (Customers/Suppliers)
     suppliers: 'id, name, phone, email, balance',
@@ -12,6 +12,8 @@ db.version(2).stores({
     settings: 'key, value', // For config and DRM (last_online_verify)
     users: 'id, pin_hash, role', // Auth
     taxes: 'id, name, rate_percent',
+    sales_queue: '++id, created_at, status', // For offline POS sync queue
+    offline_invoices: '++id, invoice_number, created_at', // Offline history
     sync_queue: '++id, table, action, data, timestamp' // Generic sync queue
 });
 
@@ -19,4 +21,3 @@ db.version(2).stores({
 db.on('populate', () => {
     db.settings.add({ key: 'last_online_verify', value: Date.now() });
 });
-

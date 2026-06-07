@@ -143,6 +143,13 @@ class FifoService
         ?string $notes = null,
         ?string $variantId = null
     ): InventoryBatch {
+        if ($quantity <= 0) {
+            throw new \InvalidArgumentException('Quantity must be strictly positive.');
+        }
+        if ($unitCost < 0) {
+            throw new \InvalidArgumentException('Unit cost cannot be negative.');
+        }
+
         return InventoryBatch::create([
             'product_id'          => $productId,
             'variant_id'          => $variantId,

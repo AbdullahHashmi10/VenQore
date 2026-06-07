@@ -29,7 +29,7 @@ export default function Backups({ backups: initialBackups = [] }) {
 
     const createBackup = () => {
         setCreating(true);
-        router.post(route('store.admin.backups.store', { store_slug: props.store.slug }), {}, {
+        router.post(route('store.backups.store', { store_slug: props.store.slug }), {}, {
             onFinish: () => setCreating(false),
             preserveScroll: true
         });
@@ -38,7 +38,7 @@ export default function Backups({ backups: initialBackups = [] }) {
     const deleteBackup = (filename) => {
         if (!confirm('Are you sure you want to delete this backup? This cannot be undone.')) return;
         setDeleting(filename);
-        router.delete(route('store.admin.backups.delete', { store_slug: props.store.slug, filename }), {
+        router.delete(route('store.backups.delete', { store_slug: props.store.slug, filename }), {
             onFinish: () => setDeleting(null),
             preserveScroll: true
         });
@@ -46,7 +46,7 @@ export default function Backups({ backups: initialBackups = [] }) {
 
     const emailBackup = (filename) => {
         setMailing(filename);
-        router.post(route('store.admin.backups.email', { store_slug: props.store.slug, filename }), {}, {
+        router.post(route('store.backups.email', { store_slug: props.store.slug, filename }), {}, {
             onFinish: () => setMailing(null),
             preserveScroll: true
         });
@@ -65,7 +65,7 @@ export default function Backups({ backups: initialBackups = [] }) {
         formData.append('backup_file', file);
 
         setRestoring(true);
-        window.axios.post(route('store.admin.backups.restore', { store_slug: props.store.slug }), formData)
+        window.axios.post(route('store.backups.restore', { store_slug: props.store.slug }), formData)
             .then(res => {
                 alert('Database restored successfully! The page will now reload.');
                 window.location.reload();
@@ -206,7 +206,7 @@ export default function Backups({ backups: initialBackups = [] }) {
                                             <td className="px-8 py-5">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <a 
-                                                        href={route('store.admin.backups.download', { store_slug: props.store.slug, filename: backup.name })}
+                                                        href={route('store.backups.download', { store_slug: props.store.slug, filename: backup.name })}
                                                         className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-500 hover:border-indigo-500 dark:hover:text-indigo-400 dark:hover:border-indigo-500 transition-all"
                                                         title="Download SQL"
                                                     >

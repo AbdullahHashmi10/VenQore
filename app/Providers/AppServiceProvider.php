@@ -36,6 +36,9 @@ class AppServiceProvider extends ServiceProvider
         // 3. Phase 1.2 — Immutable Lock: The Deadbolt
         Sale::observe(SaleObserver::class);
 
+        // Chatbot session state machine observer
+        \App\Models\ChatSession::observe(\App\Observers\ChatSessionObserver::class);
+
         // 4. Phase 1.7: Tenant-aware Rate Limiting
         // Limits are per-tenant (not per-IP) so one bad actor can't hurt others.
         RateLimiter::for('api', function (Request $request) {
@@ -57,6 +60,24 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('auth', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // 5. Phase 19: Unbound Broadcaster Async Context Failures Fix
+        // Automatically inject current.tenant context into queued jobs, and re-bind it on queue worker run
+        \Illuminate\Support\Facades\Queue::createPayloadUsing(function ($connection, $queue, $payload) {
+            return app()->bound('current.tenant') 
+                ? ['tenant_id' => app('current.tenant')->id] 
+                : [];
+        });
+
+        \Illuminate\Support\Facades\Queue::before(function (\Illuminate\Queue\Events\JobProcessing $event) {
+            $payload = $event->job->payload();
+            if (isset($payload['tenant_id'])) {
+                $tenant = \App\Models\Tenant::find($payload['tenant_id']);
+                if ($tenant) {
+                    app()->instance('current.tenant', $tenant);
+                }
+            }
         });
     }
 }

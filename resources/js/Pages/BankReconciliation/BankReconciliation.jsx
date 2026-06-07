@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Head } from '@inertiajs/react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import { usePage, Head } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs'; // Added
 import {
@@ -49,7 +50,8 @@ export default function BankReconciliationIndex({
         return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
     };
 
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
+    const { store } = usePage().props;
+
 
     return (
         <OneGlanceLayout title="Bank Reconciliation" activeMenu="Banking">

@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class FifoService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct()
     {
@@ -33,20 +33,6 @@ class FifoService
 
         return DB::transaction(function () use ($productId, $warehouseId, $qty) {
 
-            // Pre-flight: check total available FIRST
-            $totalAvailable = DB::table('inventory_batches')
-                ->where('tenant_id', $this->tenantId)
-                ->where('product_id', $productId)
-                ->where('warehouse_id', $warehouseId)
-                ->where('remaining_qty', '>', 0)
-                ->sum('remaining_qty');
-                
-            if ($totalAvailable < $qty) {
-                throw new InsufficientStockException(
-                    $productId, $warehouseId, $qty, $totalAvailable
-                );
-            }
-
             // Lock batches for this product+warehouse, oldest first
             $batches = DB::table('inventory_batches')
                 ->where('tenant_id', $this->tenantId)
@@ -56,6 +42,16 @@ class FifoService
                 ->orderBy('created_at', 'ASC') // FIFO — Golden Rule 3
                 ->lockForUpdate()
                 ->get();
+
+            $totalAvailable = (float) $batches->sum('remaining_qty');
+                
+            $stopNegative = \App\Helpers\SettingsHelper::shouldStopNegativeStock();
+
+            if ($totalAvailable < $qty && $stopNegative) {
+                throw new InsufficientStockException(
+                    $productId, $warehouseId, $qty, $totalAvailable
+                );
+            }
 
             $deductions    = [];
             $remaining     = $qty;
@@ -80,6 +76,54 @@ class FifoService
                 ];
 
                 $remaining -= $take;
+            }
+
+            if ($remaining > 0) {
+                $lastBatch = DB::table('inventory_batches')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('product_id', $productId)
+                    ->where('warehouse_id', $warehouseId)
+                    ->orderBy('created_at', 'DESC')
+                    ->first();
+
+                if (!$lastBatch) {
+                    $product = DB::table('products')->where('tenant_id', $this->tenantId)->where('id', $productId)->first();
+                    $unitCost = $product ? (float) ($product->cost_price ?? 0) : 0.0;
+                    
+                    $batchId = Str::uuid()->toString();
+                    DB::table('inventory_batches')->insert([
+                        'tenant_id' => $this->tenantId,
+                        'id' => $batchId,
+                        'product_id' => $productId,
+                        'warehouse_id' => $warehouseId,
+                        'batch_type' => 'negative_stock',
+                        'unit_cost' => $unitCost,
+                        'original_qty' => 0,
+                        'initial_qty' => 0,
+                        'remaining_qty' => -$remaining,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                    
+                    $deductions[] = [
+                        'batch_id' => $batchId,
+                        'qty_taken' => $remaining,
+                        'unit_cost' => $unitCost,
+                        'total_cost' => round($remaining * $unitCost, 2),
+                    ];
+                } else {
+                    DB::table('inventory_batches')
+                        ->where('tenant_id', $this->tenantId)
+                        ->where('id', $lastBatch->id)
+                        ->decrement('remaining_qty', $remaining);
+                    
+                    $deductions[] = [
+                        'batch_id' => $lastBatch->id,
+                        'qty_taken' => $remaining,
+                        'unit_cost' => (float) $lastBatch->unit_cost,
+                        'total_cost' => round($remaining * $lastBatch->unit_cost, 2),
+                    ];
+                }
             }
 
             return $deductions;
@@ -128,6 +172,13 @@ class FifoService
         string|int|null $productionRunId = null,
         string|null     $expiryDate      = null
     ): object {
+        if ($qty <= 0) {
+            throw new \InvalidArgumentException('Quantity must be strictly positive.');
+        }
+        if ($unitCost < 0) {
+            throw new \InvalidArgumentException('Unit cost cannot be negative.');
+        }
+
         $id = Str::uuid()->toString();
 
         DB::table('inventory_batches')->insert([

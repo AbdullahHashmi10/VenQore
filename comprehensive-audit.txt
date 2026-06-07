@@ -1,0 +1,4091 @@
+Let me start a comprehensive audit to make this truly rock solid.
+
+Update Todos
+
+Audit all Models for HasTenant trait
+
+Find all Eloquent queries missing tenant scope (selectSub, raw, etc.)
+
+Audit app/Jobs/ for missing tenant context
+
+Fix all missing HasTenant applications
+
+Fix broken frontend routes
+
+Run build and verify no compilation errors
+
+Run migrations
+Bash
+IN
+cd "d:/AMD POS" && ls app/Models/
+
+OUT
+Account.php
+Activity.php
+ActivityLog.php
+AiRecommendation.php
+AppSumoCode.php
+BankAccount.php
+Batch.php
+Brand.php
+Category.php
+CustomCharge.php
+Customer.php
+CustomerAnalytics.php
+DebitNote.php
+DebitNoteItem.php
+Expense.php
+ExpenseCategory.php
+FundTransaction.php
+GiftCard.php
+InventoryBatch.php
+Invoice.php
+InvoiceItem.php
+JournalEntry.php
+JournalItem.php
+LoyaltyBalance.php
+LoyaltyPoint.php
+ManufacturingIngredient.php
+ManufacturingLog.php
+ManufacturingRule.php
+ParkedSale.php
+Party.php
+Payment.php
+PaymentAllocation.php
+PlatformActivityLog.php
+Product.php
+ProductAttribute.php
+ProductBarcode.php
+ProductBatch.php
+ProductImage.php
+ProductSerial.php
+ProductUnit.php
+ProductVariant.php
+ProductionLog.php
+ProductionLogIngredient.php
+ProductionRun.php
+Proposal.php
+ProposalItem.php
+PurchaseItem.php
+PurchaseOrder.php
+PurchaseOrderItem.php
+PurchaseProposal.php
+PurchaseProposalItem.php
+Quotation.php
+QuotationItem.php
+Recipe.php
+RecipeIngredient.php
+RecipeMedia.php
+Sale.php
+SaleItem.php
+SaleItemBatch.php
+SalesOrder.php
+SalesOrderItem.php
+Setting.php
+StaffActivityGap.php
+StaffAttendance.php
+StaffDailySummary.php
+StaffInvitation.php
+Stock.php
+StockMovement.php
+StockTake.php
+StockTakeItem.php
+StockTransfer.php
+StockTransferItem.php
+StoreActivityLog.php
+StoreCredit.php
+StoreCreditBalance.php
+StoreLicense.php
+Supplier.php
+SupportTicket.php
+SupportTicketReply.php
+Tenant.php
+TenantUser.php
+Terminal.php
+Transaction.php
+TransactionAllocation.php
+Unit.php
+User.php
+VariantAttribute.php
+Warehouse.php
+WebhookLog.php
+[rerun: b1]
+Bash
+IN
+cd "d:/AMD POS" && ls app/Jobs/ 2>/dev/null || echo "No Jobs directory"
+
+OUT
+GenerateReportExport.php
+HandlePaymentFailedJob.php
+HandleSubscriptionCancelledJob.php
+HandleSubscriptionExpiredJob.php
+HandleSubscriptionUpdatedJob.php
+ProvisionTenantJob.php
+[rerun: b2]
+Bash
+IN
+cd "d:/AMD POS" && grep -rL "HasTenant\|GlobalTenant\|BelongsToTenant" app/Models/ | grep -v "User\.php\|Tenant\.php\|Setting\.php\|AppSumoCode\.php\|PlatformActivityLog\.php\|StoreLicense\.php\|SupportTicket\|TenantUser\.php\|StaffInvitation\.php"
+
+OUT
+app/Models/Batch.php
+app/Models/Brand.php
+app/Models/CustomCharge.php
+app/Models/Customer.php
+app/Models/DebitNote.php
+app/Models/DebitNoteItem.php
+app/Models/ExpenseCategory.php
+app/Models/FundTransaction.php
+app/Models/GiftCard.php
+app/Models/InventoryBatch.php
+app/Models/LoyaltyBalance.php
+app/Models/LoyaltyPoint.php
+app/Models/ManufacturingIngredient.php
+app/Models/ManufacturingLog.php
+app/Models/ManufacturingRule.php
+app/Models/ParkedSale.php
+app/Models/ProductAttribute.php
+app/Models/ProductBarcode.php
+app/Models/ProductBatch.php
+app/Models/ProductImage.php
+app/Models/ProductionLog.php
+app/Models/ProductionLogIngredient.php
+app/Models/ProductSerial.php
+app/Models/ProductUnit.php
+app/Models/PurchaseItem.php
+app/Models/PurchaseOrder.php
+app/Models/PurchaseOrderItem.php
+app/Models/RecipeMedia.php
+app/Models/SaleItemBatch.php
+app/Models/StaffDailySummary.php
+app/Models/StockTake.php
+app/Models/StockTakeItem.php
+app/Models/StockTransfer.php
+app/Models/StockTransferItem.php
+app/Models/StoreCredit.php
+app/Models/StoreCreditBalance.php
+app/Models/Supplier.php
+app/Models/Terminal.php
+app/Models/Transaction.php
+app/Models/TransactionAllocation.php
+app/Models/Unit.php
+app/Models/VariantAttribute.php
+app/Models/WebhookLog.php
+[rerun: b3]
+Bash
+IN
+cd "d:/AMD POS" && cat app/Models/HasTenant.php 2>/dev/null || grep -r "trait HasTenant\|HasTenant" app/Models/ --include="*.php" -l | head -5
+
+OUT
+app/Models/Account.php
+app/Models/Activity.php
+app/Models/ActivityLog.php
+app/Models/AiRecommendation.php
+app/Models/BankAccount.php
+[rerun: b4]
+Bash
+IN
+cd "d:/AMD POS" && cat app/Models/Account.php
+
+OUT
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Traits\HasTenant;
+
+class Account extends Model
+{
+    use HasFactory, HasUuids, HasTenant, SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'code',
+        'type',
+        'parent_id',
+        'balance',
+        'depreciation_rate',
+        'is_active',
+    ];
+
+    public function parent()
+    {
+        return $this->belongsTo(Account::class, 'parent_id');
+    }
+
+    public function children()
+    {
+        return $this->hasMany(Account::class, 'parent_id');
+    }
+
+    public function journalItems()
+    {
+        return $this->hasMany(JournalItem::class);
+    }
+}
+[rerun: b5]
+Bash
+IN
+cd "d:/AMD POS" && grep -r "trait HasTenant" app/ --include="*.php" -l
+
+OUT
+app/Traits/HasTenant.php
+[rerun: b6]
+Bash
+IN
+cd "d:/AMD POS" && cat app/Traits/HasTenant.php
+
+OUT
+<?php
+
+namespace App\Traits;
+
+use Illuminate\Database\Eloquent\Builder;
+
+/**
+ * HasTenant — Phase 1.3
+ *
+ * Apply this trait to every Eloquent model that has a tenant_id column.
+ * It does two things automatically:
+ *
+ *   1. Auto-assigns tenant_id on creation from the DI container binding.
+ *   2. Adds a global scope so ALL queries are automatically filtered by
+ *      the current tenant — preventing any cross-tenant data leaks.
+ *
+ * The container key 'current.tenant' is set by TenantMiddleware on every
+ * request. If no tenant is bound (e.g., CLI commands, super-admin routes),
+ * the scope is NOT applied — data is globally accessible.
+ *
+ * Usage:
+ *   use App\Traits\HasTenant;
+ *   class Product extends Model {
+ *       use HasTenant;
+ *   }
+ *
+ * Escape hatch (super-admin / console only):
+ *   Product::withoutTenantScope()->get()   // bypass the global scope
+ */
+trait HasTenant
+{
+    /**
+     * Boot the HasTenant trait for the model.
+     * Called automatically by Laravel's Model::boot().
+     */
+    protected static function bootHasTenant(): void
+    {
+        // ── Auto-assign tenant_id on model creation ──────────────────────
+        static::creating(function ($model) {
+            if (empty($model->tenant_id)) {
+                if (app()->bound('current.tenant')) {
+                    $model->tenant_id = app('current.tenant')->id;
+                } elseif (auth()->check() && auth()->user()->last_store_id) {
+                    $model->tenant_id = auth()->user()->last_store_id;
+                }
+            }
+        });
+
+        // ── Global Scope: all queries auto-scoped to current tenant ───────
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantId = null;
+
+            if (app()->bound('current.tenant')) {
+                $tenantId = app('current.tenant')->id;
+            } elseif (auth()->check() && auth()->user()->last_store_id) {
+                // Fallback for legacy routes (e.g. /growth-engine, /reports) outside /s/{slug}
+                $tenantId = auth()->user()->last_store_id;
+            }
+
+            if ($tenantId) {
+                $table = $builder->getModel()->getTable();
+                $builder->where("{$table}.tenant_id", $tenantId);
+            } else {
+                // Hard block: never return data when tenant context is missing.
+                // This prevents silent full-table leaks in jobs, commands, and
+                // any route where tenant was not bootstrapped.
+                // Use Model::withoutTenantScope() or withoutGlobalScope('tenant')
+                // explicitly for intentional cross-tenant platform operations.
+                $builder->whereRaw('1 = 0');
+            }
+        });
+
+
+    }
+
+    // ── Escape Hatch ──────────────────────────────────────────────────────
+
+    /**
+     * Query without the tenant scope.
+     * USE ONLY in super-admin contexts or Artisan commands.
+     * NEVER call this from a regular controller.
+     *
+     * @return Builder
+     */
+    public static function withoutTenantScope(): Builder
+    {
+        return static::withoutGlobalScope('tenant');
+    }
+
+    // ── Relationship helper ───────────────────────────────────────────────
+
+    /**
+     * Return the tenant this model belongs to.
+     */
+    public function tenant(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Tenant::class);
+    }
+}
+[rerun: b7]
+Good - the trait is solid with a hard block. Now let me check what models actually need tenant isolation vs. which are legitimately global.
+
+Bash
+IN
+cd "d:/AMD POS" && for f in app/Models/Batch.php app/Models/Brand.php app/Models/CustomCharge.php app/Models/Customer.php app/Models/DebitNote.php app/Models/FundTransaction.php; do echo "=== $f ==="; head -20 "$f"; done
+
+OUT
+=== app/Models/Batch.php ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Batch extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    protected $casts = [
+        'expiry_date' => 'date',
+        'mfg_date' => 'date',
+    ];
+
+    public function product()
+    {
+=== app/Models/Brand.php ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Brand extends Model
+{
+    use HasFactory, HasUuids;
+    protected $guarded = [];
+
+    public function recipes()
+    {
+        return $this->hasMany(Recipe::class);
+    }
+}
+=== app/Models/CustomCharge.php ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class CustomCharge extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'description',
+        'default_amount',
+        'is_percentage',
+        'is_active',
+        'sort_order'
+    ];
+
+=== app/Models/Customer.php ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Customer extends Model
+{
+    use HasFactory, SoftDeletes, HasUuids;
+
+    protected $guarded = [];
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
+=== app/Models/DebitNote.php ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Support\Str;
+
+class DebitNote extends Model
+{
+    use SoftDeletes, HasUuids;
+
+    protected $fillable = [
+        'reference_number',
+        'supplier_id',
+        'purchase_id',
+        'date',
+        'amount',
+=== app/Models/FundTransaction.php ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class FundTransaction extends Model
+{
+    use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'type',
+        'from_account_id',
+        'to_account_id',
+        'amount',
+        'balance_before',
+        'balance_after',
+        'reason',
+[rerun: b8]
+Bash
+IN
+cd "d:/AMD POS" && php artisan tinker --execute="use Illuminate\Support\Facades\Schema; \$tables = []; \$tenantModels = []; foreach(glob('app/Models/*.php') as \$f) { \$class = 'App\\\\Models\\\\'.basename(\$f, '.php'); try { if(Schema::hasColumn((new \$class)->getTable(), 'tenant_id')) echo \$class.PHP_EOL; } catch(\$e){} }" 2>/dev/null || echo "tinker failed"
+
+OUT
+tinker failed
+[rerun: b9]
+Bash
+IN
+cd "d:/AMD POS" && grep -r "tenant_id" database/migrations/ --include="*.php" -l | xargs grep -l "create_\|Schema::create" | head -20
+
+OUT
+database/migrations/2026_04_10_000001_create_tenants_table.php
+database/migrations/2026_04_10_100002_create_tenant_users_table.php
+database/migrations/2026_04_10_100003_create_store_licenses_table.php
+database/migrations/2026_04_10_200000_create_support_tickets_table.php
+database/migrations/2026_04_11_create_activity_logs.php
+database/migrations/2026_04_11_create_invites_and_overrides.php
+database/migrations/2026_04_13_100000_create_appsumo_codes_table.php
+database/migrations/2026_04_13_210000_harden_tenant_isolation_on_remaining_tables.php
+[rerun: b10]
+Bash
+IN
+cd "d:/AMD POS" && grep -rl "tenant_id" database/migrations/ --include="*.php" | xargs grep -h "Schema::create\|->create(" | grep -oP "create\('([^']+)'" | sed "s/create('//;s/'//" | sort
+
+OUT
+grep: -P supports only unibyte and UTF-8 locales
+xargs: grep: terminated by signal 13
+[rerun: b11]
+Bash
+IN
+cd "d:/AMD POS" && grep -rl "tenant_id" database/migrations/ --include="*.php" | xargs grep -h "Schema::create\|->create(" | grep -o "create('[^']*'" | sed "s/create('//;s/'//" | sort
+
+OUT
+appsumo_codes
+platform_activity_log
+staff_invitations
+store_activity_log
+store_licenses
+support_ticket_replies
+support_tickets
+tenant_permission_overrides
+tenant_users
+tenants
+webhook_logs
+[rerun: b12]
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_13_210000_harden_tenant_isolation_on_remaining_tables.php | head -80
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+
+return new class extends Migration
+{
+    /**
+     * Final Hardening — Add tenant_id to ALL remaining tables that were missed
+     * in previous V3 and Multi-Tenant migrations.
+     */
+    private const HARDEN_TABLES = [
+        'sales_orders',
+        'sales_order_items',
+        'quotations',
+        'quotation_items',
+        'discount_limits',
+        'payment_allocations',
+        'party_snapshots',
+        'disaster_claims',
+        'employees',
+        'bill_of_materials',
+        'bom_items',
+        'disassembly_boms',
+        'disassembly_bom_items',
+        'system_settings',
+        'production_run_materials',
+    ];
+
+    public function up(): void
+    {
+        foreach (self::HARDEN_TABLES as $table) {
+            if (!Schema::hasTable($table)) continue;
+            if (Schema::hasColumn($table, 'tenant_id')) continue;
+
+            Schema::table($table, function (Blueprint $t) use ($table) {
+                // Add tenant_id as a UUID column linked to tenants.id
+                // (Note: older tables use unsignedBigInteger for tenant_id, 
+                // but definitive plan use UUID for Tenants, but some migrations use foreignId which defaults to bigint)
+                // Let's check what Tenants.id actually is.
+                // According to 2026_04_10_000001_create_tenants_table.php: $table->id(); (BigInt)
+                // According to 2026_04_10_100001_remodel_tenants_to_definitive_plan.php: $table->uuid('id')->primary(); (UUID)
+                
+                $t->uuid('tenant_id')->nullable()->after('id')->index();
+            });
+        }
+
+        // Special case: fix unique indexes that include tenant_id
+        if (Schema::hasTable('discount_limits')) {
+            try {
+                Schema::table('discount_limits', function (Blueprint $table) {
+                    $table->dropUnique('discount_limits_role_unique');
+                    $table->unique(['tenant_id', 'role']);
+                });
+            } catch (\Exception $e) {}
+        }
+        
+        if (Schema::hasTable('system_settings')) {
+            try {
+                Schema::table('system_settings', function (Blueprint $table) {
+                    $table->dropUnique('system_settings_key_unique');
+                    $table->unique(['tenant_id', 'key']);
+                });
+            } catch (\Exception $e) {}
+        }
+
+        if (Schema::hasTable('party_snapshots')) {
+            try {
+                Schema::table('party_snapshots', function (Blueprint $table) {
+                    $table->dropUnique('ps_party_account_unique');
+                    $table->unique(['tenant_id', 'party_id', 'account_code'], 'ps_tenant_party_acc_unique');
+                });
+            } catch (\Exception $e) {}
+        }
+    }
+
+    public function down(): void
+    {
+[rerun: b13]
+Bash
+IN
+cd "d:/AMD POS" && ls database/migrations/ | sort | tail -20
+
+OUT
+2026_04_11_200100_make_settings_tenant_aware.php
+2026_04_11_add_platform_pin_to_users.php
+2026_04_11_create_activity_logs.php
+2026_04_11_create_invites_and_overrides.php
+2026_04_12_000000_add_logo_fields_to_tenants_table.php
+2026_04_13_000000_add_demo_fields_to_tenants_table.php
+2026_04_13_000001_harden_cascade_deletes_to_restrict.php
+2026_04_13_000002_add_softdeletes_and_tenant_id_to_remaining_tables.php
+2026_04_13_000003_add_tenant_id_to_journal_and_inventory_batches.php
+2026_04_13_000004_add_tenant_id_to_sale_item_batches.php
+2026_04_13_000005_add_is_active_to_core_tables.php
+2026_04_13_051805_fix_products_sku_multi_tenant_index.php
+2026_04_13_052350_add_tenant_id_to_missing_tables.php
+2026_04_13_052537_fix_multi_tenant_unique_indexes.php
+2026_04_13_100000_create_appsumo_codes_table.php
+2026_04_13_200000_fix_accounts_unique_index.php
+2026_04_13_210000_harden_tenant_isolation_on_remaining_tables.php
+2026_04_14_000001_add_live_demo_fields_to_tenants_table.php
+2026_04_14_130000_add_tenant_id_to_activities_and_logs.php
+2026_04_14_130500_harden_orders_and_attendance_tenancy.php
+[rerun: b14]
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_14_130500_harden_orders_and_attendance_tenancy.php
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Data Breach Fix Phase 2 — Multi-tenant hardening for Proposals, Orders, and Attendance.
+     * 
+     * This migration ensures that all operational tables used in the store context
+     * have a tenant_id column for strict data isolation.
+     */
+    public function up(): void
+    {
+        $tables = [
+            'proposals',
+            'proposal_items',
+            'purchase_proposals',
+            'purchase_proposal_items',
+            'sales_orders',
+            'sales_order_items',
+            'staff_attendances',
+            'staff_activity_gaps',
+        ];
+
+        foreach ($tables as $table) {
+            if (Schema::hasTable($table) && !Schema::hasColumn($table, 'tenant_id')) {
+                Schema::table($table, function (Blueprint $t) use ($table) {
+                    $t->uuid('tenant_id')->nullable()->after('id')->index();
+                });
+            }
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        $tables = [
+            'proposals',
+            'proposal_items',
+            'purchase_proposals',
+            'purchase_proposal_items',
+            'sales_orders',
+            'sales_order_items',
+            'staff_attendances',
+            'staff_activity_gaps',
+        ];
+
+        foreach ($tables as $table) {
+            if (Schema::hasTable($table) && Schema::hasColumn($table, 'tenant_id')) {
+                Schema::table($table, function (Blueprint $t) {
+                    $t->dropColumn('tenant_id');
+                });
+            }
+        }
+    }
+};
+[rerun: b15]
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_14_130000_add_tenant_id_to_activities_and_logs.php
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Data Breach Fix — Harden multi-tenant isolation for Activity and Logging tables.
+     * 
+     * This migration adds the missing tenant_id columns to the operational activity
+     * tables used by the public-facing dashboards.
+     */
+    public function up(): void
+    {
+        // 1. activities table (used by Home Dashboard)
+        if (Schema::hasTable('activities') && !Schema::hasColumn('activities', 'tenant_id')) {
+            Schema::table('activities', function (Blueprint $table) {
+                // Using UUID to match the Definitive Plan for tenant IDs
+                $table->uuid('tenant_id')->nullable()->after('id')->index();
+            });
+        }
+
+        // 2. activity_logs table (used by Admin/Staff logs)
+        if (Schema::hasTable('activity_logs') && !Schema::hasColumn('activity_logs', 'tenant_id')) {
+            Schema::table('activity_logs', function (Blueprint $table) {
+                $table->uuid('tenant_id')->nullable()->after('id')->index();
+            });
+        }
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        if (Schema::hasTable('activities') && Schema::hasColumn('activities', 'tenant_id')) {
+            Schema::table('activities', function (Blueprint $table) {
+                $table->dropColumn('tenant_id');
+            });
+        }
+
+        if (Schema::hasTable('activity_logs') && Schema::hasColumn('activity_logs', 'tenant_id')) {
+            Schema::table('activity_logs', function (Blueprint $table) {
+                $table->dropColumn('tenant_id');
+            });
+        }
+    }
+};
+[rerun: b16]
+Good. Now let me map models that need HasTenant vs. which actually have a tenant_id column in their migration.
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rl "tenant_id" database/migrations/ --include="*.php" | xargs grep -h "->create\b\|Schema::create" | grep -o "'[a-z_]*'" | tr -d "'" | sort -u
+
+OUT
+grep: unknown option -- >
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
+[rerun: b17]
+Bash
+IN
+cd "d:/AMD POS" && for f in app/Models/Batch.php app/Models/Brand.php app/Models/CustomCharge.php app/Models/Customer.php app/Models/DebitNote.php app/Models/DebitNoteItem.php app/Models/FundTransaction.php app/Models/GiftCard.php app/Models/InventoryBatch.php app/Models/LoyaltyBalance.php app/Models/LoyaltyPoint.php app/Models/ManufacturingIngredient.php app/Models/ManufacturingLog.php app/Models/ManufacturingRule.php app/Models/ParkedSale.php app/Models/ProductAttribute.php app/Models/ProductBarcode.php app/Models/ProductBatch.php app/Models/ProductImage.php app/Models/ProductionLog.php app/Models/ProductionLogIngredient.php app/Models/ProductSerial.php app/Models/ProductUnit.php app/Models/PurchaseItem.php app/Models/PurchaseOrder.php app/Models/PurchaseOrderItem.php app/Models/RecipeMedia.php app/Models/SaleItemBatch.php app/Models/StaffDailySummary.php app/Models/StockTake.php app/Models/StockTakeItem.php app/Models/StockTransfer.php app/Models/StockTransferItem.php app/Models/StoreCredit.php app/Models/StoreCreditBalance.php app/Models/Supplier.php app/Models/Terminal.php app/Models/Transaction.php app/Models/TransactionAllocation.php app/Models/Unit.php app/Models/VariantAttribute.php app/Models/WebhookLog.php; do echo "=== $f ==="; grep "protected \$table\|getTable\|class " "$f" | head -3; done
+
+OUT
+=== app/Models/Batch.php ===
+class Batch extends Model
+=== app/Models/Brand.php ===
+class Brand extends Model
+=== app/Models/CustomCharge.php ===
+class CustomCharge extends Model
+=== app/Models/Customer.php ===
+class Customer extends Model
+=== app/Models/DebitNote.php ===
+class DebitNote extends Model
+=== app/Models/DebitNoteItem.php ===
+class DebitNoteItem extends Model
+=== app/Models/FundTransaction.php ===
+class FundTransaction extends Model
+=== app/Models/GiftCard.php ===
+class GiftCard extends Model
+=== app/Models/InventoryBatch.php ===
+class InventoryBatch extends Model
+=== app/Models/LoyaltyBalance.php ===
+class LoyaltyBalance extends Model
+=== app/Models/LoyaltyPoint.php ===
+class LoyaltyPoint extends Model
+=== app/Models/ManufacturingIngredient.php ===
+class ManufacturingIngredient extends Model
+=== app/Models/ManufacturingLog.php ===
+class ManufacturingLog extends Model
+=== app/Models/ManufacturingRule.php ===
+class ManufacturingRule extends Model
+=== app/Models/ParkedSale.php ===
+class ParkedSale extends Model
+=== app/Models/ProductAttribute.php ===
+class ProductAttribute extends Model
+=== app/Models/ProductBarcode.php ===
+class ProductBarcode extends Model
+=== app/Models/ProductBatch.php ===
+class ProductBatch extends Model
+=== app/Models/ProductImage.php ===
+class ProductImage extends Model
+=== app/Models/ProductionLog.php ===
+class ProductionLog extends Model
+=== app/Models/ProductionLogIngredient.php ===
+class ProductionLogIngredient extends Model
+=== app/Models/ProductSerial.php ===
+class ProductSerial extends Model
+=== app/Models/ProductUnit.php ===
+class ProductUnit extends Model
+=== app/Models/PurchaseItem.php ===
+class PurchaseItem extends Model
+=== app/Models/PurchaseOrder.php ===
+class PurchaseOrder extends Model
+=== app/Models/PurchaseOrderItem.php ===
+class PurchaseOrderItem extends Model
+=== app/Models/RecipeMedia.php ===
+class RecipeMedia extends Model
+=== app/Models/SaleItemBatch.php ===
+class SaleItemBatch extends Model
+=== app/Models/StaffDailySummary.php ===
+class StaffDailySummary extends Model
+=== app/Models/StockTake.php ===
+class StockTake extends Model
+=== app/Models/StockTakeItem.php ===
+class StockTakeItem extends Model
+=== app/Models/StockTransfer.php ===
+class StockTransfer extends Model
+=== app/Models/StockTransferItem.php ===
+class StockTransferItem extends Model
+=== app/Models/StoreCredit.php ===
+class StoreCredit extends Model
+=== app/Models/StoreCreditBalance.php ===
+class StoreCreditBalance extends Model
+=== app/Models/Supplier.php ===
+class Supplier extends Model
+=== app/Models/Terminal.php ===
+class Terminal extends Model
+=== app/Models/Transaction.php ===
+class Transaction extends Model
+=== app/Models/TransactionAllocation.php ===
+class TransactionAllocation extends Model
+=== app/Models/Unit.php ===
+class Unit extends Model
+=== app/Models/VariantAttribute.php ===
+class VariantAttribute extends Model
+=== app/Models/WebhookLog.php ===
+class WebhookLog extends Model
+[rerun: b18]
+I need to determine which of these models actually have tenant_id columns in migrations. Let me check by searching migrations directly.
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rh "tenant_id" database/migrations/ --include="*.php" | grep -o "'[a-z_]*'" | sort -u | head -50
+
+OUT
+'_tenant_id_foreign'
+'account_code'
+'action'
+'activities'
+'activity_logs'
+'ai_recommendations'
+'barcode'
+'code'
+'column_to_index_with_tenant_id'
+'created_at'
+'customer_analytics'
+'email'
+'id'
+'idx_ai_rec_tenant_party'
+'idx_ai_rec_tenant_type'
+'idx_cust_analytics_tenant_party'
+'idx_cust_analytics_tenant_status'
+'idx_je_tenant_party'
+'idx_je_tenant_reversed'
+'invoice_number'
+'is_reversed'
+'journal_entries'
+'key'
+'party_id'
+'ps_tenant_party_acc_unique'
+'reference_number'
+'role'
+'sale_item_batches'
+'settings'
+'sku'
+'status'
+'table'
+'target_tenant_id'
+'tenant_id'
+'tenants'
+'type'
+'user_id'
+'users'
+'users_tenant_id_foreign'
+'users_tenant_id_index'
+[rerun: b19]
+Bash
+IN
+cd "d:/AMD POS" && grep -rh "Schema::create\b" database/migrations/ --include="*.php" -A5 | grep -E "Schema::create|tenant_id" | head -100
+
+OUT
+        Schema::create('users', function (Blueprint $table) {
+        Schema::create('password_reset_tokens', function (Blueprint $table) {
+        Schema::create('sessions', function (Blueprint $table) {
+        Schema::create('cache', function (Blueprint $table) {
+        Schema::create('cache_locks', function (Blueprint $table) {
+        Schema::create('jobs', function (Blueprint $table) {
+        Schema::create('job_batches', function (Blueprint $table) {
+        Schema::create('failed_jobs', function (Blueprint $table) {
+        Schema::create('activities', function (Blueprint $table) {
+        Schema::create('products', function (Blueprint $table) {
+        Schema::create('product_barcodes', function (Blueprint $table) {
+        Schema::create('stocks', function (Blueprint $table) {
+        // Schema::create('recipes', function (Blueprint $table) {
+        Schema::create('production_runs', function (Blueprint $table) {
+        Schema::create('parties', function (Blueprint $table) {
+        Schema::create('transactions', function (Blueprint $table) {
+        Schema::create('transaction_allocations', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('brands', function (Blueprint $table) {
+        Schema::create('product_units', function (Blueprint $table) {
+        Schema::create('batches', function (Blueprint $table) {
+        Schema::create('invoices', function (Blueprint $table) {
+        Schema::create('invoice_items', function (Blueprint $table) {
+        // Schema::create('payments', function (Blueprint $table) {
+        // Schema::create('payment_allocations', function (Blueprint $table) {
+        Schema::create('bank_accounts', function (Blueprint $table) {
+        Schema::create('expenses', function (Blueprint $table) {
+        Schema::create('parked_sales', function (Blueprint $table) {
+        Schema::create('activity_logs', function (Blueprint $table) {
+        Schema::create('product_images', function (Blueprint $table) {
+        Schema::create('warehouses', function (Blueprint $table) {
+        Schema::create('stock_movements', function (Blueprint $table) {
+        Schema::create('product_attributes', function (Blueprint $table) {
+        Schema::create('product_variants', function (Blueprint $table) {
+        Schema::create('variant_attributes', function (Blueprint $table) {
+        Schema::create('suppliers', function (Blueprint $table) {
+        Schema::create('purchase_orders', function (Blueprint $table) {
+        Schema::create('purchase_order_items', function (Blueprint $table) {
+        Schema::create('customers', function (Blueprint $table) {
+        Schema::create('sales', function (Blueprint $table) {
+        Schema::create('sale_items', function (Blueprint $table) {
+        Schema::create('payments', function (Blueprint $table) {
+        Schema::create('manufacturing_rules', function (Blueprint $table) {
+        Schema::create('manufacturing_ingredients', function (Blueprint $table) {
+        Schema::create('manufacturing_logs', function (Blueprint $table) {
+        Schema::create('settings', function (Blueprint $table) {
+        Schema::create('staff_daily_summaries', function (Blueprint $table) {
+        Schema::create('staff_attendances', function (Blueprint $table) {
+        Schema::create('staff_activity_gaps', function (Blueprint $table) {
+        Schema::create('accounts', function (Blueprint $table) {
+        Schema::create('journal_entries', function (Blueprint $table) {
+        Schema::create('journal_items', function (Blueprint $table) {
+        Schema::create('recipes', function (Blueprint $table) {
+        Schema::create('recipe_ingredients', function (Blueprint $table) {
+        Schema::create('ai_recommendations', function (Blueprint $table) {
+        Schema::create('customer_analytics', function (Blueprint $table) {
+        Schema::create('loyalty_points', function (Blueprint $table) {
+        Schema::create('loyalty_balances', function (Blueprint $table) {
+        Schema::create('gift_cards', function (Blueprint $table) {
+        Schema::create('store_credits', function (Blueprint $table) {
+        Schema::create('store_credit_balances', function (Blueprint $table) {
+        Schema::create('ai_settings', function (Blueprint $table) {
+        Schema::create('notifications', function (Blueprint $table) {
+        Schema::create('custom_charges', function (Blueprint $table) {
+        Schema::create('fund_transactions', function (Blueprint $table) {
+        Schema::create('expense_categories', function (Blueprint $table) {
+        Schema::create('proposals', function (Blueprint $table) {
+        Schema::create('proposal_items', function (Blueprint $table) {
+        Schema::create('sales_orders', function (Blueprint $table) {
+        Schema::create('sales_order_items', function (Blueprint $table) {
+        Schema::create('purchase_proposals', function (Blueprint $table) {
+        Schema::create('purchase_proposal_items', function (Blueprint $table) {
+        Schema::create('stock_transfers', function (Blueprint $table) {
+        Schema::create('stock_transfer_items', function (Blueprint $table) {
+        Schema::create('stock_transfers', function (Blueprint $table) {
+        Schema::create('stock_transfer_items', function (Blueprint $table) {
+        Schema::create('stock_takes', function (Blueprint $table) {
+        Schema::create('stock_take_items', function (Blueprint $table) {
+        Schema::create('debit_notes', function (Blueprint $table) {
+        Schema::create('debit_note_items', function (Blueprint $table) {
+        Schema::create('product_batches', function (Blueprint $table) {
+        Schema::create('product_serials', function (Blueprint $table) {
+        Schema::create('units', function (Blueprint $table) {
+            Schema::create('recipe_media', function (Blueprint $table) {
+            Schema::create('production_logs', function (Blueprint $table) {
+            Schema::create('production_log_ingredients', function (Blueprint $table) {
+        Schema::create('terminals', function (Blueprint $table) {
+        Schema::create('personal_access_tokens', function (Blueprint $table) {
+        Schema::create('inventory_batches', function (Blueprint $table) {
+        Schema::create('sale_item_batches', function (Blueprint $table) {
+            Schema::create('payment_allocations', function (Blueprint $table) {
+            Schema::create('party_snapshots', function (Blueprint $table) {
+            Schema::create('product_uom_conversions', function (Blueprint $table) {
+            Schema::create('product_price_tiers', function (Blueprint $table) {
+            Schema::create('discount_limits', function (Blueprint $table) {
+            Schema::create('disaster_claims', function (Blueprint $table) {
+            Schema::create('employees', function (Blueprint $table) {
+            Schema::create('disassembly_boms', function (Blueprint $table) {
+            Schema::create('disassembly_bom_items', function (Blueprint $table) {
+            Schema::create('system_settings', function (Blueprint $table) {
+[rerun: b20]
+Now let me check which tables actually have tenant_id added via migrations by looking at the migration that adds them to existing tables:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rh "Schema::table\b" database/migrations/ --include="*.php" -A3 | grep -E "->table\(|tenant_id" | head -80
+
+OUT
+grep: unknown option -- >
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
+[rerun: b21]
+Bash
+IN
+cd "d:/AMD POS" && grep -rh "tenant_id" database/migrations/ --include="*.php" -B2 | grep "table\b" | sort -u | head -50
+
+OUT
+                    $t->dropForeign("{$table}_tenant_id_foreign");
+                    $t->dropForeign([$table . '_tenant_id_foreign']);
+                    $table->dropColumn('tenant_id');
+                    $table->dropUnique('discount_limits_role_unique');
+                    $table->dropUnique('ps_party_account_unique');
+                    $table->dropUnique('system_settings_key_unique');
+                    $table->unique(['tenant_id', 'key']);
+                    $table->unique(['tenant_id', 'party_id', 'account_code'], 'ps_tenant_party_acc_unique');
+                    $table->unique(['tenant_id', 'role']);
+                    $table->unsignedBigInteger('tenant_id')->nullable()->after('id')->index();
+                    DB::table('settings')->whereNull('tenant_id')->delete();
+                $table->dropColumn('tenant_id');
+                $table->uuid('tenant_id')->nullable()->after('id')->index();
+                // According to 2026_04_10_100001_remodel_tenants_to_definitive_plan.php: $table->uuid('id')->primary(); (UUID)
+                Schema::table($table, function (Blueprint $t) use ($table) {
+                Schema::table($table, function (Blueprint $t) {
+                Schema::table('discount_limits', function (Blueprint $table) {
+                Schema::table('journal_entries', function (Blueprint $t) {
+                Schema::table('party_snapshots', function (Blueprint $table) {
+                Schema::table('settings', function (Blueprint $table) {
+                Schema::table('system_settings', function (Blueprint $table) {
+                Schema::table('users', function (Blueprint $t) {
+                try { $table->dropIndex('users_tenant_id_index'); } catch (\Throwable) {}
+            $table->boolean('is_impersonated')->default(false); // Flag for HQ actions
+            $table->boolean('is_redeemed')->default(false)->index();
+            $table->dateTime('redeemed_at')->nullable();
+            $table->dropColumn('tenant_id');
+            $table->dropUnique('invoices_invoice_number_unique');
+            $table->dropUnique('product_barcodes_barcode_unique');
+            $table->dropUnique('product_variants_sku_unique');
+            $table->dropUnique('products_sku_unique');
+            $table->dropUnique('sales_reference_number_unique');
+            $table->dropUnique(['tenant_id', 'barcode']);
+            $table->dropUnique(['tenant_id', 'code']);
+            $table->dropUnique(['tenant_id', 'invoice_number']);
+            $table->dropUnique(['tenant_id', 'reference_number']);
+            $table->dropUnique(['tenant_id', 'sku']);
+            $table->foreignId('target_tenant_id')->nullable()->constrained('tenants')->nullOnDelete();
+            $table->foreignId('tenant_id')->constrained('tenants')->cascadeOnDelete();
+            $table->foreignId('tenant_id')->nullable()->after('id')->index();
+            $table->foreignId('tenant_id')->nullable()->constrained('tenants')->nullOnDelete();
+            $table->id();
+            $table->index('tenant_id');
+            $table->index(['status', 'created_at']);
+            $table->index(['tenant_id', 'action']);
+            $table->index(['tenant_id', 'created_at']);
+            $table->index(['tenant_id', 'email']);
+            $table->index(['tenant_id', 'role']);
+            $table->index(['tenant_id', 'status']);
+            $table->json('permissions')->nullable();
+[rerun: b22]
+Let me take a more systematic approach - find all models without HasTenant and check if their tables have tenant_id in the main creation migration:
+
+Bash
+IN
+cd "d:/AMD POS" && python3 -c "
+import os, re
+
+# Get models without HasTenant
+models_without = []
+for f in os.listdir('app/Models'):
+    if not f.endswith('.php'): continue
+    content = open(f'app/Models/{f}').read()
+    if 'HasTenant' not in content:
+        models_without.append(f.replace('.php',''))
+
+print('Models WITHOUT HasTenant:')
+for m in sorted(models_without):
+    print(f'  {m}')
+"
+
+OUT
+Exit code 49
+Python was not found; run without arguments to install from the Microsoft Store, or disable this shortcut from Settings > Apps > Advanced app settings > App execution aliases.
+[rerun: b23]
+Bash
+IN
+cd "d:/AMD POS" && grep -rL "HasTenant" app/Models/ --include="*.php" | xargs -I{} basename {} .php | sort
+
+OUT
+AppSumoCode
+Batch
+Brand
+CustomCharge
+Customer
+DebitNote
+DebitNoteItem
+ExpenseCategory
+FundTransaction
+GiftCard
+InventoryBatch
+LoyaltyBalance
+LoyaltyPoint
+ManufacturingIngredient
+ManufacturingLog
+ManufacturingRule
+ParkedSale
+PlatformActivityLog
+ProductAttribute
+ProductBarcode
+ProductBatch
+ProductImage
+ProductSerial
+ProductUnit
+ProductionLog
+ProductionLogIngredient
+PurchaseItem
+PurchaseOrder
+PurchaseOrderItem
+RecipeMedia
+SaleItemBatch
+StaffDailySummary
+StaffInvitation
+StockTake
+StockTakeItem
+StockTransfer
+StockTransferItem
+StoreCredit
+StoreCreditBalance
+StoreLicense
+Supplier
+SupportTicket
+SupportTicketReply
+TenantUser
+Terminal
+Transaction
+TransactionAllocation
+Unit
+User
+VariantAttribute
+WebhookLog
+[rerun: b24]
+Now I need to check which of these actually have tenant_id in their tables. Let me check the migration files for these tables:
+
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_13_000002_add_softdeletes_and_tenant_id_to_remaining_tables.php | grep -A2 "TABLES\|tables\s*=\|tables\[\|push\(" | head -60
+
+OUT
+grep: Unmatched ( or \(
+[rerun: b25]
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_13_052350_add_tenant_id_to_missing_tables.php | head -60
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::table('product_uom_conversions', function (Blueprint $table) {
+            $table->foreignId('tenant_id')->nullable()->after('id')->index();
+        });
+
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->foreignId('tenant_id')->nullable()->after('id')->index();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::table('product_uom_conversions', function (Blueprint $table) {
+            $table->dropColumn('tenant_id');
+        });
+
+        Schema::table('transactions', function (Blueprint $table) {
+            $table->dropColumn('tenant_id');
+        });
+    }
+};
+[rerun: b26]
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_13_000002_add_softdeletes_and_tenant_id_to_remaining_tables.php | head -80
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+/**
+ * 6A + Wound 3 — Schema completions required by code changes above.
+ *
+ * 1. Add deleted_at (SoftDeletes) to parties, accounts, categories, warehouses
+ *    (products already has it).
+ *
+ * 2. Add tenant_id to ai_recommendations and customer_analytics
+ *    so the Growth Engine can stamp and scope them.
+ *
+ * 3. Add tenant_id to journal_entries if missing (guard against duplicate).
+ */
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // ── 1. SoftDeletes columns ────────────────────────────────────────────
+        $softDeleteTables = ['parties', 'accounts', 'categories', 'warehouses'];
+
+        foreach ($softDeleteTables as $table) {
+            if (!Schema::hasTable($table)) continue;
+            if (Schema::hasColumn($table, 'deleted_at')) continue;
+
+            Schema::table($table, function (Blueprint $t) {
+                $t->softDeletes(); // Adds deleted_at TIMESTAMP NULL
+            });
+        }
+
+        // ── 2. ai_recommendations — add tenant_id ─────────────────────────────
+        if (Schema::hasTable('ai_recommendations') && !Schema::hasColumn('ai_recommendations', 'tenant_id')) {
+            Schema::table('ai_recommendations', function (Blueprint $t) {
+                $t->unsignedBigInteger('tenant_id')->nullable()->after('id')->index();
+                $t->index(['tenant_id', 'type'],     'idx_ai_rec_tenant_type');
+                $t->index(['tenant_id', 'party_id'], 'idx_ai_rec_tenant_party');
+            });
+        }
+
+        // ── 3. customer_analytics — add tenant_id ─────────────────────────────
+        if (Schema::hasTable('customer_analytics') && !Schema::hasColumn('customer_analytics', 'tenant_id')) {
+            Schema::table('customer_analytics', function (Blueprint $t) {
+                $t->unsignedBigInteger('tenant_id')->nullable()->after('id')->index();
+                $t->index(['tenant_id', 'party_id'],  'idx_cust_analytics_tenant_party');
+                $t->index(['tenant_id', 'status'],    'idx_cust_analytics_tenant_status');
+            });
+        }
+
+        // ── 4. journal_entries.tenant_id composite index (idempotent) ─────────
+        // The column was added in a previous migration; add the composite index
+        // on (tenant_id, party_id) if missing for recovery alert queries.
+        if (Schema::hasTable('journal_entries') && Schema::hasColumn('journal_entries', 'tenant_id')) {
+            try {
+                Schema::table('journal_entries', function (Blueprint $t) {
+                    $t->index(['tenant_id', 'party_id'],    'idx_je_tenant_party');
+                    $t->index(['tenant_id', 'is_reversed'], 'idx_je_tenant_reversed');
+                });
+            } catch (\Throwable $e) {
+                // Indexes may already exist — ignore silently
+            }
+        }
+    }
+
+    public function down(): void
+    {
+        // Remove SoftDeletes columns
+        foreach (['parties', 'accounts', 'categories', 'warehouses'] as $table) {
+            if (!Schema::hasTable($table)) continue;
+            if (!Schema::hasColumn($table, 'deleted_at')) continue;
+            Schema::table($table, fn (Blueprint $t) => $t->dropSoftDeletes());
+        }
+
+        // Remove tenant_id from analytics tables
+        if (Schema::hasTable('ai_recommendations') && Schema::hasColumn('ai_recommendations', 'tenant_id')) {
+            Schema::table('ai_recommendations', function (Blueprint $t) {
+                try { $t->dropIndex('idx_ai_rec_tenant_type');  } catch (\Throwable $e) {}
+                try { $t->dropIndex('idx_ai_rec_tenant_party'); } catch (\Throwable $e) {}
+[rerun: b27]
+Let me now check every tenant-sensitive model without HasTenant - I'll look at a few key ones and their corresponding tables:
+
+Bash
+IN
+cd "d:/AMD POS" && for model in Batch Brand CustomCharge Customer DebitNote DebitNoteItem ExpenseCategory FundTransaction GiftCard InventoryBatch LoyaltyBalance LoyaltyPoint ManufacturingIngredient ManufacturingLog ManufacturingRule ParkedSale ProductAttribute ProductBarcode ProductBatch ProductImage ProductSerial ProductUnit ProductionLog ProductionLogIngredient PurchaseItem PurchaseOrder PurchaseOrderItem RecipeMedia SaleItemBatch StaffDailySummary StockTake StockTakeItem StockTransfer StockTransferItem StoreCredit StoreCreditBalance Supplier Terminal Transaction TransactionAllocation Unit VariantAttribute; do
+  # Convert model name to snake_case table name
+  table=$(echo "$model" | sed 's/\([A-Z]\)/_\1/g' | tr '[:upper:]' '[:lower:]' | sed 's/^_//')s
+  found=$(grep -rl "tenant_id" database/migrations/ --include="*.php" | xargs grep -l "$table" 2>/dev/null | wc -l)
+  echo "$model -> $table: tenant_id_migrations=$found"
+done
+
+OUT
+Batch -> batchs: tenant_id_migrations=0
+Brand -> brands: tenant_id_migrations=1
+CustomCharge -> custom_charges: tenant_id_migrations=1
+Customer -> customers: tenant_id_migrations=1
+DebitNote -> debit_notes: tenant_id_migrations=0
+DebitNoteItem -> debit_note_items: tenant_id_migrations=0
+ExpenseCategory -> expense_categorys: tenant_id_migrations=0
+FundTransaction -> fund_transactions: tenant_id_migrations=0
+GiftCard -> gift_cards: tenant_id_migrations=1
+InventoryBatch -> inventory_batchs: tenant_id_migrations=0
+LoyaltyBalance -> loyalty_balances: tenant_id_migrations=1
+LoyaltyPoint -> loyalty_points: tenant_id_migrations=1
+ManufacturingIngredient -> manufacturing_ingredients: tenant_id_migrations=0
+ManufacturingLog -> manufacturing_logs: tenant_id_migrations=0
+ManufacturingRule -> manufacturing_rules: tenant_id_migrations=1
+ParkedSale -> parked_sales: tenant_id_migrations=1
+ProductAttribute -> product_attributes: tenant_id_migrations=1
+ProductBarcode -> product_barcodes: tenant_id_migrations=2
+ProductBatch -> product_batchs: tenant_id_migrations=0
+ProductImage -> product_images: tenant_id_migrations=1
+ProductSerial -> product_serials: tenant_id_migrations=1
+ProductUnit -> product_units: tenant_id_migrations=1
+ProductionLog -> production_logs: tenant_id_migrations=1
+ProductionLogIngredient -> production_log_ingredients: tenant_id_migrations=0
+PurchaseItem -> purchase_items: tenant_id_migrations=2
+PurchaseOrder -> purchase_orders: tenant_id_migrations=0
+PurchaseOrderItem -> purchase_order_items: tenant_id_migrations=0
+RecipeMedia -> recipe_medias: tenant_id_migrations=0
+SaleItemBatch -> sale_item_batchs: tenant_id_migrations=0
+StaffDailySummary -> staff_daily_summarys: tenant_id_migrations=0
+StockTake -> stock_takes: tenant_id_migrations=0
+StockTakeItem -> stock_take_items: tenant_id_migrations=0
+StockTransfer -> stock_transfers: tenant_id_migrations=0
+StockTransferItem -> stock_transfer_items: tenant_id_migrations=0
+StoreCredit -> store_credits: tenant_id_migrations=1
+StoreCreditBalance -> store_credit_balances: tenant_id_migrations=1
+Supplier -> suppliers: tenant_id_migrations=1
+Terminal -> terminals: tenant_id_migrations=1
+Transaction -> transactions: tenant_id_migrations=1
+TransactionAllocation -> transaction_allocations: tenant_id_migrations=0
+Unit -> units: tenant_id_migrations=1
+VariantAttribute -> variant_attributes: tenant_id_migrations=1
+[rerun: b28]
+Bash
+IN
+cd "d:/AMD POS" && for table in batches debit_notes debit_note_items expense_categories fund_transactions inventory_batches manufacturing_ingredients manufacturing_logs product_batches production_log_ingredients purchase_orders purchase_order_items recipe_media sale_item_batches staff_daily_summaries stock_takes stock_take_items stock_transfers stock_transfer_items transaction_allocations; do
+  found=$(grep -rl "$table" database/migrations/ --include="*.php" | xargs grep -l "tenant_id" 2>/dev/null | wc -l)
+  echo "$table: $found migration(s) with tenant_id"
+done
+
+OUT
+batches: 4 migration(s) with tenant_id
+debit_notes: 0 migration(s) with tenant_id
+debit_note_items: 0 migration(s) with tenant_id
+expense_categories: 1 migration(s) with tenant_id
+fund_transactions: 0 migration(s) with tenant_id
+inventory_batches: 1 migration(s) with tenant_id
+manufacturing_ingredients: 0 migration(s) with tenant_id
+manufacturing_logs: 0 migration(s) with tenant_id
+product_batches: 1 migration(s) with tenant_id
+production_log_ingredients: 0 migration(s) with tenant_id
+purchase_orders: 0 migration(s) with tenant_id
+purchase_order_items: 0 migration(s) with tenant_id
+recipe_media: 0 migration(s) with tenant_id
+sale_item_batches: 2 migration(s) with tenant_id
+staff_daily_summaries: 1 migration(s) with tenant_id
+stock_takes: 0 migration(s) with tenant_id
+stock_take_items: 0 migration(s) with tenant_id
+stock_transfers: 0 migration(s) with tenant_id
+stock_transfer_items: 0 migration(s) with tenant_id
+transaction_allocations: 0 migration(s) with tenant_id
+[rerun: b29]
+Bash
+IN
+cd "d:/AMD POS" && grep -rl "debit_notes\|stock_takes\|stock_transfers\|purchase_orders\|fund_transactions\|manufacturing_logs\|transaction_allocations" database/migrations/ --include="*.php" | xargs grep -l "tenant_id" 2>/dev/null
+
+OUT
+Exit code 123
+[rerun: b30]
+Bash
+IN
+cd "d:/AMD POS" && grep -rh "debit_note\|stock_take\|stock_transfer\|purchase_order\|fund_transaction\|manufacturing_log\|transaction_allocation" database/migrations/ --include="*.php" | grep "tenant_id" | head -30
+
+OUT
+<tool_use_error>Cancelled: parallel tool call Bash(cd "d:/AMD POS" && grep -rl "debit_notes…) errored</tool_use_error>
+Bash
+IN
+cd "d:/AMD POS" && grep -rh "tenant_id" database/migrations/ --include="*.php" | grep -i "debit\|stock_take\|stock_transfer\|purchase_order\|fund_trans\|manufacturing_log\|transaction_alloc" | head -20
+
+OUT
+[rerun: b31]
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "debit_notes\|stock_takes\b\|stock_transfers\b\|purchase_orders\b\|fund_transactions\|manufacturing_logs\b\|transaction_allocations" database/migrations/ --include="*.php" | grep "tenant_id" | head -20
+
+OUT
+[rerun: b32]
+These tables have no tenant_id migration at all. Let me check their original creation migrations:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "create.*debit_note\|create.*stock_take\|create.*stock_transfer\|create.*purchase_order\|create.*fund_transaction\|create.*manufacturing_log\|create.*transaction_allocation" database/migrations/ --include="*.php" | head -20
+
+OUT
+database/migrations/2025_12_29_153358_create_amd_tables.php:81:        Schema::create('transaction_allocations', function (Blueprint $table) {
+database/migrations/2026_01_01_181833_create_purchase_orders_table.php:13:        Schema::create('purchase_orders', function (Blueprint $table) {
+database/migrations/2026_01_01_181840_create_purchase_order_items_table.php:13:        Schema::create('purchase_order_items', function (Blueprint $table) {
+database/migrations/2026_01_02_093753_create_manufacturing_rules_table.php:31:        Schema::create('manufacturing_logs', function (Blueprint $table) {
+database/migrations/2026_01_10_133940_create_fund_transactions_table.php:10:        Schema::create('fund_transactions', function (Blueprint $table) {
+database/migrations/2026_01_19_060844_create_stock_transfers_table.php:14:        Schema::create('stock_transfers', function (Blueprint $table) {
+database/migrations/2026_01_19_060845_create_stock_transfer_items_table.php:14:        Schema::create('stock_transfer_items', function (Blueprint $table) {
+database/migrations/2026_01_19_120000_recreate_stock_transfers_tables.php:15:        Schema::create('stock_transfers', function (Blueprint $table) {
+database/migrations/2026_01_19_120000_recreate_stock_transfers_tables.php:29:        Schema::create('stock_transfer_items', function (Blueprint $table) {
+database/migrations/2026_01_19_121500_create_stock_takes_table.php:11:        Schema::create('stock_takes', function (Blueprint $table) {
+database/migrations/2026_01_19_121500_create_stock_takes_table.php:23:        Schema::create('stock_take_items', function (Blueprint $table) {
+database/migrations/2026_01_19_123000_create_debit_notes_table.php:11:        Schema::create('debit_notes', function (Blueprint $table) {
+database/migrations/2026_01_19_123000_create_debit_notes_table.php:25:        Schema::create('debit_note_items', function (Blueprint $table) {
+[rerun: b33]
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "create.*sale_item_batch\|create.*inventory_batch\|create.*product_batch\|create.*recipe_media\|create.*production_log" database/migrations/ --include="*.php" | head -20
+
+OUT
+database/migrations/2026_01_19_124500_create_product_batches_table.php:11:        Schema::create('product_batches', function (Blueprint $table) {
+database/migrations/2026_01_26_213106_add_expert_manufacturing_features.php:29:            Schema::create('recipe_media', function (Blueprint $table) {
+database/migrations/2026_01_26_213106_add_expert_manufacturing_features.php:44:            Schema::create('production_logs', function (Blueprint $table) {
+database/migrations/2026_01_26_213106_add_expert_manufacturing_features.php:62:            Schema::create('production_log_ingredients', function (Blueprint $table) {
+database/migrations/2026_02_20_000003_create_fifo_infrastructure_tables.php:24:        Schema::create('inventory_batches', function (Blueprint $table) {
+database/migrations/2026_02_20_000003_create_fifo_infrastructure_tables.php:45:        Schema::create('sale_item_batches', function (Blueprint $table) {
+[rerun: b34]
+Now let me check which of these original migrations have tenant_id already:
+
+Bash
+IN
+cd "d:/AMD POS" && for f in \
+  database/migrations/2025_12_29_153358_create_amd_tables.php \
+  database/migrations/2026_01_01_181833_create_purchase_orders_table.php \
+  database/migrations/2026_01_01_181840_create_purchase_order_items_table.php \
+  database/migrations/2026_01_02_093753_create_manufacturing_rules_table.php \
+  database/migrations/2026_01_10_133940_create_fund_transactions_table.php \
+  database/migrations/2026_01_19_060844_create_stock_transfers_table.php \
+  database/migrations/2026_01_19_121500_create_stock_takes_table.php \
+  database/migrations/2026_01_19_123000_create_debit_notes_table.php \
+  database/migrations/2026_01_19_124500_create_product_batches_table.php \
+  database/migrations/2026_01_26_213106_add_expert_manufacturing_features.php \
+  database/migrations/2026_02_20_000003_create_fifo_infrastructure_tables.php; do
+  has=$(grep -c "tenant_id" "$f" 2>/dev/null || echo 0)
+  echo "$f: $has"
+done
+
+OUT
+database/migrations/2025_12_29_153358_create_amd_tables.php: 0
+0
+database/migrations/2026_01_01_181833_create_purchase_orders_table.php: 0
+0
+database/migrations/2026_01_01_181840_create_purchase_order_items_table.php: 0
+0
+database/migrations/2026_01_02_093753_create_manufacturing_rules_table.php: 0
+0
+database/migrations/2026_01_10_133940_create_fund_transactions_table.php: 0
+0
+database/migrations/2026_01_19_060844_create_stock_transfers_table.php: 0
+0
+database/migrations/2026_01_19_121500_create_stock_takes_table.php: 0
+0
+database/migrations/2026_01_19_123000_create_debit_notes_table.php: 0
+0
+database/migrations/2026_01_19_124500_create_product_batches_table.php: 0
+0
+database/migrations/2026_01_26_213106_add_expert_manufacturing_features.php: 0
+0
+database/migrations/2026_02_20_000003_create_fifo_infrastructure_tables.php: 0
+0
+[rerun: b35]
+Now I have a clear picture. I need to:
+
+Create a migration to add tenant_id to all tables missing it
+Add HasTenant to all the corresponding models
+Let me first check the existing hardening migration to understand what's already covered:
+
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_13_000003_add_tenant_id_to_journal_and_inventory_batches.php && cat database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    private const TABLES = ['journal_items', 'inventory_batches', 'sale_item_batches'];
+
+    public function up(): void
+    {
+        foreach (self::TABLES as $table) {
+            if (!Schema::hasTable($table)) continue;
+            if (Schema::hasColumn($table, 'tenant_id')) continue;
+
+            Schema::table($table, function (Blueprint $t) use ($table) {
+                // Using unsignedBigInteger for consistency with tenants.id
+                $t->unsignedBigInteger('tenant_id')->nullable()->after('id')->index();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        foreach (self::TABLES as $table) {
+            if (!Schema::hasTable($table)) continue;
+            if (!Schema::hasColumn($table, 'tenant_id')) continue;
+
+            Schema::table($table, function (Blueprint $t) {
+                $t->dropColumn('tenant_id');
+            });
+        }
+    }
+};
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (Schema::hasTable('sale_item_batches') && !Schema::hasColumn('sale_item_batches', 'tenant_id')) {
+            Schema::table('sale_item_batches', function (Blueprint $t) {
+                $t->unsignedBigInteger('tenant_id')->nullable()->after('id')->index();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+        if (Schema::hasTable('sale_item_batches') && Schema::hasColumn('sale_item_batches', 'tenant_id')) {
+            Schema::table('sale_item_batches', function (Blueprint $t) {
+                $t->dropColumn('tenant_id');
+            });
+        }
+    }
+};
+[rerun: b36]
+Now I have a full picture. Let me compile all the models that need HasTenant but their tables may or may not have tenant_id yet. I'll also check what the batches table situation is:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "batches\b" database/migrations/ --include="*.php" | grep "tenant_id" | head -5
+
+OUT
+database/migrations/2026_04_11_100000_add_missing_tenant_ids.php:22:        'product_batches',
+database/migrations/2026_04_13_000003_add_tenant_id_to_journal_and_inventory_batches.php:9:    private const TABLES = ['journal_items', 'inventory_batches', 'sale_item_batches'];
+database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php:11:        if (Schema::hasTable('sale_item_batches') && !Schema::hasColumn('sale_item_batches', 'tenant_id')) {
+database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php:12:            Schema::table('sale_item_batches', function (Blueprint $t) {
+database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php:20:        if (Schema::hasTable('sale_item_batches') && Schema::hasColumn('sale_item_batches', 'tenant_id')) {
+[rerun: b37]
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "create_.*batch\b\|create.*batches\b" database/migrations/ --include="*.php" | head -5
+
+OUT
+database/migrations/0001_01_01_000002_create_jobs_table.php:24:        Schema::create('job_batches', function (Blueprint $table) {
+database/migrations/2025_12_29_161856_create_complete_amd_system_tables.php:37:        Schema::create('batches', function (Blueprint $table) {
+database/migrations/2026_01_19_124500_create_product_batches_table.php:11:        Schema::create('product_batches', function (Blueprint $table) {
+database/migrations/2026_02_20_000003_create_fifo_infrastructure_tables.php:24:        Schema::create('inventory_batches', function (Blueprint $table) {
+database/migrations/2026_02_20_000003_create_fifo_infrastructure_tables.php:45:        Schema::create('sale_item_batches', function (Blueprint $table) {
+[rerun: b38]
+Bash
+IN
+cd "d:/AMD POS" && cat database/migrations/2026_04_11_100000_add_missing_tenant_ids.php | head -60
+
+OUT
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * More tables that need multi-tenant scoping for V1 launch.
+     */
+    private const REMAINING_TABLES = [
+        'bank_accounts',
+        'expense_categories',
+        'units',
+        'suppliers',
+        'customers',
+        'brands',
+        'product_attributes',
+        'product_variants',
+        'variant_attributes',
+        'product_batches',
+        'product_serials',
+        'product_barcodes',
+        'product_images',
+        'product_price_tiers',
+        'product_units',
+        'staff_attendances',
+        'staff_activity_gaps',
+        'staff_daily_summaries',
+        'loyalty_points',
+        'loyalty_balances',
+        'gift_cards',
+        'custom_charges',
+        'parked_sales',
+        'store_credits',
+        'store_credit_balances',
+        'terminals',
+        'recipes',
+        'recipe_ingredients',
+        'manufacturing_rules',
+        'production_runs',
+        'production_logs',
+    ];
+
+    public function up(): void
+    {
+        foreach (self::REMAINING_TABLES as $table) {
+            if (!Schema::hasTable($table)) continue;
+            if (Schema::hasColumn($table, 'tenant_id')) continue;
+
+            Schema::table($table, function (Blueprint $t) {
+                // Using foreignId for consistency with newer migrations
+                $t->foreignId('tenant_id')->nullable()->after('id')->index()->constrained('tenants')->cascadeOnDelete();
+            });
+        }
+    }
+
+    public function down(): void
+    {
+[rerun: b39]
+Now I have a full picture. The remaining tables without any tenant_id migration are:
+
+transaction_allocations, debit_notes, debit_note_items, fund_transactions, manufacturing_ingredients, manufacturing_logs, stock_takes, stock_take_items, stock_transfers, stock_transfer_items, purchase_orders, purchase_order_items, recipe_media, production_log_ingredients
+Also need to check batches (the simple batches table used by Batch model):
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "batches\b" database/migrations/ --include="*.php" | grep "tenant_id\|create.*batch\b" | head -5
+cat database/migrations/2025_12_29_161856_create_complete_amd_system_tables.php | grep -A10 "create.*batches\b"
+
+OUT
+database/migrations/2026_04_11_100000_add_missing_tenant_ids.php:22:        'product_batches',
+database/migrations/2026_04_13_000003_add_tenant_id_to_journal_and_inventory_batches.php:9:    private const TABLES = ['journal_items', 'inventory_batches', 'sale_item_batches'];
+database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php:11:        if (Schema::hasTable('sale_item_batches') && !Schema::hasColumn('sale_item_batches', 'tenant_id')) {
+database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php:12:            Schema::table('sale_item_batches', function (Blueprint $t) {
+database/migrations/2026_04_13_000004_add_tenant_id_to_sale_item_batches.php:20:        if (Schema::hasTable('sale_item_batches') && Schema::hasColumn('sale_item_batches', 'tenant_id')) {
+        Schema::create('batches', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+            $table->foreignUuid('product_id')->constrained()->cascadeOnDelete();
+            $table->string('batch_number');
+            $table->date('expiry_date')->nullable();
+            $table->date('mfg_date')->nullable();
+            $table->decimal('mrp', 10, 2)->nullable();
+            $table->decimal('quantity', 10, 4);
+            $table->timestamps();
+        });
+[rerun: b40]
+batches has no tenant_id - it's linked to products via product_id (product already has HasTenant), so Batch model accesses are inherently scoped through the product relationship. It doesn't need HasTenant directly.
+
+Now I have a clear picture. Let me create the migration and fix all models:
+
+Update Todos
+
+Audit all Models for HasTenant trait
+
+Find all Eloquent queries missing tenant scope (selectSub, raw, etc.)
+
+Audit app/Jobs/ for missing tenant context
+
+Create migration for remaining tables missing tenant_id
+
+Add HasTenant to all models with tenant_id columns
+
+Fix broken frontend routes
+
+Run build and verify no compilation errors
+
+Run migrations
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "selectSub\|fromSub\|whereRaw\|DB::raw\|DB::select\|DB::statement" app/Http/Controllers/ --include="*.php" | grep -v "vendor\|\.test\." | head -30
+
+OUT
+app/Http/Controllers/Admin/SystemResetController.php:54:            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+app/Http/Controllers/Admin/SystemResetController.php:140:            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+app/Http/Controllers/Admin/SystemResetController.php:170:            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+app/Http/Controllers/Admin/SystemResetController.php:272:            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+app/Http/Controllers/AdminController.php:156:        $paymentMethods = \App\Models\Sale::select('payment_method', DB::raw('count(*) as count'))
+app/Http/Controllers/AdminController.php:398:            $sizeResult = \Illuminate\Support\Facades\DB::select("SELECT Round(Sum(data_length + index_length) / 1024 / 1024, 2) as size FROM information_schema.tables WHERE table_schema = ?", [$dbName]);
+app/Http/Controllers/AdminController.php:401:            $tables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
+app/Http/Controllers/AiController.php:452:                ->select(DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
+app/Http/Controllers/AiController.php:477:                ->select('category', DB::raw('SUM(amount) as total'))
+app/Http/Controllers/AiController.php:496:                ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.total) as total_revenue'))
+app/Http/Controllers/Api/PosSearchController.php:76:                DB::raw('COALESCE(SUM(s.quantity), 0) as stock_quantity'),
+app/Http/Controllers/Api/PosSearchController.php:77:                DB::raw('MAX(b.barcode) as primary_barcode'),
+app/Http/Controllers/Api/PosSearchController.php:104:        $q->orderByDesc(DB::raw('COALESCE(SUM(s.quantity), 0) > 0'))
+app/Http/Controllers/Api/PosSearchController.php:108:        $total   = DB::table(DB::raw("({$q->toSql()}) as sub"))
+app/Http/Controllers/Api/PosSearchController.php:196:                ->select('c.id', 'c.name', DB::raw('COUNT(p.id) as product_count'))
+app/Http/Controllers/Api/PosSearchController.php:221:                ->leftJoin(DB::raw(
+app/Http/Controllers/Api/PosSearchController.php:228:                ->where(DB::raw('COALESCE(SUM(s.quantity), 0)'), '>', 0)
+app/Http/Controllers/Api/PosSearchController.php:234:                    DB::raw('COALESCE(SUM(s.quantity), 0) as stock_quantity'),
+app/Http/Controllers/Api/PosSearchController.php:235:                    DB::raw('COALESCE(MAX(recent_sales.sold_qty), 0) as recent_sold'),
+app/Http/Controllers/Api/SyncController.php:64:            ->select('product_id', DB::raw('SUM(remaining_qty) as total'))
+app/Http/Controllers/Api/SyncController.php:167:            ->select('product_id', 'warehouse_id', DB::raw('SUM(remaining_qty) as total'))
+app/Http/Controllers/DashboardController.php:595:            ->sum(DB::raw('sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))'));
+app/Http/Controllers/DashboardController.php:699:                    DB::raw("DATE_FORMAT(created_at, '$groupByFormat') as period"),
+app/Http/Controllers/DashboardController.php:700:                    DB::raw('SUM(net_sales) as total')
+app/Http/Controllers/DashboardController.php:713:                    DB::raw("DATE_FORMAT(sales.created_at, '$groupByFormat') as period"),
+app/Http/Controllers/DashboardController.php:714:                    DB::raw('SUM(sale_item_batches.total_cogs) as cogs')
+app/Http/Controllers/DashboardController.php:733:                    DB::raw("DATE_FORMAT(sales.created_at, '$groupByFormat') as period"),
+app/Http/Controllers/DashboardController.php:734:                    DB::raw('SUM(sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) as cogs')
+app/Http/Controllers/HealthController.php:47:            DB::select('SELECT 1');
+app/Http/Controllers/InstallerController.php:691:            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+[rerun: b41]
+Bash
+IN
+cd "d:/AMD POS" && for f in app/Jobs/*.php; do echo "=== $f ==="; cat "$f" | grep -n "DB::\|Model::\|withoutTenantScope\|tenant_id\|App\\\\Models"; done | head -100
+
+OUT
+=== app/Jobs/GenerateReportExport.php ===
+=== app/Jobs/HandlePaymentFailedJob.php ===
+34:        $tenant = Tenant::withoutTenantScope()
+43:        $adminUser = \App\Models\User::withoutTenantScope()
+44:            ->where('tenant_id', $tenant->id)
+=== app/Jobs/HandleSubscriptionCancelledJob.php ===
+37:        $tenant = Tenant::withoutTenantScope()
+52:        $adminUser = \App\Models\User::withoutTenantScope()
+53:            ->where('tenant_id', $tenant->id)
+=== app/Jobs/HandleSubscriptionExpiredJob.php ===
+31:        $tenant = Tenant::withoutTenantScope()
+=== app/Jobs/HandleSubscriptionUpdatedJob.php ===
+36:        $tenant = Tenant::withoutTenantScope()
+=== app/Jobs/ProvisionTenantJob.php ===
+61:        DB::transaction(function () use ($email, $name, $plan, $orderId, $customerId, $subscriptionId) {
+86:                'tenant_id' => $tenant->id,
+96:                'tenant_id'        => $tenant->id,
+[rerun: b42]
+Jobs look correct - they explicitly use withoutTenantScope(). The DB::raw calls in controllers are fine since they're chained from Eloquent models with HasTenant global scope.
+
+Now let me create the comprehensive migration and fix all models:
+
+Update Todos
+
+Audit all Models for HasTenant trait
+
+Find all Eloquent queries missing tenant scope (selectSub, raw, etc.)
+
+Audit app/Jobs/ for missing tenant context
+
+Create migration for remaining tables missing tenant_id
+
+Add HasTenant to all models with tenant_id columns
+
+Fix broken frontend routes
+
+Run build and verify no compilation errors
+
+Run migrations
+Write 2026_04_15_000001_complete_tenant_isolation_final.php
+71 lines
+Now add HasTenant to all models that need it. I'll do them in batches:
+
+Update Todos
+
+Audit all Models for HasTenant trait
+
+Find all Eloquent queries missing tenant scope (selectSub, raw, etc.)
+
+Audit app/Jobs/ for missing tenant context
+
+Create migration for remaining tables missing tenant_id
+
+Add HasTenant to all models with tenant_id columns
+
+Fix broken frontend routes
+
+Run build and verify no compilation errors
+
+Run migrations
+Bash
+IN
+cd "d:/AMD POS" && for model in Customer Supplier Brand CustomCharge ExpenseCategory FundTransaction GiftCard LoyaltyBalance LoyaltyPoint ManufacturingIngredient ManufacturingLog ManufacturingRule ParkedSale ProductAttribute ProductBarcode ProductBatch ProductImage ProductSerial ProductUnit ProductionLog ProductionLogIngredient PurchaseItem PurchaseOrder PurchaseOrderItem RecipeMedia SaleItemBatch StaffDailySummary StockTake StockTakeItem StockTransfer StockTransferItem StoreCredit StoreCreditBalance Terminal Transaction TransactionAllocation Unit VariantAttribute DebitNote DebitNoteItem InventoryBatch; do
+  grep -q "HasTenant" "app/Models/${model}.php" && echo "OK: $model" || echo "MISSING: $model"
+done
+
+OUT
+MISSING: Customer
+MISSING: Supplier
+MISSING: Brand
+MISSING: CustomCharge
+MISSING: ExpenseCategory
+MISSING: FundTransaction
+MISSING: GiftCard
+MISSING: LoyaltyBalance
+MISSING: LoyaltyPoint
+MISSING: ManufacturingIngredient
+MISSING: ManufacturingLog
+MISSING: ManufacturingRule
+MISSING: ParkedSale
+MISSING: ProductAttribute
+MISSING: ProductBarcode
+MISSING: ProductBatch
+MISSING: ProductImage
+MISSING: ProductSerial
+MISSING: ProductUnit
+MISSING: ProductionLog
+MISSING: ProductionLogIngredient
+MISSING: PurchaseItem
+MISSING: PurchaseOrder
+MISSING: PurchaseOrderItem
+MISSING: RecipeMedia
+MISSING: SaleItemBatch
+MISSING: StaffDailySummary
+MISSING: StockTake
+MISSING: StockTakeItem
+MISSING: StockTransfer
+MISSING: StockTransferItem
+MISSING: StoreCredit
+MISSING: StoreCreditBalance
+MISSING: Terminal
+MISSING: Transaction
+MISSING: TransactionAllocation
+MISSING: Unit
+MISSING: VariantAttribute
+MISSING: DebitNote
+MISSING: DebitNoteItem
+MISSING: InventoryBatch
+[rerun: b43]
+All 41 models need it. Let me read a few to understand the pattern then do bulk edits:
+
+Bash
+IN
+cd "d:/AMD POS" && head -15 app/Models/Customer.php app/Models/Transaction.php app/Models/ManufacturingIngredient.php
+
+OUT
+==> app/Models/Customer.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Customer extends Model
+{
+    use HasFactory, SoftDeletes, HasUuids;
+
+    protected $guarded = [];
+
+==> app/Models/Transaction.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Transaction extends Model
+{
+    use HasUuids;
+
+    protected $guarded = [];
+
+    public function party()
+    {
+
+==> app/Models/ManufacturingIngredient.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ManufacturingIngredient extends Model
+{
+    protected $guarded = [];
+
+    public function rule()
+    {
+        return $this->belongsTo(ManufacturingRule::class, 'rule_id');
+    }
+[rerun: b44]
+I'll write a bash script to add HasTenant to all models at once:
+
+Bash
+IN
+cd "d:/AMD POS" && for model in Customer Supplier Brand CustomCharge ExpenseCategory FundTransaction GiftCard LoyaltyBalance LoyaltyPoint ManufacturingIngredient ManufacturingLog ManufacturingRule ParkedSale ProductAttribute ProductBarcode ProductBatch ProductImage ProductSerial ProductUnit ProductionLog ProductionLogIngredient PurchaseItem PurchaseOrder PurchaseOrderItem RecipeMedia SaleItemBatch StaffDailySummary StockTake StockTakeItem StockTransfer StockTransferItem StoreCredit StoreCreditBalance Terminal Transaction TransactionAllocation Unit VariantAttribute DebitNote DebitNoteItem InventoryBatch; do
+  file="app/Models/${model}.php"
+  # Add the use import after the last "use Illuminate" line if not present
+  if ! grep -q "use App\\\\Traits\\\\HasTenant;" "$file"; then
+    # Find the line with "use Illuminate\Database\Eloquent\Model;" and add after it
+    sed -i 's/^use Illuminate\\Database\\Eloquent\\Model;/use Illuminate\\Database\\Eloquent\\Model;\nuse App\\Traits\\HasTenant;/' "$file"
+    # If the import wasn't added (no Model import), add after namespace
+    if ! grep -q "use App\\\\Traits\\\\HasTenant;" "$file"; then
+      sed -i '/^namespace App\\Models;/a use App\\Traits\\HasTenant;' "$file"
+    fi
+  fi
+  echo "Import added: $model"
+done
+
+OUT
+Import added: Customer
+Import added: Supplier
+Import added: Brand
+Import added: CustomCharge
+Import added: ExpenseCategory
+Import added: FundTransaction
+Import added: GiftCard
+Import added: LoyaltyBalance
+Import added: LoyaltyPoint
+Import added: ManufacturingIngredient
+Import added: ManufacturingLog
+Import added: ManufacturingRule
+Import added: ParkedSale
+Import added: ProductAttribute
+Import added: ProductBarcode
+Import added: ProductBatch
+Import added: ProductImage
+Import added: ProductSerial
+Import added: ProductUnit
+Import added: ProductionLog
+Import added: ProductionLogIngredient
+Import added: PurchaseItem
+Import added: PurchaseOrder
+Import added: PurchaseOrderItem
+Import added: RecipeMedia
+Import added: SaleItemBatch
+Import added: StaffDailySummary
+Import added: StockTake
+Import added: StockTakeItem
+Import added: StockTransfer
+Import added: StockTransferItem
+Import added: StoreCredit
+Import added: StoreCreditBalance
+Import added: Terminal
+Import added: Transaction
+Import added: TransactionAllocation
+Import added: Unit
+Import added: VariantAttribute
+Import added: DebitNote
+Import added: DebitNoteItem
+Import added: InventoryBatch
+[rerun: b45]
+Bash
+IN
+cd "d:/AMD POS" && for model in Customer Supplier Brand CustomCharge ExpenseCategory FundTransaction GiftCard LoyaltyBalance LoyaltyPoint ManufacturingIngredient ManufacturingLog ManufacturingRule ParkedSale ProductAttribute ProductBarcode ProductBatch ProductImage ProductSerial ProductUnit ProductionLog ProductionLogIngredient PurchaseItem PurchaseOrder PurchaseOrderItem RecipeMedia SaleItemBatch StaffDailySummary StockTake StockTakeItem StockTransfer StockTransferItem StoreCredit StoreCreditBalance Terminal Transaction TransactionAllocation Unit VariantAttribute DebitNote DebitNoteItem InventoryBatch; do
+  file="app/Models/${model}.php"
+  # Now add HasTenant to the use trait line
+  if ! grep -q "HasTenant" "$file"; then
+    # add to existing "use X, Y, Z;" line - find the class use line
+    sed -i '/^    use /s/;/, HasTenant;/' "$file"
+    echo "Trait added to existing line: $model"
+  else
+    echo "Already has trait or import only: $model"
+  fi
+done
+
+OUT
+Trait added to existing line: Customer
+Trait added to existing line: Supplier
+Trait added to existing line: Brand
+Trait added to existing line: CustomCharge
+Trait added to existing line: ExpenseCategory
+Trait added to existing line: FundTransaction
+Trait added to existing line: GiftCard
+Trait added to existing line: LoyaltyBalance
+Trait added to existing line: LoyaltyPoint
+Trait added to existing line: ManufacturingIngredient
+Trait added to existing line: ManufacturingLog
+Trait added to existing line: ManufacturingRule
+Trait added to existing line: ParkedSale
+Trait added to existing line: ProductAttribute
+Trait added to existing line: ProductBarcode
+Trait added to existing line: ProductBatch
+Trait added to existing line: ProductImage
+Trait added to existing line: ProductSerial
+Trait added to existing line: ProductUnit
+Trait added to existing line: ProductionLog
+Trait added to existing line: ProductionLogIngredient
+Trait added to existing line: PurchaseItem
+Trait added to existing line: PurchaseOrder
+Trait added to existing line: PurchaseOrderItem
+Trait added to existing line: RecipeMedia
+Trait added to existing line: SaleItemBatch
+Trait added to existing line: StaffDailySummary
+Trait added to existing line: StockTake
+Trait added to existing line: StockTakeItem
+Trait added to existing line: StockTransfer
+Trait added to existing line: StockTransferItem
+Trait added to existing line: StoreCredit
+Trait added to existing line: StoreCreditBalance
+Trait added to existing line: Terminal
+Trait added to existing line: Transaction
+Trait added to existing line: TransactionAllocation
+Trait added to existing line: Unit
+Trait added to existing line: VariantAttribute
+Trait added to existing line: DebitNote
+Trait added to existing line: DebitNoteItem
+Trait added to existing line: InventoryBatch
+[rerun: b46]
+Bash
+IN
+cd "d:/AMD POS" && for model in Customer ManufacturingIngredient Transaction RecipeMedia; do
+  echo "=== $model ===" && head -20 "app/Models/${model}.php"
+done
+
+OUT
+=== Customer ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Customer extends Model
+{
+    use HasFactory, SoftDeletes, HasUuids, HasTenant;
+
+    protected $guarded = [];
+
+    public function sales()
+    {
+        return $this->hasMany(Sale::class);
+    }
+=== ManufacturingIngredient ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ManufacturingIngredient extends Model
+{
+    protected $guarded = [];
+
+    public function rule()
+    {
+        return $this->belongsTo(ManufacturingRule::class, 'rule_id');
+    }
+
+    public function ingredientProduct()
+    {
+        return $this->belongsTo(Product::class, 'ingredient_product_id');
+    }
+
+=== Transaction ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class Transaction extends Model
+{
+    use HasUuids, HasTenant;
+
+    protected $guarded = [];
+
+    public function party()
+    {
+        return $this->belongsTo(Party::class);
+    }
+}
+=== RecipeMedia ===
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+class RecipeMedia extends Model
+{
+    use HasUuids, HasTenant;
+    protected $guarded = [];
+
+    protected $casts = [
+        'step_number' => 'integer',
+        'sort_order' => 'integer',
+    ];
+
+    public function recipe()
+    {
+[rerun: b47]
+I see ManufacturingIngredient didn't get the trait added to the use line - it has no use trait line. Let me check and fix those models without an existing use trait line:
+
+Bash
+IN
+cd "d:/AMD POS" && for model in Customer Supplier Brand CustomCharge ExpenseCategory FundTransaction GiftCard LoyaltyBalance LoyaltyPoint ManufacturingIngredient ManufacturingLog ManufacturingRule ParkedSale ProductAttribute ProductBarcode ProductBatch ProductImage ProductSerial ProductUnit ProductionLog ProductionLogIngredient PurchaseItem PurchaseOrder PurchaseOrderItem RecipeMedia SaleItemBatch StaffDailySummary StockTake StockTakeItem StockTransfer StockTransferItem StoreCredit StoreCreditBalance Terminal Transaction TransactionAllocation Unit VariantAttribute DebitNote DebitNoteItem InventoryBatch; do
+  if ! grep -q "use.*HasTenant" "app/Models/${model}.php"; then
+    echo "STILL MISSING trait: $model"
+  fi
+done
+
+OUT
+STILL MISSING trait: ManufacturingIngredient
+STILL MISSING trait: ManufacturingLog
+STILL MISSING trait: ManufacturingRule
+STILL MISSING trait: TransactionAllocation
+[rerun: b48]
+Bash
+IN
+cd "d:/AMD POS" && head -15 app/Models/ManufacturingIngredient.php app/Models/ManufacturingLog.php app/Models/ManufacturingRule.php app/Models/TransactionAllocation.php
+
+OUT
+==> app/Models/ManufacturingIngredient.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ManufacturingIngredient extends Model
+{
+    protected $guarded = [];
+
+    public function rule()
+    {
+        return $this->belongsTo(ManufacturingRule::class, 'rule_id');
+    }
+
+
+==> app/Models/ManufacturingLog.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ManufacturingLog extends Model
+{
+    protected $guarded = [];
+
+    protected $casts = [
+        'deductions' => 'array',
+        'manufactured_at' => 'datetime',
+    ];
+
+
+==> app/Models/ManufacturingRule.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ManufacturingRule extends Model
+{
+    protected $guarded = [];
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
+
+
+==> app/Models/TransactionAllocation.php <==
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class TransactionAllocation extends Model
+{
+    protected $guarded = [];
+
+    public function paymentTransaction()
+    {
+        return $this->belongsTo(Transaction::class, 'payment_transaction_id');
+    }
+[rerun: b49]
+These 4 models have no use trait line at all. I need to add one after the class declaration:
+
+Edit ManufacturingIngredient.php
+Edit failed
+Read ManufacturingIngredient.php
+Read TransactionAllocation.php, ManufacturingLog.php, ManufacturingRule.php
+Edit ManufacturingIngredient.php
+Added 3 lines
+Edit ManufacturingLog.php
+Added 3 lines
+Edit ManufacturingRule.php
+Added 3 lines
+Edit TransactionAllocation.php
+Added 3 lines
+Bash
+IN
+cd "d:/AMD POS" && for model in Customer Supplier Brand CustomCharge ExpenseCategory FundTransaction GiftCard LoyaltyBalance LoyaltyPoint ManufacturingIngredient ManufacturingLog ManufacturingRule ParkedSale ProductAttribute ProductBarcode ProductBatch ProductImage ProductSerial ProductUnit ProductionLog ProductionLogIngredient PurchaseItem PurchaseOrder PurchaseOrderItem RecipeMedia SaleItemBatch StaffDailySummary StockTake StockTakeItem StockTransfer StockTransferItem StoreCredit StoreCreditBalance Terminal Transaction TransactionAllocation Unit VariantAttribute DebitNote DebitNoteItem InventoryBatch; do
+  grep -q "use.*HasTenant\|HasTenant;" "app/Models/${model}.php" && echo "OK: $model" || echo "STILL MISSING: $model"
+done
+
+OUT
+OK: Customer
+OK: Supplier
+OK: Brand
+OK: CustomCharge
+OK: ExpenseCategory
+OK: FundTransaction
+OK: GiftCard
+OK: LoyaltyBalance
+OK: LoyaltyPoint
+OK: ManufacturingIngredient
+OK: ManufacturingLog
+OK: ManufacturingRule
+OK: ParkedSale
+OK: ProductAttribute
+OK: ProductBarcode
+OK: ProductBatch
+OK: ProductImage
+OK: ProductSerial
+OK: ProductUnit
+OK: ProductionLog
+OK: ProductionLogIngredient
+OK: PurchaseItem
+OK: PurchaseOrder
+OK: PurchaseOrderItem
+OK: RecipeMedia
+OK: SaleItemBatch
+OK: StaffDailySummary
+OK: StockTake
+OK: StockTakeItem
+OK: StockTransfer
+OK: StockTransferItem
+OK: StoreCredit
+OK: StoreCreditBalance
+OK: Terminal
+OK: Transaction
+OK: TransactionAllocation
+OK: Unit
+OK: VariantAttribute
+OK: DebitNote
+OK: DebitNoteItem
+OK: InventoryBatch
+[rerun: b50]
+All 41 models now have HasTenant. Now let me also verify the Batch model - it uses batches table which we added to the migration, but Batch is for product batch tracking:
+
+Read Batch.php
+Batch belongs to a Product which has HasTenant. The batches table itself is scoped indirectly through product. However, since controllers query batches directly sometimes, let me add HasTenant here too since we added tenant_id to the migration:
+
+Edit Batch.php
+Added 1 line
+Now let's check the frontend route issues:
+
+Update Todos
+
+Audit all Models for HasTenant trait
+
+Find all Eloquent queries missing tenant scope (selectSub, raw, etc.)
+
+Audit app/Jobs/ for missing tenant context
+
+Create migration for remaining tables missing tenant_id
+
+Add HasTenant to all models with tenant_id columns
+
+Fix broken frontend routes
+
+Run build and verify no compilation errors
+
+Run migrations
+Bash
+IN
+cd "d:/AMD POS" && php artisan route:list --json 2>/dev/null | head -100 || php artisan route:list 2>&1 | head -50
+
+OUT
+[rerun: b51]
+Bash
+IN
+cd "d:/AMD POS" && php artisan route:list 2>&1 | tail -30
+
+OUT
+/usr/bin/bash: line 1: php: command not found
+[rerun: b52]
+Bash
+IN
+where php 2>/dev/null || ls "C:/php" 2>/dev/null || ls "C:/xampp/php" 2>/dev/null || echo "PHP not in PATH"
+
+OUT
+PHP not in PATH
+[rerun: b53]
+Bash
+IN
+ls /c/xampp/php/ 2>/dev/null || ls /c/php/ 2>/dev/null || find /c -name "php.exe" 2>/dev/null | head -3
+
+OUT
+/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.1.29+0/bin/win32/php.exe
+/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.1.29+0/bin/win64/php.exe
+/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.2.23+0/bin/win32/php.exe
+[rerun: b54]
+Bash
+IN
+PHP="/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.2.23+0/bin/win64/php.exe" && ls "$PHP" 2>/dev/null || find /c -name "php.exe" 2>/dev/null | grep "win64" | head -3
+
+OUT
+/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.2.23+0/bin/win64/php.exe
+[rerun: b55]
+Bash
+IN
+PHP="/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.2.23+0/bin/win64/php.exe" && cd "d:/AMD POS" && "$PHP" artisan route:list 2>&1 | grep "ERROR\|error\|exception\|Exception" | head -20
+
+OUT
+[rerun: b56]
+Bash
+IN
+PHP="/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.2.23+0/bin/win64/php.exe" && cd "d:/AMD POS" && "$PHP" artisan route:list 2>&1 | tail -10
+
+OUT
+    1691▕         $studlyWords = array_map(fn ($word) => static::ucfirst($word), $words);
+    1692▕ 
+    1693▕         return static::$studlyCache[$key] = implode($studlyWords);
+
+  [33m1   [39m[39;1mvendor\laravel\framework\src\Illuminate\Support\Manager.php[39;22m:[39;1m98[39;22m
+  [90m    Illuminate\Support\Str::studly("memory")[39m
+
+  [33m2   [39m[39;1mvendor\laravel\framework\src\Illuminate\Support\Manager.php[39;22m:[39;1m78[39;22m
+  [90m    Illuminate\Support\Manager::createDriver("memory")[39m
+[rerun: b57]
+Bash
+IN
+PHP="/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.2.23+0/bin/win64/php.exe" && cd "d:/AMD POS" && "$PHP" artisan route:list 2>&1 | head -10
+
+OUT
+  [41;1m Error [49;22m
+
+[39;1m  Call to undefined function Illuminate\Support\mb_split()[39;22m
+
+  at [32mvendor\laravel\framework\src\Illuminate\Support\Str.php[39m:[32m1689[39m
+    1685▕         if (isset(static::$studlyCache[$key])) {
+    1686▕             return static::$studlyCache[$key];
+    1687▕         }
+    1688▕
+[rerun: b58]
+PHP version compatibility issue. Let me try the 8.1 version:
+
+Bash
+IN
+PHP="/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.1.29+0/bin/win64/php.exe" && ls "$PHP" 2>/dev/null || echo "not found"
+
+OUT
+/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.1.29+0/bin/win64/php.exe
+[rerun: b59]
+Bash
+IN
+PHP="/c/Users/PC/AppData/Roaming/Local/lightning-services/php-8.1.29+0/bin/win64/php.exe" && cd "d:/AMD POS" && "$PHP" artisan route:list 2>&1 | grep -i "error\|exception\|not found" | head -10
+
+OUT
+Parse error: syntax error, unexpected token "readonly", expecting "abstract" or "final" or "class" in D:\AMD POS\vendor\sebastian\version\src\Version.php on line 23
+[rerun: b60]
+The app requires PHP 8.2+. Let me check what routes exist by reading the routes file, and scan frontend for broken route names:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "route(" resources/js/ --include="*.jsx" | grep -v "node_modules" | grep -oE "route\('[^']+'\)" | sort -u | head -50
+
+OUT
+route('admin.data.process-import')
+route('admin.data.validate-import')
+route('admin.migration.analyze')
+route('admin.migration.execute')
+route('admin.platform.change-password')
+route('admin.platform.clear-passcode')
+route('admin.platform.set-passcode')
+route('admin.stores')
+route('appsumo.index')
+route('appsumo.redeem')
+route('auth.google')
+route('backups.store')
+route('customers.search')
+route('hub')
+route('invite.complete')
+route('login')
+route('login.passcode')
+route('logout')
+route('my-stores.api')
+route('password.confirm')
+route('password.email')
+route('password.request')
+route('password.store')
+route('password.update')
+route('platform.appsumo.export')
+route('platform.appsumo.generate')
+route('platform.appsumo.import')
+route('platform.appsumo.purge')
+route('platform.dashboard')
+route('platform.login.pin')
+route('platform.login.store')
+route('platform.users')
+route('privacy')
+route('redeem')
+route('register')
+route('setup.index')
+route('store.create')
+route('store.create-or-join')
+route('store.join')
+route('store.join.submit')
+route('store.store')
+route('terms')
+route('verification.send')
+[rerun: b61]
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "route(" resources/js/ --include="*.jsx" | grep -oE "route\('[^']+'" | grep -oE "'[^']+'" | tr -d "'" | sort -u | grep -v "admin\.\|appsumo\.\|auth\.\|backups\.\|customers\.\|hub\|invite\.\|login\|logout\|my-stores\.\|password\.\|platform\.\|privacy\|redeem\|register\|setup\.\|store\.\|terms\|verification\." | head -30
+
+OUT
+debit-notes.print
+debit-notes.update
+purchases.print
+recycle-bin.force-delete
+recycle-bin.restore
+[rerun: b62]
+Bash
+IN
+cd "d:/AMD POS" && grep -n "debit-notes\|recycle-bin" routes/web.php | head -20
+
+OUT
+137:            Route::get('/recycle-bin',         [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
+138:            Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
+139:            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.purge');
+1036:    Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->name('debit-notes.index');
+1037:    Route::get('/debit-notes/create', [\App\Http\Controllers\DebitNoteController::class, 'create'])->name('debit-notes.create');
+1038:    Route::post('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'store'])->name('debit-notes.store');
+1039:    Route::get('/debit-notes/{id}', [\App\Http\Controllers\DebitNoteController::class, 'show'])->name('debit-notes.show');
+1083:    Route::get('/debit-notes/{id}/print', fn() => abort(501, 'Implement debit-notes.print'))->name('debit-notes.print');
+1084:    Route::put('/debit-notes/{id}', fn() => abort(501, 'Implement debit-notes.update'))->name('debit-notes.update');
+[rerun: b63]
+Bash
+IN
+cd "d:/AMD POS" && grep -n "recycle-bin.force-delete\|recycle-bin.purge" routes/web.php
+
+OUT
+139:            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.purge');
+[rerun: b64]
+Frontend uses recycle-bin.force-delete but the route is named recycle-bin.purge. Let me find where this is used:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "recycle-bin.force-delete\|recycle-bin.purge\|recycle-bin.restore" resources/js/ --include="*.jsx" | head -10
+
+OUT
+resources/js/Pages/RecycleBin.jsx:10:            router.post(route('recycle-bin.restore', id), { type });
+resources/js/Pages/RecycleBin.jsx:16:            router.delete(route('recycle-bin.force-delete', id), {
+[rerun: b65]
+The frontend uses recycle-bin.force-delete but the route is named recycle-bin.purge. Fix the route name to match the frontend:
+
+Read web.php (lines 138-142)
+Edit web.php
+Modified
+Now let me do a broader scan for route name mismatches - checking all route() calls in frontend vs actual route names:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "route(" resources/js/ --include="*.jsx" | grep -oE "route\('[^']+'" | grep -oE "'[^']+'" | tr -d "'" | sort -u > /tmp/frontend_routes.txt && cat /tmp/frontend_routes.txt
+
+OUT
+admin.data.process-import
+admin.data.validate-import
+admin.migration.analyze
+admin.migration.execute
+admin.platform.change-password
+admin.platform.clear-passcode
+admin.platform.set-passcode
+admin.store.feature-flag
+admin.store.purge
+admin.store.restore
+admin.stores
+admin.user.purge
+admin.user.restore
+appsumo.index
+appsumo.redeem
+auth.google
+backups.delete
+backups.download
+backups.email
+backups.store
+customers.search
+debit-notes.print
+debit-notes.update
+demo.login
+hub
+invite.complete
+login
+login.passcode
+logout
+my-stores.api
+password.confirm
+password.email
+password.request
+password.store
+password.update
+platform.appsumo.export
+platform.appsumo.generate
+platform.appsumo.import
+platform.appsumo.index
+platform.appsumo.purge
+platform.dashboard
+platform.login.pin
+platform.login.store
+platform.users
+privacy
+purchases.print
+recycle-bin.force-delete
+recycle-bin.restore
+redeem
+register
+setup.index
+store.accounting.accounts.api
+store.accounting.balance-sheet
+store.accounting.index
+store.accounting.pnl
+store.activity-log.index
+store.admin.backups.delete
+store.admin.backups.download
+store.admin.backups.email
+store.admin.backups.restore
+store.admin.backups.store
+store.admin.data
+store.admin.data.export
+store.admin.data.template
+store.admin.data.upload-mapping
+store.admin.home
+store.admin.settings
+store.admin.settings.update
+store.admin.users
+store.admin.users.destroy
+store.admin.users.store
+store.admin.users.update
+store.ai.query
+store.ai.test
+store.api.bank-accounts
+store.api.categories
+store.api.warehouses
+store.attendance.check-in
+store.attendance.heartbeat
+store.attendance.log-gap
+store.attributes.destroy
+store.attributes.index
+store.attributes.store
+store.attributes.update
+store.bank-accounts.destroy
+store.bank-accounts.index
+store.bank-accounts.store
+store.bank-accounts.transactions
+store.bank-accounts.update
+store.batches.index
+store.billing
+store.billing.portal
+store.categories.destroy
+store.categories.index
+store.categories.store
+store.categories.update
+store.charity.add
+store.charity.stats
+store.charity.update-default
+store.cookbook.create
+store.cookbook.destroy
+store.cookbook.edit
+store.cookbook.index
+store.cookbook.simulate
+store.cookbook.store
+store.cookbook.update
+store.create
+store.create-or-join
+store.customers.destroy
+store.customers.index
+store.customers.search
+store.customers.store
+store.customers.update
+store.dashboard
+store.debit-notes.create
+store.debit-notes.index
+store.debit-notes.show
+store.debit-notes.store
+store.expenses.destroy
+store.expenses.index
+store.expenses.store
+store.expenses.update
+store.finance.payables
+store.finance.receivables
+store.funds.index
+store.global.search
+store.growth-engine.dashboard
+store.growth-engine.dismiss
+store.growth-engine.index
+store.growth-engine.refresh
+store.growth-engine.whatsapp
+store.home
+store.import-export.index
+store.import.template
+store.inventory.bulk-destroy
+store.inventory.dashboard
+store.inventory.destroy
+store.inventory.history
+store.inventory.index
+store.inventory.reservations
+store.inventory.search
+store.inventory.stats
+store.inventory.stock-levels
+store.inventory.store
+store.inventory.update
+store.invoice-reminders.create
+store.invoice-reminders.index
+store.invoice-reminders.send
+store.join
+store.join.submit
+store.labels.index
+store.labels.print
+store.notifications.destroy
+store.notifications.index
+store.notifications.mark-all-read
+store.notifications.mark-read
+store.parked-sales.destroy
+store.parties.destroy
+store.parties.index
+store.parties.ledger
+store.parties.search
+store.parties.store
+store.parties.update
+store.payment-in.create
+store.payment-out.create
+store.payments.in
+store.payments.index
+store.payments.out
+store.payments.store
+store.pos
+store.pre-sales.convert
+store.pre-sales.create
+store.pre-sales.destroy
+store.pre-sales.index
+store.pre-sales.print
+store.pre-sales.show
+store.pre-sales.store
+store.production.create
+store.production.edit
+store.production.index
+store.production.show
+store.production.store
+store.products.variants.index
+store.products.variants.store
+store.profile.destroy
+store.profile.edit
+store.profile.passcode
+store.profile.update
+store.proposals.convert
+store.proposals.create
+store.proposals.destroy
+store.proposals.index
+store.proposals.print
+store.proposals.show
+store.purchase-orders.create
+store.purchase-orders.edit
+store.purchase-orders.index
+store.purchase-orders.print
+store.purchase-orders.receive
+store.purchase-orders.show
+store.purchase-orders.store
+store.purchase-orders.update
+store.purchases.create
+store.purchases.destroy
+store.purchases.edit
+store.purchases.index
+store.purchases.show
+store.recurring-invoices.create
+store.recurring-invoices.destroy
+store.recurring-invoices.edit
+store.recurring-invoices.toggle
+store.reports.analytics
+store.reports.dashboard
+store.reports.index
+store.reports.inventory-valuation
+store.reports.profit-loss
+store.reports.purchases
+store.reports.sales
+store.reports.trial-balance
+store.returns-history.index
+store.returns.create
+store.returns.store
+store.sales-orders.cancel
+store.sales-orders.convert
+store.sales-orders.print
+store.sales.bulk-destroy
+store.sales.cancel
+store.sales.create
+store.sales.destroy
+store.sales.edit
+store.sales.export
+store.sales.index
+store.sales.invoice.create
+store.sales.orders.show
+store.sales.orders.update
+store.sales.park
+store.sales.parked
+store.sales.parked.delete
+store.sales.print
+store.sales.recall
+store.sales.return
+store.sales.send-email
+store.sales.send-whatsapp
+store.sales.show
+store.sales.store
+store.sales.update
+store.serials.index
+store.settings
+store.settings.update
+store.setup.complete
+store.staff-attendance.approve-gap
+store.staff-attendance.index
+store.staff-attendance.reject-gap
+store.staff-attendance.show
+store.staff.invite
+store.staff.remove
+store.staff.update
+store.stock-operations
+store.stock-operations.adjust
+store.stock-operations.audit
+store.stock-operations.transfer
+store.stock-operations.warehouse.store
+store.stock-operations.warehouse.update
+store.stock-takes.create
+store.stock-takes.index
+store.stock-takes.show
+store.stock-takes.store
+store.stock-transfers.create
+store.stock-transfers.index
+store.stock-transfers.show
+store.stock-transfers.store
+store.store
+store.suppliers.destroy
+store.suppliers.index
+store.suppliers.search
+store.suppliers.store
+store.suppliers.update
+store.v3.products.create
+store.v3.products.destroy
+store.v3.products.edit
+store.v3.products.index
+store.v3.products.store
+store.v3.products.tiers.destroy
+store.v3.products.tiers.index
+store.v3.products.tiers.store
+store.v3.products.uom.destroy
+store.v3.products.uom.index
+store.v3.products.uom.store
+store.v3.products.update
+store.v3.purchases.create
+store.v3.purchases.index
+store.v3.purchases.return.create
+store.v3.purchases.return.store
+store.v3.purchases.show
+store.v3.purchases.store
+store.v3.warehouses.create
+store.v3.warehouses.destroy
+store.v3.warehouses.edit
+store.v3.warehouses.index
+store.v3.warehouses.store
+store.v3.warehouses.update
+store.variants.destroy
+store.variants.update
+terms
+verification.send
+[rerun: b66]
+Bash
+IN
+cd "d:/AMD POS" && grep -oh "->name('[^']*')" routes/web.php routes/api.php 2>/dev/null | grep -oE "'[^']+'" | tr -d "'" | sort -u > /tmp/backend_routes.txt && cat /tmp/backend_routes.txt
+
+OUT
+[rerun: b67]
+Bash
+IN
+cd "d:/AMD POS" && comm -23 /tmp/frontend_routes.txt /tmp/backend_routes.txt
+
+OUT
+admin.data.process-import
+admin.data.validate-import
+admin.migration.analyze
+admin.migration.execute
+admin.platform.change-password
+admin.platform.clear-passcode
+admin.platform.set-passcode
+admin.store.feature-flag
+admin.store.purge
+admin.store.restore
+admin.stores
+admin.user.purge
+admin.user.restore
+appsumo.index
+appsumo.redeem
+auth.google
+backups.delete
+backups.download
+backups.email
+backups.store
+customers.search
+debit-notes.print
+debit-notes.update
+demo.login
+hub
+invite.complete
+login
+login.passcode
+logout
+my-stores.api
+password.confirm
+password.email
+password.request
+password.store
+password.update
+platform.appsumo.export
+platform.appsumo.generate
+platform.appsumo.import
+platform.appsumo.index
+platform.appsumo.purge
+platform.dashboard
+platform.login.pin
+platform.login.store
+platform.users
+privacy
+purchases.print
+recycle-bin.force-delete
+recycle-bin.restore
+redeem
+register
+setup.index
+store.accounting.accounts.api
+store.accounting.balance-sheet
+store.accounting.index
+store.accounting.pnl
+store.activity-log.index
+store.admin.backups.delete
+store.admin.backups.download
+store.admin.backups.email
+store.admin.backups.restore
+store.admin.backups.store
+store.admin.data
+store.admin.data.export
+store.admin.data.template
+store.admin.data.upload-mapping
+store.admin.home
+store.admin.settings
+store.admin.settings.update
+store.admin.users
+store.admin.users.destroy
+store.admin.users.store
+store.admin.users.update
+store.ai.query
+store.ai.test
+store.api.bank-accounts
+store.api.categories
+store.api.warehouses
+store.attendance.check-in
+store.attendance.heartbeat
+store.attendance.log-gap
+store.attributes.destroy
+store.attributes.index
+store.attributes.store
+store.attributes.update
+store.bank-accounts.destroy
+store.bank-accounts.index
+store.bank-accounts.store
+store.bank-accounts.transactions
+store.bank-accounts.update
+store.batches.index
+store.billing
+store.billing.portal
+store.categories.destroy
+store.categories.index
+store.categories.store
+store.categories.update
+store.charity.add
+store.charity.stats
+store.charity.update-default
+store.cookbook.create
+store.cookbook.destroy
+store.cookbook.edit
+store.cookbook.index
+store.cookbook.simulate
+store.cookbook.store
+store.cookbook.update
+store.create
+store.create-or-join
+store.customers.destroy
+store.customers.index
+store.customers.search
+store.customers.store
+store.customers.update
+store.dashboard
+store.debit-notes.create
+store.debit-notes.index
+store.debit-notes.show
+store.debit-notes.store
+store.expenses.destroy
+store.expenses.index
+store.expenses.store
+store.expenses.update
+store.finance.payables
+store.finance.receivables
+store.funds.index
+store.global.search
+store.growth-engine.dashboard
+store.growth-engine.dismiss
+store.growth-engine.index
+store.growth-engine.refresh
+store.growth-engine.whatsapp
+store.home
+store.import-export.index
+store.import.template
+store.inventory.bulk-destroy
+store.inventory.dashboard
+store.inventory.destroy
+store.inventory.history
+store.inventory.index
+store.inventory.reservations
+store.inventory.search
+store.inventory.stats
+store.inventory.stock-levels
+store.inventory.store
+store.inventory.update
+store.invoice-reminders.create
+store.invoice-reminders.index
+store.invoice-reminders.send
+store.join
+store.join.submit
+store.labels.index
+store.labels.print
+store.notifications.destroy
+store.notifications.index
+store.notifications.mark-all-read
+store.notifications.mark-read
+store.parked-sales.destroy
+store.parties.destroy
+store.parties.index
+store.parties.ledger
+store.parties.search
+store.parties.store
+store.parties.update
+store.payment-in.create
+store.payment-out.create
+store.payments.in
+store.payments.index
+store.payments.out
+store.payments.store
+store.pos
+store.pre-sales.convert
+store.pre-sales.create
+store.pre-sales.destroy
+store.pre-sales.index
+store.pre-sales.print
+store.pre-sales.show
+store.pre-sales.store
+store.production.create
+store.production.edit
+store.production.index
+store.production.show
+store.production.store
+store.products.variants.index
+store.products.variants.store
+store.profile.destroy
+store.profile.edit
+store.profile.passcode
+store.profile.update
+store.proposals.convert
+store.proposals.create
+store.proposals.destroy
+store.proposals.index
+store.proposals.print
+store.proposals.show
+store.purchase-orders.create
+store.purchase-orders.edit
+store.purchase-orders.index
+store.purchase-orders.print
+store.purchase-orders.receive
+store.purchase-orders.show
+store.purchase-orders.store
+store.purchase-orders.update
+store.purchases.create
+store.purchases.destroy
+store.purchases.edit
+store.purchases.index
+store.purchases.show
+store.recurring-invoices.create
+store.recurring-invoices.destroy
+store.recurring-invoices.edit
+store.recurring-invoices.toggle
+store.reports.analytics
+store.reports.dashboard
+store.reports.index
+store.reports.inventory-valuation
+store.reports.profit-loss
+store.reports.purchases
+store.reports.sales
+store.reports.trial-balance
+store.returns-history.index
+store.returns.create
+store.returns.store
+store.sales-orders.cancel
+store.sales-orders.convert
+store.sales-orders.print
+store.sales.bulk-destroy
+store.sales.cancel
+store.sales.create
+store.sales.destroy
+store.sales.edit
+store.sales.export
+store.sales.index
+store.sales.invoice.create
+store.sales.orders.show
+store.sales.orders.update
+store.sales.park
+store.sales.parked
+store.sales.parked.delete
+store.sales.print
+store.sales.recall
+store.sales.return
+store.sales.send-email
+store.sales.send-whatsapp
+store.sales.show
+store.sales.store
+store.sales.update
+store.serials.index
+store.settings
+store.settings.update
+store.setup.complete
+store.staff-attendance.approve-gap
+store.staff-attendance.index
+store.staff-attendance.reject-gap
+store.staff-attendance.show
+store.staff.invite
+store.staff.remove
+store.staff.update
+store.stock-operations
+store.stock-operations.adjust
+store.stock-operations.audit
+store.stock-operations.transfer
+store.stock-operations.warehouse.store
+store.stock-operations.warehouse.update
+store.stock-takes.create
+store.stock-takes.index
+store.stock-takes.show
+store.stock-takes.store
+store.stock-transfers.create
+store.stock-transfers.index
+store.stock-transfers.show
+store.stock-transfers.store
+store.store
+store.suppliers.destroy
+store.suppliers.index
+store.suppliers.search
+store.suppliers.store
+store.suppliers.update
+store.v3.products.create
+store.v3.products.destroy
+store.v3.products.edit
+store.v3.products.index
+store.v3.products.store
+store.v3.products.tiers.destroy
+store.v3.products.tiers.index
+store.v3.products.tiers.store
+store.v3.products.uom.destroy
+store.v3.products.uom.index
+store.v3.products.uom.store
+store.v3.products.update
+store.v3.purchases.create
+store.v3.purchases.index
+store.v3.purchases.return.create
+store.v3.purchases.return.store
+store.v3.purchases.show
+store.v3.purchases.store
+store.v3.warehouses.create
+store.v3.warehouses.destroy
+store.v3.warehouses.edit
+store.v3.warehouses.index
+store.v3.warehouses.store
+store.v3.warehouses.update
+store.variants.destroy
+store.variants.update
+terms
+verification.send
+[rerun: b68]
+The comm command didn't work correctly because the backend routes file was empty. Let me fix that:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -oh "->name('[^']*')" routes/web.php | wc -l && grep -oh "->name('[^']*')" routes/web.php | head -5
+
+OUT
+grep: unknown option -- >
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
+0
+grep: unknown option -- >
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
+[rerun: b69]
+Bash
+IN
+cd "d:/AMD POS" && grep -o "->name('[^']*')" routes/web.php | head -5
+
+OUT
+grep: unknown option -- >
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try 'grep --help' for more information.
+[rerun: b70]
+Bash
+IN
+cd "d:/AMD POS" && grep "name(" routes/web.php | head -5
+
+OUT
+Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
+Route::get('/pricing',  fn() => Inertia::render('Marketing/Pricing'))->name('marketing.pricing');
+Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marketing.about');
+Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
+Route::get('/blog',              [\App\Http\Controllers\Marketing\BlogController::class, 'index'])->name('blog.index');
+[rerun: b71]
+Bash
+IN
+cd "d:/AMD POS" && grep "name(" routes/web.php | grep -E "name\('([^']+)'\)" | sed "s/.*name('\([^']*\)').*/\1/" | sort -u > /tmp/backend_routes.txt && wc -l /tmp/backend_routes.txt && head -5 /tmp/backend_routes.txt
+
+OUT
+494 /tmp/backend_routes.txt
+account.edit
+account.update
+accounting.accounts.api
+accounting.balance-sheet
+accounting.dashboard
+[rerun: b72]
+Bash
+IN
+cd "d:/AMD POS" && comm -23 <(sort /tmp/frontend_routes.txt) <(sort /tmp/backend_routes.txt)
+
+OUT
+admin.data.process-import
+admin.data.validate-import
+admin.migration.execute
+admin.platform.change-password
+admin.platform.clear-passcode
+admin.platform.set-passcode
+admin.store.feature-flag
+admin.store.restore
+admin.user.purge
+admin.user.restore
+auth.google
+login
+login.passcode
+logout
+password.confirm
+password.email
+password.request
+password.store
+password.update
+platform.appsumo.export
+platform.appsumo.generate
+platform.appsumo.import
+platform.appsumo.index
+platform.appsumo.purge
+platform.dashboard
+platform.login.pin
+platform.login.store
+platform.users
+register
+setup.index
+store.accounting.accounts.api
+store.accounting.balance-sheet
+store.accounting.index
+store.accounting.pnl
+store.activity-log.index
+store.admin.backups.delete
+store.admin.backups.download
+store.admin.backups.email
+store.admin.backups.restore
+store.admin.backups.store
+store.admin.data
+store.admin.data.export
+store.admin.data.template
+store.admin.data.upload-mapping
+store.admin.home
+store.admin.settings
+store.admin.settings.update
+store.admin.users
+store.admin.users.destroy
+store.admin.users.store
+store.admin.users.update
+store.ai.query
+store.ai.test
+store.api.bank-accounts
+store.api.categories
+store.api.warehouses
+store.attendance.check-in
+store.attendance.heartbeat
+store.attendance.log-gap
+store.attributes.destroy
+store.attributes.index
+store.attributes.store
+store.attributes.update
+store.bank-accounts.destroy
+store.bank-accounts.index
+store.bank-accounts.store
+store.bank-accounts.transactions
+store.bank-accounts.update
+store.batches.index
+store.billing
+store.billing.portal
+store.categories.destroy
+store.categories.index
+store.categories.store
+store.categories.update
+store.charity.add
+store.charity.stats
+store.charity.update-default
+store.cookbook.create
+store.cookbook.destroy
+store.cookbook.edit
+store.cookbook.index
+store.cookbook.simulate
+store.cookbook.store
+store.cookbook.update
+store.customers.destroy
+store.customers.index
+store.customers.search
+store.customers.store
+store.customers.update
+store.dashboard
+store.debit-notes.create
+store.debit-notes.index
+store.debit-notes.show
+store.debit-notes.store
+store.expenses.destroy
+store.expenses.index
+store.expenses.store
+store.expenses.update
+store.finance.payables
+store.finance.receivables
+store.funds.index
+store.global.search
+store.growth-engine.dashboard
+store.growth-engine.dismiss
+store.growth-engine.index
+store.growth-engine.refresh
+store.growth-engine.whatsapp
+store.home
+store.import-export.index
+store.import.template
+store.inventory.bulk-destroy
+store.inventory.dashboard
+store.inventory.destroy
+store.inventory.history
+store.inventory.index
+store.inventory.reservations
+store.inventory.search
+store.inventory.stats
+store.inventory.stock-levels
+store.inventory.store
+store.inventory.update
+store.invoice-reminders.create
+store.invoice-reminders.index
+store.invoice-reminders.send
+store.labels.index
+store.labels.print
+store.notifications.destroy
+store.notifications.index
+store.notifications.mark-all-read
+store.notifications.mark-read
+store.parked-sales.destroy
+store.parties.destroy
+store.parties.index
+store.parties.ledger
+store.parties.search
+store.parties.store
+store.parties.update
+store.payment-in.create
+store.payment-out.create
+store.payments.in
+store.payments.index
+store.payments.out
+store.payments.store
+store.pos
+store.pre-sales.convert
+store.pre-sales.create
+store.pre-sales.destroy
+store.pre-sales.index
+store.pre-sales.print
+store.pre-sales.show
+store.pre-sales.store
+store.production.create
+store.production.edit
+store.production.index
+store.production.show
+store.production.store
+store.products.variants.index
+store.products.variants.store
+store.profile.destroy
+store.profile.edit
+store.profile.passcode
+store.profile.update
+store.proposals.convert
+store.proposals.create
+store.proposals.destroy
+store.proposals.index
+store.proposals.print
+store.proposals.show
+store.purchase-orders.create
+store.purchase-orders.edit
+store.purchase-orders.index
+store.purchase-orders.print
+store.purchase-orders.receive
+store.purchase-orders.show
+store.purchase-orders.store
+store.purchase-orders.update
+store.purchases.create
+store.purchases.destroy
+store.purchases.edit
+store.purchases.index
+store.purchases.show
+store.recurring-invoices.create
+store.recurring-invoices.destroy
+store.recurring-invoices.edit
+store.recurring-invoices.toggle
+store.reports.analytics
+store.reports.dashboard
+store.reports.index
+store.reports.inventory-valuation
+store.reports.profit-loss
+store.reports.purchases
+store.reports.sales
+store.reports.trial-balance
+store.returns-history.index
+store.returns.create
+store.returns.store
+store.sales-orders.cancel
+store.sales-orders.convert
+store.sales-orders.print
+store.sales.bulk-destroy
+store.sales.cancel
+store.sales.create
+store.sales.destroy
+store.sales.edit
+store.sales.export
+store.sales.index
+store.sales.invoice.create
+store.sales.orders.show
+store.sales.orders.update
+store.sales.park
+store.sales.parked
+store.sales.parked.delete
+store.sales.print
+store.sales.recall
+store.sales.return
+store.sales.send-email
+store.sales.send-whatsapp
+store.sales.show
+store.sales.store
+store.sales.update
+store.serials.index
+store.settings
+store.settings.update
+store.setup.complete
+store.staff-attendance.approve-gap
+store.staff-attendance.index
+store.staff-attendance.reject-gap
+store.staff-attendance.show
+store.staff.invite
+store.staff.remove
+store.staff.update
+store.stock-operations
+store.stock-operations.adjust
+store.stock-operations.audit
+store.stock-operations.transfer
+store.stock-operations.warehouse.store
+store.stock-operations.warehouse.update
+store.stock-takes.create
+store.stock-takes.index
+store.stock-takes.show
+store.stock-takes.store
+store.stock-transfers.create
+store.stock-transfers.index
+store.stock-transfers.show
+store.stock-transfers.store
+store.suppliers.destroy
+store.suppliers.index
+store.suppliers.search
+store.suppliers.store
+store.suppliers.update
+store.v3.products.create
+store.v3.products.destroy
+store.v3.products.edit
+store.v3.products.index
+store.v3.products.store
+store.v3.products.tiers.destroy
+store.v3.products.tiers.index
+store.v3.products.tiers.store
+store.v3.products.uom.destroy
+store.v3.products.uom.index
+store.v3.products.uom.store
+store.v3.products.update
+store.v3.purchases.create
+store.v3.purchases.index
+store.v3.purchases.return.create
+store.v3.purchases.return.store
+store.v3.purchases.show
+store.v3.purchases.store
+store.v3.warehouses.create
+store.v3.warehouses.destroy
+store.v3.warehouses.edit
+store.v3.warehouses.index
+store.v3.warehouses.store
+store.v3.warehouses.update
+store.variants.destroy
+store.variants.update
+verification.send
+[rerun: b73]
+Many routes appear missing because the store. prefix routes are inside a route group with prefix /s/{slug} that may name-prefix them differently. The frontend is using store.xxx and the backend has them as store.xxx too. Let me double-check the actual backend route names for the store.* routes:
+
+Bash
+IN
+cd "d:/AMD POS" && grep "name(" routes/web.php | grep "store\." | head -10
+
+OUT
+    Route::get('/start',     [\App\Http\Controllers\StoreController::class, 'createOrJoin'])->name('store.create-or-join');
+    Route::get('/new-store', [\App\Http\Controllers\StoreController::class, 'create'])->name('store.create');
+    Route::post('/new-store',[\App\Http\Controllers\StoreController::class, 'store'])->name('store.store');
+    Route::get('/join',  [\App\Http\Controllers\StaffController::class, 'joinForm'])->name('store.join');
+    Route::post('/join', [\App\Http\Controllers\StaffController::class, 'joinWithCode'])->name('store.join.submit');
+    ->name('store.')
+        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
+        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
+        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
+        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->name('store.restore');
+[rerun: b74]
+Bash
+IN
+cd "d:/AMD POS" && grep "name('store\.')" routes/web.php | head -3
+
+OUT
+    ->name('store.')
+        Route::name('store.')->group(function () {
+[rerun: b75]
+The store. prefix is a route group. The routes inside get store. prepended. The comm output shows they're "missing" but they're in the backend - the issue is my backend route name extraction. Let me verify the specific ones that might actually be broken:
+
+The frontend uses routes like store.dashboard, store.home, store.pos etc. These are all in the store. group. The comm output is showing they're not in the extracted list because the ->name('store.') group prefix isn't being captured properly in my grep.
+
+Let me focus on the routes the frontend calls that are clearly NOT in the store group:
+
+Bash
+IN
+cd "d:/AMD POS" && for r in "admin.platform.change-password" "admin.platform.clear-passcode" "admin.platform.set-passcode" "admin.store.feature-flag" "admin.store.restore" "admin.user.purge" "admin.user.restore"; do
+  count=$(grep -c "$r" routes/web.php 2>/dev/null || echo 0)
+  echo "$r: $count occurrences in routes"
+done
+
+OUT
+admin.platform.change-password: 0
+0 occurrences in routes
+admin.platform.clear-passcode: 0
+0 occurrences in routes
+admin.platform.set-passcode: 0
+0 occurrences in routes
+admin.store.feature-flag: 0
+0 occurrences in routes
+admin.store.restore: 0
+0 occurrences in routes
+admin.user.purge: 0
+0 occurrences in routes
+admin.user.restore: 0
+0 occurrences in routes
+[rerun: b76]
+Bash
+IN
+cd "d:/AMD POS" && grep -n "change-password\|clear-passcode\|set-passcode\|feature-flag\|user.purge\|user.restore" routes/web.php | head -20
+
+OUT
+164:        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
+165:        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
+183:        Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
+190:        Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('platform.set-passcode');
+191:        Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('platform.clear-passcode');
+192:        Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('platform.change-password');
+[rerun: b77]
+The backend uses user.restore, user.purge, store.feature-flag, platform.set-passcode etc. but the frontend calls admin.user.restore, admin.user.purge, admin.store.feature-flag, admin.platform.set-passcode. These are all inside an admin route group. Let me check:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -n "name('admin\.\|->name('admin" routes/web.php | head -10
+
+OUT
+111:        Route::prefix('admin')->name('admin.')->group(function () {
+195:        Route::get('/admin/stores', fn() => abort(501, 'Implement admin.stores'))->name('admin.stores');
+196:        Route::post('/admin/store/purge', fn() => abort(501, 'Implement admin.store.purge'))->name('admin.store.purge');
+197:        Route::post('/admin/migration/analyze', fn() => abort(501, 'Implement admin.migration.analyze'))->name('admin.migration.analyze');
+922:    Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.panel');
+[rerun: b78]
+Bash
+IN
+cd "d:/AMD POS" && sed -n '111,200p' routes/web.php
+
+OUT
+        Route::prefix('admin')->name('admin.')->group(function () {
+            Route::get('/',            [\App\Http\Controllers\AdminController::class, 'index'])->name('home');
+            Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+            Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
+            Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
+            Route::get('/users',       [\App\Http\Controllers\AdminController::class, 'users'])->name('users');
+            Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
+            Route::get('/staff',       [\App\Http\Controllers\AdminController::class, 'staffSummaries'])->name('staff');
+            Route::get('/attendance',  [\App\Http\Controllers\Admin\StoreAdminController::class, 'attendance'])->name('attendance');
+            
+            Route::get('/logs',        [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
+
+            // Data & Disaster Recovery
+            Route::get('/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('data');
+            Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->name('data.export');
+            Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->name('data.import');
+            
+            // OVERRIDE: Removed. Raw SQL Backup/Restore strictly locked to Platform Admin.
+            // Route::get('/backups',             [\App\Http\Controllers\BackupController::class, 'index'])->name('backups');
+            // Route::post('/backups',            [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+            // Route::get('/backups/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+            // Route::delete('/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+            // Route::post('/backups/email/{filename}', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
+            // Route::post('/backups/restore',    [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+
+            // Recycle Bin
+            Route::get('/recycle-bin',         [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
+            Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
+            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.force-delete');
+        });
+    });
+
+// ── Platform Owner ───────────────────────────────────────────────────────────
+Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
+    ->prefix('VenQore')
+    ->name('platform.')
+    ->group(function () {
+        Route::get('/',                   [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('dashboard');
+
+        Route::get('/run-migrations', function () {
+            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            return 'Migrations ran successfully! Output: ' . nl2br(e(\Illuminate\Support\Facades\Artisan::output()));
+        });
+
+        Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
+        Route::get('/users',              [\App\Http\Controllers\Admin\SuperAdminController::class, 'users'])->name('users');
+        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
+        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
+        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
+        
+        // Trash Management
+        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->name('store.restore');
+        Route::delete('/stores/{id}/purge',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeStore'])->name('store.purge');
+        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
+        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
+
+        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+
+        // ── V1 Support Inbox ──────────────────────────────────────────────
+        Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
+        Route::get('/tickets/{ticket}',                     [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('ticket.show');
+        Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->name('ticket.reply');
+        Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('ticket.status');
+
+        // ── Webhook Logs ──────────────────────────────────────────────────
+        Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
+
+        // ── Feature Flags (per-store overrides) ───────────────────────────
+        Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
+
+        // ── Impersonation ─────────────────────────────────────────────────
+        Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
+        Route::post('/impersonate/end',                     [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonate.end');
+
+        // ── Platform Owner Security & Profile ─────────────────────────────
+        Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('platform.set-passcode');
+        Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('platform.clear-passcode');
+        Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('platform.change-password');
+
+        // Added Category D Platform Admin Routes
+        Route::get('/admin/stores', fn() => abort(501, 'Implement admin.stores'))->name('admin.stores');
+        Route::post('/admin/store/purge', fn() => abort(501, 'Implement admin.store.purge'))->name('admin.store.purge');
+        Route::post('/admin/migration/analyze', fn() => abort(501, 'Implement admin.migration.analyze'))->name('admin.migration.analyze');
+        Route::delete('/admin/backups/delete', fn() => abort(501, 'Implement builds.delete'))->name('backups.delete');
+    });
+[rerun: b79]
+Now I can see the issue clearly. The platform routes are prefixed with platform. but the frontend calls them with admin.platform.* and admin.user.*, admin.store.*:
+
+Frontend: admin.platform.change-password → Backend: platform.platform.change-password (double platform)
+Frontend: admin.user.purge → Backend: platform.user.purge
+Frontend: admin.store.feature-flag → Backend: platform.store.feature-flag
+Frontend: admin.store.restore → Backend: platform.store.restore
+Let me check the frontend files that use these:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "admin.platform\.\|admin.user\.\|admin.store\." resources/js/ --include="*.jsx" | grep "route(" | head -20
+
+OUT
+resources/js/Pages/SuperAdmin/Dashboard.jsx:876:                <form onSubmit={e => { e.preventDefault(); pwForm.post(route('admin.platform.change-password'), { onSuccess: () => pwForm.reset() }); }}
+resources/js/Pages/SuperAdmin/Dashboard.jsx:941:                <form onSubmit={e => { e.preventDefault(); pinForm.post(route('admin.platform.set-passcode'), { onSuccess: () => pinForm.reset() }); }}
+resources/js/Pages/SuperAdmin/Dashboard.jsx:976:                                router.post(route('admin.platform.clear-passcode'), { current_password: clearPw }, {
+resources/js/Pages/SuperAdmin/Dashboard.jsx:1011:        router.post(route('admin.store.feature-flag', tenant.id), {
+resources/js/Pages/SuperAdmin/Stores.jsx:25:            router.post(route('admin.store.restore', id));
+resources/js/Pages/SuperAdmin/Stores.jsx:31:            router.delete(route('admin.store.purge', id));
+resources/js/Pages/SuperAdmin/Users.jsx:25:            router.post(route('admin.user.restore', id));
+resources/js/Pages/SuperAdmin/Users.jsx:31:            router.delete(route('admin.user.purge', id));
+[rerun: b80]
+The frontend uses admin.* prefix for SuperAdmin routes but the backend uses platform.*. The fix is in the routes - rename the platform routes to match. Let me check what the actual platform group name prefix is:
+
+The platform group has ->name('platform.'), so routes inside get platform. prefix. But frontend expects admin. prefix for these. The fix is to change the route names in the backend to match admin.* OR change the frontend calls.
+
+Given the frontend has many files, it's easier to rename the few routes in the backend. Let me check what the admin. prefix routes already have:
+
+The admin. group (line 111) is the store admin group. The platform (SuperAdmin) routes use platform. prefix but frontend expects admin. for these SuperAdmin actions.
+
+The cleanest fix: add alias routes OR rename the platform routes. Let me rename them to match what the frontend expects:
+
+Read web.php (lines 187-201)
+Read web.php (lines 187-201)
+I already have the routes content from earlier. The platform routes at lines 186-192 use platform. prefix but frontend expects admin.platform.*. Let me fix the route names directly:
+
+Bash
+IN
+cd "d:/AMD POS" && sed -n '155,200p' routes/web.php
+
+OUT
+        Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
+        Route::get('/users',              [\App\Http\Controllers\Admin\SuperAdminController::class, 'users'])->name('users');
+        Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
+        Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
+        Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
+        
+        // Trash Management
+        Route::post('/stores/{id}/restore',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreStore'])->name('store.restore');
+        Route::delete('/stores/{id}/purge',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeStore'])->name('store.purge');
+        Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
+        Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
+
+        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+
+        // ── V1 Support Inbox ──────────────────────────────────────────────
+        Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
+        Route::get('/tickets/{ticket}',                     [\App\Http\Controllers\Admin\SupportController::class, 'showTicket'])->name('ticket.show');
+        Route::post('/tickets/{ticket}/reply',              [\App\Http\Controllers\Admin\SupportController::class, 'reply'])->name('ticket.reply');
+        Route::post('/tickets/{ticket}/status',             [\App\Http\Controllers\Admin\SupportController::class, 'updateTicketStatus'])->name('ticket.status');
+
+        // ── Webhook Logs ──────────────────────────────────────────────────
+        Route::get('/webhooks',                             [\App\Http\Controllers\Admin\SupportController::class, 'webhooks'])->name('webhooks');
+
+        // ── Feature Flags (per-store overrides) ───────────────────────────
+        Route::post('/stores/{tenant}/feature-flag',        [\App\Http\Controllers\Admin\SupportController::class, 'toggleFeatureFlag'])->name('store.feature-flag');
+
+        // ── Impersonation ─────────────────────────────────────────────────
+        Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
+        Route::post('/impersonate/end',                     [\App\Http\Controllers\Admin\ImpersonationController::class, 'end'])->name('impersonate.end');
+
+        // ── Platform Owner Security & Profile ─────────────────────────────
+        Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('platform.set-passcode');
+        Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('platform.clear-passcode');
+        Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('platform.change-password');
+
+        // Added Category D Platform Admin Routes
+        Route::get('/admin/stores', fn() => abort(501, 'Implement admin.stores'))->name('admin.stores');
+        Route::post('/admin/store/purge', fn() => abort(501, 'Implement admin.store.purge'))->name('admin.store.purge');
+        Route::post('/admin/migration/analyze', fn() => abort(501, 'Implement admin.migration.analyze'))->name('admin.migration.analyze');
+        Route::delete('/admin/backups/delete', fn() => abort(501, 'Implement builds.delete'))->name('backups.delete');
+    });
+[rerun: b81]
+The platform group has ->name('platform.') so the full names are:
+
+platform.store.restore — frontend expects admin.store.restore
+platform.store.feature-flag — frontend expects admin.store.feature-flag
+platform.user.purge — frontend expects admin.user.purge
+platform.user.restore — frontend expects admin.user.restore
+platform.platform.set-passcode — frontend expects admin.platform.set-passcode
+platform.platform.change-password — frontend expects admin.platform.change-password
+platform.platform.clear-passcode — frontend expects admin.platform.clear-passcode
+I need to fix the route names so the full names match what the frontend expects. Since the group already adds platform., I need to strip the redundant platform. from the security routes and add admin. prefix override, or just change the ->name() parts:
+
+Edit web.php
+Modified
+Wait - that's the wrong approach. The frontend calls admin.store.restore but the backend generates platform.store.restore. The fix should be to change the frontend to use the correct route names, OR add route aliases.
+
+The cleanest fix is to add alias routes that point to the same controllers but with the admin.* names the frontend expects. Let me revert that bad edit and add proper aliases instead:
+
+Edit web.php
+Modified
+Now let me update the frontend files to use the correct route names:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -n "admin.store.restore\|admin.store.purge\|admin.user.restore\|admin.user.purge\|admin.store.feature-flag\|admin.platform.set-passcode\|admin.platform.clear-passcode\|admin.platform.change-password" resources/js/Pages/SuperAdmin/Dashboard.jsx resources/js/Pages/SuperAdmin/Stores.jsx resources/js/Pages/SuperAdmin/Users.jsx
+
+OUT
+resources/js/Pages/SuperAdmin/Dashboard.jsx:876:                <form onSubmit={e => { e.preventDefault(); pwForm.post(route('admin.platform.change-password'), { onSuccess: () => pwForm.reset() }); }}
+resources/js/Pages/SuperAdmin/Dashboard.jsx:941:                <form onSubmit={e => { e.preventDefault(); pinForm.post(route('admin.platform.set-passcode'), { onSuccess: () => pinForm.reset() }); }}
+resources/js/Pages/SuperAdmin/Dashboard.jsx:976:                                router.post(route('admin.platform.clear-passcode'), { current_password: clearPw }, {
+resources/js/Pages/SuperAdmin/Dashboard.jsx:1011:        router.post(route('admin.store.feature-flag', tenant.id), {
+resources/js/Pages/SuperAdmin/Stores.jsx:25:            router.post(route('admin.store.restore', id));
+resources/js/Pages/SuperAdmin/Stores.jsx:31:            router.delete(route('admin.store.purge', id));
+resources/js/Pages/SuperAdmin/Users.jsx:25:            router.post(route('admin.user.restore', id));
+resources/js/Pages/SuperAdmin/Users.jsx:31:            router.delete(route('admin.user.purge', id));
+[rerun: b82]
+The platform group prefix is platform., so the actual generated names are platform.store.restore, platform.platform.set-passcode, etc. The frontend uses admin.*. The fix: update the 8 frontend calls to use the correct platform.* names:
+
+Bash
+IN
+cd "d:/AMD POS" && sed -i \
+  "s/route('admin\.platform\.change-password')/route('platform.platform.change-password')/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+sed -i \
+  "s/route('admin\.platform\.set-passcode')/route('platform.platform.set-passcode')/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+sed -i \
+  "s/route('admin\.platform\.clear-passcode')/route('platform.platform.clear-passcode')/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+sed -i \
+  "s/route('admin\.store\.feature-flag'/route('platform.store.feature-flag'/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+sed -i \
+  "s/route('admin\.store\.restore'/route('platform.store.restore'/g" \
+  resources/js/Pages/SuperAdmin/Stores.jsx
+sed -i \
+  "s/route('admin\.store\.purge'/route('platform.store.purge'/g" \
+  resources/js/Pages/SuperAdmin/Stores.jsx
+sed -i \
+  "s/route('admin\.user\.restore'/route('platform.user.restore'/g" \
+  resources/js/Pages/SuperAdmin/Users.jsx
+sed -i \
+  "s/route('admin\.user\.purge'/route('platform.user.purge'/g" \
+  resources/js/Pages/SuperAdmin/Users.jsx
+echo "Done"
+
+OUT
+Done
+[rerun: b83]
+Wait - platform.platform.change-password is wrong. The group name is platform. and the route name is platform.change-password, making it platform.platform.change-password. That's ugly. Better to fix the route names in the backend to not double the platform:
+
+Edit web.php
+Modified
+Only hints (magic method access, unused vars) — no errors. Now update the frontend to use platform.set-passcode etc. (since the group prefix is platform. and we just renamed platform.change-password → change-password):
+
+Bash
+IN
+cd "d:/AMD POS" && sed -i \
+  "s/route('platform\.platform\.change-password')/route('platform.change-password')/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+sed -i \
+  "s/route('platform\.platform\.set-passcode')/route('platform.set-passcode')/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+sed -i \
+  "s/route('platform\.platform\.clear-passcode')/route('platform.clear-passcode')/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx
+echo "Done"
+
+OUT
+Done
+[rerun: b84]
+Bash
+IN
+cd "d:/AMD POS" && grep -n "admin\.\|platform\.platform\." resources/js/Pages/SuperAdmin/Dashboard.jsx resources/js/Pages/SuperAdmin/Stores.jsx resources/js/Pages/SuperAdmin/Users.jsx | grep "route(" | head -20
+
+OUT
+resources/js/Pages/SuperAdmin/Dashboard.jsx:286:                <KpiCard label="Trash (Stores)" value={stats.total_deleted_stores} sub="Deleted stores available to restore" Icon={Trash2} color="#ef4444" onClick={() => router.get(route('admin.stores'), { trashed: true })} />
+resources/js/Pages/SuperAdmin/Stores.jsx:14:        router.get(route('admin.stores'), { search, trashed }, { preserveState: true });
+resources/js/Pages/SuperAdmin/Stores.jsx:20:        router.get(route('admin.stores'), { search, trashed: newVal }, { preserveState: true });
+[rerun: b85]
+admin.stores is in the platform group as an alias (line 195 in web.php): ->name('admin.stores') which full name is platform.admin.stores. But the frontend calls admin.stores. Let me check:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -n "admin.stores\|admin\.stores" routes/web.php
+
+OUT
+195:        Route::get('/admin/stores', fn() => abort(501, 'Implement admin.stores'))->name('admin.stores');
+[rerun: b86]
+admin.stores inside the platform. group becomes platform.admin.stores — but the frontend calls admin.stores. This stub route is a placeholder that abort(501). The real stores list is handled by platform.stores.
+
+The frontend SuperAdmin/Stores.jsx calls route('admin.stores') for navigation — that stub should be replaced by the real route. Let me check what the correct route is:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -n "SuperAdminController.*stores\|name.*stores\b" routes/web.php | head -10
+
+OUT
+48:    Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
+155:        Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
+195:        Route::get('/admin/stores', fn() => abort(501, 'Implement admin.stores'))->name('admin.stores');
+[rerun: b87]
+The real route is platform.stores (line 155). The frontend uses admin.stores for the same thing. Fix: update the frontend to use platform.stores:
+
+Bash
+IN
+cd "d:/AMD POS" && sed -i \
+  "s/route('admin\.stores'\(.*\))/route('platform.stores'\1)/g" \
+  resources/js/Pages/SuperAdmin/Dashboard.jsx \
+  resources/js/Pages/SuperAdmin/Stores.jsx
+echo "Done"
+
+OUT
+Done
+[rerun: b88]
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "route('admin\." resources/js/Pages/SuperAdmin/ | head -10
+
+OUT
+[rerun: b89]
+All SuperAdmin route references fixed. Now let me check the remaining broken routes from the original comm output — specifically purchases.print and debit-notes.print/update:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "route('purchases.print\|route('debit-notes.print\|route('debit-notes.update" resources/js/ --include="*.jsx" | head -10
+
+OUT
+resources/js/Pages/DebitNotes/Create.jsx:895:                response = await axios.put(route('debit-notes.update', currentInvoice.id), payload);
+resources/js/Pages/DebitNotes/Create.jsx:911:                        window.open(route('debit-notes.print', newId), '_blank');
+resources/js/Pages/Purchases/Create.jsx:940:                    // window.open(route('purchases.print', response.data.id), '_blank');
+resources/js/Pages/Purchases/Create.jsx:2020:                                // window.open(route('purchases.print', lastPurchaseId), '_blank');
+[rerun: b90]
+purchases.print is already commented out. debit-notes.print and debit-notes.update are stub routes (lines 1083-1084 in web.php) — they exist but abort(501). These aren't broken — they're intentionally unimplemented. Not a route name mismatch.
+
+Let me now check all other non-store.* routes that are genuinely missing:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -rn "route('hub'\|route('invite\.\|route('customers.search\|route('demo.login\|route('appsumo\.\|route('backups\.\|route('my-stores" resources/js/ --include="*.jsx" | grep -v "store\." | head -20
+
+OUT
+resources/js/Components/StoreSwitcher.jsx:63:            const res = await axios.get(route('my-stores.api'));
+resources/js/Layouts/OneGlanceLayout.jsx:730:                                            : route('hub')
+resources/js/Pages/Admin/Database.jsx:33:            router.post(route('backups.store'), {}, {
+resources/js/Pages/Admin/Database.jsx:43:            router.delete(route('backups.delete', filename), {
+resources/js/Pages/Admin/Database.jsx:51:        window.location.href = route('backups.download', filename);
+resources/js/Pages/Admin/Database.jsx:59:            router.post(route('backups.email', filename), { email }, {
+resources/js/Pages/Auth/AcceptInvite.jsx:40:        post(route('invite.complete'));
+resources/js/Pages/Demo/Landing.jsx:18:        post(route('demo.login', { role: roleId }));
+resources/js/Pages/Errors/StoreSuspended.jsx:47:                        href={route('hub')}
+resources/js/Pages/Errors/TrialExpired.jsx:62:                    <Link href={route('hub')} className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+resources/js/Pages/Redeem.jsx:29:        post(route('appsumo.redeem'));
+resources/js/Pages/Returns/Create.jsx:381:                const response = await axios.get(route('customers.search'), { params: { search: '' } });
+resources/js/Pages/Returns/Create.jsx:440:                const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/WhatIsIncluded.jsx:66:                    <Link href={route('appsumo.index')} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm font-bold hover:bg-orange-500/20 transition-colors">
+resources/js/Pages/WhatIsIncluded.jsx:196:                        href={route('appsumo.index')}
+[rerun: b91]
+Bash
+IN
+cd "d:/AMD POS" && grep -n "name('hub'\|name('invite\.\|name('customers.search\|name('demo.login\|name('appsumo\.\|name('backups\.\|name('my-stores" routes/web.php | head -20
+
+OUT
+39:Route::post('/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
+47:    Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
+48:    Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
+60:    Route::get('/invite/{token}',  [\App\Http\Controllers\StaffController::class, 'acceptInvite'])->name('invite.accept');
+61:    Route::post('/invite/complete',[\App\Http\Controllers\StaffController::class, 'completeAcceptInvite'])->name('invite.complete');
+130:            // Route::post('/backups',            [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+131:            // Route::get('/backups/download/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+132:            // Route::delete('/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+133:            // Route::post('/backups/email/{filename}', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
+134:            // Route::post('/backups/restore',    [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+167:        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+168:        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+169:        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+170:        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+171:        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+198:        Route::delete('/admin/backups/delete', fn() => abort(501, 'Implement builds.delete'))->name('backups.delete');
+349:Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('appsumo.index');
+350:Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('appsumo.redeem');
+514:        Route::get('/customers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('customers.search');
+789:    Route::get('/customers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('customers.search');
+[rerun: b92]
+The backups.* routes in Admin/Database.jsx are commented out in web.php (lines 130-134) but there's a stub backups.delete at line 198. The admin backup routes (without store.admin.) belong to the store admin group. Let me check what the Admin/Database.jsx page's store admin backups routes are:
+
+Bash
+IN
+cd "d:/AMD POS" && head -70 resources/js/Pages/Admin/Database.jsx
+
+OUT
+import React, { useState } from 'react';
+import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import { Head, router, usePage } from '@inertiajs/react';
+import {
+    Database,
+    HardDrive,
+    Save,
+    Trash2,
+    Download,
+    Mail,
+    RefreshCw,
+    Plus,
+    Server,
+    Shield,
+    Clock,
+    FileCode,
+    Activity
+} from 'lucide-react';
+import MidnightNebula from '@/Components/MidnightNebula';
+
+export default function AdminDatabase({ stats, backups }) {
+    // Default values to prevent crashes if props are missing
+    const safeStats = stats || { size: '0 MB', tables: 0, db_name: 'Loading...', driver: '-' };
+    const safeBackups = backups || [];
+
+    const [processing, setProcessing] = useState(false);
+    const [emailing, setEmailing] = useState(null); // 'filename' being emailed
+
+    // Create Backup
+    const handleCreateBackup = () => {
+        if (confirm('Are you sure you want to create a new database backup? This might take a few moments.')) {
+            setProcessing(true);
+            router.post(route('backups.store'), {}, {
+                onFinish: () => setProcessing(false),
+                preserveScroll: true
+            });
+        }
+    };
+
+    // Delete Backup
+    const handleDelete = (filename) => {
+        if (confirm(`Are you sure you want to delete backup "${filename}"?`)) {
+            router.delete(route('backups.delete', filename), {
+                preserveScroll: true
+            });
+        }
+    };
+
+    // Download
+    const handleDownload = (filename) => {
+        window.location.href = route('backups.download', filename);
+    };
+
+    // Email Backup
+    const handleEmail = (filename) => {
+        const email = prompt('Enter email address to send backup to:', usePage().props.auth.user.email);
+        if (email) {
+            setEmailing(filename);
+            router.post(route('backups.email', filename), { email }, {
+                onFinish: () => setEmailing(null),
+                preserveScroll: true
+            });
+        }
+    };
+
+    return (
+        <OneGlanceLayout title="Database Center" mode="admin">
+            <Head title="Database Management" />
+
+            <div className="max-w-[1600px] mx-auto h-full flex flex-col gap-6">
+[rerun: b93]
+This Admin/Database.jsx uses backups.* routes which are commented out (locked to Platform Admin only). But this page uses mode="admin" — it's the store admin page. These backup routes need to be re-enabled or the page needs to use store.admin.backups.* routes. Let me check what routes exist for store admin backups:
+
+Bash
+IN
+cd "d:/AMD POS" && grep -n "store.admin.backups\|admin.backups" routes/web.php | head -10
+
+OUT
+198:        Route::delete('/admin/backups/delete', fn() => abort(501, 'Implement builds.delete'))->name('backups.delete');
+[rerun: b94]
+Bash
+IN
+cd "d:/AMD POS" && grep -n "backup" routes/web.php | grep -v "//" | head -20
+
+OUT
+198:        Route::delete('/admin/backups/delete', fn() => abort(501, 'Implement builds.delete'))->name('backups.delete');
+936:    Route::get('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
+937:    Route::post('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+938:    Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+939:    Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->name('backups.import');
+940:    Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->name('backups.progress');
+941:    Route::get('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+942:    Route::delete('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+943:    Route::post('/admin-panel/backups/{filename}/email', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
+[rerun: b95]
+The backup routes DO exist at lines 936-943 — they're in another route group (the legacy admin-panel group). The backups.* names are duplicated (line 198 backups.delete will conflict with 942). Let me check which group they're in:
+
+Bash
+IN
+cd "d:/AMD POS" && sed -n '920,945p' routes/web.php
+
+OUT
+    // The old /admin-panel is now the Store Admin at /s/{slug}/staff and /s/{slug}/settings
+    // This route is kept as a redirect safety net to prevent broken bookmarks from panicking
+    Route::get('/admin-panel', [\App\Http\Controllers\AdminController::class, 'index'])->name('admin.panel');
+
+    // Data Management (Import/Export)
+    Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('legacy.admin.data');
+    Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->name('legacy.admin.data.export');
+    Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('legacy.admin.data.import');
+    Route::get('/admin-panel/data/upload-mapping', function () { return redirect()->route('admin.data'); });
+    Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('legacy.admin.data.upload-mapping');
+    Route::get('/admin-panel/data/process-import', function () { return redirect()->route('admin.data'); });
+    Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('legacy.admin.data.process-import');
+    Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('legacy.admin.data.validate-import');
+    Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('legacy.admin.data.template');
+
+    // Backups
+    Route::get('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'index'])->name('backups.index');
+    Route::post('/admin-panel/backups', [\App\Http\Controllers\BackupController::class, 'store'])->name('backups.store');
+    Route::post('/admin-panel/backups/restore', [\App\Http\Controllers\BackupController::class, 'restore'])->name('backups.restore');
+    Route::post('/admin-panel/backups/import-data', [\App\Http\Controllers\BackupController::class, 'importData'])->name('backups.import');
+    Route::get('/admin-panel/backups/progress', [\App\Http\Controllers\BackupController::class, 'progress'])->name('backups.progress');
+    Route::get('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'download'])->name('backups.download');
+    Route::delete('/admin-panel/backups/{filename}', [\App\Http\Controllers\BackupController::class, 'delete'])->name('backups.delete');
+    Route::post('/admin-panel/backups/{filename}/email', [\App\Http\Controllers\BackupController::class, 'email'])->name('backups.email');
+
+    Route::get('/admin-panel/dashboard', [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('legacy.admin.dashboard');
+[rerun: b96]
+The backup routes at lines 936-943 DO exist. The duplicate at line 198 causes a conflict. Let me remove that duplicate stub:
+
+Edit web.php
+Removed 3 lines
+Now let's run the build:
+
+Update Todos
+
+Audit all Models for HasTenant trait
+
+Find all Eloquent queries missing tenant scope (selectSub, raw, etc.)
+
+Audit app/Jobs/ for missing tenant context
+
+Create migration for remaining tables missing tenant_id
+
+Add HasTenant to all models with tenant_id columns
+
+Fix broken frontend routes
+
+Run build and verify no compilation errors
+
+Run migrations
+Bash
+IN
+cd "d:/AMD POS" && npm run build 2>&1 | tail -30
+
+OUT
+[2mpublic/build/[22m[36massets/FundManagement-4yXYfw5B.js              [39m[1m[2m 38.74 kB[22m[1m[22m[2m │ gzip:   7.75 kB[22m
+[2mpublic/build/[22m[36massets/ExpensesList-CM5tNdDq.js                [39m[1m[2m 44.00 kB[22m[1m[22m[2m │ gzip:  10.31 kB[22m
+[2mpublic/build/[22m[36massets/Index-C3m1Cecg.js                       [39m[1m[2m 50.76 kB[22m[1m[22m[2m │ gzip:  13.59 kB[22m
+[2mpublic/build/[22m[36massets/ProductModal-Dqku6F3T.js                [39m[1m[2m 59.41 kB[22m[1m[22m[2m │ gzip:  11.31 kB[22m
+[2mpublic/build/[22m[36massets/Dashboard-BrU8YyOd.js                   [39m[1m[2m 62.69 kB[22m[1m[22m[2m │ gzip:  14.16 kB[22m
+[2mpublic/build/[22m[36massets/Create-BsFaeVIZ.js                      [39m[1m[2m 64.23 kB[22m[1m[22m[2m │ gzip:  14.24 kB[22m
+[2mpublic/build/[22m[36massets/Create-CmTGIrw7.js                      [39m[1m[2m 69.61 kB[22m[1m[22m[2m │ gzip:  15.31 kB[22m
+[2mpublic/build/[22m[36massets/Create-BA4hNDGM.js                      [39m[1m[2m 73.02 kB[22m[1m[22m[2m │ gzip:  15.82 kB[22m
+[2mpublic/build/[22m[36massets/CreatePreSale-CBWCgbd7.js               [39m[1m[2m 73.71 kB[22m[1m[22m[2m │ gzip:  15.66 kB[22m
+[2mpublic/build/[22m[36massets/Create-Cx1IVEH2.js                      [39m[1m[2m 77.00 kB[22m[1m[22m[2m │ gzip:  16.33 kB[22m
+[2mpublic/build/[22m[36massets/Create-CcF3v_xD.js                      [39m[1m[2m 77.90 kB[22m[1m[22m[2m │ gzip:  16.53 kB[22m
+[2mpublic/build/[22m[36massets/CreatePreSale-EBPCXqfv.js               [39m[1m[2m 78.48 kB[22m[1m[22m[2m │ gzip:  16.79 kB[22m
+[2mpublic/build/[22m[36massets/CreateInvoice-DgMJfsXf.js               [39m[1m[2m 78.62 kB[22m[1m[22m[2m │ gzip:  16.76 kB[22m
+[2mpublic/build/[22m[36massets/sweetalert2.esm.all-BQxta0Da.js         [39m[1m[2m 79.69 kB[22m[1m[22m[2m │ gzip:  20.97 kB[22m
+[2mpublic/build/[22m[36massets/Pos-DlZa4mMX.js                         [39m[1m[2m 81.55 kB[22m[1m[22m[2m │ gzip:  20.37 kB[22m
+[2mpublic/build/[22m[36massets/Settings-DvMLFJcu.js                    [39m[1m[2m115.88 kB[22m[1m[22m[2m │ gzip:  25.09 kB[22m
+[2mpublic/build/[22m[36massets/OneGlanceLayout-C8zKWjeA.js             [39m[1m[2m151.76 kB[22m[1m[22m[2m │ gzip:  40.05 kB[22m
+[2mpublic/build/[22m[36massets/CategoricalChart-DeLnlt0p.js            [39m[1m[2m288.35 kB[22m[1m[22m[2m │ gzip:  90.12 kB[22m
+[2mpublic/build/[22m[36massets/app-yudtkdG1.js                         [39m[1m[33m589.53 kB[39m[22m[2m │ gzip: 187.59 kB[22m
+[33m
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.[39m
+[32m✓ built in 55.99s[39m
+npm notice
+npm notice New major version of npm available! 10.9.3 -> 11.12.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.12.1
+npm notice To update run: npm install -g npm@11.12.1
+npm notice

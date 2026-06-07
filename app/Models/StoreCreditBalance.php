@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 class StoreCreditBalance extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, HasTenant;
 
     protected $fillable = [
         'party_id',
@@ -30,18 +31,27 @@ class StoreCreditBalance extends Model
      */
     public static function addCredit($partyId, $amount, $reason = null, $invoiceId = null)
     {
-        $balance = self::firstOrCreate(['party_id' => $partyId], ['balance' => 0]);
-        $balance->increment('balance', $amount);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($partyId, $amount, $reason, $invoiceId) {
+            $balance = self::where('party_id', $partyId)->lockForUpdate()->first();
+            if (!$balance) {
+                $balance = self::create([
+                    'party_id' => $partyId,
+                    'balance' => 0,
+                ]);
+                $balance = self::where('id', $balance->id)->lockForUpdate()->first();
+            }
+            $balance->increment('balance', $amount);
 
-        StoreCredit::create([
-            'party_id' => $partyId,
-            'amount' => $amount,
-            'type' => 'credit',
-            'reason' => $reason ?? 'Store credit added',
-            'invoice_id' => $invoiceId,
-        ]);
+            StoreCredit::create([
+                'party_id' => $partyId,
+                'amount' => $amount,
+                'type' => 'credit',
+                'reason' => $reason ?? 'Store credit added',
+                'invoice_id' => $invoiceId,
+            ]);
 
-        return $balance;
+            return $balance;
+        });
     }
 
     /**
@@ -49,22 +59,24 @@ class StoreCreditBalance extends Model
      */
     public static function useCredit($partyId, $amount, $reason = null, $invoiceId = null)
     {
-        $balance = self::where('party_id', $partyId)->first();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($partyId, $amount, $reason, $invoiceId) {
+            $balance = self::where('party_id', $partyId)->lockForUpdate()->first();
 
-        if (!$balance || $balance->balance < $amount) {
-            throw new \Exception('Insufficient store credit');
-        }
+            if (!$balance || $balance->balance < $amount) {
+                throw new \Exception('Insufficient store credit');
+            }
 
-        $balance->decrement('balance', $amount);
+            $balance->decrement('balance', $amount);
 
-        StoreCredit::create([
-            'party_id' => $partyId,
-            'amount' => $amount,
-            'type' => 'debit',
-            'reason' => $reason ?? 'Store credit used',
-            'invoice_id' => $invoiceId,
-        ]);
+            StoreCredit::create([
+                'party_id' => $partyId,
+                'amount' => $amount,
+                'type' => 'debit',
+                'reason' => $reason ?? 'Store credit used',
+                'invoice_id' => $invoiceId,
+            ]);
 
-        return $balance;
+            return $balance;
+        });
     }
 }

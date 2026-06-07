@@ -28,7 +28,7 @@ class SupplierStatementController extends Controller
         $to   = $validated['to']   ?? now()->toDateString();
 
         // All journal lines touching this supplier
-        $transactions = DB::table('journal_entries as je')
+        $transactions = DB::table('journal_entries as je')->where('je.tenant_id', app('current.tenant')->id)
             ->join('journal_items as ji', 'je.id', '=', 'ji.journal_entry_id')
             ->join('accounts as a', 'ji.account_id', '=', 'a.id')
             ->where('je.tenant_id', $tenantId)
@@ -56,7 +56,7 @@ class SupplierStatementController extends Controller
         $advanceBalance = $this->parties->getBalance($supplierId, '1300');
 
         // Outstanding purchases
-        $outstanding = DB::table('purchases')
+        $outstanding = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('party_id', $supplierId)
             ->whereIn('payment_status', ['unpaid', 'partial'])
@@ -64,7 +64,7 @@ class SupplierStatementController extends Controller
             ->select('id', 'invoice_number', 'purchase_date', 'total', 'payment_status')
             ->get()
             ->map(function ($p) use ($tenantId) {
-                $paid = DB::table('payment_allocations')
+                $paid = DB::table('payment_allocations')->where('payment_allocations.tenant_id', app('current.tenant')->id)
                     ->where('tenant_id', $tenantId)
                     ->where('purchase_id', $p->id)
                     ->where('status', 'active')

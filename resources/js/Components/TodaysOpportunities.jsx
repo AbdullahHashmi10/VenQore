@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 import { usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 const TodaysOpportunities = ({ className = '' }) => {
     const { store } = usePage().props;
@@ -146,7 +147,7 @@ const TodaysOpportunities = ({ className = '' }) => {
                 <div className="flex items-center gap-3">
                     <div className="text-right">
                         <p className="text-xl font-bold text-indigo-600 dark:text-indigo-400">
-                            {window.amdSettings?.currency_symbol || ''} {(stats.potential_revenue || 0).toLocaleString()}
+                                {formatCurrency(data.total_potential_revenue || 0, store)}
                         </p>
                         <p className="text-xs text-slate-500">Potential Revenue</p>
                     </div>
@@ -253,7 +254,7 @@ const TodaysOpportunities = ({ className = '' }) => {
                                 {rec.potential_revenue > 0 && (
                                     <div className="text-right shrink-0">
                                         <p className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                                            {window.amdSettings?.currency_symbol || ''} {Number(rec.potential_revenue).toLocaleString()}
+                                            {formatCurrency(rec.potential_revenue || 0, store)}
                                         </p>
                                         <p className="text-[10px] text-slate-400">Potential</p>
                                     </div>
@@ -281,3 +282,4 @@ const TodaysOpportunities = ({ className = '' }) => {
 };
 
 export default TodaysOpportunities;
+

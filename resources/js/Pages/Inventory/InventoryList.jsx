@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { Head, router, Link, usePage } from '@inertiajs/react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
 import ProductModal from '@/Components/ProductModal';
+import ProductTourGuide from '@/Components/ProductTourGuide';
 import {
     Plus,
     Search,
@@ -12,7 +14,7 @@ import {
     Edit,
     Trash2,
     Package,
-    AlertTriangle,
+    AlertTriangle as AlertTriangleIcon,
     DollarSign,
     Box,
     Upload,
@@ -111,28 +113,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
         return () => document.removeEventListener('click', handleClickOutside);
     }, [activeActionMenu]);
 
-    // Debounced Search Logic
-    const [debouncedSearch] = useMemo(() => {
-        let timer;
-        return [
-            (val) => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    router.get(route('store.inventory.index', { store_slug: store?.slug }), {
-                        search: val,
-                        sort_by: sortConfig.key,
-                        sort_dir: sortConfig.direction
-                    }, { preserveState: true, preserveScroll: true, replace: true });
-                }, 400);
-            }
-        ];
-    }, [sortConfig]);
 
-    useEffect(() => {
-        if (searchTerm !== (params.get('search') || '')) {
-            debouncedSearch(searchTerm);
-        }
-    }, [searchTerm]);
 
     const applyFilters = (newParams) => {
         router.get(route('store.inventory.index', { store_slug: store?.slug }), {
@@ -225,7 +206,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
     const executeDelete = () => {
         if (pendingDeleteAction === 'single' && pendingDeleteId) {
-            router.delete(route('store.inventory.destroy', { store_slug: store?.slug, product: pendingDeleteId }), {
+            router.delete(route('store.inventory.destroy', { store_slug: store?.slug, id: pendingDeleteId }), {
                 onSuccess: () => {
                     // Global Sync Trigger
                     window.dispatchEvent(new CustomEvent('amd:product-updated'));
@@ -272,7 +253,6 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                 actionName={pendingDeleteAction === 'bulk' ? `delete ${selectedProducts.length} selected products` : "delete this product"}
             />
 
-            {/* Product Modal */}
             {isModalOpen && (
                 <ProductModal
                     isOpen={isModalOpen}
@@ -288,6 +268,8 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     }}
                 />
             )}
+
+            <ProductTourGuide isModalOpen={isModalOpen} store={store} categories={categories} />
 
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden relative">
 
@@ -310,7 +292,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-lg">
-                                <AlertTriangle size={16} />
+                                <AlertTriangleIcon size={16} />
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Low Stock</p>
                         </div>
@@ -324,7 +306,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             </div>
                             <p className="text-xs font-bold text-slate-500 uppercase">Inventory Value</p>
                         </div>
-                        <p className="text-base font-black text-emerald-600">Rs {Number(stats?.inventory_value || 0).toLocaleString('en-PK')}</p>
+                        <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.inventory_value || 0, store)}</p>
                     </div>
                 </div>
 
@@ -350,15 +332,33 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleServerSearch}
                                 placeholder="Search products..."
-                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => {
+                                        setSearchTerm('');
+                                        applyFilters({ search: '' });
+                                    }}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
+                        <button
+                            onClick={() => applyFilters({ search: searchTerm })}
+                            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20"
+                        >
+                            Search
+                        </button>
                         <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <Link href={route('store.import-export.index', { store_slug: store?.slug })} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                            <Link href={route('store.admin.data', { store_slug: store?.slug })} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
                                 <Upload size={16} />
                             </Link>
                             <button
+                                id="tour-add-product"
                                 onClick={handleAddProduct}
                                 className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20"
                             >
@@ -491,9 +491,9 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                                                                 </div>
                                                             );
                                                         case 'cost_price':
-                                                            return String(Number(row.cost_price || 0).toLocaleString());
+                                                            return formatCurrency(row.cost_price || 0, store);
                                                         case 'price':
-                                                            return <span className="font-bold"> {Number(row.price).toLocaleString()}</span>;
+                                                            return <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>;
                                                         case 'status':
                                                             return (
                                                                 <span className={`

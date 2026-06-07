@@ -3,13 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Support\Str;
 
 class StockTransfer extends Model
 {
-    use \Illuminate\Database\Eloquent\SoftDeletes, HasUuids;
+    use \Illuminate\Database\Eloquent\SoftDeletes, HasUuids, HasTenant;
 
     protected $fillable = [
         'reference_number',

@@ -19,13 +19,13 @@ class PurchaseReturnController extends Controller
 
     public function create(string $purchaseId)
     {
-        $purchase = DB::table('purchases')
+        $purchase = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)
             ->join('parties', 'purchases.party_id', '=', 'parties.id')
             ->where('purchases.id', $purchaseId)
             ->select('purchases.*', 'parties.name as supplier_name')
             ->firstOrFail();
 
-        $items = DB::table('purchase_items')
+        $items = DB::table('purchase_items')->where('purchase_items.tenant_id', app('current.tenant')->id)
             ->join('products', 'purchase_items.product_id', '=', 'products.id')
             ->join('inventory_batches',
                 'purchase_items.inventory_batch_id', '=', 'inventory_batches.id')
@@ -62,7 +62,7 @@ class PurchaseReturnController extends Controller
             'items.*.return_qty'         => ['required', 'numeric', 'min:0.0001'],
         ]);
 
-        $purchase = DB::table('purchases')->where('id', $purchaseId)->firstOrFail();
+        $purchase = DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)->where('id', $purchaseId)->firstOrFail();
 
         DB::transaction(function () use ($validated, $purchase, $purchaseId) {
 
@@ -70,7 +70,7 @@ class PurchaseReturnController extends Controller
             $journalLines    = [];
 
             foreach ($validated['items'] as $item) {
-                $batch = DB::table('inventory_batches')
+                $batch = DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
                     ->where('id', $item['inventory_batch_id'])
                     ->lockForUpdate()
                     ->firstOrFail();
@@ -91,9 +91,35 @@ class PurchaseReturnController extends Controller
                 $totalReturnCost += $lineCost;
 
                 // Deduct from inventory batch
-                DB::table('inventory_batches')
+                DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
                     ->where('id', $batch->id)
                     ->decrement('remaining_qty', $returnQty);
+
+                // Deduct from physical product stock
+                DB::table('products')->where('tenant_id', app('current.tenant')->id)
+                    ->where('id', $batch->product_id)
+                    ->decrement('stock_quantity', $returnQty);
+
+                // Deduct from warehouse stock
+                DB::table('stocks')->where('tenant_id', app('current.tenant')->id)
+                    ->where('product_id', $batch->product_id)
+                    ->where('warehouse_id', $batch->warehouse_id)
+                    ->decrement('quantity', $returnQty);
+
+                // Log a negative stock movement
+                DB::table('stock_movements')->insert([
+                    'id'           => Str::uuid()->toString(),
+                    'tenant_id'    => app('current.tenant')->id,
+                    'product_id'   => $batch->product_id,
+                    'warehouse_id' => $batch->warehouse_id,
+                    'quantity'     => -$returnQty,
+                    'type'         => 'purchase_return',
+                    'reference_id' => $purchase->invoice_number,
+                    'description'  => "Purchase return for invoice {$purchase->invoice_number}",
+                    'user_id'      => auth()->id() ?? 1,
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ]);
             }
 
             // B18 Journal:
@@ -124,7 +150,7 @@ class PurchaseReturnController extends Controller
             ], $journalLines);
 
             // Record the return for audit trail
-            DB::table('purchase_returns')->insert([
+            DB::table('purchase_returns')->where('purchase_returns.tenant_id', app('current.tenant')->id)->insert([
                 'id'               => $returnId,
                 'purchase_id'      => $purchaseId,
                 'return_date'      => $validated['return_date'],
@@ -138,7 +164,7 @@ class PurchaseReturnController extends Controller
         });
 
         return redirect()
-            ->route('v3.purchases.show', $purchaseId)
+            ->route('store.v3.purchases.show', ['store_slug' => app('current.tenant')->slug, 'purchase' => $purchaseId])
             ->with('success', 'Purchase return posted successfully.');
     }
 }

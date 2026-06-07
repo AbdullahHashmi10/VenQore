@@ -71,7 +71,7 @@ class AdminController extends Controller
         }
 
         // 2. Profitability Trend (Last 6 Months) - Now using Cash Basis
-        $profitData = collect(range(5, 0))->map(function ($i) use ($reportSvc) {
+        $profitData = collect(range(5, 0))->map(function ($i) use ($reportSvc, $tenant) {
             $date = now()->subMonths($i);
             $monthName = $date->format('M');
             
@@ -79,12 +79,18 @@ class AdminController extends Controller
             $end = $date->copy()->endOfMonth();
             
             $movement = $reportSvc->getCashMovement($start, $end);
+            
+            $purchases = \App\Models\Invoice::where('type', 'purchase')
+                ->where('tenant_id', $tenant->id ?? null)
+                ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+                ->sum('total_amount');
 
             return [
                 'month' => $monthName,
                 'profit' => $movement['net'],
                 'expenses' => $movement['cash_out'],
-                'revenue' => $movement['cash_in']
+                'revenue' => $movement['cash_in'],
+                'purchases' => (float) $purchases
             ];
         })->values();
 
@@ -153,31 +159,28 @@ class AdminController extends Controller
         ];
 
         // 5. Payment Methods
-        $paymentMethods = \App\Models\Sale::select('payment_method', DB::raw('count(*) as count'))
+        // DRAGNET-FIX: Use DB::table() instead of Sale::select()->groupBy().
+        // Sale has $appends=['paid_amount','total_amount']. Selecting without 'id'
+        // produces poisoned model objects whose accessors silently return 0.
+        $tenantIdForPm = app('current.tenant')->id;
+        $paymentMethods = DB::table('sales')
+            ->select('payment_method', DB::raw('count(*) as count'))
+            ->where('tenant_id', $tenantIdForPm)
+            ->whereIn('status', ['posted', 'returned'])
             ->groupBy('payment_method')
             ->orderByDesc('count')
             ->get()
             ->map(function ($item, $index) {
                 $colors = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444'];
                 return [
-                    'name' => ucfirst($item->payment_method),
-                    'value' => $item->count,
+                    'name'  => ucfirst($item->payment_method ?? 'Other'),
+                    'value' => (int) $item->count,
                     'color' => $colors[$index % count($colors)]
                 ];
             });
 
         // Get Currency Symbol
-        $currencyCode = SettingsHelper::get('currency', 'PKR');
-        $currencySymbols = [
-            'PKR' => 'Rs. ',
-            'USD' => '$',
-            'EUR' => '€',
-            'GBP' => '£',
-            'AED' => 'AED ',
-            'SAR' => 'SAR ',
-            'INR' => '₹',
-        ];
-        $currencySymbol = $currencySymbols[$currencyCode] ?? $currencyCode . ' ';
+        $currencySymbol = SettingsHelper::getCurrencySymbol();
 
         // 6. Recent Activity (PHYSICAL CASH FLOW ONLY)
         $activities = \App\Models\Payment::where('method', 'cash')
@@ -201,7 +204,7 @@ class AdminController extends Controller
                     'type' => $pmt->sale ? 'sale' : ($isPurchase ? 'purchase' : 'payment'),
                     'title' => $reason,
                     'subtitle' => $pmt->notes ?? '',
-                    'amount' => ($isPlus ? '+' : '-') . ' Rs' . number_format($pmt->amount, 0),
+                    'amount' => ($isPlus ? '+' : '-') . \App\Helpers\SettingsHelper::formatCurrency($pmt->amount),
                     'time' => $pmt->created_at->diffForHumans(),
                     'is_plus' => $isPlus
                 ];
@@ -234,24 +237,38 @@ class AdminController extends Controller
             'staffPerformance' => $staffPerformance,
             'recentActivity' => $activities,
             'inventoryHealth' => $inventoryHealth,
-            'topProducts' => \App\Models\SaleItem::selectRaw('product_id, SUM(quantity) as sold_qty, SUM(subtotal) as revenue')
-                ->groupBy('product_id')
-                ->orderByDesc('revenue')
-                ->take(5)
-                ->with('product.category')
-                ->get()
-                ->map(function ($item) {
-                     $product = $item->product;
-                     $category = $product && $product->category ? $product->category->name : 'General';
-                     $productName = $product ? $product->name : 'Unknown Product';
-
-                     return [
-                         'name' => $productName,
-                         'cat' => $category,
-                         'sales' => (float)$item->revenue,
-                         'stock' => $product ? ($product->stock_quantity ?? 0) : 0
-                     ];
-                }),
+            'topProducts' => (function() {
+                // DRAGNET-FIX: Use DB::table() instead of SaleItem::selectRaw()->groupBy().
+                // Eloquent aggregate queries without 'id' are fragile when models define
+                // computed attributes or $appends. Using flat DB query + manual joins
+                // is the established safe pattern for aggregate data sent to Inertia.
+                $tenantId = app('current.tenant')->id;
+                return DB::table('sale_items')
+                    ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+                    ->join('products', 'products.id', '=', 'sale_items.product_id')
+                    ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                    ->where('sales.tenant_id', $tenantId)
+                    ->where('sales.status', 'posted')
+                    ->whereNull('sale_items.deleted_at')
+                    ->select(
+                        'products.name as product_name',
+                        'categories.name as category_name',
+                        DB::raw('SUM(sale_items.quantity) as sold_qty'),
+                        DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal)) as revenue')
+                    )
+                    ->groupBy('products.id', 'products.name', 'categories.id', 'categories.name')
+                    ->orderByDesc('revenue')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'name'  => $item->product_name ?? 'Unknown Product',
+                            'cat'   => $item->category_name ?? 'General',
+                            'sales' => (float) $item->revenue,
+                            'stock' => 0, // omitted — stock_quantity not available in flat join
+                        ];
+                    });
+            })(),
             'expenseData' => (function() {
                  $colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
                  $tenant = app('current.tenant');
@@ -353,7 +370,43 @@ class AdminController extends Controller
             );
         }
 
+        // ── Phase 7: Sync Metadata to Tenant Model ────────────────────────────
+        // Some settings (like currency) are mirrored on the 'tenants' table for 
+        // high-performance routing and metadata access.
+        $tenant = app('current.tenant');
+        if ($tenant) {
+            $syncNeeded = false;
+            
+            if (isset($settingsData['currency_code']) || isset($settingsData['currency'])) {
+                $tenant->currency_code = $settingsData['currency_code'] ?? $settingsData['currency'];
+                $syncNeeded = true;
+            }
+            
+            if (isset($settingsData['currency_symbol'])) {
+                $tenant->currency_symbol = $settingsData['currency_symbol'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['store_name'])) {
+                $tenant->name = $settingsData['store_name'];
+                $syncNeeded = true;
+            }
+
+            if (isset($settingsData['timezone'])) {
+                $tenant->timezone = $settingsData['timezone'];
+                $syncNeeded = true;
+            }
+
+            if ($syncNeeded) {
+                $tenant->save();
+            }
+        }
+
         // Clear settings cache
+        if ($tenant) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+        }
+        \Illuminate\Support\Facades\Cache::forget('settings:global');
         SettingsHelper::clearCache();
 
         return redirect()->back()->with('success', 'Settings updated successfully');
@@ -436,7 +489,17 @@ class AdminController extends Controller
                 'min:4',
                 'max:6',
                 function ($attribute, $value, $fail) {
-                    if (\App\Models\User::where('passcode', $value)->exists()) {
+                    $tenant = app('current.tenant');
+                    $exists = \App\Models\User::whereNotNull('passcode')
+                        ->when($tenant, function($q) use ($tenant) {
+                            $q->whereHas('memberships', function($m) use ($tenant) {
+                                $m->where('tenant_id', $tenant->id);
+                            });
+                        })
+                        ->get()->first(function($u) use ($value) {
+                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
+                        });
+                    if ($exists) {
                         $phrases = [
                             "That's a bit too simple, try another.",
                             "Common pattern detected, please choose something unique.",
@@ -458,14 +521,29 @@ class AdminController extends Controller
             PlanGate::enforce('staff_limit', $staffCount);
         }
 
-        \App\Models\User::create([
+        $user = \App\Models\User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
             'role' => $validated['role'] ?? 'cashier',
             'permissions' => $validated['permissions'] ?? [],
             'passcode' => $validated['passcode'] ?? null,
+            'last_store_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
         ]);
+
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            \App\Models\TenantUser::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'role' => $validated['role'] ?? 'cashier',
+                'status' => 'active',
+                'display_name' => $user->name,
+                'joined_at' => now(),
+                'pos_pin' => $user->passcode,
+                'permissions' => $validated['permissions'] ?? [],
+            ]);
+        }
 
         return redirect()->back()->with('success', 'User created successfully');
     }
@@ -486,7 +564,18 @@ class AdminController extends Controller
                 'min:4',
                 'max:6',
                 function ($attribute, $value, $fail) use ($id) {
-                    if (\App\Models\User::where('passcode', $value)->where('id', '!=', $id)->exists()) {
+                    $tenant = app('current.tenant');
+                    $exists = \App\Models\User::whereNotNull('passcode')
+                        ->where('id', '!=', $id)
+                        ->when($tenant, function($q) use ($tenant) {
+                            $q->whereHas('memberships', function($m) use ($tenant) {
+                                $m->where('tenant_id', $tenant->id);
+                            });
+                        })
+                        ->get()->first(function($u) use ($value) {
+                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
+                        });
+                    if ($exists) {
                         $phrases = [
                             "That's a bit too simple, try another.",
                             "Common pattern detected, please choose something unique.",
@@ -510,6 +599,18 @@ class AdminController extends Controller
         $user->permissions = $validated['permissions'] ?? $user->permissions;
         $user->passcode = $validated['passcode'] ?? $user->passcode;
         $user->save();
+
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            \App\Models\TenantUser::updateOrCreate(
+                ['tenant_id' => $tenant->id, 'user_id' => $user->id],
+                [
+                    'role' => $user->role,
+                    'pos_pin' => $user->passcode,
+                    'permissions' => $user->permissions,
+                ]
+            );
+        }
 
         return redirect()->back()->with('success', 'User updated successfully');
     }
@@ -564,7 +665,7 @@ class AdminController extends Controller
         $user = \App\Models\User::findOrFail($id);
 
         // Prevent deleting self
-        if ($user->id === auth()->id()) {
+        if ($user->id === \Illuminate\Support\Facades\Auth::id()) {
             return redirect()->back()->with('error', 'You cannot delete yourself');
         }
 

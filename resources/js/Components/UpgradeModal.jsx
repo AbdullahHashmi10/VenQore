@@ -29,8 +29,10 @@ export default function UpgradeModal() {
     const [upgradeUrl, setUpgradeUrl]   = useState('#');
     const [billingUrl, setBillingUrl]   = useState('#');
     const [portalUrl, setPortalUrl]     = useState('#');
+    const [currentCount, setCurrentCount] = useState(null);
+    const [limit, setLimit]               = useState(null);
 
-    const { flash } = usePage().props;
+    const { flash, limit_grace_status } = usePage().props;
 
     useEffect(() => {
         const handlePlanLimit = (e) => {
@@ -41,6 +43,8 @@ export default function UpgradeModal() {
             setUpgradeUrl(detail.upgrade_url || '#');
             setBillingUrl(detail.billing_url || '#');
             setPortalUrl(detail.portal_url || '#');
+            setCurrentCount(detail.current_count || null);
+            setLimit(detail.limit || null);
             setIsOpen(true);
         };
 
@@ -57,6 +61,8 @@ export default function UpgradeModal() {
             setUpgradeUrl(detail.upgrade_url || '#');
             setBillingUrl(detail.billing_url || '#');
             setPortalUrl(detail.portal_url || '#');
+            setCurrentCount(detail.current_count || null);
+            setLimit(detail.limit || null);
             setIsOpen(true);
         }
     }, [flash?.plan_limit]);
@@ -70,6 +76,7 @@ export default function UpgradeModal() {
             'Growth Engine (AI retention)',
             'Advanced reports',
             'Multi-branch support',
+            'Live agent chat support',
         ],
         business: [
             'Everything in Growth',
@@ -81,26 +88,63 @@ export default function UpgradeModal() {
         ],
     };
 
-    const upgradeTo = currentPlan === 'starter' ? 'growth' : 'business';
+    const upgradeTo = (currentPlan === 'starter' || currentPlan === 'ltd_1') ? 'growth'
+                     : (currentPlan === 'growth'  || currentPlan === 'ltd_2') ? 'business'
+                     : 'business';
     const upgradePerks = planPerks[upgradeTo] || planPerks.growth;
 
+    // LTD-specific logic: show AppSumo stacking CTA instead of subscription CTA
+    const isLtd       = currentPlan?.startsWith('ltd_');
+    const ltdTier     = isLtd ? parseInt(currentPlan.replace('ltd_', '')) : 0;
+    const canStackMore = isLtd && ltdTier < 3;
+
     const featureLabels = {
-        sku_limit:     { icon: '📦', label: 'Product Limit' },
-        staff_limit:   { icon: '👤', label: 'Staff Limit' },
-        locations:     { icon: '🏪', label: 'Warehouse Limit' },
-        woocommerce:   { icon: '🛒', label: 'WooCommerce' },
-        api_access:    { icon: '🔌', label: 'API Access' },
-        growth_engine: { icon: '✨', label: 'Growth Engine' },
-        multi_branch:  { icon: '🌐', label: 'Multi-Branch' },
+        sku_limit:                { icon: '📦', label: 'Product Limit' },
+        staff_limit:              { icon: '👤', label: 'Staff Limit' },
+        locations:                { icon: '🏪', label: 'Warehouse Limit' },
+        woocommerce:              { icon: '🛒', label: 'WooCommerce' },
+        api_access:               { icon: '🔌', label: 'API Access' },
+        growth_engine:            { icon: '✨', label: 'Growth Engine' },
+        multi_branch:             { icon: '🌐', label: 'Multi-Branch' },
+        transactions_per_month:   { icon: '📈', label: 'Transaction Limit' },
+        smart_capture:            { icon: '📸', label: 'Smart Capture' },
+        bill_of_materials:        { icon: '📋', label: 'Bill of Materials' },
+        fixed_asset_depreciation: { icon: '📉', label: 'Asset Depreciation' },
+        fiscal_year_closing:      { icon: '🔒', label: 'Fiscal Year Closing' },
+        live_chat_widget:         { icon: '💬', label: 'Live Chat Widget' },
+        chat_support:             { icon: '💬', label: 'Live Chat Support' },
+        owners_daily_pulse:       { icon: '⚡', label: 'Daily Pulse' },
+        recurring_invoicing:      { icon: '🔄', label: 'Recurring Invoicing' },
     };
 
-    const featureMeta = featureLabels[feature] || { icon: '🔒', label: 'Feature' };
+    const getFeatureMeta = (feat) => {
+        if (!feat) return { icon: '🔒', label: 'Feature' };
+        const predefined = featureLabels[feat];
+        if (predefined) return predefined;
+
+        // Fallback: Convert snake_case to Title Case
+        const label = feat
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+        return { icon: '🔒', label: label };
+    };
+
+    const featureMeta = getFeatureMeta(feature);
 
     const planColors = {
         starter: 'text-slate-400',
         growth: 'text-indigo-400',
         business: 'text-amber-400',
     };
+
+    const displayCount = currentCount || (limit_grace_status?.is_over_limit && limit_grace_status?.exceeded_feature === feature ? limit_grace_status.current_count : null);
+    const displayLimit = limit || (limit_grace_status?.is_over_limit && limit_grace_status?.exceeded_feature === feature ? limit_grace_status.limit : null);
+
+    let stuffName = "items";
+    if (feature === 'sku_limit') stuffName = "Products";
+    else if (feature === 'staff_limit') stuffName = "Staff Members";
+    else if (feature === 'locations') stuffName = "Warehouses";
 
     return (
         <Modal show={isOpen} onClose={() => setIsOpen(false)} maxWidth="lg">
@@ -127,10 +171,15 @@ export default function UpgradeModal() {
                         </div>
 
                         <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1.5">
+                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-wider">
                                     {featureMeta.label} Reached
                                 </span>
+                                {displayCount !== null && displayLimit !== null && (
+                                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                        {displayCount.toLocaleString()} / {displayLimit.toLocaleString()} {stuffName}
+                                    </span>
+                                )}
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-800 border border-slate-700 ${planColors[currentPlan]}`}>
                                     {currentPlan} plan
                                 </span>
@@ -144,6 +193,11 @@ export default function UpgradeModal() {
                             <p className="text-slate-400 text-sm mt-1 leading-relaxed">
                                 {message}
                             </p>
+                            {displayCount !== null && displayLimit !== null && (
+                                <p className="text-amber-400 text-xs font-bold mt-1.5 bg-amber-500/5 border border-amber-500/10 rounded-lg px-2.5 py-1 inline-block">
+                                    Current Usage: {displayCount.toLocaleString()} of {displayLimit.toLocaleString()} {stuffName} reached
+                                </p>
+                            )}
                         </div>
                     </div>
 
@@ -167,20 +221,47 @@ export default function UpgradeModal() {
 
                     {/* ── CTA Buttons ── */}
                     <div className="flex flex-col sm:flex-row gap-3">
-                        {/* Primary: Upgrade */}
-                        <a
-                            href={upgradeUrl}
-                            className={`
-                                flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all shadow-lg
-                                ${upgradeTo === 'business'
-                                    ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-amber-900/20 hover:shadow-amber-900/40'
-                                    : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-indigo-900/30 hover:shadow-indigo-900/50'}
-                            `}
-                        >
-                            <Sparkles size={16} />
-                            Upgrade to {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
-                            <ArrowRight size={14} />
-                        </a>
+                        {/* Primary: Upgrade CTA — LTD-aware */}
+                        {isLtd ? (
+                            canStackMore ? (
+                                // LTD user who can still stack more codes
+                                <a
+                                    href="https://appsumo.com/products/venqore"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 transition-all shadow-lg shadow-amber-900/20 hover:shadow-amber-900/40"
+                                >
+                                    <Sparkles size={16} />
+                                    Stack Another AppSumo Code
+                                    <ArrowRight size={14} />
+                                </a>
+                            ) : (
+                                // LTD user at max tier (ltd_3) — must move to subscription
+                                <a
+                                    href={upgradeUrl}
+                                    className="flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 transition-all shadow-lg shadow-indigo-900/30"
+                                >
+                                    <Sparkles size={16} />
+                                    Upgrade to Subscription
+                                    <ArrowRight size={14} />
+                                </a>
+                            )
+                        ) : (
+                            // Regular subscription user
+                            <a
+                                href={upgradeUrl}
+                                className={`
+                                    flex-1 flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl font-bold text-sm text-white transition-all shadow-lg
+                                    ${upgradeTo === 'business'
+                                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 shadow-amber-900/20 hover:shadow-amber-900/40'
+                                        : 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 shadow-indigo-900/30 hover:shadow-indigo-900/50'}
+                                `}
+                            >
+                                <Sparkles size={16} />
+                                Upgrade to {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
+                                <ArrowRight size={14} />
+                            </a>
+                        )}
 
                         {/* Secondary: View Billing */}
                         <a
@@ -199,13 +280,23 @@ export default function UpgradeModal() {
                         </button>
                     </div>
 
-                    <p className="text-center text-slate-600 text-xs mt-5">
-                        Upgrade takes effect instantly. No downtime. Manage subscription at{' '}
-                        <a href={portalUrl} className="text-slate-500 hover:text-slate-300 underline transition-colors">
-                            billing portal
-                        </a>
-                        .
-                    </p>
+                    {portalUrl && portalUrl !== '#' ? (
+                        <p className="text-center text-slate-600 text-xs mt-5">
+                            Upgrade takes effect instantly. No downtime. Manage subscription at{' '}
+                            <a href={portalUrl} className="text-slate-500 hover:text-slate-300 underline transition-colors">
+                                billing portal
+                            </a>
+                            .
+                        </p>
+                    ) : (
+                        <p className="text-center text-slate-600 text-xs mt-5">
+                            Upgrade takes effect instantly. No downtime. You can manage these features inside your{' '}
+                            <a href={billingUrl} className="text-slate-500 hover:text-slate-300 underline transition-colors">
+                                billing page
+                            </a>
+                            .
+                        </p>
+                    )}
                 </div>
             </div>
         </Modal>

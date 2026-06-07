@@ -37,7 +37,7 @@ export default function AcceptInvite({ token, invite_email, store_name, role }) 
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('invite.complete'));
+        post(route('invite.submit'));
     };
 
     return (

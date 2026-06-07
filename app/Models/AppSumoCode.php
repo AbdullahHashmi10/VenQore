@@ -11,6 +11,8 @@ class AppSumoCode extends Model
 {
     use HasFactory, SoftDeletes, HasUuids;
 
+    protected $table = 'appsumo_codes';
+
     protected $guarded = [];
 
     protected $casts = [

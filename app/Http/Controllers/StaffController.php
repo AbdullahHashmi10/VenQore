@@ -34,9 +34,16 @@ class StaffController extends Controller
     {
         $tenant = app('current.tenant');
 
+        $roles = ['owner', 'franchise_admin', 'admin', 'manager', 'shift_supervisor', 'accountant', 'purchasing_officer', 'inventory_controller', 'hr_officer', 'production_supervisor', 'kitchen_manager', 'dispenser', 'sales_executive', 'fulfillment_lead', 'delivery_driver', 'cashier', 'viewer'];
+        $rolesOrder = "CASE role ";
+        foreach ($roles as $idx => $r) {
+            $rolesOrder .= "WHEN '{$r}' THEN {$idx} ";
+        }
+        $rolesOrder .= "ELSE " . count($roles) . " END";
+
         $members = TenantUser::where('tenant_id', $tenant->id)
             ->with('user:id,name,email')
-            ->orderByRaw("FIELD(role, 'owner', 'franchise_admin', 'admin', 'manager', 'shift_supervisor', 'accountant', 'purchasing_officer', 'inventory_controller', 'hr_officer', 'production_supervisor', 'kitchen_manager', 'dispenser', 'sales_executive', 'fulfillment_lead', 'delivery_driver', 'cashier', 'viewer')")
+            ->orderByRaw($rolesOrder)
             ->orderBy('status')
             ->get()
             ->map(fn($m) => [
@@ -216,7 +223,25 @@ class StaffController extends Controller
      */
     public function joinForm(): \Inertia\Response
     {
-        return \Inertia\Inertia::render('Store/Join');
+        $user = Auth::user();
+
+        // Fetch pending invites for this user's email 
+        $pendingInvites = \App\Models\StaffInvitation::where('invitee_email', $user->email)
+            ->whereIn('status', ['pending', 'no_account'])
+            ->where('expires_at', '>', now())
+            ->with(['tenant:id,name,plan'])
+            ->get()
+            ->map(fn($inv) => [
+                'token'      => $inv->token,
+                'store_name' => $inv->tenant->name,
+                'plan'       => $inv->tenant->plan,
+                'role'       => $inv->role ?? 'cashier',
+                'accept_url' => route('invite.accept', ['token' => $inv->token]),
+            ]);
+
+        return \Inertia\Inertia::render('Store/Join', [
+            'pending_invites' => $pendingInvites
+        ]);
     }
 
     /**
@@ -259,9 +284,40 @@ class StaffController extends Controller
         $this->authorizeMemberAction($member);
 
         $request->validate([
-            'role'         => 'nullable|in:franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer',
+            'role'         => 'nullable|in:franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
             'display_name' => 'nullable|string|max:50',
             'status'       => 'nullable|in:active,suspended',
+            'permissions'  => 'nullable|array',
+            'passcode'     => [
+                'nullable',
+                'string',
+                'min:4',
+                'max:6',
+                function ($attribute, $value, $fail) use ($member) {
+                    $tenant = app('current.tenant');
+                    $exists = \App\Models\User::whereNotNull('passcode')
+                        ->where('id', '!=', $member->user_id)
+                        ->when($tenant, function($q) use ($tenant) {
+                            $q->whereHas('memberships', function($m) use ($tenant) {
+                                $m->where('tenant_id', $tenant->id);
+                            });
+                        })
+                        ->get()->first(function($u) use ($value) {
+                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
+                        });
+                    if ($exists) {
+                        $phrases = [
+                            "That's a bit too simple, try another.",
+                            "Common pattern detected, please choose something unique.",
+                            "Security check failed, try a different combination.",
+                            "This sequence is reserved, pick another.",
+                            "Too easy to guess, make it harder.",
+                            "System suggests choosing a different PIN."
+                        ];
+                        $fail($phrases[array_rand($phrases)]);
+                    }
+                },
+            ],
         ]);
 
         // Cannot change role of owner
@@ -269,7 +325,24 @@ class StaffController extends Controller
             abort(403, 'Owner role cannot be changed.');
         }
 
-        $member->update($request->only(['role', 'display_name', 'status']));
+        $member->update($request->only(['role', 'display_name', 'status', 'permissions']));
+
+        if ($request->filled('passcode')) {
+            $hashed = \Illuminate\Support\Facades\Hash::make($request->passcode);
+            $member->update(['pos_pin' => $hashed]);
+            
+            $user = $member->user;
+            if ($user) {
+                $user->update(['passcode' => $hashed]);
+            }
+        }
+
+        $user = $member->user;
+        if ($user) {
+            $user->role = $request->role ?? $user->role;
+            $user->permissions = $request->permissions ?? $user->permissions;
+            $user->save();
+        }
 
         return back()->with('success', 'Member updated.');
     }

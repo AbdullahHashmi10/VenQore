@@ -10,7 +10,7 @@ class InvoicePdfController extends Controller
 {
     public function show(string $saleId)
     {
-        $sale = DB::table('sales as s')
+        $sale = DB::table('sales as s')->where('s.tenant_id', app('current.tenant')->id)
             ->join('parties as p', 's.party_id', '=', 'p.id')
             ->join('warehouses as w', 's.warehouse_id', '=', 'w.id')
             ->where('s.id', $saleId)
@@ -24,7 +24,7 @@ class InvoicePdfController extends Controller
             )
             ->firstOrFail();
 
-        $items = DB::table('sale_items as si')
+        $items = DB::table('sale_items as si')->where('si.tenant_id', app('current.tenant')->id)
             ->join('products as pr', 'si.product_id', '=', 'pr.id')
             ->where('si.sale_id', $saleId)
             ->select(

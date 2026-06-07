@@ -9,20 +9,20 @@
 </head>
 
 <body>
-    <!-- TOP NOTCHES (Unified) -->
+
+    <!-- TOP NOTCH BAR -->
     <div class="notch-container top">
         <div class="pill left">
-            <!-- Connection Status -->
-            <div id="conn-indicator" class="indicator online"></div>
-            <span id="status-text">INIT...</span>
+            <div id="conn-indicator" class="indicator" title="Connection Status"></div>
+            <span id="status-text">CONNECTING...</span>
             <div class="sep"></div>
-            <span id="sync-text">📡 Mobile</span>
+            <span id="sync-text">📡 Syncing...</span>
             <div class="sep"></div>
-            <button id="settings-btn" title="Server Settings">⚙️</button>
+            <button id="settings-btn" title="Station Settings">⚙️</button>
         </div>
 
         <div class="pill center">
-            <span class="station-title">VenQore STATION</span>
+            <span class="station-title">⚡ VenQore STATION</span>
         </div>
 
         <div class="pill right">
@@ -30,39 +30,328 @@
             <div class="sep"></div>
             <button id="blur-toggle" title="Privacy Shade">👁️ Blur</button>
             <div class="sep"></div>
-            <button id="refresh" title="Reload System">⚡ Refresh</button>
+            <button id="refresh" title="Reload">⚡ Refresh</button>
             <div class="sep"></div>
-            <button id="close" class="exit-btn" title="Authorize Exit">🛑 Exit</button>
+            <button id="close" class="exit-btn" title="Exit">🛑 Exit</button>
         </div>
     </div>
 
-    <!-- MAIN VIEWPORT (The Canvas) -->
+    <!-- MAIN VIEWPORT -->
     <div id="view-container">
         <webview id="app-view" src="about:blank" autosize="on" allowpopups
-            webpreferences="contextIsolation=yes, nodeIntegration=no" partition="persist:amd_storage"></webview>
+            webpreferences="contextIsolation=yes, nodeIntegration=no"
+            partition="persist:venqore_cloud"></webview>
 
+        <!-- LOADING OVERLAY -->
         <div id="loader-overlay">
             <div class="loader-content">
                 <img src="assets/icon.png" class="logo-pulse" alt="VenQore">
                 <div class="loading-ring"></div>
-                <h2 id="loading-status">System Ignition...</h2>
+                <h2 id="loading-status">Connecting to VenQore...</h2>
+                <p id="loading-sub">Establishing secure connection</p>
             </div>
         </div>
 
+        <!-- NATIVE LOGIN / SETUP OVERLAY -->
+        <div id="native-login-overlay" class="hidden">
+            <div class="login-container">
+                <div class="login-logo-container">
+                    <img src="assets/icon.png" class="login-logo" alt="VenQore">
+                    <h1>VenQore Station</h1>
+                    <p class="subtitle">Enterprise Desktop POS Terminal</p>
+                </div>
+                
+                <div class="login-card">
+                    <div id="setup-view">
+                        <h3>Terminal Configuration</h3>
+                        <p class="card-hint">Pair this station terminal with your VenQore cloud or local store.</p>
+                        
+                        <div class="input-group">
+                            <label for="store-slug-input">Store Subdomain / Slug</label>
+                            <div class="slug-input-wrapper">
+                                <input type="text" id="store-slug-input" placeholder="e.g. my-store" autofocus autocomplete="off">
+                                <span id="slug-suffix-label" class="slug-suffix">.venqore.com</span>
+                            </div>
+                        </div>
+
+                        <button id="btn-connect-store" class="primary-btn">Link Store &amp; Sign In</button>
+                        
+                        <div class="divider">
+                            <span>OR</span>
+                        </div>
+                        
+                        <button id="btn-direct-signin" class="secondary-btn">Direct Cloud Sign In</button>
+                    </div>
+                </div>
+
+                <div class="login-footer">
+                    <p>Don't have an account? <a href="#" id="link-register">Create your account on VenQore</a></p>
+                    <p class="version-label" id="login-version-label">Version 2.0.0</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- NATIVE SYSTEM ERROR OVERLAY -->
+        <div id="native-error-overlay" class="hidden">
+            <div class="error-container">
+                <div class="error-badge">⚠️</div>
+                <h1 id="error-title">System Error</h1>
+                <p id="error-desc">The requested resource could not be found or the server encountered an error.</p>
+                <div class="error-details">
+                    <span class="details-label">URL:</span>
+                    <span id="error-url" class="details-value">http://127.0.0.1:8000/s/pos</span>
+                </div>
+                <div style="display:flex; gap:12px; justify-content:center; margin-top:24px;">
+                    <button id="btn-error-retry" class="primary-btn" style="width:auto; padding:12px 30px;">🔄 Reload Page</button>
+                    <button id="btn-error-home" class="secondary-btn" style="width:auto; padding:12px 30px;">🔌 Pair Store</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NATIVE 7-DAY OFFLINE LOCK OVERLAY -->
+        <div id="native-offline-lock-overlay" class="hidden">
+            <div class="lock-container">
+                <div class="lock-icon">🔒</div>
+                <h1>Terminal Offline Lock</h1>
+                <p>This register has been offline for more than 7 days. To protect transaction integrity and verify your subscription, an internet connection is required to unlock this station.</p>
+                <div class="offline-details">
+                    <span>Last Online Sync:</span>
+                    <span id="offline-last-sync-label">Unknown</span>
+                </div>
+                <button id="btn-offline-sync-retry" class="primary-btn" style="margin-top:24px;">🔄 Connect &amp; Sync Now</button>
+            </div>
+        </div>
+
+        <!-- NATIVE MONITORING CONSENT OVERLAY -->
+        <div id="native-consent-overlay" class="hidden">
+            <div class="consent-container">
+                <div class="consent-icon">🛡️</div>
+                <h1>Activity Monitoring Consent</h1>
+                <p class="warning-text">Security Tracking has been enabled for this terminal by your store administrator.</p>
+                <div class="consent-card">
+                    <h4>Terms &amp; Conditions of Monitoring</h4>
+                    <p class="terms-text">By using this cash register station, you acknowledge and agree that your screen activity, focus loss events, and time away from the POS system may be tracked and securely recorded. Captured data is encrypted locally and sent exclusively to the store owner's administrative dashboard. You agree not to hold VenQore liable for privacy disclosures under this authorized company monitoring.</p>
+                </div>
+                <button id="btn-consent-accept" class="primary-btn" style="margin-top:24px;">I Accept &amp; Continue</button>
+            </div>
+        </div>
+
+        <!-- NATIVE PASSCODE GATING MODAL -->
+        <div id="native-passcode-overlay" class="hidden">
+            <div class="passcode-container">
+                <div class="passcode-header">
+                    <h2>Manager Authorization</h2>
+                    <p>Enter exit passcode to verify authority</p>
+                </div>
+                <div class="passcode-display">
+                    <span id="passcode-dot-1" class="p-dot"></span>
+                    <span id="passcode-dot-2" class="p-dot"></span>
+                    <span id="passcode-dot-3" class="p-dot"></span>
+                    <span id="passcode-dot-4" class="p-dot"></span>
+                </div>
+                <div class="passcode-grid">
+                    <button class="num-btn" data-val="1">1</button>
+                    <button class="num-btn" data-val="2">2</button>
+                    <button class="num-btn" data-val="3">3</button>
+                    <button class="num-btn" data-val="4">4</button>
+                    <button class="num-btn" data-val="5">5</button>
+                    <button class="num-btn" data-val="6">6</button>
+                    <button class="num-btn" data-val="7">7</button>
+                    <button class="num-btn" data-val="8">8</button>
+                    <button class="num-btn" data-val="9">9</button>
+                    <button class="num-btn action" id="btn-passcode-clear">C</button>
+                    <button class="num-btn" data-val="0">0</button>
+                    <button class="num-btn action danger" id="btn-passcode-cancel">✕</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- OFFLINE OVERLAY -->
+        <div id="offline-overlay" class="hidden">
+            <div class="offline-content">
+                <div class="offline-icon">📡</div>
+                <h2>No Internet Connection</h2>
+                <p>VenQore Station requires an internet connection to operate.<br>
+                   Please check your network and try again.</p>
+                <button id="retry-btn" class="retry-button">
+                    <span>🔄</span> Retry Connection
+                </button>
+                <div class="offline-hint">
+                    Hardware features (printer, cash drawer, scanner) remain available.
+                </div>
+            </div>
+        </div>
+
+        <!-- PRIVACY BLUR SHADE -->
         <div id="privacy-overlay">
             <div class="blur-box">
                 <div class="lock">🔒</div>
-                <h2>Security Shade Active</h2>
-                <p>Click to resume work</p>
+                <h2>Privacy Shade Active</h2>
+                <p>Click anywhere to resume</p>
             </div>
         </div>
     </div>
 
-    <!-- BOTTOM BAR REMOVED -->
+    <!-- SETTINGS PANEL MODAL -->
+    <div id="settings-overlay" class="settings-overlay hidden">
+        <div class="settings-panel">
 
-    <!-- SUBTLE BRANDING (Floats behind everything) -->
+            <!-- Header -->
+            <div class="settings-header">
+                <div class="settings-title">
+                    <span class="settings-icon">⚙️</span>
+                    <div>
+                        <h2>Station Settings</h2>
+                        <p>Hardware configuration for this POS terminal</p>
+                    </div>
+                </div>
+                <button id="settings-close-btn" class="settings-close">✕</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="settings-tabs">
+                <button class="tab-btn active" data-tab="hardware">🖨️ Hardware</button>
+                <button class="tab-btn" data-tab="serial">🔌 COM Ports</button>
+                <button class="tab-btn" data-tab="system">⚡ System</button>
+            </div>
+
+            <!-- Tab: Hardware (Printer / Cash Drawer) -->
+            <div class="tab-content active" id="tab-hardware">
+                <div class="settings-section">
+                    <label class="settings-label">Default Receipt Printer</label>
+                    <p class="settings-hint">Printer used for silent thermal receipts and cash drawer kicks</p>
+                    <select id="cfg-default-printer" class="settings-select">
+                        <option value="">Loading printers...</option>
+                    </select>
+                    <div style="display:flex; gap:8px; margin-top:8px;">
+                        <button class="test-btn" id="test-printer-btn">🖨️ Print Test Page</button>
+                        <button class="test-btn" id="test-drawer-btn">💰 Test Cash Drawer</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: COM Ports -->
+            <div class="tab-content hidden" id="tab-serial">
+                <div class="settings-section">
+                    <label class="settings-label">Available COM Ports</label>
+                    <p class="settings-hint">Serial devices detected on this machine</p>
+                    <button class="browse-btn" id="refresh-ports-btn" style="margin-bottom:12px">↻ Scan for Devices</button>
+                    <div id="port-list" class="port-list">
+                        <p class="settings-hint">Click Scan to detect COM port devices...</p>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <label class="settings-label">Barcode Scanner (Serial COM)</label>
+                    <p class="settings-hint">For scanners using serial mode (not keyboard emulation)</p>
+                    <div class="path-row">
+                        <select id="cfg-scanner-port" class="settings-select">
+                            <option value="">Select COM Port...</option>
+                        </select>
+                        <select id="cfg-scanner-baud" class="settings-select" style="width:130px;flex:none">
+                            <option value="9600">9600</option>
+                            <option value="19200">19200</option>
+                            <option value="38400">38400</option>
+                            <option value="115200">115200</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button class="test-btn" id="open-scanner-btn">▶ Connect Scanner</button>
+                        <button class="test-btn danger" id="close-scanner-btn">■ Disconnect</button>
+                    </div>
+                    <div id="scanner-status" class="test-result hidden"></div>
+                </div>
+
+                <div class="settings-section">
+                    <label class="settings-label">Weight Scale (Serial COM)</label>
+                    <p class="settings-hint">For digital scales using RS-232 serial output</p>
+                    <div class="path-row">
+                        <select id="cfg-scale-port" class="settings-select">
+                            <option value="">Select COM Port...</option>
+                        </select>
+                        <select id="cfg-scale-baud" class="settings-select" style="width:130px;flex:none">
+                            <option value="9600">9600</option>
+                            <option value="19200">19200</option>
+                            <option value="38400">38400</option>
+                            <option value="115200">115200</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px">
+                        <button class="test-btn" id="open-scale-btn">▶ Connect Scale</button>
+                        <button class="test-btn danger" id="close-scale-btn">■ Disconnect</button>
+                    </div>
+                    <div id="scale-status" class="test-result hidden"></div>
+                    <div id="scale-live" class="scale-live hidden">
+                        Live Reading: <span id="scale-value">--</span> kg
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: System / About -->
+            <div class="tab-content hidden" id="tab-system">
+                <div class="settings-section">
+                    <label class="settings-label">Station Identity</label>
+                    <div class="info-grid">
+                        <span class="info-label">App Version</span>
+                        <span class="info-value" id="app-version">--</span>
+                        <span class="info-label">Terminal ID</span>
+                        <span class="info-value" id="app-terminal-id">Not yet assigned</span>
+                        <span class="info-label">Device ID</span>
+                        <span class="info-value" id="app-device-id">--</span>
+                        <span class="info-label">Connected To</span>
+                        <span class="info-value cloud-badge" id="app-connected-url">app.venqore.com ✓</span>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="disconnect-store-section">
+                    <label class="settings-label">Connection Management</label>
+                    <p class="settings-hint">Disconnect this terminal from the current store to pair with a different one.</p>
+                    <button class="test-btn danger" id="btn-disconnect-store">🔌 Disconnect Store</button>
+                </div>
+
+                <div class="settings-section" id="activity-tracking-section">
+                    <label class="settings-label">Security &amp; Tracking</label>
+                    <p class="settings-hint">Record window focus shifts (Alt-Tab) and take silent encrypted screenshots during away time.</p>
+                    
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.06); padding:10px 14px; border-radius:8px;">
+                        <span style="font-size:12px; color:#94a3b8; font-weight:600;">Enable Security Monitoring</span>
+                        <input type="checkbox" id="cfg-tracking-enabled" style="width:20px; height:20px; cursor:pointer; accent-color:#6366f1;">
+                    </div>
+
+                    <div id="passcode-setting-wrapper" class="hidden" style="margin-top:12px;">
+                        <label class="settings-label">Manager Exit Passcode (4-Digits)</label>
+                        <input type="password" id="cfg-exit-passcode" class="settings-input" style="letter-spacing: 0.5em; font-size:16px; text-align:center; max-width:180px; display:block;" maxlength="4" placeholder="••••">
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <label class="settings-label">Software Updates</label>
+                    <p class="settings-hint">VenQore Station checks for updates automatically on every launch</p>
+                    <div id="update-status" class="update-status">
+                        <span id="update-text">Checking status...</span>
+                    </div>
+                    <button class="test-btn" id="check-update-btn">🔄 Check for Updates</button>
+                    <div id="update-progress" class="update-progress hidden">
+                        <div class="update-bar-container">
+                            <div class="update-bar" id="update-bar"></div>
+                        </div>
+                        <span id="update-pct">0%</span>
+                    </div>
+                    <button class="test-btn success hidden" id="install-update-btn">⚡ Restart &amp; Install Update</button>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="settings-footer">
+                <button id="settings-save-btn" class="save-btn">💾 Save Settings</button>
+                <span class="save-hint" id="save-hint"></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEGAL -->
     <div class="footer-legal">
-        VenQore Group - All Rights Reserved | Created By Abdullah Hashmi
+        VenQore Group — All Rights Reserved | Created By Abdullah Hashmi
     </div>
 
     <script src="shell-renderer.js"></script>

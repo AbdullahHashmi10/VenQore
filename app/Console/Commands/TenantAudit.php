@@ -48,7 +48,7 @@ class TenantAudit extends Command
         'purchase_orders',
         'warehouses',
         'bank_accounts',
-        'users',
+        'tenant_users',
         'categories',
         'units',
         'settings',
@@ -64,7 +64,6 @@ class TenantAudit extends Command
         'Invoice'       => 'App\\Models\\Invoice',
         'Category'      => 'App\\Models\\Category',
         'Warehouse'     => 'App\\Models\\Warehouse',
-        'User'          => 'App\\Models\\User',
         'JournalEntry'  => 'App\\Models\\JournalEntry',
         'Account'       => 'App\\Models\\Account',
         'Stock'         => 'App\\Models\\Stock',
@@ -166,11 +165,11 @@ class TenantAudit extends Command
     }
 
     /**
-     * §3.5 — Reserved subdomain test
+     * §3.5 — Reserved slug test
      */
     private function runSection3_5(): void
     {
-        $this->line('<fg=cyan;options=bold>§3.5 — Reserved Subdomain Blocklist</>');
+        $this->line('<fg=cyan;options=bold>§3.5 — Reserved Slug Blocklist</>');
         $this->newLine();
 
         $reserved = ['admin', 'api', 'www', 'billing', 'demo', 'support', 'mail'];
@@ -184,7 +183,7 @@ class TenantAudit extends Command
                 $rows[] = [$word, '<fg=green>PASS</>', "\"{$word}\" → \"{$result}\" (modified)"];
                 $this->passes++;
             } else {
-                $rows[] = [$word, '<fg=red>FAIL</>', "\"{$word}\" was NOT blocked — still usable as subdomain"];
+                $rows[] = [$word, '<fg=red>FAIL</>', "\"{$word}\" was NOT blocked — still usable as slug"];
                 $this->failures++;
             }
         }
@@ -234,12 +233,12 @@ class TenantAudit extends Command
         }
 
         // Check demo tenant exists
-        $demo = DB::table('tenants')->where('subdomain', 'demo')->whereNull('deleted_at')->first();
+        $demo = DB::table('tenants')->where('slug', 'demo')->whereNull('deleted_at')->first();
         if ($demo) {
-            $rows[] = ['demo.venqore.com tenant', '<fg=green>PASS</>', "Exists (plan: {$demo->plan}, status: {$demo->status})"];
+            $rows[] = ['demo store (slug: demo)', '<fg=green>PASS</>', "Exists (plan: {$demo->plan}, status: {$demo->status})"];
             $this->passes++;
         } else {
-            $rows[] = ['demo.venqore.com tenant', '<fg=yellow>WARN</>', 'Demo tenant not provisioned yet. Run: php artisan demo:reset --force after creating the tenant record.'];
+            $rows[] = ['demo store (slug: demo)', '<fg=yellow>WARN</>', 'Demo tenant not provisioned yet. Run: php artisan demo:reset --force after creating the tenant record.'];
             $this->warnings++;
         }
 

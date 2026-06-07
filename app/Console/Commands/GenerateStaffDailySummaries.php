@@ -43,7 +43,8 @@ class GenerateStaffDailySummaries extends Command
             ->pluck('user_id');
 
         foreach ($userIds as $userId) {
-            $attendances = \App\Models\StaffAttendance::where('user_id', $userId)
+            $attendances = \App\Models\StaffAttendance::withoutTenantScope()
+                ->where('user_id', $userId)
                 ->where('tenant_id', $tenant->id)
                 ->whereDate('created_at', $yesterday)
                 ->orderBy('created_at')
@@ -78,7 +79,7 @@ class GenerateStaffDailySummaries extends Command
 
             $netSeconds = max(0, $totalSeconds - $totalGapSeconds);
 
-            \App\Models\StaffDailySummary::updateOrCreate(
+            \App\Models\StaffDailySummary::withoutTenantScope()->updateOrCreate(
                 [
                     'user_id'   => $userId,
                     'tenant_id' => $tenant->id,   // 6D FIX — scoped to tenant

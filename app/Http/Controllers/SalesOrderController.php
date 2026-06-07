@@ -116,7 +116,7 @@ class SalesOrderController extends Controller
         ]);
 
         $order = DB::transaction(function () use ($validated) {
-            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['name' => 'Walk-in Customer'], ['type' => 'customer', 'phone' => '0000000000'])->id;
+            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
             $customerName = Party::find($customerId)->name;
 
             $order = SalesOrder::create([
@@ -135,8 +135,20 @@ class SalesOrderController extends Controller
                 $subtotal = $item['unit_price'] * $item['quantity'];
                 $totalAmount += $subtotal;
 
-                // V3 Inventory Reservation Logic: Count requested qty as reserved
-                // In backorder-mode, we always reserve the full requested quantity even if stock is negative.
+                $totalStock = \App\Models\Stock::where('product_id', $item['product_id'])->sum('quantity');
+                $currentlyReserved = \App\Models\SalesOrderItem::where('product_id', $item['product_id'])
+                    ->whereHas('salesOrder', function($q) {
+                        $q->whereNotIn('status', ['cancelled', 'completed']);
+                    })->sum('quantity_reserved');
+                
+                $available = $totalStock - $currentlyReserved;
+                
+                if ($available < $item['quantity']) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items.0.quantity' => ['Insufficient stock available.']
+                    ]);
+                }
+
                 $reservedAmount = $item['quantity'];
 
                 SalesOrderItem::create([
@@ -230,7 +242,7 @@ class SalesOrderController extends Controller
         DB::transaction(function () use ($validated, $order) {
             $order->items()->delete();
 
-            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['name' => 'Walk-in Customer'], ['type' => 'customer', 'phone' => '0000000000'])->id;
+            $customerId = $validated['customer_id'] ?? Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id;
             $customerName = Party::find($customerId)->name;
 
             // Update order header
@@ -265,11 +277,24 @@ class SalesOrderController extends Controller
         ]);
     }
 
-    public function convertToSale(SalesOrder $order)
+    public function convertToSale(SalesOrder $salesOrder)
     {
+        $tenantId = $salesOrder->tenant_id ?? app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("sales_order_convert_lock_{$salesOrder->id}", 10);
+
         try {
-            $sale = DB::transaction(function () use ($order) {
-                // 1. Create Sale Record
+            $lock->block(5);
+
+            $salesOrder->refresh();
+            if (in_array($salesOrder->status, ['completed', 'cancelled'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Sales Order has already been converted or cancelled.'
+                ], 422);
+            }
+
+            $order = $salesOrder;
+            $sale = DB::transaction(function () use ($order, $tenantId) {
                 $dateCode      = date('ymd');
                 $dailyCount    = Sale::whereDate('created_at', today())->count();
                 $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
@@ -277,21 +302,46 @@ class SalesOrderController extends Controller
 
                 $warehouseId = Warehouse::first()?->id ?? 1;
 
+                // Cleanly compute totals from items
+                $subtotalGross = 0;
+                $totalDiscount = 0;
+                $totalTax = 0;
+
+                foreach ($order->items as $item) {
+                    $qty = (float)$item->quantity_requested;
+                    $unitPrice = (float)$item->unit_price;
+                    $itemDiscount = (float)($item->discount ?? 0);
+                    
+                    $subtotalGross += $qty * $unitPrice;
+                    $totalDiscount += $itemDiscount;
+                    
+                    // Tax calculation (currently 0% since sales_order_items doesn't store tax_rate, but let's be extensible)
+                    $net = ($qty * $unitPrice) - $itemDiscount;
+                    $taxRate = 0.0;
+                    $taxAmount = $net * ($taxRate / 100);
+                    $totalTax += $taxAmount;
+                }
+
+                $netSales = $subtotalGross - $totalDiscount;
+                $invoiceTotal = $netSales + $totalTax;
+
                 $sale = Sale::create([
                     'reference_number' => $referenceNumber,
                     'party_id' => $order->customer_id,
                     'status' => 'posted',
                     'posted_at' => now(),
                     'payment_status' => 'unpaid',
-                    'subtotal' => $order->total_amount,
-                    'tax' => 0,
-                    'discount' => 0,
-                    'total' => $order->total_amount,
-                    'subtotal_gross' => $order->total_amount,
-                    'net_sales' => $order->total_amount,
-                    'invoice_total' => $order->total_amount,
+                    'subtotal' => $subtotalGross,
+                    'tax' => $totalTax,
+                    'discount' => $totalDiscount,
+                    'total' => $invoiceTotal,
+                    'subtotal_gross' => $subtotalGross,
+                    'net_sales' => $netSales,
+                    'total_tax' => $totalTax,
+                    'invoice_total' => $invoiceTotal,
                     'user_id' => auth()->id() ?? \App\Models\User::first()->id,
-                    'warehouse_id' => $warehouseId
+                    'warehouse_id' => $warehouseId,
+                    'tenant_id' => $tenantId
                 ]);
 
                 $fifo = app(\App\Services\V3\FifoService::class);
@@ -320,7 +370,8 @@ class SalesOrderController extends Controller
                         Stock::create([
                             'product_id' => $item->product_id,
                             'warehouse_id' => $warehouseId,
-                            'quantity' => -$totalQty
+                            'quantity' => -$totalQty,
+                            'tenant_id' => $tenantId
                         ]);
                     }
 
@@ -332,8 +383,18 @@ class SalesOrderController extends Controller
                         'quantity' => -$totalQty,
                         'reference_id' => $sale->id,
                         'description' => "Pre-Sale Conversion: {$order->order_number}",
-                        'user_id' => auth()->id()
+                        'user_id' => auth()->id(),
+                        'tenant_id' => $tenantId
                     ]);
+
+                    $qty = (float)$item->quantity_requested;
+                    $unitPrice = (float)$item->unit_price;
+                    $itemDiscount = (float)($item->discount ?? 0);
+                    $gross = $qty * $unitPrice;
+                    $net = $gross - $itemDiscount;
+                    $taxRate = 0.0;
+                    $taxAmount = $net * ($taxRate / 100);
+                    $lineTotal = $net + $taxAmount;
 
                     $saleItem = SaleItem::create([
                         'sale_id' => $sale->id,
@@ -341,11 +402,14 @@ class SalesOrderController extends Controller
                         'quantity' => $totalQty,
                         'unit_price' => $item->unit_price,
                         'cost_price' => $totalQty > 0 ? $lineCogs / $totalQty : 0,
-                        'gross_amount' => $item->subtotal,
-                        'net_amount' => $item->subtotal,
-                        'line_total' => $item->subtotal,
-                        'subtotal' => $item->subtotal,
-                        'discount_amount' => 0,
+                        'gross_amount' => $gross,
+                        'discount_amount' => $itemDiscount,
+                        'net_amount' => $net,
+                        'tax_rate' => $taxRate,
+                        'tax_amount' => $taxAmount,
+                        'line_total' => $lineTotal,
+                        'subtotal' => $lineTotal,
+                        'tenant_id' => $tenantId
                     ]);
 
                     // D. Record batch links if FIFO succeeded
@@ -372,11 +436,11 @@ class SalesOrderController extends Controller
                 
                 // DR: AR
                 $arAcc = $accounting->getAccountByCode('1200');
-                $journalItems[] = ['account_id' => $arAcc->id, 'debit' => $order->total_amount, 'credit' => 0, 'description' => "AR from Conversion #{$sale->reference_number}"];
+                $journalItems[] = ['account_id' => $arAcc->id, 'debit' => $invoiceTotal, 'credit' => 0, 'description' => "AR from Conversion #{$sale->reference_number}"];
                 
                 // CR: Revenue
                 $revAcc = $accounting->getAccountByCode('4000');
-                $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $order->total_amount, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
+                $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $invoiceTotal, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
                 
                 // Post
                 $accounting->createEntry([
@@ -387,8 +451,9 @@ class SalesOrderController extends Controller
                     'party_id' => $order->customer_id
                 ], $journalItems);
 
-                // 3. Update Order Status
+                // 3. Update Order Status and release inventory reservation
                 $order->update(['status' => 'completed']);
+                $order->items()->update(['quantity_reserved' => 0]);
                 
                 return $sale;
             });
@@ -402,6 +467,8 @@ class SalesOrderController extends Controller
         } catch (\Exception $e) {
             Log::error("Conversion Error: " . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        } finally {
+            $lock->release();
         }
     }
 
@@ -423,6 +490,7 @@ class SalesOrderController extends Controller
 
         DB::transaction(function () use ($salesOrder) {
             $salesOrder->update(['status' => 'cancelled']);
+            $salesOrder->items()->update(['quantity_reserved' => 0]);
         });
 
         return back()->with('success', 'Sales Order cancelled.');

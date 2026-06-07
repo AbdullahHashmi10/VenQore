@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -10,7 +11,7 @@ use Illuminate\Support\Str;
 
 class DebitNote extends Model
 {
-    use SoftDeletes, HasUuids;
+    use SoftDeletes, HasUuids, HasTenant;
 
     protected $fillable = [
         'reference_number',

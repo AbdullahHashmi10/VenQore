@@ -87,45 +87,27 @@ class StockTransferController extends Controller
             }
         });
 
-        return redirect()->route('stock-transfers.index')->with('success', 'Stock Transfer created successfully.');
+        return redirect()->route('store.stock-transfers.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Stock Transfer created successfully.');
     }
 
     protected function moveStock($productId, $fromWarehouseId, $toWarehouseId, $quantity, $reference)
     {
-        // 1. Deduct from Source
-        $sourceStock = \App\Models\Stock::firstOrCreate(
-            ['product_id' => $productId, 'warehouse_id' => $fromWarehouseId],
-            ['quantity' => 0]
+        resolve(\App\Services\V3\InventoryService::class)->transferStock(
+            productId: $productId,
+            fromWarehouseId: $fromWarehouseId,
+            toWarehouseId: $toWarehouseId,
+            qty: (float) $quantity,
+            reason: "Transfer reference: " . $reference
         );
-        $sourceStock->decrement('quantity', $quantity);
-
-        \App\Models\StockMovement::create([
-             'product_id' => $productId,
-             'warehouse_id' => $fromWarehouseId,
-             'type' => 'transfer_out',
-             'quantity' => -$quantity,
-             'reference' => $reference,
-             'user_id' => auth()->id(),
-             'description' => "Transfer to Warehouse #$toWarehouseId"
-        ]);
-
-        // 2. Add to Destination
-        $destStock = \App\Models\Stock::firstOrCreate(
-            ['product_id' => $productId, 'warehouse_id' => $toWarehouseId],
-            ['quantity' => 0]
-        );
-        $destStock->increment('quantity', $quantity);
-
-        \App\Models\StockMovement::create([
-             'product_id' => $productId,
-             'warehouse_id' => $toWarehouseId,
-             'type' => 'transfer_in',
-             'quantity' => $quantity,
-             'reference' => $reference,
-             'user_id' => auth()->id(),
-             'description' => "Transfer from Warehouse #$fromWarehouseId"
-        ]);
     }
+
+
+
+
+
+
+
+
 
     public function show($id)
     {

@@ -1,13 +1,24 @@
 import React from 'react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { Package, AlertTriangle, DollarSign, Layers, Warehouse, TrendingUp, ArrowRight } from 'lucide-react';
-import MidnightNebula from '@/Components/MidnightNebula';
+import { formatCurrency } from '@/Utils/format';
+import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import StockModuleTabs from '@/Components/StockModuleTabs';
-
+import MidnightNebula from '@/Components/MidnightNebula';
+import { 
+    Package, 
+    TrendingUp, 
+    ShoppingCart, 
+    Wallet, 
+    ArrowRight,
+    DollarSign,
+    Warehouse,
+    AlertTriangle as AlertTriangleIcon
+} from 'lucide-react';
 
 export default function InventoryDashboard({ stats, topMoving }) {
-    const { store } = usePage().props;
+    const { props } = usePage();
+    const store = props.store || {};
+    
     const StatCard = ({ title, value, icon: Icon, color, subValue }) => (
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
             <div className="flex justify-between items-start mb-4">
@@ -47,13 +58,13 @@ export default function InventoryDashboard({ stats, topMoving }) {
                         <StatCard
                             title="Low Stock Items"
                             value={stats.low_stock_count}
-                            icon={AlertTriangle}
+                            icon={AlertTriangleIcon}
                             color="bg-amber-500"
                             subValue={stats.low_stock_count > 0 ? 'Action Needed' : 'Healthy'}
                         />
                         <StatCard
                             title="Inventory Value"
-                            value={`Rs ${Number(stats.inventory_value || 0).toLocaleString('en-PK', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+                            value={formatCurrency(stats.inventory_value || 0, store)}
                             icon={DollarSign}
                             color="bg-emerald-500"
                         />

@@ -49,14 +49,26 @@ class PosSearchController extends Controller
 
         $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
 
+        $customerId = $request->get('customer_id') ?? $request->get('party_id');
+        $isWholesale = false;
+        $cust = null;
+        if ($customerId) {
+            $cust = DB::table('customers')
+                ->where('id', $customerId)
+                ->orWhere('party_id', $customerId)
+                ->first();
+            if ($cust && $cust->type === 'wholesale') {
+                $isWholesale = true;
+            }
+        }
+        
+
+
         // Build DB query — much cheaper than Eloquent with 4 eager-loaded relations
         $q = DB::table('products as p')
             ->leftJoin('categories as c', 'p.category_id', '=', 'c.id')
-            ->leftJoin('stocks as s', function ($join) {
-                $join->on('s.product_id', '=', 'p.id')
-                    ->whereNull('s.deleted_at');
-            })
-            ->leftJoin('barcodes as b', function ($join) {
+            ->leftJoin('stocks as s', 's.product_id', '=', 'p.id')
+            ->leftJoin('product_barcodes as b', function ($join) {
                 $join->on('b.product_id', '=', 'p.id')
                     ->where('b.is_primary', true);
             })
@@ -66,6 +78,7 @@ class PosSearchController extends Controller
                 'p.name',
                 'p.sku',
                 'p.price',
+                'p.wholesale_price',
                 'p.cost_price',
                 'p.image_path',
                 'p.has_variants',
@@ -76,7 +89,7 @@ class PosSearchController extends Controller
                 DB::raw('COALESCE(SUM(s.quantity), 0) as stock_quantity'),
                 DB::raw('MAX(b.barcode) as primary_barcode'),
             ])
-            ->groupBy('p.id', 'p.name', 'p.sku', 'p.price', 'p.cost_price',
+            ->groupBy('p.id', 'p.name', 'p.sku', 'p.price', 'p.wholesale_price', 'p.cost_price',
                       'p.image_path', 'p.has_variants', 'p.base_unit',
                       'p.tax_rate', 'p.category_id', 'c.name');
 
@@ -113,13 +126,22 @@ class PosSearchController extends Controller
                       ->limit($perPage)
                       ->get();
 
-        // Resolve image URLs
-        $appUrl = config('app.url');
-        $products->transform(function ($product) use ($appUrl) {
+        // Resolve image URLs and cast prices
+        $products->transform(function ($product) use ($isWholesale) {
+            $regularPrice = (float) $product->price;
+            $wholesalePrice = isset($product->wholesale_price) ? (float) $product->wholesale_price : null;
+
+            if ($isWholesale && \App\Helpers\SettingsHelper::isWholesalePricingEnabled() && $wholesalePrice > 0) {
+                $product->price = $wholesalePrice;
+            } else {
+                $product->price = $regularPrice;
+            }
+            $product->cost_price = (float) $product->cost_price;
             $product->image_url = $product->image_path
                 ? Storage::url($product->image_path)
                 : null;
             unset($product->image_path);
+            unset($product->wholesale_price);
             return $product;
         });
 
@@ -143,7 +165,7 @@ class PosSearchController extends Controller
         $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
 
         // Check product barcodes table first
-        $barcodeRow = DB::table('barcodes')
+        $barcodeRow = DB::table('product_barcodes')
             ->where('barcode', $code)
             ->first();
 
@@ -215,17 +237,23 @@ class PosSearchController extends Controller
         $cacheKey = "pos.featured.{$tenantId}";
 
         $products = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($tenantId) {
+            $driver = DB::connection()->getDriverName();
+            if ($driver === 'sqlite') {
+                $dateFilter = "created_at >= date('now', '-30 days')";
+            } else {
+                $dateFilter = "created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+            }
+
             return DB::table('products as p')
                 ->leftJoin('categories as c', 'p.category_id', '=', 'c.id')
                 ->leftJoin('stocks as s', 's.product_id', '=', 'p.id')
                 ->leftJoin(DB::raw(
-                    '(SELECT product_id, SUM(quantity) as sold_qty 
+                    "(SELECT product_id, SUM(quantity) as sold_qty 
                       FROM sale_items 
-                      WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY) 
-                      GROUP BY product_id) as recent_sales'
+                      WHERE {$dateFilter} 
+                      GROUP BY product_id) as recent_sales"
                 ), 'recent_sales.product_id', '=', 'p.id')
                 ->whereNull('p.deleted_at')
-                ->where(DB::raw('COALESCE(SUM(s.quantity), 0)'), '>', 0)
                 ->when($tenantId, fn($q) => $q->where('p.tenant_id', $tenantId))
                 ->select([
                     'p.id', 'p.name', 'p.sku', 'p.price', 'p.image_path',
@@ -236,11 +264,13 @@ class PosSearchController extends Controller
                 ])
                 ->groupBy('p.id', 'p.name', 'p.sku', 'p.price', 'p.image_path',
                          'p.has_variants', 'p.base_unit', 'p.tax_rate', 'p.category_id', 'c.name')
+                ->having(DB::raw('COALESCE(SUM(s.quantity), 0)'), '>', 0)
                 ->orderByDesc('recent_sold')
                 ->orderBy('p.name')
                 ->limit(50)
                 ->get()
                 ->map(function ($p) {
+                    $p->price = (float) $p->price;
                     $p->image_url = $p->image_path ? Storage::url($p->image_path) : null;
                     unset($p->image_path);
                     return $p;

@@ -1,0 +1,60 @@
+resources/js/Components/AiAssistantModal.jsx:113:links.push({ label: 'View P&L Report', route: 'reports.profit-loss', iconName: 'TrendingUp' });
+resources/js/Components/AiAssistantModal.jsx:116:links.push({ label: 'Sales Dashboard', route: 'sales.dashboard', iconName: 'DollarSign' });
+resources/js/Components/AiAssistantModal.jsx:119:links.push({ label: 'Inventory', route: 'inventory.dashboard', iconName: 'Package' });
+resources/js/Components/AsyncProductCombobox.jsx:48:axios.get(route('inventory.search'), { params: { query: debouncedQuery } })
+resources/js/Components/CommandPalette.jsx:62:{ id: 'inventory', name: 'Inventory Dashboard', keywords: 'inventory products stock items', icon: Package, action: () => router.visit(route('inventory.dashboard')), category: 'Navigation' },
+resources/js/Components/CommandPalette.jsx:63:{ id: 'parties', name: 'Parties / Contacts', keywords: 'parties customers suppliers contacts', icon: Users, action: () => router.visit(route('parties.index')), category: 'Navigation' },
+resources/js/Components/CommandPalette.jsx:64:{ id: 'reports', name: 'Reports', keywords: 'reports analytics insights', icon: BarChart2, action: () => router.visit(route('reports.index')), category: 'Navigation' },
+resources/js/Components/CommandPalette.jsx:68:{ id: 'new-sale', name: 'New Sale Invoice', keywords: 'new sale invoice create', icon: Plus, action: () => router.visit(route('sales.create')), category: 'Quick Actions' },
+resources/js/Components/CommandPalette.jsx:69:{ id: 'new-purchase', name: 'New Purchase', keywords: 'new purchase buy', icon: Truck, action: () => router.visit(route('purchases.create')), category: 'Quick Actions' },
+resources/js/Components/CommandPalette.jsx:70:{ id: 'new-product', name: 'Add Product', keywords: 'new product item add create', icon: Package, action: () => router.visit(route('inventory.dashboard') + '?action=add'), category: 'Quick Actions' },
+resources/js/Components/CommandPalette.jsx:71:{ id: 'new-customer', name: 'Add Customer', keywords: 'new customer party add create', icon: Users, action: () => router.visit(route('parties.index') + '?action=add&type=customer'), category: 'Quick Actions' },
+resources/js/Components/CommandPalette.jsx:73:{ id: 'payment-in', name: 'Record Payment In', keywords: 'payment receive in money', icon: DollarSign, action: () => router.visit(route('payment-in.create')), category: 'Quick Actions' },
+resources/js/Components/CommandPalette.jsx:74:{ id: 'payment-out', name: 'Record Payment Out', keywords: 'payment out pay money', icon: DollarSign, action: () => router.visit(route('payment-out.create')), category: 'Quick Actions' },
+resources/js/Components/CommandPalette.jsx:77:{ id: 'report-sales', name: 'Sales Report', keywords: 'report sales revenue', icon: FileText, action: () => router.visit(route('reports.sales')), category: 'Reports' },
+resources/js/Components/CommandPalette.jsx:78:{ id: 'report-purchases', name: 'Purchases Report', keywords: 'report purchases buying', icon: FileText, action: () => router.visit(route('reports.purchases')), category: 'Reports' },
+resources/js/Components/CommandPalette.jsx:79:{ id: 'report-pnl', name: 'Profit & Loss', keywords: 'report profit loss pnl', icon: Calculator, action: () => router.visit(route('reports.profit-loss')), category: 'Reports' },
+resources/js/Components/CommandPalette.jsx:80:{ id: 'report-stock', name: 'Stock Valuation', keywords: 'report stock valuation inventory', icon: Tag, action: () => router.visit(route('reports.inventory-valuation')), category: 'Reports' },
+resources/js/Components/CommandPalette.jsx:81:{ id: 'report-daybook', name: 'Day Book', keywords: 'report daybook daily', icon: FileText, action: () => router.visit(route('reports.trial-balance')), category: 'Reports' },
+resources/js/Components/CommandPalette.jsx:84:{ id: 'stock-levels', name: 'Stock Levels', keywords: 'stock levels quantity low', icon: Package, action: () => router.visit(route('inventory.dashboard')), category: 'Inventory' },
+resources/js/Components/CommandPalette.jsx:85:{ id: 'categories', name: 'Categories', keywords: 'categories organize', icon: Tag, action: () => router.visit(route('inventory.dashboard')), category: 'Inventory' },
+resources/js/Components/CommandPalette.jsx:86:{ id: 'production', name: 'Production / Manufacturing', keywords: 'production manufacturing make', icon: Settings, action: () => router.visit(route('production.index')), category: 'Inventory' },
+resources/js/Components/ContactsModuleTabs.jsx:31:{ id: 'customers', label: 'Customers', href: getRoute('parties.index', { type: 'customer' }), icon: Users },
+resources/js/Components/ContactsModuleTabs.jsx:32:{ id: 'suppliers', label: 'Suppliers', href: getRoute('parties.index', { type: 'supplier' }), icon: Briefcase },
+resources/js/Components/DangerSettingsSection.jsx:17:text = 'WARNING: This will delete ALL sales, products, customers, and transactions. Only your admin account will remain. This process is IRREVERSIBLE.';
+resources/js/Components/MoneyModuleTabs.jsx:36:{ id: 'payments', label: 'Payments', href: getRoute('payments.index'), icon: ArrowRight },
+resources/js/Components/OmniSearch.jsx:14:* - Search all pages, actions, reports, settings
+resources/js/Components/OmniSearch.jsx:43:if (item.route?.includes('inventory') || item.route?.includes('production')) return ['inventory'];
+resources/js/Components/OmniSearch.jsx:44:if (item.route?.includes('sales')) return ['sales', 'sales_view'];
+resources/js/Components/OmniSearch.jsx:45:if (item.route?.includes('reports') || item.route?.includes('finance')) return ['reports', 'finance'];
+resources/js/Components/OmniSearch.jsx:47:if (item.route?.includes('parties') || item.route?.includes('customer')) return ['customers'];
+resources/js/Components/OmniSearch.jsx:372:{ label: 'Add Product', keys: ['N', 'P'], action: () => router.visit(route('inventory.index')), perms: ['inventory'] },
+resources/js/Components/OmniSearch.jsx:373:{ label: 'Profit & Loss', keys: ['P', 'L'], action: () => router.visit(route('reports.profit-loss')), perms: ['reports', 'finance'] },
+resources/js/Components/OnboardingTour.jsx:33:action: { label: 'Go to Inventory', route: 'inventory.dashboard' },
+resources/js/Components/OnboardingTour.jsx:44:description: 'Keep track of all your customers and suppliers. View ledgers, outstanding balances, and transaction history.',
+resources/js/Components/OnboardingTour.jsx:61:action: { label: 'View Reports', route: 'reports.index' },
+resources/js/Components/ProductModal.jsx:104:const res = await axios.get(route('inventory.reservations', product.id));
+resources/js/Components/ProductModal.jsx:160:const response = await axios.get(route('inventory.stats', product.id), {
+resources/js/Components/ProductModal.jsx:343:post(route('inventory.store'), {
+resources/js/Components/ProductModal.jsx:350:post(route('inventory.update', product.id), {
+resources/js/Components/ProductModal.jsx:509:const res = await axios.get(route('inventory.history', product.id));
+resources/js/Components/ProductModal.jsx:526:res = await axios.get(route('sales.show', item.transaction_id), { headers: { 'X-Inertia': true, 'Accept': 'application/json' } });
+resources/js/Components/ProductModal.jsx:529:res = await axios.get(route('purchases.show', item.transaction_id), { headers: { 'X-Inertia': true, 'Accept': 'application/json' } });
+resources/js/Components/ProductModal.jsx:530:setQuickViewHistory({ ...res.data?.props?.invoice ?? res.data?.props?.purchase ?? res.data, type: 'Purchase', _route: item.route });
+resources/js/Components/ProductModal.jsx:544:router.visit(route('sales.edit', item.transaction_id));
+resources/js/Components/ProductModal.jsx:546:router.visit(route('purchases.show', item.transaction_id));
+resources/js/Components/ProductModal.jsx:1231:if (quickViewHistory.type === 'Sale') router.visit(route('sales.show', id));
+resources/js/Components/ProductModal.jsx:1232:else router.visit(route('purchases.show', id));
+resources/js/Components/ProductModal.jsx:1243:router.visit(route('sales.edit', quickViewHistory.id || quickViewHistory.transaction_id));
+resources/js/Components/ProductModal.jsx:1336:if (quickViewHistory.type === 'Sale') router.visit(route('sales.show', id));
+resources/js/Components/ProductModal.jsx:1337:else router.visit(route('purchases.show', id));
+resources/js/Components/PurchaseModuleTabs.jsx:28:{ id: 'purchases', label: 'Purchases', href: getRoute('purchases.index'), icon: Receipt },
+resources/js/Components/PurchaseModuleTabs.jsx:29:{ id: 'pre-purchases', label: 'Pre-Purchases', href: getRoute('purchase-orders.index'), icon: ClipboardList },
+resources/js/Components/PurchaseModuleTabs.jsx:114:{/* New Purchase Action - Midnight Nebula */}
+resources/js/Components/PurchaseModuleTabs.jsx:117:href={getRoute('purchases.create')}
+resources/js/Components/QuickPartyModal.jsx:69:? route('suppliers.update', editingParty.id)
+resources/js/Components/QuickPartyModal.jsx:74:const url = type === 'supplier' ? route('suppliers.store') : route('parties.store');
+resources/js/Components/ReportsNavigation.jsx:22:{ label: 'Overview', route: 'reports.index', icon: LayoutDashboard },
+resources/js/Components/ReportsNavigation.jsx:23:{ label: 'Profit & Loss', route: 'reports.profit-loss', icon: TrendingUp },
+resources/js/Components/ReportsNavigation.jsx:24:{ label: 'Sales Report', route: 'reports.sales', icon: ShoppingCart },
+resources/js/Components/ReportsNavigation.jsx:25:{ label: 'Purchases', route: 'reports.purchases', icon: Package },

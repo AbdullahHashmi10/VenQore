@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, router, usePage } from '@inertiajs/react';
 import {
     Search, X, Command, ArrowRight, Sparkles, Box, User, FileText,
-    ChevronRight, Keyboard, Loader2
+    ChevronRight, Keyboard, Loader2, Camera, Mic
 } from 'lucide-react';
 import { searchRegistry, getCategoryLabel, getCategoryColor, CATEGORIES } from '@/Data/AppRegistry';
+import SmartCapturePanel from './SmartCapturePanel';
 
 /**
  * OmniSearch - Universal Command Palette
@@ -23,6 +24,8 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
     const [dbResults, setDbResults] = useState([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [isSearchingDb, setIsSearchingDb] = useState(false);
+    const [isSmartCaptureOpen, setIsSmartCaptureOpen] = useState(false);
+    const [smartCaptureTab, setSmartCaptureTab] = useState('image');
 
     const inputRef = useRef(null);
     const containerRef = useRef(null);
@@ -222,6 +225,25 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                     className="flex-1 bg-transparent border-none outline-none focus:ring-0 focus:outline-none text-sm text-slate-800 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 font-medium h-10 px-3"
                     autoComplete="off"
                 />
+
+                <div className="flex items-center gap-1 shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => { setSmartCaptureTab('image'); setIsSmartCaptureOpen(true); }}
+                        className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors"
+                        title="Snap Invoice"
+                    >
+                        <Camera size={15} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => { setSmartCaptureTab('audio'); setIsSmartCaptureOpen(true); }}
+                        className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors mr-1"
+                        title="Record Voice Memo"
+                    >
+                        <Mic size={15} />
+                    </button>
+                </div>
 
                 {query && (
                     <button
@@ -426,6 +448,14 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {isSmartCaptureOpen && (
+                <SmartCapturePanel
+                    isOpen={isSmartCaptureOpen}
+                    onClose={() => setIsSmartCaptureOpen(false)}
+                    initialTab={smartCaptureTab}
+                />
             )}
         </div>
     );

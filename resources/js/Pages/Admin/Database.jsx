@@ -19,6 +19,7 @@ import {
 import MidnightNebula from '@/Components/MidnightNebula';
 
 export default function AdminDatabase({ stats, backups }) {
+    const { store } = usePage().props;
     // Default values to prevent crashes if props are missing
     const safeStats = stats || { size: '0 MB', tables: 0, db_name: 'Loading...', driver: '-' };
     const safeBackups = backups || [];
@@ -30,7 +31,7 @@ export default function AdminDatabase({ stats, backups }) {
     const handleCreateBackup = () => {
         if (confirm('Are you sure you want to create a new database backup? This might take a few moments.')) {
             setProcessing(true);
-            router.post(route('backups.store'), {}, {
+            router.post(route('store.backups.store', { store_slug: store.slug }), {}, {
                 onFinish: () => setProcessing(false),
                 preserveScroll: true
             });
@@ -40,7 +41,7 @@ export default function AdminDatabase({ stats, backups }) {
     // Delete Backup
     const handleDelete = (filename) => {
         if (confirm(`Are you sure you want to delete backup "${filename}"?`)) {
-            router.delete(route('backups.delete', filename), {
+            router.delete(route('store.backups.delete', { store_slug: store.slug, filename }), {
                 preserveScroll: true
             });
         }
@@ -48,7 +49,7 @@ export default function AdminDatabase({ stats, backups }) {
 
     // Download
     const handleDownload = (filename) => {
-        window.location.href = route('backups.download', filename);
+        window.location.href = route('store.backups.download', { store_slug: store.slug, filename });
     };
 
     // Email Backup
@@ -56,7 +57,7 @@ export default function AdminDatabase({ stats, backups }) {
         const email = prompt('Enter email address to send backup to:', usePage().props.auth.user.email);
         if (email) {
             setEmailing(filename);
-            router.post(route('backups.email', filename), { email }, {
+            router.post(route('store.backups.email', { store_slug: store.slug, filename }), { email }, {
                 onFinish: () => setEmailing(null),
                 preserveScroll: true
             });

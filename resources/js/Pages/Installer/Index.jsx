@@ -1233,7 +1233,7 @@ KEEP THIS FILE SECURE. DELETE AFTER USE.
                                         } catch (e) {
                                             console.log('Self-destruct optional, continuing...');
                                         }
-                                        router.visit(route('setup.index'));
+                                        router.visit(route('store.create-or-join'));
                                     }} className="px-12 py-4 rounded-full bg-white text-black font-bold text-sm uppercase tracking-widest hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)] transition-all duration-300 flex items-center gap-3">
                                         Enter Setup Wizard <ChevronRight size={16} />
                                     </button>

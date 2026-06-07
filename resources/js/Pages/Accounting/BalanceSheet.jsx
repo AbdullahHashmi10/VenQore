@@ -68,6 +68,7 @@ export default function BalanceSheet({
     is_balanced = true,
     as_of = '',
 }) {
+    const { store } = usePage().props;
     const [dateInput, setDateInput] = useState(as_of);
     const equationDiff = Math.abs(total_assets - (total_liabilities + total_equity));
 

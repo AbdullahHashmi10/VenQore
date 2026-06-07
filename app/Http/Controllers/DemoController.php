@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Models\Tenant;
 use App\Models\TenantUser;
+use App\Models\DemoVisitorLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -37,13 +38,18 @@ class DemoController extends Controller
         $demoTenant = Tenant::where('is_demo', true)->firstOrFail();
 
         // Ensure user exists for this role
-        $demoUser = User::firstOrCreate(
-            ['email' => "demo-{$role}@venqore-demo.internal"],
-            [
+        $email = "demo-{$role}@venqore-demo.internal";
+        $demoUser = User::withTrashed()->where('email', $email)->first();
+        
+        if (!$demoUser) {
+            $demoUser = User::create([
+                'email'    => $email,
                 'name'     => 'Demo ' . ucfirst($role),
                 'password' => bcrypt(Str::random(64)),
-            ]
-        );
+            ]);
+        } elseif ($demoUser->trashed()) {
+            $demoUser->restore();
+        }
 
         // Ensure TenantUser record exists for this demo user
         TenantUser::firstOrCreate(
@@ -55,11 +61,12 @@ class DemoController extends Controller
         Auth::login($demoUser, false);
         $request->session()->regenerate();
 
-        // Track the visit
+        // Track the visit — persistent log + live counter
         $demoTenant->increment('demo_visit_count');
         $demoTenant->increment('demo_visit_today');
         Cache::increment('demo_visit_live');
         Cache::put("demo_user_{$request->session()->getId()}", true, now()->addHours(2));
+        DemoVisitorLog::recordVisit($role);
 
         $demoUser->update(['last_store_id' => $demoTenant->id]);
 

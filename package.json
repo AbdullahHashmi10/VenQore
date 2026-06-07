@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vite build",
-        "dev": "vite"
+        "build": "node scratch/audit_ziggy_routes.cjs && vite build",
+        "dev": "vite",
+        "audit:routes": "node scratch/audit_route_params.cjs"
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",
@@ -19,6 +20,7 @@
         "concurrently": "^9.0.1",
         "eslint": "^8.57.1",
         "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.1.1",
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.4.31",
         "react": "^18.2.0",
@@ -29,7 +31,9 @@
     "dependencies": {
         "dexie": "^4.2.1",
         "driver.js": "^1.4.0",
+        "laravel-echo": "^2.3.4",
         "lucide-react": "^0.562.0",
+        "pusher-js": "^8.5.0",
         "react-grid-layout": "^2.2.3",
         "react-use": "^17.6.0",
         "recharts": "^3.6.0",

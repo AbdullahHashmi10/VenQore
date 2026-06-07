@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class QuotationItem extends Model
 {
-    use HasUuids, SoftDeletes, HasTenant;
+    use HasUuids, HasTenant;
 
     protected $guarded = [];
 

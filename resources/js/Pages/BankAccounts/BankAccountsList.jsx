@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getCurrencySymbol } from '@/Utils/format';
 import { usePage, Head, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
@@ -19,6 +20,7 @@ import {
 import axios from 'axios';
 
 export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
+    const { store } = usePage().props;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingAccount, setEditingAccount] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -38,11 +40,10 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
 
     // Format currency
     const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0
-        }).format(value || 0);
+        return (value < 0 ? '-' : '') + (getCurrencySymbol()) + ' ' + new Intl.NumberFormat('en-PK', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+        }).format(Math.abs(value) || 0);
     };
 
     // Open create modal
@@ -233,7 +234,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                     <tr
                                         key={account.id}
                                         className="hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-colors group cursor-pointer border-l-4 border-transparent hover:border-indigo-400"
-                                        onClick={() => router.visit(route('store.bank-accounts.transactions', account.id))}
+                                        onClick={() => router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
                                     >
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
@@ -282,7 +283,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                                                             <Edit size={14} /> Edit Details
                                                         </button>
                                                         <button
-                                                            onClick={() => router.visit(route('store.bank-accounts.transactions', account.id))}
+                                                            onClick={() => router.visit(route('store.bank-accounts.transactions', { store_slug: store.slug, bankAccount: account.id }))}
                                                             className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
                                                         >
                                                             <ArrowRightLeft size={14} /> Transactions
@@ -313,6 +314,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                 title={editingAccount ? 'Edit Bank Account' : 'Add Bank Account'}
                 subtitle={editingAccount ? 'Update account details' : 'Add a new bank or cash account'}
                 size="lg"
+                errors={errors}
                 footer={
                     <div className="flex justify-end gap-3">
                         <SecondaryButton onClick={() => setIsModalOpen(false)}>

@@ -3,12 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
-
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 class PurchaseProposalItem extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $guarded = [];
 

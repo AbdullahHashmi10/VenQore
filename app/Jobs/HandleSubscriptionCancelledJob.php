@@ -34,9 +34,7 @@ class HandleSubscriptionCancelledJob implements ShouldQueue
         $attributes     = $this->data['attributes'] ?? [];
         $endsAt         = $attributes['ends_at'] ?? null;
 
-        $tenant = Tenant::withoutTenantScope()
-            ->where('lemon_squeezy_subscription_id', $subscriptionId)
-            ->first();
+        $tenant = Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->first();
 
         if (!$tenant) {
             Log::warning("HandleSubscriptionCancelledJob: No tenant found for {$subscriptionId}");
@@ -48,11 +46,13 @@ class HandleSubscriptionCancelledJob implements ShouldQueue
             'subscription_ends_at' => $endsAt ? \Carbon\Carbon::parse($endsAt) : now()->addDays(30),
         ]);
 
-        // Find the admin user to email
-        $adminUser = \App\Models\User::withoutTenantScope()
-            ->where('tenant_id', $tenant->id)
-            ->where('role', 'platform_admin')
-            ->first();
+        // Bind tenant to ensure model events and log files work globally
+        app()->instance('current.tenant', $tenant);
+
+        // Find the admin user to email via TenantUser pivot
+        $adminUser = \App\Models\User::whereHas('memberships', function ($q) use ($tenant) {
+            $q->where('tenant_id', $tenant->id)->where('role', 'platform_admin');
+        })->first();
 
         if ($adminUser) {
             Mail::to($adminUser->email)

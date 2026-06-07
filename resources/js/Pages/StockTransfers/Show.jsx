@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function Show({ transfer }) {
+    const { store } = usePage().props;
     if (!transfer) return null;
 
     const statusColors = {

@@ -1,19 +1,20 @@
 import React from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
 import { Trash2, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function RecycleBin({ items = [] }) {
+    const { store } = usePage().props;
     const handleRestore = (id, type) => {
         if (confirm('Are you sure you want to restore this item?')) {
-            router.post(route('recycle-bin.restore', id), { type });
+            router.post(route('store.admin.recycle-bin.restore', { store_slug: store.slug, id }), { type });
         }
     };
 
     const handleForceDelete = (id, type) => {
         if (confirm('Are you sure? This will PERMANENTLY delete the item. This action cannot be undone.')) {
-            router.delete(route('recycle-bin.force-delete', id), {
+            router.delete(route('store.admin.recycle-bin.force-delete', { store_slug: store.slug, id }), {
                 data: { type }
             });
         }

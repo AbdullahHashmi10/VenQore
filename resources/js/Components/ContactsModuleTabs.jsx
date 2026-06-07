@@ -8,7 +8,8 @@ import {
     Briefcase,
     Clock,
     Handshake,
-    ChevronRight
+    ChevronRight,
+    Send
 } from 'lucide-react';
 
 export default function ContactsModuleTabs({ activeTab }) {
@@ -40,8 +41,10 @@ export default function ContactsModuleTabs({ activeTab }) {
             label: 'Team',
             icon: Users,
             items: [
-                { id: 'attendance', label: 'Staff Attendance', href: getRoute('staff-attendance.index'), icon: Clock },
-                { id: 'summaries', label: 'Staff Summaries', href: getRoute('admin.staff'), icon: FileText }
+                { id: 'attendance', label: 'Staff Attendance', href: getRoute('admin.attendance', { tab: 'attendance' }), icon: Clock },
+                { id: 'summaries', label: 'Staff Summaries', href: getRoute('admin.attendance', { tab: 'summaries' }), icon: FileText },
+                { id: 'members', label: 'Members', href: getRoute('admin.attendance', { tab: 'members' }), icon: Users },
+                { id: 'invitations', label: 'Invitations', href: getRoute('admin.attendance', { tab: 'invitations' }), icon: Send }
             ]
         }
     ];

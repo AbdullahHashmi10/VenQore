@@ -41,7 +41,7 @@ class LemonSqueezyWebhookController extends Controller
         match ($event) {
             // New subscription created OR one-time order (appsumo-style)
             'subscription_created',
-            'order_created'           => ProvisionTenantJob::dispatch($data)->onQueue('provisioning'),
+            'order_created'           => ProvisionTenantJob::dispatch($request->all())->onQueue('provisioning'),
 
             // Plan changed (upgrade or downgrade)
             'subscription_updated'    => HandleSubscriptionUpdatedJob::dispatch($data)->onQueue('provisioning'),

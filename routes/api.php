@@ -11,6 +11,10 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/heartbeat', [HeartbeatController::class, 'store']);
 
+use App\Http\Controllers\Api\TerminalActivityController;
+Route::post('/terminal/activities', [TerminalActivityController::class, 'store']);
+Route::post('/terminal/screenshot', [TerminalActivityController::class, 'uploadScreenshot']);
+
 use App\Http\Controllers\Api\SyncController;
 
 Route::get('/check-connection', [SyncController::class, 'checkConnection']);
@@ -31,6 +35,8 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/webhooks/lemon-squeezy', [LemonSqueezyWebhookController::class, 'handle'])
     ->middleware('lemon-squeezy.signature');
 
+Route::post('/webhooks/pusher', [\App\Http\Controllers\PusherWebhookController::class, 'handle']);
+
 // ── Phase 3.1: POS Product Search API ─────────────────────────────────────
 // Replaces the Product::get() timebomb in PosController.
 // Rate-limited to 300 requests/min per tenant (config in bootstrap/app.php).
@@ -42,6 +48,46 @@ Route::prefix('pos')->middleware(['auth:sanctum', 'throttle:pos'])->group(functi
     Route::get('/categories',       [PosSearchController::class, 'categories']);
     Route::get('/barcode/{code}',   [PosSearchController::class, 'findByBarcode']);
 });
+
+// ── WooCommerce Sync — Public Endpoints ───────────────────────────────────
+// These are called by WooCommerce/WordPress directly — no auth, no CSRF.
+// Security is handled via HMAC signature verification (webhook) and token (verify).
+use App\Http\Controllers\WooSync\WooWebhookController;
+
+Route::post('/woo/webhook/{uuid}', [WooWebhookController::class, 'receive'])
+    ->name('woo.webhook.receive');
+
+Route::get('/woo/verify/{token}', [WooWebhookController::class, 'verify'])
+    ->name('woo.verify');
+
+Route::post('/woo/handshake', [\App\Http\Controllers\WooSync\WooHandshakeController::class, 'handshake'])
+    ->name('woo.handshake');
+
+// ── Offline DRM Validation Endpoints ─────────────────────────────────────
+use App\Http\Controllers\DrmLicenseController;
+
+Route::post('/drm/validate', [DrmLicenseController::class, 'validateLicense']);
+
+Route::middleware('drm.license')->get('/drm/protected', function () {
+    return response()->json(['status' => 'access_granted']);
+});
+
+// ── Public Chatbot Visitor API Routes ──────────────────────────────────────
+use App\Http\Controllers\VisitorChatController;
+
+Route::post('/{store_slug}/chatbot/session', [VisitorChatController::class, 'startSession']);
+Route::post('/{store_slug}/chatbot/session/{uuid}/message', [VisitorChatController::class, 'sendMessage']);
+Route::post('/{store_slug}/chatbot/session/{uuid}/typing', [VisitorChatController::class, 'typing']);
+
+// ── Vena Subscription Context API ──────────────────────────────────────────
+// Returns plan, feature flags, limits, and geo signal for the Vena chat widget.
+// Called once at session start; cached client-side for the session lifetime.
+use App\Http\Controllers\VenaContextController;
+
+Route::get('/{store_slug}/vena/context', [VenaContextController::class, 'index']);
+
+// Vena Assist co-pilot endpoint
+Route::post('/{store_slug}/vena/assist', [\App\Http\Controllers\VenaAssistController::class, 'assist']);
 
 
 

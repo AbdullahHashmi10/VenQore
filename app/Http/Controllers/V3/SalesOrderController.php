@@ -134,7 +134,7 @@ class SalesOrderController extends Controller
         ]);
 
         // Link the sale back to the source order
-        DB::table('sales')->where('id', $sale->id)->update([
+        DB::table('sales')->where('sales.tenant_id', app('current.tenant')->id)->where('id', $sale->id)->update([
             'source_order_id' => $id,
             'updated_at'      => now(),
         ]);

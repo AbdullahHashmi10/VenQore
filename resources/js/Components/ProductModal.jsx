@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useForm, usePage, router } from '@inertiajs/react';
-import { X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink } from 'lucide-react';
+import { X, Save, Clock, FileText, ArrowUpRight, ArrowDownLeft, Box, DollarSign, Image, Upload, ChevronDown, Check, RefreshCw, Trash2, Plus, Edit, ExternalLink, AlertTriangle } from 'lucide-react';
 import PremiumButton from '@/Components/PremiumButton';
 import axios from 'axios';
 import PremiumSelect from '@/Components/PremiumSelect';
 import PasscodeModal from '@/Components/PasscodeModal';
 import { Lock as LockIcon, Unlock } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 
 const StatCard = ({ title, value, icon }) => (
     <div className="bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between">
@@ -25,7 +26,7 @@ const StatCard = ({ title, value, icon }) => (
 const PREMADE_BASE_UNITS = ['pcs', 'kg', 'ltr', 'm', 'g', 'oz', 'lb'];
 const PREMADE_SECONDARY_UNITS = ['box', 'carton', 'pack', 'dozen', 'crate', 'bundle', 'roll'];
 
-export default function ProductModal({ product, onClose, isOpen, mode = 'view', warehouses = [], categories = [], attributes = [], onSubmit, initialName = '' }) {
+export default function ProductModal({ product, onClose, isOpen, mode = 'view', warehouses = [], categories = [], attributes = [], onSubmit, initialName = '', onSuccess }) {
     const [activeTab, setActiveTab] = useState('details');
     const [isNewCategory, setIsNewCategory] = useState(false);
     const isEditable = mode === 'create' || mode === 'edit';
@@ -105,7 +106,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     const fetchReservations = async () => {
         setLoadingReservations(true);
         try {
-            const res = await axios.get(route('store.inventory.reservations', { store_slug: store?.slug, product: product.id }));
+            const res = await axios.get(route('store.inventory.reservations', { store_slug: store?.slug, id: product.id }));
             setReservations(res.data);
         } catch (error) {
             console.error("Failed to fetch reservations", error);
@@ -162,7 +163,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     const fetchCustomStats = async () => {
         if (!dateRange.start || !dateRange.end) return;
         try {
-            const response = await axios.get(route('store.inventory.stats', { store_slug: store?.slug, product: product.id }), {
+            const response = await axios.get(route('store.inventory.stats', { store_slug: store?.slug, id: product.id }), {
                 params: { start_date: dateRange.start, end_date: dateRange.end }
             });
             setCustomStats(response.data);
@@ -371,7 +372,11 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
         } else {
             // For updates with files, we MUST use POST with _method="PUT" because
             // PHP/Laravel cannot read files from native PUT requests due to standard limitations.
-            post(route('store.inventory.update', { store_slug: store?.slug, product: product.id }), {
+            if (!product?.id) {
+                console.error("Product ID is missing for update route.");
+                return;
+            }
+            post(route('store.inventory.update', { store_slug: store?.slug, id: product.id }), {
                 forceFormData: true,
                 transform: (data) => {
                     const transformed = { _method: 'PUT' };
@@ -495,7 +500,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                         />
                     </div>
                 </div>
-                {(props.settings?.batch_tracking_enabled === '1' || props.settings?.batch_tracking_enabled === true) && (
+                {(settings?.batch_tracking_enabled === '1' || settings?.batch_tracking_enabled === true) && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100 dark:border-slate-800">
                         <div>
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Batch Number</label>
@@ -574,7 +579,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     const fetchHistory = async () => {
         setLoadingHistory(true);
         try {
-            const res = await axios.get(route('store.inventory.history', { store_slug: store?.slug, product: product.id }));
+            const res = await axios.get(route('store.inventory.history', { store_slug: store?.slug, id: product.id }));
             setHistory(res.data);
             historyFetchedFor.current = product.id;
         } catch (error) {
@@ -585,7 +590,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     };
 
     const handleHistoryClick = async (item) => {
-        // Single click — open quick view popup
+        // Single click â€” open quick view popup
         setQuickViewHistory({ _loading: true, type: item.type, invoice_number: item.invoice_number });
         setLoadingQuickView(true);
         try {
@@ -606,7 +611,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     };
 
     const handleHistoryDoubleClick = (item) => {
-        // Double click — open editor
+        // Double click â€” open editor
         setQuickViewHistory(null);
         if (item.type === 'Sale' || item.type === 'Return') {
             router.visit(route('store.sales.edit', { store_slug: store?.slug, sale: item.transaction_id }));
@@ -655,6 +660,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                     {['details', 'reservations', 'extra', 'variants', ...(mode !== 'create' ? ['history', 'purchase_stats'] : [])].map(tab => (
                         <button
                             key={tab}
+                            id={`tour-tab-${tab}`}
                             onClick={() => setActiveTab(tab)}
                             className={`px-4 py-3 text-sm font-bold border-b-2 transition-colors whitespace-nowrap capitalize ${activeTab === tab ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
                         >
@@ -665,6 +671,25 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                 {/* Body */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-50/30 dark:bg-slate-900/30">
+                    {errors && Object.keys(errors).length > 0 && (
+                        <div className="mx-8 mt-8 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
+                            <div className="flex items-center gap-3 mb-3">
+                                <AlertTriangle size={24} className="shrink-0 text-rose-500" />
+                                <h4 className="text-base font-black uppercase tracking-wider">Please correct the following:</h4>
+                            </div>
+                            <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
+                                {Object.entries(errors).map(([field, messages]) => {
+                                    const fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                                    const msg = Array.isArray(messages) ? messages[0] : messages;
+                                    return (
+                                        <li key={field} className="tracking-tight">
+                                            <span className="capitalize">{fieldLabel}</span>: {msg}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
 
                     {/* DETAILS TAB */}
                     {activeTab === 'details' && (
@@ -679,6 +704,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div className="col-span-2">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Product Name</label>
                                         <input
+                                            id="tour-product-name"
                                             type="text"
                                             value={data.name}
                                             onChange={e => setData('name', e.target.value)}
@@ -689,7 +715,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     </div>
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">SKU</label>
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-2" id="tour-product-sku-gen">
                                             <input
                                                 type="text"
                                                 value={data.sku}
@@ -710,7 +736,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     </div>
 
                                     {/* Category Selection */}
-                                    <div>
+                                    <div id="tour-product-category">
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Category</label>
                                         <PremiumSelect
                                             options={categories}
@@ -735,6 +761,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                             <div className="col-span-2">
                                                 <label className="block text-xs font-bold text-indigo-500 mb-1.5">New Category Name</label>
                                                 <input
+                                                    id="tour-new-category-name"
                                                     type="text"
                                                     value={data.new_category_name}
                                                     onChange={e => setData('new_category_name', e.target.value)}
@@ -802,8 +829,9 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Cost Price</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{settings?.currency_symbol || 'Rs'}</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
+                                                id="tour-product-cost"
                                                 type="number"
                                                 value={data.cost_price}
                                                 onChange={e => setData('cost_price', e.target.value)}
@@ -815,8 +843,9 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     <div>
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Selling Price</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{settings?.currency_symbol || 'Rs'}</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">{store?.currency_symbol || 'Rs'}</span>
                                             <input
+                                                id="tour-product-price"
                                                 type="number"
                                                 value={data.price}
                                                 onChange={e => setData('price', e.target.value)}
@@ -839,7 +868,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Profit / Unit</p>
-                                            <p className="text-2xl font-bold text-emerald-400">{settings?.currency_symbol || 'Rs'} {(data.price - data.cost_price).toLocaleString()}</p>
+                                            <p className="text-2xl font-bold text-emerald-400">{formatCurrency(data.price - data.cost_price, store || settings)}</p>
                                         </div>
                                     </div>
 
@@ -849,7 +878,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             {renderInventorySection()}
 
                             {/* Barcodes Section */}
-                            <section>
+                            <section id="tour-product-barcode">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                                         <Box size={16} className="text-indigo-500" /> Barcodes
@@ -878,12 +907,12 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                     </span>
                                                     {barcode.is_primary && (
                                                         <span className="text-xs font-bold text-green-600 dark:text-green-400">
-                                                            ⭐ PRIMARY
+                                                            â­ PRIMARY
                                                         </span>
                                                     )}
                                                     {barcode.description && (
                                                         <span className="text-xs text-slate-500 dark:text-slate-400">
-                                                            · {barcode.description}
+                                                            Â· {barcode.description}
                                                         </span>
                                                     )}
                                                 </div>
@@ -1126,11 +1155,11 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                             </div>
                                                             <div>
                                                                 <span className="text-slate-500 dark:text-slate-400">Price:</span>
-                                                                <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">Rs {variant.price?.toLocaleString() || 'N/A'}</span>
+                                                                <span className="ml-1 font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(variant.selling_price || variant.price || 0, store || settings)}</span>
                                                             </div>
-                                                            <div>
-                                                                <span className="text-slate-500 dark:text-slate-400">Cost:</span>
-                                                                <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">Rs {variant.cost_price?.toLocaleString() || 'N/A'}</span>
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-[10px] text-slate-400 uppercase font-medium">Cost:</span>
+                                                                <span className="ml-1 font-medium text-slate-700 dark:text-slate-300">{formatCurrency(variant.cost_price || variant.cost || 0, store || settings)}</span>
                                                             </div>
                                                             <div>
                                                                 <span className="text-slate-500 dark:text-slate-400">Stock:</span>
@@ -1182,7 +1211,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                 <>
                                     <div className="px-8 py-3 bg-amber-50 dark:bg-amber-900/10 border-b border-amber-100 dark:border-amber-900/30">
                                         <p className="text-xs text-amber-700 dark:text-amber-400 font-medium">
-                                            <span className="font-bold">Click</span> a row to preview · <span className="font-bold">Double-click</span> to open editor
+                                            <span className="font-bold">Click</span> a row to preview Â· <span className="font-bold">Double-click</span> to open editor
                                         </p>
                                     </div>
                                     <table className="w-full text-left border-collapse">
@@ -1207,7 +1236,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                                         }`}
                                                     onClick={() => handleHistoryClick(item)}
                                                     onDoubleClick={() => handleHistoryDoubleClick(item)}
-                                                    title="Click to preview · Double-click to edit"
+                                                    title="Click to preview Â· Double-click to edit"
                                                 >
                                                     <td className="p-4 pl-8">
                                                         <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border ${item.type === 'Sale'
@@ -1251,7 +1280,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         </tbody>
                                     </table>
 
-                                    {/* ── QUICK VIEW POPUP ── */}
+                                    {/* â”€â”€ QUICK VIEW POPUP â”€â”€ */}
                                     {quickViewHistory && (
                                         <div
                                             className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
@@ -1484,6 +1513,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             Cancel
                         </button>
                         <button
+                            id="tour-product-save"
                             onClick={handleSubmit}
                             disabled={processing}
                             className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 active:scale-95 transition-all"
@@ -1501,7 +1531,9 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                 onSuccess={() => {
                     setShowPasscodeModal(false);
                     setIsStockUnlocked(true);
-                    addToast('Inventory field unlocked for manual adjustment', 'success');
+                    window.dispatchEvent(new CustomEvent('amd:toast', {
+                        detail: { message: 'Inventory field unlocked for manual adjustment', type: 'success' }
+                    }));
                 }}
                 settings={settings}
             />
@@ -1695,7 +1727,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                     className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
                                 />
                                 <label htmlFor="is_primary" className="text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
-                                    Set as Primary Barcode ⭐
+                                    Set as Primary Barcode â­
                                 </label>
                             </div>
 
@@ -1733,3 +1765,4 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
         document.body
     );
 }
+

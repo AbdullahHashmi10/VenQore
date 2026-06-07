@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+use App\Traits\HasTenant;
+
 class ProductVariant extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, HasTenant;
 
     protected $guarded = [];
 

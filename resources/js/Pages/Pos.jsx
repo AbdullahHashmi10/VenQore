@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
-import { formatCurrency, formatNumber } from '@/Utils/format';
+import { formatCurrency, formatNumber, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     ScanBarcode,
@@ -11,6 +11,7 @@ import {
     ShoppingCart,
     Receipt,
     Printer,
+    Package,
     Plus,
     X,
     Search,
@@ -24,13 +25,16 @@ import {
     WifiOff,
     RefreshCcw,
     Database,
-    Warehouse
+    Warehouse,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
 import { getProductPrice, shouldStopNegativeStock } from '@/Utils/settings';
+import { db } from '@/Utils/db';
 
 import Toast from '@/Components/Toast';
 import AlertModal from '@/Components/AlertModal';
@@ -45,6 +49,7 @@ import { UserPlus, PackagePlus, AlertCircle } from 'lucide-react'; // Icons for 
 import SmartCombobox from '@/Components/SmartCombobox';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
+import PosTourGuide from '@/Components/PosTourGuide';
 
 const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = [] }) => {
     const { auth, store } = usePage().props;
@@ -70,6 +75,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const showAlert = (title, message, type = 'error') => setAlertState({ show: true, title, message, type });
     const showConfirm = (title, message, onConfirm, isDangerous = false) => setConfirmState({ show: true, title, message, onConfirm, isDangerous });
     const showInput = (title, placeholder, onSubmit) => setInputState({ show: true, title, placeholder, onSubmit });
+
+    // Categories Scroll Helper
+    const categoryScrollRef = useRef(null);
+    const handleCategoryWheel = (e) => {
+        if (categoryScrollRef.current) {
+            categoryScrollRef.current.scrollLeft += e.deltaY;
+        }
+    };
+    const scrollCategories = (direction) => {
+        if (categoryScrollRef.current) {
+            const offset = direction === 'left' ? -180 : 180;
+            categoryScrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+    };
 
     // Core POS State
     const [sales, setSales] = useState(() => {
@@ -176,8 +195,23 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return saved ? JSON.parse(saved) : true; // Default: print enabled
     });
 
-    // Senior Mode State (default: ON)
-    const [seniorMode, setSeniorMode] = useState(true);
+    // Senior Mode State — DRAGNET-FIX: initialize from DB-backed settings prop first.
+    // Previously only used sessionStorage (default: false), so a user who enabled
+    // Senior Mode in the main app (stored in DB) would get normal-size POS text.
+    // Now: DB setting is the source of truth; sessionStorage acts as a per-session override.
+    const [seniorMode, setSeniorMode] = useState(() => {
+        const sessionOverride = sessionStorage.getItem('pos_senior_mode');
+        if (sessionOverride !== null) {
+            // User has toggled it in this session — respect that choice
+            return JSON.parse(sessionOverride);
+        }
+        // Fall back to the DB-backed Inertia prop (same source as all other pages)
+        return settings?.senior_mode === '1' || settings?.senior_mode === true;
+    });
+
+
+    // Free Quantity Visibility State (default: OFF)
+    const [showFreeQty, setShowFreeQty] = useState(false);
 
 
     // Item Discount Modal State
@@ -260,7 +294,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         );
         updateActiveSale({ cart: newCart });
         setItemDiscountModal({ show: false, item: null, discType: 'fixed', discValue: '' });
-        addToast(`Discount of ${discType === 'percentage' ? val + '%' : formatCurrency(discountAmount)} applied`, 'success');
+        addToast(`Discount of ${discType === 'percentage' ? val + '%' : formatCurrency(val, store || settings)} applied`, 'success');
     };
 
     // Open Converter Modal
@@ -375,6 +409,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const searchInputRef = useRef(null);
     const parkedDropdownRef = useRef(null);
     const customerDropdownRef = useRef(null);
+    const cartListRef = useRef(null);
 
     // Sync local sales to context
     useEffect(() => {
@@ -399,9 +434,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         localStorage.setItem('pos_print_on_complete', JSON.stringify(printOnComplete));
     }, [printOnComplete]);
 
-    // Persist Senior Mode (session storage, resets on logout)
+    // Persist Senior Mode (session storage, resets on logout) and scale html root font size
     useEffect(() => {
         sessionStorage.setItem('pos_senior_mode', JSON.stringify(seniorMode));
+        if (seniorMode) {
+            document.documentElement.style.fontSize = '125%'; // 25% scale increase
+        } else {
+            document.documentElement.style.fontSize = '100%';
+        }
+        return () => {
+            document.documentElement.style.fontSize = '';
+        };
     }, [seniorMode]);
 
     // Category filter state  
@@ -482,7 +525,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             }
             // Remove session and navigate away
             removePosSession(id);
-            router.visit(route('store.sales.index', { store_slug: store?.slug }));
+            // PROBLEM 3 FIX: Return to dashboard (role-appropriate) instead of sales index
+            router.visit(route('store.dashboard', { store_slug: store?.slug }));
             return;
         }
 
@@ -509,10 +553,37 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const performSearch = async (query) => {
         setIsSearching(true);
         try {
-            const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), { params: { query } });
-            setSearchResults(response.data);
+            if (isOnline) {
+                const response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), { params: { q: query } });
+                setSearchResults(response.data.data || response.data || []);
+            } else {
+                const lowerQuery = query.toLowerCase();
+                const results = await db.products
+                    .filter(p => 
+                        (p.name && p.name.toLowerCase().includes(lowerQuery)) ||
+                        (p.sku && p.sku.toLowerCase().includes(lowerQuery)) ||
+                        (p.barcode && p.barcode.includes(query))
+                    )
+                    .limit(50)
+                    .toArray();
+                setSearchResults(results);
+            }
         } catch (error) {
             console.error("Search error:", error);
+            try {
+                const lowerQuery = query.toLowerCase();
+                const results = await db.products
+                    .filter(p => 
+                        (p.name && p.name.toLowerCase().includes(lowerQuery)) ||
+                        (p.sku && p.sku.toLowerCase().includes(lowerQuery)) ||
+                        (p.barcode && p.barcode.includes(query))
+                    )
+                    .limit(50)
+                    .toArray();
+                setSearchResults(results);
+            } catch (localError) {
+                console.error("Local search failed:", localError);
+            }
         } finally {
             setIsSearching(false);
         }
@@ -608,7 +679,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 freeQuantity: 0,
                 stock: stock,
                 has_manufacturing_rule: product.has_manufacturing_rule || false, // Store for updateQty checks
-                image: product.image_path || '📦', // Placeholder
+                image: product.image_url || product.image_path || null, // Robust image path mapping
                 category: product.category?.name || 'General',
                 wholesale_price: product.wholesale_price,
                 wholesale_min_quantity: product.wholesale_min_quantity
@@ -632,9 +703,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
         setIsSearching(true);
         try {
-            // Check for exact match first
-            const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), { params: { query: val } });
-            const results = response.data;
+            let results = [];
+            if (isOnline) {
+                // Check for exact match first
+                const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), { params: { query: val } });
+                results = response.data;
+            } else {
+                results = await db.products
+                    .filter(p => p.sku === val || p.barcode === val)
+                    .toArray();
+            }
 
             // Should we prioritize Exact Match?
             const exactMatch = results.find(p => p.sku === val || p.barcode === val);
@@ -665,6 +743,21 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             }
         } catch (error) {
             console.error(error);
+            try {
+                const results = await db.products
+                    .filter(p => p.sku === val || p.barcode === val)
+                    .toArray();
+                const exactMatch = results.find(p => p.sku === val || p.barcode === val);
+                if (exactMatch) {
+                    handleProductSelect(exactMatch);
+                } else if (results.length === 1) {
+                    handleProductSelect(results[0]);
+                } else {
+                    addToast('No product found (offline)', 'warning');
+                }
+            } catch (err) {
+                console.error("Local scan lookup failed:", err);
+            }
         } finally {
             setIsSearching(false);
         }
@@ -812,7 +905,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             discount: globalDiscount,
             notes: paymentData.notes,
             add_to_ledger: addToLedger, // PASSED FLAG
-            source: 'pos'
+            source: 'pos',
+            is_dropship: false,
         };
 
         try {
@@ -892,32 +986,56 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             if (data.manufacturing_notifications && data.manufacturing_notifications.length > 0) {
                 message += '\n\n📦 Auto-Manufacturing:\n' + data.manufacturing_notifications.join('\n');
             }
-            showAlert('Sale Completed!', message, 'success');
+            if (store?.onboarding_step === 'pos_tour') {
+                router.post(
+                    route('store.onboarding.step', { store_slug: store?.slug }),
+                    { step: 'pos_congratulations' },
+                    { preserveScroll: true }
+                );
+            } else {
+                showAlert('Sale Completed!', message, 'success');
 
-            // Auto-close after 3 seconds to speed up workflow
-            setTimeout(() => {
-                setAlertState(prev => {
-                    // Only auto-close if the specific success modal is still open
-                    if (prev.show && prev.title === 'Sale Completed!') {
-                        return { ...prev, show: false };
-                    }
-                    return prev;
-                });
-                if (searchInputRef.current) searchInputRef.current.focus();
-            }, 3000);
+                // Auto-close after 3 seconds to speed up workflow
+                setTimeout(() => {
+                    setAlertState(prev => {
+                        // Only auto-close if the specific success modal is still open
+                        if (prev.show && prev.title === 'Sale Completed!') {
+                            return { ...prev, show: false };
+                        }
+                        return prev;
+                    });
+                    if (searchInputRef.current) searchInputRef.current.focus();
+                }, 3000);
+            }
         }
     };
 
     // Customer search function
     const searchCustomers = async (query) => {
         try {
-            const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), {
-                params: { search: query }
-            });
-            setCustomerResults(response.data || []);
+            if (isOnline) {
+                const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), {
+                    params: { search: query }
+                });
+                setCustomerResults(response.data || []);
+            } else {
+                throw new Error("Offline");
+            }
         } catch (error) {
-            console.error("Customer search error:", error);
-            setCustomerResults([]);
+            console.error("Customer search error, falling back locally:", error);
+            try {
+                const lowerQuery = query.toLowerCase();
+                const localCustomers = await db.customers
+                    .filter(c => 
+                        (c.name && c.name.toLowerCase().includes(lowerQuery)) ||
+                        (c.phone && c.phone.includes(query))
+                    )
+                    .toArray();
+                setCustomerResults(localCustomers);
+            } catch (localError) {
+                console.error("Local customer search failed:", localError);
+                setCustomerResults([]);
+            }
         }
     };
 
@@ -946,14 +1064,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     useEffect(() => {
         const loadInitialCustomers = async () => {
             try {
-                const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), { params: { search: '' } });
-                setInitialCustomers((response.data || []).slice(0, 50));
+                if (isOnline) {
+                    const response = await axios.get(route('store.customers.search', { store_slug: store?.slug }), { params: { search: '' } });
+                    setInitialCustomers((response.data || []).slice(0, 50));
+                } else {
+                    throw new Error("Offline");
+                }
             } catch (error) {
-                console.error('Failed to load initial customers:', error);
+                console.error('Failed to load initial customers, falling back locally:', error);
+                try {
+                    const localCustomers = await db.customers.limit(50).toArray();
+                    setInitialCustomers(localCustomers);
+                } catch (localError) {
+                    console.error("Local initial customers load failed:", localError);
+                }
             }
         };
         loadInitialCustomers();
-    }, []);
+    }, [isOnline]);
 
     // Print receipt function
     const printReceipt = (type = null) => {
@@ -1089,10 +1217,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             if (e.key === 'F8') {
                 e.preventDefault();
                 showInput('Additional Charges', 'Enter charge amount', (val) => {
-                    const charge = parseFloat(val);
-                    if (!isNaN(charge)) {
-                        updateActiveSale({ additionalCharges: charge });
-                        addToast(`Additional charge of ${formatCurrency(charge)} added`, 'success');
+                    const charge = parseFloat(val); if (!isNaN(charge)) { updateActiveSale({ additionalCharges: charge }); addToast(`Additional charge of ${formatCurrency(charge, store || settings)} added`, 'success');
                     }
                 });
             }
@@ -1103,7 +1228,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     const disc = parseFloat(val);
                     if (!isNaN(disc)) {
                         updateActiveSale({ discount: disc });
-                        addToast(`Bill discount of ${formatCurrency(disc)} applied`, 'success');
+                        addToast(`Bill discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
                     }
                 });
             }
@@ -1132,12 +1257,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 e.preventDefault();
                 // Toggle a breakup view (using existing summary or dedicated modal)
                 showAlert('Bill Breakup', `
-                    Subtotal: ${formatCurrency(subtotal)}
-                    Discount: ${formatCurrency(totalDiscounts)}
-                    Taxable: ${formatCurrency(taxableAmount)}
-                    Tax: ${formatCurrency(taxAmount)}
+                    Subtotal: ${formatCurrency(subtotal, store || settings)}
+                    Discount: ${formatCurrency(totalDiscounts, store || settings)}
+                    Taxable: ${formatCurrency(taxableAmount, store || settings)}
+                    Tax: ${formatCurrency(taxAmount, store || settings)}
                     --------------------
-                    Total: ${formatCurrency(cartTotal)}
+                    Total: ${formatCurrency(cartTotal, store || settings)}
                 `, 'info');
             }
 
@@ -1333,24 +1458,75 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Load categories
     const loadCategories = async () => {
         try {
-            const response = await axios.get(route('store.api.categories', { store_slug: store?.slug }));
-            setCategories(response.data.data || response.data || []);
+            if (isOnline) {
+                const response = await axios.get(route('store.pos.categories', { store_slug: store?.slug }));
+                setCategories(response.data.data || response.data || []);
+            } else {
+                throw new Error("Offline");
+            }
         } catch (error) {
-            console.error("Error loading categories:", error);
-            setCategories([]);
+            console.error("Error loading categories, extracting locally:", error);
+            try {
+                const localProducts = await db.products.toArray();
+                const categoriesMap = {};
+                localProducts.forEach(p => {
+                    if (p.category) {
+                        const catId = p.category.id || p.category_id;
+                        const catName = p.category.name || p.category_name || 'General';
+                        categoriesMap[catId] = {
+                            id: catId,
+                            name: catName,
+                            products_count: (categoriesMap[catId]?.products_count || 0) + 1,
+                            product_count: (categoriesMap[catId]?.product_count || 0) + 1
+                        };
+                    }
+                });
+                const sorted = Object.values(categoriesMap).sort((a, b) => {
+                    if (a.name === 'Phones') return -1;
+                    if (b.name === 'Phones') return 1;
+                    return a.name.localeCompare(b.name);
+                });
+                setCategories(sorted);
+            } catch (localError) {
+                console.error("Failed to load local categories:", localError);
+                setCategories([]);
+            }
         }
     };
 
-    // Load products by category
+    // Load products by category (or featured if no category)
     const fetchCategoryProducts = async (catId) => {
         setIsLoadingProducts(true);
         try {
-            const response = await axios.get(route('store.inventory.search', { store_slug: store?.slug }), {
-                params: { category_id: catId, query: '' }
-            });
-            setCategoryProducts(response.data || []);
+            if (isOnline) {
+                let response;
+                if (catId) {
+                    response = await axios.get(route('store.pos.search', { store_slug: store?.slug }), {
+                        params: { category_id: catId, q: '' }
+                    });
+                } else {
+                    response = await axios.get(route('store.pos.featured', { store_slug: store?.slug }));
+                }
+                setCategoryProducts(response.data.data || response.data || []);
+            } else {
+                throw new Error("Offline");
+            }
         } catch (error) {
-            console.error("Error loading category products:", error);
+            console.error("Error loading category products, falling back locally:", error);
+            try {
+                let localProducts = [];
+                if (catId) {
+                    localProducts = await db.products
+                        .filter(p => p.category_id === catId || (p.category && p.category.id === catId))
+                        .toArray();
+                } else {
+                    localProducts = await db.products.limit(50).toArray();
+                }
+                setCategoryProducts(localProducts);
+            } catch (localError) {
+                console.error("Failed to load local products:", localError);
+                setCategoryProducts([]);
+            }
         } finally {
             setIsLoadingProducts(false);
         }
@@ -1359,13 +1535,46 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Load products when category changes (or on mount/reset)
     useEffect(() => {
         fetchCategoryProducts(selectedCategory);
-    }, [selectedCategory]);
+    }, [selectedCategory, isOnline]);
 
     // Load parked sales and categories on mount
     useEffect(() => {
         loadParkedSales();
         loadCategories();
     }, []);
+
+    // Global Keyboard Auto-Focus on Search input when not focused elsewhere
+    useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (
+                activeElement.tagName === 'INPUT' || 
+                activeElement.tagName === 'TEXTAREA' || 
+                activeElement.isContentEditable
+            );
+
+            // Capture printable keys (length 1) when no input is focused, excluding modifiers/functional keys
+            if (!isInputFocused && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                const searchInput = document.querySelector('#tour-pos-product input');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleGlobalKeyDown);
+        return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+    }, []);
+
+    // Cart Auto-Scroll to Bottom on New Item Addition
+    useEffect(() => {
+        if (cartListRef.current) {
+            cartListRef.current.scrollTo({
+                top: cartListRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [activeSale.cart.length]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -1403,7 +1612,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     return (
         <>
-            <div className="h-full w-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+            <div className="h-full w-full flex flex-col pl-3 pr-0 pb-0 pt-3 animate-in fade-in zoom-in-95 duration-300">
             {/* TOP BAR */}
             <div className="h-10 flex items-end gap-1 shrink-0 px-2 select-none">
                 {sales.map(sale => (
@@ -1439,6 +1648,23 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                 {/* Parked Sales & Status - Side by Side */}
                 <div className="ml-auto mr-2 relative flex items-center gap-2" ref={parkedDropdownRef}>
+                    {/* Senior Mode Toggle */}
+                    <button
+                        onClick={() => setSeniorMode(!seniorMode)}
+                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
+                            seniorMode 
+                                ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800'
+                                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 border-transparent'
+                        }`}
+                        title="Toggle Senior Mode for larger text"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            {seniorMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>}
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${seniorMode ? 'bg-indigo-500' : 'bg-slate-400'}`}></span>
+                        </span>
+                        <span>Senior Mode</span>
+                    </button>
+
                     <button
                         onClick={() => {
                             setParkedDropdownOpen(!parkedDropdownOpen);
@@ -1490,7 +1716,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                         {parked.customer_name || 'Walk-in Customer'}
                                                     </p>
                                                     <p className="text-xs text-slate-500">
-                                                        {parked.items_count} {parked.items_count === 1 ? 'item' : 'items'} · {formatCurrency(parked.total_amount || 0)}
+                                                        {parked.items_count} {parked.items_count === 1 ? 'item' : 'items'} · {formatCurrency(parked.total || 0, store || settings)}
                                                     </p>
                                                 </div>
                                                 <button
@@ -1519,21 +1745,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* MAIN WORKSPACE */}
-            <div className="flex-1 flex gap-6 min-h-0 bg-white dark:bg-slate-900 rounded-b-3xl rounded-tr-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden z-0 relative">
+            <div className="flex-1 flex gap-0 min-h-0 bg-slate-50 dark:bg-slate-950 rounded-t-3xl rounded-b-none shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
-                <div className="flex-1 flex flex-col min-w-0 relative">
+                <div className="w-[40%] flex flex-col min-w-0 relative">
                     {/* Search Bar */}
-                    <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex gap-4 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
+                    <div className="h-14 px-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
                         <button
                             onClick={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
-                            className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-colors"
+                            className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-colors shrink-0"
                             title="Quick Add Product"
                         >
-                            <PackagePlus size={20} />
+                            <PackagePlus size={16} />
                         </button>
-                        <div className="flex-1 relative">
-                            {/* <ScanBarcode className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} /> */}
+                        <div id="tour-pos-product" className="flex-1 relative">
                             <AsyncProductCombobox
                                 defaultOptions={categoryProducts}
                                 value={activeSale.searchTerm}
@@ -1541,78 +1766,93 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 onSelect={(product) => handleProductSelect(product)}
                                 placeholder="Scan Barcode or Search Item..."
                                 onKeyDown={handleSearchInputKeyDown}
-                                inputClassName="pl-11 h-12 text-lg font-bold"
+                                inputClassName="pl-9 pr-9 h-9 text-sm font-bold"
                                 onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
                                 hideCostAndMargin={true}
+                                hideSearchIcon={true}
                             />
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
-                                <ScanBarcode size={20} />
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
+                                <ScanBarcode size={16} />
+                            </div>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
+                                <Search size={16} />
                             </div>
                         </div>
                     </div>
 
-                    {/* SPLIT VIEW Container */}
-                    <div className="flex-1 flex overflow-hidden">
+                    {/* Horizontal Categories Bar & Vertical Product Rows */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        
+                        {/* Categories Horizontal List Wrapper */}
+                        <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 py-2 gap-2 select-none shrink-0 relative">
+                            {/* Scroll Left Button */}
+                            <button 
+                                onClick={() => scrollCategories('left')}
+                                className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                            >
+                                <ChevronLeft size={14} />
+                            </button>
 
-                        {/* LEFT STRIP: Vertical Category List */}
-                        <div className="w-64 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-800 flex flex-col overflow-y-auto custom-scrollbar">
-                            <div className="p-4 space-y-2">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 px-2">Categories</h3>
+                            {/* Categories Horizontal List */}
+                            <div 
+                                ref={categoryScrollRef}
+                                onWheel={handleCategoryWheel}
+                                className="flex-1 flex gap-2 overflow-x-auto scrollbar-none scroll-smooth px-1"
+                                style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }} // Hide scrollbars
+                            >
                                 <button
                                     onClick={() => setSelectedCategory(null)}
-                                    className={`w-full p-4 rounded-2xl font-bold text-left transition-all relative overflow-hidden group ${selectedCategory === null
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                        }`}
+                                    className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all shrink-0 border ${
+                                        selectedCategory === null
+                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    }`}
                                 >
-                                    <span className="relative z-10">All Items</span>
-                                    {selectedCategory === null && <div className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white"></div>}
+                                    All
                                 </button>
-                                {categories.filter(cat => cat.products_count > 0).map(cat => (
+                                {categories.filter(cat => (cat.products_count > 0 || cat.product_count > 0)).map(cat => (
                                     <button
                                         key={cat.id}
                                         onClick={() => setSelectedCategory(cat.id)}
-                                        className={`w-full p-4 pr-10 rounded-2xl font-bold text-left transition-all relative overflow-hidden group ${selectedCategory === cat.id
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                            }`}
+                                        className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all shrink-0 border flex items-center gap-1.5 ${
+                                            selectedCategory === cat.id
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
                                     >
-                                        <div className="relative z-10 flex justify-between items-center">
-                                            <span className="text-sm truncate mr-2">{cat.name}</span>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                {cat.products_count}
-                                            </span>
-                                        </div>
-                                        {selectedCategory === cat.id && <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white"></div>}
+                                        <span>{cat.name}</span>
+                                        <span className={`text-[9px] px-1 py-0.2 rounded-full shrink-0 ${
+                                            selectedCategory === cat.id 
+                                                ? 'bg-white/20 text-white' 
+                                                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                        }`}>
+                                            {cat.products_count ?? cat.product_count ?? 0}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Scroll Right Button */}
+                            <button 
+                                onClick={() => scrollCategories('right')}
+                                className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                            >
+                                <ChevronRight size={14} />
+                            </button>
                         </div>
 
-                        {/* RIGHT AREA: Product Grid */}
-                        <div className="flex-1 flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
-
-                            {/* Product Header & Senior Mode */}
-                            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white/50 backdrop-blur-sm sticky top-0 z-10">
-                                <h2 className="font-black text-xl text-slate-800 dark:text-white">
-                                    {selectedCategory ? categories.find(c => c.id === selectedCategory)?.name : 'All Products'}
-                                </h2>
-
-                                {/* Senior Mode Toggle - HIDDEN AS PER USER REQUEST */}
-                                {/* <div className="flex items-center gap-2">...</div> */}
-                            </div>
-
-                            {/* Grid Content */}
-                            <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        {/* Product Rows List Container */}
+                        <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                                 {isLoadingProducts ? (
                                     <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
                                         <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
                                         <p className="font-bold text-sm">Loading products...</p>
                                     </div>
                                 ) : (
-                                    <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+                                    <div className="space-y-2">
                                         {selectedCategory && categoryProducts.length === 0 ? (
-                                            <div className="col-span-full py-20 text-center">
+                                            <div className="py-20 text-center">
                                                 <Archive className="mx-auto text-slate-300 mb-4" size={48} />
                                                 <p className="text-slate-500 font-bold">No products in this category</p>
                                             </div>
@@ -1621,34 +1861,55 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 <button
                                                     key={product.id}
                                                     onClick={() => handleProductSelect(product)}
-                                                    className={`group bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-xl text-left relative overflow-hidden active:scale-95 flex flex-col ${seniorMode ? 'p-6 min-h-[200px]' : 'p-4 min-h-[160px]'}`}
+                                                    className="w-full bg-white dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-md text-left flex items-center justify-between p-3 gap-3 active:scale-98 relative overflow-hidden"
                                                 >
-                                                    <div className="flex justify-between items-start mb-auto w-full">
-                                                        <div className={`rounded-2xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform ${seniorMode ? 'w-16 h-16 text-3xl' : 'w-12 h-12 text-2xl'}`}>
-                                                            {product.image_path ? <img src={product.image_path} alt="" className="w-full h-full object-cover rounded-2xl" /> : '📦'}
+                                                    {/* Left Section: Image and Name */}
+                                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
+                                                            {product.image_url || product.image_path ? (
+                                                                <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <Package className="text-slate-400" size={20} />
+                                                            )}
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className={`font-black text-indigo-600 dark:text-indigo-400 ${seniorMode ? 'text-lg' : 'text-xs'}`}>{formatCurrency(product.price)}</p>
-                                                            <p className={`font-bold ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'} ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>
-                                                                Qty: {product.stock_quantity}
-                                                            </p>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h4 className="font-black text-slate-800 dark:text-white leading-snug break-words text-lg">
+                                                                {product.name}
+                                                            </h4>
+                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">
+                                                                {product.category?.name || product.category_name || 'General'}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <div className="mt-4">
-                                                        <h4 className={`font-black text-slate-800 dark:text-white leading-tight mb-1 whitespace-normal break-words w-full ${seniorMode ? 'text-lg' : 'text-sm'}`}>{product.name}</h4>
-                                                        <p className={`text-slate-400 font-bold uppercase tracking-widest ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>{product.category?.name || 'General'}</p>
+
+                                                    {/* Right Section: Stock Qty and Price */}
+                                                    <div className="text-right shrink-0 flex items-center gap-4">
+                                                        <div>
+                                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Stock</span>
+                                                            <span className={`text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                {formatNumber(product.stock_quantity || 0, 0)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="min-w-[75px]">
+                                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Price</span>
+                                                            <span className="font-black text-sky-500 dark:text-sky-400 block leading-none text-lg">
+                                                                {formatCurrency(product.price || product.selling_price || 0, store || settings)}
+                                                            </span>
+                                                        </div>
                                                     </div>
+
                                                     {product.variants && product.variants.length > 0 && (
-                                                        <div className="absolute top-2 right-2 flex gap-1">
+                                                        <div className="absolute top-1.5 right-1.5 flex gap-1">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
                                                         </div>
                                                     )}
                                                 </button>
                                             ))
                                         )}
+
                                         {/* Show instructional message if no category selected AND no products loaded */}
                                         {!selectedCategory && categoryProducts.length === 0 && (
-                                            <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
+                                            <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
                                                 <div className="w-20 h-20 rounded-[2.5rem] bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                                                     <Search size={32} />
                                                 </div>
@@ -1664,177 +1925,158 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
                     </div>
 
-                    {/* Bottom Bar - Shortcuts Strip */}
-                    <div className="bg-slate-900 border-t border-slate-800 flex items-center px-4 py-2 gap-4 overflow-x-auto text-[10px] font-bold text-slate-400 no-scrollbar">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F1</span>
-                            <span>Search</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F2</span>
-                            <span>Qty</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F3</span>
-                            <span>Item Disc</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F4</span>
-                            <span>Remove</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F5</span>
-                            <span>Price</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F11</span>
-                            <span>Customer</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">^S</span>
-                            <span>Save</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">^P</span>
-                            <span>Print</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">Alt+Z</span>
-                            <span>Fullscr</span>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* RIGHT: Cart & Payment Panel */}
-                <div className="w-[450px] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-900/80 border-l border-slate-100 dark:border-slate-800">
+                <div className="w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-950 border-l border-slate-100 dark:border-slate-800">
 
                     {/* Cart Header */}
-                    <div className="p-4 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
-                            <ShoppingCart size={20} className="text-indigo-600" />
-                            CURRENT ORDER
-                        </h3>
+                    <div className="h-14 px-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                                <ShoppingCart size={18} className="text-indigo-600" />
+                                CURRENT ORDER
+                            </h3>
+                            
+                            {/* Free Qty Toggle Button */}
+                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        checked={showFreeQty}
+                                        onChange={(e) => setShowFreeQty(e.target.checked)}
+                                        className="sr-only"
+                                    />
+                                    <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showFreeQty ? 'translate-x-4' : ''}`}></div>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
+                            </label>
+                        </div>
                         <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
                             {activeSale.cart.length} ITEMS • {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY
                         </span>
                     </div>
 
                     {/* Cart List (Moved from Left) */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
+                    <div ref={cartListRef} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
                         {activeSale.cart.map((item, index) => (
-                            <div key={item.cartItemId} className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm relative group overflow-hidden pl-10">
-                                <div className="absolute top-1/2 -translate-y-1/2 left-3 w-5 h-5 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500">
-                                    {index + 1}
+                            <div key={item.cartItemId} className="bg-white dark:bg-slate-800 px-3 py-2.5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between gap-3 text-xs relative group overflow-hidden">
+                                {/* Left Section: Index, name, category, stock warning */}
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                                        {index + 1}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-black text-slate-900 dark:text-white text-sm leading-snug break-words">
+                                            {item.name}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                                                {item.category}
+                                            </span>
+                                            {item.qty > item.stock && (
+                                                <span className="text-[9px] font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded animate-pulse">
+                                                    ⚠️ Over Stock ({item.stock})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-xl shrink-0">
-                                        📦
+
+                                {/* Price & Action Buttons */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex flex-col items-end">
+                                        <button
+                                            onClick={() => openItemDiscountModal(item)}
+                                            className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
+                                        >
+                                            {item.discount > 0 ? (
+                                                <>
+                                                    <span className="line-through text-[9px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
+                                                    <span>{formatCurrency(item.price, store || settings)}</span>
+                                                </>
+                                            ) : (
+                                                formatCurrency(item.price, store || settings)
+                                            )}
+                                        </button>
+                                        {item.discount > 0 && (
+                                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                                Disc: -{formatCurrency(item.discount, store || settings)}
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start">
-                                            <h4 className="font-black text-slate-900 dark:text-white text-sm truncate pr-6">{item.name}</h4>
-                                            <button
-                                                onClick={() => removeFromCart(item.cartItemId)}
-                                                className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
 
-                                        <div className="flex items-center gap-2 mt-1">
-                                            {/* Price button — opens Item Discount modal */}
-                                            <button
-                                                onClick={() => openItemDiscountModal(item)}
-                                                className="text-xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[60px]"
-                                            >
-                                                {item.discount > 0 ? (
-                                                    <>
-                                                        <span className="line-through text-[10px] text-slate-400 opacity-70">{formatCurrency(item.original_price || (item.price + item.discount))}</span>
-                                                        <span>{formatCurrency(item.price)}</span>
-                                                    </>
-                                                ) : (
-                                                    formatCurrency(item.price)
-                                                )}
-                                            </button>
-                                            {/* Converter button — opens Price/Qty/Total editor */}
-                                            <button
-                                                onClick={() => openConverterModal(item)}
-                                                title="Edit Price / Qty / Total"
-                                                className="text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
-                                            >
-                                                ⇄
-                                            </button>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase">{item.category}</span>
-                                                {item.discount > 0 && <span className="text-xs font-black text-emerald-500">Disc: {formatCurrency(item.discount)}</span>}
-                                                {/* Negative Stock Warning Badge */}
-                                                {item.qty > item.stock && (
-                                                    <span className="text-[10px] font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded mt-0.5 animate-pulse">
-                                                        ⚠️ Over Stock ({item.stock})
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+                                    <button
+                                        onClick={() => openConverterModal(item)}
+                                        title="Edit Price / Qty / Total"
+                                        className="text-[11px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
+                                    >
+                                        ⇄
+                                    </button>
+                                </div>
 
-                                        <div className="flex flex-wrap items-end justify-between gap-y-3 mt-4">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-2xl">
-                                                    <button
-                                                        onClick={() => updateQty(item.cartItemId, -1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all border border-transparent active:scale-90"
-                                                    >
-                                                        <MinusCircle size={18} />
-                                                    </button>
-                                                    <span className="w-10 text-center font-black text-sm text-slate-900 dark:text-white">
-                                                        {item.qty}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => updateQty(item.cartItemId, 1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all border border-transparent active:scale-90"
-                                                    >
-                                                        <PlusCircle size={18} />
-                                                    </button>
-                                                </div>
-
-                                                {/* Free Qty Controls */}
-                                                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 p-1 rounded-2xl border border-emerald-100 dark:border-emerald-800/30">
-                                                    <button
-                                                        onClick={() => updateFreeQty(item.cartItemId, -1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
-                                                    >
-                                                        <MinusCircle size={18} />
-                                                    </button>
-                                                    <div className="flex flex-col items-center w-10">
-                                                        <span className="font-black text-sm text-emerald-700 dark:text-emerald-400 leading-none">
-                                                            {item.freeQuantity || 0}
-                                                        </span>
-                                                        <span className="text-[8px] font-bold text-emerald-500 uppercase leading-none">FREE</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => updateFreeQty(item.cartItemId, 1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
-                                                    >
-                                                        <PlusCircle size={18} />
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className={`text-right ml-auto ${seniorMode ? 'scale-110 origin-right' : ''} transition-transform`}>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1 text-right">Line Total</p>
-                                                <p className="font-black text-slate-900 dark:text-white text-sm">
-                                                    {formatCurrency(item.price * item.qty)}
-                                                </p>
-                                            </div>
-                                        </div>
+                                {/* Qty & Free Qty Controls */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {/* Regular Qty */}
+                                    <div className="flex items-center bg-slate-50 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <button
+                                            onClick={() => updateQty(item.cartItemId, -1)}
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all active:scale-90"
+                                        >
+                                            <MinusCircle size={15} />
+                                        </button>
+                                        <span className="w-7 text-center font-black text-xs text-slate-900 dark:text-white">
+                                            {item.qty}
+                                        </span>
+                                        <button
+                                            onClick={() => updateQty(item.cartItemId, 1)}
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all active:scale-90"
+                                        >
+                                            <PlusCircle size={15} />
+                                        </button>
                                     </div>
+
+                                    {/* Free Qty Controls */}
+                                    {showFreeQty && (
+                                        <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-0.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                                            <button
+                                                onClick={() => updateFreeQty(item.cartItemId, -1)}
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                            >
+                                                <MinusCircle size={15} />
+                                            </button>
+                                            <div className="flex flex-col items-center w-7 leading-none">
+                                                <span className="font-black text-xs text-emerald-700 dark:text-emerald-400">
+                                                    {item.freeQuantity || 0}
+                                                </span>
+                                                <span className="text-[7px] font-bold text-emerald-500 uppercase">FREE</span>
+                                            </div>
+                                            <button
+                                                onClick={() => updateFreeQty(item.cartItemId, 1)}
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                            >
+                                                <PlusCircle size={15} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Section: Line Total & Trash */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="text-right min-w-[75px]">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Line Total</span>
+                                        <span className="font-black text-slate-900 dark:text-white text-sm block leading-none">
+                                            {formatCurrency(item.price * item.qty, store || settings)}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => removeFromCart(item.cartItemId)}
+                                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -1850,42 +2092,44 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Payment & Summary Panel */}
-                <div className="w-96 shrink-0 bg-slate-900 text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-800">
+                <div className="w-[20%] shrink-0 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-200 dark:border-slate-800">
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
-                    <div className="p-6 border-b border-white/10">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            <Receipt className="text-emerald-400" /> Payment Details
+                    <div className="h-14 px-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                        <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm uppercase">
+                            <Receipt size={18} className="text-emerald-600 dark:text-emerald-400" /> Payment Details
                         </h2>
-                        <p className="text-xs text-slate-400 mt-1">Transaction ID: #{activeSale.id}</p>
+                        <span className="px-2 py-0.5 rounded-lg font-black text-[10px] bg-slate-200 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700/50">
+                            #{activeSale.id}
+                        </span>
                     </div>
 
-                    <div className="flex-1 p-4 space-y-4 overflow-y-auto custom-scrollbar">
+                    <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                         {/* Summary Block - Compact */}
-                        <div className="space-y-2 bg-white/5 p-3 rounded-xl">
-                            <div className="flex justify-between text-slate-400 text-xs">
+                        <div className="space-y-2 bg-slate-100 dark:bg-white/5 p-3 rounded-xl">
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
                                 <span>Subtotal</span>
-                                <span className="text-white">{formatCurrency(subtotal)}</span>
+                                <span className="text-slate-900 dark:text-white">{formatCurrency(subtotal, store || settings)}</span>
                             </div>
-                            {activeSale.discount > 0 && (
-                                <div className="flex justify-between text-emerald-400 text-xs font-bold">
+                            {totalDiscounts > 0 && (
+                                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                                     <span>Discount</span>
-                                    <span>-{formatCurrency(activeSale.discount)}</span>
+                                    <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between text-slate-400 text-xs">
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
                                 <span>Tax ({taxRate}%)</span>
-                                <span className="text-white">{formatCurrency(taxAmount)}</span>
+                                <span className="text-slate-900 dark:text-white">{formatCurrency(taxAmount, store || settings)}</span>
                             </div>
-                            <div className="h-px bg-white/10 my-1"></div>
-                            <div className={`flex justify-between font-bold text-emerald-400 ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+                            <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
+                            <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">
                                 <span>Total</span>
-                                <span>{formatCurrency(cartTotal)}</span>
+                                <span>{formatCurrency(cartTotal, store || settings)}</span>
                             </div>
                         </div>
 
                         {/* Customer Search Row - Full Width to prevent clipping */}
-                        <div className="relative z-[60]">
+                        <div id="tour-pos-customer" className="relative z-[60]">
                             {customerDropdownOpen ? (
                                 <div className="animate-in slide-in-from-top-2 duration-200">
                                     <AsyncPartyCombobox
@@ -1896,7 +2140,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             setCustomerDropdownOpen(false);
                                         }}
                                         className="h-full"
-                                        inputClassName="bg-white/5 border-white/5 text-white placeholder-slate-500 focus:ring-emerald-500/50 h-14"
+                                        inputClassName="bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-emerald-500/50 h-14 shadow-sm"
                                         placeholder="Search Customer (Name, Phone)..."
                                         onQueryChange={(val) => setCustomerSearchTerm(val)}
                                         onCreateNew={() => setShowQuickPartyModal(true)}
@@ -1909,7 +2153,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     />
                                     <button 
                                         onClick={() => setCustomerDropdownOpen(false)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                                     >
                                         <X size={16} />
                                     </button>
@@ -1917,20 +2161,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             ) : (
                                 <button
                                     onClick={() => setCustomerDropdownOpen(true)}
-                                    className="w-full bg-white/5 p-4 rounded-xl text-left hover:bg-white/10 transition-all border border-white/5 flex items-center justify-between group"
+                                    className="w-full bg-white dark:bg-white/5 p-4 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-all border border-slate-200 dark:border-white/5 shadow-sm flex items-center justify-between group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
                                             <User size={20} />
                                         </div>
                                         <div>
                                             <label className="text-[10px] uppercase font-black text-slate-500 block mb-0.5">Customer / Party</label>
-                                            <span className="text-sm font-bold text-white">
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {activeSale.customer?.name || 'Walk-in Customer'}
                                             </span>
                                         </div>
                                     </div>
-                                    <Search size={18} className="text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                                    <Search size={18} className="text-slate-500 group-hover:text-indigo-500 transition-colors" />
                                 </button>
                             )}
                         </div>
@@ -1945,19 +2189,19 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             const disc = parseFloat(val);
                                             if (!isNaN(disc)) {
                                                 updateActiveSale({ discountType: 'fixed', discountValue: disc });
-                                                addToast(`Discount of ${formatCurrency(disc)} applied`, 'success');
+                                                addToast(`Discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
                                             }
                                         });
                                     }}
-                                    className="w-full bg-white/5 p-3 rounded-xl text-left hover:bg-white/10 transition-colors border border-white/5 h-16 flex flex-col justify-center"
+                                    className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                 >
                                     <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
                                     <div className="flex items-center gap-1.5">
-                                        <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
-                                        <span className="text-xs font-bold text-white truncate">
+                                        <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
+                                        <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                             {activeSale.discountType === 'percentage'
-                                                ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount)})`
-                                                : formatCurrency(globalDiscount)
+                                                ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
+                                                : formatCurrency(globalDiscount, store || settings)
                                             }
                                         </span>
                                     </div>
@@ -1969,17 +2213,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 <div className="group relative h-full">
                                     <button 
                                         onClick={() => setPaymentDropdownOpen(!paymentDropdownOpen)}
-                                        className="w-full bg-white/5 p-3 rounded-xl text-left hover:bg-white/10 transition-colors border border-white/5 h-16 flex flex-col justify-center"
+                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                     >
                                         <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Method</label>
                                         <div className="flex items-center gap-1.5">
-                                            <CreditCard size={14} className="text-indigo-400 shrink-0" />
-                                            <span className="text-xs font-bold text-white uppercase truncate">{paymentMethod}</span>
+                                            <CreditCard size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">{paymentMethod}</span>
                                         </div>
                                     </button>
                                     {/* Dropdown - Click to toggle */}
                                     {paymentDropdownOpen && (
-                                        <div className="absolute bottom-full right-0 mb-2 w-32 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-[70] animate-in slide-in-from-bottom-2 duration-200">
+                                        <div className="absolute bottom-full right-0 mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[70] animate-in slide-in-from-bottom-2 duration-200">
                                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
                                                 // Restricted: Credit only for registered customers
                                                 if (method === 'credit' && !activeSale.customer) return null;
@@ -1991,7 +2235,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             setPaymentMethod(method);
                                                             setPaymentDropdownOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-700 ${paymentMethod === method ? 'text-emerald-400' : 'text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 ${paymentMethod === method ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}
                                                     >
                                                         {method.toUpperCase()}
                                                     </button>
@@ -2050,27 +2294,27 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         {/* Payment Button - Replaces Cash Calculator */}
                         {/* Payment Input Section - Restored "Fill in value" option */}
                         <div className="space-y-3 mb-2">
-                            <div className="bg-white/10 p-4 rounded-xl border border-white/5">
+                            <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-xs uppercase font-bold text-slate-400">Amount Tendered</label>
-                                    <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Amount Tendered</label>
+                                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
                                         Cash
                                     </span>
                                 </div>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-lg">{settings?.currency_symbol || '$'}</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 font-bold text-lg">{getCurrencySymbol(store || settings)}</span>
                                     <input
                                         type="number"
                                         value={activeSale.cashReceived}
                                         onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
                                         placeholder="0.00"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner"
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner shadow-inner"
                                         disabled={activeSale.cart.length === 0}
                                     />
                                     {/* Quick Exact Button */}
                                     <button
                                         onClick={() => updateActiveSale({ cashReceived: cartTotal })}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 px-2 py-1 rounded transition-colors border border-slate-600"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-600 dark:text-slate-300 px-2 py-1 rounded transition-colors border border-slate-200 dark:border-slate-600 font-bold"
                                     >
                                         Exact
                                     </button>
@@ -2083,21 +2327,21 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 : 'bg-red-500/10 border-red-500/20'
                                 }`}>
                                 <div className="flex justify-between items-center">
-                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
                                         {changeDue >= 0 ? 'Change Due' : 'Shortage'}
                                     </span>
-                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                        {formatCurrency(Math.abs(changeDue))}
+                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                        {formatCurrency(Math.abs(changeDue), store || settings)}
                                     </span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-6 bg-black/20 backdrop-blur-sm space-y-3">
+                    <div className="p-4 bg-slate-100/50 dark:bg-black/20 backdrop-blur-sm space-y-2">
                         {/* Print Settings Toggle */}
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-slate-400">Auto-print on complete</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Auto-print on complete</span>
                             <button
                                 onClick={() => setPrintOnComplete(!printOnComplete)}
                                 className={`relative w-12 h-6 rounded-full transition-colors ${printOnComplete ? 'bg-emerald-500' : 'bg-slate-600'}`}
@@ -2107,6 +2351,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
 
                         <button
+                            id="tour-pos-checkout"
                             onClick={handleCheckoutClick}
                             disabled={processingPayment || activeSale.cart.length === 0}
                             className={`w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -2129,7 +2374,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                             <button
                                 onClick={() => updateActiveSale({ cart: [], cashReceived: '' })}
-                                className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+                                className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
                             >
                                 <X size={18} /> Cancel
                             </button>
@@ -2137,6 +2382,54 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
                 </div>
 
+            </div>
+
+            {/* Bottom Bar - Shortcuts Strip (Moved Outside) */}
+            <div className="bg-slate-900 dark:bg-slate-950 border-t border-slate-800 flex items-center justify-between px-6 py-1.5 text-[11px] font-bold text-slate-400 shadow-lg shrink-0 z-10 select-none">
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F1</span>
+                    <span>Search</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F2</span>
+                    <span>Qty</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F3</span>
+                    <span>Item Disc</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F4</span>
+                    <span>Remove</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F5</span>
+                    <span>Price</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F11</span>
+                    <span>Customer</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">^S</span>
+                    <span>Save</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">^P</span>
+                    <span>Print</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">Alt+Z</span>
+                    <span>Fullscr</span>
+                </div>
             </div>
 
             {/* Variant Selection Modal */}
@@ -2162,7 +2455,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         </p>
                                     </div>
                                     <div className="text-right">
-                                        <p className="font-bold text-indigo-600">{formatCurrency(variant.price)}</p>
+                                        <p className="font-bold text-indigo-600">{formatCurrency(variant.price, store || settings)}</p>
                                         <p className="text-xs text-slate-500">Stock: {variant.stock_quantity}</p>
                                     </div>
                                 </div>
@@ -2204,7 +2497,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 onClose={() => setPaymentModalOpen(false)}
                 totalAmount={cartTotal}
                 onComplete={handlePaymentComplete}
-                currency={settings?.currency || 'PKR'}
+                currency={store?.currency_code || settings?.currency || 'PKR'}
                 bankAccounts={bankAccounts}
                 customer={activeSale.customer}
             />
@@ -2344,7 +2637,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             Use Excess Amount
                         </h3>
                         <div className="text-3xl font-black text-emerald-500 my-2">
-                            {formatCurrency(overpaymentDetails.amount)}
+                            {formatCurrency(overpaymentDetails.amount, store || settings)}
                         </div>
                         <p className="text-xs text-slate-400">
                             Customer paid extra. Choose action:
@@ -2368,7 +2661,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             </FormModal>
 
-            {/* ── Item Discount Modal ────────────────────────────────────── */}
+            {/* â”€â”€ Item Discount Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {itemDiscountModal.show && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
@@ -2383,7 +2676,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 onClick={() => setItemDiscountModal(p => ({ ...p, discType: 'fixed' }))}
                                 className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${itemDiscountModal.discType === 'fixed' ? 'bg-white dark:bg-slate-600 shadow text-indigo-600 dark:text-indigo-400' : 'text-slate-500'}`}
                             >
-                                ₨ Fixed
+                                {getCurrencySymbol(store || settings)} Fixed
                             </button>
                             <button
                                 onClick={() => setItemDiscountModal(p => ({ ...p, discType: 'percentage' }))}
@@ -2402,11 +2695,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 value={itemDiscountModal.discValue}
                                 onChange={e => setItemDiscountModal(p => ({ ...p, discValue: e.target.value }))}
                                 onKeyDown={e => e.key === 'Enter' && applyItemDiscount()}
-                                placeholder={itemDiscountModal.discType === 'percentage' ? 'Enter % (e.g. 10)' : `Max: ${formatCurrency(itemDiscountModal.originalPrice)}`}
+                                placeholder={itemDiscountModal.discType === 'percentage' ? 'Enter % (e.g. 10)' : `Max: ${formatCurrency(itemDiscountModal.originalPrice, store || settings)}`}
                                 className="w-full px-4 py-3 pr-12 border border-slate-200 dark:border-slate-600 rounded-xl bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white text-lg font-bold focus:ring-2 focus:ring-indigo-400 outline-none"
                             />
                             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
-                                {itemDiscountModal.discType === 'percentage' ? '%' : '₨'}
+                                {itemDiscountModal.discType === 'percentage' ? '%' : (getCurrencySymbol(store || settings))}
                             </span>
                         </div>
 
@@ -2420,7 +2713,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             itemDiscountModal.discType === 'percentage'
                                                 ? (itemDiscountModal.originalPrice * parseFloat(itemDiscountModal.discValue)) / 100
                                                 : parseFloat(itemDiscountModal.discValue)
-                                        )
+                                        ),
+                                        store || settings
                                     )}
                                 </span>
                             </div>
@@ -2444,7 +2738,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             )}
 
-            {/* ── Converter Modal (Price / Qty / Total) ─────────────────── */}
+            {/* â”€â”€ Converter Modal (Price / Qty / Total) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
             {converterModal.show && (
                 <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
                     <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-sm p-6 space-y-5">
@@ -2461,7 +2755,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'price' }))}
                                     className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${converterModal.mode === 'price' ? 'bg-white dark:bg-slate-600 shadow text-amber-600 dark:text-amber-400' : 'text-slate-500'}`}
                                 >
-                                    ₨ Price
+                                    {getCurrencySymbol(store || settings)} Price
                                 </button>
                                 <button
                                     onClick={() => setConverterModal(p => ({ ...p, mode: 'qty' }))}
@@ -2474,9 +2768,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                         {/* Fields */}
                         {[
-                            { label: 'Unit Price', field: 'price', icon: '₨', color: 'indigo' },
+                            { label: 'Unit Price', field: 'price', icon: (getCurrencySymbol(store || settings)), color: 'indigo' },
                             { label: 'Quantity', field: 'qty', icon: '#', color: 'emerald' },
-                            { label: 'Total', field: 'total', icon: '=', color: 'amber' },
+                            { label: 'Total', field: 'total', icon: (getCurrencySymbol(store || settings)), color: 'amber' },
                         ].map(({ label, field, icon, color }) => (
                             <div key={field}>
                                 <label className="text-[10px] font-bold text-slate-400 uppercase block mb-1">{label}</label>
@@ -2519,7 +2813,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         {/* --- OFFLINE SYNC HUB MODAL --- */}
         {showSyncHub && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className={`bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 ${seniorMode ? 'text-lg' : ''}`}>
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 text-lg">
                     {/* Header */}
                     <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -2569,7 +2863,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 </div>
                                                 <div className="flex items-center gap-4 text-xs font-bold text-slate-500">
                                                     <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-indigo-400" /> {sale.data.cart?.length || 0} Items</span>
-                                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0)}</span>
+                                                    <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0, store || settings)}</span>
                                                     <span className="flex items-center gap-1.5 text-slate-400"><Clock size={14} /> {new Date(sale.created_at).toLocaleTimeString()}</span>
                                                 </div>
                                             </div>
@@ -2627,10 +2921,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 };
 
 export default function Pos({ settings, bankAccounts, recalledSale }) {
+    const { store } = usePage().props;
     return (
-        <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true}>
+        <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true} noPadding={true}>
             <Head title="POS" />
             <POSInterface settings={settings} recalledSale={recalledSale} bankAccounts={bankAccounts} />
+            <PosTourGuide store={store} />
         </OneGlanceLayout>
     );
 }
+

@@ -3,101 +3,116 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\PlanGate;
 use Inertia\Inertia;
+use App\Models\RecurringInvoice;
+use App\Models\Party;
+use App\Models\Warehouse;
+use App\Models\Product;
 
 class RecurringInvoiceController extends Controller
 {
     public function index()
     {
+        // ── Plan Gate: Recurring Auto-Invoicing ────────────────────────────
+        if (app()->bound('current.tenant')) {
+            PlanGate::enforce('recurring_invoicing');
+        }
+
+        $invoices = RecurringInvoice::with('customer')->latest()->get();
+        
         return Inertia::render('RecurringInvoices/RecurringInvoices', [
-            'invoices' => [
-                'data'  => [],
-                'links' => [],
-            ],
-            'stats' => [
-                'total_active'  => 0,
-                'total_revenue' => 0,
-            ],
+            'recurringInvoices' => $invoices,
         ]);
     }
 
-    /**
-     * Show the form to create a new recurring invoice template.
-     * Route: GET /recurring-invoices/create  (name: recurring-invoices.create)
-     */
     public function create()
     {
+        $customers = Party::where('type', 'customer')->orderBy('name')->get();
+        $warehouses = Warehouse::orderBy('name')->get();
+        $products = Product::select('id', 'name', 'sku', 'price', 'cost_price')->orderBy('name')->get();
+
         return Inertia::render('RecurringInvoices/Create', [
-            'frequencies' => ['weekly', 'monthly', 'quarterly', 'yearly'],
+            'customers' => $customers,
+            'warehouses' => $warehouses,
+            'products' => $products,
         ]);
     }
 
-    /**
-     * Store a new recurring invoice template.
-     * Route: POST /recurring-invoices  (name: recurring-invoices.store)
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'title'       => 'required|string|max:255',
-            'frequency'   => 'required|in:weekly,monthly,quarterly,yearly',
-            'amount'      => 'required|numeric|min:0.01',
-            'party_id'    => 'nullable|integer',
-            'next_run_at' => 'nullable|date',
-            'notes'       => 'nullable|string|max:1000',
+        // ── Plan Gate: Recurring Auto-Invoicing ────────────────────────────
+        if (app()->bound('current.tenant')) {
+            PlanGate::enforce('recurring_invoicing');
+        }
+
+        $validated = $request->validate([
+            'customer_id'   => 'nullable|exists:parties,id',
+            'warehouse_id'  => 'nullable|exists:warehouses,id',
+            'frequency'     => 'required|in:daily,weekly,monthly',
+            'items'         => 'required|array',
+            'next_run_date' => 'required|date',
+            'status'        => 'nullable|string',
         ]);
 
-        // Feature not yet fully wired — return a graceful not-implemented response
-        return back()->with('info', 'Recurring invoices are coming soon. Your template settings have been noted.');
+        $recurringInvoice = RecurringInvoice::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json($recurringInvoice, 201);
+        }
+        return redirect()->route('recurring-invoices.index')->with('success', 'Recurring invoice template created.');
     }
 
-    /**
-     * Show the edit form for a recurring invoice template.
-     * Route: GET /recurring-invoices/{id}/edit  (name: recurring-invoices.edit)
-     */
     public function edit($id)
     {
+        $invoice = RecurringInvoice::findOrFail($id);
+        $customers = Party::where('type', 'customer')->orderBy('name')->get();
+        $warehouses = Warehouse::orderBy('name')->get();
+        $products = Product::select('id', 'name', 'sku', 'price', 'cost_price')->orderBy('name')->get();
+
         return Inertia::render('RecurringInvoices/Edit', [
-            'invoice'     => ['id' => $id],
-            'frequencies' => ['weekly', 'monthly', 'quarterly', 'yearly'],
+            'invoice' => $invoice,
+            'customers' => $customers,
+            'warehouses' => $warehouses,
+            'products' => $products,
         ]);
     }
 
-    /**
-     * Update a recurring invoice template.
-     * Route: PUT /recurring-invoices/{id}  (name: recurring-invoices.update)
-     */
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'title'     => 'sometimes|required|string|max:255',
-            'frequency' => 'sometimes|required|in:weekly,monthly,quarterly,yearly',
-            'amount'    => 'sometimes|required|numeric|min:0.01',
+        $validated = $request->validate([
+            'customer_id'   => 'nullable|exists:parties,id',
+            'warehouse_id'  => 'nullable|exists:warehouses,id',
+            'frequency'     => 'nullable|in:daily,weekly,monthly',
+            'items'         => 'nullable|array',
+            'next_run_date' => 'nullable|date',
+            'status'        => 'nullable|string',
         ]);
 
-        return back()->with('info', 'Recurring invoice template updated (feature coming soon).');
+        $invoice = RecurringInvoice::findOrFail($id);
+        $invoice->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json($invoice);
+        }
+        return redirect()->route('recurring-invoices.index')->with('success', 'Recurring invoice template updated.');
     }
 
-    /**
-     * Delete a recurring invoice template.
-     * Route: DELETE /recurring-invoices/{id}  (name: recurring-invoices.destroy)
-     */
     public function destroy($id)
     {
-        return redirect()->route('recurring-invoices.index')
-            ->with('info', 'Recurring invoice template removed.');
+        $invoice = RecurringInvoice::findOrFail($id);
+        $invoice->delete();
+
+        return redirect()->route('recurring-invoices.index')->with('success', 'Recurring invoice template deleted.');
     }
 
-    /**
-     * Toggle a recurring invoice template on/off.
-     * Route: POST /recurring-invoices/{id}/toggle  (name: recurring-invoices.toggle)
-     */
     public function toggle($id)
     {
-        return response()->json([
-            'success' => true,
-            'message' => 'Recurring invoice toggled (feature coming soon).',
-            'active'  => false,
+        $invoice = RecurringInvoice::findOrFail($id);
+        $invoice->update([
+            'status' => $invoice->status === 'active' ? 'paused' : 'active'
         ]);
+
+        return redirect()->back()->with('success', 'Recurring invoice status toggled.');
     }
 }

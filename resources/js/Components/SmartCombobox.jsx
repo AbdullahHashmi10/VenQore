@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { usePage } from '@inertiajs/react';
 import {
     Search, Plus, Check, Edit2, Package, User, Loader2, ArrowUp, ArrowDown,
     Star, AlertTriangle, TrendingUp, Clock, ShoppingBag, Truck, CreditCard,
@@ -29,8 +30,11 @@ const SmartCombobox = ({
     showTypeIcon = true,
     showDetailedView = true, // Show enhanced details
     disableLocalFiltering = false,
-    hideCostAndMargin = false
+    hideCostAndMargin = false,
+    hideSearchIcon = false,
+    id
 }) => {
+    const { store, settings } = usePage().props;
     const [isOpen, setIsOpen] = useState(false);
     const [internalQuery, setInternalQuery] = useState('');
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -248,7 +252,7 @@ const SmartCombobox = ({
         return (
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[11px] font-bold border ${colorClass}`}>
                 {icon}
-                {label}: {formatCurrency(Math.abs(balance))}
+                {label}: {formatCurrency(Math.abs(balance), store || settings)}
             </span>
         );
     };
@@ -325,7 +329,7 @@ const SmartCombobox = ({
 
         return (
             <span className="text-[10px] text-slate-400">
-                Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin)}</span>
+                Margin: <span className="text-emerald-500 font-bold">{formatCurrency(margin, store || settings)}</span>
                 <span className="text-slate-300 ml-1">({marginPercent}%)</span>
             </span>
         );
@@ -375,11 +379,11 @@ const SmartCombobox = ({
     const isProduct = (item) => item.stock_quantity !== undefined || item.sku || item.price !== undefined;
 
     return (
-        <div className={`relative ${className}`} ref={wrapperRef}>
+        <div id={id} className={`relative ${className}`} ref={wrapperRef}>
             {label && <label className="text-xs text-slate-500 font-bold uppercase block mb-1">{label}</label>}
 
             <div className={`relative flex items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                {!hideSearchIcon && <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />}
                 <input
                     ref={inputRef}
                     type="text"
@@ -397,7 +401,7 @@ const SmartCombobox = ({
                     disabled={disabled}
                     readOnly={readOnly}
                     className={`
-                        w-full pl-11 pr-4 py-3 
+                        w-full ${hideSearchIcon ? 'pl-4' : 'pl-11'} pr-4 py-3 
                         bg-white dark:bg-slate-800 
                         border border-slate-200 dark:border-slate-700 
                         rounded-xl 
@@ -426,7 +430,7 @@ const SmartCombobox = ({
 
             {/* Dropdown */}
             {isOpen && (
-                <div className="absolute top-full left-0 min-w-full w-max max-w-[350px] mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100">
+                <div className="absolute top-full left-0 min-w-full w-max max-w-[350px] mt-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 rounded-2xl shadow-2xl z-[120] animate-in fade-in zoom-in-95 duration-100">
 
                     {/* Results Count Header */}
                     {filteredItems.length > 0 && (
@@ -521,7 +525,7 @@ const SmartCombobox = ({
                                             )}
                                             {item.price !== undefined && (
                                                 <span className="font-black text-lg text-emerald-600 dark:text-emerald-400 ml-auto shrink-0">
-                                                    {formatCurrency(item.price)}
+                                                    {formatCurrency(item.price, store || settings)}
                                                 </span>
                                             )}
                                         </div>
@@ -578,7 +582,7 @@ const SmartCombobox = ({
                                             <div className="flex items-center gap-3">
                                                 {item.cost !== undefined && (
                                                     <span className="text-[11px] text-slate-400">
-                                                        Cost: <span className="text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(item.cost)}</span>
+                                                        Cost: <span className="text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(item.cost, store || settings)}</span>
                                                     </span>
                                                 )}
                                                 {getProfitMargin(item)}
@@ -619,6 +623,7 @@ const SmartCombobox = ({
                     {onAddNew && (
                         <div className="border-t-2 border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-indigo-50 dark:from-slate-800/80 dark:to-indigo-900/20">
                             <button
+                                id="tour-add-new-party-btn"
                                 onClick={() => {
                                     onAddNew(query);
                                     setIsOpen(false);

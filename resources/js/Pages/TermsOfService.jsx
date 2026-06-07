@@ -78,7 +78,7 @@ export default function TermsOfService() {
                     <p>Paid subscriptions are billed monthly or annually through Lemon Squeezy. By subscribing, you authorize recurring charges to your payment method.</p>
                     <p>All prices are in USD unless otherwise stated. Taxes may apply depending on your jurisdiction.</p>
                     <p>You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period. We do not provide prorated refunds for partial billing periods, except as required by applicable law.</p>
-                    <p><strong className="text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month hosting fee, or you may self-host at no cost.</p>
+                    <p><strong className="text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p>
                 </Section>
 
                 <Section title="5. Free Trial">

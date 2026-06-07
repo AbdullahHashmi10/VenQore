@@ -17,9 +17,19 @@
      protected bool $dryRun = false;
      protected array $overrides = [];
      protected array $ignoredRows = [];
+     protected int|string $tenantId;
+     protected int|string $userId;
  
-     public function __construct(array $mapping = [], bool $dryRun = false, array $overrides = [], array $ignoredRows = [])
-     {
+     public function __construct(
+         int|string $tenantId,
+         int|string $userId,
+         array $mapping = [], 
+         bool $dryRun = false, 
+         array $overrides = [], 
+         array $ignoredRows = []
+     ) {
+         $this->tenantId = $tenantId;
+         $this->userId = $userId;
          $this->mapping = $mapping;
          $this->dryRun = $dryRun;
          $this->overrides = $overrides;
@@ -29,13 +39,23 @@
      public function sheets(): array
      {
          return [
-             0 => new SalesDataSheetImport($this->mapping, $this, $this->dryRun, $this->overrides, $this->ignoredRows)
+             0 => new SalesDataSheetImport(
+                 $this->tenantId,
+                 $this->userId,
+                 $this->mapping, 
+                 $this, 
+                 $this->dryRun, 
+                 $this->overrides, 
+                 $this->ignoredRows
+             )
          ];
      }
  }
  
  class SalesDataSheetImport implements OnEachRow
  {
+     protected int|string $tenantId;
+     protected int|string $userId;
      protected array $mapping;
      protected ?SalesImport $parent;
      protected bool $dryRun = false;
@@ -44,8 +64,17 @@
      protected array $seenInvoices = []; // invoice => row
      protected array $seenData = [];
  
-     public function __construct(array $mapping = [], ?SalesImport $parent = null, bool $dryRun = false, array $overrides = [], array $ignoredRows = [])
-     {
+     public function __construct(
+         int|string $tenantId,
+         int|string $userId,
+         array $mapping = [], 
+         ?SalesImport $parent = null, 
+         bool $dryRun = false, 
+         array $overrides = [], 
+         array $ignoredRows = []
+     ) {
+         $this->tenantId = $tenantId;
+         $this->userId = $userId;
          $this->parent = $parent;
          $this->dryRun = $dryRun;
          $this->overrides = $overrides;
@@ -72,7 +101,7 @@
      {
          $index = $row->getIndex();
          // Skip template header/instructional rows (Title, Headers, Guide, Separator, Example)
-         if ($index <= 5) return;
+         if ($index <= 3) return;
          if (in_array($index, $this->ignoredRows)) return;
  
          $numericArray = $row->toArray();
@@ -115,7 +144,9 @@
  
          $dbData = null;
          if (!$existing) {
-             $dbSale = \App\Models\Sale::where('reference_number', $invoice)->first();
+             $dbSale = \App\Models\Sale::where('tenant_id', $this->tenantId)
+                 ->where('reference_number', $invoice)
+                 ->first();
              if ($dbSale) {
                  $existing = true;
                  $reason = "Invoice #$invoice already exists in database (Sale ID: $dbSale->id)";
@@ -155,13 +186,14 @@
          $customerId = null;
          if (!empty($data['customer_phone'])) {
              $customer = \App\Models\Customer::firstOrCreate(
-                 ['phone' => preg_replace('/[^0-9]/', '', $data['customer_phone'])],
-                 ['name' => $data['customer_name'] ?? 'Unknown Customer']
+                 ['phone' => preg_replace('/[^0-9]/', '', $data['customer_phone']), 'tenant_id' => $this->tenantId],
+                 ['name' => $data['customer_name'] ?? 'Unknown Customer', 'tenant_id' => $this->tenantId]
              );
              $customerId = $customer->id;
          } elseif (!empty($data['customer_name'])) {
              $customer = \App\Models\Customer::firstOrCreate(
-                 ['name' => $data['customer_name']]
+                 ['name' => $data['customer_name'], 'tenant_id' => $this->tenantId],
+                 ['tenant_id' => $this->tenantId]
              );
              $customerId = $customer->id;
          }
@@ -169,10 +201,14 @@
          // Handle Product
          $product = null;
          if (!empty($data['product_sku'])) {
-             $product = \App\Models\Product::where('sku', $data['product_sku'])->first();
+             $product = \App\Models\Product::where('tenant_id', $this->tenantId)
+                 ->where('sku', $data['product_sku'])
+                 ->first();
          }
          if (!$product && !empty($data['product_name'])) {
-             $product = \App\Models\Product::where('name', $data['product_name'])->first();
+             $product = \App\Models\Product::where('tenant_id', $this->tenantId)
+                 ->where('name', $data['product_name'])
+                 ->first();
          }
  
          $qty = abs((float)($data['quantity'] ?? 1));
@@ -181,10 +217,11 @@
  
          // Generate or find Sale
          $sale = \App\Models\Sale::firstOrCreate(
-             ['reference_number' => $invoice],
+             ['reference_number' => $invoice, 'tenant_id' => $this->tenantId],
              [
                  'customer_id' => $customerId,
-                 'user_id' => \Illuminate\Support\Facades\Auth::id() ?? (\App\Models\User::value('id') ?? 1),
+                 'user_id' => $this->userId,
+                 'tenant_id' => $this->tenantId,
                  'subtotal' => 0,
                  'tax' => 0,
                  'discount' => 0,
@@ -206,6 +243,7 @@
          // Add Sale Item if a product exists (or pseudo product)
          if ($product) {
              \App\Models\SaleItem::create([
+                 'tenant_id' => $this->tenantId,
                  'sale_id' => $sale->id,
                  'product_id' => $product->id,
                  'quantity' => $qty,

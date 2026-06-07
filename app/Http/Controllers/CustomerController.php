@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Models\Party;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -10,17 +11,20 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Customer::query();
+        $tenantId = app('current.tenant')->id;
+        $query = Customer::query()->where('tenant_id', $tenantId);
 
         if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('phone', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('phone', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
         }
 
         $customers = $query->latest()->paginate(10)->withQueryString();
 
-        // Return JSON for AJAX requests (but not Inertia requests)
         if (!$request->header('X-Inertia') && ($request->wantsJson() || $request->ajax())) {
             return response()->json($customers);
         }
@@ -40,12 +44,16 @@ class CustomerController extends Controller
 
     public function search(Request $request)
     {
-        $query = Customer::query();
+        $tenantId = app('current.tenant')->id;
+        $query = Customer::query()->where('tenant_id', $tenantId);
 
         if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%')
-                ->orWhere('phone', 'like', '%' . $request->search . '%')
-                ->orWhere('email', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', '%' . $search . '%')
+                  ->orWhere('phone', 'like', '%' . $search . '%')
+                  ->orWhere('email', 'like', '%' . $search . '%');
+            });
         }
 
         $customers = $query->limit(10)->get();
@@ -55,6 +63,8 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -62,23 +72,35 @@ class CustomerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        $customer = Customer::create($request->all());
+        $data = $request->all();
+        $data['tenant_id'] = $tenantId;
 
-        // ALSO create a Party record so customer appears in Parties list and can be used in sales
-        \App\Models\Party::create([
-            'name' => $customer->name,
+        $party = Party::create([
+            'tenant_id' => $tenantId,
+            'name' => $data['name'],
             'type' => 'customer',
-            'email' => $customer->email,
-            'phone' => $customer->phone,
-            'address' => $customer->address,
+            'email' => $data['email'] ?? null,
+            'phone' => $data['phone'] ?? null,
+            'address' => $data['address'] ?? null,
             'current_balance' => 0,
         ]);
+        
+        $data['party_id'] = $party->id;
+
+        $customer = Customer::create($data);
 
         return redirect()->back()->with('success', 'Customer created successfully.');
     }
 
     public function update(Request $request, Customer $customer)
     {
+        $tenantId = app('current.tenant')->id;
+
+        // Extra isolation check
+        if ($customer->tenant_id !== $tenantId) {
+            abort(403, 'Unauthorized access to customer data.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|max:255',
@@ -86,17 +108,20 @@ class CustomerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        // Find the linked party before updating the customer
-        // We look for a party with the OLD name and type 'customer'
-        // Ideally we should have a party_id, but we fallback to name matching for now
-        $party = \App\Models\Party::where('name', $customer->name)
-            ->where('type', 'customer')
-            ->first();
-
-        // Update the customer record
         $customer->update($validated);
 
-        // Sync the Party record if found
+        if ($customer->party_id) {
+            $party = Party::where('tenant_id', $tenantId)
+                ->where('id', $customer->party_id)
+                ->first();
+        } else {
+            // Legacy fallback if party_id is missing from older records
+            $party = Party::where('tenant_id', $tenantId)
+                ->where('name', $customer->name)
+                ->where('type', 'customer')
+                ->first();
+        }
+
         if ($party) {
             $party->update([
                 'name' => $validated['name'],
@@ -104,6 +129,11 @@ class CustomerController extends Controller
                 'phone' => $validated['phone'] ?? $party->phone,
                 'address' => $validated['address'] ?? $party->address,
             ]);
+            
+            // Retroactively link it if it wasn't
+            if (!$customer->party_id) {
+                $customer->update(['party_id' => $party->id]);
+            }
         }
 
         return redirect()->back()->with('success', 'Customer updated successfully.');
@@ -111,10 +141,22 @@ class CustomerController extends Controller
 
     public function destroy(Customer $customer)
     {
-        // Find linked party before deletion
-        $party = \App\Models\Party::where('name', $customer->name)
-            ->where('type', 'customer')
-            ->first();
+        $tenantId = app('current.tenant')->id;
+
+        if ($customer->tenant_id !== $tenantId) {
+            abort(403);
+        }
+
+        if ($customer->party_id) {
+            $party = Party::where('tenant_id', $tenantId)
+                ->where('id', $customer->party_id)
+                ->first();
+        } else {
+            $party = Party::where('tenant_id', $tenantId)
+                ->where('name', $customer->name)
+                ->where('type', 'customer')
+                ->first();
+        }
 
         if ($party) {
             $party->delete();

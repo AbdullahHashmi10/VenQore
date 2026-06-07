@@ -33,7 +33,7 @@ export default function Migration() {
         const formData = new FormData();
         formData.append('file', file);
 
-        axios.post(route('admin.migration.analyze'), formData, {
+        axios.post(route('store.legacy.admin.migration.analyze', { store_slug: store.slug }), formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
             .then(res => {
@@ -55,7 +55,7 @@ export default function Migration() {
         if (!analysis) return;
         setStep('importing');
 
-        axios.post(route('admin.migration.execute'), {
+        axios.post(route('store.legacy.admin.migration.execute', { store_slug: store.slug }), {
             path: analysis.path,
         })
             .then(res => {

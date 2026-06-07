@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 class UomService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct() {
         $this->tenantId = app('current.tenant')->id;

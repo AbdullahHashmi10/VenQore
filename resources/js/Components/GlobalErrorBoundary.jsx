@@ -14,10 +14,30 @@ class GlobalErrorBoundary extends React.Component {
     }
 
     componentDidCatch(error, errorInfo) {
-        // You can also log the error to an error reporting service
         console.error("Uncaught error:", error, errorInfo);
         this.setState({ errorInfo });
+
+        // Report to server
+        try {
+            fetch('/api/report-error', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content'),
+                },
+                body: JSON.stringify({
+                    message: error.message || error.toString(),
+                    url: window.location.href,
+                    stack_trace: errorInfo.componentStack,
+                    file: null,
+                    line: null,
+                }),
+            });
+        } catch (e) {
+            console.warn("Failed to report error to server:", e);
+        }
     }
+
 
     handleReload = () => {
         window.location.reload();

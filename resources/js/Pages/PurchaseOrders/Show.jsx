@@ -5,6 +5,7 @@ import PremiumButton from '@/Components/PremiumButton';
 import { ShoppingCart, ArrowLeft, CheckCircle, Printer, Calendar, MapPin, Truck } from 'lucide-react';
 
 export default function PurchaseOrdersShow({ order }) {
+    const { store } = usePage().props;
     const handleReceive = () => {
         if (confirm('Are you sure you want to mark this order as RECEIVED? This will update your inventory stock levels.')) {
             router.post(route('store.purchase-orders.receive', order.id));

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\Party;
-use App\Services\V3\FifoService as V3Fifo;
 use App\Services\V3\AccountingService as AccountingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -12,6 +11,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 
 class PurchaseController extends Controller
 {
@@ -114,6 +114,8 @@ class PurchaseController extends Controller
                     'balance' => $balance,
                     'payment_status' => $paymentStatus,
                     'status' => $purchase->status ?? 'pending',
+                    'is_jit' => $purchase->is_jit,
+                    'approval_status' => $purchase->approval_status,
                 ];
             });
 
@@ -327,12 +329,12 @@ class PurchaseController extends Controller
                         // Increment Stock
                         $product->increment('stock_quantity', $item['quantity']);
 
-                        // Moving Average Calculation (still used for products.cost_price reference field)
-                        $oldVal   = $currentStock * $formattedCurrentCost;
-                        $newVal   = $item['quantity'] * $effectiveCost;
-                        $totalQty = $currentStock + $item['quantity'];
-                        $newAvg   = ($totalQty > 0) ? ($oldVal + $newVal) / $totalQty : $effectiveCost;
-                        $product->update(['cost_price' => $newAvg]);
+                        // Moving Average Calculation (Removed as per new specs: products.cost_price should not be overwritten by purchases, FIFO batches store the actual costs)
+                        // $oldVal   = $currentStock * $formattedCurrentCost;
+                        // $newVal   = $item['quantity'] * $effectiveCost;
+                        // $totalQty = $currentStock + $item['quantity'];
+                        // $newAvg   = ($totalQty > 0) ? ($oldVal + $newVal) / $totalQty : $effectiveCost;
+                        // $product->update(['cost_price' => $newAvg]);
 
                         // Get default warehouse
                         $defaultWarehouse = \App\Models\Warehouse::first();
@@ -391,6 +393,14 @@ class PurchaseController extends Controller
 
             return $invoice->id;
         });
+
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            if ($tenant->onboarding_step === 'purchase_tour') {
+                $tenant->onboarding_step = 'purchase_congratulations';
+                $tenant->save();
+            }
+        }
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -665,74 +675,127 @@ class PurchaseController extends Controller
             'notes'                   => 'nullable|string',
         ]);
 
-        DB::transaction(function () use ($purchase, $validated) {
-            $defaultWarehouse = \App\Models\Warehouse::first();
-            $warehouseId      = $defaultWarehouse?->id;
-            // [V3 SWAP DAY 3] V1 FifoService replaced with V3.
-            $fifo             = app(V3Fifo::class);
+        $lock = Cache::lock("purchase_receive_lock_{$purchase->id}", 10);
+        try {
+            $lock->block(5);
+            $purchase->refresh();
 
-            foreach ($validated['items'] as $itemData) {
-                $item    = $purchase->items->find($itemData['item_id']);
-                $recvQty = (float) $itemData['receiving_qty'];
-
-                if (!$item || $recvQty <= 0) continue;
-
-                $item->received_qty = ($item->received_qty ?? 0) + $recvQty;
-                $item->save();
-
-                $product = \App\Models\Product::find($item->product_id);
-                if (!$product) continue;
-
-                $invoiceUnitCost = (float) $item->unit_price;
-
-                // V3 FIFO batch creation (V1 replaced)
-                $fifo->receiveBatch(
-                    productId:   $item->product_id,
-                    warehouseId: $warehouseId,
-                    qty:         $recvQty,
-                    unitCost:    $invoiceUnitCost,
-                    purchaseId:  $purchase->id
-                );
-
-                if ($item->product_variant_id) {
-                    $variant = \App\Models\ProductVariant::find($item->product_variant_id);
-                    if ($variant) $variant->increment('stock', $recvQty);
-                }
-
-                $stock = \App\Models\Stock::firstOrCreate(
-                    ['product_id' => $item->product_id, 'warehouse_id' => $warehouseId],
-                    ['quantity'   => 0]
-                );
-                $stock->increment('quantity', $recvQty);
-                $product->increment('stock_quantity', $recvQty);
-
-                \App\Models\StockMovement::create([
-                    'product_id'   => $item->product_id,
-                    'warehouse_id' => $warehouseId,
-                    'type'         => 'purchase',
-                    'quantity'     => $recvQty,
-                    'reference_id' => $purchase->invoice_number,
-                    'description'  => 'Goods received (partial/receive flow)',
-                    'user_id'      => auth()->id(),
-                ]);
+            if ($purchase->status === 'received') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This purchase has already been fully received.'
+                ], 422);
             }
 
-            $purchase->refresh();
-            $allReceived = $purchase->items->every(fn($i) => $i->received_qty >= $i->quantity);
-            $anyReceived = $purchase->items->some(fn($i) => ($i->received_qty ?? 0) > 0);
-            $purchase->status = $allReceived ? 'received' : ($anyReceived ? 'partial' : $purchase->status);
-            $purchase->save();
-        });
+            // Guard: prevent over-receiving / double-receiving per item
+            foreach ($validated['items'] as $itemData) {
+                $item = $purchase->items->find($itemData['item_id']);
+                if (!$item) continue;
+                $recvQty = (float) $itemData['receiving_qty'];
+                if ($recvQty <= 0) continue;
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Goods received successfully. Inventory batches created.',
-        ]);
+                $remaining = $item->quantity - ($item->received_qty ?? 0);
+                if ($recvQty > $remaining) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Cannot receive more than the remaining ordered quantity.'
+                    ], 422);
+                }
+            }
+
+            DB::transaction(function () use ($purchase, $validated) {
+                $defaultWarehouse = \App\Models\Warehouse::first();
+                $warehouseId      = $defaultWarehouse?->id;
+                // [V3 SWAP DAY 3] V1 FifoService replaced with V3.
+                $fifo             = app(\App\Services\V3\FifoService::class);
+
+                foreach ($validated['items'] as $itemData) {
+                    $item    = $purchase->items->find($itemData['item_id']);
+                    $recvQty = (float) $itemData['receiving_qty'];
+
+                    if (!$item || $recvQty <= 0) continue;
+
+                    $item->received_qty = ($item->received_qty ?? 0) + $recvQty;
+                    $item->save();
+
+                    $product = \App\Models\Product::find($item->product_id);
+                    if (!$product) continue;
+
+                    $invoiceUnitCost = (float) $item->unit_price;
+
+                    // V3 FIFO batch creation (V1 replaced)
+                    $fifo->receiveBatch(
+                        productId:   $item->product_id,
+                        warehouseId: $warehouseId,
+                        qty:         $recvQty,
+                        unitCost:    $invoiceUnitCost,
+                        purchaseId:  $purchase->id
+                    );
+
+                    if ($item->product_variant_id) {
+                        $variant = \App\Models\ProductVariant::find($item->product_variant_id);
+                        if ($variant) $variant->increment('stock', $recvQty);
+                    }
+
+                    $stock = \App\Models\Stock::firstOrCreate(
+                        ['product_id' => $item->product_id, 'warehouse_id' => $warehouseId],
+                        ['quantity'   => 0]
+                    );
+                    $stock->increment('quantity', $recvQty);
+                    $product->increment('stock_quantity', $recvQty);
+
+                    \App\Models\StockMovement::create([
+                        'product_id'   => $item->product_id,
+                        'warehouse_id' => $warehouseId,
+                        'type'         => 'purchase',
+                        'quantity'     => $recvQty,
+                        'reference_id' => $purchase->invoice_number,
+                        'description'  => 'Goods received (partial/receive flow)',
+                        'user_id'      => auth()->id(),
+                    ]);
+                }
+
+                $purchase->refresh();
+                $allReceived = $purchase->items->every(fn($i) => $i->received_qty >= $i->quantity);
+                $anyReceived = $purchase->items->some(fn($i) => ($i->received_qty ?? 0) > 0);
+                $purchase->status = $allReceived ? 'received' : ($anyReceived ? 'partial' : $purchase->status);
+                $purchase->save();
+            });
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Goods received successfully. Inventory batches created.',
+            ]);
+        } catch (\Illuminate\Contracts\Cache\LockTimeoutException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Another process is currently processing this receipt.'
+            ], 422);
+        } finally {
+            optional($lock)->release();
+        }
     }
 
 
     public function destroy($id)
     {
+        // ── Authorization: Only Owner / Admin may delete a purchase ──────────
+        // Deleting a purchase reverses journal entries and voids FIFO batches —
+        // this is an irreversible financial action. Managers and below are
+        // barred even though they hold the 'purchases' permission for day-to-day
+        // purchase operations (create, view, edit, receive).
+        $user = auth()->user();
+        $tenantRole = $user?->role; // Resolves from current.membership via getRoleAttribute()
+
+        if (!$user || (!in_array($tenantRole, ['owner', 'admin']) && !$user->isPlatformAdmin())) {
+            Log::warning('Purchase Destroy Unauthorized', [
+                'user_id'     => auth()->id(),
+                'tenant_role' => $tenantRole,
+                'purchase_id' => $id,
+            ]);
+            abort(403, 'Unauthorized action. Only Owners and Admins can delete purchases.');
+        }
+
         DB::transaction(function () use ($id) {
             $purchase = Invoice::with('items')->findOrFail($id);
 
@@ -763,7 +826,7 @@ class PurchaseController extends Controller
             }
 
             // 2. Void FIFO inventory batches
-            $fifo = app(V3Fifo::class);
+            $fifo = app(\App\Services\V3\FifoService::class);
             $voidResult = $fifo->voidPurchaseBatches($purchase->id);
             if (!empty($voidResult['warnings'])) {
                 Log::warning(

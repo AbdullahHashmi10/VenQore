@@ -1,0 +1,357 @@
+resources/js/Components/AiAssistantModal.jsx:80:const res = await window.axios.get(route('ai.query'), { params: { query: q } });
+resources/js/Components/AiSettingsSection.jsx:15:// const res = await axios.post(route('ai.test'), { ... });
+resources/js/Components/AsyncProductCombobox.jsx:48:axios.get(route('inventory.search'), { params: { query: debouncedQuery } })
+resources/js/Components/CharityButton.jsx:22:const response = await axios.get(route('charity.stats'));
+resources/js/Components/CharityButton.jsx:35:const response = await axios.post(route('charity.add'), {
+resources/js/Components/CharityButton.jsx:66:await axios.post(route('charity.update-default'), {
+resources/js/Components/DangerSettingsSection.jsx:132:const response = await axios.post(url, { password }, { timeout: 120000 });
+resources/js/Components/OmniSearch.jsx:101:window.axios.get(route('global.search'), { params: { query } })
+resources/js/Components/ProductModal.jsx:104:const res = await axios.get(route('inventory.reservations', product.id));
+resources/js/Components/ProductModal.jsx:160:const response = await axios.get(route('inventory.stats', product.id), {
+resources/js/Components/ProductModal.jsx:33:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Components/ProductModal.jsx:509:const res = await axios.get(route('inventory.history', product.id));
+resources/js/Components/ProductModal.jsx:526:res = await axios.get(route('sales.show', item.transaction_id), { headers: { 'X-Inertia': true, 'Accept': 'application/json' } });
+resources/js/Components/ProductModal.jsx:529:res = await axios.get(route('purchases.show', item.transaction_id), { headers: { 'X-Inertia': true, 'Accept': 'application/json' } });
+resources/js/Components/QuickPartyModal.jsx:71:response = await axios.put(url, formData);
+resources/js/Components/QuickPartyModal.jsx:75:response = await axios.post(url, formData);
+resources/js/Components/SystemSettingsSection.jsx:203:const res = await axios.get('/admin-panel/backups/progress');
+resources/js/Components/SystemSettingsSection.jsx:223:const response = await axios.post(url, formData, {
+resources/js/Components/SystemSettingsSection.jsx:64:const response = await axios.post('/admin-panel/backups', {}, {
+resources/js/Components/TodaysOpportunities.jsx:28:const response = await axios.get(route('growth-engine.dashboard'));
+resources/js/Components/TodaysOpportunities.jsx:48:await axios.post(route('growth-engine.dismiss', id));
+resources/js/Components/TodaysOpportunities.jsx:57:const response = await axios.get(route('growth-engine.whatsapp', id));
+resources/js/Components/VersionChecker.jsx:28:const response = await axios.get('/api/app-version');
+resources/js/Contexts/AttendanceContext.jsx:59:const response = await axios.post(route('attendance.check-in'));
+resources/js/Contexts/AttendanceContext.jsx:72:await axios.post(route('attendance.heartbeat'));
+resources/js/Contexts/AttendanceContext.jsx:80:await axios.post(route('attendance.log-gap'), {
+resources/js/Hooks/useOfflineSync.js:29:await axios.post(route('sales.store'), sale.data);
+resources/js/Hooks/useTransactionEngine.js:115:router.get(route(endpoint), params, {
+resources/js/Layouts/OneGlanceLayout.jsx:838:router.post(route('settings.update'), {
+resources/js/Layouts/OneGlanceLayout.jsx:878:onClick={() => router.post(route('notifications.mark-all-read'))}
+resources/js/Pages/Accounting/BalanceSheet.jsx:100:onBlur={() => router.get(route('accounting.balance-sheet'), { date: dateInput }, { preserveScroll: true })}
+resources/js/Pages/Accounting/BalanceSheet.jsx:101:onKeyDown={(e) => e.key === 'Enter' && router.get(route('accounting.balance-sheet'), { date: dateInput }, { preserveScroll: true })}
+resources/js/Pages/Admin/DataManagement.jsx:31:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/Admin/DataMapping.jsx:45:router.post(route('admin.data.process-import'), {
+resources/js/Pages/Admin/Database.jsx:33:router.post(route('backups.store'), {}, {
+resources/js/Pages/Admin/Database.jsx:43:router.delete(route('backups.delete', filename), {
+resources/js/Pages/Admin/Database.jsx:59:router.post(route('backups.email', filename), { email }, {
+resources/js/Pages/Admin/Migration.jsx:32:axios.post(route('admin.migration.analyze'), formData, {
+resources/js/Pages/Admin/Migration.jsx:54:axios.post(route('admin.migration.execute'), {
+resources/js/Pages/Admin/Settings.jsx:111:const { data, setData, post, processing } = useForm({
+resources/js/Pages/Admin/Settings.jsx:93:const res = await window.axios.post(route('ai.test'), {
+resources/js/Pages/Admin/Users.jsx:137:const { data, setData, post, put, processing, errors, reset } = useForm({
+resources/js/Pages/Admin/Users.jsx:195:router.delete(route('admin.users.destroy', userToDelete.id), {
+resources/js/Pages/Auth/ConfirmPassword.jsx:9:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/Auth/ForgotPassword.jsx:9:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/Auth/Login.jsx:11:const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+resources/js/Pages/Auth/Register.jsx:8:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/Auth/ResetPassword.jsx:9:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/Auth/VerifyEmail.jsx:6:const { post, processing } = useForm({});
+resources/js/Pages/BankAccounts/BankAccountsList.jsx:100:await axios.put(route('bank-accounts.update', editingAccount.id), formData);
+resources/js/Pages/BankAccounts/BankAccountsList.jsx:102:await axios.post(route('bank-accounts.store'), formData);
+resources/js/Pages/BankAccounts/BankAccountsList.jsx:85:await axios.delete(route('bank-accounts.destroy', account.id));
+resources/js/Pages/BankAccounts/Transactions.jsx:32:const res = await axios.get(nextPageUrl, { headers: { Accept: 'application/json' } });
+resources/js/Pages/BatchTracking/BatchTracking.jsx:27:router.get(route('batches.index'), { search: searchTerm }, { preserveState: true });
+resources/js/Pages/Cookbook/Create.jsx:78:const { data, setData, post, put, processing, errors } = useForm({
+resources/js/Pages/Cookbook/Create.jsx:826:axios.post(route('inventory.store'), formData, {
+resources/js/Pages/Cookbook/RecipesList.jsx:22:router.delete(route('cookbook.destroy', id));
+resources/js/Pages/Cookbook/RecipesList.jsx:36:const { data } = await axios.post(route('cookbook.simulate'), {
+resources/js/Pages/DebitNotes/Create.jsx:127:axios.get(route('api.categories')),
+resources/js/Pages/DebitNotes/Create.jsx:128:axios.get(route('api.warehouses')),
+resources/js/Pages/DebitNotes/Create.jsx:129:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/DebitNotes/Create.jsx:130:axios.get(route('api.bank-accounts'))
+resources/js/Pages/DebitNotes/Create.jsx:197:const response = await axios.post(url, data);
+resources/js/Pages/DebitNotes/Create.jsx:311:const response = await axios.get(route('suppliers.search'), { params: { search: '' } });
+resources/js/Pages/DebitNotes/Create.jsx:324:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/DebitNotes/Create.jsx:362:const response = await axios.get(route('suppliers.search'), { params: { search: customerSearch } });
+resources/js/Pages/DebitNotes/Create.jsx:378:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/DebitNotes/Create.jsx:438:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/DebitNotes/Create.jsx:549:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/DebitNotes/Create.jsx:812:response = await axios.put(route('debit-notes.update', currentInvoice.id), payload);
+resources/js/Pages/DebitNotes/Create.jsx:814:response = await axios.post(route('debit-notes.store'), payload);
+resources/js/Pages/DebitNotes/DebitNotes.jsx:150:router.get(route('debit-notes.index'), {
+resources/js/Pages/DebitNotes/DebitNotes.jsx:59:const response = await axios.get(nextPageUrl, {
+resources/js/Pages/Expenses/ExpensesList.jsx:197:router.get(route('expenses.index'), {
+resources/js/Pages/Expenses/ExpensesList.jsx:268:await axios.delete(route('expenses.destroy', id));
+resources/js/Pages/Expenses/ExpensesList.jsx:281:const res = await axios.post('/expenses/category', { name: nameToUse });
+resources/js/Pages/Expenses/ExpensesList.jsx:322:await axios.post(route('expenses.update', editingExpense.id), data, {
+resources/js/Pages/Expenses/ExpensesList.jsx:326:await axios.post(route('expenses.store'), data, {
+resources/js/Pages/Expenses/ExpensesList.jsx:52:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Funds/FundManagement.jsx:247:router.post(route(`funds.${action}`), formData, {
+resources/js/Pages/ImportExport/DataManager.jsx:8:const { data, setData, post, progress, processing, errors, reset } = useForm({
+resources/js/Pages/Installer/Index.jsx:1231:await axios.post('/api/installer/run', { step: 'finalize', data: { auto_nuke: true } });
+resources/js/Pages/Installer/Index.jsx:253:const response = await axios.get('/api/installer/requirements');
+resources/js/Pages/Installer/Index.jsx:343:response = await axios.post('/api/installer/run', formData);
+resources/js/Pages/Installer/Index.jsx:387:const res = await axios.post('/api/installer/check-license', { code: licenseKey });
+resources/js/Pages/Installer/Index.jsx:450:await axios.post('/api/installer/run', payload);
+resources/js/Pages/Installer/Index.jsx:452:await axios.post('/api/installer/run', { step: stepName, data: payload });
+resources/js/Pages/Installer/Index.jsx:468:await axios.post('/api/installer/run', payload);
+resources/js/Pages/Installer/Index.jsx:470:await axios.post('/api/installer/run', { step: stepName, data: payload });
+resources/js/Pages/Installer/Index.jsx:542:await axios.post('/api/installer/run', formData);
+resources/js/Pages/Installer/Index.jsx:617:const res = await axios.post('/api/installer/test-db', dbConfig);
+resources/js/Pages/Installer/Index.jsx:637:await axios.post('/api/installer/run', { step: 'create_admin', data: admin });
+resources/js/Pages/Installer/Index.jsx:640:await axios.post('/api/installer/run', { step: 'finalize' });
+resources/js/Pages/Inventory/Attributes/AttributesList.jsx:13:const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
+resources/js/Pages/Inventory/Categories.jsx:122:router.get(route('categories.index'), {
+resources/js/Pages/Inventory/Categories.jsx:175:await axios.delete(route('categories.destroy', category.id));
+resources/js/Pages/Inventory/Categories.jsx:191:await axios.put(route('categories.update', editingCategory.id), formData);
+resources/js/Pages/Inventory/Categories.jsx:193:await axios.post(route('categories.store'), formData);
+resources/js/Pages/Inventory/Categories.jsx:52:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Inventory/InventoryList.jsx:137:router.get(route('inventory.index'), {
+resources/js/Pages/Inventory/InventoryList.jsx:216:router.delete(route('inventory.destroy', pendingDeleteId), {
+resources/js/Pages/Inventory/InventoryList.jsx:225:router.post(route('inventory.bulk-destroy'), { ids: selectedProducts }, {
+resources/js/Pages/Inventory/InventoryList.jsx:52:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Inventory/Production/Create.jsx:53:await axios.post(route('production.store'), formData);
+resources/js/Pages/Inventory/Production/ProductionRuns.jsx:102:router.get(route('production.index'), {
+resources/js/Pages/Inventory/Production/ProductionRuns.jsx:50:const response = await axios.get(nextPageUrl, {
+resources/js/Pages/Inventory/Variants/VariantsList.jsx:10:const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
+resources/js/Pages/Manufacturing/Rules.jsx:102:await axios.patch(`/api/manufacturing-rules/${ruleId}`, { is_active: !currentStatus });
+resources/js/Pages/Manufacturing/Rules.jsx:114:await axios.delete(`/api/manufacturing-rules/${ruleId}`);
+resources/js/Pages/Manufacturing/Rules.jsx:33:const response = await axios.get('/api/manufacturing-rules');
+resources/js/Pages/Manufacturing/Rules.jsx:42:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/Manufacturing/Rules.jsx:88:await axios.post('/api/manufacturing-rules', payload);
+resources/js/Pages/Notifications/NotificationCenter.jsx:16:router.post(route('notifications.mark-all-read'));
+resources/js/Pages/Notifications/NotificationCenter.jsx:20:router.post(route('notifications.mark-read', id));
+resources/js/Pages/Notifications/NotificationCenter.jsx:24:router.delete(route('notifications.destroy', id));
+resources/js/Pages/Parties/PartiesList.jsx:140:router.get(route('parties.index'), {
+resources/js/Pages/Parties/PartiesList.jsx:156:router.get(route('parties.index'), {
+resources/js/Pages/Parties/PartiesList.jsx:226:await axios.delete(route('parties.destroy', party.id));
+resources/js/Pages/Parties/PartiesList.jsx:241:await axios.put(route('parties.update', editingParty.id), formData);
+resources/js/Pages/Parties/PartiesList.jsx:243:await axios.post(route('parties.store'), formData);
+resources/js/Pages/Parties/PartiesList.jsx:74:const response = await axios.get(nextPageUrl, {
+resources/js/Pages/Payments/In.jsx:56:await axios.post(route('payments.store'), {
+resources/js/Pages/Payments/Out.jsx:56:await axios.post(route('payments.store'), {
+resources/js/Pages/Payments/PaymentsList.jsx:121:router.get(route('payments.index'), {
+resources/js/Pages/Payments/PaymentsList.jsx:53:const response = await axios.get(nextPageUrl, {
+resources/js/Pages/Pos.jsx:1041:const response = await axios.get(route('sales.parked'));
+resources/js/Pages/Pos.jsx:1058:const response = await axios.post(route('sales.park'), {
+resources/js/Pages/Pos.jsx:1084:const response = await axios.get(route('sales.recall', parkedSaleId));
+resources/js/Pages/Pos.jsx:1123:await axios.delete(route('sales.parked.delete', parkedSaleId));
+resources/js/Pages/Pos.jsx:1136:const response = await axios.get(route('api.categories'));
+resources/js/Pages/Pos.jsx:1148:const response = await axios.get(route('inventory.search'), {
+resources/js/Pages/Pos.jsx:323:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Pos.jsx:438:const response = await axios.get(route('inventory.search'), { params: { query: val } });
+resources/js/Pages/Pos.jsx:622:const response = await axios.post(route('sales.store'), payload);
+resources/js/Pages/Pos.jsx:714:const response = await axios.get(route('customers.index'), {
+resources/js/Pages/Pos.jsx:749:const response = await axios.get(route('customers.index'), { params: { search: '' } });
+resources/js/Pages/Profile/Edit.jsx:133:router.post(route('settings.update'), {
+resources/js/Pages/Profile/Edit.jsx:28:const { data, setData, patch, errors, processing, recentlySuccessful } = useForm({
+resources/js/Pages/Profile/Edit.jsx:34:const { data: passwordData, setData: setPasswordData, put: putPassword, errors: passwordErrors, processing: passwordProcessing, recentlySuccessful: passwordRecentlySuccessful, reset: resetPassword } = useForm({
+resources/js/Pages/Profile/Edit.jsx:52:const { delete: destroy, processing: deleteProcessing } = useForm({
+resources/js/Pages/Profile/Edit.jsx:94:await router.post(route('profile.passcode'), {
+resources/js/Pages/Proposals/Create.jsx:135:axios.get(route('api.categories')),
+resources/js/Pages/Proposals/Create.jsx:136:axios.get(route('api.warehouses')),
+resources/js/Pages/Proposals/Create.jsx:137:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/Proposals/Create.jsx:138:axios.get(route('api.bank-accounts'))
+resources/js/Pages/Proposals/Create.jsx:1978:router.post(route('proposals.convert-to-sale', currentInvoice.id || 0), {
+resources/js/Pages/Proposals/Create.jsx:2008:router.post(route('proposals.convert-to-presale', currentInvoice.id || 0), {
+resources/js/Pages/Proposals/Create.jsx:205:const response = await axios.post(url, data);
+resources/js/Pages/Proposals/Create.jsx:348:const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/Proposals/Create.jsx:364:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Proposals/Create.jsx:423:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Proposals/Create.jsx:534:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/Proposals/Create.jsx:745:response = await axios.post(updateUrl, { ...payload, _method: 'PUT' });
+resources/js/Pages/Proposals/Create.jsx:747:response = await axios.post(route('proposals.store'), payload);
+resources/js/Pages/Proposals/ProposalsList.jsx:148:router.get(route('proposals.index'), {
+resources/js/Pages/Proposals/ProposalsList.jsx:204:router.post(route('proposals.convert', id));
+resources/js/Pages/Proposals/ProposalsList.jsx:211:router.delete(route('proposals.destroy', id));
+resources/js/Pages/Proposals/Show.jsx:22:router.post(route('proposals.convert-to-sale', proposal.id));
+resources/js/Pages/Proposals/Show.jsx:34:router.post(route('proposals.convert-to-presale', proposal.id));
+resources/js/Pages/PurchaseOrders/Create.jsx:135:axios.get(route('api.categories')),
+resources/js/Pages/PurchaseOrders/Create.jsx:136:axios.get(route('api.warehouses')),
+resources/js/Pages/PurchaseOrders/Create.jsx:137:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/PurchaseOrders/Create.jsx:138:axios.get(route('api.bank-accounts'))
+resources/js/Pages/PurchaseOrders/Create.jsx:210:const response = await axios.post(url, data);
+resources/js/Pages/PurchaseOrders/Create.jsx:320:const response = await axios.get(route('suppliers.search'), { params: { search: '' } });
+resources/js/Pages/PurchaseOrders/Create.jsx:333:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/PurchaseOrders/Create.jsx:377:const response = await axios.get(route('suppliers.search'), { params: { search: supplierSearch } });
+resources/js/Pages/PurchaseOrders/Create.jsx:393:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/PurchaseOrders/Create.jsx:454:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/PurchaseOrders/Create.jsx:565:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/PurchaseOrders/PurchaseOrdersList.jsx:151:router.get(route('purchase-orders.index'), {
+resources/js/Pages/PurchaseOrders/PurchaseOrdersList.jsx:46:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/PurchaseOrders/Show.jsx:10:router.post(route('purchase-orders.receive', order.id));
+resources/js/Pages/Purchases/Create.jsx:174:axios.get(route('api.categories')),
+resources/js/Pages/Purchases/Create.jsx:175:axios.get(route('api.warehouses')),
+resources/js/Pages/Purchases/Create.jsx:176:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/Purchases/Create.jsx:177:axios.get(route('api.bank-accounts'))
+resources/js/Pages/Purchases/Create.jsx:244:const response = await axios.post(url, data);
+resources/js/Pages/Purchases/Create.jsx:353:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/Purchases/Create.jsx:399:const response = await axios.get(route('suppliers.search'), { params: { search: supplierSearch } });
+resources/js/Pages/Purchases/Create.jsx:412:const response = await axios.get(route('suppliers.search'), { params: { search: '' } });
+resources/js/Pages/Purchases/Create.jsx:428:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Purchases/Create.jsx:489:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Purchases/Create.jsx:602:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/Purchases/Create.jsx:828:? await axios.put(route('purchases.update', editState.id), payload)
+resources/js/Pages/Purchases/Create.jsx:829:: await axios.post(route('purchases.store'), payload);
+resources/js/Pages/Purchases/PurchasesList.jsx:184:router.get(route('purchases.index'), {
+resources/js/Pages/Purchases/PurchasesList.jsx:231:router.delete(route('purchases.destroy', itemToDelete), {
+resources/js/Pages/Purchases/PurchasesList.jsx:88:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Purchases/Receive.jsx:46:await axios.post(route('purchases.receive.store', purchase.id), {
+resources/js/Pages/RecurringInvoices/RecurringInvoices.jsx:80:router.post(route('recurring-invoices.toggle', invoice.id));
+resources/js/Pages/RecurringInvoices/RecurringInvoices.jsx:92:router.delete(route('recurring-invoices.destroy', invoice.id));
+resources/js/Pages/RecycleBin.jsx:10:router.post(route('recycle-bin.restore', id), { type });
+resources/js/Pages/RecycleBin.jsx:16:router.delete(route('recycle-bin.force-delete', id), {
+resources/js/Pages/Reminders/InvoiceReminders.jsx:32:router.get(route('invoice-reminders.index'), {
+resources/js/Pages/Reminders/InvoiceReminders.jsx:46:router.get(route('invoice-reminders.index'), {
+resources/js/Pages/Reminders/InvoiceReminders.jsx:73:router.post(route('invoice-reminders.send', reminder.id), {}, {
+resources/js/Pages/Reports/AccountLedger.jsx:103:router.get(route('reports.account-ledger'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/BankStatement.jsx:106:router.get(route('reports.bank-statement'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/BillWiseProfit.jsx:102:router.get(route('reports.bill-wise-profit'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/BillWiseProfit.jsx:107:router.get(route('reports.bill-wise-profit'), {
+resources/js/Pages/Reports/DayBook.jsx:142:router.get(route('reports.day-book'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/DayBook.jsx:148:router.get(route('reports.day-book'), {
+resources/js/Pages/Reports/DiscountReport.jsx:125:router.get(route('reports.discount-report'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/DiscountReport.jsx:130:router.get(route('reports.discount-report'), {
+resources/js/Pages/Reports/Expenses.jsx:156:router.get(route('reports.expenses'), params, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/ExpiryReport.jsx:100:router.get(route('reports.expiry'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/GraphAnalytics.jsx:28:router.get(route('reports.analytics'), { module: moduleId }, { preserveState: false });
+resources/js/Pages/Reports/GraphAnalytics.jsx:42:router.get(route('reports.analytics'), { module, range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/GraphAnalytics.jsx:47:router.get(route('reports.analytics'), {
+resources/js/Pages/Reports/ItemReportByParty.jsx:47:router.get(route('reports.item-report-by-party'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/ItemWiseProfit.jsx:46:router.get(route('reports.item-wise-profit'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/ItemWiseProfit.jsx:51:router.get(route('reports.item-wise-profit'), {
+resources/js/Pages/Reports/LowStock.jsx:203:router.get(route('reports.low-stock'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/MovementHistory.jsx:269:router.get(route('reports.movement-history'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/PartyReportByItem.jsx:47:router.get(route('reports.party-report-by-item'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/PartyStatement.jsx:145:router.get(route('reports.party-statement'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/ProfitLoss.jsx:50:router.get(route('reports.profit-loss'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/ProfitLoss.jsx:55:router.get(route('reports.profit-loss'), {
+resources/js/Pages/Reports/Purchases.jsx:167:router.get(route('reports.purchases'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/Purchases.jsx:173:router.get(route('reports.purchases'), {
+resources/js/Pages/Reports/SaleOrderItems.jsx:129:router.get(route('reports.sale-order-items'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/SaleOrderItems.jsx:134:router.get(route('reports.sale-order-items'), {
+resources/js/Pages/Reports/SaleOrders.jsx:113:router.get(route('reports.sale-orders'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/SaleOrders.jsx:118:router.get(route('reports.sale-orders'), {
+resources/js/Pages/Reports/Sales.jsx:35:router.get(route('reports.sales'), { range: r }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Reports/Sales.jsx:40:router.get(route('reports.sales'), {
+resources/js/Pages/Reports/StockAging.jsx:212:router.get(route('reports.stock-aging'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/StockValuation.jsx:110:router.get(route('reports.stock-valuation'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/Tax.jsx:98:router.get(route('reports.tax'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/Transactions.jsx:110:router.get(route('reports.transactions'), newValues, { preserveState: true, replace: true });
+resources/js/Pages/Reports/Transactions.jsx:26:const res = await axios.get(nextPageUrl, { headers: { Accept: 'application/json' } });
+resources/js/Pages/Reports/TrialBalance.jsx:19:router.get(route('reports.trial-balance'), { date: dateInput }, { preserveScroll: true });
+resources/js/Pages/Returns/Create.jsx:143:axios.get(route('api.categories')),
+resources/js/Pages/Returns/Create.jsx:144:axios.get(route('api.warehouses')),
+resources/js/Pages/Returns/Create.jsx:145:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/Returns/Create.jsx:146:axios.get(route('api.bank-accounts'))
+resources/js/Pages/Returns/Create.jsx:213:const response = await axios.post(url, data);
+resources/js/Pages/Returns/Create.jsx:326:const response = await axios.get(route('customers.search'), { params: { search: '' } });
+resources/js/Pages/Returns/Create.jsx:339:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/Returns/Create.jsx:383:const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/Returns/Create.jsx:399:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Returns/Create.jsx:458:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Returns/Create.jsx:569:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/Returns/Create.jsx:813:response = await axios.post(route('returns.store'), payload);
+resources/js/Pages/Returns/ReturnsHistory.jsx:139:router.get(route('returns-history.index'), {
+resources/js/Pages/Returns/ReturnsHistory.jsx:53:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Sales/CreateInvoice.jsx:148:axios.get(route('api.categories')),
+resources/js/Pages/Sales/CreateInvoice.jsx:149:axios.get(route('api.warehouses')),
+resources/js/Pages/Sales/CreateInvoice.jsx:150:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/Sales/CreateInvoice.jsx:151:axios.get(route('api.bank-accounts'))
+resources/js/Pages/Sales/CreateInvoice.jsx:218:const response = await axios.post(url, data);
+resources/js/Pages/Sales/CreateInvoice.jsx:331:const response = await axios.get(route('customers.search'), { params: { search: '' } });
+resources/js/Pages/Sales/CreateInvoice.jsx:344:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/Sales/CreateInvoice.jsx:388:const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/Sales/CreateInvoice.jsx:404:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Sales/CreateInvoice.jsx:463:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Sales/CreateInvoice.jsx:574:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/Sales/CreateInvoice.jsx:851:response = await axios.put(route('sales.update', currentInvoice.id), payload);
+resources/js/Pages/Sales/CreateInvoice.jsx:853:response = await axios.post(route('sales.store'), payload);
+resources/js/Pages/Sales/CreatePreSale.jsx:133:axios.get(route('api.categories')),
+resources/js/Pages/Sales/CreatePreSale.jsx:134:axios.get(route('api.warehouses')),
+resources/js/Pages/Sales/CreatePreSale.jsx:135:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/Sales/CreatePreSale.jsx:136:axios.get(route('api.bank-accounts'))
+resources/js/Pages/Sales/CreatePreSale.jsx:203:const response = await axios.post(url, data);
+resources/js/Pages/Sales/CreatePreSale.jsx:316:const response = await axios.get(route('customers.search'), { params: { search: '' } });
+resources/js/Pages/Sales/CreatePreSale.jsx:329:const response = await axios.get(route('inventory.search'), { params: { query: '' } });
+resources/js/Pages/Sales/CreatePreSale.jsx:373:const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/Sales/CreatePreSale.jsx:389:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Sales/CreatePreSale.jsx:447:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Sales/CreatePreSale.jsx:558:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/Sales/CreatePreSale.jsx:796:response = await axios.put(route('presales.update', currentInvoice.id), payload);
+resources/js/Pages/Sales/CreatePreSale.jsx:798:response = await axios.post(route('presales.store'), payload);
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:131:axios.get(route('api.categories')),
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:132:axios.get(route('api.warehouses')),
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:133:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:134:axios.get(route('api.bank-accounts'))
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:201:const response = await axios.post(url, data);
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:343:const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:359:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:417:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:528:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:788:response = await axios.put(route('sales.update', currentInvoice.id), payload);
+resources/js/Pages/Sales/CreatePreSale_BACKUP.jsx:790:response = await axios.post(route('sales.store'), payload);
+resources/js/Pages/Sales/Customers/CustomersList.jsx:12:const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
+resources/js/Pages/Sales/Customers/CustomersList.jsx:61:router.get(route('customers.index'), { search: searchTerm }, { preserveState: true });
+resources/js/Pages/Sales/Orders/SalesOrdersList.jsx:153:await axios.post(route('sales.orders.convert', order.id));
+resources/js/Pages/Sales/ParkedSales.jsx:105:await axios.delete(route('parked-sales.destroy', sale.id));
+resources/js/Pages/Sales/SalesHistory.jsx:172:router.post(route('sales.bulk-destroy'), { ids: selectedSales }, {
+resources/js/Pages/Sales/SalesHistory.jsx:252:router.get(route('sales.index'), {
+resources/js/Pages/Sales/SalesHistory.jsx:59:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Sales/SalesHistory.jsx:605:<button onClick={async () => { if (await confirm('Cancel invoice? Stock will be restored.')) router.post(route('sales.cancel', row.id)); }} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> Cancel Invoice</button>
+resources/js/Pages/Sales/SalesHistory.jsx:614:router.delete(route('sales.destroy', row.id), {
+resources/js/Pages/Sales/Show.jsx:105:const response = await axios.post(route('sales.send-whatsapp', sale.id), { phone });
+resources/js/Pages/Sales/Show.jsx:36:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/Sales/Show.jsx:91:const response = await axios.post(route('sales.send-email', sale.id), { email });
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:130:axios.get(route('api.categories')),
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:131:axios.get(route('api.warehouses')),
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:132:axios.get(route('accounting.accounts.api', { type: 'asset' })),
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:133:axios.get(route('api.bank-accounts'))
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:1964:const response = await axios.post(route('pre-sales.convert', currentInvoice.id));
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:200:const response = await axios.post(url, data);
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:342:const response = await axios.get(route('customers.search'), { params: { search: customerSearch } });
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:358:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:417:const response = await axios.get(route('inventory.search'), { params: { query } });
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:528:const response = await axios.get(route('inventory.search'), { params: { query: scanBuffer } });
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:782:response = await axios.put(route('sales.orders.update', currentInvoice.id), payload);
+resources/js/Pages/SalesOrders/CreatePreSale.jsx:784:response = await axios.post(route('pre-sales.store'), payload);
+resources/js/Pages/SalesOrders/PreSales.jsx:162:router.get(route('pre-sales.index'), {
+resources/js/Pages/SalesOrders/PreSales.jsx:442:onConfirm: () => router.post(route('pre-sales.convert', row.id))
+resources/js/Pages/SalesOrders/PreSales.jsx:453:onConfirm: () => router.post(route('sales-orders.cancel', row.id))
+resources/js/Pages/SalesOrders/PreSales.jsx:58:const response = await axios.get(nextPageUrl, {
+resources/js/Pages/SalesOrders/PreSales.jsx:630:onConfirm: () => router.post(route('pre-sales.convert', quickViewItem.id))
+resources/js/Pages/SerialTracking/SerialTracking.jsx:28:router.get(route('serials.index'), {
+resources/js/Pages/SerialTracking/SerialTracking.jsx:36:router.get(route('serials.index'), {
+resources/js/Pages/Settings/SettingsPanel.jsx:57:const { data, setData, post, processing } = useForm({
+resources/js/Pages/Settings/SettingsPanel.jsx:81:// router.post(route('settings.update'), { settings: formattedSettings } ...
+resources/js/Pages/Settings/SettingsPanel.jsx:97:router.post(route('settings.update'), { settings: formattedSettings }, {
+resources/js/Pages/SetupWizard.jsx:25:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/StaffAttendance/StaffAttendance.jsx:156:router.get(route('staff-attendance.index'), { date: newDate }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/StaffAttendance/StaffAttendance.jsx:73:router.post(route('staff-attendance.approve-gap', gapId), {}, {
+resources/js/Pages/StaffAttendance/StaffAttendance.jsx:79:router.post(route('staff-attendance.reject-gap', gapId), {}, {
+resources/js/Pages/StockOperations.jsx:224:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/StockOperations.jsx:315:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/StockOperations.jsx:42:const { data, setData, post, put, processing, errors, reset } = useForm({
+resources/js/Pages/StockOperations.jsx:670:const response = await axios.post(route('inventory.check-dependencies'), { ids });
+resources/js/Pages/StockOperations.jsx:686:router.post(route('inventory.bulk-destroy'), {
+resources/js/Pages/StockOperations.jsx:721:router.post(route('stock-operations.audit'), {
+resources/js/Pages/StockTake/Create.jsx:16:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/StockTransfers/Create.jsx:19:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/StockTransfers/StockTransfers.jsx:34:router.get(route('stock-transfers.index'), {
+resources/js/Pages/StockTransfers/StockTransfers.jsx:48:router.get(route('stock-transfers.index'), {
+resources/js/Pages/Suppliers/SuppliersList.jsx:117:router.delete(route('suppliers.destroy', id));
+resources/js/Pages/Suppliers/SuppliersList.jsx:33:const response = await axios.get(nextPageUrl, { headers: { 'Accept': 'application/json' } });
+resources/js/Pages/Suppliers/SuppliersList.jsx:59:router.get(route('suppliers.index'), { search: searchTerm }, { preserveState: true, preserveScroll: true });
+resources/js/Pages/Suppliers/SuppliersList.jsx:63:const { data, setData, post, put, processing, errors, reset } = useForm({
+resources/js/Pages/Updater/Index.jsx:141:axios.get('/api/updater/info')
+resources/js/Pages/Updater/Index.jsx:230:res = await axios.post('/api/updater/run', formDataOrPayload, {
+resources/js/Pages/Updater/Index.jsx:236:res = await axios.post('/api/updater/run', formDataOrPayload, {
+resources/js/Pages/Updater/Index.jsx:295:const res = await axios.post('/api/updater/run', fd, {
+resources/js/Pages/V3/Products/Create.jsx:5:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/V3/Products/Edit.jsx:4:const { data, setData, put, processing, errors } = useForm({
+resources/js/Pages/V3/Products/Index.jsx:6:router.delete(route('v3.products.destroy', id))
+resources/js/Pages/V3/Products/PriceTiers.jsx:19:router.delete(route('v3.products.tiers.destroy', { productId: product.id, id }))
+resources/js/Pages/V3/Products/PriceTiers.jsx:4:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/V3/Products/UomConversions.jsx:18:router.delete(route('v3.products.uom.destroy', { productId: product.id, id }))
+resources/js/Pages/V3/Products/UomConversions.jsx:4:const { data, setData, post, processing, errors, reset } = useForm({
+resources/js/Pages/V3/Purchases/Create.jsx:7:const { data, setData, post, processing, errors, clearErrors } = useForm({
+resources/js/Pages/V3/Purchases/Return.jsx:4:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/V3/Warehouses/Create.jsx:4:const { data, setData, post, processing, errors } = useForm({
+resources/js/Pages/V3/Warehouses/Edit.jsx:4:const { data, setData, put, processing, errors } = useForm({
+resources/js/Pages/V3/Warehouses/Index.jsx:6:router.delete(route('v3.warehouses.destroy', id))
+resources/js/Services/SyncService.js:105:await axios.post('/api/sync/orders/batch', { orders: batch }, { _skipGlobalErrorHandler: true });
+resources/js/Services/SyncService.js:130:const response = await axios.get(`/api/sync/${resource}`, { _skipGlobalErrorHandler: true });
+resources/js/Services/SyncService.js:147:const response = await axios.get('/api/sync/users', { _skipGlobalErrorHandler: true });
+resources/js/Services/SyncService.js:34:await axios.get('/api/check-connection', {
+resources/js/Services/SyncService.js:87:await axios.post('/api/heartbeat', {}, { _skipGlobalErrorHandler: true }); // Assume backend logs this

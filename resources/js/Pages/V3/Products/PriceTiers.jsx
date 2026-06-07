@@ -1,4 +1,5 @@
-import { useForm, Link, router } from '@inertiajs/react'
+import { useForm, Link, router, usePage } from '@inertiajs/react'
+import { formatCurrency } from '@/Utils/format';
 
 export default function PriceTiers({ product, tiers }) {
     const { store } = usePage().props;
@@ -62,7 +63,7 @@ export default function PriceTiers({ product, tiers }) {
                                     {t.max_qty ?? <span className="text-gray-400">∞ (no limit)</span>}
                                 </td>
                                 <td className="border border-gray-200 px-4 py-2 text-right">
-                                    {window.amdSettings?.currency_symbol || ''} {parseFloat(t.unit_price).toLocaleString()}
+                                    {formatCurrency(t.unit_price, store)}
                                 </td>
                                 <td className="border border-gray-200 px-4 py-2 text-center">
                                     <button

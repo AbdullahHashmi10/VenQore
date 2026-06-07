@@ -64,7 +64,7 @@
      public function onRow(Row $row)
      {
          $index = $row->getIndex();
-         if ($index <= 5) return;
+         if ($index <= 3) return;
          if (in_array($index, $this->ignoredRows)) return;
  
          $numericArray = $row->toArray();

@@ -1,9 +1,6 @@
-const CACHE_NAME = 'amd-erp-v1';
+const CACHE_NAME = 'amd-erp-v2';
 
-// Only cache static UI assets — NEVER cache financial API responses.
-// Financial data must always be fetched live from the server.
 const STATIC_ASSETS = [
-    '/',
     '/favicon.ico',
     '/offline.html',
 ];
@@ -42,6 +39,14 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
     const url = new URL(event.request.url);
+
+    // CRITICAL: Never intercept cross-origin requests (e.g. Vite dev server on port 5173/5174).
+    // This prevents the SW from breaking the dev environment by failing to cache
+    // cross-origin assets and returning null Responses that crash React.
+    if (url.origin !== self.location.origin) {
+        return;
+    }
+
     const isBypass = BYPASS_ROUTES.some(path => url.pathname.startsWith(path));
     const isApi = url.pathname.startsWith('/api') || url.pathname.startsWith('/v3');
     const isStaticAsset = url.pathname.startsWith('/build/') || 

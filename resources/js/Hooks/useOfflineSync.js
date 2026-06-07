@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { db, isOnline } from '@/Utils/db';
 import axios from 'axios';
+import { usePage } from '@inertiajs/react';
 
 export const useOfflineSync = () => {
+    const { store } = usePage().props;
     const [isSyncing, setIsSyncing] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
     const [lastSyncTime, setLastSyncTime] = useState(null);

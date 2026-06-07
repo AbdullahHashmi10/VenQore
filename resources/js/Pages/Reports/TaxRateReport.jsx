@@ -1,8 +1,11 @@
 import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Hash } from 'lucide-react';
+import { usePage } from '@inertiajs/react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function TaxRateReport({ taxRates }) {
+    const { store } = usePage().props;
     const totalTax = taxRates.reduce((sum, tr) => sum + tr.total_tax, 0);
 
     return (
@@ -28,7 +31,7 @@ export default function TaxRateReport({ taxRates }) {
                                 <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                     <td className="px-6 py-4 font-black text-slate-800 dark:text-white">{tr.tax_rate}%</td>
                                     <td className="px-6 py-4 text-center text-sm text-slate-500">{tr.count}</td>
-                                    <td className="px-6 py-4 text-right text-sm font-bold text-indigo-600 dark:text-indigo-400">Rs {tr.total_tax.toLocaleString()}</td>
+                                    <td className="px-6 py-4 text-right text-sm font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(tr.total_tax)}</td>
                                     <td className="px-6 py-4 text-right">
                                         <div className="flex items-center justify-end gap-3">
                                             <div className="w-24 bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
@@ -44,7 +47,7 @@ export default function TaxRateReport({ taxRates }) {
                     <tfoot>
                         <tr className="bg-slate-50 dark:bg-slate-800/50 font-black">
                             <td colSpan="2" className="px-6 py-4 text-sm text-slate-800 dark:text-white uppercase tracking-wider">Total Tax</td>
-                            <td className="px-6 py-4 text-right text-indigo-600 dark:text-indigo-400">Rs {totalTax.toLocaleString()}</td>
+                            <td className="px-6 py-4 text-right text-indigo-600 dark:text-indigo-400">{formatCurrency(totalTax)}</td>
                             <td></td>
                         </tr>
                     </tfoot>

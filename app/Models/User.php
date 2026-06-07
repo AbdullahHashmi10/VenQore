@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * User Model — Definitive Plan
@@ -31,6 +32,12 @@ class User extends Authenticatable
 {
     use HasFactory, Notifiable, SoftDeletes;
 
+    /**
+     * Request-level memoized active membership.
+     */
+    protected ?TenantUser $resolvedMembership = null;
+    protected bool $membershipResolved = false;
+
     protected $fillable = [
         'name',
         'email',
@@ -38,9 +45,13 @@ class User extends Authenticatable
         'last_store_id',
         'is_platform_admin',
         'platform_role',
+        'staff_role',
         'platform_pin',
         'google_id',
         'avatar',
+        'role',
+        'permissions',
+        'passcode',
     ];
 
     protected $hidden = [
@@ -55,6 +66,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
             'is_platform_admin' => 'boolean',
+            'permissions'       => 'array',
         ];
     }
 
@@ -84,7 +96,7 @@ class User extends Authenticatable
     public function tenants(): BelongsToMany
     {
         return $this->belongsToMany(Tenant::class, 'tenant_users')
-                    ->withPivot(['role', 'status', 'display_name', 'pos_pin'])
+                    ->withPivot(['role', 'status', 'display_name', 'pos_pin', 'security_pin'])
                     ->withTimestamps();
     }
 
@@ -167,9 +179,14 @@ class User extends Authenticatable
 
     public function isPlatformAdmin(): bool
     {
-        // Reads the is_platform_admin boolean column only.
-        // platform_role is legacy — NOT used for access control.
-        return $this->is_platform_admin === true;
+        return (bool) $this->is_platform_admin;
+    }
+
+    public function isPlatformStaff(): bool
+    {
+        return $this->isPlatformAdmin() || 
+            ($this->platform_role !== 'none' && !empty($this->platform_role)) || 
+            (!empty($this->staff_role) && in_array($this->staff_role, ['support', 'content', 'marketing', 'finance', 'sales']));
     }
 
     /**
@@ -183,12 +200,19 @@ class User extends Authenticatable
     }
 
     /**
-     * Legacy shim: check if user has a specific permission.
+     * Check if user has a specific permission.
+     *
+     * Resolution order (first match wins):
+     *   1. Platform admins → wildcard '*' (bypasses everything)
+     *   2. Custom permissions stored in the TenantUser pivot → use those
+     *   3. config/permissions.php role map → canonical source of truth
      */
     public function hasPermission(string $permission): bool
     {
         if ($this->is_platform_admin) return true;
-        return in_array($permission, $this->permissions) || in_array('*', $this->permissions);
+        $perms = $this->permissions; // delegates to getPermissionsAttribute()
+        if (in_array('*', $perms)) return true;
+        return in_array($permission, $perms);
     }
 
     // ──────────────────────────────────────────────────────────────────
@@ -200,28 +224,97 @@ class User extends Authenticatable
     // ──────────────────────────────────────────────────────────────────
 
     /**
+     * Get the active membership for this request, memoized.
+     */
+    public function getActiveMembership(): ?TenantUser
+    {
+        if ($this->membershipResolved) {
+            return $this->resolvedMembership;
+        }
+
+        // 1. If we are in a tenant context, query/match the membership for this specific tenant first
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            $membership = $this->memberships()
+                ->where('tenant_id', $tenant->id)
+                ->where('status', 'active')
+                ->first();
+            if ($membership) {
+                $this->resolvedMembership = $membership;
+                $this->membershipResolved = true;
+                return $membership;
+            }
+        }
+
+        // 2. Fallback to globally bound current.membership if it matches this user
+        if (app()->bound('current.membership')) {
+            $membership = app('current.membership');
+            if ($membership->user_id === $this->id) {
+                $this->resolvedMembership = $membership;
+                $this->membershipResolved = true;
+                return $membership;
+            }
+        }
+
+        // 3. Fallback to last store or first available store
+        if (!$this->last_store_id) {
+            $firstMembership = $this->memberships()->where('status', 'active')->first();
+            if ($firstMembership) {
+                $this->resolvedMembership = $firstMembership;
+                $this->updateQuietly(['last_store_id' => $firstMembership->tenant_id]);
+            }
+        } else {
+            $this->resolvedMembership = $this->memberships()
+                ->where('tenant_id', $this->last_store_id)
+                ->where('status', 'active')
+                ->first();
+        }
+
+        $this->membershipResolved = true;
+        return $this->resolvedMembership;
+    }
+
+    /**
+     * Helper to ensure passcode is properly hashed.
+     */
+    protected function ensureHashed(?string $value): ?string
+    {
+        if (empty($value)) {
+            return null;
+        }
+        if (str_starts_with($value, '$2y$') || str_starts_with($value, '$argon2')) {
+            return $value;
+        }
+        return Hash::make($value);
+    }
+
+    /**
      * Shim: Get the role for the active store (last_store_id).
      */
     public function getRoleAttribute(): ?string
     {
         if ($this->is_platform_admin) return 'platform_admin';
         
-        // Priority 1: Current active tenant (set by routing middleware)
-        if (app()->bound('current.membership')) {
-            return app('current.membership')->role;
+        if (!empty($this->attributes['role'])) {
+            return $this->attributes['role'];
         }
 
-        // Priority 2: Fallback to last store, or self-heal and assign the first available store
-        if (!$this->last_store_id) {
-            $firstMembership = $this->memberships()->where('status', 'active')->first();
-            if ($firstMembership) {
-                $this->update(['last_store_id' => $firstMembership->tenant_id]);
-                return $firstMembership->role;
+        return $this->getActiveMembership()?->role;
+    }
+
+    /**
+     * Mutator: Set user role and sync with pivot if in tenant context.
+     */
+    public function setRoleAttribute(?string $value): void
+    {
+        $this->attributes['role'] = $value;
+
+        if (app()->bound('current.tenant')) {
+            $membership = $this->getActiveMembership();
+            if ($membership && $membership->role !== $value) {
+                $membership->update(['role' => $value]);
             }
-            return null;
         }
-
-        return $this->roleIn($this->last_store_id);
     }
 
     /**
@@ -229,6 +322,10 @@ class User extends Authenticatable
      */
     public function getPasscodeAttribute(): ?string
     {
+        if (!empty($this->attributes['passcode'])) {
+            return $this->attributes['passcode'];
+        }
+
         if (!$this->last_store_id) return null;
         return $this->memberships()
                     ->where('tenant_id', $this->last_store_id)
@@ -236,31 +333,88 @@ class User extends Authenticatable
     }
 
     /**
-     * Shim: Get permissions. Currently role-based in multi-tenant mode.
+     * Mutator: Set user passcode (POS PIN) and sync with pivot if in tenant context.
+     */
+    public function setPasscodeAttribute(?string $value): void
+    {
+        $hashed = $this->ensureHashed($value);
+        $this->attributes['passcode'] = $hashed;
+
+        if (app()->bound('current.tenant')) {
+            $membership = $this->getActiveMembership();
+            if ($membership && $membership->pos_pin !== $hashed) {
+                $membership->update(['pos_pin' => $hashed]);
+            }
+        }
+    }
+
+    /**
+     * Shim: Get the security pin (6 digits) for the active store.
+     */
+    public function getSecurityPinAttribute(): ?string
+    {
+        if (!$this->last_store_id) return null;
+        return $this->memberships()
+                    ->where('tenant_id', $this->last_store_id)
+                    ->value('security_pin');
+    }
+
+    /**
+     * Shim: Get permissions for this user.
      *
-     * SECURITY: Only platform admins (is_platform_admin = true) get '*'.
-     * Store owners and admins get their store-scoped permissions.
-     * The CheckPermissions middleware handles them via the fast-path
-     * (owner/admin bypass within store context), but they do NOT get
-     * a global wildcard that could bleed into platform routes.
+     * Resolution order:
+     *   1. Platform admin → ['*']
+     *   2. Custom permissions stored in TenantUser pivot (non-empty array) → use those verbatim
+     *   3. config/permissions.php using the resolved store role → canonical source of truth
+     *
+     * config/permissions.php is the SINGLE SOURCE OF TRUTH for role-to-permission mapping.
+     * Do NOT add inline permission arrays here — update config/permissions.php instead.
      */
     public function getPermissionsAttribute(): array
     {
         // Platform level super admin only
         if ($this->is_platform_admin) return ['*'];
 
-        // Store-level role permissions (store-scoped, NOT global wildcard)
-        $role = $this->role;
-        if ($role === 'owner' || $role === 'admin') {
-            // Return full store permission set (no '*' wildcard — cannot reach /VenQore/*)
-            return [
-                'pos', 'inventory', 'sales', 'sales_view', 'purchases', 'finance',
-                'reports', 'audit', 'customers', 'users', 'settings', 'discounts',
-            ];
+        if (!empty($this->attributes['permissions'])) {
+            $perms = $this->attributes['permissions'];
+            if (is_string($perms)) {
+                $perms = json_decode($perms, true) ?? [];
+            }
+            if (!empty($perms)) {
+                return $perms;
+            }
         }
 
-        // Default staff permissions if no custom logic yet
-        return ['pos', 'sales_view', 'inventory_view'];
+        // Resolve the active membership
+        $membership = $this->getActiveMembership();
+
+        // If no membership found, return minimal default
+        if (!$membership) return ['pos', 'sales_view'];
+
+        // 1. Use custom per-user permissions set by admin (non-empty array stored in pivot)
+        if (!empty($membership->permissions) && is_array($membership->permissions)) {
+            return $membership->permissions;
+        }
+
+        // 2. Delegate to config/permissions.php — the CANONICAL permission map
+        $role = $membership->role ?? 'viewer';
+        return config('permissions.' . $role, ['pos', 'sales_view']);
+    }
+
+    /**
+     * Mutator: Set user permissions and sync with pivot if in tenant context.
+     */
+    public function setPermissionsAttribute(mixed $value): void
+    {
+        $perms = is_array($value) ? $value : (json_decode($value, true) ?? []);
+        $this->attributes['permissions'] = json_encode($perms);
+
+        if (app()->bound('current.tenant')) {
+            $membership = $this->getActiveMembership();
+            if ($membership) {
+                $membership->update(['permissions' => $perms]);
+            }
+        }
     }
 
     public function activityLogs(): HasMany

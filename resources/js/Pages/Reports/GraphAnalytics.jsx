@@ -9,6 +9,7 @@ import {
     Calendar, TrendingUp, TrendingDown, DollarSign,
     CreditCard, ArrowLeft, Filter, ShoppingCart, ChevronDown, CheckCircle, AlertCircle, Clock
 } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 
 export default function GraphAnalytics({ trendData, paymentStatus, stats, filters, module = 'sales' }) {
     const {
@@ -62,7 +63,6 @@ export default function GraphAnalytics({ trendData, paymentStatus, stats, filter
         }, { preserveState: true, preserveScroll: true });
     };
 
-    const formatCurrency = (val) => new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', minimumFractionDigits: 0 }).format(val);
 
     // Calculate Insights (Derived Data)
     const insights = useMemo(() => {

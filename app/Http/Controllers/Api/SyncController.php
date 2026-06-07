@@ -55,7 +55,8 @@ class SyncController extends Controller
         $storeId = $this->getStoreId();
         if (!$storeId) return response()->json([]);
 
-        $products = \App\Models\Product::where('tenant_id', $storeId)
+        $products = \App\Models\Product::with(['category', 'variants'])
+            ->where('tenant_id', $storeId)
             ->whereNull('deleted_at')
             ->get();
 

@@ -27,6 +27,7 @@ Route::middleware('guest')->group(function () {
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
     Route::post('login/passcode', [AuthenticatedSessionController::class, 'storePasscode'])->name('login.passcode');
+    Route::post('login/pin', [AuthenticatedSessionController::class, 'storePosPin'])->name('login.pin');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
@@ -71,3 +72,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/VenQore-login',         [PlatformOwnerAuthController::class, 'create'])->name('platform.login');
 Route::post('/VenQore-login',        [PlatformOwnerAuthController::class, 'store'])->name('platform.login.store');
 Route::post('/VenQore-login/pin',    [PlatformOwnerAuthController::class, 'storePin'])->name('platform.login.pin');
+
+// ── Staff Member Login ──────────────────────────────────────────────────────
+Route::get('/staff-login',           [\App\Http\Controllers\Auth\StaffAuthController::class, 'create'])->name('staff.login');
+Route::post('/staff-login',          [\App\Http\Controllers\Auth\StaffAuthController::class, 'store'])->name('staff.login.store');

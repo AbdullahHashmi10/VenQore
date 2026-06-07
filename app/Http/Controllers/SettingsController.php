@@ -34,7 +34,28 @@ class SettingsController extends Controller
             );
         }
 
+        // Sync metadata to Tenant model
+        $tenant = app('current.tenant');
+        if ($tenant) {
+            $syncNeeded = false;
+            if (isset($data['settings']['store_name'])) {
+                $tenant->name = $data['settings']['store_name'];
+                $syncNeeded = true;
+            }
+            if (isset($data['settings']['currency_symbol'])) {
+                $tenant->currency_symbol = $data['settings']['currency_symbol'];
+                $syncNeeded = true;
+            }
+            if ($syncNeeded) {
+                $tenant->save();
+            }
+        }
+
         // Clear settings cache so new values take effect immediately
+        if ($tenant) {
+            \Illuminate\Support\Facades\Cache::forget("settings:{$tenant->id}");
+        }
+        \Illuminate\Support\Facades\Cache::forget('settings:global');
         SettingsHelper::clearCache();
 
         return back()->with('success', 'Settings updated successfully');

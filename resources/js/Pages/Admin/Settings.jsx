@@ -117,6 +117,7 @@ export default function AdminSettings({ settings = {} }) {
         business_address: settings.business_address || '',
         tax_number: settings.tax_number || '',
         currency: settings.currency || 'PKR',
+        currency_symbol: settings.currency_symbol || '',
         timezone: settings.timezone || 'Asia/Karachi',
 
         // General
@@ -312,7 +313,15 @@ export default function AdminSettings({ settings = {} }) {
                 return <GeneralSettingsSection data={data} setData={setData} />;
 
             case 'ai':
-                return <AiSettingsSection data={data} setData={setData} />;
+                return (
+                    <AiSettingsSection
+                        data={data}
+                        setData={setData}
+                        handleVerifyKey={handleVerifyKey}
+                        verifyingKey={verifyingKey}
+                        verificationResult={verificationResult}
+                    />
+                );
 
             case 'transaction':
                 return <TransactionSettingsSection data={data} setData={setData} />;

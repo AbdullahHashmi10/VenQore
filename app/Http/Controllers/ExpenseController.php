@@ -95,11 +95,14 @@ class ExpenseController extends Controller
             ->orderBy('name', 'asc')
             ->get();
 
+        $tenantId = app('current.tenant')->id;
+
         // Calculate stats
         $stats = [
             'today' => (float) DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+                ->where('journal_entries.tenant_id', $tenantId)
                 ->where('accounts.code', '6000')
                 ->where('journal_entries.reference_type', 'expense')
                 ->where('journal_entries.is_reversed', 0)
@@ -108,6 +111,7 @@ class ExpenseController extends Controller
             'month' => (float) DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+                ->where('journal_entries.tenant_id', $tenantId)
                 ->where('accounts.code', '6000')
                 ->where('journal_entries.reference_type', 'expense')
                 ->where('journal_entries.is_reversed', 0)
@@ -117,6 +121,7 @@ class ExpenseController extends Controller
             'total' => (float) DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
+                ->where('journal_entries.tenant_id', $tenantId)
                 ->where('accounts.code', '6000')
                 ->where('journal_entries.reference_type', 'expense')
                 ->where('journal_entries.is_reversed', 0)
@@ -137,6 +142,7 @@ class ExpenseController extends Controller
         $cashBalance = (float) DB::table('journal_items')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('accounts.code', '1000')
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as balance')
@@ -406,8 +412,14 @@ class ExpenseController extends Controller
 
     public function storeCategory(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
         $validated = $request->validate([
-            'name' => 'required|string|max:100|unique:expense_categories',
+            'name' => [
+                'required', 
+                'string', 
+                'max:100', 
+                \Illuminate\Validation\Rule::unique('expense_categories')->where(fn ($q) => $q->where('tenant_id', $tenantId))
+            ],
             'icon' => 'nullable|string',
             'color' => 'nullable|string'
         ]);

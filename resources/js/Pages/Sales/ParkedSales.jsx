@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import PageHeader from '@/Components/PageHeader';
@@ -11,13 +12,7 @@ import SellModuleTabs from '@/Components/SellModuleTabs';
 export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
     const { store } = usePage().props;
     // Format currency
-    const formatCurrency = (value) => {
-        return new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0
-        }).format(value || 0);
-    };
+
 
     // Table columns
     const columns = [
@@ -73,7 +68,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
             label: 'Total',
             render: (value) => (
                 <span className="font-bold text-slate-800 dark:text-white">
-                    {formatCurrency(value)}
+                    {formatCurrency(value, store)}
                 </span>
             )
         },
@@ -139,7 +134,7 @@ export default function ParkedSalesIndex({ parkedSales = [], stats = {} }) {
                         />
                         <StatCard
                             title="Total Value"
-                            value={formatCurrency(stats.total_value)}
+                            value={formatCurrency(stats.total_value, store)}
                             icon={DollarSign}
                             iconColor="emerald"
                             subtitle="In parked sales"

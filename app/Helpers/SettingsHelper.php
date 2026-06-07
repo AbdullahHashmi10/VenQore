@@ -38,6 +38,20 @@ class SettingsHelper
     public static function get(string $key, $default = null)
     {
         $settings = self::all();
+        if (array_key_exists($key, $settings) && !is_null($settings[$key]) && $settings[$key] !== '') {
+            return $settings[$key];
+        }
+
+        // Fallback to global setting if not found/empty in tenant scope
+        if (app()->bound('current.tenant')) {
+            $globalSettings = Cache::remember('settings:system_defaults', 300, function () {
+                return Setting::withoutGlobalScopes()->whereNull('tenant_id')->pluck('value', 'key')->toArray();
+            });
+            if (array_key_exists($key, $globalSettings) && !is_null($globalSettings[$key]) && $globalSettings[$key] !== '') {
+                return $globalSettings[$key];
+            }
+        }
+
         return $settings[$key] ?? $default;
     }
 
@@ -57,6 +71,7 @@ class SettingsHelper
     public static function clearCache(): void
     {
         Cache::forget(static::cacheKey());
+        Cache::forget('settings:system_defaults');
     }
 
     /**
@@ -77,21 +92,14 @@ class SettingsHelper
     }
 
     /**
-     * Format currency with the configured currency symbol
+     * Get the configured currency symbol
      */
-    public static function formatCurrency($amount, bool $includeSymbol = true): string
+    public static function getCurrencySymbol(): string
     {
-        $decimals = (int) self::get('decimal_places', 2);
-        $formatted = number_format((float) $amount, $decimals);
-
-        if (!$includeSymbol) {
-            return $formatted;
-        }
-
         // Priority 1: Use direct currency_symbol if set
         $symbol = self::get('currency_symbol');
         if ($symbol) {
-            return $symbol . ' ' . $formatted;
+            return $symbol;
         }
 
         // Priority 2: Fallback to currency code mapping
@@ -106,7 +114,22 @@ class SettingsHelper
             'INR' => '₹',
         ];
 
-        $symbol = $symbols[$currency] ?? $currency . ' ';
+        return $symbols[$currency] ?? $currency . ' ';
+    }
+
+    /**
+     * Format currency with the configured currency symbol
+     */
+    public static function formatCurrency($amount, bool $includeSymbol = true): string
+    {
+        $decimals = (int) self::get('decimal_places', 2);
+        $formatted = number_format((float) $amount, $decimals);
+
+        if (!$includeSymbol) {
+            return $formatted;
+        }
+
+        $symbol = self::getCurrencySymbol();
         return $symbol . $formatted;
     }
 
@@ -345,6 +368,22 @@ class SettingsHelper
      */
     public static function getProductPrice($product, int $quantity = 1, bool $isWholesaleCustomer = false): float
     {
+        // Check database-driven price tiers first
+        if (app()->bound('current.tenant') && isset($product->id)) {
+            $tiers = \Illuminate\Support\Facades\DB::table('product_price_tiers')
+                ->where('tenant_id', app('current.tenant')->id)
+                ->where('product_id', $product->id)
+                ->orderBy('min_qty', 'asc')
+                ->get();
+            
+            foreach ($tiers as $tier) {
+                $maxQty = $tier->max_qty !== null ? (float) $tier->max_qty : PHP_FLOAT_MAX;
+                if ($quantity >= (float) $tier->min_qty && $quantity <= $maxQty) {
+                    return (float) $tier->unit_price;
+                }
+            }
+        }
+
         // If wholesale pricing is enabled and conditions are met
         if (self::isWholesalePricingEnabled()) {
             $wholesalePrice = $product->wholesale_price ?? null;

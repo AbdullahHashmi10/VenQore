@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 class LoyaltyBalance extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, HasTenant;
 
     protected $fillable = [
         'party_id',
@@ -28,25 +29,32 @@ class LoyaltyBalance extends Model
      */
     public static function awardPoints($partyId, $points, $description = null, $invoiceId = null)
     {
-        $balance = self::firstOrCreate(['party_id' => $partyId], [
-            'balance' => 0,
-            'lifetime_earned' => 0,
-            'lifetime_redeemed' => 0,
-        ]);
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($partyId, $points, $description, $invoiceId) {
+            $balance = self::where('party_id', $partyId)->lockForUpdate()->first();
+            if (!$balance) {
+                $balance = self::create([
+                    'party_id' => $partyId,
+                    'balance' => 0,
+                    'lifetime_earned' => 0,
+                    'lifetime_redeemed' => 0,
+                ]);
+                $balance = self::where('id', $balance->id)->lockForUpdate()->first();
+            }
 
-        $balance->increment('balance', $points);
-        $balance->increment('lifetime_earned', $points);
+            $balance->increment('balance', $points);
+            $balance->increment('lifetime_earned', $points);
 
-        // Log the transaction
-        LoyaltyPoint::create([
-            'party_id' => $partyId,
-            'points' => $points,
-            'type' => 'earned',
-            'description' => $description ?? 'Points earned from purchase',
-            'invoice_id' => $invoiceId,
-        ]);
+            // Log the transaction
+            LoyaltyPoint::create([
+                'party_id' => $partyId,
+                'points' => $points,
+                'type' => 'earned',
+                'description' => $description ?? 'Points earned from purchase',
+                'invoice_id' => $invoiceId,
+            ]);
 
-        return $balance;
+            return $balance;
+        });
     }
 
     /**
@@ -54,24 +62,26 @@ class LoyaltyBalance extends Model
      */
     public static function redeemPoints($partyId, $points, $description = null, $invoiceId = null)
     {
-        $balance = self::where('party_id', $partyId)->first();
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($partyId, $points, $description, $invoiceId) {
+            $balance = self::where('party_id', $partyId)->lockForUpdate()->first();
 
-        if (!$balance || $balance->balance < $points) {
-            throw new \Exception('Insufficient loyalty points');
-        }
+            if (!$balance || $balance->balance < $points) {
+                throw new \Exception('Insufficient loyalty points');
+            }
 
-        $balance->decrement('balance', $points);
-        $balance->increment('lifetime_redeemed', $points);
+            $balance->decrement('balance', $points);
+            $balance->increment('lifetime_redeemed', $points);
 
-        // Log the transaction
-        LoyaltyPoint::create([
-            'party_id' => $partyId,
-            'points' => -$points,
-            'type' => 'redeemed',
-            'description' => $description ?? 'Points redeemed',
-            'invoice_id' => $invoiceId,
-        ]);
+            // Log the transaction
+            LoyaltyPoint::create([
+                'party_id' => $partyId,
+                'points' => -$points,
+                'type' => 'redeemed',
+                'description' => $description ?? 'Points redeemed',
+                'invoice_id' => $invoiceId,
+            ]);
 
-        return $balance;
+            return $balance;
+        });
     }
 }

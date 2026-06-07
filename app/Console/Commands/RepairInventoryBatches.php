@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use App\Models\Tenant;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -26,51 +25,29 @@ use Illuminate\Support\Facades\DB;
  */
 class RepairInventoryBatches extends Command
 {
-    protected $signature   = 'inventory:repair-batches {--dry-run : Preview changes without writing to DB} {--tenant= : Run for a specific tenant ID only}';
+    protected $signature   = 'inventory:repair-batches {--dry-run : Preview changes without writing to DB}';
     protected $description = 'Restore inventory_batches.remaining_qty after auto-healer corruption.';
 
     public function handle(): int
     {
         $dryRun = $this->option('dry-run');
 
-        $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
-        if ($this->option('tenant')) {
-            $tenantQuery->where('id', (int) $this->option('tenant'));
+        $this->info('');
+        $this->info('══════════════════════════════════════════════════════');
+        $this->info('  Inventory Batch Repair');
+        if ($dryRun) {
+            $this->warn('  DRY-RUN MODE — No changes will be written');
         }
-        $tenants = $tenantQuery->get();
-
-        if ($tenants->isEmpty()) {
-            $this->warn('No active tenants found.');
-            return Command::SUCCESS;
-        }
-
-        foreach ($tenants as $tenant) {
-            $this->info('');
-            $this->info('══════════════════════════════════════════════════════');
-            $this->info("  Inventory Batch Repair — Tenant [{$tenant->id}] {$tenant->name}");
-            if ($dryRun) {
-                $this->warn('  DRY-RUN MODE — No changes will be written');
-            }
-            $this->info('══════════════════════════════════════════════════════');
-            $this->repairForTenant($tenant->id, $dryRun);
-        }
-
-        return Command::SUCCESS;
-    }
-
-    private function repairForTenant(int $tenantId, bool $dryRun): void
-    {
+        $this->info('══════════════════════════════════════════════════════');
         $this->info('');
 
         // ─── 1. Load products that have at least one inventory_batch ──────────
         $products = DB::table('products')
-            ->where('tenant_id', $tenantId)
             ->whereNull('deleted_at')
-            ->whereExists(function ($q) use ($tenantId) {
+            ->whereExists(function ($q) {
                 $q->select(DB::raw(1))
                   ->from('inventory_batches')
                   ->whereColumn('inventory_batches.product_id', 'products.id')
-                  ->where('inventory_batches.tenant_id', $tenantId)
                   ->whereNull('inventory_batches.deleted_at');
             })
             ->select('id', 'name', 'cost_price')
@@ -88,7 +65,6 @@ class RepairInventoryBatches extends Command
         foreach ($products as $product) {
             // ─── 2. Current actual stock on-hand ──────────────────────────────
             $currentStock = (float) DB::table('stocks')
-                ->where('tenant_id', $tenantId)
                 ->where('product_id', $product->id)
                 ->sum('quantity');
 
@@ -181,5 +157,7 @@ class RepairInventoryBatches extends Command
         }
         $this->info('══════════════════════════════════════════════════════');
         $this->info('');
+
+        return Command::SUCCESS;
     }
 }

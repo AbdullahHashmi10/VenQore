@@ -275,8 +275,8 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                                     )}
                                                 </td>
                                                 <td className="py-4 text-center text-slate-600 dark:text-slate-300">{item.quantity}</td>
-                                                <td className="py-4 text-right text-slate-600 dark:text-slate-300">{formatCurrency(item.unit_price)}</td>
-                                                <td className="py-4 text-right font-medium text-slate-800 dark:text-white">{formatCurrency(item.subtotal)}</td>
+                                                <td className="py-4 text-right text-slate-600 dark:text-slate-300">{formatCurrency(item.unit_price, store)}</td>
+                                                <td className="py-4 text-right font-medium text-slate-800 dark:text-white">{formatCurrency(item.subtotal, store)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -288,20 +288,20 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                 <div className="w-64 space-y-3">
                                     <div className="flex justify-between text-slate-500 text-sm">
                                         <span>Subtotal</span>
-                                        <span className="font-medium text-slate-800 dark:text-white">{formatCurrency(sale.subtotal)}</span>
+                                        <span className="font-medium text-slate-800 dark:text-white">{formatCurrency(sale.subtotal, store)}</span>
                                     </div>
                                     <div className="flex justify-between text-slate-500 text-sm">
                                         <span>Tax</span>
-                                        <span className="font-medium text-slate-800 dark:text-white">{formatCurrency(sale.tax)}</span>
+                                        <span className="font-medium text-slate-800 dark:text-white">{formatCurrency(sale.tax, store)}</span>
                                     </div>
                                     <div className="flex justify-between text-slate-500 text-sm">
                                         <span>Discount</span>
-                                        <span className="font-medium text-slate-800 dark:text-white">- {formatCurrency(sale.discount)}</span>
+                                        <span className="font-medium text-slate-800 dark:text-white">- {formatCurrency(sale.discount, store)}</span>
                                     </div>
                                     <div className="h-px bg-slate-200 dark:bg-slate-700 my-2"></div>
                                     <div className="flex justify-between text-xl font-bold text-indigo-600 dark:text-indigo-400">
                                         <span>Total</span>
-                                        <span>{formatCurrency(sale.total)}</span>
+                                        <span>{formatCurrency(sale.total, store)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -347,7 +347,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                                         <div key={item.id} className={`flex items-center justify-between p-4 rounded-xl border transition-all ${item.quantity > 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>
                                             <div className="flex-1">
                                                 <p className="font-bold text-slate-800 dark:text-white">{item.name}</p>
-                                                <p className="text-xs text-slate-500">Purchased: {item.max_quantity} × {formatCurrency(item.price)}</p>
+                                                <p className="text-xs text-slate-500">Purchased: {item.max_quantity} × {formatCurrency(item.price, store)}</p>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <button
@@ -466,7 +466,7 @@ export default function SalesShow({ sale, bankAccounts = [] }) {
                             <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-800">
                                 <div>
                                     <p className="text-sm text-slate-500">Total Refund</p>
-                                    <p className="text-2xl font-black text-red-600">{formatCurrency(refundTotal)}</p>
+                                    <p className="text-2xl font-black text-red-600">{formatCurrency(refundTotal, store)}</p>
                                     {refundTotal > 0 && (
                                         <p className="text-xs text-slate-500 mt-1">
                                             {refundMethod === 'ledger' ? (

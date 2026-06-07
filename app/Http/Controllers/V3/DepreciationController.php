@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
+use App\Services\PlanGate;
 use App\Services\V3\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -15,6 +16,9 @@ class DepreciationController extends Controller
 
     public function store(Request $request)
     {
+        // ── Plan Gate: Fixed Asset Depreciation ────────────────────────────
+        PlanGate::enforce('fixed_asset_depreciation');
+
         $validated = $request->validate([
             'description'       => ['required', 'string', 'max:500'],
             'depreciation_date' => ['required', 'date', 'before_or_equal:today'],

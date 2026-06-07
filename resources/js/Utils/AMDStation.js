@@ -1,16 +1,17 @@
 /**
- * VenQore Station Bridge - React Utility
- * Connects your React app to VenQore Station for hardware control
- * 
+ * VenQore Station Bridge - React Utility (SaaS Cloud Edition)
+ * Connects your React app to VenQore Station for hardware control.
+ * The station is a hardware bridge to the cloud — no local server.
+ *
  * Usage:
  *   import { AMDStation, useAMDStation } from '@/Utils/AMDStation';
- *   
- *   // In component:
- *   const { isConnected, print, openDrawer, printers } = useAMDStation();
- *   
- *   // Or direct:
+ *
+ *   const { isConnected, print, openDrawer } = useAMDStation();
  *   await AMDStation.print(receiptData);
  *   await AMDStation.openDrawer();
+ *
+ *   // Register terminal ID after login:
+ *   AMDStation.registerTerminal(user.terminal_id);
  */
 
 import { useState, useEffect } from 'react';
@@ -23,37 +24,54 @@ export function isAMDStationAvailable() {
 }
 
 /**
- * VenQore Station API wrapper
+ * VenQore Station API wrapper (SaaS Edition)
  */
 export const AMDStation = {
     /**
      * Check if running in VenQore Station
+     * Returns { isAMDStation, version, deviceId, terminalId, platform }
      */
     async check() {
-        if (!isAMDStationAvailable()) {
-            return { isAMDStation: false };
-        }
-        try {
-            return await window.amdAPI.check();
-        } catch (e) {
-            console.error('[AMDStation] Check failed:', e);
-            return { isAMDStation: false };
-        }
+        if (!isAMDStationAvailable()) return { isAMDStation: false };
+        try { return await window.amdAPI.check(); }
+        catch (e) { return { isAMDStation: false }; }
+    },
+
+    /**
+     * Register the terminal ID assigned by the cloud after login.
+     * Call this once after a user logs in and you have their terminal_id.
+     * @param {number} terminalId
+     */
+    registerTerminal(terminalId) {
+        if (!isAMDStationAvailable()) return;
+        window.amdAPI.registerTerminal(terminalId);
+    },
+
+    /**
+     * Get station preferences (printer, terminal ID, device ID)
+     */
+    async getPrefs() {
+        if (!isAMDStationAvailable()) return {};
+        try { return await window.amdAPI.getPrefs(); }
+        catch (e) { return {}; }
+    },
+
+    /**
+     * Save station preferences
+     */
+    async savePrefs(updates) {
+        if (!isAMDStationAvailable()) return { success: false };
+        try { return await window.amdAPI.savePrefs(updates); }
+        catch (e) { return { success: false, error: e.message }; }
     },
 
     /**
      * Get available printers
      */
     async getPrinters() {
-        if (!isAMDStationAvailable()) {
-            return [];
-        }
-        try {
-            return await window.amdAPI.getPrinters();
-        } catch (e) {
-            console.error('[AMDStation] Get printers failed:', e);
-            return [];
-        }
+        if (!isAMDStationAvailable()) return [];
+        try { return await window.amdAPI.getPrinters(); }
+        catch (e) { return []; }
     },
 
     /**
@@ -61,12 +79,8 @@ export const AMDStation = {
      */
     async setDefaultPrinter(printerName) {
         if (!isAMDStationAvailable()) return { success: false };
-        try {
-            return await window.amdAPI.setDefaultPrinter(printerName);
-        } catch (e) {
-            console.error('[AMDStation] Set printer failed:', e);
-            return { success: false, error: e.message };
-        }
+        try { return await window.amdAPI.setDefaultPrinter(printerName); }
+        catch (e) { return { success: false, error: e.message }; }
     },
 
     /**
@@ -377,3 +391,155 @@ export function useAMDStation() {
 }
 
 export default AMDStation;
+
+/**
+ * React Hook: Barcode Scanner via COM Port
+ *
+ * Usage:
+ *   const { lastBarcode, isConnected, connect } = useBarcodeScannerPort('COM3', 9600);
+ */
+export function useBarcodeScannerPort(portPath = null, baudRate = 9600) {
+    const [lastBarcode, setLastBarcode] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [error, setError] = useState(null);
+
+    const connect = async (port, baud) => {
+        if (!isAMDStationAvailable()) return;
+        try {
+            const result = await window.amdAPI.openScanner(port || portPath, baud || baudRate);
+            setIsConnected(result.success);
+            if (!result.success) setError(result.error);
+        } catch (e) {
+            setError(e.message);
+        }
+    };
+
+    const disconnect = async () => {
+        if (!isAMDStationAvailable()) return;
+        await window.amdAPI.closeSerial('scanner');
+        setIsConnected(false);
+    };
+
+    useEffect(() => {
+        if (!isAMDStationAvailable()) return;
+
+        // Auto-connect if portPath provided
+        if (portPath) connect(portPath, baudRate);
+
+        // Also listen for keyboard-wedge barcodes from shell
+        const handleBarcode = (e) => {
+            if (e.detail) setLastBarcode(e.detail);
+        };
+        window.addEventListener('amd:barcode-scan', handleBarcode);
+
+        // Listen from preload bridge
+        const cleanup = window.amdAPI.onBarcodeScan?.((barcode) => {
+            setLastBarcode(barcode);
+        });
+
+        return () => {
+            window.removeEventListener('amd:barcode-scan', handleBarcode);
+            if (typeof cleanup === 'function') cleanup();
+        };
+    }, [portPath]);
+
+    return { lastBarcode, isConnected, error, connect, disconnect };
+}
+
+/**
+ * React Hook: Weight Scale via COM Port
+ *
+ * Usage:
+ *   const { weight, isConnected, connect } = useWeightScale('COM4', 9600);
+ */
+export function useWeightScale(portPath = null, baudRate = 9600) {
+    const [weight, setWeight] = useState(null);
+    const [rawReading, setRawReading] = useState(null);
+    const [isConnected, setIsConnected] = useState(false);
+    const [error, setError] = useState(null);
+
+    const connect = async (port, baud) => {
+        if (!isAMDStationAvailable()) return;
+        try {
+            const result = await window.amdAPI.openScale(port || portPath, baud || baudRate);
+            setIsConnected(result.success);
+            if (!result.success) setError(result.error);
+        } catch (e) {
+            setError(e.message);
+        }
+    };
+
+    const disconnect = async () => {
+        if (!isAMDStationAvailable()) return;
+        await window.amdAPI.closeSerial('scale');
+        setIsConnected(false);
+        setWeight(null);
+    };
+
+    useEffect(() => {
+        if (!isAMDStationAvailable()) return;
+
+        if (portPath) connect(portPath, baudRate);
+
+        const cleanup = window.amdAPI.onScaleReading?.((data) => {
+            setWeight(data.weight);
+            setRawReading(data.raw);
+        });
+
+        return () => {
+            if (typeof cleanup === 'function') cleanup();
+        };
+    }, [portPath]);
+
+    return { weight, rawReading, isConnected, error, connect, disconnect };
+}
+
+/**
+ * React Hook: Auto-Updater
+ *
+ * Usage:
+ *   const { updateAvailable, updateVersion, progress, isReady, downloadUpdate, installUpdate } = useAutoUpdater();
+ */
+export function useAutoUpdater() {
+    const [updateAvailable, setUpdateAvailable] = useState(false);
+    const [updateVersion, setUpdateVersion] = useState(null);
+    const [progress, setProgress] = useState(0);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        if (!isAMDStationAvailable()) return;
+
+        const cleanupAvailable = window.amdAPI.onUpdateAvailable?.((info) => {
+            setUpdateAvailable(true);
+            setUpdateVersion(info.version);
+            setIsDownloading(true);
+        });
+
+        const cleanupProgress = window.amdAPI.onUpdateProgress?.((data) => {
+            setProgress(data.percent);
+        });
+
+        const cleanupReady = window.amdAPI.onUpdateReady?.((info) => {
+            setIsReady(true);
+            setIsDownloading(false);
+            setProgress(100);
+        });
+
+        return () => {
+            if (typeof cleanupAvailable === 'function') cleanupAvailable();
+            if (typeof cleanupProgress === 'function') cleanupProgress();
+            if (typeof cleanupReady === 'function') cleanupReady();
+        };
+    }, []);
+
+    return {
+        updateAvailable,
+        updateVersion,
+        progress,
+        isDownloading,
+        isReady,
+        downloadUpdate: () => window.amdAPI?.downloadUpdate?.(),
+        installUpdate: () => window.amdAPI?.installUpdate?.(),
+    };
+}

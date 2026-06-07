@@ -46,6 +46,20 @@ class TenantMiddleware
             ->with('tenant')
             ->first();
 
+        if (!$membership && $user && $user->isPlatformAdmin()) {
+            $tenant = Tenant::where('slug', $storeSlug)->first();
+            if ($tenant) {
+                // Create a virtual/mock membership for the platform admin so they can access the store
+                $membership = new TenantUser([
+                    'user_id' => $user->id,
+                    'tenant_id' => $tenant->id,
+                    'role' => 'owner', // Platform superadmin acts as owner inside store contexts
+                    'status' => 'active',
+                ]);
+                $membership->setRelation('tenant', $tenant);
+            }
+        }
+
         if (!$membership) {
             // Not a member of this store — stale bookmark or wrong URL
             return redirect()->route('hub')
@@ -53,6 +67,53 @@ class TenantMiddleware
         }
 
         $tenant = $membership->tenant;
+
+        // ── Plan Limits Exceed Check ───────────────────────────────────────
+        $limitStatus = $tenant->checkLimitsStatus();
+        if ($limitStatus['is_over_limit']) {
+            if ($tenant->limit_grace_ends_at === null) {
+                // Set grace period to exactly 3 days from now
+                $tenant->update([
+                    'limit_grace_ends_at' => now()->addDays(3)
+                ]);
+                $limitStatus['grace_ends_at'] = $tenant->limit_grace_ends_at->toIso8601String();
+            } elseif ($tenant->limit_grace_ends_at->isPast()) {
+                // Grace expired: automatically lock store to View-Only mode if not already locked
+                if ($tenant->view_only_since === null) {
+                    $tenant->update([
+                        'view_only_since' => now()
+                    ]);
+                }
+            }
+        } else {
+            // Self-Healing: if they deleted the extra resources and are back below limit, clear grace & lock
+            if ($tenant->limit_grace_ends_at !== null || $tenant->view_only_since !== null) {
+                $tenant->update([
+                    'limit_grace_ends_at' => null,
+                    'view_only_since' => null
+                ]);
+                $limitStatus['grace_ends_at'] = null;
+            }
+        }
+
+        // ── Pending plan downgrade check (Local simulated proration/downgrade) ──
+        if (is_array($tenant->plan_limits) && isset($tenant->plan_limits['pending_downgrade'])) {
+            $pd = $tenant->plan_limits['pending_downgrade'];
+            if (isset($pd['plan']) && isset($pd['effective_at']) && now()->parse($pd['effective_at'])->isPast()) {
+                $newLimits = $tenant->plan_limits;
+                unset($newLimits['pending_downgrade']);
+                
+                $tenant->update([
+                    'plan' => $pd['plan'],
+                    'plan_limits' => $newLimits
+                ]);
+                
+                // Clear cache
+                \App\Services\PlanRepository::invalidatePlanCache($pd['plan']);
+                \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+                \Illuminate\Support\Facades\Log::info("Tenant {$tenant->id} successfully downgraded to {$pd['plan']} at scheduled time {$pd['effective_at']}.");
+            }
+        }
 
         // ── Trial expiry check ─────────────────────────────────────────────
         if ($tenant->status === 'trial' && $tenant->trial_ends_at?->isPast()) {
@@ -68,7 +129,7 @@ class TenantMiddleware
                     'store_name'  => $tenant->name,
                     'plan'        => $tenant->plan,
                     'billing_url' => route('store.billing', ['store_slug' => $storeSlug]),
-                ]);
+                ])->toResponse($request);
             }
         }
 
@@ -78,12 +139,9 @@ class TenantMiddleware
         app()->instance('current.tenant',     $tenant);
         app()->instance('current.membership', $membership);
 
-        // Share with Inertia globally to prevent broken sidebar links
-        \Inertia\Inertia::share([
-            'store'      => $tenant,
-            'membership' => $membership,
-            'userRole'   => $membership->role
-        ]);
+        $request->route()->forgetParameter('store_slug');
+
+        // Shared data has been merged with the main share block below.
 
         // ── Setup wizard redirect ──────────────────────────────────────────
         if (
@@ -96,6 +154,24 @@ class TenantMiddleware
 
         // ── Update last_store_id (deferred — zero latency) ─────────────────
         if ($user->last_store_id !== $tenant->id) {
+            // Regenerate session ID to prevent cross-tenant session fixation
+            $request->session()->regenerate();
+
+            // Clear store-specific session variables to prevent state leakage
+            $keysToForget = [];
+            foreach ($request->session()->all() as $key => $value) {
+                if (
+                    str_starts_with($key, 'store_') || 
+                    str_starts_with($key, 'owner_pulse_') || 
+                    str_starts_with($key, 'register_')
+                ) {
+                    $keysToForget[] = $key;
+                }
+            }
+            if (!empty($keysToForget)) {
+                $request->session()->forget($keysToForget);
+            }
+
             dispatch(function () use ($user, $tenant) {
                 $user->update(['last_store_id' => $tenant->id]);
             })->afterResponse();
@@ -115,16 +191,48 @@ class TenantMiddleware
                 'trial_ends_at'   => $tenant->trial_ends_at,
                 'subscription_ends_at' => $tenant->subscription_ends_at,
                 'setup_completed' => $tenant->setup_completed,
+                'onboarding_step' => $tenant->onboarding_step,
                 'logo_url'        => $tenant->logo_url,
                 'logo_style'      => $tenant->logo_style,
-                'features'        => $tenant->featuresArray(),
+                'features'        => array_merge($tenant->featuresArray(), [
+                    'chat_support'     => (bool)$tenant->getLimit('chat_support'),
+                    'live_chat_widget' => (bool)$tenant->getLimit('live_chat_widget'),
+                ]),
             ],
+            'membership'      => $membership,
+            'userRole'        => $membership->role,
             'my_role'         => $membership->role,
             'my_display_name' => $membership->display_name ?? $user->name,
             'my_pos_pin_set'  => !is_null($membership->pos_pin),
             'is_demo'         => (bool)$tenant->is_demo,
             'demo_reset_at'   => $tenant->is_demo ? $this->getNextResetTime() : null,
             'demo_live_users' => $tenant->is_demo ? \Illuminate\Support\Facades\Cache::get('demo_visit_live', 0) : null,
+            'limit_grace_status' => [
+                'is_over_limit'     => $limitStatus['is_over_limit'],
+                'exceeded_feature'  => $limitStatus['exceeded_feature'],
+                'current_count'     => $limitStatus['current_count'],
+                'limit'             => $limitStatus['limit'],
+                'grace_ends_at'     => $limitStatus['grace_ends_at'],
+                'is_trial'          => $tenant->status === 'trial',
+            ],
+
+            // ── Plan Usage Banner (GAP 7 — AppSumo LTD) ──────────────────
+            // Lazy closure: only runs when Inertia serializes the response.
+            // Returns null for unlimited plans (null limit) — no query runs.
+            'plan_usage' => function () use ($tenant) {
+                $limit = $tenant->getLimit('transactions_per_month');
+                if ($limit === null) return null; // unlimited plan — no banner shown
+
+                $used = \App\Models\Sale::where('status', 'posted')
+                    ->whereYear('created_at', now()->year)
+                    ->whereMonth('created_at', now()->month)
+                    ->count();
+
+                return [
+                    'transactions_used'  => $used,
+                    'transactions_limit' => $limit,
+                ];
+            },
         ]);
 
         // Temporary Debug: Verify sharing store prop correctly

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Services\PlanRepository;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+
 
 /**
  * Tenant Model — Definitive Plan
@@ -27,7 +30,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  */
 class Tenant extends Model
 {
-    use SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     // Numeric auto-increment PK — NOT UUID
     public $incrementing = true;
@@ -62,6 +65,25 @@ class Tenant extends Model
         'feature_manufacturing',
         'logo_style',
         'logo_path',
+        'onboarding_step',
+        'onboarding_completed',
+        'onboarding_skipped',
+        'onboarding_steps_done',
+        'google_backup_enabled',
+        'google_backup_retention',
+        'google_backup_email',
+        'google_access_token',
+        'google_refresh_token',
+        'google_backup_folder_id',
+        'view_only_since',
+        'limit_grace_ends_at',
+        'ai_status',
+        'ai_queries_limit',
+        'ai_queries_used',
+        'ai_scans_limit',
+        'ai_scans_used',
+        'sync_channels',
+        'grace_ends_at',
     ];
 
     protected $casts = [
@@ -72,11 +94,41 @@ class Tenant extends Model
         'trial_ends_at'         => 'datetime',
         'subscription_ends_at'  => 'datetime',
         'demo_expires_at'       => 'datetime',
+        'last_online_at'        => 'datetime',
         'feature_variants'      => 'boolean',
         'feature_serials'       => 'boolean',
         'feature_batches'       => 'boolean',
         'feature_manufacturing' => 'boolean',
+        'onboarding_completed'  => 'boolean',
+        'onboarding_skipped'    => 'boolean',
+        'onboarding_steps_done' => 'array',
+        'google_backup_enabled' => 'boolean',
+        'google_backup_retention'=> 'integer',
+        'google_access_token'   => 'encrypted',
+        'google_refresh_token'  => 'encrypted',
+        'view_only_since'       => 'datetime',
+        'limit_grace_ends_at'   => 'datetime',
+        'sync_channels'         => 'array',
+        'grace_ends_at'         => 'datetime',
     ];
+
+    protected $hidden = [
+        'google_access_token',
+        'google_refresh_token',
+    ];
+
+    protected $appends = [
+        'logo_url',
+        'google_connected',
+    ];
+
+    public function getGoogleConnectedAttribute(): bool
+    {
+        if (!array_key_exists('google_refresh_token', $this->attributes)) {
+            return false;
+        }
+        return !empty($this->google_refresh_token);
+    }
 
     // ──────────────────────────────────────────────────────────────────
     // Relationships
@@ -118,9 +170,38 @@ class Tenant extends Model
         return $this->hasMany(StoreLicense::class);
     }
 
+    public function planOverrides(): HasMany
+    {
+        return $this->hasMany(TenantPlanOverride::class);
+    }
+
     // ──────────────────────────────────────────────────────────────────
     // Helpers
     // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Get the URL for the tenant's logo.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (!array_key_exists('logo_path', $this->attributes)) {
+            return null;
+        }
+        if (!$this->logo_path) {
+            return null;
+        }
+
+        // Guard against broken URLs for logos that exist in the DB but are
+        // missing from storage (e.g. after a deployment, migration, or S3 sync issue).
+        // Returning null lets the frontend fall back to the initials avatar gracefully
+        // instead of rendering a broken <img> that fires a 404 on every page load.
+        if (!\Illuminate\Support\Facades\Storage::exists($this->logo_path)) {
+            return null;
+        }
+
+        return \Illuminate\Support\Facades\Storage::url($this->logo_path);
+    }
+
 
     /**
      * Get the owner's email address (for billing notifications).
@@ -151,36 +232,121 @@ class Tenant extends Model
     }
 
     /**
-     * Get effective plan limits, allowing per-tenant JSON overrides.
+     * Get the effective limit for a feature key.
+     *
+     * Priority order:
+     * 1. tenant_plan_overrides table (set from SuperAdmin override panel)
+     * 2. plan_limits table (set from SuperAdmin plan editor)
+     * 3. plan_limits JSON column on this tenant (legacy AppSumo stacking — still supported)
+     * 4. config/plans.php (final fallback during transition period)
      */
     public function getLimit(string $key): mixed
     {
-        if ($this->plan_limits && isset($this->plan_limits[$key])) {
-            return $this->plan_limits[$key];
+        // Use PlanRepository which handles DB + cache (priorities 1 & 2)
+        $value = PlanRepository::getEffectiveLimit($this->id, $this->plan, $key);
+
+        // 3. Fallback to plan_limits JSON column on this tenant (legacy AppSumo stacking)
+        if ($this->plan === 'ltd' || ($value === null && !array_key_exists($key, PlanRepository::getLimits($this->plan)))) {
+            if ($this->plan_limits && isset($this->plan_limits[$key])) {
+                $value = $this->plan_limits[$key];
+            }
         }
-        return config("plans.{$this->plan}.{$key}");
+
+        // Value semantics from DB:
+        // null = unlimited
+        // '0'  = false/disabled
+        // '1'  = true/enabled
+        // numeric string = integer cap
+        // 'basic'/'advanced' = feature variant
+
+        if ($value === null)        return null;   // unlimited
+        if (in_array($key, ['transactions_per_month', 'locations', 'sku_limit', 'staff_limit'])) {
+            return is_numeric($value) ? (int) $value : null;
+        }
+        if ($value === '0')         return false;  // feature disabled
+        if ($value === '1')         return true;   // feature enabled
+        if (is_numeric($value))     return (int) $value;
+        return $value;                             // string variant e.g. 'basic', 'advanced'
     }
 
     /**
-     * Return the features array for Inertia sharing.
+     * Get an array of enabled features for the frontend.
      */
     public function featuresArray(): array
     {
         return [
-            'variants'      => $this->feature_variants,
-            'serials'       => $this->feature_serials,
-            'batches'       => $this->feature_batches,
-            'manufacturing' => $this->feature_manufacturing,
+            'variants'      => (bool)$this->feature_variants,
+            'serials'       => (bool)$this->feature_serials,
+            'batches'       => (bool)$this->feature_batches,
+            'manufacturing' => (bool)$this->feature_manufacturing,
         ];
     }
-    /**
-     * Get the logo URL (using the specific store logo or falling back to VenQore default).
-     */
-    public function getLogoUrlAttribute(): string
+
+    public function setPlanAttribute($value)
     {
-        if ($this->logo_path) {
-            return asset('storage/' . $this->logo_path);
+        if (is_string($value) && str_starts_with($value, 'ltd_')) {
+            $this->attributes['plan'] = 'ltd';
+            $this->plan_limits = config("plans.{$value}");
+        } else {
+            $this->attributes['plan'] = $value;
         }
-        return asset('images/logo.png');
+    }
+
+    /**
+     * Check current usage against plan limits for products, warehouses, and staff.
+     */
+    public function checkLimitsStatus(): array
+    {
+        // 1. Products (SKUs)
+        $skuLimit = $this->getLimit('sku_limit');
+        $skuCount = $skuLimit !== null ? $this->products()->count() : 0;
+        $skuExceeded = $skuLimit !== null && $skuCount > $skuLimit;
+
+        // 2. Warehouses (Locations)
+        $locationLimit = $this->getLimit('locations');
+        $locationCount = 0;
+        if ($locationLimit !== null) {
+            try {
+                $locationCount = \App\Models\Warehouse::count(); // scoped by HasTenant
+            } catch (\Throwable) {
+                $locationCount = 1;
+            }
+        }
+        $locationExceeded = $locationLimit !== null && $locationCount > $locationLimit;
+
+        // 3. Staff Accounts
+        $staffLimit = $this->getLimit('staff_limit');
+        $staffCount = 0;
+        if ($staffLimit !== null) {
+            $staffCount = $this->users()->wherePivot('status', 'active')->count();
+        }
+        $staffExceeded = $staffLimit !== null && $staffCount > $staffLimit;
+
+        // Determine which feature is exceeded (prioritize SKU, then staff, then locations)
+        $exceededFeature = null;
+        $currentCount = 0;
+        $limit = null;
+
+        if ($skuExceeded) {
+            $exceededFeature = 'sku_limit';
+            $currentCount = $skuCount;
+            $limit = $skuLimit;
+        } elseif ($staffExceeded) {
+            $exceededFeature = 'staff_limit';
+            $currentCount = $staffCount;
+            $limit = $staffLimit;
+        } elseif ($locationExceeded) {
+            $exceededFeature = 'locations';
+            $currentCount = $locationCount;
+            $limit = $locationLimit;
+        }
+
+        return [
+            'is_over_limit' => $exceededFeature !== null,
+            'exceeded_feature' => $exceededFeature,
+            'current_count' => $currentCount,
+            'limit' => $limit,
+            'grace_ends_at' => $this->limit_grace_ends_at?->toIso8601String(),
+        ];
     }
 }

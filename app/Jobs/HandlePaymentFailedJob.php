@@ -31,19 +31,19 @@ class HandlePaymentFailedJob implements ShouldQueue
     {
         $subscriptionId = (string) ($this->data['id'] ?? '');
 
-        $tenant = Tenant::withoutTenantScope()
-            ->where('lemon_squeezy_subscription_id', $subscriptionId)
-            ->first();
+        $tenant = Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->first();
 
         if (!$tenant) {
             Log::warning("HandlePaymentFailedJob: No tenant for {$subscriptionId}");
             return;
         }
 
-        $adminUser = \App\Models\User::withoutTenantScope()
-            ->where('tenant_id', $tenant->id)
-            ->where('role', 'platform_admin')
-            ->first();
+        app()->instance('current.tenant', $tenant);
+
+        // Find the admin user to email via TenantUser pivot
+        $adminUser = \App\Models\User::whereHas('memberships', function ($q) use ($tenant) {
+            $q->where('tenant_id', $tenant->id)->where('role', 'platform_admin');
+        })->first();
 
         if ($adminUser) {
             Mail::to($adminUser->email)->send(new PaymentFailedMail($tenant, $adminUser));

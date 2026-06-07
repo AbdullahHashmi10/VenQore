@@ -1,0 +1,3 @@
+AMD_POS_VERSION=4.0.2
+RELEASED=2026-06-05
+TYPE=update_package

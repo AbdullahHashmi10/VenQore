@@ -1,0 +1,32 @@
+========== TEST 1: FULL POS SALE ==========
+API RESPONSE: {"success":true,"sale_id":"9d27008a-ef38-451f-a093-f5e5fed0a8ef","reference":"INV-260417-008","notifications":[]}
+
+Journal Items for Sale:
+Debit | Credit | Party ID | Code | Name
+--------------------------------------------------------------------------------
+350.00 | 0.00 | NULL | 1000 | Account 1000
+0.00 | 180.00 | NULL | 1100 | Inventory Asset
+0.00 | 350.00 | NULL | 4000 | Sales Revenue
+180.00 | 0.00 | NULL | 5000 | Cost of Goods Sold
+Total Debit: 530 | Total Credit: 530
+Balanced? YES
+
+========== TEST 2: SALE RETURN ==========
+RETURN API RESPONSE: {"success":true,"message":"Return processed successfully.","return_id":"019d9a71-bd59-7321-9a6c-38d5c5a26663"}
+
+Journal Items for Return:
+Debit | Credit | Party ID | Code | Name
+--------------------------------------------------------------------------------
+0.00 | 400.00 | NULL | 1000 | Account 1000
+400.00 | 0.00 | NULL | 4000 | Sales Revenue
+Total Debit: 400 | Total Credit: 400
+Balanced? YES
+
+========== TEST 3: NEW TENANT EMPTY STATE ==========
+Route /dashboard -> OK
+Route /pos -> OK
+Route /customers -> OK
+
+========== TEST 4: TENANT ISOLATION ==========
+Route cross-tenant hit -> Exception Thrown: Illuminate\Database\Eloquent\ModelNotFoundException
+ASSERTION PASSED: Safely rejected by global scope.

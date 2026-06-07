@@ -591,7 +591,7 @@ export const APP_REGISTRY = [
         keywords: ['import', 'export', 'csv', 'excel', 'bulk'],
         icon: Download,
         category: CATEGORIES.NAVIGATION,
-        route: 'import-export.index',
+        route: 'store.admin.data',
     },
     {
         id: 'growth-engine',
@@ -713,7 +713,7 @@ export const APP_REGISTRY = [
         keywords: ['export', 'download', 'products', 'csv'],
         icon: Download,
         category: CATEGORIES.ACTION,
-        route: 'products.export',
+        route: 'store.admin.data.export',
         action: 'export',
     },
     {
@@ -723,7 +723,7 @@ export const APP_REGISTRY = [
         keywords: ['import', 'upload', 'products', 'csv'],
         icon: Upload,
         category: CATEGORIES.ACTION,
-        route: 'import-export.index',
+        route: 'store.admin.data',
         action: 'import',
     },
 

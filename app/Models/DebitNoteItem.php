@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 
 class DebitNoteItem extends Model
 {
-    use HasUuids;
+    use HasUuids, HasTenant;
 
     protected $fillable = [
         'debit_note_id',

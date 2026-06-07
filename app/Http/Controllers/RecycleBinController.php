@@ -179,22 +179,64 @@ class RecycleBinController extends Controller
         $type = $request->input('type');
 
         if ($type === 'product') {
-            $product = Product::withTrashed()->findOrFail($id);
+            try {
+                $product = Product::withTrashed()->findOrFail($id);
+                $name = $product->name;
 
-            if ($product->image_path) {
-                Storage::disk('public')->delete($product->image_path);
+                \Illuminate\Support\Facades\DB::transaction(function() use ($product) {
+                    // Cascade delete related records that are safe to clear
+                    
+                    // 1. Delete barcodes
+                    $product->barcodes()->delete();
+
+                    // 2. Delete images (both files and rows)
+                    $images = $product->images;
+                    foreach ($images as $img) {
+                        Storage::disk('public')->delete($img->file_path);
+                        $img->delete();
+                    }
+                    if ($product->image_path) {
+                        Storage::disk('public')->delete($product->image_path);
+                    }
+
+                    // 3. Delete variants
+                    $product->variants()->delete();
+
+                    // 4. Delete stocks
+                    $product->stocks()->delete();
+
+                    // 5. Delete stock movements
+                    $product->stockMovements()->delete();
+
+                    // 6. Delete batches
+                    $product->batches()->delete();
+
+                    // 7. Delete inventory_batches
+                    \Illuminate\Support\Facades\DB::table('inventory_batches')->where('product_id', $product->id)->delete();
+
+                    // 8. Delete WooCommerce links
+                    $product->wooLinks()->delete();
+
+                    // 9. Finally force delete the product
+                    $product->forceDelete();
+                });
+
+                ActivityLog::create([
+                    'user_id' => Auth::id(),
+                    'action' => 'force_delete',
+                    'description' => "Permanently deleted product: {$name}",
+                    'subject_type' => Product::class,
+                    'subject_id' => $id,
+                ]);
+
+                return redirect()->back()->with('success', 'Product permanently deleted.');
+            } catch (\Illuminate\Database\QueryException $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to permanently delete product ID {$id}: " . $e->getMessage());
+                return redirect()->back()->with('error', "Cannot permanently delete product because it has transaction history (such as sales, purchases, or invoices) in other modules.");
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::error("Failed to permanently delete product ID {$id}: " . $e->getMessage());
+                return redirect()->back()->with('error', "An unexpected error occurred while permanently deleting the product.");
             }
-
-            $name = $product->name;
-            $product->forceDelete();
-
-            ActivityLog::create([
-                'user_id' => Auth::id(),
-                'action' => 'force_delete',
-                'description' => "Permanently deleted product: {$name}",
-                'subject_type' => Product::class,
-                'subject_id' => $id,
-            ]);
 
         } elseif ($type === 'sale') {
             $sale = \App\Models\Sale::withTrashed()->findOrFail($id);

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Traits\HasTenant;
 
 /**
  * StoreLicense — Definitive Plan
@@ -13,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class StoreLicense extends Model
 {
+    use HasTenant;
+
     protected $fillable = [
         'user_id',
         'tenant_id',

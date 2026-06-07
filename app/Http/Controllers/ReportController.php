@@ -26,6 +26,62 @@ use Illuminate\Support\Facades\DB;
 
 class ReportController extends Controller
 {
+    private function resolveDateRange(Request $request)
+    {
+        $range = $request->input('range', 'this_month');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+
+        switch ($range) {
+            case 'today':
+                $startDate = Carbon::today()->toDateString();
+                $endDate = Carbon::today()->toDateString();
+                break;
+            case 'yesterday':
+                $startDate = Carbon::yesterday()->toDateString();
+                $endDate = Carbon::yesterday()->toDateString();
+                break;
+            case 'this_week':
+                $startDate = Carbon::now()->startOfWeek()->toDateString();
+                $endDate = Carbon::now()->endOfWeek()->toDateString();
+                break;
+            case 'last_week':
+                $startDate = Carbon::now()->subWeek()->startOfWeek()->toDateString();
+                $endDate = Carbon::now()->subWeek()->endOfWeek()->toDateString();
+                break;
+            case 'this_month':
+                $startDate = Carbon::now()->startOfMonth()->toDateString();
+                $endDate = Carbon::now()->endOfMonth()->toDateString();
+                break;
+            case 'last_month':
+                $startDate = Carbon::now()->subMonth()->startOfMonth()->toDateString();
+                $endDate = Carbon::now()->subMonth()->endOfMonth()->toDateString();
+                break;
+            case 'this_year':
+                $startDate = Carbon::now()->startOfYear()->toDateString();
+                $endDate = Carbon::now()->endOfYear()->toDateString();
+                break;
+            case 'last_year':
+                $startDate = Carbon::now()->subYear()->startOfYear()->toDateString();
+                $endDate = Carbon::now()->subYear()->endOfYear()->toDateString();
+                break;
+            case 'custom':
+                if (!$startDate) {
+                    $startDate = Carbon::now()->startOfMonth()->toDateString();
+                }
+                if (!$endDate) {
+                    $endDate = Carbon::now()->endOfMonth()->toDateString();
+                }
+                break;
+            default:
+                $startDate = Carbon::now()->startOfMonth()->toDateString();
+                $endDate = Carbon::now()->endOfMonth()->toDateString();
+                break;
+        }
+
+        return [$startDate, $endDate, $range];
+    }
+
     public function index()
     {
         return Inertia::render('Reports/ReportsHub');
@@ -39,18 +95,18 @@ class ReportController extends Controller
 
     public function sales(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $customerId = $request->input('customer_id');
 
         $query = Sale::with(['party', 'payments', 'items.product'])
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            ->posted()
+            ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
 
         if ($customerId) {
             $query->where('party_id', $customerId);
         }
 
-        $sales = $query->orderBy('created_at', 'desc')->get();
+        $sales = $query->orderBy('posted_at', 'desc')->get();
 
         // Enhanced Stats
         $tenantId = app('current.tenant')->id;
@@ -93,20 +149,8 @@ class ReportController extends Controller
         ];
 
         // Chart Data (Daily Trend)
-        // Group by Date (Y-m-d) and sum totals
-        $chartData = $sales->groupBy(function($sale) {
-            return Carbon::parse($sale->created_at)->format('Y-m-d');
-        })->map(function($group, $date) {
-            return [
-                'name' => Carbon::parse($date)->format('d M'),
-                'value' => $group->sum('net_sales'),
-                'count' => $group->count()
-            ];
-        })->values()->sortBy('name'); // This sort by name string might be wrong for dates like "02 Feb" vs "31 Jan". 
-        // Correct approach: sort by key (date) first, then map.
-        
-        $chartData = $sales->sortBy('created_at')->groupBy(function($sale) {
-             return Carbon::parse($sale->created_at)->format('Y-m-d');
+        $chartData = $sales->sortBy('posted_at')->groupBy(function($sale) {
+             return Carbon::parse($sale->posted_at)->format('Y-m-d');
         })->map(function($group, $date) {
              return [
                  'name' => Carbon::parse($date)->format('d M'),
@@ -119,6 +163,7 @@ class ReportController extends Controller
             'stats' => $stats,
             'chartData' => $chartData,
             'filters' => [
+                'range' => $range,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
                 'customer_id' => $customerId
@@ -127,25 +172,44 @@ class ReportController extends Controller
         ]);
     }
 
+    public function dailySales(Request $request)
+    {
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
+
+        // Group sales by day in the range
+        $sales = DB::table('sales')
+            ->where('tenant_id', app('current.tenant')->id)
+            ->whereNull('deleted_at')
+            ->where('status', 'posted')
+            ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->selectRaw('DATE(posted_at) as date, SUM(net_sales) as revenue, COUNT(*) as count, SUM(tax) as tax, SUM(discount) as discount')
+            ->groupBy('date')
+            ->orderBy('date', 'desc')
+            ->get();
+
+        return Inertia::render('Reports/DailySales', [
+            'reports' => $sales,
+            'filters' => [
+                'range' => $range,
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
+            'stats' => [
+                'total_revenue' => $sales->sum('revenue'),
+                'total_count' => $sales->sum('count'),
+                'total_tax' => $sales->sum('tax'),
+                'total_discount' => $sales->sum('discount'),
+            ]
+        ]);
+    }
+
     public function purchases(Request $request)
     {
-        $range = $request->input('range', 'this_month');
-        $startDate = $request->input('start_date');
-        $endDate = $request->input('end_date');
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $supplierId = $request->input('supplier_id');
 
-        $query = Invoice::with('party')->where('type', 'purchase');
-
-        if ($range === 'today') {
-            $query->whereDate('date', Carbon::today());
-        } elseif ($range === 'this_month') {
-            $query->whereMonth('date', Carbon::now()->month)
-                  ->whereYear('date', Carbon::now()->year);
-        } elseif ($range === 'this_year') {
-            $query->whereYear('date', Carbon::now()->year);
-        } elseif ($range === 'custom' && $startDate && $endDate) {
-            $query->whereBetween('date', [$startDate, $endDate]);
-        }
+        $query = Invoice::with('party')->where('type', 'purchase')
+            ->whereBetween('date', [$startDate, $endDate]);
 
         if ($supplierId) {
             $query->where('party_id', $supplierId);
@@ -252,8 +316,7 @@ class ReportController extends Controller
 
     public function profitLoss(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 4 — Delegates entirely to FinancialReportingService.
         // This controller is now a thin HTTP adapter. No financial logic lives here.
@@ -271,6 +334,7 @@ class ReportController extends Controller
             'income_accounts'  => $pnl['income_accounts'],
             'expense_accounts' => $pnl['expense_accounts'],
             'filters' => [
+                'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
             ],
@@ -378,6 +442,7 @@ class ReportController extends Controller
                     ->where('journal_items.account_id', $accountId)
                     ->where('journal_entries.party_id', $partyId)
                     ->where('journal_entries.date', '<', $startDate)
+                    ->where('journal_entries.is_reversed', 0)
                     ->sum('journal_items.debit');
                 $openingCredits = (float) DB::table('journal_items')
                     ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
@@ -385,6 +450,7 @@ class ReportController extends Controller
                     ->where('journal_items.account_id', $accountId)
                     ->where('journal_entries.party_id', $partyId)
                     ->where('journal_entries.date', '<', $startDate)
+                    ->where('journal_entries.is_reversed', 0)
                     ->sum('journal_items.credit');
                 $openingBalance = $openingDebits - $openingCredits;
 
@@ -395,6 +461,7 @@ class ReportController extends Controller
                     ->where('journal_items.account_id', $accountId)
                     ->where('journal_entries.party_id', $partyId)
                     ->whereBetween('journal_entries.date', [$startDate, $endDate])
+                    ->where('journal_entries.is_reversed', 0)
                     ->select(
                         'journal_entries.date',
                         'journal_entries.reference as ref',
@@ -443,6 +510,8 @@ class ReportController extends Controller
     public function transactions(Request $request)
     {
         $tenantId = app('current.tenant')->id;
+        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $transactions = DB::table('journal_entries')
             ->leftJoin('parties', 'journal_entries.party_id', '=', 'parties.id')
@@ -635,6 +704,18 @@ class ReportController extends Controller
 
         $summary = (new FinancialReportingService())->getTaxSummary($startDate, $endDate);
 
+        $taxRecords = $summary['details']->map(function ($row) {
+            $type = $row->output_tax > 0 ? 'sale' : 'purchase';
+            $taxAmount = $row->output_tax > 0 ? (float)$row->output_tax : (float)$row->input_tax;
+            return [
+                'date' => $row->date,
+                'invoice_number' => $row->reference ?? '-',
+                'type' => $type,
+                'taxable_amount' => 0.0,
+                'tax_amount' => $taxAmount
+            ];
+        });
+
         $stats = [
             'total_output_tax' => $summary['output_tax'],
             'total_input_tax'  => $summary['input_tax'],
@@ -643,7 +724,7 @@ class ReportController extends Controller
         ];
 
         return Inertia::render('Reports/Tax', [
-            'tax_records' => $summary['details'],
+            'tax_records' => $taxRecords,
             'stats'       => $stats,
             'filters'     => [
                 'start_date' => $startDate,
@@ -795,20 +876,16 @@ class ReportController extends Controller
             'data'  => $parties,
             'stats' => [
                 ['label' => 'Total Parties',    'value' => $parties->count()],
-                ['label' => 'Total Receivables','value' => number_format($totalReceivables, 2), 'type' => 'up'],
-                ['label' => 'Total Payables',   'value' => number_format($totalPayables, 2),    'type' => 'down'],
+                ['label' => 'Total Receivables','value' => \App\Helpers\SettingsHelper::formatNumber($totalReceivables), 'type' => 'up'],
+                ['label' => 'Total Payables',   'value' => \App\Helpers\SettingsHelper::formatNumber($totalPayables),    'type' => 'down'],
             ]
         ]);
     }
 
     public function trialBalance(Request $request)
     {
-        // BUG-01 FIX (CALCULATION_LOGIC.md §8 BUG-01)
-        // The old implementation read accounts.balance — a cached column that can desync.
-        // The correct implementation reads from journal_items in real time, filtered to a date.
-        // Rule: the Trial Balance is the ultimate proof that debits = credits in the ledger.
-        //       If it reads a cache, it can "appear" balanced when the ledger is not.
         $tenantId = app('current.tenant')->id;
+        $asOf = $request->input('date', now()->toDateString());
 
         // SINGLE EFFICIENT AGGREGATION QUERY (O(1) database calls)
         $balances = DB::table('journal_items')
@@ -858,19 +935,30 @@ class ReportController extends Controller
 
     public function itemWiseProfit(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 2.2 — Delegates to FinancialReportingService.
         // Revenue = sale_items.net_amount (Phase 2.1 waterfall column, ex-tax ex-discount)
         // COGS    = sale_item_batches.total_cogs (FIFO locked-in cost)
         // Margin  = (gross_profit / net_revenue) × 100 — calculated dynamically, never stored
-        $items = (new FinancialReportingService())
+        $rawItems = (new FinancialReportingService())
             ->getGrossProfitByProduct($startDate, $endDate);
+
+        $items = $rawItems->map(function ($item) {
+            return [
+                'name' => $item['name'],
+                'sku' => $item['sku'],
+                'quantity' => $item['quantity'],
+                'revenue' => $item['net_revenue'],
+                'profit' => $item['gross_profit'],
+                'margin_pct' => $item['margin_pct'],
+            ];
+        });
 
         return Inertia::render('Reports/ItemWiseProfit', [
             'items'   => $items,
             'filters' => [
+                'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
             ],
@@ -879,8 +967,7 @@ class ReportController extends Controller
 
     public function partyWiseProfitLoss(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 2.2 — Delegates to FinancialReportingService.
         // COGS comes from sale_item_batches (FIFO), not products.cost_price.
@@ -897,23 +984,40 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                ['label' => 'Total Revenue', 'value' => number_format($data->sum('net_revenue'), 2)],
-                ['label' => 'Total Profit', 'value' => number_format($data->sum('gross_profit'), 2), 'type' => 'up'],
+                ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('net_revenue'))],
+                ['label' => 'Total Profit', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('gross_profit')), 'type' => 'up'],
             ],
             'chartData' => $data->sortByDesc('gross_profit')->take(10)->map(fn($r) => ['name' => substr($r['party_name'], 0, 15), 'value' => $r['gross_profit']])->values(),
-            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#6366f1']
+            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#6366f1'],
+            'filters' => [
+                'range' => $range,
+                'start_date' => $startDate,
+                'end_date' => $endDate
+            ]
         ]);
     }
 
     public function discountReport(Request $request)
     {
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
+
         // FIX-17: Read from sales table (V3), not legacy invoices table
-        $sales = Sale::where('discount', '>', 0)->with('party')->orderBy('created_at', 'desc')->get();
+        $sales = Sale::posted()
+            ->where('discount', '>', 0)
+            ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->with('party')
+            ->orderBy('posted_at', 'desc')
+            ->get();
         $totalDiscount = $sales->sum('discount');
 
         return Inertia::render('Reports/DiscountReport', [
             'invoices'      => $sales,
-            'totalDiscount' => $totalDiscount
+            'totalDiscount' => $totalDiscount,
+            'filters'       => [
+                'range'      => $range,
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+            ]
         ]);
     }
 
@@ -925,12 +1029,16 @@ class ReportController extends Controller
         $report = (new FinancialReportingService())->getCashFlowReport($startDate, $endDate);
 
         return Inertia::render('Reports/CashFlow', [
-            'operating' => $report['net_cash_flow'],
+            'operating' => (float) $report['net_cash_flow'],
             'investing' => 0.0,
             'financing' => 0.0,
             'stats'     => [
-                'inflow'  => $report['operating_inflow'],
-                'outflow' => $report['operating_outflow']
+                'inflow'  => (float) $report['operating_inflow'],
+                'outflow' => (float) $report['operating_outflow']
+            ],
+            'filters'   => [
+                'start_date' => $startDate,
+                'end_date'   => $endDate
             ]
         ]);
     }
@@ -985,11 +1093,11 @@ class ReportController extends Controller
             ->values();
 
         $stats = [
-            ['label' => 'Current (0-30 days)',  'value' => number_format($sales->where('category', '0-30')->sum('amount'), 2)],
-            ['label' => '31-60 days',           'value' => number_format($sales->where('category', '30-60')->sum('amount'), 2)],
-            ['label' => '61-90 days',           'value' => number_format($sales->where('category', '60-90')->sum('amount'), 2)],
-            ['label' => 'Over 90 days',         'value' => number_format($sales->where('category', '90+')->sum('amount'), 2), 'type' => 'down'],
-            ['label' => 'Total Outstanding AR', 'value' => number_format($sales->sum('amount'), 2)],
+            ['label' => 'Current (0-30 days)',  'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '0-30')->sum('amount'))],
+            ['label' => '31-60 days',           'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '30-60')->sum('amount'))],
+            ['label' => '61-90 days',           'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '60-90')->sum('amount'))],
+            ['label' => 'Over 90 days',         'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '90+')->sum('amount')), 'type' => 'down'],
+            ['label' => 'Total Outstanding AR', 'value' => \App\Helpers\SettingsHelper::formatNumber($sales->sum('amount'))],
         ];
 
         return Inertia::render('Reports/SaleAging', [
@@ -1004,7 +1112,7 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        $query = Invoice::where('type', 'sales_order')->with('party')->orderByDesc('created_at');
+        $query = \App\Models\SalesOrder::with(['customer', 'user'])->orderByDesc('created_at');
 
         if ($range === 'today') {
             $query->whereDate('created_at', Carbon::today());
@@ -1017,7 +1125,10 @@ class ReportController extends Controller
              $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         }
 
-        $orders = $query->get();
+        $orders = $query->get()->map(function ($order) {
+            $order->party = $order->customer;
+            return $order;
+        });
 
         return Inertia::render('Reports/SaleOrders', [
             'orders' => $orders,
@@ -1070,7 +1181,7 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                ['label' => 'Total Expenses', 'value' => number_format($data->sum('total'), 2)],
+                ['label' => 'Total Expenses', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total'))],
                 ['label' => 'Categories', 'value' => $data->count()]
             ],
             'chartData' => $data->map(fn($r) => ['name' => $r->category ?: 'Uncategorized', 'value' => $r->total]),
@@ -1109,7 +1220,7 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                ['label' => 'Total Expenses', 'value' => number_format($data->sum('amount'), 2)],
+                ['label' => 'Total Expenses', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('amount'))],
                 ['label' => 'Count', 'value' => $data->count()]
             ]
         ]);
@@ -1143,8 +1254,8 @@ class ReportController extends Controller
             'data' => $data,
             'stats' => [
                 ['label' => 'Total Categories', 'value' => $data->count()],
-                ['label' => 'Total Retail Value', 'value' => number_format($data->sum('retail_value'), 2)],
-                ['label' => 'Total Stock Qty', 'value' => number_format($data->sum('total_stock'))],
+                ['label' => 'Total Retail Value', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('retail_value'))],
+                ['label' => 'Total Stock Qty', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_stock'))],
             ],
             'chartData' => $data->map(fn($r) => ['name' => $r->category_name, 'value' => $r->retail_value]),
             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#8b5cf6']
@@ -1204,9 +1315,9 @@ class ReportController extends Controller
             ],
             'data'  => $data,
             'stats' => [
-                ['label' => 'Total Net Sales',  'value' => number_format($data->sum('sales'), 2),     'type' => 'up'],
-                ['label' => 'Total Purchases',  'value' => number_format($data->sum('purchases'), 2), 'type' => 'down'],
-                ['label' => 'Net Flow',         'value' => number_format($data->sum('net'), 2)],
+                ['label' => 'Total Net Sales',  'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('sales')),     'type' => 'up'],
+                ['label' => 'Total Purchases',  'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('purchases')), 'type' => 'down'],
+                ['label' => 'Net Flow',         'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('net'))],
             ],
             'chartData'   => $data->take(10)->map(fn($r) => ['name' => substr($r->name, 0, 15), 'sales' => $r->sales, 'purchases' => $r->purchases]),
             'chartConfig' => ['type' => 'bar', 'dataKey' => ['sales', 'purchases'], 'xAxisKey' => 'name', 'color' => '#6366f1']
@@ -1225,7 +1336,8 @@ class ReportController extends Controller
             ->leftJoin('sale_items', 'sale_items.product_id', '=', 'products.id')
             ->leftJoin('sales', function($join) use ($startDate, $endDate) {
                 $join->on('sales.id', '=', 'sale_items.sale_id')
-                     ->whereBetween('sales.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                     ->where('sales.status', 'posted')
+                     ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
             })
             ->select(
                 'categories.name',
@@ -1252,7 +1364,7 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                 ['label' => 'Total Sales', 'value' => number_format($data->sum('sales'), 2)],
+                 ['label' => 'Total Sales', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('sales'))],
             ],
             'chartData' => $data->filter(fn($r) => $r->sales > 0)->map(fn($r) => ['name' => $r->name, 'value' => $r->sales])->values(),
             'chartConfig' => ['type' => 'area', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#e11d48']
@@ -1277,8 +1389,8 @@ class ReportController extends Controller
              ],
              'data' => $data,
              'stats' => [
-                 ['label' => 'Total Revenue', 'value' => number_format($data->sum('revenue'), 2)],
-                 ['label' => 'Total Profit', 'value' => number_format($data->sum('profit'), 2), 'type' => 'up'],
+                 ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('revenue'))],
+                 ['label' => 'Total Profit', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('profit')), 'type' => 'up'],
              ],
              'chartData' => $data->map(fn($r) => ['name' => $r['name'], 'value' => $r['profit']]),
              'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#0ea5e9']
@@ -1314,7 +1426,7 @@ class ReportController extends Controller
                  ['key' => 'total_discount', 'label' => 'Total Discount', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
             ],
             'data' => $data,
-            'stats' => [['label' => 'Total Discount Given', 'value' => number_format($data->sum('total_discount'), 2)]]
+            'stats' => [['label' => 'Total Discount Given', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_discount'))]]
         ]);
     }
 
@@ -1324,48 +1436,50 @@ class ReportController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        $query = DB::table('invoice_items')
-            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->join('products', 'products.id', '=', 'invoice_items.product_id')
-            ->where('invoices.type', 'sales_order');
+        $tenantId = app('current.tenant')->id;
+        $query = DB::table('sales_order_items')
+            ->join('sales_orders', 'sales_orders.id', '=', 'sales_order_items.sales_order_id')
+            ->join('products', 'products.id', '=', 'sales_order_items.product_id')
+            ->where('sales_orders.tenant_id', $tenantId);
 
         if ($range === 'today') {
-            $query->whereDate('invoices.created_at', Carbon::today());
+            $query->whereDate('sales_orders.created_at', Carbon::today());
         } elseif ($range === 'this_month') {
-            $query->whereMonth('invoices.created_at', Carbon::now()->month)
-                  ->whereYear('invoices.created_at', Carbon::now()->year);
+            $query->whereMonth('sales_orders.created_at', Carbon::now()->month)
+                  ->whereYear('sales_orders.created_at', Carbon::now()->year);
         } elseif ($range === 'this_year') {
-             $query->whereYear('invoices.created_at', Carbon::now()->year);
+             $query->whereYear('sales_orders.created_at', Carbon::now()->year);
         } elseif ($range === 'custom' && $startDate && $endDate) {
-             $query->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+             $query->whereBetween('sales_orders.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
         }
 
         // Fetch data
         $rawItems = $query->select(
                 'products.name as product_name',
-                'invoices.invoice_number',
-                'invoices.created_at as date',
-                'invoices.status as order_status',
-                'invoice_items.quantity',
-                'invoice_items.total'
+                'sales_orders.order_number',
+                'sales_orders.created_at as date',
+                'sales_orders.status as order_status',
+                'sales_order_items.quantity_requested',
+                'sales_order_items.unit_price',
+                'sales_order_items.subtotal'
             )
-            ->orderByDesc('invoices.created_at')
+            ->orderByDesc('sales_orders.created_at')
             ->get();
 
         // Transform to nested structure for frontend
         $formattedItems = $rawItems->map(function($item) {
             return [
                 'sales_order' => [
-                    'order_number' => $item->invoice_number,
+                    'order_number' => $item->order_number,
                     'created_at' => $item->date,
                     'status' => $item->order_status
                 ],
                 'product' => [
                     'name' => $item->product_name
                 ],
-                'quantity' => $item->quantity,
-                'price' => $item->quantity > 0 ? ($item->total / $item->quantity) : 0,
-                'subtotal' => $item->total
+                'quantity' => (float)$item->quantity_requested,
+                'price' => (float)$item->unit_price,
+                'subtotal' => (float)$item->subtotal
             ];
         });
 
@@ -1396,8 +1510,8 @@ class ReportController extends Controller
             'data' => $batches,
             'stats' => [
                 ['label' => 'Total Batches', 'value' => $batches->count()],
-                ['label' => 'Quantity', 'value' => $batches->sum('quantity')],
-                ['label' => 'Frozen Cash', 'value' => 'Rs ' . number_format($batches->sum('cost_value'), 2)],
+                ['label' => 'Quantity', 'value' => \App\Helpers\SettingsHelper::formatNumber($batches->sum('quantity'))],
+                ['label' => 'Frozen Cash', 'value' => \App\Helpers\SettingsHelper::formatCurrency($batches->sum('cost_value'))],
                 ['label' => 'Oldest Batch', 'value' => $batches->max('days') . ' days', 'type' => 'down']
             ],
             'chartData' => $batches->groupBy('category')->map(fn($g, $k) => ['name' => $k, 'value' => $g->sum('quantity')])->values(),
@@ -1407,19 +1521,19 @@ class ReportController extends Controller
 
     public function salePurchaseByPartyGroup(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
         
-        // Groups: types of parties (customer, supplier, etc)
-        // We need to join parties to invoices to sum totals by party type.
-        
         $data = DB::table('parties')
+            ->where('tenant_id', $tenantId)
             ->select('type', DB::raw('COUNT(id) as count'))
             ->groupBy('type')
             ->get()
-            ->map(function($group) use ($startDate, $endDate) {
+            ->map(function($group) use ($startDate, $endDate, $tenantId) {
                 $sales = DB::table('invoices')
                     ->join('parties', 'parties.id', '=', 'invoices.party_id')
+                    ->where('invoices.tenant_id', $tenantId)
                     ->where('parties.type', $group->type)
                     ->where('invoices.type', 'sale')
                     ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
@@ -1427,6 +1541,7 @@ class ReportController extends Controller
                     
                 $purchases = DB::table('invoices')
                     ->join('parties', 'parties.id', '=', 'invoices.party_id')
+                    ->where('invoices.tenant_id', $tenantId)
                     ->where('parties.type', $group->type)
                     ->where('invoices.type', 'purchase')
                     ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
@@ -1463,10 +1578,12 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
+        $tenantId = app('current.tenant')->id;
         $data = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('parties', 'parties.id', '=', 'sales.party_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
@@ -1479,18 +1596,15 @@ class ReportController extends Controller
             ->orderBy('parties.name')
             ->get();
 
-        return Inertia::render('Reports/GenericReport', [
-            'title' => 'Item Report by Customer',
-            'columns' => [
-                ['key' => 'party_name', 'label' => 'Customer', 'sortable' => true],
-                ['key' => 'product_name', 'label' => 'Product', 'sortable' => true],
-                ['key' => 'quantity', 'label' => 'Qty', 'sortable' => true, 'align' => 'center'],
-                ['key' => 'total', 'label' => 'Net Revenue', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-            ],
+        return Inertia::render('Reports/ItemReportByParty', [
             'data' => $data,
             'stats' => [
-                 ['label' => 'Total Sales', 'value' => number_format($data->sum('total'), 2)],
-                 ['label' => 'Total Items', 'value' => number_format($data->sum('quantity'))],
+                 ['label' => 'Total Sales', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total'))],
+                 ['label' => 'Total Items', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('quantity'))],
+            ],
+            'filters' => [
+                'start_date' => $startDate,
+                'end_date'   => $endDate
             ]
         ]);
     }
@@ -1500,10 +1614,12 @@ class ReportController extends Controller
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
+        $tenantId = app('current.tenant')->id;
         $data = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->join('parties', 'parties.id', '=', 'sales.party_id')
             ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
@@ -1516,18 +1632,15 @@ class ReportController extends Controller
             ->orderBy('products.name')
             ->get();
 
-        return Inertia::render('Reports/GenericReport', [
-            'title' => 'Customer Report by Item',
-            'columns' => [
-                ['key' => 'product_name', 'label' => 'Product', 'sortable' => true],
-                ['key' => 'party_name', 'label' => 'Customer', 'sortable' => true],
-                ['key' => 'quantity', 'label' => 'Qty', 'sortable' => true, 'align' => 'center'],
-                ['key' => 'total', 'label' => 'Net Revenue', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-            ],
+        return Inertia::render('Reports/PartyReportByItem', [
             'data' => $data,
             'stats' => [
-                 ['label' => 'Total Sales', 'value' => number_format($data->sum('total'), 2)],
-                 ['label' => 'Total Items', 'value' => number_format($data->sum('quantity'))],
+                 ['label' => 'Total Sales', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total'))],
+                 ['label' => 'Total Items', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('quantity'))],
+            ],
+            'filters' => [
+                'start_date' => $startDate,
+                'end_date'   => $endDate
             ]
         ]);
     }
@@ -1539,8 +1652,10 @@ class ReportController extends Controller
 
         // Phase 5.5 — Tax analysis from sale_items using the waterfall columns.
         // Groups by tax_rate to show how much tax was applied at each rate.
+        $tenantId = app('current.tenant')->id;
         $data = DB::table('sale_items')
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->select(
@@ -1563,8 +1678,8 @@ class ReportController extends Controller
             ],
             'data'  => $data,
             'stats' => [
-                ['label' => 'Total Tax Collected', 'value' => number_format($data->sum('total_tax'), 2)],
-                ['label' => 'Total Taxable Amount','value' => number_format($data->sum('taxable_amount'), 2)],
+                ['label' => 'Total Tax Collected', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_tax'))],
+                ['label' => 'Total Taxable Amount','value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('taxable_amount'))],
             ],
             'chartData'   => $data->map(fn($r) => ['name' => ($r->tax_rate ?? 0) . '%', 'value' => $r->total_tax]),
             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#8b5cf6']
@@ -1588,43 +1703,43 @@ class ReportController extends Controller
         ];
 
         if ($module === 'sales') {
-            $query = Sale::query();
+            $query = Sale::posted();
 
             // Include payments to calculate paid amount if not on table
             $query->withSum('payments as paid_amount', 'amount');
 
             // ... (Filter Logic - Reuse existing) ...
             if ($range === 'today') {
-                $query->whereDate('created_at', Carbon::today());
+                $query->whereDate('posted_at', Carbon::today());
                 $groupBy = 'hour';
             } elseif ($range === '7_days') {
                 $start = Carbon::now()->subDays(6)->startOfDay();
-                $query->where('created_at', '>=', $start);
+                $query->where('posted_at', '>=', $start);
                 $groupBy = 'day';
             } elseif ($range === '30_days') {
                 $start = Carbon::now()->subDays(29)->startOfDay();
-                $query->where('created_at', '>=', $start);
+                $query->where('posted_at', '>=', $start);
                 $groupBy = 'day';
             } elseif ($range === 'year') {
-                $query->where('created_at', '>=', Carbon::now()->startOfYear());
+                $query->where('posted_at', '>=', Carbon::now()->startOfYear());
                 $groupBy = 'month';
             } elseif ($range === 'custom' && $startDate && $endDate) {
-                $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+                $query->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
                 $groupBy = 'day';
             } else {
-                $query->where('created_at', '>=', Carbon::now()->subDays(29)->startOfDay());
+                $query->where('posted_at', '>=', Carbon::now()->subDays(29)->startOfDay());
                 $groupBy = 'day';
             }
 
-            $sales = $query->orderBy('created_at')->get();
+            $sales = $query->orderBy('posted_at')->get();
 
             // 1. Sales Trend with Gap Filling
             $salesGrouped = $sales->groupBy(function ($sale) use ($groupBy) {
                 if ($groupBy === 'hour')
-                    return $sale->created_at->format('H');
+                    return $sale->posted_at->format('H');
                 if ($groupBy === 'month')
-                    return $sale->created_at->format('Y-m');
-                return $sale->created_at->format('Y-m-d');
+                    return $sale->posted_at->format('Y-m');
+                return $sale->posted_at->format('Y-m-d');
             });
 
             if ($range === 'today') {
@@ -1716,7 +1831,14 @@ class ReportController extends Controller
 
     public function itemDetailReport(Request $request)
     {
-        return $this->movementHistory($request);
+        $products = Product::with('category')->get()->map(function($product) {
+            $product->stock_quantity = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
+            return $product;
+        });
+
+        return Inertia::render('Reports/ItemDetail', [
+            'products' => $products
+        ]);
     }
 
     public function loanStatement(Request $request)
@@ -1728,71 +1850,6 @@ class ReportController extends Controller
             }
         }
         return $this->bankStatement($request);
-    }
-
-    /**
-     * Analytics report — aggregated sales, profit, and trend data.
-     * Route: GET /reports/analytics  (name: reports.analytics)
-     */
-    public function analytics(Request $request)
-    {
-        $tenantId = tenant('id');
-        $period   = $request->get('period', '30'); // days
-
-        $from = now()->subDays((int) $period)->startOfDay();
-        $to   = now()->endOfDay();
-
-        // Daily sales totals
-        $dailySales = \DB::table('sales')
-            ->where('tenant_id', $tenantId)
-            ->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(grand_total) as total')
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        // Top selling products
-        $topProducts = \DB::table('sale_items')
-            ->join('products', 'products.id', '=', 'sale_items.product_id')
-            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
-            ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', '!=', 'cancelled')
-            ->whereBetween('sales.created_at', [$from, $to])
-            ->selectRaw('products.name, SUM(sale_items.quantity) as units_sold, SUM(sale_items.total) as revenue')
-            ->groupBy('products.id', 'products.name')
-            ->orderByDesc('units_sold')
-            ->limit(10)
-            ->get();
-
-        // Payment method breakdown
-        $paymentMethods = \DB::table('sales')
-            ->where('tenant_id', $tenantId)
-            ->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('payment_method, COUNT(*) as count, SUM(grand_total) as total')
-            ->groupBy('payment_method')
-            ->get();
-
-        // Summary
-        $summary = \DB::table('sales')
-            ->where('tenant_id', $tenantId)
-            ->where('status', '!=', 'cancelled')
-            ->whereBetween('created_at', [$from, $to])
-            ->selectRaw('COUNT(*) as total_sales, SUM(grand_total) as total_revenue, AVG(grand_total) as avg_sale_value')
-            ->first();
-
-        return inertia('Reports/Analytics', [
-            'period'          => $period,
-            'daily_sales'     => $dailySales,
-            'top_products'    => $topProducts,
-            'payment_methods' => $paymentMethods,
-            'summary'         => $summary,
-            'date_range'      => [
-                'from' => $from->toDateString(),
-                'to'   => $to->toDateString(),
-            ],
-        ]);
     }
 }
 

@@ -1,0 +1,42 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "node": true
+    },
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
+    "plugins": [
+        "react"
+    ],
+    "rules": {
+        "no-undef": "error",
+        "react/prop-types": "off",
+        "react/react-in-jsx-scope": "off",
+        "no-unused-vars": "off",
+        "react/no-unescaped-entities": "off",
+        "no-useless-escape": "off",
+        "react/jsx-no-target-blank": "off",
+        "no-case-declarations": "off",
+        "no-empty": "off",
+        "no-ex-assign": "off"
+    },
+    "globals": {
+        "route": "readonly",
+        "axios": "readonly"
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        }
+    }
+}

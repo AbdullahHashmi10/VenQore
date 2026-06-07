@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\TenantUser;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -37,7 +39,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('profile.edit');
+        return Redirect::route('account.edit');
     }
 
     /**
@@ -62,7 +64,7 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's passcode for quick login.
+     * Update the user's quick-login PIN (passcode on users table, synced to pos_pin on tenant_users).
      */
     public function updatePasscode(Request $request): RedirectResponse
     {
@@ -72,16 +74,10 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($request->passcode) {
-            // Hash the passcode for security
-            $user->passcode = bcrypt($request->passcode);
-        } else {
-            // Remove passcode
-            $user->passcode = null;
-        }
-
+        // Write directly to user model (this will automatically hash and sync with tenant membership)
+        $user->passcode = $request->passcode ?: null;
         $user->save();
 
-        return Redirect::route('profile.edit')->with('status', 'passcode-updated');
+        return Redirect::back()->with('status', 'passcode-updated');
     }
 }

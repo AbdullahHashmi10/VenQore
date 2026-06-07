@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 
 export default function StockTransfers({ transfers = { data: [], links: [] }, warehouses = [], stats = {}, filters = {} }) {
+    const { props } = usePage();
+    const store = props.store || {};
     const [searchTerm, setSearchTerm] = useState(filters.search || '');
     const [statusFilter, setStatusFilter] = useState(filters.status || 'all');
     const [sortConfig, setSortConfig] = useState({ key: 'date', direction: 'desc' });

@@ -6,11 +6,12 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\HasTenant;
 use Illuminate\Support\Str;
 
 class GiftCard extends Model
 {
-    use HasUuids, HasFactory;
+    use HasUuids, HasFactory, HasTenant;
 
     protected $fillable = [
         'code',

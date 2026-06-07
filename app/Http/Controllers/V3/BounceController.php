@@ -20,9 +20,7 @@ class BounceController extends Controller
         ]);
 
         // Confirm this is a customer payment entry — never allow bouncing a sale
-        $tid = app('current.tenant')->id;
-        $entry = DB::table('journal_entries')
-            ->where('tenant_id', $tid)
+        $entry = DB::table('journal_entries')->where('journal_entries.tenant_id', app('current.tenant')->id)
             ->where('id', $journalEntryId)
             ->firstOrFail();
 

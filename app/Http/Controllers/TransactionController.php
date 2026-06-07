@@ -11,14 +11,15 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        $tenantId = app('current.tenant')->id;
+        
         // Build unified transactions from multiple sources
         $transactions = collect();
-        $tid = app('current.tenant')->id;
 
         // 1. Sales (from sales table)
         if (DB::getSchemaBuilder()->hasTable('sales')) {
             $sales = DB::table('sales')
-                ->where('sales.tenant_id', $tid)
+                ->where('sales.tenant_id', $tenantId)
                 ->leftJoin('parties', 'sales.party_id', '=', 'parties.id')
                 ->leftJoin('payments', 'sales.id', '=', 'payments.sale_id')
                 ->select([
@@ -71,7 +72,7 @@ class TransactionController extends Controller
         // 2. Fallback Sales (from invoices table)
         if ($transactions->isEmpty() || !DB::getSchemaBuilder()->hasTable('sales')) {
             $invoiceSales = DB::table('invoices')
-                ->where('invoices.tenant_id', $tid)
+                ->where('invoices.tenant_id', $tenantId)
                 ->leftJoin('parties', 'invoices.party_id', '=', 'parties.id')
                 ->where('invoices.type', 'sale')
                 ->select([
@@ -107,7 +108,7 @@ class TransactionController extends Controller
 
         // 3. Purchases (from invoices table)
         $purchases = DB::table('invoices')
-            ->where('invoices.tenant_id', $tid)
+            ->where('invoices.tenant_id', $tenantId)
             ->leftJoin('parties', 'invoices.party_id', '=', 'parties.id')
             ->where('invoices.type', 'purchase')
             ->select([
@@ -143,7 +144,7 @@ class TransactionController extends Controller
         // 4. Expenses
         if (DB::getSchemaBuilder()->hasTable('expenses')) {
             $expenses = DB::table('expenses')
-                ->where('tenant_id', $tid)
+                ->where('tenant_id', $tenantId)
                 ->select([
                     'id',
                     'date',
@@ -178,7 +179,7 @@ class TransactionController extends Controller
         // 5. Payments
         if (DB::getSchemaBuilder()->hasTable('payments')) {
             $payments = DB::table('payments')
-                ->where('payments.tenant_id', $tid)
+                ->where('payments.tenant_id', $tenantId)
                 ->leftJoin('parties', 'payments.party_id', '=', 'parties.id')
                 ->select([
                     'payments.id',

@@ -35,8 +35,8 @@ document.addEventListener('inertia:finish', syncCsrfToken);
 // Global Response Handler - Dispatch toast events for all AJAX responses
 window.axios.interceptors.response.use(
     response => {
-        // Check if response has success message - dispatch toast event
-        if (response.data && response.data.success && response.data.message) {
+        // Check if response has success message - dispatch toast event (only if message is a string)
+        if (response.data && response.data.success && response.data.message && typeof response.data.message === 'string') {
             window.dispatchEvent(new CustomEvent('amd:toast', {
                 detail: { message: response.data.message, type: 'success' }
             }));
@@ -99,6 +99,8 @@ window.axios.interceptors.response.use(
                     message:      error.response.data.message,
                     current_plan: error.response.data.current_plan,
                     upgrade_url:  error.response.data.upgrade_url,
+                    billing_url:  error.response.data.billing_url,
+                    portal_url:   error.response.data.portal_url,
                     current_count:error.response.data.current_count,
                     limit:        error.response.data.limit,
                 }
@@ -106,11 +108,20 @@ window.axios.interceptors.response.use(
             return Promise.reject(error); // Stop propagation — modal handles it
         }
 
+        // Handle 503 System Update Soft Lock
+        if (error.response && error.response.status === 503) {
+            const errorMsg = error.response.data?.message || error.response.data?.error || '';
+            if (errorMsg.includes('smooth update') || errorMsg.includes('Update in Progress')) {
+                window.dispatchEvent(new CustomEvent('amd:system-update-in-progress'));
+                return Promise.reject(error); // Reject without showing a toast
+            }
+        }
+
         // Dispatch error toast for failed requests with error messages (EXCLUDING 419)
         if (error.response && error.response.data && error.response.status !== 419) {
 
             const errorMsg = error.response.data.message || error.response.data.error;
-            if (errorMsg) {
+            if (errorMsg && typeof errorMsg === 'string') {
                 window.dispatchEvent(new CustomEvent('amd:toast', {
                     detail: { message: errorMsg, type: 'error' }
                 }));

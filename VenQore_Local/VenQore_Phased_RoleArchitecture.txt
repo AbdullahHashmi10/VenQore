@@ -1,0 +1,424 @@
+VenQore
+Role Architecture — Phased Build Plan
+V1 · V2 · V3 · What to Skip Entirely
+April 2026  |  Architecture Review
+0. Honest Audit: What You Got Right, What&apos;s Missing, What to Fix
+✅  The Good News
+Your architecture is genuinely excellent for a planning document. The two-tier mental model is clear and correct. The IDOR/slug decision is textbook-right and most SaaS founders discover it after shipping. The impersonation safety protocol (3-layer enforcement) is production-grade — most platforms get this wrong for years. The Tier 3 DB stubs are the right forward-thinking move. This document is better than 90% of what gets built without any plan at all.
+⚠️  Gaps Found in Your Document (Fixes Required Before Coding)
+1. Permission matrix is missing roles: fulfillment_lead, franchise_admin, kitchen_manager, dispenser, production_supervisor, delivery_driver — they exist in prose but have no matrix column, so two developers could implement them differently.
+
+2. support_tickets.tenant_id is NOT NULL — a user can submit a ticket before creating a store, or after deleting one. Make it NULLABLE.
+
+3. platform_activity_log has no tenant_id — filtering &quot;all actions on Ali Electronics&quot; requires chasing subject_type + subject_id across tables. Add optional tenant_id column.
+
+4. Customer Success Manager and Platform Sales AE appear in enums and matrix columns but have no dashboard/permission spec section. Two roles without a body.
+
+5. Platform Manager contradiction — Section 1.2 says &quot;Cannot: Access MRR/ARR&quot; but the permission matrix gives them &quot;✅ View Platform Metrics (MRR, ARR)&quot;. One of these is wrong. Decide and fix.
+
+6. Transfer Ownership flow is unspecified — this is a billing-consequence action. Does the new owner need to accept? Can the original owner cancel the transfer mid-window? Needs a 5-step flow spec.
+
+7. POS PIN brute-force protection not mentioned — 4-digit PIN on a shared tablet with no rate limit is trivially broken. 5 wrong attempts → lock + notify manager.
+
+8. Viewer/Auditor ambiguity — &quot;all 38 reports&quot; but also &quot;cannot view individual customer data&quot; — these contradict each other (receivables aging has customer names). Specify which reports show aggregates-only for Viewer.
+🚫  Industry Knowledge You&apos;re Missing (Not in Your Document)
+See Section 1 below. These are real patterns from production SaaS — things that will bite you if not planned now.
+1. Industry Knowledge Not In Your Document
+1.1  Custom Permission Overrides (Tenant-Level)
+Your architecture uses fixed roles — a Manager always has exactly the same permissions everywhere. This is fine for V1 but will cause problems when a real customer says: &quot;I want my Manager to be able to invite staff but not delete products.&quot;
+The industry solution is a permission_overrides table alongside the role system:
+Schema Stub (add to DB from Day 1 — even if UI comes in V2)
+CREATE TABLE tenant_permission_overrides (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tenant_id BIGINT UNSIGNED NOT NULL,
+  user_id BIGINT UNSIGNED NOT NULL,
+  permission VARCHAR(100) NOT NULL,  -- e.g. &apos;staff.invite&apos;
+  granted BOOLEAN NOT NULL,           -- TRUE = grant, FALSE = revoke
+  granted_by BIGINT UNSIGNED NOT NULL,
+  UNIQUE KEY (tenant_id, user_id, permission)
+);
+This way, your role system stays clean and your permission check becomes: check role → check overrides → resolve. V1 ignores overrides entirely (no rows exist). V2 exposes the UI. Zero migration cost.
+1.2  Invitation Token System
+Your document mentions &quot;invite staff&quot; as a permission but doesn&apos;t spec the invitation flow. This is one of the most security-sensitive things in a multi-tenant SaaS. The wrong implementation leaks tenant isolation.
+Required tables and flow:
+staff_invitations table: id, tenant_id, invited_by, email, role, token (UUID), expires_at, accepted_at, revoked_at
+Token is single-use, expires in 48 hours, ties to a specific email address
+If a user with that email already exists in the system → link them to the tenant (do NOT create a second users row)
+If they don&apos;t exist → account creation flow, then link
+Critically: the invitation token must be compared in constant time to prevent timing attacks
+Security Rule
+Never re-use invitation tokens. Never store them in plain text — store a hash, send the plain token in the email. A leaked DB does not expose active invitations.
+1.3  Plan Limit Enforcement Architecture
+Your document mentions plan limits (Starter/Growth/Business) but doesn&apos;t specify how they&apos;re enforced at the application layer. This is commonly done wrong — either too loosely (limits are bypassable) or too aggressively (creates race conditions).
+The correct pattern:
+Store current usage counts as cached columns on the tenants table: staff_count, product_count, branch_count, etc.
+On every create action, check: tenant.staff_count &lt; plan.max_staff, within a DB transaction
+Increment the counter atomically with the insert — never count(*) in real time (slow and racy)
+When plan changes (upgrade/downgrade), fire a job that recalculates counters from scratch and updates limits
+When downgrading: if existing usage exceeds new plan limit, don&apos;t delete data — lock creation until they&apos;re under the limit
+1.4  Soft Delete Strategy
+Your document doesn&apos;t mention soft deletes. In a financial system like VenQore, hard deleting anything is almost always wrong — you cannot delete a product that appears in 300 historical invoices.
+Rule: All financially-referenced records must use soft deletes (deleted_at timestamp). This includes: products, customers, suppliers, staff members, purchase orders. Only configuration records (categories, tax rates) may be hard-deleted if not referenced.
+What This Means for Roles
+When a Store Owner removes a staff member, the tenant_users row gets deactivated (is_active = false, deactivated_at = now()) — not deleted. Their historical audit log entries remain valid and traceable. The Owner Transfer flow similarly cannot hard-delete the old owner&apos;s tenant_users row — it gets a role change, not a delete.
+1.5  Session Management for Shared POS Tablets
+Your document specifies a POS PIN for shared tablets but doesn&apos;t address session management. In retail with shared tablets, this is a real operational headache.
+Industry pattern for shared-device POS:
+Device registers once with a device_token (long-lived, scoped to the store)
+Individual staff log in with their PIN (short-lived session, e.g., 8 hours or end of shift)
+PIN is hashed (bcrypt) in the DB — never stored plain
+Failed PIN attempts are rate-limited per device (5 attempts → 30 second lockout, logged)
+&apos;End Session&apos; button logs out the current PIN user but keeps the device authenticated
+All transactions created during a PIN session carry the PIN user&apos;s user_id, not the device_token
+1.6  Audit Log Design (Missing from Your Schema)
+Your document has platform_activity_log for Tier 1 actions but doesn&apos;t specify a store-level audit log for Tier 2. Every financially-relevant action in a store needs its own audit trail — this is a legal requirement in most jurisdictions and a customer trust feature.
+Recommended store_activity_log table
+CREATE TABLE store_activity_log (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  tenant_id BIGINT UNSIGNED NOT NULL,
+  actor_user_id BIGINT UNSIGNED NOT NULL,
+  action VARCHAR(100) NOT NULL,       -- e.g. &apos;sale.created&apos;, &apos;product.price_changed&apos;
+  subject_type VARCHAR(100) NULL,     -- e.g. &apos;Sale&apos;, &apos;Product&apos;
+  subject_id BIGINT UNSIGNED NULL,
+  old_values JSON NULL,               -- snapshot before change
+  new_values JSON NULL,               -- snapshot after change
+  ip_address VARCHAR(45) NULL,
+  is_impersonation BOOLEAN DEFAULT FALSE,
+  impersonated_by BIGINT UNSIGNED NULL,  -- HQ user who was impersonating
+  INDEX idx_tenant (tenant_id),
+  INDEX idx_actor (actor_user_id),
+  INDEX idx_action (action),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+The old_values/new_values JSON columns are critical — when a Manager changes a product price, you want to know what it was before. This data is irreplaceable if a customer comes back 6 months later asking &quot;who changed this price?&quot;
+1.7  Email Notification Architecture (Not Mentioned)
+Your document covers support tickets and billing webhooks but doesn&apos;t define the store-level email notification system. Store users need emails for: low stock alerts, payment received, new staff invitation, cash drawer variance, failed login attempts, and more.
+Design decision you need to make before V2: Do store owners configure their own email settings (custom SMTP/Postmark sender), or does all email go through VenQore&apos;s Postmark account? Each has billing implications. For V1, use VenQore&apos;s account. For V2+, allow custom senders.
+1.8  The &apos;One Person, Two Roles&apos; Ambiguity
+Your document acknowledges a person can hold a Tier 1 role AND a Tier 2 role. But it doesn&apos;t specify how this works in practice. When you (God Admin) log in and navigate to your own store at /app/my-store/dashboard — which role takes precedence? What if your store role is &quot;Cashier&quot; but you need to see financial reports?
+Industry decision: Tier 1 always wins. If a Tier 1 user navigates to a store URL, they get God Admin / Platform Manager level read access to that store regardless of their tenant_users role. Their Tier 2 role only matters when they&apos;re acting as a regular store user (e.g., you want to test the cashier experience). Specify a UI toggle: [Switch to Store User Mode] that temporarily drops Tier 1 context.
+2. The Phased Build Plan
+Below is the definitive guide on what to build in V1, V2, V3, and what to skip entirely. The logic is simple: build what generates revenue and proves the product. Defer what requires customers at scale. Skip what no small SaaS starting out actually needs.
+VERSION 1
+The Revenue-Generating MVP
+Month 0–6 | Goal: First 50 paying stores, prove product-market fit
+V1 Philosophy
+V1 is not a stripped-down product — it is a complete, functional ERP/POS system. Every role you ship must work end-to-end. The question is: which roles do real stores actually need on Day 1? The answer is the 7 roles that cover 95% of Pakistani retail/wholesale businesses.
+V1 — Tier 1 (Platform HQ): Ship Only This
+Role
+Decision
+Reason
+God Admin
+V1
+You need this from day 0. It is the platform itself. No HQ works without it.
+Support Agent (you, manually)
+V1
+In V1, you ARE the support. No support team yet. But you still need a ticket inbox. Ship a minimal support ticket table and a simple /hq/support view — no routing, no departments, no SLA. Just: tickets come in, you see them, you reply.
+All other Tier 1 roles
+SKIP
+You have no staff. Platform Manager, Support Director, QA Analyst, Marketing Manager, Tech Engineer — these are roles for when you have employees. For V1, God Admin does everything. Don&apos;t build dashboards for people who don&apos;t exist yet.
+V1 — Tier 2 (Store Level): The Core 7
+These 7 roles cover every real store you will onboard in your first 50 customers. The other roles exist, but no one will need them until you have stores with 10+ staff members.
+Role
+Decision
+Reason
+Owner
+V1
+Non-negotiable. Every store has one. This is your primary customer.
+Admin
+V1
+Most real stores delegate to a trusted manager who handles everything except billing. Very common.
+Manager
+V1
+The floor manager / operations person. Second most common role in retail after cashier.
+Cashier
+V1
+Your most common role by sheer volume. 90% of stores have at least one cashier. POS must work.
+Accountant
+V1
+Standalone accountants are extremely common in Pakistani SME businesses. External CA who logs in to run reports. A key selling point.
+Viewer / Auditor
+V1
+Simple to implement (just read-only). Covers bank reps, silent partners, external auditors. High value, zero complexity.
+Purchasing Officer
+V1
+Wholesale and retail stores almost always have someone dedicated to purchase orders. Without this, Owners handle all POs — they hate it. Core to the buying cycle.
+V1 Database Rule
+Even though you&apos;re only shipping 7 Tier 2 roles, your tenant_users.role ENUM must be defined with ALL roles from day one (owner, franchise_admin, admin, manager, shift_supervisor, purchasing_officer, accountant, inventory_controller, sales_executive, hr_officer, cashier, kitchen_manager, dispenser, production_supervisor, delivery_driver, fulfillment_lead, viewer). Adding ENUM values later requires an ALTER TABLE which locks the table. Define them all now, activate them in V2/V3.
+V1 — Minimum Viable Tier 1 Features (God Admin Only)
+Feature
+Ship?
+Notes
+Tenant management (list, suspend, activate)
+✅ V1
+Core — you need to see your stores
+Impersonation (read-only)
+✅ V1
+Essential for support. Ship with the 3-layer safety from your doc.
+Basic support ticket inbox
+✅ V1
+Minimal — no routing, no departments. Just a list you reply to.
+MRR / store count overview
+✅ V1
+A simple number. Lemon Squeezy gives you this via API.
+Plan limit enforcement
+✅ V1
+Non-negotiable. Stores must not exceed plan limits.
+Feature flags per tenant
+✅ V1
+Simple boolean flags table. Needed for beta testing and AppSumo.
+Revenue / churn charts
+⏳ V2
+With &lt;50 stores, a Lemon Squeezy dashboard is enough.
+SLA-tracked support with departments
+⏳ V2
+Irrelevant until you have support agents.
+All other Tier 1 role dashboards
+⏳ V2/V3
+No employees = no dashboards needed.
+VERSION 2
+The Scaling Platform
+Month 6–18 | Goal: 50–500 stores, hire first staff, serious churn prevention
+V2 Philosophy
+By V2, you have real revenue, real customers, and real staff to support them. This is when the full platform HQ becomes necessary. You&apos;re also seeing which industries your customers are actually in — and building the right specialist roles for them.
+V2 — New Tier 1 Roles to Activate
+Role
+Decision
+Reason
+Platform Manager
+V2
+Your first hire. They handle day-to-day so you can focus on product.
+Support Director
+V2
+You now have a support team. Someone needs to manage them.
+Support Agent (multiple)
+V2
+Real agents, not just you. Full routing, SLA, CSAT.
+Tech Escalation Engineer
+V2
+Bugs come in that need code investigation. You need this.
+Marketing Manager
+V2
+Content, SEO, email campaigns — you need someone running this.
+Platform Finance Officer
+V2
+Revenue is real money now. You need proper bookkeeping.
+Billing Operations
+V2
+Failed payments and chargebacks at scale need a specialist.
+Customer Success Manager
+V2
+At 200+ stores, proactive retention is cheaper than re-acquisition.
+Support Dept. Manager
+V2
+Once you have 4+ agents, you need team leads per department.
+Support QA Analyst
+V2
+Quality control becomes important when agents are replying solo.
+V2 — New Tier 2 Roles to Activate
+Role
+Decision
+Reason
+Inventory Controller
+V2
+By V2 you understand which of your customers are warehouse/pharmacy/electronics. Ship this for them.
+Sales Executive
+V2
+B2B and wholesale customers need this. It&apos;s the non-POS salesperson.
+Shift Supervisor
+V2
+F&amp;B and retail chains need this. Sits between Cashier and Manager.
+HR Officer
+V2
+Once a store has 15+ staff, HR needs its own access. Common in mid-size retail.
+Franchise Admin
+V2
+If you have any chain-store customers by V2, they will ask for this.
+Custom Permission Overrides (UI)
+V2
+The DB stub was built in V1. Now expose the UI so Owners can fine-tune permissions.
+V2 — Platform Features to Add
+Feature
+Ship?
+Notes
+Full support ticket routing + SLA
+✅ V2
+Now you have agents to route to.
+Revenue / MRR / churn dashboard
+✅ V2
+You&apos;re serious about SaaS metrics now.
+Customer adoption tracker (CSM)
+✅ V2
+Churn prevention becomes critical at scale.
+Marketing CMS (blog, emails)
+✅ V2
+Content marketing becomes your growth engine.
+Security Auditor role + audit dashboard
+✅ V2
+Compliance and internal trust become real concerns.
+IP allowlist for /hq/* routes
+✅ V2
+You now have staff to restrict. Prevent remote account compromise.
+Custom email sender per tenant
+✅ V2
+Business-tier customers want their own email domain.
+VERSION 3
+The Ecosystem Play
+Month 18+ | Goal: 500+ stores, network effects, platform moat
+V3 Philosophy
+V3 is where VenQore stops being an ERP and becomes a platform. You&apos;re connecting stores to suppliers, connecting stores to customers, and opening the API to third-party developers. This is the defensible moat. Build it only when you have the user base to make the network valuable.
+V3 — Roles and Features
+Item
+Version
+Reason
+Industry Roles (Kitchen Manager, Pharmacy Dispenser, Production Supervisor)
+V3
+By V3 you know exactly which verticals are your biggest segments. Build the specialist roles for your top 2 industries only.
+Delivery Driver + Fulfillment Lead
+V3
+Requires omnichannel (online orders) infrastructure first. That&apos;s a V3 product line.
+Product Manager role
+V3
+You now have a real product team. Before V3, you are the product manager.
+Platform Sales AE
+V3
+Enterprise deals (50+ location chains) only make sense when you have enterprise features to sell.
+Wholesale Partner (Tier 3)
+V3
+The B2B supplier network. Only valuable with 200+ stores as potential buyers.
+Marketplace Consumer (Tier 3)
+V3
+The consumer-facing app. Major infrastructure lift — dedicated mobile apps, payment processing, delivery fleet.
+Certified Agency Partner (Tier 3)
+V3
+A partner program needs a vetting process, legal agreements, and a partner portal. This is a business program, not just a feature.
+External App Developer / OAuth API (Tier 3)
+V3
+Third-party integrations need a developer portal, OAuth server, webhook reliability guarantees, and versioned APIs. This is months of infrastructure work.
+Content Writer (Tier 1)
+V3
+You&apos;ll need a content team at scale. Until then, Marketing Manager writes everything.
+3. Things to Never Build (or Defer Indefinitely)
+The Temptation
+Your document is comprehensive. That&apos;s a strength for planning. But every item in it looks like it needs to be built. It doesn&apos;t. Some features in your current doc are solutions to problems you won&apos;t have for years — or ever.
+Feature
+Decision
+Reason
+QA Analyst with scoring rubric
+SKIP V1/V2
+You need 5+ support agents before QA makes sense. A QA analyst scoring 3 agents is management theatre.
+Net Revenue Retention formula in real time
+SKIP V1
+With &lt;100 stores, this is a quarterly spreadsheet, not a live dashboard widget. Lemon Squeezy shows you this anyway.
+AppSumo remaining code counter
+SKIP V1
+One CSV import screen. Check the number manually. Don&apos;t build a live tracker for something you touch once.
+Agent Leaderboard with gamification
+SKIP V1/V2
+Fun idea, zero business impact until you have 8+ agents competing. Simple CSAT avg is enough.
+IP Allowlist for /hq/* (V1)
+SKIP V1
+You&apos;re working solo. Your IP allowlist is just your home. Enable in V2 when staff access becomes a real risk.
+Projected 12-month revenue chart
+SKIP V1
+12-month projection with 20 stores is a meaningless number. Lemon Squeezy already shows this.
+Platform Sales AE + enterprise pricing generator
+SKIP V1/V2
+You are the sales AE. Handle enterprise deals manually until you have enough to justify a dedicated person.
+Marketing CMS (V1)
+SKIP V1
+Use Ghost, WordPress, or Notion for your blog in V1. Don&apos;t build a CMS to write 3 blog posts.
+Separate Content Writer role (V1/V2)
+SKIP V1/V2
+Marketing Manager writes everything. Content Writer only makes sense with a content team of 3+.
+Customer Success Adoption Tracker (V1)
+SKIP V1
+With &lt;50 stores, YOU are the customer success manager. Check usage in the stores table. No dashboard needed.
+Delivery Driver mobile app
+SKIP V1/V2
+A driver app is a separate product. It needs mobile development, GPS, route optimization. This is Tier 3 territory.
+Franchise Admin (V1)
+SKIP V1
+Chain stores are a V2 market segment. For V1, every location is a separate store if they need isolation, or they use one store with Manager-level access.
+4. V1 Build Checklist — The Exact Scope
+How to use this section
+This is your sign-off checklist. Every item marked ✅ must be built and working before you launch V1. Every item marked ⏳ should be in the database schema but not in the UI. Every item marked 🚫 should not be touched.
+Database Schema (Build Everything, Ship Selectively)
+✅ users table with platform_role ENUM (all values defined, most will be &apos;none&apos; for now)
+✅ tenants table with slug (not ID), plan, status, trial_ends_at, staff_count (cached counter)
+✅ tenant_users table with role ENUM (ALL roles defined, only 7 activated in UI)
+✅ staff_invitations table (token, email, role, expires_at, accepted_at)
+✅ support_tickets table with tenant_id NULLABLE (fix from your original doc)
+✅ ticket_messages table
+✅ platform_activity_log with tenant_id optional column (fix from your original doc)
+✅ store_activity_log (new — see Section 1.6)
+✅ tenant_permission_overrides stub (no UI yet — just the table)
+✅ impersonation_sessions log table (separate from the JSON column in users)
+✅ Tier 3 stubs: tenants.public_vendor_id, users.tier3_role, wholesale_partners table
+Tier 1 HQ (God Admin Only in V1)
+✅ /hq/ — Dashboard: store count, MRR from Lemon Squeezy, recent activity feed
+✅ /hq/stores — Tenant list with search, filter, suspend/activate/extend trial/change plan
+✅ /hq/stores/{slug} — Single tenant drill-down: owner, plan, users, recent transactions
+✅ Impersonation — Launch as any store user (read-only, 3-layer safety, full audit)
+✅ /hq/support — Simple ticket inbox. List + reply. No departments. No SLA. No routing.
+✅ /hq/settings — Plan limits config, feature flags per tenant, email templates
+✅ Lemon Squeezy webhook handler (subscription created/updated/cancelled/payment_failed)
+⏳ /hq/revenue — Exists but minimal (just iframe Lemon Squeezy dashboard or simple numbers)
+🚫 All other Tier 1 dashboards (Support Director, Marketing, Finance, CSM, etc.)
+Tier 2 Store — Roles Active in V1 UI
+✅ Owner — Full store access, billing management, staff management, all reports
+✅ Admin — Full operational access, no billing
+✅ Manager — Full operational visibility, no staff management
+✅ Purchasing Officer — PO creation, supplier management, delivery receiving
+✅ Accountant — All financial reports, journal entries, bank reconciliation, read-only sales
+✅ Cashier — POS only, minimal dashboard, PIN login on shared tablet
+✅ Viewer — All reports, read-only, aggregated customer data only
+⏳ All other roles — In ENUM, not in UI
+Security Checklist for V1
+✅ All /hq/* routes blocked (403, not redirect) for platform_role = &apos;none&apos; users
+✅ All /app/{slug}/* routes blocked for wrong tenant or no tenant_users record
+✅ Impersonation: DB flag + middleware write-block + UI red banner
+✅ POS PIN: bcrypt hashed, 5-attempt rate limit per device, logged
+✅ Invitation tokens: UUID, single-use, 48hr expiry, constant-time comparison
+✅ Soft deletes on all financially-referenced records
+✅ Plan limit enforcement: atomic counter increment, checked in transaction
+✅ store_activity_log: every write action logged with old/new values
+Deferred to V2 (DB Ready, UI Not)
+⏳ Permission overrides UI — table built in V1, UI exposed in V2
+⏳ Tier 1 multi-staff roles — all enums defined, dashboards built in V2
+⏳ Inventory Controller, Sales Executive, Shift Supervisor, HR Officer, Franchise Admin — in ENUM, UI in V2
+⏳ Industry-specific roles (Kitchen Manager, Dispenser, Production Supervisor) — in ENUM, UI in V3
+⏳ Full SLA support ticket routing — simple inbox now, full system in V2
+5. The 5 Fixes Required Before Writing Any Code
+These are not optional suggestions. These are correctness issues in your current spec that would require a migration or a rewrite if discovered after coding.
+#
+Where
+Problem
+Fix
+1
+support_tickets schema
+tenant_id NOT NULL — tickets before store creation or after deletion fail to insert
+ALTER to NULL. Add policy: if null, it&apos;s a platform-level billing/account ticket, not a store bug.
+2
+platform_activity_log schema
+No tenant_id column — filtering &apos;all actions on Store X&apos; requires complex multi-table JOINs
+Add: tenant_id BIGINT UNSIGNED NULL, INDEX idx_tenant (tenant_id)
+3
+Section 1.2 vs Permission Matrix
+Section 1.2 says Platform Manager CANNOT see MRR/ARR. Matrix says ✅ for &apos;View Platform Metrics&apos;. Direct contradiction.
+Decide: can Platform Manager see financial metrics? Recommended: YES (they oversee health) but NOT process refunds or initiate payouts.
+4
+Permission Matrix — missing roles
+Tier 2 matrix has no column for: fulfillment_lead, franchise_admin, kitchen_manager, dispenser, production_supervisor, delivery_driver
+Add matrix columns for all roles (even if V2/V3) with all ❌ for now. When you activate a role in UI, fill in the matrix first.
+5
+Viewer role — reports contradiction
+&apos;All 38 reports&apos; contradicts &apos;cannot view individual customer data&apos;. Receivables aging shows customer names.
+Specify which reports are: (A) fully visible to Viewer, (B) aggregated-only for Viewer, (C) blocked entirely for Viewer.
+6. Final Verdict
+Your architecture scores 8.5 / 10.
+It is genuinely well-designed — better than most production SaaS platforms that were built without any plan. The two-tier isolation model is correct. The security instincts (slugs, impersonation safety) are industry-grade. The forward-thinking (Tier 3 stubs, ENUM pre-definition) saves you from painful future migrations.
+What drops it from 10: the 5 correctness bugs, the missing matrix columns, and the scope — it specs a 50-person company&apos;s platform when you need a 1-person founder&apos;s V1.
+The play:
+Fix the 5 bugs in your current document. Use this document as your phased roadmap. Build V1 with 7 Tier 2 roles and God Admin only. Get to 50 paying stores. Then activate V2 roles as your team and customer base demand them. The architecture you&apos;ve designed handles all of it — you just don&apos;t need to build all of it on day one.
+VenQore Role Architecture — Phased Build Plan  |  April 2026

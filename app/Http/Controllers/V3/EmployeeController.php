@@ -18,7 +18,7 @@ class EmployeeController extends Controller
             'commission_rate'  => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        DB::table('employees')->insert([
+        DB::table('employees')->where('employees.tenant_id', app('current.tenant')->id)->insert([
             'id'              => Str::uuid()->toString(),
             'name'            => $validated['name'],
             'monthly_salary'  => $validated['monthly_salary'],
@@ -40,7 +40,7 @@ class EmployeeController extends Controller
             'commission_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
         ]);
 
-        $employee = DB::table('employees')->where('id', $id)->firstOrFail();
+        $employee = DB::table('employees')->where('employees.tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
         if ($employee->status === 'terminated') {
             return back()->withErrors([
@@ -48,7 +48,7 @@ class EmployeeController extends Controller
             ]);
         }
 
-        DB::table('employees')->where('id', $id)->update([
+        DB::table('employees')->where('employees.tenant_id', app('current.tenant')->id)->where('id', $id)->update([
             'name'            => $validated['name'],
             'monthly_salary'  => $validated['monthly_salary'],
             'commission_rate' => $validated['commission_rate'] ?? 0,

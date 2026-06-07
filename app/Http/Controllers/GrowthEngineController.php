@@ -7,6 +7,8 @@ use App\Models\CustomerAnalytics;
 use App\Models\LoyaltyBalance;
 use App\Models\GiftCard;
 use App\Models\StoreCreditBalance;
+use App\Models\Party;
+use App\Models\Invoice;
 use App\Services\PlanGate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -169,7 +171,23 @@ class GrowthEngineController extends Controller
      */
     public function settings()
     {
-        $settings = DB::table('ai_settings')->pluck('value', 'key');
+        $tenantId = app('current.tenant')->id;
+        $dbSettings = DB::table('ai_settings')
+            ->where('tenant_id', $tenantId)
+            ->pluck('value', 'key')
+            ->toArray();
+
+        $defaults = [
+            'regular_customer_min_orders' => '3',
+            'regular_customer_period_days' => '60',
+            'min_order_value_filter' => '5000',
+            'lookahead_days' => '7',
+            'loyalty_points_per_amount' => '100',
+            'loyalty_points_earned_per_unit' => '1',
+            'loyalty_redemption_rate' => '10',
+        ];
+
+        $settings = array_merge($defaults, $dbSettings);
 
         return Inertia::render('GrowthEngine/Settings', [
             'settings' => $settings,
@@ -191,11 +209,32 @@ class GrowthEngineController extends Controller
             'loyalty_redemption_rate' => 'required|integer|min:1',
         ]);
 
+        $tenantId = app('current.tenant')->id;
+
         foreach ($validated as $key => $value) {
-            DB::table('ai_settings')->updateOrInsert(
-                ['key' => $key],
-                ['value' => $value, 'updated_at' => now()]
-            );
+            $exists = DB::table('ai_settings')
+                ->where('tenant_id', $tenantId)
+                ->where('key', $key)
+                ->exists();
+
+            if ($exists) {
+                DB::table('ai_settings')
+                    ->where('tenant_id', $tenantId)
+                    ->where('key', $key)
+                    ->update([
+                        'value' => $value,
+                        'updated_at' => now(),
+                    ]);
+            } else {
+                DB::table('ai_settings')->insert([
+                    'id' => \Illuminate\Support\Str::uuid()->toString(),
+                    'tenant_id' => $tenantId,
+                    'key' => $key,
+                    'value' => $value,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
         }
 
         return back()->with('success', 'AI Settings updated successfully!');
@@ -208,8 +247,10 @@ class GrowthEngineController extends Controller
      */
     public function customerLoyalty($partyId)
     {
-        $balance = LoyaltyBalance::where('party_id', $partyId)->first();
-        $storeCredit = StoreCreditBalance::where('party_id', $partyId)->first();
+        $party = Party::findOrFail($partyId);
+
+        $balance = LoyaltyBalance::where('party_id', $party->id)->first();
+        $storeCredit = StoreCreditBalance::where('party_id', $party->id)->first();
 
         return response()->json([
             'loyalty_points' => $balance?->balance ?? 0,
@@ -225,14 +266,20 @@ class GrowthEngineController extends Controller
     public function awardPoints(Request $request)
     {
         $validated = $request->validate([
-            'party_id' => 'required|exists:parties,id',
+            'party_id' => 'required|string',
             'points' => 'required|integer|min:1',
             'description' => 'nullable|string|max:255',
-            'invoice_id' => 'nullable|exists:invoices,id',
+            'invoice_id' => 'nullable|string',
         ]);
 
+        $party = Party::findOrFail($validated['party_id']);
+
+        if (!empty($validated['invoice_id'])) {
+            Invoice::findOrFail($validated['invoice_id']);
+        }
+
         $balance = LoyaltyBalance::awardPoints(
-            $validated['party_id'],
+            $party->id,
             $validated['points'],
             $validated['description'] ?? null,
             $validated['invoice_id'] ?? null
@@ -250,22 +297,37 @@ class GrowthEngineController extends Controller
     public function redeemPoints(Request $request)
     {
         $validated = $request->validate([
-            'party_id' => 'required|exists:parties,id',
+            'party_id' => 'required|string',
             'points' => 'required|integer|min:1',
-            'invoice_id' => 'nullable|exists:invoices,id',
+            'invoice_id' => 'nullable|string',
         ]);
 
+        $party = Party::findOrFail($validated['party_id']);
+
+        $invoice = null;
+        if (!empty($validated['invoice_id'])) {
+            $invoice = Invoice::findOrFail($validated['invoice_id']);
+        }
+
         try {
+            // Calculate value (default: 10 points = 1 PKR)
+            $tenantId = app('current.tenant')->id;
+            $rate = DB::table('ai_settings')
+                ->where('tenant_id', $tenantId)
+                ->where('key', 'loyalty_redemption_rate')
+                ->value('value') ?? 10;
+            $value = $validated['points'] / $rate;
+
+            if ($invoice && $value > $invoice->total_amount) {
+                return response()->json(['error' => 'Redemption value cannot exceed the invoice total amount'], 400);
+            }
+
             $balance = LoyaltyBalance::redeemPoints(
-                $validated['party_id'],
+                $party->id,
                 $validated['points'],
                 'Points redeemed at checkout',
                 $validated['invoice_id'] ?? null
             );
-
-            // Calculate value (default: 10 points = 1 PKR)
-            $rate = DB::table('ai_settings')->where('key', 'loyalty_redemption_rate')->value('value') ?? 10;
-            $value = $validated['points'] / $rate;
 
             return response()->json([
                 'success' => true,
@@ -286,10 +348,17 @@ class GrowthEngineController extends Controller
     {
         $validated = $request->validate([
             'value' => 'required|numeric|min:100',
-            'purchased_by' => 'nullable|exists:parties,id',
-            'assigned_to' => 'nullable|exists:parties,id',
+            'purchased_by' => 'nullable|string',
+            'assigned_to' => 'nullable|string',
             'expires_at' => 'nullable|date|after:today',
         ]);
+
+        if (!empty($validated['purchased_by'])) {
+            Party::findOrFail($validated['purchased_by']);
+        }
+        if (!empty($validated['assigned_to'])) {
+            Party::findOrFail($validated['assigned_to']);
+        }
 
         $card = GiftCard::create([
             'code' => GiftCard::generateCode(),
@@ -363,14 +432,20 @@ class GrowthEngineController extends Controller
     public function addStoreCredit(Request $request)
     {
         $validated = $request->validate([
-            'party_id' => 'required|exists:parties,id',
+            'party_id' => 'required|string',
             'amount' => 'required|numeric|min:0.01',
             'reason' => 'nullable|string|max:255',
-            'invoice_id' => 'nullable|exists:invoices,id',
+            'invoice_id' => 'nullable|string',
         ]);
 
+        $party = Party::findOrFail($validated['party_id']);
+
+        if (!empty($validated['invoice_id'])) {
+            Invoice::findOrFail($validated['invoice_id']);
+        }
+
         $balance = StoreCreditBalance::addCredit(
-            $validated['party_id'],
+            $party->id,
             $validated['amount'],
             $validated['reason'] ?? 'Store credit added',
             $validated['invoice_id'] ?? null
@@ -388,14 +463,25 @@ class GrowthEngineController extends Controller
     public function useStoreCredit(Request $request)
     {
         $validated = $request->validate([
-            'party_id' => 'required|exists:parties,id',
+            'party_id' => 'required|string',
             'amount' => 'required|numeric|min:0.01',
-            'invoice_id' => 'nullable|exists:invoices,id',
+            'invoice_id' => 'nullable|string',
         ]);
+
+        $party = Party::findOrFail($validated['party_id']);
+
+        $invoice = null;
+        if (!empty($validated['invoice_id'])) {
+            $invoice = Invoice::findOrFail($validated['invoice_id']);
+        }
+
+        if ($invoice && $validated['amount'] > $invoice->total_amount) {
+            return response()->json(['error' => 'Store credit amount cannot exceed the invoice total amount'], 400);
+        }
 
         try {
             $balance = StoreCreditBalance::useCredit(
-                $validated['party_id'],
+                $party->id,
                 $validated['amount'],
                 'Used at checkout',
                 $validated['invoice_id'] ?? null

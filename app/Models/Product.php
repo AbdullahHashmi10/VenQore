@@ -40,7 +40,7 @@ class Product extends Model
 
     public function recipes()
     {
-        return $this->hasMany(Recipe::class, 'parent_product_id');
+        return $this->hasMany(Recipe::class, 'product_id');
     }
 
     public function category()
@@ -73,5 +73,13 @@ class Product extends Model
     public function productionRuns()
     {
         return $this->hasMany(ProductionRun::class);
+    }
+
+    /**
+     * WooCommerce product links — all connections this product is synced to.
+     */
+    public function wooLinks()
+    {
+        return $this->hasMany(\App\Models\WooProductLink::class, 'venqore_product_id');
     }
 }

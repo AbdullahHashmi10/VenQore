@@ -4,9 +4,11 @@ import PageHeader from '@/Components/PageHeader';
 import MoneyModuleTabs from '@/Components/MoneyModuleTabs';
 import { usePage, Head, Link } from '@inertiajs/react';
 import { BookOpen, TrendingUp, TrendingDown, DollarSign, ArrowRight, PieChart, Activity } from 'lucide-react';
+import { formatCurrency } from '@/Utils/format';
 import MidnightNebula from '@/Components/MidnightNebula';
 
 export default function AccountingDashboard({ stats, recentTransactions }) {
+    const { store } = usePage().props;
     const StatCard = ({ title, value, icon: Icon, color, subValue, subLabel }) => (
         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-all group">
             <div className="flex justify-between items-start mb-4">
@@ -21,7 +23,7 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
             </div>
             <h3 className="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">{title}</h3>
             <p className="text-2xl font-bold text-slate-800 dark:text-white group-hover:scale-105 transition-transform origin-left">
-                ${Number(value).toLocaleString()}
+                {formatCurrency(Number(value), store)}
             </p>
         </div>
     );
@@ -109,7 +111,7 @@ export default function AccountingDashboard({ stats, recentTransactions }) {
                                                 </td>
                                                 <td className="px-6 py-4 text-right font-bold text-slate-800 dark:text-white">
                                                     {/* Display total debit as amount for simplicity */}
-                                                    ${Number(entry.items.reduce((sum, item) => sum + Number(item.debit), 0)).toLocaleString()}
+                                                    {formatCurrency(Number(entry.items.reduce((sum, item) => sum + Number(item.debit), 0)), store)}
                                                 </td>
                                             </tr>
                                         ))

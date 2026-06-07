@@ -4,10 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Traits\HasTenant;
+use App\Traits\UuidTrait;
 
 class StoreActivityLog extends Model
 {
-    protected $table = 'store_activity_log';
+    use HasTenant;
+
+    protected $table = 'activity_logs';
 
     protected $fillable = [
         'tenant_id',

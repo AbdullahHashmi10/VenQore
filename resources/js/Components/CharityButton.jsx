@@ -4,6 +4,7 @@ import { HeartHandshake, Check, X, Edit2 } from 'lucide-react';
 import axios from 'axios';
 
 export default function CharityButton() {
+    const { store } = usePage().props;
     const [stats, setStats] = useState({ today: 0, default_amount: 10, enabled: false });
     const [isLoading, setIsLoading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);

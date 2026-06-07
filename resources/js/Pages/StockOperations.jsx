@@ -41,6 +41,7 @@ export default function StockOperations({ products, warehouses, reasons }) {
 }
 
 function WarehouseManagement({ warehouses }) {
+    const { store } = usePage().props;
     const [isAddingWarehouse, setIsAddingWarehouse] = useState(false);
     const [editingWarehouse, setEditingWarehouse] = useState(null);
 
@@ -54,7 +55,7 @@ function WarehouseManagement({ warehouses }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (editingWarehouse) {
-            put(route('store.stock-operations.warehouse.update', editingWarehouse.id), {
+            put(route('store.stock-operations.warehouse.update', { store_slug: store.slug, id: editingWarehouse.id }), {
                 onSuccess: () => {
                     reset();
                     setEditingWarehouse(null);
@@ -226,6 +227,7 @@ function WarehouseManagement({ warehouses }) {
 }
 
 function StockTransfers({ products, warehouses }) {
+    const { store } = usePage().props;
     const { data, setData, post, processing, errors, reset } = useForm({
         product_id: '',
         from_warehouse_id: '',
@@ -313,6 +315,7 @@ function StockTransfers({ products, warehouses }) {
 }
 
 function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, hasMultipleWarehouses }) {
+    const { store } = usePage().props;
     const defaultReasons = reasons || ['Damaged', 'Stolen', 'Found', 'Expired', 'Lost', 'Return', 'Other'];
 
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -603,6 +606,7 @@ function StockAdjustments({ products, warehouses, reasons, defaultWarehouse, has
 }
 
 function StockTake({ products, warehouses, defaultWarehouse, hasMultipleWarehouses, reasons }) {
+    const { store } = usePage().props;
     const [selectedWarehouse, setSelectedWarehouse] = useState(defaultWarehouse?.id || '');
     const [searchTerm, setSearchTerm] = useState('');
     const [auditItems, setAuditItems] = useState([]);

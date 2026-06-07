@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct(
         private AccountingService $accounting,
@@ -148,6 +148,45 @@ class SaleService
             $netSales     = round($subtotalGross - $totalItemDiscounts, 2);
             $invoiceTotal = round($netSales + $taxTotal, 2);
 
+            // ── Credit Limit Check ──
+            if (!empty($data['customer_id'])) {
+                $customer = DB::table('parties')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('id', $data['customer_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if ($customer && $customer->credit_limit !== null) {
+                    $creditPortion = 0.00;
+                    if ($data['payment_method'] === 'credit') {
+                        $creditPortion = $invoiceTotal;
+                    } else {
+                        $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
+                        if (round($amountReceived, 2) < round($invoiceTotal, 2)) {
+                            $creditPortion = round($invoiceTotal - $amountReceived, 2);
+                        }
+                    }
+
+                    if ($creditPortion > 0) {
+                        $currentBalance = (float) DB::table('journal_items as ji')
+                            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                            ->where('je.tenant_id', $this->tenantId)
+                            ->where('je.party_id', $data['customer_id'])
+                            ->where('a.code', '1200')
+                            ->where('je.is_reversed', 0)
+                            ->selectRaw('SUM(ji.debit) - SUM(ji.credit) as balance')
+                            ->value('balance') ?? 0.0;
+
+                        if ($currentBalance + $creditPortion > (float) $customer->credit_limit) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'customer_id' => ["Credit limit exceeded. Remaining limit is " . ($customer->credit_limit - $currentBalance) . ", attempting to charge " . $creditPortion]
+                            ]);
+                        }
+                    }
+                }
+            }
+
             // ── 2. S-011 Below-cost check ─────────────────────────────
             foreach ($lineItems as $lineData) {
                 if (!empty($lineData['item']['is_promotional'])) continue;
@@ -192,11 +231,10 @@ class SaleService
                 // B1 — cash or bank
                 $cashAccount    = $data['payment_method'] === 'bank' ? '1010' : '1000';
                 $amountReceived = (float) ($data['amount_received'] ?? $invoiceTotal);
-                $journalAmount  = min($amountReceived, $invoiceTotal);
 
                 $journalLines[] = [
                     'account_code' => $cashAccount,
-                    'debit'        => $journalAmount,
+                    'debit'        => $amountReceived,
                     'credit'       => 0,
                 ];
 
@@ -210,6 +248,16 @@ class SaleService
                         'party_id'     => $data['customer_id'],
                     ];
                     $paymentStatus = 'partial';
+                } elseif (round($amountReceived, 2) > round($invoiceTotal, 2)) {
+                    // Overpayment — record surplus as Customer Advance (Account 2100)
+                    $surplus = round($amountReceived - $invoiceTotal, 2);
+                    $journalLines[] = [
+                        'account_code' => '2100',
+                        'debit'        => 0,
+                        'credit'       => $surplus,
+                        'party_id'     => $data['customer_id'],
+                    ];
+                    $paymentStatus = 'paid';
                 } else {
                     $paymentStatus = 'paid';
                 }
@@ -394,7 +442,38 @@ class SaleService
             }
 
             // Reverse the journal entry (auto-voids payment allocations)
-            $this->accounting->reverseEntry($sale->journal_entry_id, $reason);
+            $journalEntryId = DB::table('journal_entries')
+                ->where('tenant_id', $this->tenantId)
+                ->where('reference_type', 'sale')
+                ->where('reference', $saleId)
+                ->value('id');
+
+            if ($journalEntryId) {
+                $this->accounting->reverseEntry($journalEntryId, $reason);
+            }
+
+            // Reverse payments in the payments table
+            $payments = DB::table('payments')->where('sale_id', $sale->id)->get();
+            foreach ($payments as $payment) {
+                $exists = DB::table('payments')
+                    ->where('sale_id', $sale->id)
+                    ->where('amount', -$payment->amount)
+                    ->where('method', $payment->method)
+                    ->where('reference', 'like', 'REVERSAL%')
+                    ->exists();
+
+                if (!$exists) {
+                    \App\Models\Payment::create([
+                        'sale_id'   => $sale->id,
+                        'party_id'  => $payment->party_id,
+                        'amount'    => -$payment->amount,
+                        'type'      => $payment->type === 'in' ? 'out' : 'in',
+                        'method'    => $payment->method,
+                        'reference' => 'REVERSAL of payment: ' . $payment->reference,
+                        'date'      => $returnDate ?? now()->toDateString(),
+                    ]);
+                }
+            }
 
             // Mark sale as returned
             DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->update([
@@ -433,6 +512,10 @@ class SaleService
 
         foreach ($tiers as $tier) {
             if ($remaining <= 0.0001) break;
+
+            if ($totalQty < (float) $tier->min_qty) {
+                continue;
+            }
 
             $tierMax = $tier->max_qty !== null ? (float) $tier->max_qty : PHP_FLOAT_MAX;
 

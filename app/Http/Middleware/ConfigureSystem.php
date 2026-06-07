@@ -27,7 +27,15 @@ class ConfigureSystem
         try {
             // Ensure database is accessible before trying to read settings
             // This prevents crashes during initial installation or migration
-            if (Schema::hasTable('settings')) {
+            $hasSettingsTable = \Illuminate\Support\Facades\Cache::remember('schema_table_exists:settings', 3600, function () {
+                try {
+                    return Schema::hasTable('settings');
+                } catch (\Exception $e) {
+                    return false;
+                }
+            });
+
+            if ($hasSettingsTable) {
                 
                 // 1. Timezone Configuration
                 $timezone = SettingsHelper::get('timezone');

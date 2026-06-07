@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 
 export default function Show({ staffMember, attendanceHistory }) {
+    const { store } = usePage().props;
     // Helper to format time
     const formatTime = (dateStr) => {
         if (!dateStr) return '-';

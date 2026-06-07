@@ -1,0 +1,78 @@
+﻿
+ÔòöÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòù
+Ôòæ  VenQore Tenant Isolation Audit                  Ôòæ
+ÔòÜÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòØ
+
+┬º3.1 ÔÇö Tenant Zero Integrity (NULL tenant_id check)
+
++---------------------+--------+----------------------+
+| Table               | Status | Detail               |
++---------------------+--------+----------------------+
+| products            | PASS   | 0 unassigned rows    |
+| sales               | PASS   | 0 unassigned rows    |
+| sale_items          | PASS   | 0 unassigned rows    |
+| parties             | PASS   | 0 unassigned rows    |
+| invoices            | PASS   | 0 unassigned rows    |
+| invoice_items       | PASS   | 0 unassigned rows    |
+| expenses            | PASS   | 0 unassigned rows    |
+| stock_adjustments   | SKIP   | Table does not exist |
+| stock_transfers     | PASS   | 0 unassigned rows    |
+| journal_entries     | PASS   | 0 unassigned rows    |
+| journal_entry_lines | SKIP   | Table does not exist |
+| payments            | PASS   | 0 unassigned rows    |
+| purchase_orders     | PASS   | 0 unassigned rows    |
+| warehouses          | PASS   | 0 unassigned rows    |
+| bank_accounts       | PASS   | 0 unassigned rows    |
+| tenant_users        | PASS   | 0 unassigned rows    |
+| categories          | PASS   | 0 unassigned rows    |
+| units               | PASS   | 0 unassigned rows    |
+| settings            | PASS   | 0 unassigned rows    |
+| inventory_batches   | PASS   | 0 unassigned rows    |
++---------------------+--------+----------------------+
+
+┬º3.4 ÔÇö HasTenant Trait Coverage
+
++--------------+--------+----------------+
+| Model        | Status | Detail         |
++--------------+--------+----------------+
+| Product      | PASS   | uses HasTenant |
+| Sale         | PASS   | uses HasTenant |
+| Party        | PASS   | uses HasTenant |
+| Expense      | PASS   | uses HasTenant |
+| Invoice      | PASS   | uses HasTenant |
+| Category     | PASS   | uses HasTenant |
+| Warehouse    | PASS   | uses HasTenant |
+| JournalEntry | PASS   | uses HasTenant |
+| Account      | PASS   | uses HasTenant |
+| Stock        | PASS   | uses HasTenant |
++--------------+--------+----------------+
+
+┬º3.5 ÔÇö Reserved Slug Blocklist
+
++---------------+--------+--------------------------------------+
+| Reserved Word | Status | Detail                               |
++---------------+--------+--------------------------------------+
+| admin         | PASS   | "admin" ÔåÆ "admin-165" (modified)     |
+| api           | PASS   | "api" ÔåÆ "api-196" (modified)         |
+| www           | PASS   | "www" ÔåÆ "www-535" (modified)         |
+| billing       | PASS   | "billing" ÔåÆ "billing-601" (modified) |
+| demo          | PASS   | "demo" ÔåÆ "demo-580" (modified)       |
+| support       | PASS   | "support" ÔåÆ "support-111" (modified) |
+| mail          | PASS   | "mail" ÔåÆ "mail-298" (modified)       |
++---------------+--------+--------------------------------------+
+
+Bonus ÔÇö Tenant State Integrity
+
++------------------------------+--------+---------------------------------------------+
+| Check                        | Status | Detail                                      |
++------------------------------+--------+---------------------------------------------+
+| Expired trials not processed | PASS   | 0 stuck trials                              |
+| Active tenants without setup | WARN   | 4 active tenants have setup_completed=false |
+| demo store (slug: demo)      | PASS   | Exists (plan: business, status: active)     |
++------------------------------+--------+---------------------------------------------+
+
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+ÔÜá´©Å  37 passed, 0 failures, 1 warnings
+   Address warnings before launch if possible.
+ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+

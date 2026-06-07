@@ -9,7 +9,7 @@ export const useAttendance = () => useContext(AttendanceContext);
 export const AttendanceProvider = ({ children }) => {
     const { props } = usePage();
     const auth = props.auth;
-    const store = props.store;
+    const store = props.store || {};
     const [isCheckedIn, setIsCheckedIn] = useState(false);
     const [attendance, setAttendance] = useState(null);
 
@@ -18,7 +18,7 @@ export const AttendanceProvider = ({ children }) => {
     const INACTIVITY_LIMIT = 60 * 60 * 1000; // 1 hour
 
     useEffect(() => {
-        if (!auth?.user || !props.tenant) {
+        if (!auth?.user || !store?.slug) {
             setIsCheckedIn(false);
             setAttendance(null);
             return;

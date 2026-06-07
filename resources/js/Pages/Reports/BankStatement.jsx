@@ -15,25 +15,25 @@ export default function BankStatement({ transactions = [], stats = {}, filters =
     const reportStats = [
         {
             label: 'Opening Balance',
-            value: formatCurrency(stats.opening_balance),
+            value: formatCurrency(stats.opening_balance, store),
             icon: <Wallet size={18} />,
             type: 'neutral'
         },
         {
             label: 'Total Deposits',
-            value: formatCurrency(stats.total_deposits),
+            value: formatCurrency(stats.total_deposits, store),
             icon: <ArrowDownLeft size={18} />,
             type: 'up'
         },
         {
             label: 'Total Withdrawals',
-            value: formatCurrency(stats.total_withdrawals),
+            value: formatCurrency(stats.total_withdrawals, store),
             icon: <ArrowUpRight size={18} />,
             type: 'down'
         },
         {
             label: 'Closing Balance',
-            value: formatCurrency(stats.closing_balance),
+            value: formatCurrency(stats.closing_balance, store),
             icon: <Landmark size={18} />,
             type: 'neutral'
         }
@@ -73,7 +73,7 @@ export default function BankStatement({ transactions = [], stats = {}, filters =
             sortable: true,
             render: (row) => (
                 <span className={`font-bold ${row.type === 'credit' ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {formatCurrency(row.amount)}
+                    {formatCurrency(row.amount, store)}
                 </span>
             )
         },
@@ -81,7 +81,7 @@ export default function BankStatement({ transactions = [], stats = {}, filters =
             key: 'balance',
             label: 'Balance',
             align: 'right',
-            render: (row) => <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(row.balance)}</span>
+            render: (row) => <span className="font-medium text-slate-700 dark:text-slate-300">{formatCurrency(row.balance, store)}</span>
         }
     ];
 

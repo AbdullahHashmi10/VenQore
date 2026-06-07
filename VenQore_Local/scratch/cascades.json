@@ -1,0 +1,611 @@
+[
+    {
+        "TABLE_NAME": "bank_accounts",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "bank_accounts_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "brands",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "brands_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "customers",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "customers_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "customer_analytics",
+        "COLUMN_NAME": "party_id",
+        "CONSTRAINT_NAME": "customer_analytics_party_id_foreign",
+        "REFERENCED_TABLE_NAME": "parties",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "custom_charges",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "custom_charges_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "debit_note_items",
+        "COLUMN_NAME": "debit_note_id",
+        "CONSTRAINT_NAME": "debit_note_items_debit_note_id_foreign",
+        "REFERENCED_TABLE_NAME": "debit_notes",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "expense_categories",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "expense_categories_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "gift_cards",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "gift_cards_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "invoice_items",
+        "COLUMN_NAME": "invoice_id",
+        "CONSTRAINT_NAME": "invoice_items_invoice_id_foreign",
+        "REFERENCED_TABLE_NAME": "invoices",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "journal_entries",
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "journal_entries_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "journal_items",
+        "COLUMN_NAME": "journal_entry_id",
+        "CONSTRAINT_NAME": "journal_items_journal_entry_id_foreign",
+        "REFERENCED_TABLE_NAME": "journal_entries",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "loyalty_balances",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "loyalty_balances_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "loyalty_balances",
+        "COLUMN_NAME": "party_id",
+        "CONSTRAINT_NAME": "loyalty_balances_party_id_foreign",
+        "REFERENCED_TABLE_NAME": "parties",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "loyalty_points",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "loyalty_points_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "loyalty_points",
+        "COLUMN_NAME": "party_id",
+        "CONSTRAINT_NAME": "loyalty_points_party_id_foreign",
+        "REFERENCED_TABLE_NAME": "parties",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_ingredients",
+        "COLUMN_NAME": "rule_id",
+        "CONSTRAINT_NAME": "manufacturing_ingredients_rule_id_foreign",
+        "REFERENCED_TABLE_NAME": "manufacturing_rules",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_ingredients",
+        "COLUMN_NAME": "ingredient_product_id",
+        "CONSTRAINT_NAME": "manufacturing_ingredients_ingredient_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_logs",
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "manufacturing_logs_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_logs",
+        "COLUMN_NAME": "sale_id",
+        "CONSTRAINT_NAME": "manufacturing_logs_sale_id_foreign",
+        "REFERENCED_TABLE_NAME": "sales",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_logs",
+        "COLUMN_NAME": "rule_id",
+        "CONSTRAINT_NAME": "manufacturing_logs_rule_id_foreign",
+        "REFERENCED_TABLE_NAME": "manufacturing_rules",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_rules",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "manufacturing_rules_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "manufacturing_rules",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "manufacturing_rules_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "parked_sales",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "parked_sales_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "payments",
+        "COLUMN_NAME": "sale_id",
+        "CONSTRAINT_NAME": "payments_sale_id_foreign",
+        "REFERENCED_TABLE_NAME": "sales",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "platform_activity_log",
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "platform_activity_log_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "production_logs",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "production_logs_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "production_logs",
+        "COLUMN_NAME": "recipe_id",
+        "CONSTRAINT_NAME": "production_logs_recipe_id_foreign",
+        "REFERENCED_TABLE_NAME": "recipes",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "production_log_ingredients",
+        "COLUMN_NAME": "production_log_id",
+        "CONSTRAINT_NAME": "production_log_ingredients_production_log_id_foreign",
+        "REFERENCED_TABLE_NAME": "production_logs",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "production_log_ingredients",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "production_log_ingredients_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "production_runs",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "production_runs_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "production_runs",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "production_runs_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_attributes",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_attributes_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_barcodes",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_barcodes_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_barcodes",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "product_barcodes_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_batches",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_batches_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_images",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_images_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_images",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "product_images_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_price_tiers",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_price_tiers_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_serials",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_serials_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_units",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_units_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_variants",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "product_variants_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "product_variants",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "product_variants_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "proposal_items",
+        "COLUMN_NAME": "proposal_id",
+        "CONSTRAINT_NAME": "proposal_items_proposal_id_foreign",
+        "REFERENCED_TABLE_NAME": "proposals",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "purchase_orders",
+        "COLUMN_NAME": "warehouse_id",
+        "CONSTRAINT_NAME": "purchase_orders_warehouse_id_foreign",
+        "REFERENCED_TABLE_NAME": "warehouses",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "purchase_orders",
+        "COLUMN_NAME": "supplier_id",
+        "CONSTRAINT_NAME": "purchase_orders_supplier_id_foreign",
+        "REFERENCED_TABLE_NAME": "suppliers",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "purchase_order_items",
+        "COLUMN_NAME": "purchase_order_id",
+        "CONSTRAINT_NAME": "purchase_order_items_purchase_order_id_foreign",
+        "REFERENCED_TABLE_NAME": "purchase_orders",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "purchase_order_items",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "purchase_order_items_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "purchase_proposal_items",
+        "COLUMN_NAME": "purchase_proposal_id",
+        "CONSTRAINT_NAME": "purchase_proposal_items_purchase_proposal_id_foreign",
+        "REFERENCED_TABLE_NAME": "purchase_proposals",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "recipes",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "recipes_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "recipes",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "recipes_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "recipe_ingredients",
+        "COLUMN_NAME": "recipe_id",
+        "CONSTRAINT_NAME": "recipe_ingredients_recipe_id_foreign",
+        "REFERENCED_TABLE_NAME": "recipes",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "recipe_ingredients",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "recipe_ingredients_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "recipe_ingredients",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "recipe_ingredients_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "recipe_media",
+        "COLUMN_NAME": "recipe_id",
+        "CONSTRAINT_NAME": "recipe_media_recipe_id_foreign",
+        "REFERENCED_TABLE_NAME": "recipes",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "sales_order_items",
+        "COLUMN_NAME": "sales_order_id",
+        "CONSTRAINT_NAME": "sales_order_items_sales_order_id_foreign",
+        "REFERENCED_TABLE_NAME": "sales_orders",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "sale_items",
+        "COLUMN_NAME": "sale_id",
+        "CONSTRAINT_NAME": "sale_items_sale_id_foreign",
+        "REFERENCED_TABLE_NAME": "sales",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "sale_item_batches",
+        "COLUMN_NAME": "sale_item_id",
+        "CONSTRAINT_NAME": "sale_item_batches_sale_item_id_foreign",
+        "REFERENCED_TABLE_NAME": "sale_items",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_activity_gaps",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "staff_activity_gaps_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_activity_gaps",
+        "COLUMN_NAME": "staff_attendance_id",
+        "CONSTRAINT_NAME": "staff_activity_gaps_staff_attendance_id_foreign",
+        "REFERENCED_TABLE_NAME": "staff_attendances",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_attendances",
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "staff_attendances_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_attendances",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "staff_attendances_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_daily_summaries",
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "staff_daily_summaries_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_daily_summaries",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "staff_daily_summaries_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_invitations",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "staff_invitations_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "staff_invitations",
+        "COLUMN_NAME": "invited_by",
+        "CONSTRAINT_NAME": "staff_invitations_invited_by_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "stocks",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "stocks_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "stock_movements",
+        "COLUMN_NAME": "product_id",
+        "CONSTRAINT_NAME": "stock_movements_product_id_foreign",
+        "REFERENCED_TABLE_NAME": "products",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "stock_take_items",
+        "COLUMN_NAME": "stock_take_id",
+        "CONSTRAINT_NAME": "stock_take_items_stock_take_id_foreign",
+        "REFERENCED_TABLE_NAME": "stock_takes",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "stock_transfer_items",
+        "COLUMN_NAME": "stock_transfer_id",
+        "CONSTRAINT_NAME": "stock_transfer_items_stock_transfer_id_foreign",
+        "REFERENCED_TABLE_NAME": "stock_transfers",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "store_activity_log",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "store_activity_log_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "store_credits",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "store_credits_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "store_credits",
+        "COLUMN_NAME": "party_id",
+        "CONSTRAINT_NAME": "store_credits_party_id_foreign",
+        "REFERENCED_TABLE_NAME": "parties",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "store_credit_balances",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "store_credit_balances_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "store_credit_balances",
+        "COLUMN_NAME": "party_id",
+        "CONSTRAINT_NAME": "store_credit_balances_party_id_foreign",
+        "REFERENCED_TABLE_NAME": "parties",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "suppliers",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "suppliers_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "support_ticket_replies",
+        "COLUMN_NAME": "ticket_id",
+        "CONSTRAINT_NAME": "support_ticket_replies_ticket_id_foreign",
+        "REFERENCED_TABLE_NAME": "support_tickets",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "tenant_permission_overrides",
+        "COLUMN_NAME": "tenant_user_id",
+        "CONSTRAINT_NAME": "tenant_permission_overrides_tenant_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenant_users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "tenant_users",
+        "COLUMN_NAME": "user_id",
+        "CONSTRAINT_NAME": "tenant_users_user_id_foreign",
+        "REFERENCED_TABLE_NAME": "users",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "tenant_users",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "tenant_users_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "terminals",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "terminals_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "transactions",
+        "COLUMN_NAME": "party_id",
+        "CONSTRAINT_NAME": "transactions_party_id_foreign",
+        "REFERENCED_TABLE_NAME": "parties",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "transaction_allocations",
+        "COLUMN_NAME": "payment_transaction_id",
+        "CONSTRAINT_NAME": "transaction_allocations_payment_transaction_id_foreign",
+        "REFERENCED_TABLE_NAME": "transactions",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "transaction_allocations",
+        "COLUMN_NAME": "invoice_transaction_id",
+        "CONSTRAINT_NAME": "transaction_allocations_invoice_transaction_id_foreign",
+        "REFERENCED_TABLE_NAME": "transactions",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "units",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "units_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "variant_attributes",
+        "COLUMN_NAME": "variant_id",
+        "CONSTRAINT_NAME": "variant_attributes_variant_id_foreign",
+        "REFERENCED_TABLE_NAME": "product_variants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "variant_attributes",
+        "COLUMN_NAME": "tenant_id",
+        "CONSTRAINT_NAME": "variant_attributes_tenant_id_foreign",
+        "REFERENCED_TABLE_NAME": "tenants",
+        "DELETE_RULE": "CASCADE"
+    },
+    {
+        "TABLE_NAME": "variant_attributes",
+        "COLUMN_NAME": "attribute_id",
+        "CONSTRAINT_NAME": "variant_attributes_attribute_id_foreign",
+        "REFERENCED_TABLE_NAME": "product_attributes",
+        "DELETE_RULE": "CASCADE"
+    }
+]

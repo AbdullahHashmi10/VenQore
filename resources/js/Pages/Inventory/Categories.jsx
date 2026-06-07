@@ -492,6 +492,7 @@ export default function Categories({ categories: serverCategories = [], stats, f
                 onClose={() => setIsModalOpen(false)}
                 title={editingCategory ? 'Edit Category' : 'Create Category'}
                 subtitle={editingCategory ? 'Update category details' : 'Add a new product category'}
+                errors={errors}
                 footer={
                     <div className="flex justify-end gap-3">
                         <SecondaryButton onClick={() => setIsModalOpen(false)}>

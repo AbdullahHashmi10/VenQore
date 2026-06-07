@@ -13,6 +13,8 @@ class SearchController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
+        $storeSlug = $request->route('store_slug');
+        $tenantId = app('current.tenant')->id;
 
         if (!$query || strlen($query) < 2) {
             return response()->json([]);
@@ -21,64 +23,71 @@ class SearchController extends Controller
         $results = [];
 
         // 1. Natural Language Stock Check
-        // Detects: "how much sugar", "stock of sugar", "sugar stock", "how many sugar left"
         if (preg_match('/(how many|how much|stock|left|qty|quantity)/i', $query)) {
-            // Remove common "question" words to isolate the product name
             $cleanName = preg_replace('/(how many|how much|stock|is|there|left|of|qty|quantity|do|we|have|\?)/i', '', $query);
             $cleanName = trim($cleanName);
 
             if (!empty($cleanName)) {
-                $stockProduct = Product::where('name', 'like', "%{$cleanName}%")->first();
+                $stockProduct = Product::where('tenant_id', $tenantId)
+                    ->where('name', 'like', "%{$cleanName}%")
+                    ->first();
                 if ($stockProduct) {
                     $results[] = [
                         'type' => 'Answer',
                         'title' => "Stock Level: {$stockProduct->name}",
-                        'subtitle' => "{$stockProduct->stock_quantity} {$stockProduct->unit} remaining in stock.", // Assuming stock_quantity exists
-                        'url' => route('inventory.stock', ['search' => $stockProduct->code]),
-                        'icon' => 'Box' // Helper for frontend
+                        'subtitle' => "{$stockProduct->stock_quantity} {$stockProduct->unit} remaining in stock.",
+                        'url' => route('store.inventory.stock', ['store_slug' => $storeSlug, 'search' => $stockProduct->sku]),
+                        'icon' => 'Box'
                     ];
                 }
             }
         }
 
         // 2. Standard Search (Products)
-        $products = Product::where('name', 'like', "%{$query}%")
-            ->orWhere('code', 'like', "%{$query}%")
+        $products = Product::where('tenant_id', $tenantId)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('sku', 'like', "%{$query}%");
+            })
             ->limit(5)
             ->get()
-            ->map(function ($product) {
+            ->map(function ($product) use ($storeSlug) {
                 return [
                     'type' => 'Product',
                     'title' => $product->name,
-                    'subtitle' => $product->code,
-                    'url' => route('inventory.stock', ['search' => $product->code])
+                    'subtitle' => $product->sku,
+                    'url' => route('store.inventory.stock', ['store_slug' => $storeSlug, 'search' => $product->sku])
                 ];
             });
 
         // 3. Standard Search (Parties)
-        $parties = Party::where('name', 'like', "%{$query}%")
-            ->orWhere('phone', 'like', "%{$query}%")
+        $parties = Party::where('tenant_id', $tenantId)
+            ->where(function($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                  ->orWhere('phone', 'like', "%{$query}%");
+            })
             ->limit(5)
             ->get()
-            ->map(function ($party) {
+            ->map(function ($party) use ($storeSlug) {
                 return [
                     'type' => 'Party',
                     'title' => $party->name,
                     'subtitle' => $party->phone,
-                    'url' => route('parties.ledger', $party->id)
+                    'url' => route('store.parties.ledger', ['store_slug' => $storeSlug, 'party' => $party->id])
                 ];
             });
 
         // 4. Standard Search (Invoices)
-        $invoices = Invoice::where('invoice_number', 'like', "%{$query}%")
+        $invoices = Invoice::where('tenant_id', $tenantId)
+            ->where('invoice_number', 'like', "%{$query}%")
             ->limit(5)
             ->get()
-            ->map(function ($invoice) {
+            ->map(function ($invoice) use ($storeSlug) {
                 return [
                     'type' => 'Invoice',
                     'title' => $invoice->invoice_number,
                     'subtitle' => $invoice->type . ' - ' . $invoice->total_amount,
-                    'url' => route('sales.show', $invoice->id)
+                    'url' => route('store.sales.index', ['store_slug' => $storeSlug, 'search' => $invoice->invoice_number])
                 ];
             });
 

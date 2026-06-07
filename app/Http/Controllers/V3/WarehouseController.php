@@ -13,7 +13,7 @@ class WarehouseController extends Controller
 {
     public function index()
     {
-        $warehouses = DB::table('warehouses')
+        $warehouses = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
             ->orderByDesc('is_default')
             ->orderBy('name')
@@ -42,13 +42,13 @@ class WarehouseController extends Controller
 
             // Only one default warehouse allowed
             if (!empty($validated['is_default'])) {
-                DB::table('warehouses')
+                DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
                     ->where('tenant_id', $tenantId)
                     ->update(['is_default' => 0]);
             }
 
             // If no warehouse exists yet, force this one to be default
-            $count = DB::table('warehouses')
+            $count = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
                 ->where('tenant_id', $tenantId)
                 ->count();
 
@@ -57,7 +57,7 @@ class WarehouseController extends Controller
                 PlanGate::enforce('locations', $count);
             }
 
-            DB::table('warehouses')->insert([
+            DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)->insert([
                 'id'         => Str::uuid()->toString(),
                 'tenant_id'  => app('current.tenant')->id,
                 'name'       => $validated['name'],
@@ -74,7 +74,7 @@ class WarehouseController extends Controller
 
     public function edit(string $id)
     {
-        $warehouse = DB::table('warehouses')
+        $warehouse = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
             ->where('id', $id)
             ->firstOrFail();
@@ -97,13 +97,13 @@ class WarehouseController extends Controller
         DB::transaction(function () use ($id, $validated) {
             $tenantId = app('current.tenant')->id;
             if (!empty($validated['is_default'])) {
-                DB::table('warehouses')
+                DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
                     ->where('tenant_id', $tenantId)
                     ->where('id', '!=', $id)
                     ->update(['is_default' => 0]);
             }
 
-            DB::table('warehouses')
+            DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
                 ->where('tenant_id', $tenantId)
                 ->where('id', $id)
                 ->update([
@@ -123,7 +123,7 @@ class WarehouseController extends Controller
     {
         $tenantId = app('current.tenant')->id;
         // Block deletion if this warehouse has inventory batches
-        $hasBatches = DB::table('inventory_batches')
+        $hasBatches = DB::table('inventory_batches')->where('inventory_batches.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('warehouse_id', $id)
             ->where('remaining_qty', '>', 0)
@@ -136,7 +136,7 @@ class WarehouseController extends Controller
         }
 
         // Block deletion of the only default warehouse
-        $warehouse = DB::table('warehouses')
+        $warehouse = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
             ->first();
@@ -146,7 +146,7 @@ class WarehouseController extends Controller
             ]);
         }
 
-        DB::table('warehouses')
+        DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', $tenantId)
             ->where('id', $id)
             ->delete();

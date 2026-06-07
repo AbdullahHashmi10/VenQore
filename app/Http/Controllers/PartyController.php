@@ -120,12 +120,13 @@ class PartyController extends Controller
             $query->orderBy($sortBy, $sortDir);
         }
 
-        $tid = app('current.tenant')->id;
+        $tenantId = app('current.tenant')->id;
         $receivables = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_entries.tenant_id', $tid)
+            ->where('accounts.tenant_id', $tenantId)
             ->where('accounts.code', '1200')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
             ->value('net');
@@ -133,8 +134,9 @@ class PartyController extends Controller
         $payables = (float) DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_entries.tenant_id', $tid)
+            ->where('accounts.tenant_id', $tenantId)
             ->where('accounts.code', '2000')
+            ->where('journal_entries.tenant_id', $tenantId)
             ->where('journal_entries.is_reversed', 0)
             ->selectRaw('COALESCE(SUM(journal_items.credit),0) - COALESCE(SUM(journal_items.debit),0) as net')
             ->value('net');
@@ -222,6 +224,7 @@ class PartyController extends Controller
             'opening_balance_type' => 'required|in:receivable,payable',
             'default_discount' => 'nullable|numeric|between:0,100'
         ]);
+
 
         $ob = floatval($validated['opening_balance'] ?? 0);
         $validated['current_balance'] = $validated['opening_balance_type'] === 'receivable' ? abs($ob) : -abs($ob);
@@ -430,53 +433,18 @@ class PartyController extends Controller
     {
         $party = Party::findOrFail($id);
 
-        // Check if party has transactions
-        $arAccount = \App\Models\Account::where('code', '1200')->value('id');
-        $apAccount = \App\Models\Account::where('code', '2000')->value('id');
+        $tenantId = app('current.tenant')->id;
 
-        $journalBalance = (float) DB::table('journal_items')
-            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-            ->whereIn('journal_items.account_id', array_filter([$arAccount, $apAccount]))
-            ->where('journal_entries.party_id', $party->id)
-            ->where('journal_entries.is_reversed', 0)
-            ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as net')
-            ->value('net');
+        $hasLedgerEntries = DB::table('journal_entries')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('journal_items')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('payments')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('sales')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists()
+            || DB::table('purchases')->where('tenant_id', $tenantId)->where('party_id', $party->id)->exists();
 
-        if (round(abs($journalBalance), 2) > 0) {
-            $passcode = $request->input('passcode');
-            
-            if (!$passcode) {
-                return response()->json([
-                    'requires_passcode' => true,
-                    'message' => 'Cannot delete party with non-zero balance. Manager or Admin passcode required.'
-                ], 422);
-            }
-
-            // Verify passcode
-            $valid = false;
-            
-            // 1. Check if the provided passcode belongs to any user with manager, admin, or platform_admin role
-            $userWithPasscode = \App\Models\User::whereIn('role', ['manager', 'admin', 'platform_admin'])->get()->filter(function ($u) use ($passcode) {
-                return \Illuminate\Support\Facades\Hash::check($passcode, $u->passcode);
-            })->first();
-
-            if ($userWithPasscode) {
-                $valid = true;
-            }
-
-            // 2. Fallback to global admin_passcode setting
-            if (!$valid) {
-                $adminPasscode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
-                if ($adminPasscode && $passcode === $adminPasscode) {
-                    $valid = true;
-                }
-            }
-
-            if (!$valid) {
-                return response()->json([
-                    'message' => 'Invalid passcode provided or insufficient privileges.'
-                ], 403);
-            }
+        if ($hasLedgerEntries) {
+            return response()->json([
+                'message' => 'Cannot delete party with existing journal entries, payments, or sales/purchases.'
+            ], 422);
         }
 
         $party->delete();
@@ -486,6 +454,49 @@ class PartyController extends Controller
             'message' => 'Party deleted successfully'
         ]);
     }
+
+    /**
+     * Bulk delete multiple parties at once.
+     * Requires passcode if ANY of the parties has a non-zero balance.
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'ids'      => 'required|array|min:1',
+            'ids.*'    => 'string',
+            'passcode' => 'nullable|string',
+        ]);
+
+        $tenantId = app('current.tenant')->id;
+        $ids = $request->input('ids');
+
+        $parties = Party::whereIn('id', $ids)->get();
+
+        if ($parties->isEmpty()) {
+            return response()->json(['message' => 'No matching parties found.'], 404);
+        }
+
+        $hasLedgerEntries = DB::table('journal_entries')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('journal_items')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('payments')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('sales')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists()
+            || DB::table('purchases')->where('tenant_id', $tenantId)->whereIn('party_id', $ids)->exists();
+
+        if ($hasLedgerEntries) {
+            return response()->json([
+                'message' => 'Cannot delete parties with existing journal entries, payments, or sales/purchases.'
+            ], 422);
+        }
+
+        $deleted = Party::whereIn('id', $ids)->delete();
+
+        return response()->json([
+            'success' => true,
+            'deleted' => $deleted,
+            'message' => "{$deleted} contact(s) deleted successfully."
+        ]);
+    }
+
 
     public function ledger($id)
     {
@@ -507,7 +518,6 @@ class PartyController extends Controller
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->where('journal_items.account_id', $accountId)
                 ->where('journal_entries.party_id', $id)
-                ->where('journal_entries.is_reversed', 0)
                 ->select(
                     'journal_entries.date',
                     'journal_entries.reference as reference',

@@ -22,7 +22,8 @@ export default function FormModal({
     footer,
     size = 'md',
     loading = false,
-    confirmClose = true // Default to true for better UX
+    confirmClose = true, // Default to true for better UX
+    errors = null // Support displaying validation errors
 }) {
     const [showExitConfirmation, setShowExitConfirmation] = useState(false);
     // Base size classes
@@ -78,6 +79,19 @@ export default function FormModal({
 
         return () => window.removeEventListener('keydown', handleKeyDown, true);
     }, [isOpen, requestClose]);
+
+    // Process errors object
+    const errorList = [];
+    if (errors && typeof errors === 'object') {
+        Object.entries(errors).forEach(([field, messages]) => {
+            const fieldLabel = field.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            if (Array.isArray(messages)) {
+                messages.forEach(msg => errorList.push({ field, label: fieldLabel, message: msg }));
+            } else if (typeof messages === 'string') {
+                errorList.push({ field, label: fieldLabel, message: messages });
+            }
+        });
+    }
 
     // Final check for open state after hooks
     if (!isOpen) return null;
@@ -149,7 +163,24 @@ export default function FormModal({
                                 </div>
                             </div>
                         ) : (
-                            children
+                            <>
+                                {errorList.length > 0 && (
+                                    <div className="mb-6 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <AlertTriangle size={24} className="shrink-0 text-rose-500" />
+                                            <h4 className="text-base font-black uppercase tracking-wider">Please correct the following:</h4>
+                                        </div>
+                                        <ul className="list-disc pl-5 space-y-1 text-sm font-bold">
+                                            {errorList.map((err, idx) => (
+                                                <li key={idx} className="tracking-tight">
+                                                    <span className="capitalize">{err.label}</span>: {err.message}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {children}
+                            </>
                         )}
                     </div>
 

@@ -55,7 +55,7 @@ class DisasterClaimController extends Controller
                 ['account_code' => '1100', 'debit'  => 0, 'credit' => $lossAmount],
             ]);
 
-            DB::table('disaster_claims')->insert([
+            DB::table('disaster_claims')->where('disaster_claims.tenant_id', app('current.tenant')->id)->insert([
                 'id'                      => $claimId,
                 'description'             => $validated['description'],
                 'loss_journal_entry_id'   => $journalEntry->id,
@@ -81,7 +81,7 @@ class DisasterClaimController extends Controller
             'payment_method'   => ['required', 'in:cash,bank'],
         ]);
 
-        $claim = DB::table('disaster_claims')->where('id', $id)->firstOrFail();
+        $claim = DB::table('disaster_claims')->where('disaster_claims.tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
         if ($claim->status === 'closed') {
             return back()->withErrors([
@@ -103,7 +103,7 @@ class DisasterClaimController extends Controller
                 ['account_code' => '6960',       'debit' => 0, 'credit' => $validated['recovery_amount']],
             ]);
 
-            DB::table('disaster_claims')->where('id', $id)->update([
+            DB::table('disaster_claims')->where('disaster_claims.tenant_id', app('current.tenant')->id)->where('id', $id)->update([
                 'recovery_journal_entry_id' => $journalEntry->id,
                 'recovery_amount'           => $validated['recovery_amount'],
                 'status'                    => 'closed',

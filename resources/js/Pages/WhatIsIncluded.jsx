@@ -63,7 +63,7 @@ export default function WhatIsIncluded() {
                     <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
                 </Link>
                 <div className="flex items-center gap-4">
-                    <Link href={route('appsumo.index')} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm font-bold hover:bg-orange-500/20 transition-colors">
+                    <Link href={route('redeem')} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm font-bold hover:bg-orange-500/20 transition-colors">
                         <Tag size={14} /> Redeem AppSumo Code
                     </Link>
                 </div>
@@ -80,7 +80,7 @@ export default function WhatIsIncluded() {
                     </h1>
                     <p className="text-slate-400 text-xl max-w-2xl mx-auto">
                         One-time purchase. No hidden fees. Lifetime access to the software.
-                        2 years of hosting on venqore.com included.
+                        2 years of hosting on venqore.com FREE (then $9 to $30/mo after 2 years depending on plan tier).
                     </p>
                 </div>
 
@@ -164,7 +164,7 @@ export default function WhatIsIncluded() {
                                 </Section>
                                 <Section title="Hosting & Support">
                                     <Feature label="Included Hosting"               starter="2 Years" growth="2 Years" business="2 Years" />
-                                    <Feature label="After 2 Years"                  starter="$9/mo"   growth="$9/mo"   business="$9/mo" />
+                                    <Feature label="After 2 Years"                  starter="$9/mo"   growth="$18/mo"   business="$30/mo" />
                                     <Feature label="Self-Host Option"               starter={true}    growth={true}   business={true} />
                                     <Feature label="Email Support"                  starter={true}    growth={true}   business={true} />
                                     <Feature label="Priority Support"               starter={false}   growth={true}   business={true} />
@@ -179,7 +179,7 @@ export default function WhatIsIncluded() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
                     {[
                         { icon: Shield, title: '60-Day Refund', body: "AppSumo's standard guarantee. Full refund within 60 days, no questions asked." },
-                        { icon: Clock, title: '2 Years Hosting', body: 'Every code includes 2 years of hosting on venqore.com. After that, $9/month or self-host.' },
+                        { icon: Clock, title: '2 Years Hosting', body: 'Every code includes 2 years of hosting on venqore.com. After that, $9 to $30/mo depending on plan tier, or self-host.' },
                         { icon: Layers, title: 'Stack Up to 3', body: 'Buy a second or third code within 60 days to upgrade your plan tier instantly.' },
                     ].map((c, i) => (
                         <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10">
@@ -193,7 +193,7 @@ export default function WhatIsIncluded() {
                 {/* CTA */}
                 <div className="text-center">
                     <Link
-                        href={route('appsumo.index')}
+                        href={route('redeem')}
                         className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-105 hover:shadow-lg hover:shadow-indigo-500/25"
                     >
                         <Tag size={16} /> Redeem Your Code <ArrowRight size={16} />

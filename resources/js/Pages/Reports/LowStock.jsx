@@ -4,6 +4,7 @@ import { AlertTriangle, Package, ArrowDown, DollarSign, ShoppingCart, TrendingUp
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 export default function LowStock({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
     const {
@@ -34,14 +35,14 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
         },
         {
             label: 'Total Units Needed',
-            value: totalShortage,
+            value: formatNumber(totalShortage),
             subValue: 'To restore min. levels',
             icon: <ArrowDown size={20} className="text-blue-500" />,
             type: 'neutral'
         },
         {
             label: 'Est. Reorder Cost',
-            value: new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(estimatedReorderCost),
+            value: formatCurrency(estimatedReorderCost),
             subValue: 'Based on Cost Price',
             icon: <DollarSign size={20} className="text-emerald-500" />,
             type: 'up'
@@ -118,9 +119,9 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                     <div className="w-full max-w-[160px]">
                         <div className="flex justify-between text-[11px] mb-1 font-bold">
                             <span className={stock === 0 ? 'text-red-500' : (stock < min ? 'text-orange-500' : 'text-emerald-500')}>
-                                {stock} units
+                                {formatNumber(stock)} units
                             </span>
-                            <span className="text-slate-400">Min: {min}</span>
+                            <span className="text-slate-400">Min: {formatNumber(min)}</span>
                         </div>
                         <div className="h-2 w-full bg-slate-100 dark:bg-slate-900 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800">
                             <div className={`h-full ${colorClass} transition-all duration-500 relative`} style={{ width: `${percentage}%` }}>
@@ -141,7 +142,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                 return (
                     <div className="flex flex-col items-center">
                         <span className="font-mono font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-1 rounded-lg border border-red-100 dark:border-red-900/30 shadow-sm">
-                            +{shortage}
+                            +{formatNumber(shortage)}
                         </span>
                         <span className="text-[10px] text-slate-400 mt-1">units needed</span>
                     </div>
@@ -159,7 +160,7 @@ export default function LowStock({ products = [], stats = {}, filters = {}, cate
                 const cost = unitCost * shortage;
                 return (
                     <div className="font-mono text-sm text-slate-600 dark:text-slate-400">
-                        {new Intl.NumberFormat('en-PK', { style: 'currency', currency: 'PKR', maximumFractionDigits: 0 }).format(cost)}
+                        {formatCurrency(cost)}
                     </div>
                 );
             }

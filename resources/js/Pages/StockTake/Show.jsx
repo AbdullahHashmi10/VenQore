@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 
 export default function Show({ audit }) {
+    const { store } = usePage().props;
     if (!audit) return null;
 
     const statusColors = {

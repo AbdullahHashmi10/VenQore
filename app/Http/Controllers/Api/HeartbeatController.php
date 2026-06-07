@@ -14,28 +14,51 @@ class HeartbeatController extends Controller
      */
     public function store(Request $request)
     {
-        // RELAXED VALIDATION FOR DEBUGGING / FRESH INSTALL
-        $terminalId = $request->input('terminal_id', 1); // Default to Terminal 1
+        $terminalId = $request->input('terminal_id');
+        $deviceId = $request->input('device_id');
+        $storeSlug = $request->input('store_slug');
         $status = $request->input('status', 'OPEN');
         $reason = $request->input('reason', null);
 
-        // Find or Create Terminal (Auto-register logic for simplicity)
-        // We handle legacy integer IDs by looking for a "Terminal X" name if the ID isn't a valid UUID
+        // Resolve Tenant if store_slug is provided
+        $tenant = null;
+        if ($storeSlug) {
+            $tenant = \App\Models\Tenant::where('slug', $storeSlug)->first();
+        }
+
+        // Find or Create Terminal using withoutGlobalScope to bypass '1 = 0' fallback
         $terminal = null;
         
-        if (\Illuminate\Support\Str::isUuid($terminalId)) {
-            $terminal = Terminal::find($terminalId);
-        } else {
-            // Probably legacy ID '1', find by name
-            $terminal = Terminal::where('name', 'Terminal ' . $terminalId)->first();
+        if ($deviceId) {
+            $terminal = Terminal::withoutGlobalScope('tenant')->where('device_id', $deviceId)->first();
+        }
+        
+        if (!$terminal && $terminalId && \Illuminate\Support\Str::isUuid($terminalId)) {
+            $terminal = Terminal::withoutGlobalScope('tenant')->find($terminalId);
+        }
+
+        if (!$terminal && $terminalId) {
+            // Find by name pattern
+            $terminal = Terminal::withoutGlobalScope('tenant')->where('name', 'Terminal ' . $terminalId)->first();
         }
 
         if (!$terminal) {
+            $nameSuffix = $terminalId ?: substr($deviceId, 0, 8);
             $terminal = Terminal::create([
-                'name' => 'Terminal ' . $terminalId,
+                'name' => 'Terminal ' . $nameSuffix,
+                'device_id' => $deviceId,
+                'tenant_id' => $tenant ? $tenant->id : null,
                 'ip_address' => $request->ip(),
                 'status' => 'OPEN',
             ]);
+        } else {
+            // Update tenant mapping if not set or if store slug changed pairing
+            if ($tenant && $terminal->tenant_id !== $tenant->id) {
+                $terminal->update(['tenant_id' => $tenant->id]);
+            }
+            if ($deviceId && !$terminal->device_id) {
+                $terminal->update(['device_id' => $deviceId]);
+            }
         }
 
         // Logic to clear "CLOSED_NORMALLY" if it's sending pings again (it woke up)
@@ -62,6 +85,7 @@ class HeartbeatController extends Controller
 
         return response()->json([
             'status' => 'alive',
+            'terminal_id' => $terminal->id,
             'server_time' => now()->toIso8601String(),
             'has_pending_updates' => $hasUpdates,
             'ack_status' => $terminal->status
@@ -74,10 +98,7 @@ class HeartbeatController extends Controller
         // Ideally, 'since' should be the client's last sync time, but we use last heartbeat for "recent" check
         $threshold = now()->subMinutes(5);
 
-        $tid = app()->bound('current.tenant') ? app('current.tenant')->id : null;
-        $productsChanged = DB::table('products')
-            ->when($tid, fn($q) => $q->where('tenant_id', $tid))
-            ->where('updated_at', '>', $threshold)->exists();
+        $productsChanged = DB::table('products')->where('updated_at', '>', $threshold)->exists();
         $settingsChanged = DB::table('settings')->where('updated_at', '>', $threshold)->exists();
 
         return $productsChanged || $settingsChanged;

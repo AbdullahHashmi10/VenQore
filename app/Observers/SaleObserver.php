@@ -58,11 +58,33 @@ class SaleObserver
 
     /**
      * Fires BEFORE an UPDATE is committed to the database.
-     * If the sale is posted and a financial column is being changed, ABORT.
+     * If the sale was already posted, and a financial column is being changed, ABORT.
      */
-    public function updating(Sale $sale): bool
+    public function updating(Sale $sale): void
     {
-        // Immutable lock removed per user request to allow full editing capabilities.
-        return true;
+        // Only enforce rule if the record WAS already posted in the DB
+        if ($sale->getOriginal('status') === 'posted') {
+            
+            // Reversal logic: status is allowed to change to 'returned' or 'cancelled'
+            // because those paths fire their own counter-balancing journal entries.
+            // But the FINANCIAL numbers from the original invoice must stay frozen.
+            
+            foreach (self::IMMUTABLE_COLUMNS as $col) {
+                if ($sale->isDirty($col)) {
+                    abort(403, "Accounting Safety Lock: Cannot modify financial data on a 'posted' sale. Please use the Return/Credit Note flow for corrections.");
+                }
+            }
+        }
+    }
+
+    /**
+     * Fires BEFORE a DELETE command.
+     * Prevent deleting posted sales — they must be returned/reversed to maintain the ledger trail.
+     */
+    public function deleting(Sale $sale): void
+    {
+        if ($sale->status === 'posted') {
+            abort(403, "Accounting Safety Lock: Posted sales cannot be deleted. This is an authoritative financial document. Use the Return flow to reverse stock and income.");
+        }
     }
 }

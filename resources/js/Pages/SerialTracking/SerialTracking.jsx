@@ -19,6 +19,7 @@ import {
 import Pagination from '@/Components/Pagination';
 
 export default function SerialTracking({ serials, stats, filters }) {
+    const { store } = usePage().props;
     const [searchTerm, setSearchTerm] = useState(filters?.search || '');
     const [statusFilter, setStatusFilter] = useState(filters?.status || 'all');
     const [sortConfig, setSortConfig] = useState({ key: 'serial', direction: 'asc' });

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePage } from '@inertiajs/react';
 import {
     Printer,
     Download,
@@ -27,7 +28,7 @@ import {
     Bar,
     Legend
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 /**
  * MASTER REPORT COMPONENT (The "Report Factory")
@@ -66,6 +67,8 @@ const MasterReport = ({
     hasMore = false,
     loadingMore = false,
 }) => {
+    const { store, settings } = usePage().props;
+ 
     // Local State for sorting (if client side) - though server side is better for big reports
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [isCustomOpen, setIsCustomOpen] = useState(false);
@@ -496,9 +499,10 @@ const MasterReport = ({
                                             >
                                                 {col.render ? col.render(row) : (
                                                     // Default Render Logic
-                                                    col.type === 'currency' ? formatCurrency(row[col.key]) :
-                                                        col.type === 'date' ? new Date(row[col.key]).toLocaleDateString() :
-                                                            row[col.key] || <span className="text-slate-300 italic">-</span>
+                                                    col.type === 'currency' ? formatCurrency(row[col.key], store || settings) :
+                                                        col.type === 'number' ? formatNumber(row[col.key], null, store || settings) :
+                                                            col.type === 'date' ? new Date(row[col.key]).toLocaleDateString() :
+                                                                row[col.key] || <span className="text-slate-300 italic">-</span>
                                                 )}
                                             </td>
                                         ))}

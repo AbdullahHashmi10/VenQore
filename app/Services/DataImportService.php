@@ -338,8 +338,13 @@ class DataImportService
                             $supplierMap[$row['name_id']] = $supp->id;
                         }
                     } else {
+                        $tenant = app('current.tenant');
+                        if (!$tenant) {
+                            throw new \RuntimeException('DataImportService: No tenant context available. Import cannot proceed without tenant binding.');
+                        }
+                        $tenantId = $tenant->id;
                         $party = Party::updateOrCreate(
-                            ['phone' => $phone],
+                            ['phone' => $phone, 'tenant_id' => $tenantId],
                             [
                                 'name' => $name,
                                 'type' => 'customer',
@@ -347,14 +352,16 @@ class DataImportService
                                 'current_balance' => $openingBalance,
                                 'email' => $email,
                                 'address' => $address,
+                                'tenant_id' => $tenantId,
                             ]
                         );
                         $cust = \App\Models\Customer::updateOrCreate(
-                            ['phone' => $phone],
+                            ['phone' => $phone, 'tenant_id' => $tenantId],
                             [
                                 'name' => $name,
                                 'email' => $email,
                                 'address' => $address,
+                                'tenant_id' => $tenantId,
                             ]
                         );
                         if (isset($row['name_id'])) {
@@ -557,15 +564,22 @@ class DataImportService
                     $address = $row['address'] ?? null;
                     if (!$vyNameId || !$address) return;
 
+                    $tenant = app('current.tenant');
+                    if (!$tenant) {
+                        throw new \RuntimeException('DataImportService: No tenant context available. Import cannot proceed without tenant binding.');
+                    }
+                    $tenantId = $tenant->id;
                     // Update customer address if exists
                     if (isset($customerMap[$vyNameId])) {
-                        \App\Models\Customer::where('id', $customerMap[$vyNameId])
+                        \App\Models\Customer::where('tenant_id', $tenantId)
+                            ->where('id', $customerMap[$vyNameId])
                             ->whereNull('address')
                             ->update(['address' => $address]);
                     }
                     // Update supplier address if exists
                     if (isset($supplierMap[$vyNameId])) {
-                        Supplier::where('id', $supplierMap[$vyNameId])
+                        Supplier::where('tenant_id', $tenantId)
+                            ->where('id', $supplierMap[$vyNameId])
                             ->whereNull('address')
                             ->update(['address' => $address]);
                     }
@@ -799,8 +813,19 @@ class DataImportService
         $customerId = isset($row['txn_name_id']) ? ($customerMap[$row['txn_name_id']] ?? null) : null;
 
         if (!$partyId || !$customerId) {
-            $party = Party::firstOrCreate(['phone' => '0000000000'], ['name' => 'Walk-in Customer', 'type' => 'customer']);
-            $cust = \App\Models\Customer::firstOrCreate(['phone' => '0000000000'], ['name' => 'Walk-in Customer']);
+            $tenant = app('current.tenant');
+            if (!$tenant) {
+                throw new \RuntimeException('DataImportService: No tenant context available. Import cannot proceed without tenant binding.');
+            }
+            $tenantId = $tenant->id;
+            $party = Party::firstOrCreate(
+                ['phone' => '0000000000', 'name' => 'Walk-in Customer', 'tenant_id' => $tenantId],
+                ['type' => 'customer', 'tenant_id' => $tenantId]
+            );
+            $cust = \App\Models\Customer::firstOrCreate(
+                ['phone' => '0000000000', 'name' => 'Walk-in Customer', 'tenant_id' => $tenantId],
+                ['tenant_id' => $tenantId]
+            );
             $partyId = $party->id;
             $customerId = $cust->id;
         }
@@ -906,8 +931,19 @@ class DataImportService
         $customerId = isset($row['txn_name_id']) ? ($customerMap[$row['txn_name_id']] ?? null) : null;
 
         if (!$partyId) {
-            $party = Party::firstOrCreate(['phone' => '0000000000'], ['name' => 'Walk-in Customer', 'type' => 'customer']);
-            $cust = \App\Models\Customer::firstOrCreate(['phone' => '0000000000'], ['name' => 'Walk-in Customer']);
+            $tenant = app('current.tenant');
+            if (!$tenant) {
+                throw new \RuntimeException('DataImportService: No tenant context available. Import cannot proceed without tenant binding.');
+            }
+            $tenantId = $tenant->id;
+            $party = Party::firstOrCreate(
+                ['phone' => '0000000000', 'name' => 'Walk-in Customer', 'tenant_id' => $tenantId],
+                ['type' => 'customer', 'tenant_id' => $tenantId]
+            );
+            $cust = \App\Models\Customer::firstOrCreate(
+                ['phone' => '0000000000', 'name' => 'Walk-in Customer', 'tenant_id' => $tenantId],
+                ['tenant_id' => $tenantId]
+            );
             $partyId = $party->id;
             $customerId = $cust->id ?? $customerId;
         }

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     Plus,
@@ -30,6 +30,7 @@ import {
     Edit
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
+import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 
 // ==========================================
 // PHASE 1: TOP NAVIGATION & ACTIONS
@@ -422,7 +423,7 @@ export const DiscountTypeToggle = ({ discountType, onToggle, variant = 'default'
 
     return (
         <button onClick={onToggle} className={baseClasses}>
-            {isPercent ? '%' : 'Rs'}
+            {isPercent ? '%' : (usePage().props.store?.currency_symbol || getCurrencySymbol())}
         </button>
     );
 };
@@ -479,7 +480,7 @@ export const QuickEntryRow = ({
                                     <p className={`text-xs ${quickSelectedIndex === pIdx ? 'text-indigo-100' : 'text-slate-500'}`}>Stock: {p.stock_quantity}</p>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <p className={`font-bold ${quickSelectedIndex === pIdx ? 'text-white' : 'text-indigo-600'}`}>Rs {p.price.toLocaleString()}</p>
+                                    <p className={`font-bold ${quickSelectedIndex === pIdx ? 'text-white' : 'text-indigo-600'}`}>{getCurrencySymbol()} {p.price.toLocaleString()}</p>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -706,12 +707,12 @@ export const ItemRow = ({
                                 >
                                     <p className="font-bold text-sm group-hover:text-indigo-600 transition-colors">{p.name}</p>
                                     <div className="flex items-center gap-3 text-xs">
-                                        <span className="text-slate-500">Cost: <span className="font-bold text-slate-700 dark:text-slate-300">Rs {(p.cost || p.cost_price || 0).toLocaleString()}</span></span>
+                                        <span className="text-slate-500">Cost: <span className="font-bold text-slate-700 dark:text-slate-300">{getCurrencySymbol()} {(p.cost || p.cost_price || 0).toLocaleString()}</span></span>
                                         <span className={`font-bold ${(p.stock_quantity || 0) > 10 ? 'text-emerald-600' : (p.stock_quantity || 0) > 0 ? 'text-amber-600' : 'text-red-600'}`}>Stock: {p.stock_quantity || 0}</span>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <p className="font-bold text-indigo-600">Rs {p.price.toLocaleString()}</p>
+                                    <p className="font-bold text-indigo-600">{getCurrencySymbol()} {p.price.toLocaleString()}</p>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -815,7 +816,9 @@ export const ItemRow = ({
             </td>
             {/* Total */}
             <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right font-bold text-slate-800 dark:text-white pr-3 text-sm">
-                Rs {calculateLineTotal(item).toLocaleString()}
+                                <p className="text-sm font-black text-slate-800 dark:text-white">
+                    {formatCurrency(calculateLineTotal(item))}
+                </p>
             </td>
             {/* Delete */}
             <td className="bg-slate-50 dark:bg-slate-800/50 rounded-r-xl py-3 pr-3">
@@ -870,7 +873,7 @@ export const CustomerSummaryCard = ({ customer, patchInvoice, setCustomerSearch,
                 <div className="flex justify-between items-center">
                     <span className="text-slate-500 font-medium">Balance:</span>
                     <span className={`font-black ${customer.current_balance >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {customer.current_balance >= 0 ? '$ ' : '-Rs '}{Math.abs(customer.current_balance || 0).toLocaleString()}
+                        {customer.current_balance >= 0 ? (getCurrencySymbol()) + ' ' : '- ' + (getCurrencySymbol()) + ' '}{Math.abs(customer.current_balance || 0).toLocaleString()}
                     </span>
                 </div>
                 <div className="flex justify-between items-start gap-2">
@@ -978,11 +981,11 @@ export const FinancialSummary = ({ subtotal, itemDiscounts }) => {
         <div className="space-y-2 pt-3 border-t border-slate-800/50">
             <div className="flex justify-between items-center">
                 <span className="text-xs text-slate-400 font-bold">Subtotal</span>
-                <span className="text-white font-bold text-base">Rs {subtotal.toLocaleString()}</span>
+                <span className="text-white font-bold text-base">{getCurrencySymbol()} {subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between items-center">
                 <span className="text-xs text-slate-400 font-bold">Item Discounts</span>
-                <span className="text-red-400 font-bold text-sm">- Rs {itemDiscounts.toLocaleString()}</span>
+                <span className="text-red-400 font-bold text-sm">- {getCurrencySymbol()} {itemDiscounts.toLocaleString()}</span>
             </div>
         </div>
     );
@@ -993,7 +996,7 @@ export const GlobalDiscountInput = ({ currentInvoice, patchInvoice }) => {
         <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
             <span className="text-xs text-slate-400 font-bold">Invoice Discount</span>
             <div className="flex items-center gap-2">
-                <span className="text-slate-500 text-xs">Rs</span>
+                <span className="text-slate-500 text-xs">{getCurrencySymbol()}</span>
                 <input
                     type="number"
                     value={currentInvoice.discount ?? 0}
@@ -1066,7 +1069,7 @@ export const ExtraChargeInput = ({
                     <span className="text-[10px] text-slate-700">✎</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <span className="text-slate-600 text-[10px]">Rs</span>
+                    <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
                     <input
                         type="number"
                         value={currentInvoice.extra_charge_value ?? 0}
@@ -1099,7 +1102,7 @@ export const ExtraChargeInput = ({
                         <span className="text-[10px] text-slate-700">✎</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <span className="text-slate-600 text-[10px]">Rs</span>
+                        <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
                         <input
                             type="number"
                             value={field.value ?? 0}
@@ -1145,7 +1148,7 @@ export const AmountPaidInput = ({ currentInvoice, patchInvoice }) => {
         <div className="flex items-center justify-between bg-emerald-900/20 rounded-xl p-3 border border-emerald-800/30">
             <span className="text-xs text-emerald-400 font-bold">Amount Paid</span>
             <div className="flex items-center gap-2">
-                <span className="text-emerald-600 text-xs">Rs</span>
+                <span className="text-emerald-600 text-xs">{getCurrencySymbol()}</span>
                 <input
                     type="number"
                     value={currentInvoice.amountPaid ?? 0}
@@ -1164,7 +1167,9 @@ export const BalanceDueDisplay = ({ balanceDue }) => {
         <div className={`flex items-center justify-between rounded-xl p-3 border ${balanceDue > 0 ? 'bg-red-900/20 border-red-800/30' : 'bg-emerald-900/20 border-emerald-800/30'}`}>
             <span className={`text-xs font-bold ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>Balance Due</span>
             <span className={`font-bold text-base ${balanceDue > 0 ? 'text-red-400' : 'text-emerald-400'}`}>
-                Rs {balanceDue.toLocaleString()}
+                                    <p className="text-xl font-black text-slate-800 dark:text-white">
+                        {formatCurrency(balanceDue)}
+                    </p>
             </span>
         </div>
     );
@@ -1184,7 +1189,7 @@ export const GrandTotalActionPanel = ({
         <div className="p-3 bg-slate-900 space-y-2 shrink-0 border-t border-slate-800">
             <div className="flex justify-between items-center">
                 <span className="text-[10px] text-slate-500 font-bold uppercase">Total</span>
-                <span className="text-2xl font-black text-white">Rs {grandTotal.toLocaleString()}</span>
+                <span className="text-2xl font-black text-white">{getCurrencySymbol()} {grandTotal.toLocaleString()}</span>
             </div>
             <div className="space-y-2">
                 <button
@@ -1282,7 +1287,9 @@ export const InlineProfitDisplay = ({ showProfit, showProfitModal, profit, grand
                     <div>
                         <p className="text-xs text-slate-400 font-bold uppercase">Profit Margin</p>
                         <p className={`text-2xl font-black ${profit >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                            Rs {profit.toLocaleString()}
+                                                    <p className="text-lg font-black text-emerald-600">
+                            {formatCurrency(profit)}
+                        </p>
                         </p>
                     </div>
                 </div>
@@ -1396,7 +1403,7 @@ export const ScanningModal = ({
                                                 {item.quantity > 1 && <span className="ml-2 text-emerald-500 text-base">x{item.quantity}</span>}
                                             </p>
                                             <p className="text-sm text-indigo-500 font-black">
-                                                {item.quantity} @ Rs {item.price.toLocaleString()} = Rs {(item.quantity * item.price).toLocaleString()}
+                                                {item.quantity} @ {getCurrencySymbol()} {item.price.toLocaleString()} = {getCurrencySymbol()} {(item.quantity * item.price).toLocaleString()}
                                             </p>
                                         </div>
                                     </div>
@@ -1491,8 +1498,8 @@ export const ProfitAnalysisModal = ({
                                             <p className="text-[10px] text-slate-400">{item.product?.sku || 'N/A'}</p>
                                         </td>
                                         <td className="py-2 text-center text-xs">{item.quantity}</td>
-                                        <td className="py-2 text-right text-xs text-slate-500">Rs {cost.toLocaleString()}</td>
-                                        <td className="py-2 text-right text-xs">Rs {item.price.toLocaleString()}</td>
+                                        <td className="py-2 text-right text-xs text-slate-500">{getCurrencySymbol()} {cost.toLocaleString()}</td>
+                                        <td className="py-2 text-right text-xs">{getCurrencySymbol()} {item.price.toLocaleString()}</td>
                                         <td className="py-2 text-right">
                                             <span className={`text-xs font-bold ${parseFloat(marginPercent) >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                                                 {marginPercent}%
@@ -1500,7 +1507,7 @@ export const ProfitAnalysisModal = ({
                                         </td>
                                         <td className="py-2 text-right pr-2">
                                             <span className={`text-xs font-bold ${lineProfit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                                Rs {lineProfit.toLocaleString()}
+                                                {getCurrencySymbol()} {lineProfit.toLocaleString()}
                                             </span>
                                         </td>
                                     </tr>
@@ -1521,16 +1528,18 @@ export const ProfitAnalysisModal = ({
                     <div className="grid grid-cols-3 gap-4">
                         <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                             <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Cost</p>
-                            <p className="text-lg font-bold text-slate-600">Rs {totalCost.toLocaleString()}</p>
+                            <p className="text-lg font-bold text-slate-600">{getCurrencySymbol()} {totalCost.toLocaleString()}</p>
                         </div>
                         <div className="bg-white dark:bg-slate-900 rounded-xl p-3 border border-slate-100 dark:border-slate-700">
                             <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Total Revenue</p>
-                            <p className="text-lg font-bold text-slate-800 dark:text-white">Rs {grandTotal.toLocaleString()}</p>
+                            <p className="text-lg font-bold text-slate-800 dark:text-white">{getCurrencySymbol()} {grandTotal.toLocaleString()}</p>
                         </div>
                         <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 border border-emerald-200 dark:border-emerald-800">
                             <p className="text-[10px] text-emerald-600 font-bold uppercase mb-1">Net Profit</p>
                             <p className={`text-lg font-bold ${profit >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                Rs {profit.toLocaleString()}
+                                                        <p className="text-lg font-black text-emerald-600">
+                            {formatCurrency(profit)}
+                        </p>
                                 {grandTotal > 0 && (
                                     <span className="text-xs ml-1 opacity-70">({((profit / grandTotal) * 100).toFixed(1)}%)</span>
                                 )}
@@ -1865,7 +1874,7 @@ export const OverpaymentModal = ({
                                 {overpaymentDetails.customerName} paid
                             </p>
                             <p className="text-5xl font-black bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                                Rs {overpaymentDetails.amount.toLocaleString()}
+                                {getCurrencySymbol()} {overpaymentDetails.amount.toLocaleString()}
                             </p>
                             <p className="text-slate-400 dark:text-slate-500 text-sm mt-2 font-medium">more than the total</p>
                         </div>
@@ -1892,7 +1901,7 @@ export const OverpaymentModal = ({
                                 <div className="flex-1">
                                     <p className="font-bold text-slate-800 dark:text-white">Give Change</p>
                                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        Return Rs {overpaymentDetails.amount.toLocaleString()} to customer
+                                        Return {getCurrencySymbol()} {overpaymentDetails.amount.toLocaleString()} to customer
                                     </p>
                                 </div>
                             </button>
@@ -1911,7 +1920,7 @@ export const OverpaymentModal = ({
                                 <div className="flex-1">
                                     <p className="font-bold text-slate-800 dark:text-white">Credit to Ledger</p>
                                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        Save Rs {overpaymentDetails.amount.toLocaleString()} to {overpaymentDetails.customerName}'s account
+                                        Save {getCurrencySymbol()} {overpaymentDetails.amount.toLocaleString()} to {overpaymentDetails.customerName}'s account
                                     </p>
                                 </div>
                             </button>

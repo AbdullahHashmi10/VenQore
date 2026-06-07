@@ -7,7 +7,7 @@ This is the authoritative context file for AI agents working in this codebase. R
 **VenQore POS** is a multi-tenant SaaS Point-of-Sale and ERP system built for small-to-medium retail and food businesses. It is a Laravel 12 + React 18 (Inertia.js) monolith with offline-capable POS, full accounting, inventory management, WooCommerce integration, and a platform/superadmin layer.
 
 - **App name:** VenQore POS
-- **Database:** `amd_pos` (MySQL, local: root / no password)
+- **Database:** `venqore_pos` (MySQL, local: root / no password)
 - **App URL:** http://127.0.0.1:8000
 - **Domain:** venqore.com
 - **Queue:** database driver (Laravel Horizon available)
@@ -226,16 +226,25 @@ resources/js/
 - **All DB queries must include `tenant_id` scope** — never query cross-tenant.
 - Route names follow `feature.action` convention (e.g., `sales.store`, `inventory.index`).
 - Use `route()` Ziggy helper in React for named routes.
+- **Ziggy Routes:** Every time you add or rename a route in `routes/web.php`, you MUST run `php artisan ziggy:generate` to regenerate the frontend route cache (`resources/js/ziggy.js`) before building/committing to prevent build guard failures.
 - Prefer `php artisan optimize:clear` after config or route changes.
 
 ---
 
 ## Default Credentials (Local Dev)
 
-- **Admin:** admin@amd.com / password
-- **Database:** root / (no password) / amd_pos
+- **Admin:** platform@venqore.com / admin1234
+- **Database:** root / (no password) / venqore_pos
+- **Testing Database:** root / (no password) / amd_pos_test
 
 ---
+
+## Database Policy & Rules (CRITICAL)
+
+- **Strict MySQL Policy:** The entire system is built strictly on **MySQL**. SQLite is **NOT** supported for any part of the system (including testing). Do NOT write or configure any SQLite databases or connections.
+- **Production Database:** `venqore_pos` (never wipe or refresh this database).
+- **Testing Database:** `amd_pos_test` (used by phpunit/pest for feature tests).
+- **Smoke Tests:** Smoke tests run on `venqore_pos` dynamically but are strictly read-only and must NEVER use `RefreshDatabase` or alter data.
 
 ## Known Worktrees
 

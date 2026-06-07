@@ -16,6 +16,14 @@ class DashboardController extends Controller
 
     public function index()
     {
+        abort_unless(
+            auth()->user()->hasPermission('finance.transactions') ||
+            auth()->user()->hasPermission('finance.balances') ||
+            auth()->user()->hasPermission('reports.summary'),
+            403,
+            'Unauthorized'
+        );
+
         $today     = Carbon::today();
         $monthStart = $today->copy()->startOfMonth();
 

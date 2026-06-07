@@ -49,17 +49,18 @@ class DashboardController extends Controller
 
     private function cashierDashboard($user, $membership)
     {
-        $storeId = $membership?->tenant_id;
+        $storeId = $membership?->tenant_id ?? app('current.tenant')?->id;
+        abort_unless($storeId, 403, 'Tenant context not resolved.');
 
         // Session totals for today (sales created by this user today)
         $session = [
             'transaction_count' => \App\Models\Sale::where('status', 'posted')
-                ->whereDate('created_at', today())
-                ->when($storeId, fn($q) => $q->where('tenant_id', $storeId))
+                ->where('tenant_id', $storeId)
+                ->whereDate('posted_at', today())
                 ->count(),
             'session_total' => \App\Models\Sale::where('status', 'posted')
-                ->whereDate('created_at', today())
-                ->when($storeId, fn($q) => $q->where('tenant_id', $storeId))
+                ->where('tenant_id', $storeId)
+                ->whereDate('posted_at', today())
                 ->sum('net_sales'),
         ];
 
@@ -237,11 +238,14 @@ class DashboardController extends Controller
             return redirect()->route('store.setup', ['store_slug' => $tenant?->slug ?? 'default']);
         }
 
-        // Permission Checks
-        $canSeeSales = $user->hasPermission('sales') || $user->hasPermission('sales_view');
-        $canSeeFinance = $user->hasPermission('finance');
-        $canSeeReports = $user->hasPermission('reports');
-        $canSeeInventory = $user->hasPermission('inventory');
+        // Permission Checks — hasPermission() delegates to config/permissions.php
+        // which is the single source of truth for all role-based access control.
+        $membership    = app()->bound('current.membership') ? app('current.membership') : null;
+
+        $canSeeSales     = $user->hasPermission('sales.view') || $user->hasPermission('pos.checkout') || $user->hasPermission('sales.create') || $user->hasPermission('sales.edit');
+        $canSeeFinance   = $user->hasPermission('finance.transactions') || $user->hasPermission('finance.balances');
+        $canSeeReports   = $user->hasPermission('reports.summary') || $user->hasPermission('reports.financial') || $user->hasPermission('reports.stock') || $user->hasPermission('reports.performance') || $user->hasPermission('reports.audit');
+        $canSeeInventory = $user->hasPermission('inventory.view');
 
         // Performance Stats
         $performance = [];
@@ -291,6 +295,7 @@ class DashboardController extends Controller
         // Period: current month. Sorted by net_revenue descending.
         $topSellingItems = collect([]);
         if ($canSeeSales || $canSeeReports) {
+            $currencySym = $tenant?->currency_symbol ?? 'Rs';
             $topSellingItems = (new FinancialReportingService())
                 ->getGrossProfitByProduct(
                     $now->copy()->startOfMonth()->toDateString(),
@@ -298,7 +303,7 @@ class DashboardController extends Controller
                 )
                 ->sortByDesc('net_revenue')
                 ->take(8)
-                ->map(function ($item) {
+                ->map(function ($item) use ($currencySym) {
                     return [
                         'id'           => $item['product_id'],
                         'name'         => $item['name'],
@@ -308,8 +313,8 @@ class DashboardController extends Controller
                         'gross_profit' => $item['gross_profit'],
                         'margin_pct'   => $item['margin_pct'],
                         // Formatted for display
-                        'revenue'      => 'Rs ' . number_format($item['net_revenue'], 2),
-                        'profit'       => 'Rs ' . number_format($item['gross_profit'], 2),
+                        'revenue'      => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['net_revenue']),
+                        'profit'       => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit']),
                         'margin'       => $item['margin_pct'] . '%',
                         'image'        => '📦',
                     ];
@@ -345,7 +350,7 @@ class DashboardController extends Controller
                 ->take(10)
                 ->get();
 
-            $recentTransactions = $glRecent->map(function($item) {
+            $recentTransactions = $glRecent->map(function($item) use ($currencySym) {
                 $isIn = (float)$item->debit > 0;
                 $refType = $item->reference_type;
                 
@@ -376,7 +381,7 @@ class DashboardController extends Controller
                 return [
                     'id' => 'gl-' . $item->item_id,
                     'type' => $typeLabel,
-                    'amount' => ($isIn ? '+' : '-') . 'Rs ' . number_format((float)($isIn ? $item->debit : $item->credit), 0),
+                    'amount' => ($isIn ? '+' : '-') . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float)($isIn ? $item->debit : $item->credit)),
                     'time' => \Carbon\Carbon::parse($item->time)->diffForHumans(),
                     'status' => 'Completed',
                     'description' => $item->description ?: 'Cash Transaction',
@@ -423,7 +428,7 @@ class DashboardController extends Controller
         $cashData = null;
         $cashBalance = 0.0;
 
-        if ($canSeeFinance) {
+        if ($user->hasPermission('finance.balances')) {
             $bankAccounts = BankAccount::whereNotIn('account_type', ['cash'])
                 ->whereNotIn('type', ['cash'])
                 ->get()
@@ -527,10 +532,11 @@ class DashboardController extends Controller
 
         // Only show Sales Activity if user has sales permission
         if ($user->hasPermission('sales') || $user->hasPermission('sales_view') || $user->hasPermission('finance') || $user->hasPermission('inventory')) {
+            $currencySym = app('current.tenant')?->currency_symbol ?? 'Rs';
             $recentActivity = \App\Models\Activity::orderByDesc('created_at')
                 ->take(5)
                 ->get()
-                ->map(function ($activity) {
+                ->map(function ($activity) use ($currencySym) {
                     $isSale = $activity->type === 'sale';
                     $isPaymentIn = $activity->type === 'payment_in';
                     $sign = ($isSale || $isPaymentIn) ? '+' : '-';
@@ -550,7 +556,7 @@ class DashboardController extends Controller
                         'id' => $activity->id,
                         'title' => $titlePrefix . ($activity->reference_id ? ' #' . $activity->reference_id : ''),
                         'subtitle' => $activity->description,
-                        'amount' => $sign . 'Rs ' . number_format(abs((float) $activity->amount), 2),
+                        'amount' => $sign . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber(abs((float) $activity->amount)),
                         'time' => $activity->created_at->diffForHumans(),
                     ];
                 });
@@ -566,7 +572,7 @@ class DashboardController extends Controller
         $tenantId = app('current.tenant')->id;
         $query = Sale::where('status', 'posted');
         if ($start && $end) {
-            $query->whereBetween('created_at', [$start, $end]);
+            $query->whereBetween('posted_at', [$start, $end]);
         }
 
         $netSalesTotal = $query->sum('net_sales');
@@ -577,14 +583,14 @@ class DashboardController extends Controller
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
-            ->when($start && $end, fn($q) => $q->whereBetween('sales.created_at', [$start, $end]))
+            ->when($start && $end, fn($q) => $q->whereBetween('sales.posted_at', [$start, $end]))
             ->sum('sale_item_batches.total_cogs');
 
         $staticCogs = DB::table('sale_items')
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', 'posted')
-            ->when($start && $end, fn($q) => $q->whereBetween('sales.created_at', [$start, $end]))
+            ->when($start && $end, fn($q) => $q->whereBetween('sales.posted_at', [$start, $end]))
             ->whereNotIn('sale_items.id', function ($q) use ($tenantId) {
                 $q->select('sale_item_id')
                     ->from('sale_item_batches')
@@ -658,11 +664,11 @@ class DashboardController extends Controller
         $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : $end;
 
         $reportSvc = app(\App\Services\V3\ReportService::class);
-        $movement = $reportSvc->getCashMovement(Carbon::parse($startStr), Carbon::parse($endStr));
+        $pl = $reportSvc->profitAndLoss(Carbon::parse($startStr), Carbon::parse($endStr));
 
-        $income  = $movement['cash_in'];
-        $expense = $movement['cash_out'];
-        $profit  = $movement['net'];
+        $income  = (float) $pl['total_revenue'];
+        $expense = (float) ($pl['total_cogs'] + $pl['total_expenses']);
+        $profit  = (float) $pl['net_profit'];
 
         return [
             'value'   => $profit,
@@ -676,13 +682,20 @@ class DashboardController extends Controller
     private function getPLSummary($start, $end)
     {
         $reportSvc = app(\App\Services\V3\ReportService::class);
-        $movement = $reportSvc->getCashMovement($start, $end);
+        $pl = $reportSvc->profitAndLoss(
+            $start instanceof \Carbon\Carbon ? $start : Carbon::parse($start),
+            $end instanceof \Carbon\Carbon ? $end : Carbon::parse($end)
+        );
+
+        $income  = (float) $pl['total_revenue'];
+        $expense = (float) ($pl['total_cogs'] + $pl['total_expenses']);
+        $profit  = (float) $pl['net_profit'];
 
         return [
-            'income'  => $movement['cash_in'],
-            'expense' => $movement['cash_out'],
-            'profit'  => $movement['net'],
-            'status'  => $movement['net'] >= 0 ? 'good' : 'bad'
+            'income'  => $income,
+            'expense' => $expense,
+            'profit'  => $profit,
+            'status'  => $profit >= 0 ? 'good' : 'bad'
         ];
     }
 
@@ -694,9 +707,9 @@ class DashboardController extends Controller
             // net_sales is the only correct revenue metric.
             // All records (including legacy) are permanently normalised by the backfill migration.
             $sales = Sale::whereIn('status', ['posted', 'returned'])
-                ->whereBetween('created_at', [$start, $end])
+                ->whereBetween('posted_at', [$start, $end])
                 ->select(
-                    DB::raw("DATE_FORMAT(created_at, '$groupByFormat') as period"),
+                    DB::raw("DATE_FORMAT(posted_at, '$groupByFormat') as period"),
                     DB::raw('SUM(net_sales) as total')
                 )
                 ->groupBy('period')
@@ -708,9 +721,9 @@ class DashboardController extends Controller
                 ->join('sale_items', 'sale_item_batches.sale_item_id', '=', 'sale_items.id')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->where('sales.tenant_id', $tenantId)
-                ->whereBetween('sales.created_at', [$start, $end])
+                ->whereBetween('sales.posted_at', [$start, $end])
                 ->select(
-                    DB::raw("DATE_FORMAT(sales.created_at, '$groupByFormat') as period"),
+                    DB::raw("DATE_FORMAT(sales.posted_at, '$groupByFormat') as period"),
                     DB::raw('SUM(sale_item_batches.total_cogs) as cogs')
                 )
                 ->groupBy('period')
@@ -721,7 +734,7 @@ class DashboardController extends Controller
             $staticCogs = DB::table('sale_items')
                 ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
                 ->where('sales.tenant_id', $tenantId)
-                ->whereBetween('sales.created_at', [$start, $end])
+                ->whereBetween('sales.posted_at', [$start, $end])
                 ->whereNotIn('sale_items.id', function ($q) use ($tenantId) {
                     $q->select('sale_item_id')
                         ->from('sale_item_batches')
@@ -730,7 +743,7 @@ class DashboardController extends Controller
                         ->where('s2.tenant_id', $tenantId);
                 })
                 ->select(
-                    DB::raw("DATE_FORMAT(sales.created_at, '$groupByFormat') as period"),
+                    DB::raw("DATE_FORMAT(sales.posted_at, '$groupByFormat') as period"),
                     DB::raw('SUM(sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) as cogs')
                 )
                 ->groupBy('period')

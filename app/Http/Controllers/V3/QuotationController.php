@@ -77,54 +77,80 @@ class QuotationController extends Controller
     {
         $quotation = Quotation::findOrFail($id);
 
-        if (!in_array($quotation->status, ['draft', 'sent', 'accepted'])) {
-            return back()->withErrors([
-                'quotation' => "Quotation status '{$quotation->status}' cannot be converted.",
-            ]);
-        }
+        $tenantId = app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("quotation_convert_lock_{$quotation->id}", 10);
 
-        $validated = $request->validate([
-            'warehouse_id'  => ['required', 'string', 'exists:warehouses,id'],
-            'delivery_date' => ['nullable', 'date'],
-        ]);
+        try {
+            $lock->block(5);
 
-        $items = $quotation->items;
-
-        // Create the sales order using quotation prices
-        $total = $items->sum('line_total');
-
-        DB::transaction(function () use (
-            $quotation, $items, $validated, $id, $total
-        ) {
-            $order = SalesOrder::create([
-                'party_id'      => $quotation->party_id,
-                'warehouse_id'  => $validated['warehouse_id'],
-                'order_date'    => now()->toDateString(),
-                'delivery_date' => $validated['delivery_date'] ?? null,
-                'status'        => 'open',
-                'total_amount'  => $total,
-                'notes'         => "Converted from quotation {$quotation->quotation_number}",
-                'created_by'    => auth()->id() ?? 1,
-            ]);
-
-            foreach ($items as $item) {
-                SalesOrderItem::create([
-                    'sales_order_id'   => $order->id,
-                    'product_id'       => $item->product_id,
-                    'qty'              => $item->qty,
-                    'sale_uom'         => $item->sale_uom,
-                    'unit_price'       => $item->unit_price,
-                    'discount_percent' => $item->discount_percent,
-                    'tax_rate'         => $item->tax_rate,
-                    'line_total'       => $item->line_total,
+            $quotation->refresh();
+            if (!in_array($quotation->status, ['draft', 'sent'])) {
+                return back()->withErrors([
+                    'quotation' => "Quotation status '{$quotation->status}' cannot be converted.",
                 ]);
             }
 
-            $quotation->update([
-                'status'     => 'accepted',
+            $validated = $request->validate([
+                'warehouse_id'  => ['required', 'string', 'exists:warehouses,id'],
+                'delivery_date' => ['nullable', 'date'],
             ]);
-        });
 
-        return redirect()->back()->with('success', 'Quotation converted to sales order.');
+            $items = $quotation->items;
+            $orderId = Str::uuid()->toString();
+
+            // Create the sales order using quotation prices
+            
+            DB::transaction(function () use ($quotation, $items, $validated, $orderId, $tenantId) {
+                // 1. Create the Sales Order
+                $dateCode      = date('ymd');
+                $dailyCount    = SalesOrder::whereDate('created_at', today())->count();
+                $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
+                $orderNumber   = 'SO-' . $dateCode . '-' . $sequence;
+
+                $order = SalesOrder::create([
+                    'id'            => $orderId,
+                    'order_number'  => $orderNumber,
+                    'customer_id'   => $quotation->party_id,
+                    'party_id'      => $quotation->party_id,
+                    'customer_name' => \App\Models\Party::find($quotation->party_id)?->name,
+                    'order_date'    => now()->toDateString(),
+                    'delivery_date' => $validated['delivery_date'] ?? null,
+                    'status'        => 'open',
+                    'total_amount'  => $quotation->total_amount,
+                    'notes'         => "Converted from quotation {$quotation->quotation_number}",
+                    'user_id'       => auth()->id() ?? 1,
+                    'tenant_id'     => $tenantId
+                ]);
+
+                foreach ($items as $item) {
+                    $product = \App\Models\Product::find($item->product_id);
+                    $qty = (float)$item->qty;
+                    $unitPrice = (float)$item->unit_price;
+                    $discountPercent = (float)($item->discount_percent ?? 0);
+                    $discountAmount = ($unitPrice * $qty) * ($discountPercent / 100);
+
+                    SalesOrderItem::create([
+                        'sales_order_id'     => $order->id,
+                        'product_id'         => $item->product_id,
+                        'name'               => $product?->name ?? 'Product',
+                        'quantity_requested' => $qty,
+                        'quantity_reserved'  => 0,
+                        'unit_price'         => $unitPrice,
+                        'discount'           => $discountAmount,
+                        'subtotal'           => $item->line_total,
+                        'tenant_id'          => $tenantId
+                    ]);
+                }
+
+                $quotation->update([
+                    'status'     => 'accepted',
+                ]);
+            });
+
+            return redirect()->back()->with('success', 'Quotation converted to sales order.');
+
+        } finally {
+            $lock->release();
+        }
     }
 }

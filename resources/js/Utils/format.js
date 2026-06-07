@@ -1,23 +1,45 @@
 // Utility functions for formatting - PURE JS (No Hooks)
 // Relies on explicit settings argument OR global window.amdSettings injected by Layout
 
+export const getCurrencySymbol = (settings = null) => {
+    const config = settings || window.amdSettings || {};
+    const symbolMap = {
+        'PKR': 'Rs.',
+        'USD': '$',
+        'EUR': '€',
+        'GBP': '£',
+        'INR': '₹',
+        'AED': 'DH',
+        'SAR': 'SR',
+    };
+    
+    // Explicitly check for valid non-empty symbol
+    const symbol = config.currency_symbol && config.currency_symbol.trim() !== '' 
+        ? config.currency_symbol 
+        : (symbolMap[config.currency_code || config.currency || 'PKR'] || 'Rs.');
+        
+    return symbol;
+};
+
 export const formatCurrency = (amount, settings = null) => {
     const config = settings || window.amdSettings || {};
-    const symbol = config.currency_symbol || 'Rs';
-    const decimals = parseInt(config.decimal_places || 0);
+    const symbol = getCurrencySymbol(config);
+    const decimals = parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
 
     const formattedNumber = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
     }).format(amount || 0);
 
-    return `${symbol} ${formattedNumber}`;
+    // If symbol has no trailing space, add one. If it already has one, don't add.
+    const separator = symbol.endsWith(' ') ? '' : ' ';
+    return `${symbol}${separator}${formattedNumber}`;
 };
 
 export const formatNumber = (number, decimals = null, settings = null) => {
     const config = settings || window.amdSettings || {};
-    // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 0.
-    const d = decimals !== null ? decimals : parseInt(config.decimal_places || 0);
+    // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 2.
+    const d = decimals !== null ? decimals : parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
 
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: d,
@@ -78,4 +100,38 @@ export const numberToWords = (num, type = '1') => {
     }
 
     return result;
+};
+
+export const formatDate = (date, settings = null) => {
+    if (!date) return '-';
+    const config = settings || window.amdSettings || {};
+    
+    try {
+        const options = {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+            timeZone: config.timezone || 'UTC'
+        };
+        return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
+    } catch (e) {
+        // Fallback if timezone is invalid
+        return new Date(date).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+};
+
+export const formatTime = (date, settings = null) => {
+    if (!date) return '-';
+    const config = settings || window.amdSettings || {};
+    
+    try {
+        const options = {
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: config.timezone || 'UTC'
+        };
+        return new Intl.DateTimeFormat('en-US', options).format(new Date(date));
+    } catch (e) {
+        return new Date(date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    }
 };

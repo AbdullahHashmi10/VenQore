@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class SettlementService
 {
-    private int $tenantId;
+    private $tenantId;
 
     public function __construct(
         private AccountingService $accounting

@@ -33,9 +33,7 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
         $variantId      = (string) ($attributes['variant_id'] ?? '');
         $lsStatus       = $attributes['status'] ?? 'active';
 
-        $tenant = Tenant::withoutTenantScope()
-            ->where('lemon_squeezy_subscription_id', $subscriptionId)
-            ->first();
+        $tenant = Tenant::where('lemon_squeezy_subscription_id', $subscriptionId)->first();
 
         if (!$tenant) {
             Log::warning("HandleSubscriptionUpdatedJob: No tenant found for subscription {$subscriptionId}");
@@ -54,15 +52,48 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
         };
 
         // Resolve new plan
-        $plan = match ($variantId) {
-            (string) config('services.lemon_squeezy.starter_variant_id')  => 'starter',
-            (string) config('services.lemon_squeezy.growth_variant_id')   => 'growth',
-            (string) config('services.lemon_squeezy.business_variant_id') => 'business',
-            default => $tenant->plan,
-        };
+        $plan = $tenant->plan;
+        
+        $starterVariants = [
+            (string) config('services.lemon_squeezy.starter_variant_id'),
+            (string) config('services.lemon_squeezy.starter_annual_variant_id'),
+        ];
+        $growthVariants = [
+            (string) config('services.lemon_squeezy.growth_variant_id'),
+            (string) config('services.lemon_squeezy.growth_annual_variant_id'),
+        ];
+        $businessVariants = [
+            (string) config('services.lemon_squeezy.business_variant_id'),
+            (string) config('services.lemon_squeezy.business_annual_variant_id'),
+        ];
+        $ltd1Variants = [
+            (string) config('services.lemon_squeezy.starter_ltd_variant_id'),
+        ];
+        $ltd2Variants = [
+            (string) config('services.lemon_squeezy.growth_ltd_variant_id'),
+        ];
+        $ltd3Variants = [
+            (string) config('services.lemon_squeezy.business_ltd_variant_id'),
+        ];
+
+        if (in_array($variantId, array_filter($starterVariants))) {
+            $plan = 'starter';
+        } elseif (in_array($variantId, array_filter($growthVariants))) {
+            $plan = 'growth';
+        } elseif (in_array($variantId, array_filter($businessVariants))) {
+            $plan = 'business';
+        } elseif (in_array($variantId, array_filter($ltd1Variants))) {
+            $plan = 'ltd_1';
+        } elseif (in_array($variantId, array_filter($ltd2Variants))) {
+            $plan = 'ltd_2';
+        } elseif (in_array($variantId, array_filter($ltd3Variants))) {
+            $plan = 'ltd_3';
+        }
+
+        app()->instance('current.tenant', $tenant);
 
         $tenant->update(['plan' => $plan, 'status' => $status]);
 
-        Log::info("Tenant {$tenant->subdomain} updated: plan={$plan}, status={$status}");
+        Log::info("Tenant {$tenant->slug} updated: plan={$plan}, status={$status}");
     }
 }
