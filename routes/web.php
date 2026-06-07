@@ -65,6 +65,7 @@ Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController
 
 Route::get('/terms',   fn() => Inertia::render('Legal/Terms'))->name('terms');
 Route::get('/privacy', fn() => Inertia::render('Legal/Privacy'))->name('privacy');
+Route::get('/sitemap.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'index'])->name('sitemap');
 Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhookController::class, 'handle'])
     ->name('webhooks.lemon-squeezy');
 
@@ -1389,6 +1390,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // System Reset (Admin Only)
     Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->name('system.reset');
+    Route::post('/api/system/reset/send-otp', [\App\Http\Controllers\Admin\SystemResetController::class, 'sendOtp'])->name('system.reset.send-otp');
     Route::post('/api/system/reset/{entity}', [\App\Http\Controllers\Admin\SystemResetController::class, 'deleteEntity'])->name('system.delete-entity');
 
     // Added Category D Store Routes

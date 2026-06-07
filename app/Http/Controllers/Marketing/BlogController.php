@@ -106,4 +106,12 @@ If you track 500 active customers, at any given time, 40–80 of them are past t
             'recentPosts' => collect($this->posts)->take(3)
         ]);
     }
+
+    /**
+     * Get all blog posts.
+     */
+    public function getPosts()
+    {
+        return $this->posts;
+    }
 }
