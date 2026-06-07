@@ -6,11 +6,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Mail\SystemResetOtpMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cache;
 use Tests\Feature\VenQoreTestCase;
 
 class SystemResetTest extends VenQoreTestCase
