@@ -7,8 +7,13 @@ import { usePage } from '@inertiajs/react';
 export default function DangerSettingsSection({ data, setData }) {
     const [resetting, setResetting] = useState(false);
 
-    const { store } = usePage().props;
+    const { store, auth } = usePage().props;
     const storeSlug = store?.slug || 'demo';
+    const user = auth?.user;
+
+    // A Google-only user has google_id set but NO password hash stored.
+    // They use their email address to confirm dangerous operations instead.
+    const isGoogleNoPassword = !!(user?.google_id && !user?.has_password);
 
     const handleFactoryReset = async (type = 'all') => {
         let title = 'Are you sure?';
@@ -22,9 +27,9 @@ export default function DangerSettingsSection({ data, setData }) {
             confirmText = 'I UNDERSTAND, WIPE EVERYTHING';
             // url remains /s/{storeSlug}/api/system/reset
         } else {
-            // For selective delete, we use a different endpoint format if backend supports distinct routes, 
+            // For selective delete, we use a different endpoint format if backend supports distinct routes,
             // but SystemResetController uses `deleteEntity` method usually mapped to something dynamic.
-            // Based on previous code, it seemed to be /api/system/reset/{entity}. 
+            // Based on previous code, it seemed to be /api/system/reset/{entity}.
             // SystemResetController code showed "deleteEntity" method. Routes must map it.
             // Let's assume the router handles it.
             url = `/s/${storeSlug}/api/system/reset/${type}`;
@@ -47,7 +52,27 @@ export default function DangerSettingsSection({ data, setData }) {
 
         if (!result.isConfirmed) return;
 
-        // 2. Password Authentication Prompt
+        // 2. Authentication Prompt — adapts based on whether the user has a password
+        if (isGoogleNoPassword) {
+            await Swal.fire({
+                title: 'Password Required',
+                text: 'You signed in with Google and have not set a password. For security, please set a password in your Profile first, then return to confirm this action.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Go to Profile Settings',
+                cancelButtonText: 'Cancel',
+                background: '#1e293b',
+                color: '#fff'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location.href = route('store.profile.edit', { store_slug: storeSlug });
+                }
+            });
+            return;
+        }
+ 
         const { value: password } = await Swal.fire({
             title: 'Authentication Required',
             text: 'Please enter your password or admin passcode to confirm.',
@@ -62,7 +87,7 @@ export default function DangerSettingsSection({ data, setData }) {
             color: '#fff',
             inputValidator: (value) => {
                 if (!value) {
-                    return 'You need to enter your password!'
+                    return 'You need to enter your password!';
                 }
             }
         });
