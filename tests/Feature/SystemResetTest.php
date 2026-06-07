@@ -114,6 +114,38 @@ class SystemResetTest extends VenQoreTestCase
     }
 
     /** @test */
+    public function google_user_who_set_password_can_reset_system()
+    {
+        $tenant = $this->createTenant();
+        $user = $this->createTenantUser($tenant, 'owner');
+        $user->google_id = 'google-12345';
+        $user->password = Hash::make('google-user-new-password');
+        $user->save();
+
+        $this->actingAsTenantUserModel($user, $tenant);
+
+        // Seed some dummy records
+        Product::factory()->create(['tenant_id' => $tenant->id]);
+        Sale::factory()->create(['tenant_id' => $tenant->id]);
+
+        $this->assertGreaterThan(0, Product::count());
+        $this->assertGreaterThan(0, Sale::count());
+
+        // Perform factory reset with the new password
+        $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
+            'password' => 'google-user-new-password',
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJsonFragment([
+            'message' => 'System successfully reset to factory settings.'
+        ]);
+
+        $this->assertEquals(0, Product::count());
+        $this->assertEquals(0, Sale::count());
+    }
+
+    /** @test */
     public function unprefixed_system_reset_route_falls_back_to_fallback_route_or_fails()
     {
         $tenant = $this->createTenant();
