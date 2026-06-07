@@ -39,14 +39,6 @@ class SystemResetController extends Controller
             return true;
         }
 
-        // 3. Email fallback — ONLY for Google-authenticated users who have
-        //    never set a password. They confirm by typing their own email.
-        if (!$user->password && $user->google_id) {
-            if (strtolower(trim($input)) === strtolower(trim($user->email))) {
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -61,6 +53,16 @@ class SystemResetController extends Controller
         ini_set('memory_limit', '512M');
 
         $request->validate(['password' => 'required']);
+
+        $user = auth()->user();
+        if (!$user->password) {
+            $passcode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+            if (!$passcode || $request->password !== $passcode) {
+                return response()->json([
+                    'message' => 'For security, please set a password in your Profile settings first, then return to confirm this action.'
+                ], 403);
+            }
+        }
 
         if (!$this->verifyCredential($request->password)) {
             return response()->json(['message' => 'Invalid password or admin passcode.'], 403);
@@ -179,6 +181,16 @@ class SystemResetController extends Controller
         ini_set('memory_limit', '512M');
 
         $request->validate(['password' => 'required']);
+
+        $user = auth()->user();
+        if (!$user->password) {
+            $passcode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+            if (!$passcode || $request->password !== $passcode) {
+                return response()->json([
+                    'message' => 'For security, please set a password in your Profile settings first, then return to confirm this action.'
+                ], 403);
+            }
+        }
 
         if (!$this->verifyCredential($request->password)) {
             return response()->json(['message' => 'Invalid password or admin passcode.'], 403);

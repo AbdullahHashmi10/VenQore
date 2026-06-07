@@ -53,23 +53,31 @@ export default function DangerSettingsSection({ data, setData }) {
         if (!result.isConfirmed) return;
 
         // 2. Authentication Prompt — adapts based on whether the user has a password
-        const promptTitle = isGoogleNoPassword
-            ? 'Confirm with Email'
-            : 'Authentication Required';
-        const promptText = isGoogleNoPassword
-            ? 'You signed in with Google and have not set a password. Type your registered email address to confirm this action.'
-            : 'Please enter your password or admin passcode to confirm.';
-        const promptInputType = isGoogleNoPassword ? 'email' : 'password';
-        const promptPlaceholder = isGoogleNoPassword ? 'your@email.com' : 'Enter your password';
-        const promptValidatorMsg = isGoogleNoPassword
-            ? 'Please enter your email address!'
-            : 'You need to enter your password!';
-
+        if (isGoogleNoPassword) {
+            await Swal.fire({
+                title: 'Password Required',
+                text: 'You signed in with Google and have not set a password. For security, please set a password in your Profile first, then return to confirm this action.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Go to Profile Settings',
+                cancelButtonText: 'Cancel',
+                background: '#1e293b',
+                color: '#fff'
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location.href = route('store.profile.edit', { store_slug: storeSlug });
+                }
+            });
+            return;
+        }
+ 
         const { value: password } = await Swal.fire({
-            title: promptTitle,
-            text: promptText,
-            input: promptInputType,
-            inputPlaceholder: promptPlaceholder,
+            title: 'Authentication Required',
+            text: 'Please enter your password or admin passcode to confirm.',
+            input: 'password',
+            inputPlaceholder: 'Enter your password',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -79,7 +87,7 @@ export default function DangerSettingsSection({ data, setData }) {
             color: '#fff',
             inputValidator: (value) => {
                 if (!value) {
-                    return promptValidatorMsg;
+                    return 'You need to enter your password!';
                 }
             }
         });

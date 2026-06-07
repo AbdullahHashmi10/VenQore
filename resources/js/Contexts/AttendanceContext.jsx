@@ -74,7 +74,11 @@ export const AttendanceProvider = ({ children }) => {
         }
 
         try {
-            const response = await axios.post(route('store.attendance.check-in', { store_slug: store.slug }));
+            const response = await axios.post(
+                route('store.attendance.check-in', { store_slug: store.slug }),
+                {},
+                { _skipGlobalErrorHandler: true }
+            );
             if (response.data.success) {
                 setIsCheckedIn(true);
                 setAttendance(response.data.attendance);
@@ -94,7 +98,11 @@ export const AttendanceProvider = ({ children }) => {
 
     const sendHeartbeat = async () => {
         try {
-            await axios.post(route('store.attendance.heartbeat', { store_slug: store.slug }));
+            await axios.post(
+                route('store.attendance.heartbeat', { store_slug: store.slug }),
+                {},
+                { _skipGlobalErrorHandler: true }
+            );
         } catch (error) {
             console.error('Heartbeat error:', error);
         }
@@ -102,12 +110,16 @@ export const AttendanceProvider = ({ children }) => {
 
     const logGapSilently = async (start, end) => {
         try {
-            await axios.post(route('store.attendance.log-gap', { store_slug: store.slug }), {
-                start_time: start.toISOString(),
-                end_time: end.toISOString(),
-                reason: 'Silent Inactivity (>1hr)',
-                description: 'User was inactive for more than 1 hour.'
-            });
+            await axios.post(
+                route('store.attendance.log-gap', { store_slug: store.slug }),
+                {
+                    start_time: start.toISOString(),
+                    end_time: end.toISOString(),
+                    reason: 'Silent Inactivity (>1hr)',
+                    description: 'User was inactive for more than 1 hour.'
+                },
+                { _skipGlobalErrorHandler: true }
+            );
         } catch (error) {
             console.error('Log gap error:', error);
         }

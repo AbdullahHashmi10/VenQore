@@ -164,56 +164,70 @@ class SystemResetTest extends VenQoreTestCase
     }
 
     /** @test */
-    public function google_user_without_password_can_reset_system_using_email_address()
+    public function google_user_without_password_cannot_reset_system_without_setting_password()
     {
         $tenant = $this->createTenant();
         $user = $this->createTenantUser($tenant, 'owner');
-
+ 
         // Google user with no password set
         $user->google_id = 'google-oauth-67890';
         $user->password  = null;
         $user->save();
-
+ 
         $this->actingAsTenantUserModel($user, $tenant);
-
+ 
         // Seed some dummy data
         Product::factory()->create(['tenant_id' => $tenant->id]);
         $this->assertGreaterThan(0, Product::count());
-
-        // Confirm with their own email address (the fallback for Google users)
+ 
+        // Attempting to reset without setting a password first (e.g. sending any dummy text or email)
         $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
-            'password' => $user->email,   // backend accepts email as fallback
+            'password' => $user->email,
         ]);
-
-        $response->assertStatus(200);
+ 
+        $response->assertStatus(403);
         $response->assertJsonFragment([
-            'message' => 'System successfully reset to factory settings.'
+            'message' => 'For security, please set a password in your Profile settings first, then return to confirm this action.'
         ]);
-
-        $this->assertEquals(0, Product::count());
+ 
+        // Verify database was NOT wiped
+        $this->assertGreaterThan(0, Product::count());
     }
-
+ 
     /** @test */
-    public function google_user_without_password_cannot_reset_with_wrong_email()
+    public function google_user_without_password_can_reset_using_admin_passcode()
     {
         $tenant = $this->createTenant();
         $user = $this->createTenantUser($tenant, 'owner');
-
+ 
         // Google user with no password set
         $user->google_id = 'google-oauth-99999';
         $user->password  = null;
         $user->save();
-
+ 
+        // Set up the admin passcode
+        \App\Models\Setting::updateOrCreate(
+            ['key' => 'admin_passcode', 'tenant_id' => $tenant->id],
+            ['value' => '9999-code']
+        );
+ 
         $this->actingAsTenantUserModel($user, $tenant);
-
-        // Attempt with an incorrect email
+ 
+        // Seed some dummy data
+        Product::factory()->create(['tenant_id' => $tenant->id]);
+        $this->assertGreaterThan(0, Product::count());
+ 
+        // Attempt with correct admin passcode
         $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
-            'password' => 'wrong@email.com',
+            'password' => '9999-code',
         ]);
-
-        $response->assertStatus(403);
+ 
+        $response->assertStatus(200);
         $response->assertJsonFragment([
-            'message' => 'Invalid password or admin passcode.'
+            'message' => 'System successfully reset to factory settings.'
         ]);
+ 
+        // Verify database WAS wiped
+        $this->assertEquals(0, Product::count());
     }
 }
