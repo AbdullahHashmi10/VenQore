@@ -31,7 +31,10 @@ class DemoSalesSeeder extends Seeder
         $saleService = app(SaleService::class);
 
         // Authenticate as the demo owner for the service
-        $user = User::where('email', 'owner@venqore-demo.internal')->first()
+        $user = User::whereIn('id', function($q) use ($tenantId) {
+                $q->select('user_id')->from('tenant_users')->where('tenant_id', $tenantId);
+            })->first()
+            ?? User::where('email', 'owner@venqore-demo.internal')->first()
             ?? User::where('email', 'demo-owner@venqore-demo.internal')->first()
             ?? User::where('email', 'master@venqore.com')->first()
             ?? User::first();

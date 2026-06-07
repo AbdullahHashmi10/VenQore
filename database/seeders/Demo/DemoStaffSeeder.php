@@ -31,13 +31,22 @@ class DemoStaffSeeder extends Seeder
         $statusOptions    = ['present', 'present', 'present', 'present', 'absent', 'late'];
         $attendanceCount  = 0;
 
-        foreach ($roles as $roleData) {
-            $user = User::where('email', $roleData['email'])->first();
-            if (!$user) continue;
+        $tenantUsers = User::whereIn('id', function($q) use ($tenantId) {
+            $q->select('user_id')->from('tenant_users')->where('tenant_id', $tenantId);
+        })->get();
 
-            // Update user name to realistic name
-            $user->update(['name' => $roleData['name']]);
+        if ($tenantUsers->isEmpty()) {
+            $tenantUsers = collect();
+            foreach ($roles as $roleData) {
+                $user = User::where('email', $roleData['email'])->first();
+                if ($user) {
+                    $user->update(['name' => $roleData['name']]);
+                    $tenantUsers->push($user);
+                }
+            }
+        }
 
+        foreach ($tenantUsers as $user) {
             // Seed 30 days of attendance
             for ($d = 29; $d >= 0; $d--) {
                 $dayCarbon = now()->subDays($d);

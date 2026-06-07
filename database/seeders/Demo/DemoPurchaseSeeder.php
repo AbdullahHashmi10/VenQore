@@ -23,7 +23,10 @@ class DemoPurchaseSeeder extends Seeder
         $warehouse  = Warehouse::where('tenant_id', $tenantId)->first();
         $products   = Product::where('tenant_id', $tenantId)->get();
         $suppliers  = Party::where('tenant_id', $tenantId)->where('type', 'supplier')->get();
-        $user       = User::where('email', 'demo-owner@venqore-demo.internal')->first();
+        $user = User::whereIn('id', function($q) use ($tenantId) {
+                $q->select('user_id')->from('tenant_users')->where('tenant_id', $tenantId);
+            })->first()
+            ?? User::where('email', 'demo-owner@venqore-demo.internal')->first();
 
         if (!$warehouse || $products->isEmpty() || $suppliers->isEmpty()) {
             $this->command?->warn("Skipping purchases — missing dependencies.");
