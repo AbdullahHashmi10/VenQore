@@ -1659,16 +1659,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 {/* LEFT: Transaction List */}
                 <div className="w-[40%] flex flex-col min-w-0 relative">
                     {/* Search Bar */}
-                    <div className="p-3 border-b border-slate-100 dark:border-slate-800 flex gap-3 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
+                    <div className="h-14 px-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
                         <button
                             onClick={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
-                            className="w-12 h-12 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-colors"
+                            className="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-colors shrink-0"
                             title="Quick Add Product"
                         >
-                            <PackagePlus size={20} />
+                            <PackagePlus size={16} />
                         </button>
                         <div id="tour-pos-product" className="flex-1 relative">
-                            {/* <ScanBarcode className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} /> */}
+                            {/* <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} /> */}
                             <AsyncProductCombobox
                                 defaultOptions={categoryProducts}
                                 value={activeSale.searchTerm}
@@ -1676,12 +1676,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 onSelect={(product) => handleProductSelect(product)}
                                 placeholder="Scan Barcode or Search Item..."
                                 onKeyDown={handleSearchInputKeyDown}
-                                inputClassName="pl-11 h-12 text-lg font-bold"
+                                inputClassName="pl-9 h-9 text-sm font-bold"
                                 onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
                                 hideCostAndMargin={true}
                             />
-                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
-                                <ScanBarcode size={20} />
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
+                                <ScanBarcode size={16} />
                             </div>
                         </div>
                     </div>
@@ -1812,9 +1812,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 <div className="w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-900/80 border-l border-slate-100 dark:border-slate-800">
 
                     {/* Cart Header */}
-                    <div className="p-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2">
-                            <ShoppingCart size={20} className="text-indigo-600" />
+                    <div className="h-14 px-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                        <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                            <ShoppingCart size={18} className="text-indigo-600" />
                             CURRENT ORDER
                         </h3>
                         <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
@@ -1948,11 +1948,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 <div className="w-[20%] shrink-0 bg-slate-900 text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-800">
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
-                    <div className="p-4 border-b border-white/10">
-                        <h2 className="text-xl font-bold flex items-center gap-2">
-                            <Receipt className="text-emerald-400" /> Payment Details
+                    <div className="h-14 px-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-850 flex items-center justify-between">
+                        <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm uppercase">
+                            <Receipt size={18} className="text-emerald-400" /> Payment Details
                         </h2>
-                        <p className="text-xs text-slate-400 mt-1">Transaction ID: #{activeSale.id}</p>
+                        <span className="px-2 py-0.5 rounded-lg font-black text-[10px] bg-slate-800/40 text-slate-400 border border-slate-700/50">
+                            #{activeSale.id}
+                        </span>
                     </div>
 
                     <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
