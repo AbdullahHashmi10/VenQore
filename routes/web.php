@@ -1390,7 +1390,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // System Reset (Admin Only)
     Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->name('system.reset');
-    Route::post('/api/system/reset/send-otp', [\App\Http\Controllers\Admin\SystemResetController::class, 'sendOtp'])->name('system.reset.send-otp');
     Route::post('/api/system/reset/{entity}', [\App\Http\Controllers\Admin\SystemResetController::class, 'deleteEntity'])->name('system.delete-entity');
 
     // Added Category D Store Routes

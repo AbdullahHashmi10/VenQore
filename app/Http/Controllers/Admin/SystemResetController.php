@@ -28,46 +28,7 @@ class SystemResetController extends Controller
             return true;
         }
 
-        // 3. Check Email OTP (cached for 15 minutes)
-        $cachedOtp = cache()->get('system_reset_otp_' . auth()->id());
-        if ($cachedOtp && $input === $cachedOtp) {
-            // Self-cleaning: purge OTP after successful verification
-            cache()->forget('system_reset_otp_' . auth()->id());
-            return true;
-        }
-
         return false;
-    }
-
-    /**
-     * Generate and send a 6-digit OTP verification code via email.
-     */
-    public function sendOtp(Request $request)
-    {
-        $user = auth()->user();
-        $tenant = app('current.tenant');
-
-        if (!$user || !$tenant) {
-            return response()->json(['message' => 'Unauthorized or missing context.'], 403);
-        }
-
-        try {
-            // Generate 6-digit random code
-            $otp = sprintf('%06d', mt_rand(100000, 999999));
-
-            // Store in cache for 15 minutes (900 seconds)
-            cache()->put('system_reset_otp_' . $user->id, $otp, 900);
-
-            // Send Email using SystemResetOtpMail Mailable
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                new \App\Mail\SystemResetOtpMail($tenant, $otp, $user->name)
-            );
-
-            return response()->json(['message' => 'Verification code sent to your registered email address.']);
-        } catch (\Exception $e) {
-            Log::error('Failed to send System Reset OTP: ' . $e->getMessage());
-            return response()->json(['message' => 'Failed to send verification email. Please try again later.'], 500);
-        }
     }
 
     /**

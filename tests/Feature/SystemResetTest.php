@@ -6,11 +6,8 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\Sale;
-use App\Mail\SystemResetOtpMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Cache;
 use Tests\Feature\VenQoreTestCase;
 
 class SystemResetTest extends VenQoreTestCase
@@ -132,103 +129,5 @@ class SystemResetTest extends VenQoreTestCase
         ]);
 
         $response->assertStatus(405);
-    }
-
-    /** @test */
-    public function system_reset_sends_email_otp_successfully()
-    {
-        Mail::fake();
-
-        $tenant = $this->createTenant();
-        $user = $this->createTenantUser($tenant, 'owner');
-        
-        $this->actingAsTenantUserModel($user, $tenant);
-
-        $response = $this->post("/s/{$tenant->slug}/api/system/reset/send-otp");
-
-        $response->assertStatus(200);
-        $response->assertJsonFragment([
-            'message' => 'Verification code sent to your registered email address.'
-        ]);
-
-        // Assert code is stored in cache
-        $cachedOtp = cache()->get('system_reset_otp_' . $user->id);
-        $this->assertNotNull($cachedOtp);
-        $this->assertEquals(6, strlen($cachedOtp));
-
-        // Assert mail was sent with the correct code
-        Mail::assertSent(SystemResetOtpMail::class, function ($mail) use ($user, $cachedOtp) {
-            return $mail->hasTo($user->email) && $mail->otpCode === $cachedOtp;
-        });
-    }
-
-    /** @test */
-    public function system_reset_wipes_all_tenant_data_with_valid_email_otp()
-    {
-        $tenant = $this->createTenant();
-        $user = $this->createTenantUser($tenant, 'owner');
-        
-        $this->actingAsTenantUserModel($user, $tenant);
-
-        // Seed some dummy records
-        Product::factory()->create(['tenant_id' => $tenant->id]);
-        Sale::factory()->create(['tenant_id' => $tenant->id]);
-
-        // Mock OTP in cache
-        $otp = '987654';
-        cache()->put('system_reset_otp_' . $user->id, $otp, 900);
-
-        // Perform factory reset with the OTP instead of password
-        $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
-            'password' => $otp,
-        ]);
-
-        $response->assertStatus(200);
-        $response->assertJsonFragment([
-            'message' => 'System successfully reset to factory settings.'
-        ]);
-
-        // Verify that data is deleted and OTP is cleared from cache
-        $this->assertEquals(0, Product::count());
-        $this->assertEquals(0, Sale::count());
-        $this->assertNull(cache()->get('system_reset_otp_' . $user->id));
-    }
-
-    /** @test */
-    public function system_reset_fails_with_invalid_or_expired_email_otp()
-    {
-        $tenant = $this->createTenant();
-        $user = $this->createTenantUser($tenant, 'owner');
-        
-        $this->actingAsTenantUserModel($user, $tenant);
-
-        // Seed some dummy records
-        Product::factory()->create(['tenant_id' => $tenant->id]);
-        Sale::factory()->create(['tenant_id' => $tenant->id]);
-
-        // Mock OTP in cache
-        $otp = '987654';
-        cache()->put('system_reset_otp_' . $user->id, $otp, 900);
-
-        // Try reset with WRONG OTP
-        $response = $this->post("/s/{$tenant->slug}/api/system/reset", [
-            'password' => '000000',
-        ]);
-
-        $response->assertStatus(403);
-        $this->assertGreaterThan(0, Product::count());
-        $this->assertGreaterThan(0, Sale::count());
-
-        // Clear OTP (simulating expiration)
-        cache()->forget('system_reset_otp_' . $user->id);
-
-        // Try reset with EXPIRED/CLEARED OTP
-        $response2 = $this->post("/s/{$tenant->slug}/api/system/reset", [
-            'password' => $otp,
-        ]);
-
-        $response2->assertStatus(403);
-        $this->assertGreaterThan(0, Product::count());
-        $this->assertGreaterThan(0, Sale::count());
     }
 }
