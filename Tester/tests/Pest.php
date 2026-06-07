@@ -37,6 +37,15 @@ foreach (glob(__DIR__ . '/Feature/*', GLOB_ONLYDIR) as $dir) {
     pest()->extend(VenQoreTestCase::class)->in($absPathNormalised);
 
     $dirName = basename($dir);
+
+    // Register absolute paths for the corresponding root tests/Feature directory
+    $rootDir = realpath(__DIR__ . "/../../tests/Feature/{$dirName}");
+    if ($rootDir) {
+        $rootDirNormalised = str_replace('\\', '/', $rootDir);
+        pest()->extend(VenQoreTestCase::class)->in($rootDir);
+        pest()->extend(VenQoreTestCase::class)->in($rootDirNormalised);
+    }
+
     pest()->extend(VenQoreTestCase::class)->in("Tester/tests/Feature/{$dirName}");
     pest()->extend(VenQoreTestCase::class)->in("Tester\\tests\\Feature\\{$dirName}");
     pest()->extend(VenQoreTestCase::class)->in("tests/Feature/{$dirName}");
@@ -55,6 +64,15 @@ foreach (glob(__DIR__ . '/Feature/*.php') as $file) {
     pest()->extend(VenQoreTestCase::class)->in($absPathNormalised);
 
     $fileName = basename($file);
+
+    // Register absolute paths for the corresponding root tests/Feature file
+    $rootFile = realpath(__DIR__ . "/../../tests/Feature/{$fileName}");
+    if ($rootFile) {
+        $rootFileNormalised = str_replace('\\', '/', $rootFile);
+        pest()->extend(VenQoreTestCase::class)->in($rootFile);
+        pest()->extend(VenQoreTestCase::class)->in($rootFileNormalised);
+    }
+
     pest()->extend(VenQoreTestCase::class)->in("Tester/tests/Feature/{$fileName}");
     pest()->extend(VenQoreTestCase::class)->in("Tester\\tests\\Feature\\{$fileName}");
     pest()->extend(VenQoreTestCase::class)->in("tests/Feature/{$fileName}");

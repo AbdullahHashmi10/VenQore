@@ -269,7 +269,6 @@ let ws = null;
 let running = false;
 let modulesDone = 0;
 let projectPath = '';
-const TOTAL_MODULES = 61;
 const completedModules = new Set();
 
 const MODULE_NAMES = {
@@ -303,11 +302,14 @@ const MODULE_NAMES = {
   'ImportMappingTest': 'Bulk XLS Field Mapper',
   'StoreUniqueNameTest': 'Store Namespace Integrity',
   'MigrateOpeningBalancesTest': 'Historical Ledger Balance',
+  'SitemapTest': 'Sitemap XML Index Core',
+  'SystemResetTest': 'System Factory Reset Audit',
   'Chat': 'Vena AI Chat & Smart Capture',
   'PlanManagementTest': 'Plan & Feature Matrix Management',
   'Billing': 'Lemon Squeezy Billing Integration',
   'PlanLimitsEnforcerTest': 'Tenant Plan Limits Enforcer',
   'ProductDeletionTest': 'Product Safe Deletion Audit',
+  'TerminalAppIntegrationTest': 'Terminal App API Integration',
   'all frontend route calls have registered routes': 'Ziggy: Frontend Routes Exist in Laravel',
   'owner daily pulse routes are all registered': 'Ziggy: Owner Daily Pulse Route Registration',
   'backup routes use correct store prefix': 'Ziggy: Backup Route Namespace Fixes',
@@ -330,12 +332,20 @@ const MODULE_NAMES = {
   'note endpoint saves memo when authorized': 'Daily Pulse: Secure Notes Save DB Sync',
   'note endpoint rejects unauthorized access': 'Daily Pulse: Notes Post Authorization Check',
   'note endpoint validates date format': 'Daily Pulse: Snapshots Date Format Check',
+  'store user creates membership and sets hashed pos pin': 'Passcode: Create POS PIN Hash',
+  'update user modifies membership and hashes pos pin': 'Passcode: Update POS PIN Hash',
+  'store user validates passcode uniqueness within same store': 'Passcode: Store Unique PIN Validation',
+  'PosFeaturesTest': 'POS Native Features Suite',
+  'categories endpoint returns product count for active categories': 'POS API: Category Product Counts',
+  'featured endpoint returns active products for the grid': 'POS API: Featured Products Grid',
+  'search endpoint filters products by category id': 'POS API: Category Filter Search',
   'ModalValidationRegressionTest': 'System-Wide Validation Safety',
   'ExampleTest': 'Feature Example Sanity',
   'RegressionFixesTest': 'Regression Fixes & Layouts',
   'Unit': 'Unit Core Sanity',
 };
 const MODULE_KEYS = Object.keys(MODULE_NAMES);
+const TOTAL_MODULES = MODULE_KEYS.length;
 
 // ─── ECG Engine ───────────────────────────────────────────────────────────────
 const canvas = document.getElementById('ecg-canvas');
