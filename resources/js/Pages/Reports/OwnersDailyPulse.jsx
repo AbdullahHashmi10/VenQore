@@ -564,7 +564,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.sales, store_slug)}
+                                    {formatCurrency(todaySnap.sales)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -591,7 +591,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.purchases, store_slug)}
+                                    {formatCurrency(todaySnap.purchases)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -616,7 +616,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.cash, store_slug)}
+                                    {formatCurrency(todaySnap.cash)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -641,7 +641,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.stock, store_slug)}
+                                    {formatCurrency(todaySnap.stock)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -666,7 +666,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.expense, store_slug)}
+                                    {formatCurrency(todaySnap.expense)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -691,7 +691,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.receivables, store_slug)}
+                                    {formatCurrency(todaySnap.receivables)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -716,7 +716,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                     </div>
                                 </div>
                                 <h3 className="text-lg font-black text-white leading-none">
-                                    {formatCurrency(todaySnap.payables, store_slug)}
+                                    {formatCurrency(todaySnap.payables)}
                                 </h3>
                             </div>
                             <div className="mt-4 pt-2 border-t border-slate-800/50 flex justify-between items-center text-[10px]">
@@ -860,7 +860,7 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
                                                                         <span>{item.name}:</span>
                                                                     </div>
                                                                     <span className="font-extrabold text-white">
-                                                                        {formatCurrency(item.value, store_slug)}
+                                                                        {formatCurrency(item.value)}
                                                                     </span>
                                                                 </div>
                                                             ))}
@@ -974,37 +974,37 @@ export default function OwnersDailyPulse({ is_locked, needs_setup, is_owner, sto
 
                                                 {/* Sales */}
                                                 <td className="px-6 py-4 font-extrabold text-emerald-400">
-                                                    {formatCurrency(snap.sales, store_slug)}
+                                                    {formatCurrency(snap.sales)}
                                                 </td>
 
                                                 {/* Purchases */}
                                                 <td className="px-6 py-4 font-extrabold text-blue-400">
-                                                    {formatCurrency(snap.purchases, store_slug)}
+                                                    {formatCurrency(snap.purchases)}
                                                 </td>
 
                                                 {/* Cash */}
                                                 <td className="px-6 py-4 font-extrabold text-violet-300">
-                                                    {formatCurrency(snap.cash, store_slug)}
+                                                    {formatCurrency(snap.cash)}
                                                 </td>
 
                                                 {/* Stock */}
                                                 <td className="px-6 py-4 font-bold text-slate-300">
-                                                    {formatCurrency(snap.stock, store_slug)}
+                                                    {formatCurrency(snap.stock)}
                                                 </td>
 
                                                 {/* Receivables */}
                                                 <td className="px-6 py-4 font-bold text-amber-400">
-                                                    {formatCurrency(snap.receivables, store_slug)}
+                                                    {formatCurrency(snap.receivables)}
                                                 </td>
 
                                                 {/* Payables */}
                                                 <td className="px-6 py-4 font-bold text-rose-400">
-                                                    {formatCurrency(snap.payables, store_slug)}
+                                                    {formatCurrency(snap.payables)}
                                                 </td>
 
                                                 {/* Expenses */}
                                                 <td className="px-6 py-4 font-bold text-orange-400">
-                                                    {formatCurrency(snap.expense, store_slug)}
+                                                    {formatCurrency(snap.expense)}
                                                 </td>
 
                                                 {/* In-line Autosaving Daily Note */}

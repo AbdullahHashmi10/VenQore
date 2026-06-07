@@ -28,7 +28,7 @@ import {
     Bar,
     Legend
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 /**
  * MASTER REPORT COMPONENT (The "Report Factory")
@@ -500,8 +500,9 @@ const MasterReport = ({
                                                 {col.render ? col.render(row) : (
                                                     // Default Render Logic
                                                     col.type === 'currency' ? formatCurrency(row[col.key], store || settings) :
-                                                        col.type === 'date' ? new Date(row[col.key]).toLocaleDateString() :
-                                                            row[col.key] || <span className="text-slate-300 italic">-</span>
+                                                        col.type === 'number' ? formatNumber(row[col.key], null, store || settings) :
+                                                            col.type === 'date' ? new Date(row[col.key]).toLocaleDateString() :
+                                                                row[col.key] || <span className="text-slate-300 italic">-</span>
                                                 )}
                                             </td>
                                         ))}

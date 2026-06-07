@@ -4,6 +4,7 @@ import { Calendar, AlertTriangle, Package, CheckCircle } from 'lucide-react';
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
+import { formatNumber } from '@/Utils/format';
 
 export default function ExpiryReport({ batches = [], stats = {}, filters = {} }) {
     const {
@@ -32,7 +33,7 @@ export default function ExpiryReport({ batches = [], stats = {}, filters = {} })
         },
         {
             label: 'Total Quantity',
-            value: stats.total_quantity,
+            value: formatNumber(stats.total_quantity),
             icon: <CheckCircle size={18} />,
             type: 'neutral'
         }
@@ -74,7 +75,7 @@ export default function ExpiryReport({ batches = [], stats = {}, filters = {} })
             label: 'Quantity',
             align: 'right',
             sortable: true,
-            render: (row) => <span className="font-medium">{row.quantity}</span>
+            render: (row) => <span className="font-medium">{formatNumber(row.quantity)}</span>
         },
         {
             key: 'warehouse',

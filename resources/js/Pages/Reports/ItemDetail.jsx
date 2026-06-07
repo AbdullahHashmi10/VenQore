@@ -2,7 +2,7 @@ import React from 'react';
 import ReportPage from './Components/ReportPage';
 import { Box } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 export default function ItemDetail({ products }) {
     const { store } = usePage().props;
@@ -40,7 +40,7 @@ export default function ItemDetail({ products }) {
                                 <td className="px-6 py-4 text-right text-sm font-bold text-indigo-600 dark:text-indigo-400">{formatCurrency(product.price)}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={`px-2 py-1 rounded-lg text-xs font-bold ${(product.fifo_qty ?? product.stock_quantity) > 10 ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                                        {product.fifo_qty ?? product.stock_quantity ?? 0}
+                                        {formatNumber(product.fifo_qty ?? product.stock_quantity ?? 0)}
                                     </span>
                                 </td>
                             </tr>

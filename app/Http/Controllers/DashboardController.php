@@ -313,8 +313,8 @@ class DashboardController extends Controller
                         'gross_profit' => $item['gross_profit'],
                         'margin_pct'   => $item['margin_pct'],
                         // Formatted for display
-                        'revenue'      => $currencySym . ' ' . number_format($item['net_revenue'], 2),
-                        'profit'       => $currencySym . ' ' . number_format($item['gross_profit'], 2),
+                        'revenue'      => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['net_revenue']),
+                        'profit'       => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($item['gross_profit']),
                         'margin'       => $item['margin_pct'] . '%',
                         'image'        => '📦',
                     ];
@@ -381,7 +381,7 @@ class DashboardController extends Controller
                 return [
                     'id' => 'gl-' . $item->item_id,
                     'type' => $typeLabel,
-                    'amount' => ($isIn ? '+' : '-') . $currencySym . ' ' . number_format((float)($isIn ? $item->debit : $item->credit), 0),
+                    'amount' => ($isIn ? '+' : '-') . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber((float)($isIn ? $item->debit : $item->credit)),
                     'time' => \Carbon\Carbon::parse($item->time)->diffForHumans(),
                     'status' => 'Completed',
                     'description' => $item->description ?: 'Cash Transaction',
@@ -556,7 +556,7 @@ class DashboardController extends Controller
                         'id' => $activity->id,
                         'title' => $titlePrefix . ($activity->reference_id ? ' #' . $activity->reference_id : ''),
                         'subtitle' => $activity->description,
-                        'amount' => $sign . $currencySym . ' ' . number_format(abs((float) $activity->amount), 2),
+                        'amount' => $sign . $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber(abs((float) $activity->amount)),
                         'time' => $activity->created_at->diffForHumans(),
                     ];
                 });

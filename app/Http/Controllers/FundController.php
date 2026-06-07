@@ -384,7 +384,7 @@ class FundController extends Controller
                 }
                 
                 if ($balanceBefore < $amount) {
-                    throw new \Exception('Insufficient cash balance. Current: Rs ' . number_format($balanceBefore, 2));
+                    throw new \Exception('Insufficient cash balance. Current: ' . \App\Helpers\SettingsHelper::formatCurrency($balanceBefore));
                 }
 
                 // Legacy support
@@ -400,7 +400,7 @@ class FundController extends Controller
                 $balanceBefore = (float) $bankAccount->v3Balance();
                 
                 if ($balanceBefore < $amount) {
-                    throw new \Exception('Insufficient bank balance. Current: Rs ' . number_format($balanceBefore, 2));
+                    throw new \Exception('Insufficient bank balance. Current: ' . \App\Helpers\SettingsHelper::formatCurrency($balanceBefore));
                 }
 
                 // Legacy support
@@ -500,7 +500,7 @@ class FundController extends Controller
                     $fromBalanceBefore = 0.0;
                 }
                 if ($fromBalanceBefore < $amount) {
-                    throw new \Exception("Insufficient cash balance. (Current: Rs " . number_format($fromBalanceBefore) . ")");
+                    throw new \Exception("Insufficient cash balance. (Current: " . \App\Helpers\SettingsHelper::formatCurrency($fromBalanceBefore) . ")");
                 }
                 
                 $cashBank = \App\Models\BankAccount::where('account_type', 'cash')->first();
@@ -510,7 +510,7 @@ class FundController extends Controller
                 $fromBankAccount = BankAccount::findOrFail($request->from_bank_id);
                 $fromBalanceBefore = (float) $fromBankAccount->v3Balance();
                 if ($fromBalanceBefore < $amount) {
-                    throw new \Exception("Insufficient bank balance. (Current: Rs " . number_format($fromBalanceBefore) . ")");
+                    throw new \Exception("Insufficient bank balance. (Current: " . \App\Helpers\SettingsHelper::formatCurrency($fromBalanceBefore) . ")");
                 }
                 $fromAccountId = $fromBankAccount->id;
                 $fromName = $fromBankAccount->bank_name ?? $fromBankAccount->name;
@@ -669,8 +669,8 @@ class FundController extends Controller
 
             DB::commit();
 
-            $changeText = $difference >= 0 ? '+Rs ' . number_format($difference, 2) : '-Rs ' . number_format(abs($difference), 2);
-            return back()->with('success', "Balance adjusted ({$changeText}) to Rs " . number_format($newBalance, 2));
+            $changeText = $difference >= 0 ? '+' . \App\Helpers\SettingsHelper::formatCurrency($difference) : '-' . \App\Helpers\SettingsHelper::formatCurrency(abs($difference));
+            return back()->with('success', "Balance adjusted ({$changeText}) to " . \App\Helpers\SettingsHelper::formatCurrency($newBalance));
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->with('error', 'Adjustment failed: ' . $e->getMessage());

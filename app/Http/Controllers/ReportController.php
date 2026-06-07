@@ -876,8 +876,8 @@ class ReportController extends Controller
             'data'  => $parties,
             'stats' => [
                 ['label' => 'Total Parties',    'value' => $parties->count()],
-                ['label' => 'Total Receivables','value' => number_format($totalReceivables, 2), 'type' => 'up'],
-                ['label' => 'Total Payables',   'value' => number_format($totalPayables, 2),    'type' => 'down'],
+                ['label' => 'Total Receivables','value' => \App\Helpers\SettingsHelper::formatNumber($totalReceivables), 'type' => 'up'],
+                ['label' => 'Total Payables',   'value' => \App\Helpers\SettingsHelper::formatNumber($totalPayables),    'type' => 'down'],
             ]
         ]);
     }
@@ -984,8 +984,8 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                ['label' => 'Total Revenue', 'value' => number_format($data->sum('net_revenue'), 2)],
-                ['label' => 'Total Profit', 'value' => number_format($data->sum('gross_profit'), 2), 'type' => 'up'],
+                ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('net_revenue'))],
+                ['label' => 'Total Profit', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('gross_profit')), 'type' => 'up'],
             ],
             'chartData' => $data->sortByDesc('gross_profit')->take(10)->map(fn($r) => ['name' => substr($r['party_name'], 0, 15), 'value' => $r['gross_profit']])->values(),
             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#6366f1'],
@@ -1093,11 +1093,11 @@ class ReportController extends Controller
             ->values();
 
         $stats = [
-            ['label' => 'Current (0-30 days)',  'value' => number_format($sales->where('category', '0-30')->sum('amount'), 2)],
-            ['label' => '31-60 days',           'value' => number_format($sales->where('category', '30-60')->sum('amount'), 2)],
-            ['label' => '61-90 days',           'value' => number_format($sales->where('category', '60-90')->sum('amount'), 2)],
-            ['label' => 'Over 90 days',         'value' => number_format($sales->where('category', '90+')->sum('amount'), 2), 'type' => 'down'],
-            ['label' => 'Total Outstanding AR', 'value' => number_format($sales->sum('amount'), 2)],
+            ['label' => 'Current (0-30 days)',  'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '0-30')->sum('amount'))],
+            ['label' => '31-60 days',           'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '30-60')->sum('amount'))],
+            ['label' => '61-90 days',           'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '60-90')->sum('amount'))],
+            ['label' => 'Over 90 days',         'value' => \App\Helpers\SettingsHelper::formatNumber($sales->where('category', '90+')->sum('amount')), 'type' => 'down'],
+            ['label' => 'Total Outstanding AR', 'value' => \App\Helpers\SettingsHelper::formatNumber($sales->sum('amount'))],
         ];
 
         return Inertia::render('Reports/SaleAging', [
@@ -1181,7 +1181,7 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                ['label' => 'Total Expenses', 'value' => number_format($data->sum('total'), 2)],
+                ['label' => 'Total Expenses', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total'))],
                 ['label' => 'Categories', 'value' => $data->count()]
             ],
             'chartData' => $data->map(fn($r) => ['name' => $r->category ?: 'Uncategorized', 'value' => $r->total]),
@@ -1220,7 +1220,7 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                ['label' => 'Total Expenses', 'value' => number_format($data->sum('amount'), 2)],
+                ['label' => 'Total Expenses', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('amount'))],
                 ['label' => 'Count', 'value' => $data->count()]
             ]
         ]);
@@ -1254,8 +1254,8 @@ class ReportController extends Controller
             'data' => $data,
             'stats' => [
                 ['label' => 'Total Categories', 'value' => $data->count()],
-                ['label' => 'Total Retail Value', 'value' => number_format($data->sum('retail_value'), 2)],
-                ['label' => 'Total Stock Qty', 'value' => number_format($data->sum('total_stock'))],
+                ['label' => 'Total Retail Value', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('retail_value'))],
+                ['label' => 'Total Stock Qty', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_stock'))],
             ],
             'chartData' => $data->map(fn($r) => ['name' => $r->category_name, 'value' => $r->retail_value]),
             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#8b5cf6']
@@ -1315,9 +1315,9 @@ class ReportController extends Controller
             ],
             'data'  => $data,
             'stats' => [
-                ['label' => 'Total Net Sales',  'value' => number_format($data->sum('sales'), 2),     'type' => 'up'],
-                ['label' => 'Total Purchases',  'value' => number_format($data->sum('purchases'), 2), 'type' => 'down'],
-                ['label' => 'Net Flow',         'value' => number_format($data->sum('net'), 2)],
+                ['label' => 'Total Net Sales',  'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('sales')),     'type' => 'up'],
+                ['label' => 'Total Purchases',  'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('purchases')), 'type' => 'down'],
+                ['label' => 'Net Flow',         'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('net'))],
             ],
             'chartData'   => $data->take(10)->map(fn($r) => ['name' => substr($r->name, 0, 15), 'sales' => $r->sales, 'purchases' => $r->purchases]),
             'chartConfig' => ['type' => 'bar', 'dataKey' => ['sales', 'purchases'], 'xAxisKey' => 'name', 'color' => '#6366f1']
@@ -1364,7 +1364,7 @@ class ReportController extends Controller
             ],
             'data' => $data,
             'stats' => [
-                 ['label' => 'Total Sales', 'value' => number_format($data->sum('sales'), 2)],
+                 ['label' => 'Total Sales', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('sales'))],
             ],
             'chartData' => $data->filter(fn($r) => $r->sales > 0)->map(fn($r) => ['name' => $r->name, 'value' => $r->sales])->values(),
             'chartConfig' => ['type' => 'area', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#e11d48']
@@ -1389,8 +1389,8 @@ class ReportController extends Controller
              ],
              'data' => $data,
              'stats' => [
-                 ['label' => 'Total Revenue', 'value' => number_format($data->sum('revenue'), 2)],
-                 ['label' => 'Total Profit', 'value' => number_format($data->sum('profit'), 2), 'type' => 'up'],
+                 ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('revenue'))],
+                 ['label' => 'Total Profit', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('profit')), 'type' => 'up'],
              ],
              'chartData' => $data->map(fn($r) => ['name' => $r['name'], 'value' => $r['profit']]),
              'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#0ea5e9']
@@ -1426,7 +1426,7 @@ class ReportController extends Controller
                  ['key' => 'total_discount', 'label' => 'Total Discount', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
             ],
             'data' => $data,
-            'stats' => [['label' => 'Total Discount Given', 'value' => number_format($data->sum('total_discount'), 2)]]
+            'stats' => [['label' => 'Total Discount Given', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_discount'))]]
         ]);
     }
 
@@ -1510,8 +1510,8 @@ class ReportController extends Controller
             'data' => $batches,
             'stats' => [
                 ['label' => 'Total Batches', 'value' => $batches->count()],
-                ['label' => 'Quantity', 'value' => $batches->sum('quantity')],
-                ['label' => 'Frozen Cash', 'value' => 'Rs ' . number_format($batches->sum('cost_value'), 2)],
+                ['label' => 'Quantity', 'value' => \App\Helpers\SettingsHelper::formatNumber($batches->sum('quantity'))],
+                ['label' => 'Frozen Cash', 'value' => \App\Helpers\SettingsHelper::formatCurrency($batches->sum('cost_value'))],
                 ['label' => 'Oldest Batch', 'value' => $batches->max('days') . ' days', 'type' => 'down']
             ],
             'chartData' => $batches->groupBy('category')->map(fn($g, $k) => ['name' => $k, 'value' => $g->sum('quantity')])->values(),
@@ -1599,8 +1599,8 @@ class ReportController extends Controller
         return Inertia::render('Reports/ItemReportByParty', [
             'data' => $data,
             'stats' => [
-                 ['label' => 'Total Sales', 'value' => number_format($data->sum('total'), 2)],
-                 ['label' => 'Total Items', 'value' => number_format($data->sum('quantity'))],
+                 ['label' => 'Total Sales', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total'))],
+                 ['label' => 'Total Items', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('quantity'))],
             ],
             'filters' => [
                 'start_date' => $startDate,
@@ -1635,8 +1635,8 @@ class ReportController extends Controller
         return Inertia::render('Reports/PartyReportByItem', [
             'data' => $data,
             'stats' => [
-                 ['label' => 'Total Sales', 'value' => number_format($data->sum('total'), 2)],
-                 ['label' => 'Total Items', 'value' => number_format($data->sum('quantity'))],
+                 ['label' => 'Total Sales', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total'))],
+                 ['label' => 'Total Items', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('quantity'))],
             ],
             'filters' => [
                 'start_date' => $startDate,
@@ -1678,8 +1678,8 @@ class ReportController extends Controller
             ],
             'data'  => $data,
             'stats' => [
-                ['label' => 'Total Tax Collected', 'value' => number_format($data->sum('total_tax'), 2)],
-                ['label' => 'Total Taxable Amount','value' => number_format($data->sum('taxable_amount'), 2)],
+                ['label' => 'Total Tax Collected', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_tax'))],
+                ['label' => 'Total Taxable Amount','value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('taxable_amount'))],
             ],
             'chartData'   => $data->map(fn($r) => ['name' => ($r->tax_rate ?? 0) . '%', 'value' => $r->total_tax]),
             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#8b5cf6']

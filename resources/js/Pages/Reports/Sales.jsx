@@ -10,7 +10,7 @@ import {
 import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 export default function SalesReport({ sales = [], stats = {}, chartData = [], filters = {} }) {
     const {
@@ -393,7 +393,7 @@ export default function SalesReport({ sales = [], stats = {}, chartData = [], fi
                                                             <td className="p-3">
                                                                 <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                             </td>
-                                                            <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
+                                                            <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{formatNumber(item.quantity)}</td>
                                                             <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.unit_price || item.price || 0, store)}</td>
                                                             <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
                                                                 {formatCurrency(item.total_price || ((item.quantity) * (item.unit_price || item.price || 0)), store)}

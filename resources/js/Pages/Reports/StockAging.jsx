@@ -12,7 +12,7 @@ import {
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 export default function StockAging({ batches = [], filters = {} }) {
     const {
@@ -177,7 +177,7 @@ export default function StockAging({ batches = [], filters = {} }) {
             sortable: true,
             render: (row) => (
                 <span className="font-mono text-sm font-bold text-slate-700 dark:text-slate-300">
-                    {row.quantity}
+                    {formatNumber(row.quantity)}
                 </span>
             )
         },

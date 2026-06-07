@@ -16,6 +16,7 @@ import {
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
+import { formatNumber } from '@/Utils/format';
 
 export default function MovementHistory({ movements = [], filters = {}, products = [], warehouses = [] }) {
     const {
@@ -84,21 +85,21 @@ export default function MovementHistory({ movements = [], filters = {}, products
     const reportStats = [
         {
             label: 'Total Inbound',
-            value: stats.totalIn,
+            value: formatNumber(stats.totalIn),
             subValue: 'Units Received',
             icon: <ArrowDownLeft size={20} className="text-emerald-500" />,
             type: 'up'
         },
         {
             label: 'Total Outbound',
-            value: stats.totalOut,
+            value: formatNumber(stats.totalOut),
             subValue: 'Units Dispatched',
             icon: <ArrowUpRight size={20} className="text-red-500" />,
             type: 'down'
         },
         {
             label: 'Net Flow',
-            value: stats.netChange > 0 ? `+${stats.netChange}` : stats.netChange,
+            value: stats.netChange > 0 ? `+${formatNumber(stats.netChange)}` : formatNumber(stats.netChange),
             subValue: 'Inventory Impact',
             icon: <Activity size={20} className="text-blue-500" />,
             type: 'neutral'
@@ -188,7 +189,7 @@ export default function MovementHistory({ movements = [], filters = {}, products
                 const val = Math.abs(parseFloat(row.quantity) || 0);
                 return (
                     <div className={`font-mono font-bold text-sm ${isIn ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {isIn ? '+' : '-'}{val}
+                        {isIn ? '+' : '-'}{formatNumber(val)}
                     </div>
                 );
             }

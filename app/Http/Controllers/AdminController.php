@@ -159,15 +159,22 @@ class AdminController extends Controller
         ];
 
         // 5. Payment Methods
-        $paymentMethods = \App\Models\Sale::select('payment_method', DB::raw('count(*) as count'))
+        // DRAGNET-FIX: Use DB::table() instead of Sale::select()->groupBy().
+        // Sale has $appends=['paid_amount','total_amount']. Selecting without 'id'
+        // produces poisoned model objects whose accessors silently return 0.
+        $tenantIdForPm = app('current.tenant')->id;
+        $paymentMethods = DB::table('sales')
+            ->select('payment_method', DB::raw('count(*) as count'))
+            ->where('tenant_id', $tenantIdForPm)
+            ->whereIn('status', ['posted', 'returned'])
             ->groupBy('payment_method')
             ->orderByDesc('count')
             ->get()
             ->map(function ($item, $index) {
                 $colors = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444'];
                 return [
-                    'name' => ucfirst($item->payment_method),
-                    'value' => $item->count,
+                    'name'  => ucfirst($item->payment_method ?? 'Other'),
+                    'value' => (int) $item->count,
                     'color' => $colors[$index % count($colors)]
                 ];
             });
@@ -230,24 +237,38 @@ class AdminController extends Controller
             'staffPerformance' => $staffPerformance,
             'recentActivity' => $activities,
             'inventoryHealth' => $inventoryHealth,
-            'topProducts' => \App\Models\SaleItem::selectRaw('product_id, SUM(quantity) as sold_qty, SUM(subtotal) as revenue')
-                ->groupBy('product_id')
-                ->orderByDesc('revenue')
-                ->take(5)
-                ->with('product.category')
-                ->get()
-                ->map(function ($item) {
-                     $product = $item->product;
-                     $category = $product && $product->category ? $product->category->name : 'General';
-                     $productName = $product ? $product->name : 'Unknown Product';
-
-                     return [
-                         'name' => $productName,
-                         'cat' => $category,
-                         'sales' => (float)$item->revenue,
-                         'stock' => $product ? ($product->stock_quantity ?? 0) : 0
-                     ];
-                }),
+            'topProducts' => (function() {
+                // DRAGNET-FIX: Use DB::table() instead of SaleItem::selectRaw()->groupBy().
+                // Eloquent aggregate queries without 'id' are fragile when models define
+                // computed attributes or $appends. Using flat DB query + manual joins
+                // is the established safe pattern for aggregate data sent to Inertia.
+                $tenantId = app('current.tenant')->id;
+                return DB::table('sale_items')
+                    ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+                    ->join('products', 'products.id', '=', 'sale_items.product_id')
+                    ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                    ->where('sales.tenant_id', $tenantId)
+                    ->where('sales.status', 'posted')
+                    ->whereNull('sale_items.deleted_at')
+                    ->select(
+                        'products.name as product_name',
+                        'categories.name as category_name',
+                        DB::raw('SUM(sale_items.quantity) as sold_qty'),
+                        DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal)) as revenue')
+                    )
+                    ->groupBy('products.id', 'products.name', 'categories.id', 'categories.name')
+                    ->orderByDesc('revenue')
+                    ->take(5)
+                    ->get()
+                    ->map(function ($item) {
+                        return [
+                            'name'  => $item->product_name ?? 'Unknown Product',
+                            'cat'   => $item->category_name ?? 'General',
+                            'sales' => (float) $item->revenue,
+                            'stock' => 0, // omitted — stock_quantity not available in flat join
+                        ];
+                    });
+            })(),
             'expenseData' => (function() {
                  $colors = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
                  $tenant = app('current.tenant');

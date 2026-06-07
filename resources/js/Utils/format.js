@@ -24,7 +24,7 @@ export const getCurrencySymbol = (settings = null) => {
 export const formatCurrency = (amount, settings = null) => {
     const config = settings || window.amdSettings || {};
     const symbol = getCurrencySymbol(config);
-    const decimals = parseInt(config.decimal_places !== undefined ? config.decimal_places : 0);
+    const decimals = parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
 
     const formattedNumber = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
@@ -38,8 +38,8 @@ export const formatCurrency = (amount, settings = null) => {
 
 export const formatNumber = (number, decimals = null, settings = null) => {
     const config = settings || window.amdSettings || {};
-    // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 0.
-    const d = decimals !== null ? decimals : parseInt(config.decimal_places || 0);
+    // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 2.
+    const d = decimals !== null ? decimals : parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
 
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: d,

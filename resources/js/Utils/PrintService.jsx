@@ -246,7 +246,7 @@ class PrintService {
             sale_prefix: s(raw.sale_prefix, 'INV-'),
             currency: s(raw.currency, 'PKR'),
             currency_symbol: s(raw.currency_symbol, 'Rs'),
-            decimal_places: n(raw.decimal_places, 0),
+            decimal_places: n(raw.decimal_places, 2), // DRAGNET-FIX: default 2, not 0 — aligns with format.js, settings.js, useCurrency.js
 
             // Regular Print
             paper_size: s(raw.paper_size, 'A4'),

@@ -445,11 +445,14 @@ class SaleController extends Controller
             });
 
         // Sales by Payment Method — use net_sales for accurate revenue breakdown
-        $salesByMethod = Sale::where('tenant_id', $tenantId)
+        $salesByMethod = DB::table('sales')
+            ->where('tenant_id', $tenantId)
+            ->whereNull('deleted_at')
             ->whereDate('created_at', '>=', $startOfMonth)
             ->select('payment_method', DB::raw('SUM(net_sales) as total'))
             ->groupBy('payment_method')
             ->get();
+
 
         return Inertia::render('Sales/Dashboard', [
             'stats' => [

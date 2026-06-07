@@ -55,6 +55,11 @@ const SUITE_TESTS = {
     'store user creates membership and sets hashed pos pin',
     'update user modifies membership and hashes pos pin',
     'store user validates passcode uniqueness within same store'
+  ],
+  'PosFeaturesTest': [
+    'categories endpoint returns product count for active categories',
+    'featured endpoint returns active products for the grid',
+    'search endpoint filters products by category id'
   ]
 };
 
@@ -201,6 +206,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/TerminalAppIntegrationTest.php',
     'Tester/tests/Feature/LegacyAdminPasscodeTest.php',
     'Tester/tests/Feature/RegressionFixesTest.php',
+    'Tester/tests/Feature/PosFeaturesTest.php',
     'Tester/tests/Unit'
   ];
 
@@ -264,6 +270,10 @@ function runTests(projectPath, ws) {
     'store user creates membership and sets hashed pos pin',
     'update user modifies membership and hashes pos pin',
     'store user validates passcode uniqueness within same store',
+    'PosFeaturesTest',
+    'categories endpoint returns product count for active categories',
+    'featured endpoint returns active products for the grid',
+    'search endpoint filters products by category id',
     'ModalValidationRegressionTest',
     'RegressionFixesTest',
     'ExampleTest',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import DualStatCard from '@/Components/DualStatCard';
 import ChartSection from '@/Components/ChartSection';
@@ -219,7 +219,7 @@ export default function Dashboard({
                             <div key={item.id} className="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/10 rounded-xl border border-red-100 dark:border-red-900/20">
                                 <div>
                                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-32">{item.name}</p>
-                                    <p className="text-[10px] text-red-500 font-bold">Stock: {item.stock} / {item.alert}</p>
+                                    <p className="text-[10px] text-red-500 font-bold">Stock: {formatNumber(item.stock)} / {formatNumber(item.alert)}</p>
                                 </div>
                                 {/* PROBLEM 7 FIX: Order button only for roles with purchases permission */}
                                 {(auth?.user?.role === 'owner' || auth?.user?.role === 'admin' || auth?.user?.role === 'manager' || auth?.user?.role === 'purchasing_officer' || auth?.user?.permissions?.includes('purchases')) && (

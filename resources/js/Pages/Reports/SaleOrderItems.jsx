@@ -8,7 +8,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 export default function SaleOrderItems({ items = [], filters = {} }) {
     const {
@@ -235,7 +235,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
                     <StatCard
                         title="Total Items Sold"
-                        value={stats.totalItems.toLocaleString()}
+                        value={formatNumber(stats.totalItems)}
                         icon={<ShoppingBag size={18} />}
                         color="violet"
                         footer="Units moved"
@@ -257,7 +257,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                         value={stats.topProductEntry ? stats.topProductEntry.name.substring(0, 15) + (stats.topProductEntry.name.length > 15 ? '...' : '') : 'N/A'}
                         icon={<Package size={18} />}
                         color="amber"
-                        footer={stats.topProductEntry ? `${stats.topProductEntry.qty} Units` : ''}
+                        footer={stats.topProductEntry ? `${formatNumber(stats.topProductEntry.qty)} Units` : ''}
                     />
                 </div>
 
@@ -311,7 +311,7 @@ export default function SaleOrderItems({ items = [], filters = {} }) {
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-3 text-center text-sm text-slate-500">
-                                                    {item.quantity}
+                                                    {formatNumber(item.quantity)}
                                                 </td>
                                                 <td className="px-6 py-3 text-right text-xs text-slate-500 font-mono">
                                                     {formatCurrency(item.price, store)}

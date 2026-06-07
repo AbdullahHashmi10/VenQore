@@ -4,7 +4,7 @@ import { Package, DollarSign, AlertTriangle, TrendingUp } from 'lucide-react';
 import MasterReport from '@/Components/Reports/MasterReport';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import { Head } from '@inertiajs/react';
-import { formatCurrency } from '@/Utils/format';
+import { formatCurrency, formatNumber } from '@/Utils/format';
 
 export default function StockValuation({ products = [], stats = {}, filters = {}, categories = [], warehouses = [] }) {
     const {
@@ -33,7 +33,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
         },
         {
             label: 'Total Items',
-            value: stats.total_items,
+            value: formatNumber(stats.total_items),
             icon: <Package size={18} />,
             type: 'neutral'
         }
@@ -63,7 +63,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
             label: 'Qty (FIFO)',
             align: 'right',
             sortable: true,
-            render: (row) => <span className="font-semibold">{row.stock_quantity}</span>
+            render: (row) => <span className="font-semibold">{formatNumber(row.stock_quantity)}</span>
         },
         {
             key: 'unit_cost',
@@ -212,7 +212,7 @@ export default function StockValuation({ products = [], stats = {}, filters = {}
                                     <div className="font-bold">{row.name}</div>
                                     <div className="text-[10px] text-slate-500">{row.sku}</div>
                                 </td>
-                                <td className="py-3 text-right font-bold">{row.stock_quantity}</td>
+                                <td className="py-3 text-right font-bold">{formatNumber(row.stock_quantity)}</td>
                                 <td className="py-3 text-right">{formatCurrency(row.unit_cost, store)}</td>
                                 <td className="py-3 text-right font-black">{formatCurrency(row.stock_value, store)}</td>
                             </tr>

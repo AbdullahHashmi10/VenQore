@@ -195,11 +195,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return saved ? JSON.parse(saved) : true; // Default: print enabled
     });
 
-    // Senior Mode State (default: OFF, scaled via useEffect)
+    // Senior Mode State — DRAGNET-FIX: initialize from DB-backed settings prop first.
+    // Previously only used sessionStorage (default: false), so a user who enabled
+    // Senior Mode in the main app (stored in DB) would get normal-size POS text.
+    // Now: DB setting is the source of truth; sessionStorage acts as a per-session override.
     const [seniorMode, setSeniorMode] = useState(() => {
-        const saved = sessionStorage.getItem('pos_senior_mode');
-        return saved ? JSON.parse(saved) : false;
+        const sessionOverride = sessionStorage.getItem('pos_senior_mode');
+        if (sessionOverride !== null) {
+            // User has toggled it in this session — respect that choice
+            return JSON.parse(sessionOverride);
+        }
+        // Fall back to the DB-backed Inertia prop (same source as all other pages)
+        return settings?.senior_mode === '1' || settings?.senior_mode === true;
     });
+
 
     // Free Quantity Visibility State (default: OFF)
     const [showFreeQty, setShowFreeQty] = useState(false);
