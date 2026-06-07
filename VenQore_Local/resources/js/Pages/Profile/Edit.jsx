@@ -428,16 +428,18 @@ export default function Edit({ mustVerifyEmail, status }) {
                                 </div>
                             )}
 
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Current Password</label>
-                                <input
-                                    type="password"
-                                    value={passwordData.current_password}
-                                    onChange={(e) => setPasswordData('current_password', e.target.value)}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                />
-                                {passwordErrors.current_password && <p className="mt-2 text-sm text-red-500">{passwordErrors.current_password}</p>}
-                            </div>
+                            {!user.google_id && (
+                                <div>
+                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">Current Password</label>
+                                    <input
+                                        type="password"
+                                        value={passwordData.current_password}
+                                        onChange={(e) => setPasswordData('current_password', e.target.value)}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    />
+                                    {passwordErrors.current_password && <p className="mt-2 text-sm text-red-500">{passwordErrors.current_password}</p>}
+                                </div>
+                            )}
 
                             <div>
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2">New Password</label>
