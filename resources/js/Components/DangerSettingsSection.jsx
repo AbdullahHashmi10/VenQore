@@ -50,15 +50,9 @@ export default function DangerSettingsSection({ data, setData }) {
         // 2. Password Authentication Prompt
         const { value: password } = await Swal.fire({
             title: 'Authentication Required',
-            html: `
-                <p class="text-slate-300 text-sm mb-4 text-left">Please enter your password, admin passcode, or email verification code to confirm.</p>
-                <input id="swal-input-password" type="password" class="swal2-input w-full" placeholder="Enter password, passcode, or OTP" style="margin: 10px 0; background: #0f172a; color: #fff; border: 1px solid #475569; border-radius: 8px;">
-                <div class="mt-2 text-right">
-                    <button id="swal-btn-send-otp" class="text-red-400 hover:text-red-300 text-xs font-semibold focus:outline-none transition-colors bg-transparent border-none cursor-pointer">
-                        Send verification code to my email
-                    </button>
-                </div>
-            `,
+            text: 'Please enter your password or admin passcode to confirm.',
+            input: 'password',
+            inputPlaceholder: 'Enter your password',
             icon: 'question',
             showCancelButton: true,
             confirmButtonColor: '#d33',
@@ -66,34 +60,9 @@ export default function DangerSettingsSection({ data, setData }) {
             cancelButtonColor: '#3085d6',
             background: '#1e293b',
             color: '#fff',
-            preConfirm: () => {
-                const inputVal = Swal.getHtmlContainer().querySelector('#swal-input-password').value;
-                if (!inputVal) {
-                    Swal.showValidationMessage('Password, passcode, or OTP is required');
-                    return false;
-                }
-                return inputVal;
-            },
-            didOpen: () => {
-                const btn = Swal.getHtmlContainer().querySelector('#swal-btn-send-otp');
-                if (btn) {
-                    btn.addEventListener('click', async (e) => {
-                        e.preventDefault();
-                        btn.disabled = true;
-                        btn.textContent = 'Sending...';
-                        try {
-                            const sendUrl = `/s/${storeSlug}/api/system/reset/send-otp`;
-                            await axios.post(sendUrl);
-                            Swal.showValidationMessage('Verification code sent! Check your email.');
-                            btn.textContent = 'Resend verification code';
-                            btn.disabled = false;
-                        } catch (err) {
-                            console.error(err);
-                            Swal.showValidationMessage('Failed to send verification code. Please try again.');
-                            btn.textContent = 'Send verification code to my email';
-                            btn.disabled = false;
-                        }
-                    });
+            inputValidator: (value) => {
+                if (!value) {
+                    return 'You need to enter your password!'
                 }
             }
         });
