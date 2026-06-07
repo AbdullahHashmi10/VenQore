@@ -1538,7 +1538,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     return (
         <>
-            <div className="h-full w-full flex flex-col animate-in fade-in zoom-in-95 duration-300">
+            <div className="h-full w-full flex flex-col px-6 pb-0 pt-4 animate-in fade-in zoom-in-95 duration-300">
             {/* TOP BAR */}
             <div className="h-10 flex items-end gap-1 shrink-0 px-2 select-none">
                 {sales.map(sale => (
@@ -1654,7 +1654,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* MAIN WORKSPACE */}
-            <div className="flex-1 flex gap-6 min-h-0 bg-white dark:bg-slate-900 rounded-b-3xl rounded-tr-3xl shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden z-0 relative">
+            <div className="flex-1 flex gap-6 min-h-0 bg-white dark:bg-slate-900 rounded-t-3xl rounded-b-none shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
                 <div className="flex-1 flex flex-col min-w-0 relative">
@@ -1805,53 +1805,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
                     </div>
 
-                    {/* Bottom Bar - Shortcuts Strip */}
-                    <div className="bg-slate-900 border-t border-slate-800 flex items-center px-4 py-2 gap-4 overflow-x-auto text-[10px] font-bold text-slate-400 no-scrollbar">
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F1</span>
-                            <span>Search</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F2</span>
-                            <span>Qty</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F3</span>
-                            <span>Item Disc</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F4</span>
-                            <span>Remove</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F5</span>
-                            <span>Price</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">F11</span>
-                            <span>Customer</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">^S</span>
-                            <span>Save</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">^P</span>
-                            <span>Print</span>
-                        </div>
-                        <div className="w-px h-3 bg-slate-700"></div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                            <span className="bg-slate-700 text-white px-1.5 py-0.5 rounded">Alt+Z</span>
-                            <span>Fullscr</span>
-                        </div>
-                    </div>
+
                 </div>
 
                 {/* RIGHT: Cart & Payment Panel */}
@@ -2279,6 +2233,54 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
                 </div>
 
+            </div>
+
+            {/* Bottom Bar - Shortcuts Strip (Moved Outside) */}
+            <div className="bg-slate-900 dark:bg-slate-950 border-t border-slate-800 flex items-center justify-between px-6 py-1.5 text-[11px] font-bold text-slate-400 shadow-lg shrink-0 z-10 select-none">
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F1</span>
+                    <span>Search</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F2</span>
+                    <span>Qty</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F3</span>
+                    <span>Item Disc</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F4</span>
+                    <span>Remove</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F5</span>
+                    <span>Price</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F11</span>
+                    <span>Customer</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">^S</span>
+                    <span>Save</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">^P</span>
+                    <span>Print</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">Alt+Z</span>
+                    <span>Fullscr</span>
+                </div>
             </div>
 
             {/* Variant Selection Modal */}
@@ -2772,7 +2774,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 export default function Pos({ settings, bankAccounts, recalledSale }) {
     const { store } = usePage().props;
     return (
-        <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true}>
+        <OneGlanceLayout title="Point of Sale" activeMenu="Dashboard" defaultCollapsed={true} hideHeader={true} noPadding={true}>
             <Head title="POS" />
             <POSInterface settings={settings} recalledSale={recalledSale} bankAccounts={bankAccounts} />
             <PosTourGuide store={store} />
