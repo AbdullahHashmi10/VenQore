@@ -31,6 +31,7 @@ const SmartCombobox = ({
     showDetailedView = true, // Show enhanced details
     disableLocalFiltering = false,
     hideCostAndMargin = false,
+    hideSearchIcon = false,
     id
 }) => {
     const { store, settings } = usePage().props;
@@ -382,7 +383,7 @@ const SmartCombobox = ({
             {label && <label className="text-xs text-slate-500 font-bold uppercase block mb-1">{label}</label>}
 
             <div className={`relative flex items-center ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />
+                {!hideSearchIcon && <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10" />}
                 <input
                     ref={inputRef}
                     type="text"
@@ -400,7 +401,7 @@ const SmartCombobox = ({
                     disabled={disabled}
                     readOnly={readOnly}
                     className={`
-                        w-full pl-11 pr-4 py-3 
+                        w-full ${hideSearchIcon ? 'pl-4' : 'pl-11'} pr-4 py-3 
                         bg-white dark:bg-slate-800 
                         border border-slate-200 dark:border-slate-700 
                         rounded-xl 

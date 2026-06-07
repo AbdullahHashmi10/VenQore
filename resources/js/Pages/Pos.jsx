@@ -25,7 +25,9 @@ import {
     WifiOff,
     RefreshCcw,
     Database,
-    Warehouse
+    Warehouse,
+    ChevronLeft,
+    ChevronRight
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
@@ -73,6 +75,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const showAlert = (title, message, type = 'error') => setAlertState({ show: true, title, message, type });
     const showConfirm = (title, message, onConfirm, isDangerous = false) => setConfirmState({ show: true, title, message, onConfirm, isDangerous });
     const showInput = (title, placeholder, onSubmit) => setInputState({ show: true, title, placeholder, onSubmit });
+
+    // Categories Scroll Helper
+    const categoryScrollRef = useRef(null);
+    const handleCategoryWheel = (e) => {
+        if (categoryScrollRef.current) {
+            categoryScrollRef.current.scrollLeft += e.deltaY;
+        }
+    };
+    const scrollCategories = (direction) => {
+        if (categoryScrollRef.current) {
+            const offset = direction === 'left' ? -180 : 180;
+            categoryScrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+    };
 
     // Core POS State
     const [sales, setSales] = useState(() => {
@@ -181,6 +197,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     // Senior Mode State (default: ON)
     const [seniorMode, setSeniorMode] = useState(true);
+
+    // Free Quantity Visibility State (default: OFF)
+    const [showFreeQty, setShowFreeQty] = useState(false);
 
 
     // Item Discount Modal State
@@ -378,6 +397,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const searchInputRef = useRef(null);
     const parkedDropdownRef = useRef(null);
     const customerDropdownRef = useRef(null);
+    const cartListRef = useRef(null);
 
     // Sync local sales to context
     useEffect(() => {
@@ -1436,6 +1456,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         categoriesMap[catId] = {
                             id: catId,
                             name: catName,
+                            products_count: (categoriesMap[catId]?.products_count || 0) + 1,
                             product_count: (categoriesMap[catId]?.product_count || 0) + 1
                         };
                     }
@@ -1501,6 +1522,39 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         loadParkedSales();
         loadCategories();
     }, []);
+
+    // Global Keyboard Auto-Focus on Search input when not focused elsewhere
+    useEffect(() => {
+        const handleGlobalKeyDown = (e) => {
+            const activeElement = document.activeElement;
+            const isInputFocused = activeElement && (
+                activeElement.tagName === 'INPUT' || 
+                activeElement.tagName === 'TEXTAREA' || 
+                activeElement.isContentEditable
+            );
+
+            // Capture printable keys (length 1) when no input is focused, excluding modifiers/functional keys
+            if (!isInputFocused && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                const searchInput = document.querySelector('#tour-pos-product input');
+                if (searchInput) {
+                    searchInput.focus();
+                }
+            }
+        };
+
+        document.addEventListener('keydown', handleGlobalKeyDown);
+        return () => document.removeEventListener('keydown', handleGlobalKeyDown);
+    }, []);
+
+    // Cart Auto-Scroll to Bottom on New Item Addition
+    useEffect(() => {
+        if (cartListRef.current) {
+            cartListRef.current.scrollTo({
+                top: cartListRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [activeSale.cart.length]);
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -1574,6 +1628,23 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                 {/* Parked Sales & Status - Side by Side */}
                 <div className="ml-auto mr-2 relative flex items-center gap-2" ref={parkedDropdownRef}>
+                    {/* Senior Mode Toggle */}
+                    <button
+                        onClick={() => setSeniorMode(!seniorMode)}
+                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
+                            seniorMode 
+                                ? 'bg-indigo-50 text-indigo-600 border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-400 dark:border-indigo-800'
+                                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 border-transparent'
+                        }`}
+                        title="Toggle Senior Mode for larger text"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            {seniorMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>}
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${seniorMode ? 'bg-indigo-500' : 'bg-slate-400'}`}></span>
+                        </span>
+                        <span>Senior Mode</span>
+                    </button>
+
                     <button
                         onClick={() => {
                             setParkedDropdownOpen(!parkedDropdownOpen);
@@ -1654,7 +1725,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             </div>
 
             {/* MAIN WORKSPACE */}
-            <div className="flex-1 flex gap-0 min-h-0 bg-white dark:bg-slate-900 rounded-t-3xl rounded-b-none shadow-sm border border-slate-100 dark:border-slate-800 overflow-hidden z-0 relative">
+            <div className="flex-1 flex gap-0 min-h-0 bg-slate-50 dark:bg-slate-950 rounded-t-3xl rounded-b-none shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
                 <div className="w-[40%] flex flex-col min-w-0 relative">
@@ -1668,7 +1739,6 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             <PackagePlus size={16} />
                         </button>
                         <div id="tour-pos-product" className="flex-1 relative">
-                            {/* <ScanBarcode className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} /> */}
                             <AsyncProductCombobox
                                 defaultOptions={categoryProducts}
                                 value={activeSale.searchTerm}
@@ -1676,78 +1746,93 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 onSelect={(product) => handleProductSelect(product)}
                                 placeholder="Scan Barcode or Search Item..."
                                 onKeyDown={handleSearchInputKeyDown}
-                                inputClassName="pl-9 h-9 text-sm font-bold"
+                                inputClassName="pl-9 pr-9 h-9 text-sm font-bold"
                                 onCreateNew={() => { setSearchQueryForProduct(activeSale.searchTerm); setShowProductModal(true); }}
                                 hideCostAndMargin={true}
+                                hideSearchIcon={true}
                             />
                             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
                                 <ScanBarcode size={16} />
                             </div>
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10">
+                                <Search size={16} />
+                            </div>
                         </div>
                     </div>
 
-                    {/* SPLIT VIEW Container */}
-                    <div className="flex-1 flex overflow-hidden">
+                    {/* Horizontal Categories Bar & Vertical Product Rows */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                        
+                        {/* Categories Horizontal List Wrapper */}
+                        <div className="flex items-center bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-3 py-2 gap-2 select-none shrink-0 relative">
+                            {/* Scroll Left Button */}
+                            <button 
+                                onClick={() => scrollCategories('left')}
+                                className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                            >
+                                <ChevronLeft size={14} />
+                            </button>
 
-                        {/* LEFT STRIP: Vertical Category List */}
-                        <div className="w-64 bg-slate-50 dark:bg-slate-950 border-r border-slate-100 dark:border-slate-800 flex flex-col overflow-y-auto custom-scrollbar">
-                            <div className="p-4 space-y-2">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 px-2">Categories</h3>
+                            {/* Categories Horizontal List */}
+                            <div 
+                                ref={categoryScrollRef}
+                                onWheel={handleCategoryWheel}
+                                className="flex-1 flex gap-2 overflow-x-auto scrollbar-none scroll-smooth px-1"
+                                style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }} // Hide scrollbars
+                            >
                                 <button
                                     onClick={() => setSelectedCategory(null)}
-                                    className={`w-full p-4 rounded-2xl font-bold text-left transition-all relative overflow-hidden group ${selectedCategory === null
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                        }`}
+                                    className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all shrink-0 border ${
+                                        selectedCategory === null
+                                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                            : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    }`}
                                 >
-                                    <span className="relative z-10">All Items</span>
-                                    {selectedCategory === null && <div className="absolute right-4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white"></div>}
+                                    All
                                 </button>
-                                {categories.filter(cat => cat.products_count > 0).map(cat => (
+                                {categories.filter(cat => (cat.products_count > 0 || cat.product_count > 0)).map(cat => (
                                     <button
                                         key={cat.id}
                                         onClick={() => setSelectedCategory(cat.id)}
-                                        className={`w-full p-4 pr-10 rounded-2xl font-bold text-left transition-all relative overflow-hidden group ${selectedCategory === cat.id
-                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30'
-                                            : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
-                                            }`}
+                                        className={`px-3 py-1.5 rounded-full text-[11px] font-black transition-all shrink-0 border flex items-center gap-1.5 ${
+                                            selectedCategory === cat.id
+                                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
                                     >
-                                        <div className="relative z-10 flex justify-between items-center">
-                                            <span className="text-sm truncate mr-2">{cat.name}</span>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${selectedCategory === cat.id ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'}`}>
-                                                {cat.products_count}
-                                            </span>
-                                        </div>
-                                        {selectedCategory === cat.id && <div className="absolute right-3 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white"></div>}
+                                        <span>{cat.name}</span>
+                                        <span className={`text-[9px] px-1 py-0.2 rounded-full shrink-0 ${
+                                            selectedCategory === cat.id 
+                                                ? 'bg-white/20 text-white' 
+                                                : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                        }`}>
+                                            {cat.products_count ?? cat.product_count ?? 0}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Scroll Right Button */}
+                            <button 
+                                onClick={() => scrollCategories('right')}
+                                className="w-6 h-6 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700 shadow-sm"
+                            >
+                                <ChevronRight size={14} />
+                            </button>
                         </div>
 
-                        {/* RIGHT AREA: Product Grid */}
-                        <div className="flex-1 flex flex-col bg-slate-50/50 dark:bg-slate-900/50">
-
-                            {/* Product Header & Senior Mode */}
-                            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-10">
-                                <h2 className="font-black text-xl text-slate-800 dark:text-white uppercase tracking-tighter">
-                                    {selectedCategory ? (categories.find(c => c.id === selectedCategory)?.name || 'Category') : 'All Products'}
-                                </h2>
-
-                                {/* Senior Mode Toggle - HIDDEN AS PER USER REQUEST */}
-                                {/* <div className="flex items-center gap-2">...</div> */}
-                            </div>
-
-                            {/* Grid Content */}
-                            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                        {/* Product Rows List Container */}
+                        <div className="flex-1 flex flex-col bg-slate-50 dark:bg-slate-950 overflow-hidden">
+                            <div className="flex-1 overflow-y-auto p-3 space-y-2 custom-scrollbar">
                                 {isLoadingProducts ? (
                                     <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-4">
                                         <div className="w-12 h-12 border-4 border-indigo-500/20 border-t-indigo-500 rounded-full animate-spin"></div>
                                         <p className="font-bold text-sm">Loading products...</p>
                                     </div>
                                 ) : (
-                                    <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(240px,1fr))]">
+                                    <div className="space-y-2">
                                         {selectedCategory && categoryProducts.length === 0 ? (
-                                            <div className="col-span-full py-20 text-center">
+                                            <div className="py-20 text-center">
                                                 <Archive className="mx-auto text-slate-300 mb-4" size={48} />
                                                 <p className="text-slate-500 font-bold">No products in this category</p>
                                             </div>
@@ -1756,40 +1841,55 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 <button
                                                     key={product.id}
                                                     onClick={() => handleProductSelect(product)}
-                                                    className={`group bg-white dark:bg-slate-800 rounded-[2rem] border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-xl text-left relative overflow-hidden active:scale-95 flex flex-col ${seniorMode ? 'p-6 min-h-[200px]' : 'p-4 min-h-[160px]'}`}
+                                                    className="w-full bg-white dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-md text-left flex items-center justify-between p-3 gap-3 active:scale-98 relative overflow-hidden"
                                                 >
-                                                    <div className="flex justify-between items-start mb-auto w-full">
-                                                        <div className={`rounded-2xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center group-hover:scale-110 transition-transform overflow-hidden ${seniorMode ? 'w-16 h-16 text-3xl' : 'w-14 h-14 text-2xl'}`}>
+                                                    {/* Left Section: Image and Name */}
+                                                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                                                        <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center overflow-hidden shrink-0">
                                                             {product.image_url || product.image_path ? (
                                                                 <img src={product.image_url || product.image_path} alt="" className="w-full h-full object-cover" />
                                                             ) : (
-                                                                <Package className="text-slate-400" size={seniorMode ? 32 : 24} />
+                                                                <Package className="text-slate-400" size={20} />
                                                             )}
                                                         </div>
-                                                        <div className="text-right">
-                                                            <p className={`font-black text-sky-500 dark:text-sky-400 ${seniorMode ? 'text-lg' : 'text-sm'}`}>
-                                                                {formatCurrency(product.price || product.selling_price || 0, store || settings)}
-                                                            </p>
-                                                            <p className={`font-bold ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'} ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>
-                                                                Qty: {formatNumber(product.stock_quantity || 0, 0)}
-                                                            </p>
+                                                        <div className="min-w-0 flex-1">
+                                                            <h4 className={`font-black text-slate-800 dark:text-white leading-snug break-words ${seniorMode ? 'text-lg' : 'text-sm'}`}>
+                                                                {product.name}
+                                                            </h4>
+                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">
+                                                                {product.category?.name || product.category_name || 'General'}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <div className="mt-4">
-                                                        <h4 className={`font-black text-slate-800 dark:text-white leading-tight mb-1 whitespace-normal break-words w-full ${seniorMode ? 'text-lg' : 'text-sm'}`}>{product.name}</h4>
-                                                        <p className={`text-slate-400 font-bold uppercase tracking-widest ${seniorMode ? 'text-xs' : 'text-[10px]'}`}>{product.category?.name || product.category_name || 'General'}</p>
+
+                                                    {/* Right Section: Stock Qty and Price */}
+                                                    <div className="text-right shrink-0 flex items-center gap-4">
+                                                        <div>
+                                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Stock</span>
+                                                            <span className={`text-xs font-bold leading-none ${product.stock_quantity > 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                                                                {formatNumber(product.stock_quantity || 0, 0)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="min-w-[75px]">
+                                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Price</span>
+                                                            <span className={`font-black text-sky-500 dark:text-sky-400 block leading-none ${seniorMode ? 'text-lg' : 'text-sm'}`}>
+                                                                {formatCurrency(product.price || product.selling_price || 0, store || settings)}
+                                                            </span>
+                                                        </div>
                                                     </div>
+
                                                     {product.variants && product.variants.length > 0 && (
-                                                        <div className="absolute top-2 right-2 flex gap-1">
+                                                        <div className="absolute top-1.5 right-1.5 flex gap-1">
                                                             <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
                                                         </div>
                                                     )}
                                                 </button>
                                             ))
                                         )}
+
                                         {/* Show instructional message if no category selected AND no products loaded */}
                                         {!selectedCategory && categoryProducts.length === 0 && (
-                                            <div className="col-span-full py-20 flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
+                                            <div className="py-20 flex flex-col items-center justify-center text-slate-400 gap-4 opacity-50">
                                                 <div className="w-20 h-20 rounded-[2.5rem] bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                                                     <Search size={32} />
                                                 </div>
@@ -1809,127 +1909,154 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Cart & Payment Panel */}
-                <div className="w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-900/80 border-l border-slate-100 dark:border-slate-800">
+                <div className="w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-950 border-l border-slate-100 dark:border-slate-800">
 
                     {/* Cart Header */}
                     <div className="h-14 px-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                        <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm">
-                            <ShoppingCart size={18} className="text-indigo-600" />
-                            CURRENT ORDER
-                        </h3>
+                        <div className="flex items-center gap-3">
+                            <h3 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm">
+                                <ShoppingCart size={18} className="text-indigo-600" />
+                                CURRENT ORDER
+                            </h3>
+                            
+                            {/* Free Qty Toggle Button */}
+                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                <div className="relative">
+                                    <input
+                                        type="checkbox"
+                                        checked={showFreeQty}
+                                        onChange={(e) => setShowFreeQty(e.target.checked)}
+                                        className="sr-only"
+                                    />
+                                    <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showFreeQty ? 'translate-x-4' : ''}`}></div>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
+                            </label>
+                        </div>
                         <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
                             {activeSale.cart.length} ITEMS • {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY
                         </span>
                     </div>
 
                     {/* Cart List (Moved from Left) */}
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+                    <div ref={cartListRef} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
                         {activeSale.cart.map((item, index) => (
-                            <div key={item.cartItemId} className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm relative group overflow-hidden pl-10">
-                                <div className="absolute top-1/2 -translate-y-1/2 left-3 w-5 h-5 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-[10px] font-bold text-slate-500">
-                                    {index + 1}
+                            <div key={item.cartItemId} className="bg-white dark:bg-slate-800 px-3 py-2.5 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm flex items-center justify-between gap-3 text-xs relative group overflow-hidden">
+                                {/* Left Section: Index, name, category, stock warning */}
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+                                        {index + 1}
+                                    </span>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-black text-slate-900 dark:text-white text-sm leading-snug break-words">
+                                            {item.name}
+                                        </h4>
+                                        <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                                                {item.category}
+                                            </span>
+                                            {item.qty > item.stock && (
+                                                <span className="text-[9px] font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded animate-pulse">
+                                                    ⚠️ Over Stock ({item.stock})
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-xl shrink-0">
-                                        <Package size={24} className="text-indigo-400" />
+
+                                {/* Price & Action Buttons */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="flex flex-col items-end">
+                                        <button
+                                            onClick={() => openItemDiscountModal(item)}
+                                            className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
+                                        >
+                                            {item.discount > 0 ? (
+                                                <>
+                                                    <span className="line-through text-[9px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
+                                                    <span>{formatCurrency(item.price, store || settings)}</span>
+                                                </>
+                                            ) : (
+                                                formatCurrency(item.price, store || settings)
+                                            )}
+                                        </button>
+                                        {item.discount > 0 && (
+                                            <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                                                Disc: -{formatCurrency(item.discount, store || settings)}
+                                            </span>
+                                        )}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex justify-between items-start">
-                                            <h4 className="font-black text-slate-900 dark:text-white text-sm truncate pr-6">{item.name}</h4>
-                                            <button
-                                                onClick={() => removeFromCart(item.cartItemId)}
-                                                className="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
 
-                                        <div className="flex items-center gap-2 mt-1">
-                                            {/* Price button — opens Item Discount modal */}
-                                            <button
-                                                onClick={() => openItemDiscountModal(item)}
-                                                className="text-xs font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-0.5 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[60px]"
-                                            >
-                                                {item.discount > 0 ? (
-                                                    <>
-                                                        <span className="line-through text-[10px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
-                                                        <span>{formatCurrency(item.price, store || settings)}</span>
-                                                    </>
-                                                ) : (
-                                                    formatCurrency(item.price, store || settings)
-                                                )}
-                                            </button>
-                                            {/* Converter button — opens Price/Qty/Total editor */}
-                                            <button
-                                                onClick={() => openConverterModal(item)}
-                                                title="Edit Price / Qty / Total"
-                                                className="text-xs font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 px-2 py-1 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
-                                            >
-                                                ⇄
-                                            </button>
-                                            <div className="flex flex-col">
-                                                <span className="text-[10px] text-slate-400 font-bold uppercase">{item.category}</span>
-                                                {item.discount > 0 && <span className="text-xs font-black text-emerald-500">Disc: {formatCurrency(item.discount, store || settings)}</span>}
-                                                {/* Negative Stock Warning Badge */}
-                                                {item.qty > item.stock && (
-                                                    <span className="text-[10px] font-black text-red-500 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded mt-0.5 animate-pulse">
-                                                        ⚠️ Over Stock ({item.stock})
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
+                                    <button
+                                        onClick={() => openConverterModal(item)}
+                                        title="Edit Price / Qty / Total"
+                                        className="text-[11px] font-black text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10 p-1.5 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-all"
+                                    >
+                                        ⇄
+                                    </button>
+                                </div>
 
-                                        <div className="flex flex-wrap items-end justify-between gap-y-3 mt-4">
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-900 p-1 rounded-2xl">
-                                                    <button
-                                                        onClick={() => updateQty(item.cartItemId, -1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all border border-transparent active:scale-90"
-                                                    >
-                                                        <MinusCircle size={18} />
-                                                    </button>
-                                                    <span className="w-10 text-center font-black text-sm text-slate-900 dark:text-white">
-                                                        {item.qty}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => updateQty(item.cartItemId, 1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all border border-transparent active:scale-90"
-                                                    >
-                                                        <PlusCircle size={18} />
-                                                    </button>
-                                                </div>
-
-                                                {/* Free Qty Controls */}
-                                                <div className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/20 p-1 rounded-2xl border border-emerald-100 dark:border-emerald-800/30">
-                                                    <button
-                                                        onClick={() => updateFreeQty(item.cartItemId, -1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
-                                                    >
-                                                        <MinusCircle size={18} />
-                                                    </button>
-                                                    <div className="flex flex-col items-center w-10">
-                                                        <span className="font-black text-sm text-emerald-700 dark:text-emerald-400 leading-none">
-                                                            {item.freeQuantity || 0}
-                                                        </span>
-                                                        <span className="text-[8px] font-bold text-emerald-500 uppercase leading-none">FREE</span>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => updateFreeQty(item.cartItemId, 1)}
-                                                        className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
-                                                    >
-                                                        <PlusCircle size={18} />
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className={`text-right ml-auto ${seniorMode ? 'scale-110 origin-right' : ''} transition-transform`}>
-                                                <p className="text-[10px] font-black text-slate-400 uppercase leading-none mb-1 text-right">Line Total</p>
-                                                <p className="font-black text-slate-900 dark:text-white text-sm">
-                                                    {formatCurrency(item.price * item.qty, store || settings)}
-                                                </p>
-                                            </div>
-                                        </div>
+                                {/* Qty & Free Qty Controls */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    {/* Regular Qty */}
+                                    <div className="flex items-center bg-slate-50 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                                        <button
+                                            onClick={() => updateQty(item.cartItemId, -1)}
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all active:scale-90"
+                                        >
+                                            <MinusCircle size={15} />
+                                        </button>
+                                        <span className="w-7 text-center font-black text-xs text-slate-900 dark:text-white">
+                                            {item.qty}
+                                        </span>
+                                        <button
+                                            onClick={() => updateQty(item.cartItemId, 1)}
+                                            className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-800 text-slate-500 transition-all active:scale-90"
+                                        >
+                                            <PlusCircle size={15} />
+                                        </button>
                                     </div>
+
+                                    {/* Free Qty Controls */}
+                                    {showFreeQty && (
+                                        <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-0.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
+                                            <button
+                                                onClick={() => updateFreeQty(item.cartItemId, -1)}
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                            >
+                                                <MinusCircle size={15} />
+                                            </button>
+                                            <div className="flex flex-col items-center w-7 leading-none">
+                                                <span className="font-black text-xs text-emerald-700 dark:text-emerald-400">
+                                                    {item.freeQuantity || 0}
+                                                </span>
+                                                <span className="text-[7px] font-bold text-emerald-500 uppercase">FREE</span>
+                                            </div>
+                                            <button
+                                                onClick={() => updateFreeQty(item.cartItemId, 1)}
+                                                className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-white dark:hover:bg-slate-900 text-emerald-600 dark:text-emerald-400 transition-all active:scale-90"
+                                            >
+                                                <PlusCircle size={15} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Section: Line Total & Trash */}
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <div className="text-right min-w-[75px]">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Line Total</span>
+                                        <span className="font-black text-slate-900 dark:text-white text-sm block leading-none">
+                                            {formatCurrency(item.price * item.qty, store || settings)}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => removeFromCart(item.cartItemId)}
+                                        className="text-slate-400 hover:text-red-500 transition-colors p-1"
+                                    >
+                                        <Trash2 size={15} />
+                                    </button>
                                 </div>
                             </div>
                         ))}
@@ -1945,37 +2072,37 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Payment & Summary Panel */}
-                <div className="w-[20%] shrink-0 bg-slate-900 text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-800">
+                <div className="w-[20%] shrink-0 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-200 dark:border-slate-800">
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
-                    <div className="h-14 px-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-850 flex items-center justify-between">
+                    <div className="h-14 px-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                         <h2 className="font-black text-slate-900 dark:text-white flex items-center gap-2 text-sm uppercase">
-                            <Receipt size={18} className="text-emerald-400" /> Payment Details
+                            <Receipt size={18} className="text-emerald-600 dark:text-emerald-400" /> Payment Details
                         </h2>
-                        <span className="px-2 py-0.5 rounded-lg font-black text-[10px] bg-slate-800/40 text-slate-400 border border-slate-700/50">
+                        <span className="px-2 py-0.5 rounded-lg font-black text-[10px] bg-slate-200 dark:bg-slate-800/40 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700/50">
                             #{activeSale.id}
                         </span>
                     </div>
 
                     <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
                         {/* Summary Block - Compact */}
-                        <div className="space-y-2 bg-white/5 p-3 rounded-xl">
-                            <div className="flex justify-between text-slate-400 text-xs">
+                        <div className="space-y-2 bg-slate-100 dark:bg-white/5 p-3 rounded-xl">
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
                                 <span>Subtotal</span>
-                                <span className="text-white">{formatCurrency(subtotal, store || settings)}</span>
+                                <span className="text-slate-900 dark:text-white">{formatCurrency(subtotal, store || settings)}</span>
                             </div>
                             {totalDiscounts > 0 && (
-                                <div className="flex justify-between text-emerald-400 text-xs font-bold">
+                                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs font-bold">
                                     <span>Discount</span>
                                     <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between text-slate-400 text-xs">
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
                                 <span>Tax ({taxRate}%)</span>
-                                <span className="text-white">{formatCurrency(taxAmount, store || settings)}</span>
+                                <span className="text-slate-900 dark:text-white">{formatCurrency(taxAmount, store || settings)}</span>
                             </div>
-                            <div className="h-px bg-white/10 my-1"></div>
-                            <div className={`flex justify-between font-bold text-emerald-400 ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+                            <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
+                            <div className={`flex justify-between font-bold text-emerald-600 dark:text-emerald-400 ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
                                 <span>Total</span>
                                 <span>{formatCurrency(cartTotal, store || settings)}</span>
                             </div>
@@ -1993,7 +2120,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             setCustomerDropdownOpen(false);
                                         }}
                                         className="h-full"
-                                        inputClassName="bg-white/5 border-white/5 text-white placeholder-slate-500 focus:ring-emerald-500/50 h-14"
+                                        inputClassName="bg-white dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-emerald-500/50 h-14 shadow-sm"
                                         placeholder="Search Customer (Name, Phone)..."
                                         onQueryChange={(val) => setCustomerSearchTerm(val)}
                                         onCreateNew={() => setShowQuickPartyModal(true)}
@@ -2006,7 +2133,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     />
                                     <button 
                                         onClick={() => setCustomerDropdownOpen(false)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-900 dark:hover:text-white"
                                     >
                                         <X size={16} />
                                     </button>
@@ -2014,20 +2141,20 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             ) : (
                                 <button
                                     onClick={() => setCustomerDropdownOpen(true)}
-                                    className="w-full bg-white/5 p-4 rounded-xl text-left hover:bg-white/10 transition-all border border-white/5 flex items-center justify-between group"
+                                    className="w-full bg-white dark:bg-white/5 p-4 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-all border border-slate-200 dark:border-white/5 shadow-sm flex items-center justify-between group"
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                        <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
                                             <User size={20} />
                                         </div>
                                         <div>
                                             <label className="text-[10px] uppercase font-black text-slate-500 block mb-0.5">Customer / Party</label>
-                                            <span className="text-sm font-bold text-white">
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {activeSale.customer?.name || 'Walk-in Customer'}
                                             </span>
                                         </div>
                                     </div>
-                                    <Search size={18} className="text-slate-600 group-hover:text-indigo-400 transition-colors" />
+                                    <Search size={18} className="text-slate-500 group-hover:text-indigo-500 transition-colors" />
                                 </button>
                             )}
                         </div>
@@ -2046,12 +2173,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             }
                                         });
                                     }}
-                                    className="w-full bg-white/5 p-3 rounded-xl text-left hover:bg-white/10 transition-colors border border-white/5 h-16 flex flex-col justify-center"
+                                    className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                 >
                                     <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
                                     <div className="flex items-center gap-1.5">
-                                        <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
-                                        <span className="text-xs font-bold text-white truncate">
+                                        <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
+                                        <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                             {activeSale.discountType === 'percentage'
                                                 ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
                                                 : formatCurrency(globalDiscount, store || settings)
@@ -2066,17 +2193,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 <div className="group relative h-full">
                                     <button 
                                         onClick={() => setPaymentDropdownOpen(!paymentDropdownOpen)}
-                                        className="w-full bg-white/5 p-3 rounded-xl text-left hover:bg-white/10 transition-colors border border-white/5 h-16 flex flex-col justify-center"
+                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
                                     >
                                         <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Method</label>
                                         <div className="flex items-center gap-1.5">
-                                            <CreditCard size={14} className="text-indigo-400 shrink-0" />
-                                            <span className="text-xs font-bold text-white uppercase truncate">{paymentMethod}</span>
+                                            <CreditCard size={14} className="text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase truncate">{paymentMethod}</span>
                                         </div>
                                     </button>
                                     {/* Dropdown - Click to toggle */}
                                     {paymentDropdownOpen && (
-                                        <div className="absolute bottom-full right-0 mb-2 w-32 bg-slate-800 rounded-xl shadow-2xl border border-slate-700 overflow-hidden z-[70] animate-in slide-in-from-bottom-2 duration-200">
+                                        <div className="absolute bottom-full right-0 mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[70] animate-in slide-in-from-bottom-2 duration-200">
                                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
                                                 // Restricted: Credit only for registered customers
                                                 if (method === 'credit' && !activeSale.customer) return null;
@@ -2088,7 +2215,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             setPaymentMethod(method);
                                                             setPaymentDropdownOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-700 ${paymentMethod === method ? 'text-emerald-400' : 'text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 ${paymentMethod === method ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}
                                                     >
                                                         {method.toUpperCase()}
                                                     </button>
@@ -2147,27 +2274,27 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         {/* Payment Button - Replaces Cash Calculator */}
                         {/* Payment Input Section - Restored "Fill in value" option */}
                         <div className="space-y-3 mb-2">
-                            <div id="tour-pos-paid" className="bg-white/10 p-4 rounded-xl border border-white/5">
+                            <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-xs uppercase font-bold text-slate-400">Amount Tendered</label>
-                                    <span className="text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.5 rounded">
+                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Amount Tendered</label>
+                                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
                                         Cash
                                     </span>
                                 </div>
                                 <div className="relative">
-                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-lg">{getCurrencySymbol(store || settings)}</span>
+                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 font-bold text-lg">{getCurrencySymbol(store || settings)}</span>
                                     <input
                                         type="number"
                                         value={activeSale.cashReceived}
                                         onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
                                         placeholder="0.00"
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner"
+                                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner shadow-inner"
                                         disabled={activeSale.cart.length === 0}
                                     />
                                     {/* Quick Exact Button */}
                                     <button
                                         onClick={() => updateActiveSale({ cashReceived: cartTotal })}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 px-2 py-1 rounded transition-colors border border-slate-600"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-xs text-slate-600 dark:text-slate-300 px-2 py-1 rounded transition-colors border border-slate-200 dark:border-slate-600 font-bold"
                                     >
                                         Exact
                                     </button>
@@ -2180,10 +2307,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 : 'bg-red-500/10 border-red-500/20'
                                 }`}>
                                 <div className="flex justify-between items-center">
-                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
                                         {changeDue >= 0 ? 'Change Due' : 'Shortage'}
                                     </span>
-                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
                                         {formatCurrency(Math.abs(changeDue), store || settings)}
                                     </span>
                                 </div>
@@ -2191,10 +2318,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         </div>
                     </div>
 
-                    <div className="p-4 bg-black/20 backdrop-blur-sm space-y-2">
+                    <div className="p-4 bg-slate-100/50 dark:bg-black/20 backdrop-blur-sm space-y-2">
                         {/* Print Settings Toggle */}
                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs text-slate-400">Auto-print on complete</span>
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Auto-print on complete</span>
                             <button
                                 onClick={() => setPrintOnComplete(!printOnComplete)}
                                 className={`relative w-12 h-6 rounded-full transition-colors ${printOnComplete ? 'bg-emerald-500' : 'bg-slate-600'}`}
@@ -2227,7 +2354,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                             <button
                                 onClick={() => updateActiveSale({ cart: [], cashReceived: '' })}
-                                className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
+                                className="flex-1 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all"
                             >
                                 <X size={18} /> Cancel
                             </button>
