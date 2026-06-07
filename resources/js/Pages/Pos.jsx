@@ -195,8 +195,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return saved ? JSON.parse(saved) : true; // Default: print enabled
     });
 
-    // Senior Mode State (default: ON)
-    const [seniorMode, setSeniorMode] = useState(true);
+    // Senior Mode State (default: OFF, scaled via useEffect)
+    const [seniorMode, setSeniorMode] = useState(() => {
+        const saved = sessionStorage.getItem('pos_senior_mode');
+        return saved ? JSON.parse(saved) : false;
+    });
 
     // Free Quantity Visibility State (default: OFF)
     const [showFreeQty, setShowFreeQty] = useState(false);
@@ -422,9 +425,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         localStorage.setItem('pos_print_on_complete', JSON.stringify(printOnComplete));
     }, [printOnComplete]);
 
-    // Persist Senior Mode (session storage, resets on logout)
+    // Persist Senior Mode (session storage, resets on logout) and scale html root font size
     useEffect(() => {
         sessionStorage.setItem('pos_senior_mode', JSON.stringify(seniorMode));
+        if (seniorMode) {
+            document.documentElement.style.fontSize = '125%'; // 25% scale increase
+        } else {
+            document.documentElement.style.fontSize = '100%';
+        }
+        return () => {
+            document.documentElement.style.fontSize = '';
+        };
     }, [seniorMode]);
 
     // Category filter state  
@@ -1853,7 +1864,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             )}
                                                         </div>
                                                         <div className="min-w-0 flex-1">
-                                                            <h4 className={`font-black text-slate-800 dark:text-white leading-snug break-words ${seniorMode ? 'text-lg' : 'text-sm'}`}>
+                                                            <h4 className="font-black text-slate-800 dark:text-white leading-snug break-words text-lg">
                                                                 {product.name}
                                                             </h4>
                                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block mt-0.5">
@@ -1872,7 +1883,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                         </div>
                                                         <div className="min-w-[75px]">
                                                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block mb-0.5 leading-none">Price</span>
-                                                            <span className={`font-black text-sky-500 dark:text-sky-400 block leading-none ${seniorMode ? 'text-lg' : 'text-sm'}`}>
+                                                            <span className="font-black text-sky-500 dark:text-sky-400 block leading-none text-lg">
                                                                 {formatCurrency(product.price || product.selling_price || 0, store || settings)}
                                                             </span>
                                                         </div>
@@ -2102,7 +2113,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 <span className="text-slate-900 dark:text-white">{formatCurrency(taxAmount, store || settings)}</span>
                             </div>
                             <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
-                            <div className={`flex justify-between font-bold text-emerald-600 dark:text-emerald-400 ${seniorMode ? 'text-2xl' : 'text-xl'}`}>
+                            <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">
                                 <span>Total</span>
                                 <span>{formatCurrency(cartTotal, store || settings)}</span>
                             </div>
@@ -2793,7 +2804,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         {/* --- OFFLINE SYNC HUB MODAL --- */}
         {showSyncHub && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                <div className={`bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 ${seniorMode ? 'text-lg' : ''}`}>
+                <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200 dark:border-slate-700 text-lg">
                     {/* Header */}
                     <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border-b border-amber-100 dark:border-amber-900/40 flex items-center justify-between">
                         <div className="flex items-center gap-3">
