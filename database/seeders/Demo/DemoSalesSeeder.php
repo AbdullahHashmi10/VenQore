@@ -55,11 +55,12 @@ class DemoSalesSeeder extends Seeder
         $yearsCompleted = 0;
         $this->command?->info("Starting {$totalYears}-year sales history (2020–2026)...");
 
+        $realNow = Carbon::now();
         foreach ($years as $year => $targetSales) {
             // For current year, only seed up to today
             $yearStart = Carbon::parse("$year-01-01");
-            $yearEnd   = $year === now()->year
-                ? now()
+            $yearEnd   = $year === $realNow->year
+                ? $realNow->copy()
                 : Carbon::parse("$year-12-31 23:59:59");
 
             $daysInRange   = $yearStart->diffInDays($yearEnd) + 1;
