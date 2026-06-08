@@ -18,29 +18,44 @@ class RoleController extends Controller
             'role' => ['required', 'in:admin,manager,cashier'],
         ]);
 
-        // Only admin can change roles
-        $actor = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)->where('id', auth()->id())->first();
-        if (!$actor || $actor->role !== 'admin') {
-            abort(403, 'Only admins can change user roles.');
+        $tenantId = app('current.tenant')->id;
+
+        // Only admin or owner can change roles
+        $actor = DB::table('tenant_users')
+            ->where('tenant_id', $tenantId)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$actor || ($actor->role !== 'admin' && $actor->role !== 'owner')) {
+            abort(403, 'Only admins and owners can change user roles.');
         }
 
-        // Prevent demoting the last admin
-        if ($validated['role'] !== 'admin') {
-            $adminCount = DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
-                ->where('role', 'admin')
-                ->where('id', '!=', $userId)
+        // Prevent demoting the last admin or owner
+        if ($validated['role'] !== 'admin' && $validated['role'] !== 'owner') {
+            $adminCount = DB::table('tenant_users')
+                ->where('tenant_id', $tenantId)
+                ->whereIn('role', ['admin', 'owner'])
+                ->where('user_id', '!=', $userId)
                 ->count();
 
             if ($adminCount === 0) {
                 return back()->withErrors([
-                    'role' => 'Cannot remove the last admin account.',
+                    'role' => 'Cannot remove the last admin or owner account.',
                 ]);
             }
         }
 
-        DB::table('users')->where('users.tenant_id', app('current.tenant')->id)
-            ->where('id', $userId)
+        DB::table('tenant_users')
+            ->where('tenant_id', $tenantId)
+            ->where('user_id', $userId)
             ->update(['role' => $validated['role'], 'updated_at' => now()]);
+
+        // Also sync back to users table fallback column
+        $user = \App\Models\User::find($userId);
+        if ($user) {
+            $user->role = $validated['role'];
+            $user->save();
+        }
 
         return redirect()->back()->with('success', 'Role updated.');
     }

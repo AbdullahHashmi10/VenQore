@@ -295,11 +295,16 @@ class User extends Authenticatable
     {
         if ($this->is_platform_admin) return 'platform_admin';
         
+        $membership = $this->getActiveMembership();
+        if ($membership && !empty($membership->role)) {
+            return $membership->role;
+        }
+
         if (!empty($this->attributes['role'])) {
             return $this->attributes['role'];
         }
 
-        return $this->getActiveMembership()?->role;
+        return null;
     }
 
     /**
@@ -375,6 +380,20 @@ class User extends Authenticatable
         // Platform level super admin only
         if ($this->is_platform_admin) return ['*'];
 
+        // Resolve the active membership
+        $membership = $this->getActiveMembership();
+
+        if ($membership) {
+            // 1. Use custom per-user permissions set by admin (non-empty array stored in pivot)
+            if (!empty($membership->permissions) && is_array($membership->permissions)) {
+                return $membership->permissions;
+            }
+
+            // 2. Delegate to config/permissions.php — the CANONICAL permission map
+            $role = $membership->role ?? 'viewer';
+            return config('permissions.' . $role, ['pos', 'sales_view']);
+        }
+
         if (!empty($this->attributes['permissions'])) {
             $perms = $this->attributes['permissions'];
             if (is_string($perms)) {
@@ -385,20 +404,8 @@ class User extends Authenticatable
             }
         }
 
-        // Resolve the active membership
-        $membership = $this->getActiveMembership();
-
         // If no membership found, return minimal default
-        if (!$membership) return ['pos', 'sales_view'];
-
-        // 1. Use custom per-user permissions set by admin (non-empty array stored in pivot)
-        if (!empty($membership->permissions) && is_array($membership->permissions)) {
-            return $membership->permissions;
-        }
-
-        // 2. Delegate to config/permissions.php — the CANONICAL permission map
-        $role = $membership->role ?? 'viewer';
-        return config('permissions.' . $role, ['pos', 'sales_view']);
+        return ['pos', 'sales_view'];
     }
 
     /**
