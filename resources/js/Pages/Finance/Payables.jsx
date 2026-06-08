@@ -219,9 +219,13 @@ export default function Payables({ parties = [] }) {
                                         </td>
                                         <td className="p-3 text-right">
                                             <div className="flex items-center justify-end gap-1 opacity-100 transition-opacity">
-                                                <button className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors" title="Record Payment">
+                                                <Link
+                                                    href={route('store.payments.out', { store_slug: store?.slug, party_id: party.id })}
+                                                    className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors flex items-center justify-center"
+                                                    title="Record Payment"
+                                                >
                                                     <CreditCard size={14} />
-                                                </button>
+                                                </Link>
                                                 <Link
                                                     href={route('store.parties.ledger', { store_slug: store?.slug, party: party.id })}
                                                     className="p-1.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"

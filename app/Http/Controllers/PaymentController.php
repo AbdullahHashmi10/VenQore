@@ -73,19 +73,23 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function createIn()
+    public function createIn(Request $request)
     {
+        $selectedPartyId = $request->query('party_id');
         return Inertia::render('Payments/In', [
             'parties'      => Party::orderBy('name')->get(),
             'bankAccounts' => BankAccount::orderBy('name')->get(),
+            'selected_party_id' => $selectedPartyId,
         ]);
     }
 
-    public function createOut()
+    public function createOut(Request $request)
     {
+        $selectedPartyId = $request->query('party_id');
         return Inertia::render('Payments/Out', [
             'parties'      => Party::orderBy('name')->get(),
             'bankAccounts' => BankAccount::orderBy('name')->get(),
+            'selected_party_id' => $selectedPartyId,
         ]);
     }
 

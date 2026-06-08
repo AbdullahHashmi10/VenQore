@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { getCurrencySymbol } from '@/Utils/format';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
@@ -190,7 +190,7 @@ const METHODS = [
     { value: 'upi', label: 'UPI/JazzCash', icon: Smartphone },
 ];
 
-export default function PaymentOut({ parties = [], bankAccounts = [] }) {
+export default function PaymentOut({ parties = [], bankAccounts = [], selected_party_id = null }) {
     const {
         store
     } = usePage().props;
@@ -214,6 +214,16 @@ export default function PaymentOut({ parties = [], bankAccounts = [] }) {
         setSelectedParty(party);
         setFormData(prev => ({ ...prev, party_id: party.id, party_name: party.name }));
     };
+
+    useEffect(() => {
+        if (selected_party_id) {
+            const party = parties.find(p => String(p.id) === String(selected_party_id));
+            if (party) {
+                handlePartySelect(party);
+            }
+        }
+    }, [selected_party_id, parties]);
+
     const handlePartyClear = () => {
         setSelectedParty(null);
         setFormData(prev => ({ ...prev, party_id: '', party_name: '' }));

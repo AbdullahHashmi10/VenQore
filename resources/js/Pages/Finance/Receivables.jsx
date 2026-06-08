@@ -20,7 +20,8 @@ import {
     ChevronDown,
     Printer,
     DollarSign,
-    Calendar
+    Calendar,
+    CreditCard
 } from 'lucide-react';
 
 export default function Receivables({ parties = [] }) {
@@ -228,6 +229,13 @@ export default function Receivables({ parties = [] }) {
                                                 <a href={`tel:${party.phone}`} className="p-1.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" title="Call">
                                                     <Phone size={14} />
                                                 </a>
+                                                <Link
+                                                    href={route('store.payments.in', { store_slug: store?.slug, party_id: party.id })}
+                                                    className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors flex items-center justify-center"
+                                                    title="Record Payment"
+                                                >
+                                                    <CreditCard size={14} />
+                                                </Link>
                                                 <Link
                                                     href={route('store.parties.ledger', { store_slug: store?.slug, party: party.id })}
                                                     className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
