@@ -104,6 +104,18 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) return null;
             if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return null;
 
+            // CSRF Token Mismatch - cleanly reload the page and display error message
+            if ($e instanceof \Illuminate\Session\TokenMismatchException) {
+                if ($request->header('X-Inertia')) {
+                    if ($request->hasSession()) {
+                        $request->session()->reflash();
+                        $request->session()->flash('error', 'Your session has expired. Please try again.');
+                    }
+                    return \Inertia\Inertia::location($request->fullUrl());
+                }
+                return redirect()->back()->withInput()->with('error', 'Your session has expired. Please try again.');
+            }
+
             // INSTALLER/UPDATER API: Always return the REAL error as JSON
 
             // This overrides Laravel's default "Server Error" page in production

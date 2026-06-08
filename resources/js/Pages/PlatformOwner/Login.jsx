@@ -206,7 +206,7 @@ function PinDots({ value, maxLen = 8, hasError }) {
 }
 
 // ─── Main Component ─────────────────────────────────────────────────────────
-export default function PlatformOwnerLogin({ status, has_pin_enabled = false }) {
+export default function PlatformOwnerLogin({ status, has_pin_enabled = false, flash }) {
     const [mode, setMode] = useState(has_pin_enabled ? 'pin' : 'password');
     const [showPassword, setShowPassword] = useState(false);
     const [focused, setFocused] = useState(null);
@@ -374,6 +374,19 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false }) 
                             fontSize: 13, color: '#34d399', display: 'flex', alignItems: 'center', gap: 8,
                         }}>
                             {status}
+                        </div>
+                    )}
+
+                    {/* Flash Error */}
+                    {flash?.error && (
+                        <div style={{
+                            background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.22)',
+                            borderRadius: 12, padding: '11px 16px', marginBottom: 20,
+                            fontSize: 13, color: '#f87171', display: 'flex', alignItems: 'center', gap: 8,
+                            animation: 'fade-in 0.3s ease',
+                        }}>
+                            <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                            {flash.error}
                         </div>
                     )}
 

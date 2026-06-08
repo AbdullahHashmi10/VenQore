@@ -35,7 +35,7 @@ const AuthInput = ({ icon: Icon, label, error, ...props }) => {
     );
 };
 
-export default function StaffLogin({ status }) {
+export default function StaffLogin({ status, flash }) {
     const { data, setData, post, processing, errors, reset } = useForm({
         email: '',
         password: '',
@@ -48,17 +48,8 @@ export default function StaffLogin({ status }) {
         return () => reset('password');
     }, []);
 
-    const submit = async (e) => {
+    const submit = (e) => {
         e.preventDefault();
-        try {
-            const { data: csrfData } = await axios.get('/refresh-csrf');
-            if (csrfData?.token) {
-                const meta = document.querySelector('meta[name="csrf-token"]');
-                if (meta) meta.setAttribute('content', csrfData.token);
-                window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfData.token;
-            }
-        } catch { /* proceed */ }
-
         post(route('staff.login.store'));
     };
 
@@ -125,6 +116,13 @@ export default function StaffLogin({ status }) {
                     {status && (
                         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8">
                             {status}
+                        </div>
+                    )}
+
+                    {/* Error message */}
+                    {flash?.error && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium mb-8">
+                            {flash.error}
                         </div>
                     )}
 

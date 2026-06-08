@@ -37,7 +37,7 @@ const AuthInput = ({ icon: Icon, label, error, ...props }) => {
     );
 };
 
-export default function Login({ status, canResetPassword, settings, passcode_login_available }) {
+export default function Login({ status, canResetPassword, settings, passcode_login_available, flash }) {
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         email: '',
         password: '',
@@ -51,16 +51,8 @@ export default function Login({ status, canResetPassword, settings, passcode_log
         return () => reset('password');
     }, []);
 
-    const submitPasscode = async () => {
+    const submitPasscode = () => {
         if (!processing && data.passcode) {
-            try {
-                const { data: csrfData } = await axios.get('/refresh-csrf');
-                if (csrfData?.token) {
-                    const meta = document.querySelector('meta[name="csrf-token"]');
-                    if (meta) meta.setAttribute('content', csrfData.token);
-                    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfData.token;
-                }
-            } catch { /* proceed */ }
             post(route('login.passcode'), {
                 preserveScroll: true,
                 onError: () => setData('passcode', ''),
@@ -90,17 +82,9 @@ export default function Login({ status, canResetPassword, settings, passcode_log
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [data.loginMethod, data.passcode, processing]);
 
-    const submit = async (e) => {
+    const submit = (e) => {
         e.preventDefault();
         if (data.loginMethod === 'email') {
-            try {
-                const { data: csrfData } = await axios.get('/refresh-csrf');
-                if (csrfData?.token) {
-                    const meta = document.querySelector('meta[name="csrf-token"]');
-                    if (meta) meta.setAttribute('content', csrfData.token);
-                    window.axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfData.token;
-                }
-            } catch { /* proceed */ }
             post(route('login'));
         }
     };
@@ -184,6 +168,13 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                     {status && (
                         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm font-medium mb-8">
                             {status}
+                        </div>
+                    )}
+
+                    {/* Error message */}
+                    {flash?.error && (
+                        <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium mb-8">
+                            {flash.error}
                         </div>
                     )}
 
