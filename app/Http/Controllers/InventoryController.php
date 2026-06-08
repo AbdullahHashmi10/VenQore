@@ -81,8 +81,15 @@ class InventoryController extends Controller
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('sku', 'like', "%{$search}%");
+                $words = array_filter(explode(' ', $search));
+                if (!empty($words)) {
+                    foreach ($words as $word) {
+                        $q->where(function ($sub) use ($word) {
+                            $sub->where('name', 'like', "%{$word}%")
+                                ->orWhere('sku', 'like', "%{$word}%");
+                        });
+                    }
+                }
             });
         }
 
@@ -880,15 +887,22 @@ class InventoryController extends Controller
 
             if (!empty($query)) {
                 $productsQuery->where(function ($q) use ($query) {
-                    $q->where('name', 'like', "%{$query}%")
-                        ->orWhere('sku', 'like', "%{$query}%")
-                        ->orWhereHas('variants', function ($qv) use ($query) {
-                            $qv->where('sku', 'like', "%{$query}%")
-                                ->withoutGlobalScopes();
-                        })
-                        ->orWhereHas('barcodes', function ($qb) use ($query) {
-                            $qb->where('barcode', 'like', "%{$query}%");
-                        });
+                    $words = array_filter(explode(' ', $query));
+                    if (!empty($words)) {
+                        foreach ($words as $word) {
+                            $q->where(function ($sub) use ($word) {
+                                $sub->where('name', 'like', "%{$word}%")
+                                    ->orWhere('sku', 'like', "%{$word}%")
+                                    ->orWhereHas('variants', function ($qv) use ($word) {
+                                        $qv->where('sku', 'like', "%{$word}%")
+                                            ->withoutGlobalScopes();
+                                    })
+                                    ->orWhereHas('barcodes', function ($qb) use ($word) {
+                                        $qb->where('barcode', 'like', "%{$word}%");
+                                    });
+                            });
+                        }
+                    }
                 });
             }
 

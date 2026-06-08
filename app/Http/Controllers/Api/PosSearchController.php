@@ -100,11 +100,20 @@ class PosSearchController extends Controller
 
         // Search filter
         if (!empty($query)) {
-            $like = "%{$query}%";
-            $q->where(function ($where) use ($like, $query) {
-                $where->where('p.name', 'LIKE', $like)
-                      ->orWhere('p.sku', 'LIKE', $like)
-                      ->orWhere('b.barcode', '=', $query); // exact barcode match
+            $q->where(function ($where) use ($query) {
+                $where->where('b.barcode', '=', $query)
+                      ->orWhere('p.sku', '=', $query)
+                      ->orWhere(function ($sub) use ($query) {
+                          $words = array_filter(explode(' ', $query));
+                          if (!empty($words)) {
+                              foreach ($words as $word) {
+                                  $sub->where(function ($w) use ($word) {
+                                      $w->where('p.name', 'LIKE', '%' . $word . '%')
+                                        ->orWhere('p.sku', 'LIKE', '%' . $word . '%');
+                                  });
+                              }
+                          }
+                      });
             });
         }
 

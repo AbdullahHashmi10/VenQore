@@ -46,8 +46,15 @@ class SearchController extends Controller
         // 2. Standard Search (Products)
         $products = Product::where('tenant_id', $tenantId)
             ->where(function($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                  ->orWhere('sku', 'like', "%{$query}%");
+                $words = array_filter(explode(' ', $query));
+                if (!empty($words)) {
+                    foreach ($words as $word) {
+                        $q->where(function ($sub) use ($word) {
+                            $sub->where('name', 'like', "%{$word}%")
+                                ->orWhere('sku', 'like', "%{$word}%");
+                        });
+                    }
+                }
             })
             ->limit(5)
             ->get()
