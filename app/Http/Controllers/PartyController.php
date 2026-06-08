@@ -331,7 +331,7 @@ class PartyController extends Controller
         }
         
         $new_current_balance = $new_current_balance - $old_ob_val + $new_ob_val;
-        // $validated['current_balance'] = $new_current_balance;
+        $validated['current_balance'] = $new_current_balance;
         
         $changedOB = ($ob != $old_ob) || ($validated['opening_balance_type'] !== $party->opening_balance_type) || ($validated['type'] !== $party->type);
 
