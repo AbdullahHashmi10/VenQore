@@ -7,6 +7,7 @@ use App\Services\V3\InventoryService;
 use App\Services\V3\PartyService;
 use App\Services\V3\AccountingService;
 use App\Services\V3\FifoService;
+use App\Models\Tenant;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -20,6 +21,7 @@ class InventoryAndPartyServiceTest extends TestCase
     private AccountingService $accounting;
     private FifoService       $fifo;
 
+    private string $tenantId;
     private string $productId;
     private string $warehouseId;
     private string $supplierId;
@@ -29,7 +31,13 @@ class InventoryAndPartyServiceTest extends TestCase
     {
         parent::setUp();
         
-        $user = \App\Models\User::factory()->create();
+        $tenant = Tenant::factory()->create();
+        $this->tenantId = $tenant->id;
+        app()->instance('current.tenant', $tenant);
+
+        $user = \App\Models\User::factory()->create([
+            'last_store_id' => $tenant->id,
+        ]);
         $this->actingAs($user);
 
         $this->inventory  = app(InventoryService::class);
@@ -58,6 +66,7 @@ class InventoryAndPartyServiceTest extends TestCase
         $this->inventory->receivePurchase($purchaseId);
 
         $this->assertDatabaseHas('inventory_batches', [
+            'tenant_id'     => $this->tenantId,
             'product_id'    => $this->productId,
             'warehouse_id'  => $this->warehouseId,
             'purchase_invoice_id'   => $purchaseId,
@@ -81,23 +90,26 @@ class InventoryAndPartyServiceTest extends TestCase
         $this->inventory->receivePurchase($purchaseId);
 
         $batches = DB::table('inventory_batches')
+            ->where('tenant_id', $this->tenantId)
             ->where('purchase_invoice_id', $purchaseId)
             ->get();
 
         $this->assertCount(2, $batches);
 
         $this->assertDatabaseHas('inventory_batches', [
+            'tenant_id'             => $this->tenantId,
             'purchase_invoice_id'   => $purchaseId,
-            'product_id'    => $this->productId,
-            'unit_cost'     => 50.00,
-            'initial_qty'   => 10,
+            'product_id'            => $this->productId,
+            'unit_cost'             => 50.00,
+            'initial_qty'           => 10,
         ]);
 
         $this->assertDatabaseHas('inventory_batches', [
+            'tenant_id'             => $this->tenantId,
             'purchase_invoice_id'   => $purchaseId,
-            'product_id'    => $product2,
-            'unit_cost'     => 25.00,
-            'initial_qty'   => 20,
+            'product_id'            => $product2,
+            'unit_cost'             => 25.00,
+            'initial_qty'           => 20,
         ]);
     }
 
@@ -120,13 +132,15 @@ class InventoryAndPartyServiceTest extends TestCase
 
         // Should have deducted from the Rs.10 batch (oldest)
         $this->assertDatabaseHas('journal_items', [
+            'tenant_id'        => $this->tenantId,
             'journal_entry_id' => $entry->id,
             'debit'            => 30.00, // 3 × Rs.10
         ]);
 
         // Account 6300 should be debited
-        $account6300 = DB::table('accounts')->where('code', '6300')->first();
+        $account6300 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '6300')->first();
         $this->assertDatabaseHas('journal_items', [
+            'tenant_id'        => $this->tenantId,
             'journal_entry_id' => $entry->id,
             'account_id'       => $account6300->id,
             'debit'            => 30.00,
@@ -148,6 +162,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         // New batch must be created
         $this->assertDatabaseHas('inventory_batches', [
+            'tenant_id'     => $this->tenantId,
             'product_id'    => $this->productId,
             'warehouse_id'  => $this->warehouseId,
             'unit_cost'     => 45.00,
@@ -156,8 +171,9 @@ class InventoryAndPartyServiceTest extends TestCase
         ]);
 
         // Account 4200 (Stock Adjustment Gain) credited
-        $account4200 = DB::table('accounts')->where('code', '4200')->first();
+        $account4200 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '4200')->first();
         $this->assertDatabaseHas('journal_items', [
+            'tenant_id'        => $this->tenantId,
             'journal_entry_id' => $entry->id,
             'account_id'       => $account4200->id,
             'credit'           => 450.00, // 10 × 45
@@ -172,7 +188,7 @@ class InventoryAndPartyServiceTest extends TestCase
     /** @test */
     public function snapshot_is_built_when_journal_entry_has_party_id()
     {
-        $account1200 = DB::table('accounts')->where('code', '1200')->first();
+        $account1200 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '1200')->first();
 
         // Post a credit sale journal entry with party_id
         $this->accounting->createEntry([
@@ -188,6 +204,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         // Snapshot must exist for this customer
         $snapshot = DB::table('party_snapshots')
+            ->where('tenant_id', $this->tenantId)
             ->where('party_id', $this->customerId)
             ->where('account_id', $account1200->id)
             ->first();
@@ -200,7 +217,7 @@ class InventoryAndPartyServiceTest extends TestCase
     /** @test */
     public function snapshot_accumulates_across_multiple_journal_entries()
     {
-        $account1200 = DB::table('accounts')->where('code', '1200')->first();
+        $account1200 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '1200')->first();
 
         // First sale — Rs.3000
         $this->accounting->createEntry([
@@ -227,11 +244,13 @@ class InventoryAndPartyServiceTest extends TestCase
         ]);
 
         $snapshot = DB::table('party_snapshots')
+            ->where('tenant_id', $this->tenantId)
             ->where('party_id', $this->customerId)
             ->where('account_id', $account1200->id)
             ->first();
 
         // Snapshot must show cumulative Rs.5000
+        $this->assertNotNull($snapshot);
         $this->assertEquals(5000.00, (float) $snapshot->cached_balance);
     }
 
@@ -259,7 +278,7 @@ class InventoryAndPartyServiceTest extends TestCase
     /** @test */
     public function snapshot_reduces_after_payment_is_posted()
     {
-        $account1200 = DB::table('accounts')->where('code', '1200')->first();
+        $account1200 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '1200')->first();
 
         // Post the sale
         $this->accounting->createEntry([
@@ -286,11 +305,13 @@ class InventoryAndPartyServiceTest extends TestCase
         ]);
 
         $snapshot = DB::table('party_snapshots')
+            ->where('tenant_id', $this->tenantId)
             ->where('party_id', $this->customerId)
             ->where('account_id', $account1200->id)
             ->first();
 
         // Fully paid — snapshot must be 0
+        $this->assertNotNull($snapshot);
         $this->assertEquals(0.00, (float) $snapshot->cached_balance);
     }
 
@@ -298,7 +319,7 @@ class InventoryAndPartyServiceTest extends TestCase
     /** @test */
     public function rebuild_snapshot_result_matches_live_ledger_query()
     {
-        $account1200 = DB::table('accounts')->where('code', '1200')->first();
+        $account1200 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '1200')->first();
 
         // Post two sales
         $this->accounting->createEntry([
@@ -325,6 +346,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         // Manually corrupt the snapshot to simulate staleness
         DB::table('party_snapshots')
+            ->where('tenant_id', $this->tenantId)
             ->where('party_id', $this->customerId)
             ->where('account_id', $account1200->id)
             ->update(['cached_balance' => 0.00]);
@@ -334,10 +356,12 @@ class InventoryAndPartyServiceTest extends TestCase
 
         // Must equal the real ledger sum
         $snapshot = DB::table('party_snapshots')
+            ->where('tenant_id', $this->tenantId)
             ->where('party_id', $this->customerId)
             ->where('account_id', $account1200->id)
             ->first();
 
+        $this->assertNotNull($snapshot);
         $this->assertEquals(6500.00, (float) $snapshot->cached_balance);
     }
 
@@ -359,10 +383,10 @@ class InventoryAndPartyServiceTest extends TestCase
         ];
 
         foreach ($accounts as [$code, $name, $type, $balance]) {
-            if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
+            if (!DB::table('accounts')->where('code', $code)->where('tenant_id', $this->tenantId)->exists()) {
                 DB::table('accounts')->insert([
                     'id'             => Str::uuid()->toString(),
-                    'tenant_id'      => null,
+                    'tenant_id'      => $this->tenantId,
                     'code'           => $code,
                     'name'           => $name,
                     'type'           => $type,
@@ -379,6 +403,7 @@ class InventoryAndPartyServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('products')->insert([
             'id'          => $id,
+            'tenant_id'   => $this->tenantId,
             'name'        => 'Test Product ' . $sku,
             'sku'         => $sku . '-' . Str::random(4),
             'base_unit'   => 'PCS',
@@ -395,6 +420,7 @@ class InventoryAndPartyServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('warehouses')->insert([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Main Warehouse',
             'is_default' => 1,
             'created_at' => now(),
@@ -408,6 +434,7 @@ class InventoryAndPartyServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('parties')->insert([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => ucfirst($type) . ' ' . Str::random(4),
             'type'       => $type,
             'created_at' => now(),
@@ -423,6 +450,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         DB::table('journal_entries')->insert([
             'id'             => $jeId,
+            'tenant_id'      => $this->tenantId,
             'date'           => now()->toDateString(),
             'reference_type' => 'purchase',
             'reference'      => $purchaseId,
@@ -435,6 +463,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         DB::table('purchases')->insert([
             'id'               => $purchaseId,
+            'tenant_id'        => $this->tenantId,
             'party_id'         => $this->supplierId,
             'warehouse_id'     => $this->warehouseId,
             'purchase_date'    => now()->toDateString(),
@@ -449,6 +478,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         DB::table('purchase_items')->insert([
             'id'          => Str::uuid()->toString(),
+            'tenant_id'   => $this->tenantId,
             'purchase_id' => $purchaseId,
             'product_id'  => $this->productId,
             'qty'         => $qty,
@@ -468,6 +498,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         DB::table('journal_entries')->insert([
             'id'             => $jeId,
+            'tenant_id'      => $this->tenantId,
             'date'           => now()->toDateString(),
             'reference_type' => 'purchase',
             'reference'      => $purchaseId,
@@ -485,6 +516,7 @@ class InventoryAndPartyServiceTest extends TestCase
 
         DB::table('purchases')->insert([
             'id'               => $purchaseId,
+            'tenant_id'        => $this->tenantId,
             'party_id'         => $this->supplierId,
             'warehouse_id'     => $this->warehouseId,
             'purchase_date'    => now()->toDateString(),
@@ -500,6 +532,7 @@ class InventoryAndPartyServiceTest extends TestCase
         foreach ($lines as $line) {
             DB::table('purchase_items')->insert([
                 'id'          => Str::uuid()->toString(),
+                'tenant_id'   => $this->tenantId,
                 'purchase_id' => $purchaseId,
                 'product_id'  => $line['product_id'],
                 'qty'         => $line['qty'],
