@@ -78,7 +78,7 @@ class PartiesDataSheetImport implements OnEachRow
             $firstCell = $numericArray[0];
             if (str_contains($firstCell, 'VenQore ERP —') || str_contains($firstCell, 'Contact Name') ||
                 str_contains($firstCell, 'Contact Type') || str_contains($firstCell, '* Required') || 
-                str_contains($firstCell, 'Ahmed Traders')) return;
+                str_contains($firstCell, 'Ahmed Traders') || str_contains(strtolower($firstCell), 'insert from here')) return;
         }
 
         $data = [];
@@ -92,7 +92,7 @@ class PartiesDataSheetImport implements OnEachRow
         }
 
         $name = trim($data['name'] ?? '');
-        if (empty($name)) return;
+        if (empty($name) || str_contains(strtolower($name), 'insert from here') || str_contains(strtolower($name), 'insert_from_here')) return;
         
         $type = strtolower(trim($data['type'] ?? 'customer'));
         if (!in_array($type, ['customer', 'supplier'])) $type = 'customer';
