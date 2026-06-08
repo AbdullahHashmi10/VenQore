@@ -13,7 +13,7 @@ class SearchController extends Controller
     public function search(Request $request)
     {
         $query = $request->input('query');
-        $storeSlug = $request->route('store_slug');
+        $storeSlug = $request->route('store_slug') ?: (app()->bound('current.tenant') ? app('current.tenant')->slug : null);
         $tenantId = app('current.tenant')->id;
 
         if (!$query || strlen($query) < 2) {
