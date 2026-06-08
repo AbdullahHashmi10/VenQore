@@ -25,8 +25,8 @@ const ActionMenu = ({ isOpen, onClose, store }) => {
     if (!isOpen) return null;
 
     const actions = [
-        { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.funds.index', params: { action: 'add' } },
-        { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.funds.index', params: { action: 'remove' } },
+        { label: 'Payment In', icon: ArrowDownRight, color: 'text-emerald-500', bg: 'bg-emerald-500/10', route: 'store.payments.in' },
+        { label: 'Payment Out', icon: ArrowUpRight, color: 'text-red-500', bg: 'bg-red-500/10', route: 'store.payments.out' },
         { label: 'New Quote', icon: FileText, color: 'text-blue-500', bg: 'bg-blue-500/10', route: 'store.proposals.create' },
         { label: 'Transfer Stock', icon: RefreshCw, color: 'text-orange-500', bg: 'bg-orange-500/10', route: 'store.stock-transfers.create' },
         { label: 'Add Product', icon: Box, color: 'text-purple-500', bg: 'bg-purple-500/10', route: 'store.inventory.create' },
@@ -293,7 +293,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                             ))}
                         </div>
                     ) : (
-                        <div className="p-4 rounded-2xl border border-dashed border-slate-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.finance')}>
+                        <div className="p-4 rounded-2xl border border-dashed border-slate-700 bg-white/5 flex flex-col items-center justify-center text-center gap-2 group hover:bg-white/10 transition-colors cursor-pointer" onClick={() => handleNavigate('store.bank-accounts.index', { action: 'add' })}>
                             <div className="p-2 bg-slate-800 rounded-full text-slate-400 group-hover:text-indigo-400 group-hover:scale-110 transition-all">
                                 <Plus size={16} />
                             </div>

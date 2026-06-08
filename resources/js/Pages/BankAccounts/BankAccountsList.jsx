@@ -128,6 +128,15 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
+    React.useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'add') {
+            handleCreate();
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, []);
+
     return (
         <OneGlanceLayout title="Bank Accounts" activeMenu="Money">
             <Head title="Bank Accounts" />
