@@ -342,11 +342,16 @@ class PartyController extends Controller
                 $accountSvc = resolve(\App\Services\V3\AccountingService::class);
     
                 // Step 1: Find and reverse existing opening balance entries for this party
-                $oldEntries = \App\Models\JournalEntry::where('reference_type', 'opening_balance_migration')
-                    ->where('reference', $party->id)
+                $oldEntries = \App\Models\JournalEntry::whereIn('reference_type', ['opening_balance_migration', 'opening_balance'])
                     ->where('is_reversed', 0)
+                    ->where(function ($query) use ($party) {
+                        $query->where('reference', $party->id)
+                              ->orWhere('idempotency_key', 'ob_migrate_' . $party->id)
+                              ->orWhere('narration', "Legacy Opening Balance Seeding for {$party->name}")
+                              ->orWhere('party_id', $party->id);
+                    })
                     ->get();
-    
+
                 foreach ($oldEntries as $oldE) {
                     $accountSvc->reverseEntry($oldE->id, 'Opening balance altered during party update');
                 }

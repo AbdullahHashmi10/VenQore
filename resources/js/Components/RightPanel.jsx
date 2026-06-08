@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
+import PaymentModal from '@/Components/PaymentModal';
 import {
     Wallet,
     MoreHorizontal,
@@ -21,7 +22,7 @@ import {
     BarChart2
 } from 'lucide-react';
 
-const ActionMenu = ({ isOpen, onClose, store }) => {
+const ActionMenu = ({ isOpen, onClose, store, onAction }) => {
     if (!isOpen) return null;
 
     const actions = [
@@ -48,7 +49,11 @@ const ActionMenu = ({ isOpen, onClose, store }) => {
                     <button
                         key={i}
                         onClick={() => {
-                            if (action.route) {
+                            if (action.label === 'Payment In') {
+                                onAction('payment-in');
+                            } else if (action.label === 'Payment Out') {
+                                onAction('payment-out');
+                            } else if (action.route) {
                                 router.visit(route(action.route, { 
                                     store_slug: store?.slug,
                                     ...(action.params || {})
@@ -134,6 +139,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCashModalOpen, setIsCashModalOpen] = useState(false);
+    const [paymentModal, setPaymentModal] = useState({ isOpen: false, type: 'in' });
 
     const menuRef = useRef(null);
     const settingsRef = useRef(null);
@@ -180,6 +186,14 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                 onClose={() => setIsCashModalOpen(false)}
                 transactions={cashData?.transactions || []}
                 onNavigate={handleNavigate}
+                store={store}
+            />
+
+            <PaymentModal
+                isOpen={paymentModal.isOpen}
+                onClose={() => setPaymentModal(p => ({ ...p, isOpen: false }))}
+                type={paymentModal.type}
+                bankAccounts={bankAccounts}
                 store={store}
             />
 
@@ -231,7 +245,18 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                         <span className="text-[10px] font-bold tracking-wider">ACTIONS</span>
                     </button>
                 </div>
-                <ActionMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} store={store} />
+                <ActionMenu 
+                    isOpen={isMenuOpen} 
+                    onClose={() => setIsMenuOpen(false)} 
+                    store={store} 
+                    onAction={(act) => {
+                        if (act === 'payment-in') {
+                            setPaymentModal({ isOpen: true, type: 'in' });
+                        } else if (act === 'payment-out') {
+                            setPaymentModal({ isOpen: true, type: 'out' });
+                        }
+                    }}
+                />
             </div>
 
             {/* Accounts Section */}
