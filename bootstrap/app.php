@@ -74,6 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof \Illuminate\Auth\AuthenticationException) return;
             if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) return;
             if ($e instanceof \Illuminate\Session\TokenMismatchException) return;
+            if (method_exists($e, 'getStatusCode') && $e->getStatusCode() === 419) return;
 
             try {
                 $request = request();
@@ -105,7 +106,10 @@ return Application::configure(basePath: dirname(__DIR__))
             if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return null;
 
             // CSRF Token Mismatch - cleanly reload the page and display error message
-            if ($e instanceof \Illuminate\Session\TokenMismatchException) {
+            $isCsrfMismatch = $e instanceof \Illuminate\Session\TokenMismatchException || 
+                (method_exists($e, 'getStatusCode') && $e->getStatusCode() === 419);
+
+            if ($isCsrfMismatch) {
                 \Illuminate\Support\Facades\Log::warning("CSRF Token Mismatch Detected", [
                     'url' => $request->fullUrl(),
                     'method' => $request->method(),

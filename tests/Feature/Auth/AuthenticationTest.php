@@ -80,4 +80,86 @@ class AuthenticationTest extends TestCase
             session()->get('errors')->getBag('default')->first('email')
         );
     }
+
+    public function test_login_shares_flash_and_errors_keys_to_inertia(): void
+    {
+        $response = $this->get('/login');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->has('errors')
+            ->has('flash')
+            ->has('flash.success')
+            ->has('flash.error')
+        );
+    }
+
+    public function test_staff_login_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/staff-login');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_platform_owner_login_screen_can_be_rendered(): void
+    {
+        $response = $this->get('/VenQore-login');
+
+        $response->assertStatus(200);
+    }
+
+    public function test_staff_login_shares_flash_and_errors_keys_to_inertia(): void
+    {
+        $response = $this->get('/staff-login');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->has('errors')
+            ->has('flash')
+            ->has('flash.success')
+            ->has('flash.error')
+        );
+    }
+
+    public function test_platform_owner_login_shares_flash_and_errors_keys_to_inertia(): void
+    {
+        $response = $this->get('/VenQore-login');
+
+        $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->has('errors')
+            ->has('flash')
+            ->has('flash.success')
+            ->has('flash.error')
+        );
+    }
+
+    public function test_csrf_token_mismatch_exception_for_inertia_requests(): void
+    {
+        \Illuminate\Support\Facades\Route::post('/_test/csrf-mismatch', function () {
+            throw new \Illuminate\Session\TokenMismatchException();
+        })->middleware('web');
+
+        $response = $this->withSession([])->post('/_test/csrf-mismatch', [], [
+            'X-Inertia' => 'true',
+        ]);
+
+        $response->assertStatus(409);
+        $response->assertHeader('X-Inertia-Location', url('/_test/csrf-mismatch'));
+        $response->assertSessionHas('error', 'Your session has expired. Please try again.');
+    }
+
+    public function test_csrf_token_mismatch_exception_for_non_inertia_requests(): void
+    {
+        \Illuminate\Support\Facades\Route::post('/_test/csrf-mismatch', function () {
+            throw new \Illuminate\Session\TokenMismatchException();
+        })->middleware('web');
+
+        $response = $this->from('/login')->withSession([])->post('/_test/csrf-mismatch', []);
+
+        $response->assertRedirect('/login');
+        $response->assertSessionHas('error', 'Your session has expired. Please try again.');
+    }
 }
+
+

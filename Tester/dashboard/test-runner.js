@@ -60,6 +60,17 @@ const SUITE_TESTS = {
     'categories endpoint returns product count for active categories',
     'featured endpoint returns active products for the grid',
     'search endpoint filters products by category id'
+  ],
+  'RegressionFixesTest': [
+    'parties show route redirects to ledger',
+    'expense category store creates category',
+    'role prioritization from tenant memberships',
+    'party opening balance updates successfully',
+    'record payment passes selected party id',
+    'excel import ignores helper row',
+    'multi word search tokenization',
+    'logout route does not support delete method',
+    'handle inertia requests version is null in local testing'
   ]
 };
 
@@ -279,7 +290,15 @@ function runTests(projectPath, ws) {
     'featured endpoint returns active products for the grid',
     'search endpoint filters products by category id',
     'ModalValidationRegressionTest',
-    'RegressionFixesTest',
+    'parties show route redirects to ledger',
+    'expense category store creates category',
+    'role prioritization from tenant memberships',
+    'party opening balance updates successfully',
+    'record payment passes selected party id',
+    'excel import ignores helper row',
+    'multi word search tokenization',
+    'logout route does not support delete method',
+    'handle inertia requests version is null in local testing',
     'ExampleTest',
     'Unit'
   ];

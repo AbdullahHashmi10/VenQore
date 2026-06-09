@@ -449,5 +449,33 @@ test('[SMOKE-42] inertia requests asset version is null in local/testing environ
     expect($middleware->version($request))->toBeNull();
 });
 
+test('[SMOKE-43] login page shares flash and errors keys to inertia', function () {
+    $response = $this->get('/login');
+    expect($response->status())->toBe(200);
+    
+    $props = $response->original->getData()['page']['props'];
+    expect($props)->toHaveKeys(['errors', 'flash']);
+    expect($props['flash'])->toHaveKeys(['success', 'error']);
+});
+
+test('[SMOKE-44] staff login page shares flash and errors keys to inertia', function () {
+    $response = $this->get('/staff-login');
+    expect($response->status())->toBe(200);
+    
+    $props = $response->original->getData()['page']['props'];
+    expect($props)->toHaveKeys(['errors', 'flash']);
+    expect($props['flash'])->toHaveKeys(['success', 'error']);
+});
+
+test('[SMOKE-45] platform owner login page shares flash and errors keys to inertia', function () {
+    $response = $this->get('/VenQore-login');
+    expect($response->status())->toBe(200);
+    
+    $props = $response->original->getData()['page']['props'];
+    expect($props)->toHaveKeys(['errors', 'flash']);
+    expect($props['flash'])->toHaveKeys(['success', 'error']);
+});
+
+
 
 
