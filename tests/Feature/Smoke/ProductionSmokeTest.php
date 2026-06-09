@@ -443,5 +443,11 @@ test('[SMOKE-41] platform owners settings page redirects guests to login', funct
     expect($response->status())->toBeIn([302, 401, 404]);
 });
 
+test('[SMOKE-42] inertia requests asset version is null in local/testing environment', function () {
+    $middleware = new \App\Http\Middleware\HandleInertiaRequests();
+    $request = \Illuminate\Http\Request::create('/login', 'GET');
+    expect($middleware->version($request))->toBeNull();
+});
+
 
 

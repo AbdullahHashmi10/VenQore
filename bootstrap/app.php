@@ -106,6 +106,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
             // CSRF Token Mismatch - cleanly reload the page and display error message
             if ($e instanceof \Illuminate\Session\TokenMismatchException) {
+                \Illuminate\Support\Facades\Log::warning("CSRF Token Mismatch Detected", [
+                    'url' => $request->fullUrl(),
+                    'method' => $request->method(),
+                    'session_id' => $request->hasSession() ? $request->session()->getId() : 'no_session',
+                    'is_inertia' => $request->header('X-Inertia') ? 'yes' : 'no'
+                ]);
                 if ($request->header('X-Inertia')) {
                     if ($request->hasSession()) {
                         $request->session()->reflash();

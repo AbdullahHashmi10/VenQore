@@ -35,6 +35,10 @@ class LoginRequest extends FormRequest
     /**
      * Attempt to authenticate the request's credentials.
      *
+     * Provides specific feedback:
+     *   - Email not found  → error on 'email' field
+     *   - Wrong password   → error on 'password' field
+     *
      * @throws \Illuminate\Validation\ValidationException
      */
     public function authenticate(): void
@@ -45,12 +49,13 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => __('auth.failed'),
             ]);
         }
 
         RateLimiter::clear($this->throttleKey());
     }
+
 
     /**
      * Ensure the login request is not rate limited.

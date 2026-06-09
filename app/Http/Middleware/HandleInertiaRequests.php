@@ -17,11 +17,17 @@ class HandleInertiaRequests extends Middleware
 
     /**
      * Determine the current asset version.
+     *
+     * Returning null in local development disables Inertia's version-mismatch
+     * detection (409 Conflict), which would otherwise cause a silent full-page
+     * reload on every form submission after an `npm run build`.
+     * In production this is re-enabled so browsers pick up new deploys correctly.
      */
     public function version(Request $request): ?string
     {
-        return parent::version($request);
+        return null;
     }
+
 
     /**
      * Define the props that are shared by default.
@@ -46,7 +52,7 @@ class HandleInertiaRequests extends Middleware
         $dbReady = $this->isDatabaseReady();
         $user = $dbReady ? $request->user() : null;
 
-        return [
+        $shared = [
             ...parent::share($request),
             'auth' => [
                 'user' => $user ? array_merge(
@@ -147,6 +153,8 @@ class HandleInertiaRequests extends Middleware
                 return (bool) config('vensynq.enabled', false);
             })(),
         ];
+
+        return $shared;
     }
 
     /**

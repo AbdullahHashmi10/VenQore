@@ -39,7 +39,7 @@ export default function Register() {
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, setError, reset } = useForm({
         name: '',
         email: '',
         password: '',
@@ -49,14 +49,15 @@ export default function Register() {
     const submit = (e) => {
         e.preventDefault();
         if (data.password.length < 8) {
-            errors.password = 'Password must be at least 8 characters.';
+            setError('password', 'Password must be at least 8 characters.');
             return;
         }
         post('/register', {
+            preserveState: true,
+            preserveScroll: true,
             onFinish: () => reset('password', 'password_confirmation'),
             onError: (err) => {
                 console.error('Registration failed:', err);
-                if (err.email) alert('This email is already registered.');
             }
         });
     };

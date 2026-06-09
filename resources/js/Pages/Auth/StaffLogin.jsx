@@ -50,7 +50,10 @@ export default function StaffLogin({ status, flash }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('staff.login.store'));
+        post('/staff-login', {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (

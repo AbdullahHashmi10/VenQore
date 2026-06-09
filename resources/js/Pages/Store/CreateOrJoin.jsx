@@ -31,7 +31,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                 </div>
                 <Link
                     href={route('logout')}
-                    method="delete"
+                    method="post"
                     as="button"
                     className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
                 >

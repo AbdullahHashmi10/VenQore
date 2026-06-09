@@ -100,6 +100,8 @@ class AuthenticatedSessionController extends Controller
         return redirect()->route('hub');
     }
 
+
+
     /**
      * Handle POS PIN login for cashiers on shared tablets.
      * PIN is per-store (stored in tenant_users.pos_pin).

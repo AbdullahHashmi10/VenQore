@@ -5,8 +5,8 @@ import { Shield, CheckCircle, XCircle, Building2, User, Briefcase } from 'lucide
 export default function InviteAccept({ invitation, store, admin_name, token }) {
     const { post, processing } = useForm({ token });
 
-    const accept  = () => post(route('invite.submit'));
-    const decline = () => router.post(route('invite.decline'), { token });
+    const accept  = () => post('/invite/accept', { preserveState: true, preserveScroll: true });
+    const decline = () => router.post('/invite/decline', { token }, { preserveState: true, preserveScroll: true });
 
     const roles = invitation?.roles || ['cashier'];
     const roleLabels = {

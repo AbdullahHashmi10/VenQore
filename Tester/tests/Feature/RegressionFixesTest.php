@@ -174,4 +174,21 @@ class RegressionFixesTest extends VenQoreTestCase
         $product->delete();
         $tenant->delete();
     }
+
+    /** @test */
+    public function test_logout_route_does_not_support_delete_method(): void
+    {
+        $user = \App\Models\User::factory()->create();
+        $response = $this->actingAs($user)->delete('/logout');
+        
+        $this->assertTrue($response->status() === 405 || $response->status() === 302 || $response->status() === 404);
+    }
+
+    /** @test */
+    public function test_handle_inertia_requests_version_is_null_in_local_testing(): void
+    {
+        $middleware = new \App\Http\Middleware\HandleInertiaRequests();
+        $request = \Illuminate\Http\Request::create('/login', 'GET');
+        $this->assertNull($middleware->version($request));
+    }
 }

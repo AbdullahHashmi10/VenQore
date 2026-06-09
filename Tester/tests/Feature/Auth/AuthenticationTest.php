@@ -52,4 +52,32 @@ class AuthenticationTest extends TestCase
         $this->assertGuest();
         $response->assertRedirect('/');
     }
+
+    public function test_login_validation_errors_use_generic_messages_to_prevent_user_enumeration(): void
+    {
+        // Test with a non-existent email
+        $response1 = $this->post('/login', [
+            'email' => 'nonexistent@venqore.com',
+            'password' => 'some-password',
+        ]);
+
+        $response1->assertSessionHasErrors(['email']);
+        $this->assertStringContainsString(
+            __('auth.failed'),
+            session()->get('errors')->getBag('default')->first('email')
+        );
+
+        // Test with an existing email but wrong password
+        $user = User::factory()->create();
+        $response2 = $this->post('/login', [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ]);
+
+        $response2->assertSessionHasErrors(['email']);
+        $this->assertStringContainsString(
+            __('auth.failed'),
+            session()->get('errors')->getBag('default')->first('email')
+        );
+    }
 }

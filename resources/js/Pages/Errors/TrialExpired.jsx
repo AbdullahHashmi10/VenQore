@@ -62,7 +62,7 @@ export default function TrialExpired() {
                     <Link href={route('hub')} className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
                         Switch store
                     </Link>
-                    <Link href={route('logout')} method="delete" as="button" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
+                    <Link href={route('logout')} method="post" as="button" className="text-sm text-slate-500 hover:text-slate-300 transition-colors">
                         Sign out
                     </Link>
                 </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import InputError from '@/Components/InputError';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Mail, Lock, ArrowRight, Grip, X, Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -38,6 +38,7 @@ const AuthInput = ({ icon: Icon, label, error, ...props }) => {
 };
 
 export default function Login({ status, canResetPassword, settings, passcode_login_available, flash }) {
+    const page = usePage();
     const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
         email: '',
         password: '',
@@ -45,6 +46,17 @@ export default function Login({ status, canResetPassword, settings, passcode_log
         loginMethod: 'email',
         passcode: '',
     });
+
+    // Merge page-level shared errors and form-specific errors so they show up under either navigation style
+    const displayErrors = { ...page.props.errors, ...errors };
+
+    useEffect(() => {
+        // Shared page errors are mapped via displayErrors
+    }, [page.props]);
+
+    useEffect(() => {
+        // Form-level state updates are synced with displayErrors
+    }, [errors]);
     const [showPassword, setShowPassword] = useState(false);
 
     useEffect(() => {
@@ -53,7 +65,8 @@ export default function Login({ status, canResetPassword, settings, passcode_log
 
     const submitPasscode = () => {
         if (!processing && data.passcode) {
-            post(route('login.passcode'), {
+            post('/login/passcode', {
+                preserveState: true,
                 preserveScroll: true,
                 onError: () => setData('passcode', ''),
             });
@@ -85,7 +98,10 @@ export default function Login({ status, canResetPassword, settings, passcode_log
     const submit = (e) => {
         e.preventDefault();
         if (data.loginMethod === 'email') {
-            post(route('login'));
+            post('/login', {
+                preserveState: true,
+                preserveScroll: true,
+            });
         }
     };
 
@@ -185,10 +201,10 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                 <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.3em] mb-6">Enter Passcode</div>
                                 <div className="flex justify-center gap-2.5 mb-6 min-h-[20px]">
                                     {(data.passcode || '').split('').map((_, i) => (
-                                        <div key={i} className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${errors.passcode ? 'bg-red-500 animate-pulse' : 'bg-indigo-500 shadow-lg shadow-indigo-500/30'}`} />
+                                        <div key={i} className={`w-3.5 h-3.5 rounded-full transition-all duration-200 ${displayErrors.passcode ? 'bg-red-500 animate-pulse' : 'bg-indigo-500 shadow-lg shadow-indigo-500/30'}`} />
                                     ))}
                                 </div>
-                                {errors.passcode && <p className="text-red-400 text-sm font-bold">{errors.passcode}</p>}
+                                {displayErrors.passcode && <p className="text-red-400 text-sm font-bold">{displayErrors.passcode}</p>}
                             </div>
 
                             <div className="grid grid-cols-3 gap-3 max-w-[280px] mx-auto">
@@ -254,7 +270,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                     placeholder="name@company.com"
                                     autoComplete="username"
                                     autoFocus
-                                    error={errors.email}
+                                    error={displayErrors.email}
                                 />
 
                                 <div>
@@ -276,7 +292,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
-                                    {errors.password && <p className="text-red-400 text-xs mt-2 font-medium">{errors.password}</p>}
+                                    {displayErrors.password && <p className="text-red-400 text-xs mt-2 font-medium">{displayErrors.password}</p>}
                                 </div>
 
                                 {/* Remember / Forgot */}

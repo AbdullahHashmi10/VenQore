@@ -14,7 +14,10 @@ export default function ForgotPassword({ status, settings }) {
 
     const submit = (e) => {
         e.preventDefault();
-        post(route('password.email'));
+        post('/forgot-password', {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     return (

@@ -234,12 +234,17 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
 
     const submitPassword = (e) => {
         e.preventDefault();
-        pwForm.post(route('platform.login.store'));
+        pwForm.post('/VenQore-login', {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     const submitPin = () => {
         if (pinForm.data.pin.length < 4) return;
-        pinForm.post(route('platform.login.pin'), {
+        pinForm.post('/VenQore-login/pin', {
+            preserveState: true,
+            preserveScroll: true,
             onError: () => pinForm.setData('pin', ''),
         });
     };
