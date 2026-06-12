@@ -27,8 +27,7 @@ export default function TrialExpired() {
 
                 <h1 className="text-2xl font-black text-white mb-2">Your Trial Has Ended</h1>
                 <p className="text-slate-400 text-sm mb-8">
-                    Your 14-day free trial has expired. Upgrade to a plan to continue using VenQore,
-                    or redeem an AppSumo code if you purchased a lifetime license.
+                    Your 14-day free trial has expired. Upgrade to a plan to continue using VenQore.
                 </p>
 
                 <div className="rounded-2xl border border-white/10 bg-white/3 p-6 mb-6">
@@ -51,12 +50,14 @@ export default function TrialExpired() {
                     )}
                 </div>
 
-                <p className="text-slate-500 text-sm">
-                    Have an AppSumo code?{' '}
-                    <Link href={route('redeem')} className="text-orange-400 hover:text-orange-300 inline-flex items-center gap-1">
-                        <Tag size={13} /> Redeem lifetime access
-                    </Link>
-                </p>
+                {false && (
+                    <p className="text-slate-500 text-sm">
+                        Have an AppSumo code?{' '}
+                        <Link href={route('redeem')} className="text-orange-400 hover:text-orange-300 inline-flex items-center gap-1">
+                            <Tag size={13} /> Redeem lifetime access
+                        </Link>
+                    </p>
+                )}
 
                 <div className="flex items-center justify-center gap-4 mt-6">
                     <Link href={route('hub')} className="text-sm text-slate-500 hover:text-slate-300 transition-colors">

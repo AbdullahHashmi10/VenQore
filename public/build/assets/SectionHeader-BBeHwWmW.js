@@ -1,0 +1,1 @@
+import{j as t}from"./app-EzNVh-yk.js";function l({title:s,description:e,className:a=""}){return t.jsxs("div",{className:`mb-6 ${a}`,children:[t.jsx("h3",{className:"text-lg font-bold text-slate-800 dark:text-white",children:s}),e&&t.jsx("p",{className:"text-sm text-slate-500",children:e})]})}export{l as S};

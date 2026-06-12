@@ -96,7 +96,7 @@ export default function UpgradeModal() {
     // LTD-specific logic: show AppSumo stacking CTA instead of subscription CTA
     const isLtd       = currentPlan?.startsWith('ltd_');
     const ltdTier     = isLtd ? parseInt(currentPlan.replace('ltd_', '')) : 0;
-    const canStackMore = isLtd && ltdTier < 3;
+    const canStackMore = false && isLtd && ltdTier < 3;
 
     const featureLabels = {
         sku_limit:                { icon: '📦', label: 'Product Limit' },

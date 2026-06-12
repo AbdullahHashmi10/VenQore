@@ -32,13 +32,17 @@ class AppSumoController extends Controller
     {
         $user = Auth::user();
 
-        // withoutTenantScope() is required here: the /redeem route has no TenantMiddleware,
-        // so no 'current.tenant' is bound. StoreLicense uses HasTenant which falls back to
-        // whereRaw('1=0') when no tenant is bound — silently returning 0 rows and breaking
-        // the stacking count. We scope only by user_id + source instead.
-        $existingCount = \App\Models\AppSumoCode::where('redeemed_by_email', $user->email)
-            ->where('is_redeemed', true)
-            ->count();
+        // Check if user is logged in before fetching existing code count to avoid crash
+        $existingCount = 0;
+        if ($user) {
+            // withoutTenantScope() is required here: the /redeem route has no TenantMiddleware,
+            // so no 'current.tenant' is bound. StoreLicense uses HasTenant which falls back to
+            // whereRaw('1=0') when no tenant is bound — silently returning 0 rows and breaking
+            // the stacking count. We scope only by user_id + source instead.
+            $existingCount = \App\Models\AppSumoCode::where('redeemed_by_email', $user->email)
+                ->where('is_redeemed', true)
+                ->count();
+        }
 
         $currentPlan = match(true) {
             $existingCount >= 3 => 'ltd_3',

@@ -126,14 +126,16 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                     </div>
 
                     {/* AppSumo code */}
-                    <div className="mt-6 text-center">
-                        <p className="text-slate-500 text-sm">
-                            Have an AppSumo code?{' '}
-                            <Link href={route('redeem')} className="text-orange-400 hover:text-orange-300 font-semibold transition-colors inline-flex items-center gap-1">
-                                <Tag size={13} /> Redeem it here
-                            </Link>
-                        </p>
-                    </div>
+                    {false && (
+                        <div className="mt-6 text-center">
+                            <p className="text-slate-500 text-sm">
+                                Have an AppSumo code?{' '}
+                                <Link href={route('redeem')} className="text-orange-400 hover:text-orange-300 font-semibold transition-colors inline-flex items-center gap-1">
+                                    <Tag size={13} /> Redeem it here
+                                </Link>
+                            </p>
+                        </div>
+                    )}
 
                 </div>
             </div>

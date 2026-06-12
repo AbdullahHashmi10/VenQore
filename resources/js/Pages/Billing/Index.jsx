@@ -1095,14 +1095,16 @@ export default function BillingIndex({ tenant, plans, usage, feature_status }) {
                 )}
 
                 {/* AppSumo Promo Banner */}
-                <div className="mt-16 p-6 rounded-3xl bg-white/[0.01] border border-white/[0.04] text-center">
-                    <p className="text-xs text-slate-500 font-medium">
-                        Have an AppSumo promo code? Redeem your codes at{' '}
-                        <a href="/redeem" className="text-purple-400 font-black underline decoration-2 underline-offset-4">
-                            /redeem
-                        </a>.
-                    </p>
-                </div>
+                {false && (
+                    <div className="mt-16 p-6 rounded-3xl bg-white/[0.01] border border-white/[0.04] text-center">
+                        <p className="text-xs text-slate-500 font-medium">
+                            Have an AppSumo promo code? Redeem your codes at{' '}
+                            <a href="/redeem" className="text-purple-400 font-black underline decoration-2 underline-offset-4">
+                                /redeem
+                            </a>.
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Change Plan Confirmation Modal */}
