@@ -961,11 +961,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             daysLeft = Math.max(0, Math.ceil(diffMs / (1000 * 3600 * 24)));
                         }
 
-                        // Only show if trial is running out (e.g. <= 7 days) or if they are permanently suspended
-                        if (daysLeft !== null && store.status !== 'suspended') {
+                        // Only show if subscription has 7 or fewer days left, and is not a trial (trial has its own header badge)
+                        if (daysLeft !== null && !isTrial && daysLeft <= 7 && store.status !== 'suspended') {
                             const isUrgent = daysLeft <= 3;
                             const isWarning = daysLeft > 3 && daysLeft <= 7;
-                            const isHealthy = daysLeft > 7;
 
                             let bannerColor = 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 border-emerald-100 dark:border-emerald-900/30';
                             let btnColor = 'bg-emerald-500 hover:bg-emerald-600';
