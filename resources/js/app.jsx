@@ -28,7 +28,14 @@ createInertiaApp({
         resolvePageComponent(
             `./Pages/${name}.jsx`,
             import.meta.glob('./Pages/**/*.jsx'),
-        ).then((module) => {
+        ).catch((error) => {
+            const errStr = String(error || '');
+            if (errStr.includes('Failed to fetch dynamically imported module') || error?.message?.includes('Failed to fetch dynamically imported module')) {
+                console.warn('[Vite] Dynamic import failed. Forcing reload to get latest assets.');
+                window.location.reload();
+            }
+            throw error;
+        }).then((module) => {
             const page = module.default;
             const originalLayout = page.layout;
 
@@ -100,6 +107,13 @@ window.onerror = function (message, source, lineno, colno, error) {
 
 window.onunhandledrejection = function (event) {
     try {
+        const reasonStr = String(event.reason || '');
+        if (reasonStr.includes('Failed to fetch dynamically imported module') || event.reason?.message?.includes('Failed to fetch dynamically imported module')) {
+            console.warn('[Vite] Unhandled rejection: Dynamic import failed. Forcing reload.');
+            window.location.reload();
+            return;
+        }
+
         fetch('/api/report-error', {
             method: 'POST',
             headers: {
