@@ -35,7 +35,7 @@ class PlanLimitException extends Exception
             'api_access'   => 'API access requires an upgrade.',
             'growth_engine'=> 'The Growth Engine is not available on your current plan.',
             'multi_branch' => 'Multi-branch features require the Growth plan or above.',
-            'transactions_per_month' => 'You\'ve reached your monthly transaction limit. Upgrade your plan or stack another AppSumo code to continue processing sales.',
+            'transactions_per_month' => 'You\'ve reached your monthly transaction limit. Upgrade your plan' . (false ? ' or stack another AppSumo code' : '') . ' to continue processing sales.',
             'smart_capture'=> 'Smart Capture AI is not available on your current plan.',
             'bill_of_materials' => 'Bill of Materials features require a plan upgrade.',
             'fixed_asset_depreciation' => 'Fixed Asset Depreciation requires a plan upgrade.',

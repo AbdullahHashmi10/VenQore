@@ -332,11 +332,20 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
         Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
 
-        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
-        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
-        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
-        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
-        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+        // Toggle $hideAppSumo to true to hide AppSumo management panel
+        if (true) {
+            Route::get('/appsumo',            fn() => abort(404))->name('appsumo.index');
+            Route::post('/appsumo/generate',  fn() => abort(404))->name('appsumo.generate');
+            Route::post('/appsumo/import',    fn() => abort(404))->name('appsumo.import');
+            Route::get('/appsumo/export',     fn() => abort(404))->name('appsumo.export');
+            Route::delete('/appsumo/purge',   fn() => abort(404))->name('appsumo.purge');
+        } else {
+            Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+            Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+            Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+            Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+            Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
+        }
 
         // ── V1 Support Inbox ──────────────────────────────────────────────
         Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
@@ -576,17 +585,22 @@ Route::get('/welcome-splash', function () {
 
 // ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
 // Public routes — no auth required (buyers arrive from AppSumo email)
-Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
-Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('redeem.submit');
-
-// Public informational pages (required by AppSumo before campaign approval)
-Route::get('/what-is-included', function () {
-    return Inertia::render('WhatIsIncluded');
-})->name('what-is-included');
-
-Route::get('/refund-policy', function () {
-    return Inertia::render('RefundPolicy');
-})->name('refund-policy');
+$hideAppSumoPublic = true; // Toggle this to false to unhide public AppSumo routes
+if ($hideAppSumoPublic) {
+    Route::get('/redeem',  fn() => abort(404))->name('redeem');
+    Route::post('/redeem', fn() => abort(404))->name('redeem.submit');
+    Route::get('/what-is-included', fn() => abort(404))->name('what-is-included');
+    Route::get('/refund-policy', fn() => abort(404))->name('refund-policy');
+} else {
+    Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
+    Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('redeem.submit');
+    Route::get('/what-is-included', function () {
+        return Inertia::render('WhatIsIncluded');
+    })->name('what-is-included');
+    Route::get('/refund-policy', function () {
+        return Inertia::render('RefundPolicy');
+    })->name('refund-policy');
+}
 
 Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
 Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');

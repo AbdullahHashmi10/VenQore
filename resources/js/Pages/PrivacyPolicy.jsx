@@ -61,7 +61,7 @@ export default function PrivacyPolicy() {
                     <p><strong className="text-white">Account Data:</strong> Name, email address, business name, and password (hashed — we never store plain-text passwords).</p>
                     <p><strong className="text-white">Business Data:</strong> Products, customers, sales records, invoices, accounting entries, and other data you create within the Service. This data belongs to you.</p>
                     <p><strong className="text-white">Usage Data:</strong> IP address, browser type, pages visited, and timestamps. Used for security monitoring and improving the Service.</p>
-                    <p><strong className="text-white">Payment Data:</strong> Payment processing is handled entirely by Lemon Squeezy or AppSumo. We never see or store your full card number. We receive only a customer ID and subscription status.</p>
+                    <p><strong className="text-white">Payment Data:</strong> Payment processing is handled entirely by Lemon Squeezy{/* or AppSumo*/}. We never see or store your full card number. We receive only a customer ID and subscription status.</p>
                     <p><strong className="text-white">Communication Data:</strong> Email addresses and your support ticket history if you contact us.</p>
                 </Section>
 
@@ -95,7 +95,7 @@ export default function PrivacyPolicy() {
                                     ['Cloudflare R2', 'File storage', 'Uploaded files (images, logos)'],
                                     ['Postmark', 'Transactional email', 'Email address, email content'],
                                     ['Lemon Squeezy', 'Payment processing', 'Email, subscription status'],
-                                    ['AppSumo', 'LTD distribution', 'Email, license redemption'],
+                                    // ['AppSumo', 'LTD distribution', 'Email, license redemption'],
                                 ].map(([provider, purpose, data], i) => (
                                     <tr key={i} className="border-b border-white/5">
                                         <td className="py-2.5 pr-4 text-white font-medium">{provider}</td>
@@ -108,12 +108,12 @@ export default function PrivacyPolicy() {
                     </div>
                     <p className="mt-3">We do not sell, rent, or trade your data with third parties for marketing or advertising purposes.</p>
                 </Section>
-
+ 
                 <Section title="4. Data Retention">
                     <p><strong className="text-white">Active accounts:</strong> Data retained for the duration of your subscription.</p>
                     <p><strong className="text-white">Cancelled/expired accounts:</strong> Data retained for 30 days after cancellation to allow data export, then permanently deleted.</p>
                     <p><strong className="text-white">Trial accounts (not converted):</strong> Data retained for 30 days after trial expiry, then permanently deleted.</p>
-                    <p><strong className="text-white">AppSumo LTD accounts:</strong> Data retained for the duration of your license. If you choose to stop using the Service, data is deleted upon request.</p>
+                    {/* <p><strong className="text-white">AppSumo LTD accounts:</strong> Data retained for the duration of your license. If you choose to stop using the Service, data is deleted upon request.</p> */}
                     <p><strong className="text-white">Backups:</strong> Backup snapshots may persist for up to 7 days after deletion for disaster recovery purposes.</p>
                 </Section>
 
@@ -169,7 +169,7 @@ export default function PrivacyPolicy() {
                     <p>© {new Date().getFullYear()} VenQore. All rights reserved.</p>
                     <div className="flex gap-4">
                         <Link href="/terms" className="hover:text-slate-400 transition-colors">Terms of Service</Link>
-                        <Link href="/refund-policy" className="hover:text-slate-400 transition-colors">Refund Policy</Link>
+                        {/* <Link href="/refund-policy" className="hover:text-slate-400 transition-colors">Refund Policy</Link> */}
                     </div>
                 </div>
             </div>

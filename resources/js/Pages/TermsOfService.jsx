@@ -60,25 +60,25 @@ export default function TermsOfService() {
 
                 <Section title="1. Acceptance of Terms">
                     <p>By accessing or using VenQore ("the Service"), operated by VenQore ("we," "us," or "our"), you agree to these Terms of Service and our Privacy Policy. If you do not agree to these terms, do not use the Service.</p>
-                    <p>These terms apply to all users, including free trial users, paid subscribers, and AppSumo lifetime deal holders.</p>
+                    <p>These terms apply to all users, including free trial users, paid subscribers{/*, and AppSumo lifetime deal holders*/}.</p>
                 </Section>
-
+ 
                 <Section title="2. Description of Service">
                     <p>VenQore is a cloud-based Point of Sale (POS) and ERP platform designed for retail businesses. The Service includes inventory management, sales tracking, accounting, reporting, and related features.</p>
                     <p>We reserve the right to modify, suspend, or discontinue any part of the Service at any time. We will provide reasonable notice of material changes.</p>
                 </Section>
-
+ 
                 <Section title="3. Account Registration">
                     <p>You must provide accurate, complete, and current information when creating an account. You are responsible for maintaining the security of your account credentials.</p>
                     <p>You are responsible for all activity that occurs under your account. Notify us immediately at <a href="mailto:support@venqore.com" className="text-indigo-400 hover:underline">support@venqore.com</a> if you suspect unauthorized access.</p>
                     <p>One account per business entity. Sharing accounts between unrelated businesses is not permitted.</p>
                 </Section>
-
+ 
                 <Section title="4. Subscription & Payment">
                     <p>Paid subscriptions are billed monthly or annually through Lemon Squeezy. By subscribing, you authorize recurring charges to your payment method.</p>
                     <p>All prices are in USD unless otherwise stated. Taxes may apply depending on your jurisdiction.</p>
                     <p>You may cancel your subscription at any time. Cancellation takes effect at the end of the current billing period. We do not provide prorated refunds for partial billing periods, except as required by applicable law.</p>
-                    <p><strong className="text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p>
+                    {/* <p><strong className="text-white">AppSumo Lifetime Deal:</strong> Holders of AppSumo LTD codes receive a perpetual software license plus 2 years of hosting. After the 2-year hosting period, continued hosting requires a $9/month to $30/month hosting fee (depending on plan tier), or you may self-host at no cost.</p> */}
                 </Section>
 
                 <Section title="5. Free Trial">
@@ -148,7 +148,7 @@ export default function TermsOfService() {
                     <p>© {new Date().getFullYear()} VenQore. All rights reserved.</p>
                     <div className="flex gap-4">
                         <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link>
-                        <Link href="/refund-policy" className="hover:text-slate-400 transition-colors">Refund Policy</Link>
+                        {/* <Link href="/refund-policy" className="hover:text-slate-400 transition-colors">Refund Policy</Link> */}
                     </div>
                 </div>
             </div>

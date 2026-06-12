@@ -473,10 +473,10 @@ function OverviewTab({ stats, store_trend, plan_distribution, recent_stores, exp
                                 <p style={{ fontSize: 10, fontWeight: 700, color: '#10b981', textTransform: 'uppercase' }}>Website</p>
                                 <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.website_plans || 0}</p>
                             </div>
-                            <div>
+                            {/* <div>
                                 <p style={{ fontSize: 10, fontWeight: 700, color: '#6366f1', textTransform: 'uppercase' }}>AppSumo</p>
                                 <p style={{ fontSize: 13, fontWeight: 800, color: T.text }}>{stats.monetization?.appsumo_plans || 0}</p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                     
