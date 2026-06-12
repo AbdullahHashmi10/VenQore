@@ -87,6 +87,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     };
     const removeToast = (id) => setToasts(prev => prev.filter(t => t.id !== id));
 
+    // Live Header Clock State
+    const [currentTime, setCurrentTime] = useState(new Date());
+    useEffect(() => {
+        const clockInterval = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(clockInterval);
+    }, []);
+
     // Listen for flash messages from backend
     useEffect(() => {
         if (flash?.success) {
@@ -1166,8 +1175,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     </Link>
                                 )}
 
-                                {/* Charity Button */}
-                                <CharityButton />
+                                {/* Live Header Clock */}
+                                <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 shrink-0 font-mono shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300">
+                                    <Clock size={16} className="text-indigo-500 dark:text-indigo-400 animate-[pulse_2s_infinite]" />
+                                    <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                </div>
 
                                 {/* Display Settings Dropdown */}
                                 <div className="relative" ref={displayMenuRef}>
