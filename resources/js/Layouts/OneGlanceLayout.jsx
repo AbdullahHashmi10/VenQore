@@ -505,15 +505,20 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         // Platform admin sees all items in any mode
         if (isPlatformAdmin) return true;
 
-        // Store owner and admin: see all store items
-        if (userRole === 'owner' || userRole === 'admin') return true;
+        // Store owner, admin, and manager: see all store menu items
+        if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') return true;
 
         const required = MENU_PERMISSIONS[item.name];
         // If not defined, assume public/open (like Home)
         if (!required || required.length === 0) return true;
 
-        // Check if user has AT LEAST ONE of the required permissions
-        return required.some(p => userPerms.includes(p));
+        // Prefix-aware permission check:
+        // stored permissions are namespaced (e.g. 'pos.open_session', 'sales.view')
+        // but MENU_PERMISSIONS uses short prefixes (e.g. 'pos', 'sales')
+        // so we match if any stored permission equals OR starts with the required prefix
+        return required.some(req =>
+            userPerms.some(p => p === req || p.startsWith(req + '.'))
+        );
     });
 
     // Helper to check if a menu item is active
