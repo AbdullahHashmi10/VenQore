@@ -412,10 +412,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
           route: store ? 'store.admin.users' : null,     
           routeParams: store ? { store_slug: store.slug } : {} },
           
-        { name: 'Staff Attendance',    icon: Clock,           subs: [], 
-          route: store ? 'store.admin.attendance' : null,
-          routeParams: store ? { store_slug: store.slug } : {} },
-          
         { name: 'System Settings',     icon: Settings,        subs: [], 
           route: store ? 'store.admin.settings' : null,  
           routeParams: store ? { store_slug: store.slug } : {} },

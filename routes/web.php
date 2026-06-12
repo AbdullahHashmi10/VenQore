@@ -206,7 +206,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::patch('/users/{member}',  [\App\Http\Controllers\AdminController::class, 'updateMember'])->name('users.update');
             Route::delete('/users/{member}', [\App\Http\Controllers\AdminController::class, 'removeMember'])->name('users.remove');
             Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
-            Route::get('/staff',       function () { return redirect()->route('store.admin.attendance', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
+            Route::get('/staff',       function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
 
             // ── V1 Staff Invitation System ─────────────────────────────────
             Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->name('invitations.store');
@@ -214,7 +214,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::post('/invitations/{invitation}/decline',   [\App\Http\Controllers\StaffInvitationController::class, 'decline'])->name('invitations.decline');
             Route::post('/invitations/{invitation}/revoke',    [\App\Http\Controllers\StaffInvitationController::class, 'revoke'])->name('invitations.revoke');
             Route::post('/invitations/{invitation}/resend',    [\App\Http\Controllers\StaffInvitationController::class, 'resend'])->name('invitations.resend');
-            Route::get('/attendance',  [\App\Http\Controllers\Admin\StoreAdminController::class, 'attendance'])->name('attendance');
+            Route::get('/attendance',  function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('attendance');
             
             Route::get('/logs',        [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
 
@@ -1239,7 +1239,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
     Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:audit')->name('legacy.admin.logs');
     Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:settings')->name('legacy.admin.database');
-    Route::get('/admin-panel/staff', [\App\Http\Controllers\AdminController::class, 'staffSummaries'])->middleware('permission:users')->name('legacy.admin.staff');
+    Route::get('/admin-panel/staff', function () { return redirect()->route('legacy.admin.users'); })->name('legacy.admin.staff');
 
     // Staff Attendance
     Route::get('/staff-attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
