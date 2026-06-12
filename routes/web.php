@@ -136,7 +136,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     ->prefix('s/{store_slug}')
     ->name('store.')
     ->group(function () {
-        Route::get('/', fn($store_slug) => \redirect()->route('store.pos', ['store_slug' => $store_slug]));
+        Route::get('/', fn() => \redirect()->route('store.pos', ['store_slug' => app('current.tenant')->slug]));
 
         // Setup wizard (no plan gate — always accessible)
         Route::get('/setup',  [\App\Http\Controllers\SetupController::class, 'index'])->name('setup');
@@ -205,7 +205,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
             Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
             Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
-            Route::get('/staff',       function ($store_slug) { return redirect()->route('store.admin.attendance', ['store_slug' => $store_slug]); })->name('staff');
+            Route::get('/staff',       function () { return redirect()->route('store.admin.attendance', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
 
             // ── V1 Staff Invitation System ─────────────────────────────────
             Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->name('invitations.store');
@@ -1207,9 +1207,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('admin.data');
     Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->name('admin.data.export');
     Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('admin.data.import');
-    Route::get('/admin-panel/data/upload-mapping', function ($store_slug) { return \redirect()->route('store.admin.data', ['store_slug' => $store_slug]); });
+    Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
     Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('admin.data.upload-mapping');
-    Route::get('/admin-panel/data/process-import', function ($store_slug) { return \redirect()->route('store.admin.data', ['store_slug' => $store_slug]); });
+    Route::get('/admin-panel/data/process-import', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
     Route::post('/admin-panel/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('admin.data.process-import');
     Route::post('/admin-panel/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('admin.data.validate-import');
     Route::get('/admin-panel/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('admin.data.template');
