@@ -521,26 +521,27 @@ class AdminController extends Controller
         }
 
         $user = \App\Models\User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => bcrypt($validated['password']),
-            'role' => $validated['role'] ?? 'cashier',
-            'permissions' => $validated['permissions'] ?? [],
-            'passcode' => $validated['passcode'] ?? null,
+            'name'          => $validated['name'],
+            'email'         => $validated['email'],
+            'password'      => bcrypt($validated['password']),
+            'role'          => $validated['role'] ?? 'cashier',
+            'permissions'   => $validated['permissions'] ?? [],
+            'passcode'      => $validated['passcode'] ?? null,
             'last_store_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
         ]);
 
         if (app()->bound('current.tenant')) {
-            $tenant = app('current.tenant');
+            $tenant  = app('current.tenant');
+            $newRole = $validated['role'] ?? 'cashier';
             \App\Models\TenantUser::create([
-                'tenant_id' => $tenant->id,
-                'user_id' => $user->id,
-                'role' => $validated['role'] ?? 'cashier',
-                'status' => 'active',
+                'tenant_id'    => $tenant->id,
+                'user_id'      => $user->id,
+                'role'         => $newRole,
+                'status'       => 'active',
                 'display_name' => $user->name,
-                'joined_at' => now(),
-                'pos_pin' => $user->passcode,
-                'permissions' => $validated['permissions'] ?? [],
+                'joined_at'    => now(),
+                'pos_pin'      => $user->passcode,
+                'permissions'  => $validated['permissions'] ?? [],
             ]);
         }
 
@@ -552,10 +553,11 @@ class AdminController extends Controller
         $user = \App\Models\User::findOrFail($id);
 
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'password' => 'nullable|string|min:6',
-            'role' => 'nullable|string|in:platform_admin,admin,manager,cashier,inventory_staff,accountant,custom',
+            'name'        => 'required|string|max:255',
+            'email'       => 'required|email|unique:users,email,' . $id,
+            'password'    => 'nullable|string|min:6',
+            // Include ALL valid store roles so the value is never silently dropped
+            'role'        => 'nullable|string|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,hr_officer,cashier,viewer,custom,platform_admin',
             'permissions' => 'nullable|array',
             'passcode' => [
                 'nullable',
@@ -588,26 +590,62 @@ class AdminController extends Controller
             ],
         ]);
 
-        $user->name = $validated['name'];
+        $user->name  = $validated['name'];
         $user->email = $validated['email'];
         if (!empty($validated['password'])) {
             $user->password = bcrypt($validated['password']);
         }
-        $user->role = $validated['role'] ?? $user->role;
-        $user->permissions = $validated['permissions'] ?? $user->permissions;
         $user->passcode = $validated['passcode'] ?? $user->passcode;
+
+        // ── CRITICAL FIX ──────────────────────────────────────────────────────
+        // Store the new role in a local variable BEFORE calling $user->save().
+        // After save(), calling $user->role triggers getRoleAttribute() which
+        // queries tenant_users and returns the OLD role — causing TenantUser to
+        // be updated with the wrong (old) role.
+        // We always write the new role to both tables explicitly.
+        $newRole        = $validated['role'] ?? null;
+        $newPermissions = $validated['permissions'] ?? null;
+
+        // Update the legacy users column only if a role was provided
+        if ($newRole !== null) {
+            $user->getAttributes()['role'] ?? null; // ensure attribute is fresh
+            $user->setAttribute('role', $newRole);
+        }
+        if ($newPermissions !== null) {
+            $user->setAttribute('permissions', json_encode($newPermissions));
+        }
+
         $user->save();
 
+        // Update the canonical store-level membership in tenant_users directly
         if (app()->bound('current.tenant')) {
             $tenant = app('current.tenant');
-            \App\Models\TenantUser::updateOrCreate(
-                ['tenant_id' => $tenant->id, 'user_id' => $user->id],
-                [
-                    'role' => $user->role,
-                    'pos_pin' => $user->passcode,
-                    'permissions' => $user->permissions,
-                ]
-            );
+
+            // Get the existing membership to preserve fields we're not changing
+            $membership = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                ->where('user_id', $user->id)
+                ->first();
+
+            $updateData = ['pos_pin' => $user->passcode];
+            if ($newRole !== null) {
+                $updateData['role'] = $newRole;
+            }
+            if ($newPermissions !== null) {
+                $updateData['permissions'] = $newPermissions;
+            }
+
+            if ($membership) {
+                $membership->update($updateData);
+            } else {
+                \App\Models\TenantUser::create(array_merge($updateData, [
+                    'tenant_id'    => $tenant->id,
+                    'user_id'      => $user->id,
+                    'role'         => $newRole ?? 'cashier',
+                    'status'       => 'active',
+                    'display_name' => $user->name,
+                    'joined_at'    => now(),
+                ]));
+            }
         }
 
         return redirect()->back()->with('success', 'User updated successfully');

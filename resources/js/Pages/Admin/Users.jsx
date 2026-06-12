@@ -15,6 +15,7 @@ import {
 
 // ─── Role definitions ──────────────────────────────────────────────────────
 const ROLES = {
+    owner:           { name: 'Owner',           description: 'Store owner — full access',    icon: Crown,        color: 'from-amber-500 to-yellow-600',   badge: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400' },
     admin:           { name: 'Admin',            description: 'Full management access',    icon: Shield,       color: 'from-violet-500 to-purple-600',  badge: 'bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-400' },
     manager:         { name: 'Manager',          description: 'Operations manager',         icon: Star,         color: 'from-blue-500 to-cyan-600',      badge: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400' },
     cashier:         { name: 'Cashier',          description: 'POS & Sales only',           icon: ShoppingCart, color: 'from-emerald-500 to-teal-600',   badge: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' },
@@ -284,7 +285,7 @@ const STATUS = {
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
-const getRoleInfo  = (role) => ROLES[role] || ROLES.cashier;
+const getRoleInfo  = (role) => ROLES[role] || ROLES.viewer;
 const getStatusCfg = (status) => STATUS[status] || STATUS.pending;
 
 function copyToClipboard(text) {
