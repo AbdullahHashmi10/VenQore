@@ -1018,7 +1018,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                     {/* Header */}
                     {!hideHeader && !fullScreen && (
-                        <header className="h-20 px-8 flex items-center z-50 relative shrink-0">
+                        <header className="h-14 px-8 flex items-center z-50 relative shrink-0">
                             {/* LEFT SECTION */}
                             <div className="flex-1 flex items-center gap-8 text-slate-400">
                                 <div className="hidden md:flex flex-col">
@@ -1061,11 +1061,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             {/* RIGHT SECTION */}
                             <div className="flex-1 flex items-center justify-end gap-4">
                                 <CharityButton />
-
-                                {/* Plan Change Notification Bell — owners & admins only */}
-                                {store && (userRole === 'owner' || userRole === 'admin') && (
-                                    <PlanNotificationBell storeSlug={store.slug} />
-                                )}
 
                                 {/* Actionable Intelligence (AI) Recommendation Engine */}
                                 <div className="relative z-50" ref={growthRef}>
