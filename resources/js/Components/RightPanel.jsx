@@ -305,7 +305,7 @@ const RightPanel = ({ recentTransactions, bankAccounts = [], cashAccounts = [], 
                         <div className="space-y-2">
                             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider pl-1">Bank Accounts</p>
                             {bankAccounts.map((acc) => (
-                                <div key={acc.id} className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-colors flex justify-between items-center group">
+                                <div key={acc.id} onClick={() => handleNavigate('store.bank-accounts.index')} className="bg-white/5 backdrop-blur-md rounded-xl p-3 border border-white/5 hover:bg-white/10 transition-all flex justify-between items-center group cursor-pointer hover:scale-[1.01] active:scale-[0.99]">
                                     <div className="flex items-center gap-3">
                                         <Landmark size={18} className="text-blue-300" />
                                         <div>

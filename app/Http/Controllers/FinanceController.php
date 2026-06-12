@@ -352,14 +352,14 @@ class FinanceController extends Controller
                 ->leftJoin('parties', 'payments.party_id', '=', 'parties.id')
                 ->where('payments.tenant_id', app('current.tenant')->id)
                 ->where('payments.bank_account_id', $id)
-                ->where('payments.type', 'received')
+                ->whereIn('payments.type', ['in', 'received'])
                 ->selectRaw("payments.id, payments.date, payments.amount, payments.reference as ref, 'credit' as type, 'payment' as source, CONCAT('Deposit from ', COALESCE(parties.name, 'Unknown')) as description");
 
             $withdrawals = DB::table('payments')
                 ->leftJoin('parties', 'payments.party_id', '=', 'parties.id')
                 ->where('payments.tenant_id', app('current.tenant')->id)
                 ->where('payments.bank_account_id', $id)
-                ->where('payments.type', 'sent')
+                ->whereIn('payments.type', ['out', 'sent'])
                 ->selectRaw("payments.id, payments.date, payments.amount, payments.reference as ref, 'debit' as type, 'payment' as source, CONCAT('Payment to ', COALESCE(parties.name, 'Unknown')) as description");
                 
             $query = $query->union($deposits)->union($withdrawals);

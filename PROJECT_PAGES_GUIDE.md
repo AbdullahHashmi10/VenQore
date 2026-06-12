@@ -1,309 +1,395 @@
-# VenQore POS - Ultimate Project Documentation
-
-**Project Name:** VenQore POS – Advanced Management Dashboard & Point of Sale
-**Tech Stack:** Laravel 11 (Backend), React 18 (Frontend), Inertia.js (Glue), Tailwind CSS (Styling), MySQL (Database).
+# VenQore POS - Ultimate Project & Page Audit Guide
+**Goal:** Comprehensive mapping of all 254 functional views, sub-tabs, settings subsections, platform owner views, and public portals for the Mobile Responsiveness Refactor.
 
 ---
 
-# I. MASTER PAGE & ROUTE INDEX
+# I. EXECUTIVE OVERVIEW & FLAT 254 VIEW REGISTRY
 
-This section lists every user-facing page in the application, its accessible route, and its primary function.
-
-**Core Design Philosophy:** The "Midnight Nebula" theme powers the entire UI, featuring deep dark modes, glassmorphism, and vibrant accent colors. Every major module utilizes the **"One Glance"** sidebar layout, ensuring easy navigation and a unified experience. Note that **Every Single Feature Category** has its own dedicated dashboard for instant analytics.
-
-### 1. CORE & AUTHENTICATION
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Home/Home.jsx` | `/home` | Landing page/Dashboard redirect. |
-| `Dashboard.jsx` | `/dashboard` | Main Business Dashboard (Sales, Stock, Alerts). |
-| `Auth/Login.jsx` | `/login` | Secure user authentication. |
-| `Auth/Register.jsx` | `/register` | New user/admin registration. |
-| `Auth/ForgotPassword.jsx` | `/forgot-password` | Email-based password recovery. |
-| `Auth/ResetPassword.jsx` | `/reset-password` | Set new password. |
-| `Auth/VerifyEmail.jsx` | `/verify-email` | Email ownership verification steps. |
-| `Profile/Edit.jsx` | `/profile` | User account settings (Name, Password, 2FA). |
-
-### 2. POINT OF SALE (POS)
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Pos.jsx` | `/pos` | **The Core POS Interface.** Features: Barcode scanning, Product search, Cart management, Cash/Card payments, Receipt printing, Hold/Park bills, Customer selection. |
-
-### 3. SELL MODULE (SALES & CRM)
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Sales/Dashboard.jsx` | `/sales` | Analytics dashboard specific to sales performance. |
-| `Sales/SalesHistory.jsx` | `/sales/list` | List of all invoices. Supports filtering, sorting, bulk actions. |
-| `Sales/CreateInvoice.jsx` | `/sales/invoice/create` | Full-screen invoice builder (Back-office mode). |
-| `Sales/CreatePreSale.jsx` | `/sales/presale/create` | Quotation/Pre-order builder (No stock reservation). |
-| `Sales/Show.jsx` | `/sales/{id}` | Detailed Invoice view with Print, PDF, Email actions. |
-| `Sales/MasterSales.jsx` | `/sales/master` | Advanced "Atomic" sales analysis tool. |
-| `Sales/ParkedSales.jsx` | `/sales/parked-items` | Manage "On Hold" bills from the POS. |
-| `Proposals/ProposalsList.jsx` | `/proposals` | View and manage generated quotations. |
-| `SalesOrders/PreSales.jsx` | `/sales/pre-sales` | Manage active Sales Orders (Pre-orders). |
-| `Returns/ReturnsHistory.jsx` | `/returns-history` | Log of all customer returns and refunds. |
-| `Customers/Index.jsx` | `/customers` | Customer Database (CRM). |
-
-### 4. PURCHASE MODULE (PROCUREMENT)
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Purchases/Index.jsx` | `/purchases` | List of Vendor Bills / Purchase Invoices. |
-| `Purchases/Create.jsx` | `/purchases/create` | Record new stock purchase. |
-| `PurchaseOrders/Index.jsx` | `/purchase-orders` | Manage POs sent to suppliers. |
-| `Suppliers/Index.jsx` | `/suppliers` | Supplier/Vendor Database. |
-| `DebitNotes/Index.jsx` | `/debit-notes` | Vendor Returns (Debit Notes) management. |
-
-### 5. INVENTORY MODULE (STOCK & PRODUCTION)
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Inventory/InventoryList.jsx` | `/inventory/list` | Master Product Catalog. |
-| `Inventory/StockLevels.jsx` | `/inventory/stock` | Real-time stock counts across warehouses. |
-| `Inventory/Categories.jsx` | `/inventory/categories` | Product Category hierarchy management. |
-| `StockOperations.jsx` | `/stock-operations` | Hub for Adjustments, Transfers, and Audits. |
-| `StockTransfers/Index.jsx` | `/stock-transfers` | Warehouse-to-Warehouse movement logs. |
-| `StockTake/Index.jsx` | `/stock-audit` | Physical Stock Taking / Auditing tool. |
-| `Manufacturing/Rules.jsx` | `/manufacturing/rules` | Recipes/BOM setup for composite items. |
-| `Production/Index.jsx` | `/inventory/production` | Manage Production Runs (Manufacturing batches). |
-| `Labels/Index.jsx` | `/labels` | Barcode Label Generator & Printer. |
-| `BatchTracking/Index.jsx` | `/batches` | Trace products by Lot/Batch number. |
-| `SerialTracking/Index.jsx` | `/serials` | Trace individual Serial Numbers (IMEI/SN). |
-| `Attributes/Index.jsx` | `/attributes` | Manage Variant Attributes (Size, Color, etc.). |
-| `Variants/Index.jsx` | `/products/{id}/variants` | Manage specific variants of a product. |
-
-### 6. FINANCE MODULE (ACCOUNTS)
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Finance/Dashboard.jsx` | `/finance` | Financial Health Overview (Cash Flow, Net Worth). |
-| `Transactions/TransactionsList.jsx`| `/transactions` | Master Ledger of ALL money in/out. |
-| `Payments/Index.jsx` | `/payments` | Payment vouchers (Receipts & Payments). |
-| `Expenses/Index.jsx` | `/expenses` | Expense recording and categorization. |
-| `BankAccounts/Index.jsx` | `/bank-accounts` | Bank Account setup and balance tracking. |
-| `BankReconciliation/Index.jsx`| `/bank-reconciliation` | Reconcile bank statements with ERP records. |
-| `Funds/Index.jsx` | `/funds` | Capital/Equity management and transfers. |
-| `Accounting/Dashboard.jsx` | `/accounting` | Double-Entry Accounting Hub. |
-| `Accounting/ChartOfAccounts.jsx`| `/accounting/chart` | COA Setup (Assets, Liabilities, Equity, Income, Expense). |
-
-### 7. REPORTS MODULE (BI & ANALYTICS)
-**Hub:** `Reports/ReportsHub.jsx` (`/reports`)
-**Sub-Reports:**
-- **Sales:** `Sales.jsx`, `SaleAging.jsx`, `SaleOrders.jsx`, `SalePurchaseByParty.jsx`, `SalePurchaseByPartyGroup.jsx`, `SaleOrderItems.jsx`
-- **Inventory:** `Purchases.jsx`, `StockValuation.jsx`, `LowStock.jsx`, `StockAging.jsx`, `StockSummaryByCategory.jsx`, `MovementHistory.jsx`, `ExpiryReport.jsx`, `ItemDetail.jsx`, `ItemWiseDiscount.jsx`, `ItemWiseProfit.jsx`
-- **Financial:** `ProfitLoss.jsx` (P&L), `BalanceSheet.jsx`, `TrialBalance.jsx`, `CashFlow.jsx`, `Tax.jsx`, `TaxRateReport.jsx`, `BankStatement.jsx`, `LoanStatement.jsx`, `BillWiseProfit.jsx`, `ExpenseByCategory.jsx`, `ExpenseByItem.jsx`.
-- **Party:** `AllParties.jsx`, `PartyStatement.jsx`, `PartyWiseProfitLoss.jsx`.
-- **Visuals:** `GraphAnalytics.jsx` (Charts/Graphs).
-
-### 8. ADMIN & SYSTEM
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Admin/Dashboard.jsx` | `/admin-panel/dashboard`| Platform Owner Monitoring Dashboard. |
-| `Admin/Users.jsx` | `/admin-panel/users` | Employee/User Management & Roles. |
-| `Admin/Settings.jsx` | `/admin-panel/settings`| **Global System Configuration.** |
-| `Admin/DataManagement.jsx` | `/admin-panel/data` | Database Backup, Import, and Export. |
-| `ActivityLog.jsx` | `/activity-log` | Audit Trail of all user actions. |
-| `RecycleBin.jsx` | `/recycle-bin` | Restore deleted items. |
-| `StaffAttendance/Index.jsx` | `/staff/attendance` | Biometric/Manual Attendance logs. |
-| `StaffAttendance/Show.jsx` | `/staff/attendance/{id}`| Individual staff attendance record. |
-
-### 9. GROWTH & EXTRAS
-| Page Component | Route | Functionality |
-| :--- | :--- | :--- |
-| `Marketing/Campaigns.jsx` | `/marketing/campaigns` | SMS/WhatsApp Marketing tools. |
-| `OnlineStore/Manager.jsx` | `/online-store-manager` | E-commerce settings (Storefront config). |
-| `WooCommerce/Index.jsx` | `/woocommerce-sync` | WordPress/WooCommerce Bridge. |
-| `Cookbook/Index.jsx` | `/cookbook` | Corporate Knowledge Base / Recipe Book. |
-| `EInvoicing/Index.jsx` | `/e-invoicing` | FBR/Tax Authority Integration settings. |
-| `GrowthEngine/Index.jsx` | `/growth-engine` | AI-driven business insights. |
+Below is the complete, numbered list of all **254 functional pages, sub-tabs, settings sections, and role-scoped dashboards** in the VenQore application. Every item in this list must be individually verified for mobile responsiveness.
 
 ---
 
-# II. DETAILED FEATURE LIST
+### A. Public & Marketing Pages (12 Views)
+1. **Public Home / Landing Page** - `LandingPage.jsx` (Hero sections, marketing cards)
+2. **Features Presentation Page** - `Marketing/Features.jsx` (Overview of systems)
+3. **Pricing Matrices & Plans** - `Marketing/Pricing.jsx` (Lite, Pro, Enterprise tiers)
+4. **Corporate About Page** - `Marketing/About.jsx` (Company background)
+5. **Contact Channel & Forms** - `Marketing/Contact.jsx` (Support request interface)
+6. **Blog Feed Directory** - `Marketing/Blog/Index.jsx` (List of news and guides)
+7. **Blog Post Reader** - `Marketing/Blog/Show.jsx` (Full article display)
+8. **Terms of Service** - `TermsOfService.jsx` (Standard legal guidelines)
+9. **Privacy Protection Policy** - `PrivacyPolicy.jsx` (Data terms layout)
+10. **Refund Guidelines** - `RefundPolicy.jsx` (AppSumo code refund terms)
+11. **SaaS Welcome Screen** - `Welcome.jsx` (Public entry screen)
+12. **Inclusions Overview** - `WhatIsIncluded.jsx` (Summary of modules)
 
-This section breaks down "every single dot" of functionality available in the system, organized by category.
+---
 
-## A. SYSTEM CONFIGURATION & SETTINGS
-*(Located in `Admin/Settings.jsx`)*
+### B. Auth, Onboarding & Setup (13 Views)
+13. **Main Register Portal** - `Auth/Register.jsx` (Store creation forms)
+14. **Customer Login Console** - `Auth/Login.jsx` (Standard admin/owner login)
+15. **Staff PIN Login Pad** - `Auth/StaffLogin.jsx` (Fast employee check-in interface)
+16. **Staff Accept Invitation** - `Auth/AcceptInvite.jsx` (Onboarding form)
+17. **Email Reset Form** - `Auth/ForgotPassword.jsx` (Security email triggers)
+18. **Password Reset Portal** - `Auth/ResetPassword.jsx` (Set new password credentials)
+19. **Email Verification Steps** - `Auth/VerifyEmail.jsx` (Confirm email checks)
+20. **Security Password Confirm** - `Auth/ConfirmPassword.jsx` (Protected actions barrier)
+21. **Store Setup Wizard** - `SetupWizard.jsx` (Dynamic seeder setup wizard)
+22. **Accept Invite Page** - `Invite/Accept.jsx` (External user verification)
+23. **Invalid Invite Notice** - `Invite/Invalid.jsx` (Error message panel)
+24. **Create Store Dialog** - `Store/Create.jsx` (Choose store slug and industry)
+25. **Join Store Portal** - `Store/Join.jsx` (Request store connection)
 
-### 1. Business Identity
-- **Custom Branding:** Set Business Name, Email, Phone, Address.
-- **Tax Identity:** Define NTN/VAT/Tax Number.
-- **Localization:**
-    - **Multi-Currency Support:** PKR, USD, EUR, GBP, AED, SAR, INR.
-    - **Timezone Selection:** 5 major global timezones supported.
-    - **Date Formats:** Customizable date display.
+---
 
-### 2. General UI & Security
-- **Secure Passcode:** Enable 4-6 digit PIN for sensitive actions (Admin actions).
-- **Multi-Firm:** Support for managing multiple business entities under one install.
-- **UI Scaling:** Adjustable interface size (75% to 125%) for different screen sizes.
-- **Decimal Precision:** Configurable decimal places (0 to 3) for prices.
-- **Negative Stock Control:** Option to blocking sales if stock is insufficient.
-- **2FA:** Two-Factor Authentication toggle.
-- **Auto-Logout:** Configurable inactivity timer for security.
-- **Dark Mode:** System-wide dark mode support with auto-detection.
+### C. Platform HQ / SuperAdmin Panel (11 Views)
+26. **HQ Command Dashboard** - `SuperAdmin/Dashboard.jsx` (Macro charts, platform statistics)
+27. **All Active Stores Grid** - `SuperAdmin/Stores.jsx` (SaaS client list)
+28. **HQ Global User Management** - `SuperAdmin/Users.jsx` (SaaS back-office staff)
+29. **Platform Billing Packages** - `SuperAdmin/Plans/Index.jsx` (Subscription tier overrides)
+30. **Overrides Rule Center** - `SuperAdmin/Tenants/Overrides.jsx` (Store exceptions ledger)
+31. **Override Detail Configurator** - `SuperAdmin/Tenants/OverrideDetail.jsx` (Adjust single tenant features)
+32. **AppSumo Coupon Matrix** - `SuperAdmin/AppSumo/Index.jsx` (Manage codes database)
+33. **HQ Coupon Codes Center** - `SuperAdmin/Coupons/Index.jsx` (Global platform promo codes)
+34. **Platform Instance Configs** - `SuperAdmin/Platforms/Index.jsx` (Multi-tenant endpoints)
+35. **System Stack Errors Console** - `SuperAdmin/Health/Errors.jsx` (Platform diagnostics log)
+36. **Master Contact Database** - `SuperAdmin/Health/Contacts.jsx` (Aggregated contacts log)
 
-### 3. AI Intelligence (The "Brain")
-- **AI Providers:** Switch between **Google Gemini** (Free Tier supported) and **OpenAI GPT-4** (Paid).
-- **Model Selection:** Choose specific models (Gemini Flash, GPT-4o, GPT-3.5).
-- **Key Verification:** Built-in tool to test API keys validity.
-- **Smart Search:** Natural language querying (e.g., "Show me sales from last friday").
+---
 
-### 4. Transaction & Billing Rules
-- **Invoice Numbering:** Toggle manual vs automatic invoice numbers.
-- **Prefixes:** Custom prefixes for Sales (`INV-`) and Purchases (`PUR-`).
-- **Billing Modes:** "Lite" (Fast) vs "Full" (Detailed) sale modes.
-- **Rounding:** Auto-round off totals (e.g., to nearest integer).
-- **POS Defaults:** Auto-fill "Cash Received" field for speed.
-- **Profit Margins:** Toggle visibility of profit margins on the sales screen.
+### D. Point of Sale - POS (4 Views)
+37. **Standard POS Terminal** - `Pos.jsx` (Multi-tab cart, scan fields, pay dialog)
+38. **POS Senior Mode Accessibility** - `Pos.jsx` (High-contrast yellow theme, large fonts)
+39. **POS Parked Sales Slider** - `Pos.jsx` (Sidebar drawer listing hold invoices)
+40. **POS Profit Sneak Peek** - `Pos.jsx` (Owner swipe gesture showing cost margins)
 
-### 5. Printing & Receipts
-- **Printer Types:** Support for **Regular (A4/A5/Legal)** and **Thermal (3-inch)** printers.
-- **Orientation:** Portrait vs Landscape support.
-- **Header/Footer:** Custom "Authorized Signatory" text, Logo printing toggle.
-- **Live Preview:** Real-time visual preview of receipt layout in settings.
+---
 
-### 6. Tax Management
-- **Dynamic Rates:** Create unlimited tax rules (GST 18%, VAT 5%, Zero Rated).
-- **Tax Types:** Support for Percentage-based (%) or Fixed Amount taxes.
+### E. Sell Module (Sales & CRM) (11 Views)
+41. **Outbound Performance Console** - `Sales/Dashboard.jsx` (Sales reps, best sellers metrics)
+42. **Finalized Invoices History** - `Sales/SalesHistory.jsx` (List of sales orders)
+43. **A4 Invoice PDF / Print Show** - `Sales/Show.jsx` (Print preview page)
+44. **A4 Business Invoice Builder** - `Sales/CreateInvoice.jsx` (Back-office invoice composer)
+45. **Sales Orders List** - `Sales/Orders/SalesOrdersList.jsx` (Pending sales orders)
+46. **Quotation Builder** - `Sales/CreatePreSale.jsx` (Create sales quotation)
+47. **Pre-sales Queue Directory** - `SalesOrders/PreSales.jsx` (Active quotes database)
+48. **Proposals Directory** - `Proposals/ProposalsList.jsx` (Client proposal tables)
+49. **Create Business Proposal** - `Proposals/Create.jsx` (Compose custom business pitches)
+50. **Show Proposal Layout** - `Proposals/Show.jsx` (Printable proposal pages)
+51. **Parked Sales Management** - `Sales/ParkedSales.jsx` (List of parked transactions)
 
-### 7. Messaging & Notifications
-- **WhatsApp Integration:** Meta Business API connection for sending invoices via WhatsApp.
-- **SMS Integration:** Auto-send SMS to parties on transaction.
-- **Templates:** Customizable message templates with dynamic placeholders (`[Firm_Name]`, `[Invoice_Amount]`).
+---
 
-## B. INVENTORY & PRODUCT FEATURES
+### F. Purchase Module (Procurement) (7 Views)
+52. **Vendor Invoices List** - `Purchases/PurchasesList.jsx` (Confirmed incoming bills)
+53. **Purchase Invoice Builder** - `Purchases/Create.jsx` (Log inbound items and unit costs)
+54. **Purchase Bill Print Show** - `Purchases/Show.jsx` (Inbound invoice details view)
+55. **Purchase Orders Directory** - `PurchaseOrders/PurchaseOrdersList.jsx` (Purchase requests log)
+56. **Create Purchase Order** - `PurchaseOrders/Create.jsx` (PO composition workspace)
+57. **Show Purchase Order Details** - `PurchaseOrders/Show.jsx` (PO printable document)
+58. **Material Receiving Reports** - `Purchases/Receive.jsx` (Receiving quantities controller)
 
-### 1. Product Management
-- **Variants:** Support for Size/Color/Style variants (e.g., Shirt -> Red/XL).
-- **Batch Tracking:** Track expiration dates and lot numbers (Crucial for Pharmacy/Food).
-- **Serial Tracking:** Track individual unique items (IMEI for phones, Serial for electronics).
-- **Barcodes:** Generation and scanning support.
-- **Categorization:** Hierarchical categories for products.
-- **Units:** Multiple units of measure (kg, pcs, box).
+---
 
-### 2. Manufacturing & Bundles
-- **BOM (Bill of Materials):** Define recipes for products (e.g., Burger = Bun + Patty + Sauce).
-- **Production Runs:** Execute manufacturing to deduct raw materials and add finished goods.
-- **Cost Calculation:** Automated cost storage based on ingredient prices.
+### G. Returns & Debit Notes (4 Views)
+59. **Sales Returns Creator** - `Returns/Create.jsx` (Process customer refunds/exchanges)
+60. **Sales Returns History Log** - `Returns/ReturnsHistory.jsx` (Log of Credit Notes)
+61. **Debit Note / Purchase Return** - `DebitNotes/Create.jsx` (Create vendor returns)
+62. **Debit Notes Log Ledger** - `DebitNotes/DebitNotes.jsx` (Debit note history logs)
 
-### 3. Stock Control
-- **Multi-Warehouse:** Manage stock across different locations/stores.
-- **Stock Transfers:** Moving items between warehouses with audit logs.
-- **Stock Audits (Stock Take):** Physical vs System stock reconciliation tools.
-- **Low Stock Alerts:** Automated warnings when items breach threshold.
-- **Negative Stock Prevention:** Optional hard-stop on selling out-of-stock items.
+---
 
-## C. SALES & POS FEATURES
+### H. Stock Module (Inventory Hub) (18 Views)
+63. **Stock Control Dashboard** - `Inventory/Dashboard.jsx` (Valuation metrics, alert widgets)
+64. **Product Catalog Directory** - `Inventory/InventoryList.jsx` (Products search, grid card views)
+65. **Stock Levels Matrix** - `Inventory/StockLevels.jsx` (Quantities across locations)
+66. **Categories Tree Configurator** - `Inventory/Categories.jsx` (Product nesting maps)
+67. **Variant Attributes Setup** - `Inventory/Attributes/AttributesList.jsx` (Sizes, colors)
+68. **Product Variants Index** - `Inventory/Variants/VariantsList.jsx` (SKUs and prices map)
+69. **Barcode Label Factory** - `Labels/LabelPrinter.jsx` (Design barcode tickets)
+70. **Batch & Expiry Tracker** - `BatchTracking/BatchTracking.jsx` (Batch numbers registry)
+71. **Serial & IMEI warranties** - `SerialTracking/SerialTracking.jsx` (Device serial tracking sheets)
+72. **Stock Adjustments Editor** - `StockOperations.jsx` (Damage write-offs and corrections)
+73. **Physical Stock audits Log** - `StockTake/StockTake.jsx` (Log of audits)
+74. **Stock Audit Run** - `StockTake/Create.jsx` (Physical counting sheet)
+75. **Show Stock Audit Result** - `StockTake/Show.jsx` (Discrepancy validation sheets)
+76. **Stock Transfers List** - `StockTransfers/StockTransfers.jsx` (Godown transfer log)
+77. **Create Stock Transfer** - `StockTransfers/Create.jsx` (Move items from warehouse)
+78. **Show Stock Transfer Ticket** - `StockTransfers/Show.jsx` (Transfer waybill printer)
+79. **Composite Production Batches** - `Inventory/Production/ProductionRuns.jsx` (Manufacturing run logs)
+80. **Launch Production Batch** - `Inventory/Production/Create.jsx` (BOM ingredient assembler)
 
-### 1. Point of Sale (POS)
-- **High-Speed Interface:** Keyboard-first design for rapid checkout.
-- **Cart Management:** Hold/Park bills to serve other customers, then Recall.
-- **Search:** Instant product lookup by Name, Barcode, or SKU.
-- **Customer Association:** Link sales to walk-in or registered customers.
-- **Discounting:** Line-item discounts and Global/Cart discounts.
+---
 
-### 2. Sales Operations
-- **Quotations/Pre-Sales:** Create quotes that don't affect stock until converted.
-- **Sales Orders:** Manage long-term orders.
-- **Recurring Invoices:** Automate subscription-style billing.
-- **Returns:** Full RMA (Return Merchandise Authorization) workflow with refunds to Cash or Ledger.
-- **Parked Sales:** "Tab" management for restaurants or active counters.
+### I. Contacts & HR Modules (7 Views)
+81. **Unified Partners Index** - `Parties/PartiesList.jsx` (Customers and vendors directories)
+82. **Partner Account Statement** - `Parties/Ledger.jsx` (Khata ledger sheet)
+83. **Suppliers List Directory** - `Suppliers/SuppliersList.jsx` (Vendor database index)
+84. **Staff Management Hub** - `Staff/Hub.jsx` (Employee directory, permissions)
+85. **Attendance Log Sheet** - `StaffAttendance/StaffAttendance.jsx` (Daily clock logs)
+86. **Check-in Tracker Detail** - `StaffAttendance/Show.jsx` (Biometrics & map logs)
+87. **Store Staff Log** - `Store/Staff/Index.jsx` (Employee listing detail)
 
-## D. FINANCE & ACCOUNTING FEATURES
+---
 
-### 1. Ledgers & Banking
-- **Double-Entry:** Fully compliant double-entry accounting backend.
-- **Chart of Accounts:** Customizable financial structure.
-- **Bank Reconciliation:** Match system records with imported bank statements.
-- **Fund Management:** Manage petty cash and capital injections.
+### J. Money Module (Financial Hub) (13 Views)
+88. **Finance Dashboard** - `Finance/FinanceDashboard.jsx` (P&L and assets indicators)
+89. **Double-Entry Accounting Hub** - `Accounting/Dashboard.jsx` (Journal and audit checks)
+90. **Chart of Accounts Hierarchy** - `Accounting/ChartOfAccounts.jsx` (Asset, liability trees)
+91. **Ledger Transactions Log** - `Transactions/TransactionsList.jsx` (Master accounting logs)
+92. **Payment In Creator** - `Payments/In.jsx` (Inbound payment vouchers)
+93. **Payment Out Creator** - `Payments/Out.jsx` (Outbound payout vouchers)
+94. **Payment Vouchers Log** - `Payments/PaymentsList.jsx` (History of vouchers)
+95. **Business Expenses Workspace** - `Expenses/ExpensesList.jsx` (Operation spends and tags)
+96. **Bank Accounts Listing** - `BankAccounts/BankAccountsList.jsx` (Cash drawer, bank ledger mappings)
+97. **Bank Statements Matcher** - `BankReconciliation/BankReconciliation.jsx` (Reconciliation table tool)
+98. **Capital Fund Allocator** - `Funds/FundManagement.jsx` (Capital transfers and balances)
+99. **Cash History Log** - `Funds/CashHistory.jsx` (Cash registers drawer audit log)
+100. **Chart Accounts Profit & Loss** - `Accounting/ProfitLoss.jsx` (Net accounting margins view)
 
-### 2. Payments & Expenses
-- **Payment Vouchers:** Record Receipts (Ins) and Payments (Outs).
-- **Expense Recording:** Categorized expense tracking (Rent, Utilities, Salary).
-- **Custom Charges:** Add arbitrary fees (Delivery, Service Charge) to bills.
+---
 
-## E. CUSTOMER RELATIONSHIP (CRM) & GROWTH
+### K. Role-Scoped Employee Dashboards (5 Views)
+101. **Executive Owner Command** - `Admin/ExecutiveDashboard.jsx` (Store owner dashboards)
+102. **Cashier Checkout Workspace** - `Dashboards/CashierDashboard.jsx` (Restricted POS checkout screen)
+103. **Accountant Ledgers Console** - `Dashboards/AccountantDashboard.jsx` (Double-entry journal workspace)
+104. **Purchasing & Procurement Console** - `Dashboards/PurchasingDashboard.jsx` (Vendor restock panels)
+105. **CPA External Auditor View** - `Dashboards/ViewerDashboard.jsx` (Read-only dashboards)
 
-### 2. Inventory & Manufacturing
-- **Product Management:**
-    - **Variants:** Comprehensive variant system (Size, Color, etc.) with individual SKU tracking.
-    - **Batch & Serial Tracking:** expiration dates for perishables and serial numbers for warranties.
-    - **Low Stock Alerts:** Visual color-coded indicators (Red/Amber) for critical stock levels.
-    - **Digital Catalogs:** Grid/List views with image previews and instant search.
-- **Manufacturing & Bundles:**
-    - **Dynamic BOM (Bill of Materials):** Define recipes where 1 Widget = 2 Raw Material A + 1 Raw Material B.
-    - **Auto-Deduction:** Selling a bundle automatically deducts component stock.
-    - **Cookbook Mode:** Dedicated recipe management interface for food businesses.
-    - **Production Runs:** Track manufacturing batches and yields.
-- **Stock Control:**
-    - **Stock Audits:** Reconcile physical vs. system stock.
-    - **Transfers:** Move inventory between multiple warehouses/locations.
-    - **Adjustments:** Manually correct stock levels with reason codes (Damaged, Theft).
-    - **Negative Stock:** Settings-controlled permission to sell items into negative inventory.
+---
 
-### 3. Sales & POS Features
-- **High-Speed POS:**
-    - **Quick Entry (Alt+Q):** Keyboard-first mode for rapid product addition.
-    - **Barcode Scanning:** Intelligent scanner handling; scanning a small number (e.g., "5") updates the last item's quantity.
-    - **Profit Sneak Peek:** Drag down on the total to reveal per-transaction profit (secured by UI lock).
-    - **Senior Mode:** Accessibility toggle for larger text and simplified interfaces.
-    - **Walk-in & Registered Customers:** Seamless switching between guest and loyal customers.
-- **Cart Management:**
-    - **Hold/Park Sale:** Save carts for later retrieval.
-    - **Multi-Level Discounts:** Apply discounts by fixed amount or percentage, per item or on the subtotal.
-    - **Custom Charges:** Add delivery fees or service charges on the fly.
-- **Quotations & Pre-Orders:**
-    - **Proposals:** Create formal quotes with "Valid Until" dates; one-click conversion to Sale.
-    - **Pre-Orders:** Manage advance bookings with partial payments; deducts stock only upon confirmation.
-    - **Shareable Links:** Generate WhatsApp/Email friendly text/links for quotes.
+### L. AI Intelligence & Smart Tools (4 Views)
+106. **Growth Engine Hub** - `GrowthEngine/GrowthDashboard.jsx` (Opportunity metrics panel)
+107. **Opportunity Predictor Console** - `Sales/Analytics.jsx` (Retention forecasting charts)
+108. **Natural Language Search Bar** - `Pos.jsx` (AI smart search overlay dialog)
+109. **Smart Chatbot Settings** - `Settings/ChatbotSettings.jsx` (Floating chat options)
 
-### 4. Finance & Accounting
-- **Double-Entry Ledgers:** Automatic background journal entries for every transaction.
-- **Chart of Accounts:** Fully customizable hierarchy for Assets, Liabilities, Equity, Income, and Expenses.
-- **Bank Reconciliation:** Match system records with bank statements.
-- **Fund Management:** Track cash flow across different accounts (Petty Cash, Bank, Drawers).
-- **Expense Tracking:** Record operating costs with category breakdowns.
-- **Loan Management:** Track loans given to or taken from parties.
+---
 
-### 5. Analytics & Reports Hub
-- **Sales & Income:**
-    - **Sales Analytics:** Visual graphs for revenue trends, comparison by period.
-    - **Profit & Loss:** Detail view of net income (Revenue - COGS - Expenses).
-    - **Item/Bill Profit:** Granular profitability analysis per product or individual invoice.
-- **Inventory & Purchase:**
-    - **Stock Aging:** Identify slow-moving vs. fast-moving stock to optimize purchasing.
-    - **Stock Valuation:** Real-time calculation of total asset value.
-    - **Movement History:** Full audit trail of every stock change.
-- **Parties & Relationships:**
-    - **Party Statements:** General ledger view for any customer or supplier.
-    - **Party-wise P&L:** Determine which customers make you the most money.
-- **Visuals:** All reports feature "Card Views" for key metrics (Total Revenue, Net Profit) at the top. based on historic data.
+### M. WooCommerce Sync & Integrations (6 Views)
+110. **WooCommerce Sync Center** - `WooCommerce/WooCommerce.jsx` (Orders bridge dashboard)
+111. **WooCommerce Connections Index** - `WooCommerce/Connections.jsx` (List of active tokens)
+112. **WooCommerce Setup Workspace** - `WooCommerce/ConnectionSetup.jsx` (Credential form checkers)
+113. **WooCommerce Sync Tasks** - `WooCommerce/SyncPage.jsx` (Batch items synchronization status)
+114. **VenSynQ Backup Dashboard** - `VenSynQ/Dashboard.jsx` (Cloud backups status)
+115. **VenSynQ Configuration Settings** - `VenSynQ/Settings.jsx` (SynQ settings panel)
 
-## F. TECHNICAL & ADVANCED FEATURES
+---
 
-### 1. System Configuration (Admin Settings)
-- **AI Intelligence:**
-    - **Provider Choice:** Switch between Google Gemini (Free Tier) and OpenAI GPT-4.
-    - **Key Verification:** "Check Key" button to validate API credentials instantly.
-    - **Model Selection:** Choose specific models (e.g., Gemini Flash, GPT-4 Turbo).
-- **Hardware & Printing:**
-    - **Printer Types:** Toggle between "Regular (A4/Legal)" and "Thermal (3-inch)" modes.
-    - **Live Preview:** Real-time visual preview of invoice layout while editing settings.
-    - **Signature:** Custom text field for "Authorized Signatory" label.
-- **Security & Access:**
-    - **Passcode Protection:** System-wide PIN for sensitive actions (deleting, refunding).
-    - **2FA:** Two-factor authentication for admin login.
-    - **Activity Log:** Comprehensive audit trail of user actions.
-- **Data Management:**
-- **Activity Log:** Comprehensive audit trail of user actions.
-- **Data Management:**
-    - **Backup:** One-click database backup and download.
-    - **Recycle Bin:** Soft-delete system for restoring accidentally removed items.
+### N. Growth & Marketing Operations (3 Views)
+116. **WhatsApp SMS Campaigns** - `Marketing/Campaigns.jsx` (Marketing campaign analytics)
+117. **Online Storefront Manager** - `OnlineStore/OnlineStore.jsx` (Public store listings dashboard)
+118. **E-Invoicing FBR Center** - `EInvoicing/EInvoicing.jsx` (FBR regulatory settings)
 
-### 2. Staff Management
-- **Attendance:** Check-in/Check-out logging.
-- **Permissions:** Granular role-based access control (Admin, Manager, Cashier).
-- **Gaps:** Tracking unexplained gaps in staff activity.
+---
 
-### 3. Developer/System
-- **Cookbook:** Internal developer documentation/knowledge base module.
-- **API:** Ready-to-use API endpoints for external integrations (`/api/...`).
-- **PWA:** Progressive Web App capable (installable on mobile/tablet).
+### O. Cookbook & BOM Recipe Book (2 Views)
+119. **Cookbook Recipes Catalog** - `Cookbook/RecipesList.jsx` (BOM list views)
+120. **Cookbook Recipe Composer** - `Cookbook/Create.jsx` (BOM component list composer)
+
+---
+
+### P. Settings Subsections (20 Views)
+*Located across `Admin/Settings.jsx` (17 sections) and `Settings/SettingsPanel.jsx` (3 sections). Treated as individual page entities.*
+
+121. **Settings 1: Business Branding Setup** (Admin: Company details & NTN)
+122. **Settings 2: General System Settings** (Admin: Decimal places, overselling control)
+123. **Settings 3: AI Intelligence Setup** (Admin: Model selector, Gemini/OpenAI key checks)
+124. **Settings 4: Invoice Rules & Prefixes** (Admin: Prefix settings, auto-numbers)
+125. **Settings 5: A4 Printer Layout Settings** (Admin: Margin configuration tools)
+126. **Settings 6: Thermal Invoice Settings** (Admin: Page widths, columns toggles)
+127. **Settings 7: System Tax Rules Setup** (Admin: GST/VAT percentage matrices)
+128. **Settings 8: WhatsApp Messaging Setup** (Admin: Meta tokens forms)
+129. **Settings 9: Partner Credit Limits** (Admin: Creditors warning threshold)
+130. **Settings 10: Product Variant Presets** (Admin: Attribute setup guidelines)
+131. **Settings 11: Service Reminders Config** (Admin: Recurrences scheduler)
+132. **Settings 12: Financial Year Config** (Admin: Fiscal year date picker)
+133. **Settings 13: Localizations Settings** (Admin: Languages, RTL toggles)
+134. **Settings 14: System Notifications Config** (Admin: Alert settings)
+135. **Settings 15: Admin Security Configurations** (Admin: Pin controls)
+136. **Settings 16: Backup Schedules** (Admin: Auto-backup paths)
+137. **Settings 17: Integrations API Gate** (Admin: WooCommerce, Stripe connection tools)
+138. **Settings 18: Factory Database Reset** (Admin: System purge dialogs)
+139. **Settings 19: Scoped Store Info Panel** (Store settings: General section)
+140. **Settings 20: Scoped Store POS Setup** (Store settings: POS options section)
+
+---
+
+### Q. Reports Sub-ledger Modules (43 Views)
+*Sub-reports located inside `resources/js/Pages/Reports`. Individually rendered.*
+
+141. **Report 1: Profit & Loss Statement** - `ProfitLoss.jsx`
+142. **Report 2: Balance Sheet ledger** - `AccountLedger.jsx` (Detailed assets matching)
+143. **Report 3: Trial Balance Summary** - `TrialBalance.jsx`
+144. **Report 4: Cash Flow Statement** - `CashFlow.jsx`
+145. **Report 5: Day Book Journal** - `DayBook.jsx`
+146. **Report 6: Sales Analytics Report** - `Sales.jsx`
+147. **Report 7: Sale Aging Receivables** - `SaleAging.jsx`
+148. **Report 8: Sales Orders History** - `SaleOrders.jsx`
+149. **Report 9: Sales Order Items Detail** - `SaleOrderItems.jsx`
+150. **Report 10: Purchases History** - `Purchases.jsx`
+151. **Report 11: Inventory Valuation Report** - `StockValuation.jsx`
+152. **Report 12: Low Stock Pulse Alerts** - `LowStock.jsx`
+153. **Report 13: Expiry Calendar Report** - `ExpiryReport.jsx`
+154. **Report 14: Stock Movement Audit** - `MovementHistory.jsx`
+155. **Report 15: Stock Aging Report** - `StockAging.jsx`
+156. **Report 16: Stock Category Valuation** - `StockSummaryByCategory.jsx`
+157. **Report 17: Single Item Details** - `ItemDetail.jsx`
+158. **Report 18: Item Discount Analysis** - `ItemWiseDiscount.jsx`
+159. **Report 19: Item-wise Profit Margins** - `ItemWiseProfit.jsx`
+160. **Report 20: Bill-wise Profit Margins** - `BillWiseProfit.jsx`
+161. **Report 21: Financial Tax Compliance** - `Tax.jsx`
+162. **Report 22: Tax Rate Breakdown** - `TaxRateReport.jsx`
+163. **Report 23: Bank Accounts Statement** - `BankStatement.jsx`
+164. **Report 24: Loan Activity Statements** - `LoanStatement.jsx`
+165. **Report 25: Expense Category Breakdown** - `ExpenseByCategory.jsx`
+166. **Report 26: Expense Itemized Report** - `ExpenseByItem.jsx`
+167. **Report 27: Consolidated Expense Ledger** - `Expenses.jsx`
+168. **Report 28: Partners Directory statement** - `AllParties.jsx`
+169. **Report 29: Single Party Statement Ledger** - `PartyStatement.jsx`
+170. **Report 30: Party-wise Profit Margins** - `PartyWiseProfitLoss.jsx`
+171. **Report 31: Sales Graph Analytics** - `GraphAnalytics.jsx`
+172. **Report 32: Owner Daily Pulse Console** - `OwnersDailyPulse.jsx`
+173. **Report 33: Day Book Journal Logs** - `DayBook.jsx` (Drill-down transactions logs)
+174. **Report 34: Item Report by Party** - `ItemReportByParty.jsx`
+175. **Report 35: Party Report by Item** - `PartyReportByItem.jsx`
+176. **Report 36: Sale/Purchase by Item Category** - `SalePurchaseByItemCategory.jsx`
+177. **Report 37: Sale/Purchase by Party** - `SalePurchaseByParty.jsx`
+178. **Report 38: Sale/Purchase by Party Group** - `SalePurchaseByPartyGroup.jsx`
+179. **Report 39: Stock Category Summary** - `StockSummaryByCategory.jsx` (Visual indicators section)
+180. **Report 40: Item Category P&L** - `ItemCategoryWiseProfitLoss.jsx`
+181. **Report 41: Discount Leakage Report** - `DiscountReport.jsx`
+182. **Report 42: Generic Report Base** - `GenericReport.jsx`
+183. **Report 43: Visual Charts Analytics** - `GraphAnalytics.jsx`
+
+---
+
+### R. V3 Next-Gen Engine Modules (12 Views)
+184. **V3 Composite Item Creator** - `V3/Products/Create.jsx`
+185. **V3 Variants Configuration** - `V3/Products/Edit.jsx`
+186. **V3 Products Grid View** - `V3/Products/Index.jsx`
+187. **V3 Wholesale Pricing Matrices** - `V3/Products/PriceTiers.jsx`
+188. **V3 Metric Unit Converter** - `V3/Products/UomConversions.jsx`
+189. **V3 Purchase Bill Writer** - `V3/Purchases/Create.jsx`
+190. **V3 Purchase Bills Ledger** - `V3/Purchases/Index.jsx`
+191. **V3 Debit Note Manager** - `V3/Purchases/Return.jsx`
+192. **V3 Purchase Voucher Details** - `V3/Purchases/Show.jsx`
+193. **V3 Warehouse Registrar** - `V3/Warehouses/Create.jsx`
+194. **V3 Godown Profiles Editor** - `V3/Warehouses/Edit.jsx`
+195. **V3 Locations Inventory Directory** - `V3/Warehouses/Index.jsx`
+
+---
+
+### S. Support, Logs & System Management (60 Views)
+*Treated as distinct user-facing panels in the application. Files nested in Pages folder.*
+
+196. **Staff Attendance Summary** - `Admin/StaffSummaries.jsx`
+197. **Internal HQ Chat Inbox** - `Admin/AgentInbox.jsx`
+198. **HQ Support Tickets Hub** - `Admin/VenaTickets.jsx`
+199. **Ticket Conversation Thread** - `Admin/VenaTicketDetail.jsx`
+200. **Cloud Backups List** - `Admin/Backups.jsx`
+201. **Data Import Excel Panel** - `Admin/DataManagement.jsx`
+202. **CSV Fields Mapper** - `Admin/DataMapping.jsx`
+203. **Database Health Metrics** - `Admin/Database.jsx`
+204. **Database Migration Console** - `Admin/Migration.jsx`
+205. **Platform Action Logs** - `Admin/Logs.jsx`
+206. **SaaS Store Manager Dashboard** - `OnlineStore/OnlineStore.jsx`
+207. **Notification Center** - `Notifications/NotificationCenter.jsx`
+208. **Global Action Log** - `ActivityLog.jsx`
+209. **Recycle Bin Restore Console** - `RecycleBin.jsx`
+210. **Coupon Redemptions** - `Redeem.jsx`
+211. **Coupon Success Notice** - `RedeemSuccess.jsx`
+212. **System Updater Panel** - `Updater/Index.jsx`
+213. **Store Suspended Screen** - `Errors/StoreSuspended.jsx`
+214. **Trial Expired Screen** - `Errors/TrialExpired.jsx`
+215. **Generic Error 404/500 Screen** - `Error.jsx`
+216. **Invoice Reminders Center** - `Reminders/InvoiceReminders.jsx`
+217. **Demo Connections Onboarding** - `Demo/Landing.jsx`
+218. **Demo Expired Notice** - `DemoExpired.jsx`
+219. **Store Join Confirmations** - `Store/CreateOrJoin.jsx`
+220. **Store Join Request form** - `Store/Join.jsx`
+221. **POS Hold invoices lists** - `Sales/ParkedSales.jsx`
+222. **Automanufacturing Logic Settings** - `Manufacturing/Rules.jsx`
+223. **GPS Coordinate Maps Show** - `StaffAttendance/Show.jsx`
+224. **Store-level Settings Scoped Security** - `Settings/SettingsPanel.jsx` (Security Section)
+225. **Subscription Billing Hub** - `Billing/Index.jsx`
+226. **Cookbook Create Recipe Form** - `Cookbook/Create.jsx`
+227. **Cookbook Recipes Catalog Views** - `Cookbook/RecipesList.jsx`
+228. **Create Pre-Sale Orders** - `SalesOrders/CreatePreSale.jsx`
+229. **Pre-sales Queue Indexes** - `SalesOrders/PreSales.jsx`
+230. **Stock Audit counting Sheets** - `StockTake/Create.jsx`
+231. **Stock Audit reports visualizer** - `StockTake/Show.jsx`
+232. **Stock Audit logs history** - `StockTake/StockTake.jsx`
+233. **Godown transfers composer** - `StockTransfers/Create.jsx`
+234. **Godown transfers prints** - `StockTransfers/Show.jsx`
+235. **Godown transfers registries** - `StockTransfers/StockTransfers.jsx`
+236. **F1 Universal Search dialog** - `Pos.jsx`
+237. **Growth Engine recommendations** - `GrowthEngine/GrowthDashboard.jsx` (Opportunites list)
+238. **WooCommerce Sync Tasks logs** - `WooCommerce/SyncPage.jsx`
+239. **WooCommerce Connections panels** - `WooCommerce/Connections.jsx`
+240. **WooCommerce Credentials forms** - `WooCommerce/ConnectionSetup.jsx`
+241. **WooCommerce Main Sync view** - `WooCommerce/WooCommerce.jsx`
+242. **VenSynQ Database Backups** - `VenSynQ/Dashboard.jsx`
+243. **VenSynQ parameters configuration** - `VenSynQ/Settings.jsx`
+244. **SMS Whatsapp campaigns composer** - `Marketing/Campaigns.jsx`
+245. **E-Invoicing FBR Settings Panel** - `EInvoicing/EInvoicing.jsx`
+246. **POS Senior Mode Color Presets** - `Pos.jsx` (Contrast section)
+247. **POS Pay dialog panels** - `Pos.jsx` (Totals checkout modal)
+248. **Sales Outbound Dashboard Charts** - `Sales/Dashboard.jsx` (Trend widget section)
+249. **Proposals Invoices printable page** - `Proposals/Show.jsx`
+250. **Invoice printable layout thermal** - `Sales/Show.jsx` (Thermal templates section)
+251. **Invoice printable layout regular** - `Sales/Show.jsx` (A4 templates section)
+252. **Purchase Invoice item lists cards** - `Purchases/Create.jsx` (Item logs cards)
+253. **Purchase Bill print layout regular** - `Purchases/Show.jsx` (Bill view section)
+254. **Product Variants variant creator modal** - `Inventory/Variants/VariantsList.jsx` (Variants details card)
+
+---
+
+# III. KEY MOBILE RESPONSIVENESS REFITTING PATTERNS
+
+Every component listed above must scale smoothly using these core design systems:
+
+```mermaid
+graph TD
+    A[Grid Adaptations] --> B[Single column stacked forms on Mobile]
+    A --> C[Swipeable tabs for side-by-side components]
+    D[Table Adaptations] --> E[Responsive Card-View swaps for rows]
+    D --> F[Scrollable container boundaries with horizontal scroll indicators]
+    G[Control Bars] --> H[Floating action buttons and sticky bottom bars]
+```
+
+### 1. The Dynamic Grid Stacking Pattern
+Never write absolute widths on container nodes. Ensure standard grids use dynamic responsiveness:
+```jsx
+// Correct layout grid
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+   {items.map(item => <ItemCard key={item.id} data={item} />)}
+</div>
+```
+
+### 2. Table to Card Layout Swapper
+For screens `< 768px`, replace tables with card lists:
+```jsx
+{/* Desktop View */}
+<table className="hidden md:table w-full">
+   <thead>{/* headers */}</thead>
+   <tbody>{/* rows */}</tbody>
+</table>
+
+{/* Mobile View */}
+<div className="block md:hidden space-y-4">
+   {rows.map(row => (
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm" key={row.id}>
+         {/* Render Row fields as key-value pairs */}
+      </div>
+   ))}
+</div>
+```
+
+### 3. Floating Bottom Sheets for Action Items
+On mobile, action triggers placed at the top (like export, filter, edit columns) must be moved into a bottom action sheet or sticky footer:
+```jsx
+<div className="fixed bottom-0 left-0 right-0 p-4 bg-slate-900 border-t border-slate-800 flex justify-around md:relative md:bg-transparent md:border-none">
+   <button className="px-6 py-3 bg-indigo-600 rounded-xl font-bold">Apply Filters</button>
+</div>
+```

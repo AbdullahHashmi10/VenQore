@@ -37,15 +37,43 @@ class BankAccount extends Model
                 ->value('balance');
         }
 
-        // For non-cash banks, return the subledger tracked balance from the journal using reference
-        return (float) \Illuminate\Support\Facades\DB::table('journal_items')
-            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-            ->join('accounts', 'journal_items.account_id', '=', 'accounts.id')
-            ->where('journal_entries.tenant_id', $this->tenant_id)
-            ->where('accounts.code', '1010')
-            ->where('journal_entries.reference', $this->id)
-            ->where('journal_entries.is_reversed', 0)
-            ->selectRaw('COALESCE(SUM(journal_items.debit),0) - COALESCE(SUM(journal_items.credit),0) as balance')
-            ->value('balance');
+        // For non-cash banks, return the subledger tracked balance from the source tables
+        $opening = (float) $this->opening_balance;
+
+        $hasBankAccount = \Illuminate\Support\Facades\Schema::hasColumn('payments', 'bank_account_id');
+
+        $deposits = 0.0;
+        $withdrawals = 0.0;
+
+        if ($hasBankAccount) {
+            $deposits = (float) \Illuminate\Support\Facades\DB::table('payments')
+                ->where('tenant_id', $this->tenant_id)
+                ->where('bank_account_id', $this->id)
+                ->whereIn('type', ['in', 'received'])
+                ->sum('amount');
+
+            $withdrawals = (float) \Illuminate\Support\Facades\DB::table('payments')
+                ->where('tenant_id', $this->tenant_id)
+                ->where('bank_account_id', $this->id)
+                ->whereIn('type', ['out', 'sent'])
+                ->sum('amount');
+        }
+
+        $expenses = (float) \Illuminate\Support\Facades\DB::table('expenses')
+            ->where('tenant_id', $this->tenant_id)
+            ->where('bank_account_id', $this->id)
+            ->sum('amount');
+
+        $transfersIn = (float) \Illuminate\Support\Facades\DB::table('fund_transactions')
+            ->where('tenant_id', $this->tenant_id)
+            ->where('to_account_id', $this->id)
+            ->sum('amount');
+
+        $transfersOut = (float) \Illuminate\Support\Facades\DB::table('fund_transactions')
+            ->where('tenant_id', $this->tenant_id)
+            ->where('from_account_id', $this->id)
+            ->sum('amount');
+
+        return $opening + $deposits + $transfersIn - $withdrawals - $expenses - $transfersOut;
     }
 }

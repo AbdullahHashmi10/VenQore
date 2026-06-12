@@ -69,7 +69,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
             name: account.name || '',
             account_number: account.account_number || '',
             bank_name: account.bank_name || '',
-            account_type: account.account_type || 'checking',
+            account_type: account.account_type === 'Default' ? 'cash' : (account.account_type || 'checking'),
             opening_balance: account.opening_balance || 0,
             current_balance: account.current_balance || 0,
             notes: account.notes || ''
@@ -83,7 +83,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
         if (!confirm(`Are you sure you want to delete "${account.name}"?`)) return;
 
         try {
-            await axios.delete(route('store.bank-accounts.destroy', account.id));
+            await axios.delete(route('store.bank-accounts.destroy', { store_slug: store.slug, bankAccount: account.id }));
             router.reload({ only: ['bankAccounts', 'stats'] });
         } catch (error) {
             alert(error.response?.data?.message || 'Failed to delete account');
@@ -98,7 +98,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
 
         try {
             if (editingAccount) {
-                await axios.put(route('store.bank-accounts.update', editingAccount.id), formData);
+                await axios.put(route('store.bank-accounts.update', { store_slug: store.slug, bankAccount: editingAccount.id }), formData);
             } else {
                 await axios.post(route('store.bank-accounts.store', { store_slug: store.slug }), formData);
             }
@@ -346,7 +346,7 @@ export default function BankAccountsIndex({ bankAccounts = [], stats = {} }) {
                             />
                         </FormField>
 
-                        <FormField label="Account Type" required>
+                        <FormField label="Account Type" required error={errors.account_type?.[0]}>
                             <FormSelect
                                 value={formData.account_type}
                                 onChange={(e) => setFormData({ ...formData, account_type: e.target.value })}
