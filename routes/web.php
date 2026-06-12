@@ -204,7 +204,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
             Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
-            Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
             Route::get('/staff',       function () { return redirect()->route('store.admin.attendance', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
 
             // ── V1 Staff Invitation System ─────────────────────────────────
@@ -1230,10 +1229,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->name('legacy.admin.migration.analyze');
     Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('legacy.admin.migration.execute');
 
-    Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:users')->name('legacy.admin.users');
-    Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('legacy.admin.users.store');
-    Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->name('legacy.admin.users.update');
-    Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('legacy.admin.users.destroy');
     Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:settings')->name('legacy.admin.settings');
     Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
     Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:audit')->name('legacy.admin.logs');
