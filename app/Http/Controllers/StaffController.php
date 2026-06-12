@@ -337,17 +337,6 @@ class StaffController extends Controller
             }
         }
 
-        $user = $member->user;
-        if ($user) {
-            if ($request->has('role')) {
-                $user->role = $request->role;
-            }
-            if ($request->has('permissions')) {
-                $user->permissions = $request->permissions;
-            }
-            $user->save();
-        }
-
         return back()->with('success', 'Member updated.');
     }
 

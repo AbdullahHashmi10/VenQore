@@ -309,18 +309,15 @@ class User extends Authenticatable
     }
 
     /**
-     * Mutator: Set user role and sync with pivot if in tenant context.
+     * Mutator: Set the legacy users.role column only.
+     *
+     * NOTE: Store-level roles live in tenant_users.role, NOT here.
+     * This column is kept for backward compatibility only.
+     * Never use this to change a user's store role — update TenantUser directly.
      */
     public function setRoleAttribute(?string $value): void
     {
         $this->attributes['role'] = $value;
-
-        if (app()->bound('current.tenant')) {
-            $membership = $this->getActiveMembership();
-            if ($membership && $membership->role !== $value) {
-                $membership->update(['role' => $value]);
-            }
-        }
     }
 
     /**
@@ -410,19 +407,16 @@ class User extends Authenticatable
     }
 
     /**
-     * Mutator: Set user permissions and sync with pivot if in tenant context.
+     * Mutator: Set the legacy users.permissions column only.
+     *
+     * NOTE: Store-level permissions live in tenant_users.permissions, NOT here.
+     * This column is kept for backward compatibility only.
+     * Never use this to change a user's store permissions — update TenantUser directly.
      */
     public function setPermissionsAttribute(mixed $value): void
     {
         $perms = is_array($value) ? $value : (json_decode($value, true) ?? []);
         $this->attributes['permissions'] = json_encode($perms);
-
-        if (app()->bound('current.tenant')) {
-            $membership = $this->getActiveMembership();
-            if ($membership) {
-                $membership->update(['permissions' => $perms]);
-            }
-        }
     }
 
     public function activityLogs(): HasMany
