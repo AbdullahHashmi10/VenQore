@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, router, usePage } from '@inertiajs/react';
 import {
@@ -7,11 +7,12 @@ import {
     Package, BarChart2, DollarSign, Settings, FileText, Truck,
     UserCheck, Eye, Lock, Crown, Star, Calendar, Timer, Activity,
     User, BadgeCheck, Zap, Copy, MessageCircle, Phone, RotateCcw,
-    ChevronDown, AlertCircle, Send, Ban, RefreshCw, BarChart, Sparkles
+    ChevronDown, AlertCircle, Send, Ban, RefreshCw, BarChart, Sparkles, Award, TrendingUp, ChevronRight
 } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, ReferenceLine
 } from 'recharts';
+import { getCurrencySymbol } from '@/Utils/format';
 
 // ─── Role definitions ──────────────────────────────────────────────────────
 const ROLES = {
@@ -300,14 +301,97 @@ function copyToClipboard(text) {
 }
 
 // ─── Main Component ────────────────────────────────────────────────────────
-export default function AdminUsers({ users = [], invitations = [], attendance = [] }) {
+export default function AdminUsers({ users = [], invitations = [], attendance = [], staffData = [] }) {
     const { store } = usePage().props;
-    const [activeTab,    setActiveTab]    = useState('invitations');
+    const [activeTab,    setActiveTab]    = useState('members');
     const [showAddModal, setShowAddModal] = useState(false);
     const [searchQuery,  setSearchQuery]  = useState('');
     const [copiedId,     setCopiedId]     = useState(null);
     const [openMenu,     setOpenMenu]     = useState(null);
     const [selectedUser, setSelectedUser] = useState(null); // For attendance drill-down
+    const [sortConfig,   setSortConfig]   = useState('sales');
+
+    const groups = [
+        {
+            id: 'team',
+            label: 'Team',
+            icon: Users,
+            items: [
+                { id: 'members',     label: 'Members List', icon: Users },
+                { id: 'invitations', label: 'Invitations',  icon: Send },
+            ]
+        },
+        {
+            id: 'attendance',
+            label: 'Attendance & Sales',
+            icon: Clock,
+            items: [
+                { id: 'attendance',  label: 'Attendance Logs', icon: Clock },
+                { id: 'summaries',   label: 'Staff Summaries', icon: BarChart2 },
+            ]
+        }
+    ];
+
+    const getInitialGroup = () => {
+        const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
+        return foundGroup ? foundGroup.id : 'team';
+    };
+
+    const [activeGroup, setActiveGroup] = useState(getInitialGroup);
+
+    useEffect(() => {
+        const foundGroup = groups.find(g => g.items.some(item => item.id === activeTab));
+        if (foundGroup) {
+            setActiveGroup(foundGroup.id);
+        }
+    }, [activeTab]);
+
+    // Calculate aggregated stats
+    const stats = useMemo(() => {
+        const data = staffData || [];
+        return {
+            totalStaff: data.length,
+            totalSales: data.reduce((sum, s) => sum + (s.totalSales || 0), 0),
+            totalTransactions: data.reduce((sum, s) => sum + (s.transactionCount || 0), 0),
+            topPerformer: data.reduce((prev, current) => (prev.totalSales > current.totalSales) ? prev : current, {})
+        };
+    }, [staffData]);
+
+    // Filter Summaries list
+    const filteredSummaries = useMemo(() => {
+        const data = staffData || [];
+        let result = data.filter(s =>
+            s.name.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        result.sort((a, b) => {
+            if (sortConfig === 'sales') return b.totalSales - a.totalSales;
+            if (sortConfig === 'transactions') return b.transactionCount - a.transactionCount;
+            if (sortConfig === 'avg') return b.avgTransaction - a.avgTransaction;
+            return 0;
+        });
+
+        return result;
+    }, [staffData, searchQuery, sortConfig]);
+
+    const attendanceStats = useMemo(() => {
+        const todayLogs = Object.values(attendance?.today || {});
+        const activeNow = todayLogs.filter(a => a.is_active).length;
+        const totalPresent = todayLogs.length;
+        const totalMins = todayLogs.reduce((sum, a) => sum + (a.total_mins || 0), 0);
+        const totalHours = (totalMins / 60).toFixed(1);
+
+        return {
+            activeNow,
+            totalPresent,
+            totalHours: `${totalHours} hrs`,
+            totalStaff: users.filter(u => u.role !== 'platform_admin').length
+        };
+    }, [attendance, users]);
+
+    const formatCurrency = (value) => {
+        return (getCurrencySymbol()) + ' ' + (parseFloat(value || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }));
+    };
 
     const { data, setData, post, processing, errors, reset } = useForm({
         invitee_name:  '',
@@ -392,63 +476,169 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
         <OneGlanceLayout title="Team & Access Control" mode="admin">
             <Head title="Team Management" />
 
-            <div className="h-full flex flex-col gap-6 max-w-[1600px] mx-auto">
+            <div className="h-full flex flex-col gap-3 max-w-[1600px] mx-auto">
 
-                {/* ── Header ── */}
-                <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 shrink-0">
-                    <div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                            <Users className="text-indigo-500" />
-                            Team Management
-                        </h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">Invite staff by code or magic link — no passwords, ever.</p>
+                {/* ── Premium Grouped Tab Header ── */}
+                <div className="flex flex-col lg:flex-row items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm shrink-0">
+                    {/* Level 1: Category Selector */}
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
+                        {groups.map((group) => {
+                            const Icon = group.icon;
+                            const isActive = activeGroup === group.id;
+
+                            return (
+                                <button
+                                    key={group.id}
+                                    onClick={() => {
+                                        setActiveGroup(group.id);
+                                        setActiveTab(group.items[0].id);
+                                    }}
+                                    className={`
+                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 whitespace-nowrap
+                                        ${isActive
+                                            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                            : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={13} className={isActive ? 'opacity-100' : 'opacity-70'} />
+                                    {group.label}
+                                </button>
+                            );
+                        })}
                     </div>
 
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                        {/* Search */}
-                        <div className="relative flex-1 md:w-64 group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
-                            <input
-                                type="text"
-                                placeholder="Search invitations..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 transition-all shadow-sm"
-                            />
-                        </div>
+                    {/* Separator / Arrow */}
+                    <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                        <ChevronRight size={16} />
+                    </div>
 
-                        {/* Tabs */}
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0">
-                            {[
-                                { id: 'invitations', label: 'Invitations', icon: Send },
-                                { id: 'members',     label: 'Members',     icon: Users },
-                                { id: 'attendance',  label: 'Attendance',  icon: Clock },
-                            ].map(tab => (
-                                <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${
-                                        activeTab === tab.id
-                                            ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
-                                    }`}>
-                                    <tab.icon size={14} />{tab.label}
+                    {/* Level 2: Sub Navigation Items */}
+                    <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full lg:w-auto flex-1">
+                        {groups.find(g => g.id === activeGroup)?.items.map((tab) => {
+                            const Icon = tab.icon;
+                            const isActive = activeTab === tab.id;
+
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`
+                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-200 border whitespace-nowrap
+                                        ${isActive
+                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-bold'
+                                            : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                        }
+                                    `}
+                                >
+                                    <Icon size={13} />
+                                    {tab.label}
                                 </button>
-                            ))}
-                        </div>
+                            );
+                        })}
+                    </div>
 
-                        <button onClick={() => setShowAddModal(true)}
-                            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-lg shadow-indigo-500/20 transition-all hover:scale-105 active:scale-95">
-                            <Send size={18} />
-                            <span className="hidden sm:inline">Invite Member</span>
+                    {/* Midnight Nebula Action Button */}
+                    <div className="shrink-0 self-stretch flex items-center">
+                        <button
+                            onClick={() => setShowAddModal(true)}
+                            className="relative h-full px-5 py-2.5 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 flex items-center gap-2 overflow-hidden group shadow-xl shadow-indigo-500/20 hover:shadow-indigo-500/40"
+                        >
+                            {/* Midnight Nebula Background */}
+                            <div className="absolute inset-0 bg-slate-900 z-0">
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-600/50 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 group-hover:bg-indigo-500/60 transition-colors animate-pulse"></div>
+                                <div className="absolute bottom-0 left-0 w-16 h-16 bg-purple-600/40 rounded-full blur-xl translate-y-1/3 -translate-x-1/3 group-hover:bg-purple-500/50 transition-colors"></div>
+                                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-60"></div>
+                            </div>
+                            {/* Content */}
+                            <Plus size={16} strokeWidth={3} className="relative z-10" />
+                            <span className="hidden sm:inline relative z-10">Invite Member</span>
                         </button>
                     </div>
                 </div>
 
                 {/* ── Stats ── */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 shrink-0">
-                    <StatCard title="Active Members"    value={activeMembers}    icon={<Users size={20} className="text-white" />}         color="bg-indigo-500" />
-                    <StatCard title="Pending Invites"   value={pendingInvites}   icon={<Send size={20} className="text-white" />}           color="bg-amber-500" />
-                    <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={20} className="text-white" />}    color="bg-blue-500"  subtext={awaitingApproval > 0 ? 'Action required' : ''} />
-                    <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={20} className="text-white" />}     color="bg-slate-500" />
+                {['members', 'invitations'].includes(activeTab) && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
+                        <StatCard title="Active Members"    value={activeMembers}    icon={<Users size={16} />}         color="bg-indigo-500" />
+                        <StatCard title="Pending Invites"   value={pendingInvites}   icon={<Send size={16} />}           color="bg-amber-500" />
+                        <StatCard title="Awaiting Approval" value={awaitingApproval} icon={<AlertCircle size={16} />}    color="bg-blue-500"  subtext={awaitingApproval > 0 ? 'Action required' : ''} />
+                        <StatCard title="Total Invitations" value={invitations.length} icon={<Activity size={16} />}     color="bg-slate-500" />
+                    </div>
+                )}
+
+                {activeTab === 'attendance' && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
+                        <StatCard title="On Duty Now"       value={attendanceStats.activeNow}    icon={<Clock size={16} />}         color="bg-emerald-500" />
+                        <StatCard title="Present Today"     value={attendanceStats.totalPresent} icon={<UserCheck size={16} />}     color="bg-indigo-500" />
+                        <StatCard title="Total Time Logged" value={attendanceStats.totalHours}   icon={<Timer size={16} />}         color="bg-blue-500" />
+                        <StatCard title="Total Staff"       value={attendanceStats.totalStaff}   icon={<Users size={16} />}         color="bg-slate-500" />
+                    </div>
+                )}
+
+                {activeTab === 'summaries' && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
+                        <StatCard title="Active Staff"      value={stats.totalStaff}             icon={<Users size={16} />}         color="bg-indigo-500" />
+                        <StatCard title="Total Sales"       value={formatCurrency(stats.totalSales)} icon={<DollarSign size={16} />}   color="bg-emerald-500" />
+                        <StatCard title="Transactions"      value={stats.totalTransactions}      icon={<Package size={16} />}       color="bg-blue-500" />
+                        <StatCard title="Top Performer"     value={stats.topPerformer.name || '-'} icon={<Award size={16} />}         color="bg-amber-500" subtext={stats.topPerformer.totalSales ? formatCurrency(stats.topPerformer.totalSales) : ''} />
+                    </div>
+                )}
+
+                {/* ── Sub Header / Search & Filters Bar ── */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-3 rounded-2xl shadow-sm gap-4 shrink-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h2 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-white">
+                            {activeTab === 'members' && 'Team Members'}
+                            {activeTab === 'invitations' && 'Invitations & Invites'}
+                            {activeTab === 'attendance' && 'Attendance Registry'}
+                            {activeTab === 'summaries' && 'Performance Summaries'}
+                        </h2>
+                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 mx-2" />
+                        
+                        {activeTab === 'summaries' ? (
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-1">Sort:</span>
+                                <button
+                                    onClick={() => setSortConfig('sales')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${sortConfig === 'sales'
+                                        ? 'bg-emerald-600 text-white shadow-sm font-black'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
+                                >Total Sales</button>
+                                <button
+                                    onClick={() => setSortConfig('transactions')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${sortConfig === 'transactions'
+                                        ? 'bg-indigo-600 text-white shadow-sm font-black'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
+                                >Transactions</button>
+                                <button
+                                    onClick={() => setSortConfig('avg')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-md transition-all ${sortConfig === 'avg'
+                                        ? 'bg-purple-600 text-white shadow-sm font-black'
+                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                        }`}
+                                >Avg. Ticket</button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[10px] font-extrabold uppercase">
+                                <span className="px-2.5 py-1 bg-indigo-600 text-white rounded-md shadow-sm">All</span>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Search Input */}
+                    <div className="relative w-full md:w-72 group">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500 transition-colors" size={16} />
+                        <input
+                            type="text"
+                            placeholder={`Search ${activeTab}...`}
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-4 py-1.5 text-xs border border-slate-200 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 outline-none transition-all shadow-sm"
+                        />
+                    </div>
                 </div>
 
                 {/* ── Awaiting Approval Banner ── */}
@@ -482,6 +672,87 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
                         users={users} 
                         onDetail={(user) => setSelectedUser(user)} 
                     />
+                )}
+                {activeTab === 'summaries' && (
+                    <div className="flex flex-col gap-4 h-full min-h-0 overflow-y-auto">
+                        {/* Staff Sales Grid */}
+                        <div className="pb-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                {filteredSummaries.length > 0 ? (
+                                    filteredSummaries.map((staff, index) => (
+                                        <div key={staff.id || index} className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition-all group">
+                                            {index === 0 && sortConfig === 'sales' && (
+                                                <div className="absolute top-3 right-3 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                                                    <Award size={10} /> Top Sales
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-white font-bold text-base shadow-md ${index === 0 ? 'bg-gradient-to-br from-amber-400 to-orange-500' :
+                                                    index === 1 ? 'bg-gradient-to-br from-slate-400 to-slate-500' :
+                                                        index === 2 ? 'bg-gradient-to-br from-orange-400 to-red-500' :
+                                                            'bg-gradient-to-br from-indigo-500 to-purple-600'
+                                                    }`}>
+                                                    {staff.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <h3 className="font-bold text-slate-800 dark:text-white truncate max-w-[150px]">{staff.name}</h3>
+                                                    <p className="text-xs text-slate-500">{staff.role}</p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-2">
+                                                <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400">
+                                                        <DollarSign size={13} />
+                                                        <span className="text-xs font-medium">Total Sales</span>
+                                                    </div>
+                                                    <span className="font-bold text-sm text-slate-800 dark:text-white">
+                                                        {formatCurrency(staff.totalSales)}
+                                                    </span>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                                                            <Package size={11} />
+                                                            <span className="text-[9px] font-bold uppercase">Txns</span>
+                                                        </div>
+                                                        <p className="font-bold text-slate-800 dark:text-white">{staff.transactionCount}</p>
+                                                    </div>
+                                                    <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                                                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 mb-1">
+                                                            <TrendingUp size={11} />
+                                                            <span className="text-[9px] font-bold uppercase">Avg</span>
+                                                        </div>
+                                                        <p className="font-bold text-slate-800 dark:text-white max-w-full truncate">
+                                                            {getCurrencySymbol()} {Math.round(staff.avgTransaction).toLocaleString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500">
+                                                    <div className="flex items-center gap-1">
+                                                        <Clock size={11} />
+                                                        Last Active:
+                                                    </div>
+                                                    <span className="font-medium text-slate-700 dark:text-slate-300">{staff.lastActive}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full py-12 flex flex-col items-center justify-center text-center">
+                                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
+                                            <Users size={32} className="text-slate-400" />
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-700 dark:text-white">No staff performance data</h3>
+                                        <p className="text-slate-500">Try adjusting your search criteria</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 )}
             </div>
 
@@ -1358,15 +1629,17 @@ function MembersTable({ users, store }) {
 // ─── StatCard ──────────────────────────────────────────────────────────────
 function StatCard({ title, value, icon, color, subtext }) {
     return (
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
-            <div>
-                <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">{title}</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white">{value || 0}</h3>
-                {subtext && <p className="text-[10px] text-amber-500 font-semibold mt-1">{subtext}</p>}
+        <div className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between group hover:shadow-md transition-all">
+            <div className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center text-white shrink-0 shadow-md shadow-indigo-500/5`}>
+                    {icon}
+                </div>
+                <div>
+                    <span className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">{title}</span>
+                    {subtext && <p className="text-[8px] text-amber-500 font-semibold">{subtext}</p>}
+                </div>
             </div>
-            <div className={`w-10 h-10 ${color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
-                {icon}
-            </div>
+            <h3 className="text-base font-black text-slate-800 dark:text-white">{value || 0}</h3>
         </div>
     );
 }

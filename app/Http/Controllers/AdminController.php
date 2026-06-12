@@ -312,10 +312,47 @@ class AdminController extends Controller
             ->get()
             ->groupBy('user_id');
 
+        $staffUsers = \App\Models\User::whereHas('memberships', function($q) use ($tenant) {
+            if ($tenant) $q->where('tenant_id', $tenant->id);
+        })->get();
+
+        $staffData = $staffUsers->map(function ($user) use ($tenant) {
+            $sales = \App\Models\Sale::where('user_id', $user->id)->get();
+            $totalSales = $sales->sum('total');
+            $transactionCount = $sales->count();
+            $avgTransaction = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+
+            // Month sales
+            $monthSales = \App\Models\Sale::where('user_id', $user->id)
+                ->whereMonth('created_at', now()->month)
+                ->whereYear('created_at', now()->year)
+                ->sum('total');
+
+            // Last active
+            $lastSale = $sales->sortByDesc('created_at')->first();
+            $lastActive = $lastSale ? $lastSale->created_at->diffForHumans() : 'Never';
+
+            // Get role from membership
+            $membership = $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
+            $displayRole = $membership ? $membership->role : ($user->role ?? 'Staff');
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'role' => ucfirst($displayRole),
+                'totalSales' => (float) $totalSales,
+                'transactionCount' => $transactionCount,
+                'avgTransaction' => (float) $avgTransaction,
+                'monthSales' => (float) $monthSales,
+                'lastActive' => $lastActive,
+            ];
+        })->sortByDesc('totalSales')->values()->toArray();
+
         return \Inertia\Inertia::render('Admin/Users', [
             'mode' => 'admin',
             'users' => $users,
-            'attendance' => $attendance
+            'attendance' => $attendance,
+            'staffData' => $staffData,
         ]);
     }
 
