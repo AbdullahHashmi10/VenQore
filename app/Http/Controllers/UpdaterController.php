@@ -174,12 +174,20 @@ class UpdaterController extends Controller
             }
             File::makeDirectory($chunkDir, 0755, true);
 
+            // Generate a secure one-time update token.
+            // This token is stored in the lock file and returned to the
+            // browser on the final chunk. Subsequent steps send it back
+            // so UpdaterLock can allow them through even if the HTTP
+            // session is disrupted after new PHP files are extracted.
+            $updateToken = bin2hex(random_bytes(32)); // 64-char hex
+
             // Acquire lock early
             File::put($this->lockPath(), json_encode([
-                'started_at' => now()->toIso8601String(),
-                'started_by' => Auth::user()?->email ?? 'unknown',
-                'step'       => 'uploading_chunks',
+                'started_at'   => now()->toIso8601String(),
+                'started_by'   => Auth::user()?->email ?? 'unknown',
+                'step'         => 'uploading_chunks',
                 'total_chunks' => $totalChunks,
+                'update_token' => $updateToken,
             ]));
         }
 
@@ -269,9 +277,17 @@ class UpdaterController extends Controller
 
         Log::info("Updater: Package assembled from {$totalChunks} chunks ({$fileSizeMB} MB). By: " . (Auth::user()?->email ?? 'unknown'));
 
+        // Read the token back from the lock file to return it to the frontend
+        $storedToken = null;
+        if (File::exists($this->lockPath())) {
+            $lockData = json_decode(File::get($this->lockPath()), true);
+            $storedToken = $lockData['update_token'] ?? null;
+        }
+
         return response()->json([
-            'message'  => "Package received & saved. ({$fileSizeMB} MB, {$totalChunks} chunks)",
-            'complete' => true,
+            'message'      => "Package received & saved. ({$fileSizeMB} MB, {$totalChunks} chunks)",
+            'complete'     => true,
+            'update_token' => $storedToken, // Sent to browser — used by subsequent steps to bypass session auth
         ]);
     }
 
@@ -500,6 +516,31 @@ class UpdaterController extends Controller
         }
         if ($errors > 0) {
             $message .= " ⚠ {$errors} file(s) had write errors (check server logs).";
+        }
+
+        // ── CRITICAL: Clear bootstrap cache & OPcache immediately ───────
+        // After 14,000+ new PHP files land on disk, the old
+        // bootstrap/cache/*.php (config, routes, services) is stale.
+        // If we leave it, the NEXT HTTP request (cache step) loads
+        // NEW code against OLD cached config, which can break Auth and
+        // cause the session role check to fail with a 403 error.
+        // We nuke it here so the cache step boots with a clean slate.
+        $bootstrapCacheDir = base_path('bootstrap/cache');
+        $nuked = [];
+        foreach (glob($bootstrapCacheDir . '/*.php') as $cacheFile) {
+            if (basename($cacheFile) !== '.gitignore') {
+                if (@unlink($cacheFile)) {
+                    $nuked[] = basename($cacheFile);
+                }
+            }
+        }
+        if (!empty($nuked)) {
+            Log::info('Updater extract: Pre-cleared stale bootstrap cache: ' . implode(', ', $nuked));
+        }
+
+        // Reset OPcache so PHP serves new files, not old bytecode
+        if (function_exists('opcache_reset')) {
+            opcache_reset();
         }
 
         return response()->json([

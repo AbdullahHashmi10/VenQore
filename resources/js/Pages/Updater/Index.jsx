@@ -224,6 +224,13 @@ export default function Updater({ currentVersion }) {
             setStepStatus(stepId, 'running');
             log(`▶ Starting: ${steps.find(s => s.id === stepId)?.label}...`);
 
+            // Attach the update token to every non-upload step.
+            // This lets the server authenticate the request even if the
+            // HTTP session is disrupted after file extraction.
+            if (!(formDataOrPayload instanceof FormData) && updateTokenRef.current) {
+                formDataOrPayload = { ...formDataOrPayload, update_token: updateTokenRef.current };
+            }
+
             try {
                 let res;
                 if (formDataOrPayload instanceof FormData) {
@@ -305,6 +312,13 @@ export default function Updater({ currentVersion }) {
                 // Last chunk returns the assembled result
                 if (res.data.complete) {
                     log(`  ✓ ${res.data.message}`, 'success');
+                    // Capture the secure update token returned by the server.
+                    // All subsequent steps will send this token so the server
+                    // can authenticate them even if the session breaks after
+                    // new PHP files are extracted onto disk.
+                    if (res.data.update_token) {
+                        updateTokenRef.current = res.data.update_token;
+                    }
                 }
             }
 

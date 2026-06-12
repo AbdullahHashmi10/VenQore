@@ -11,6 +11,30 @@ class UpdaterLock
 {
     public function handle(Request $request, Closure $next)
     {
+        // ── 0. Token-based bypass (session-independent) ────────────
+        // After the extract step writes new PHP files to disk, the old
+        // bootstrap/cache/*.php may conflict with new code and cause
+        // Auth::user() to fail the role check on subsequent requests.
+        // The update_token was generated at upload time, stored in the
+        // lock file, and returned to the browser. If it matches, we
+        // allow the request through without relying on the HTTP session.
+        $requestToken = $request->input('update_token') ?? $request->header('X-Update-Token');
+        if (!empty($requestToken)) {
+            $lockPath = storage_path('update.lock');
+            if (File::exists($lockPath)) {
+                $lockData = json_decode(File::get($lockPath), true);
+                if (
+                    isset($lockData['update_token']) &&
+                    is_string($lockData['update_token']) &&
+                    strlen($lockData['update_token']) >= 32 &&
+                    hash_equals($lockData['update_token'], $requestToken)
+                ) {
+                    // Valid secure token — allow this step through
+                    return $next($request);
+                }
+            }
+        }
+
         // ── 1. Must be installed first ─────────────────────────────
         if (!File::exists(storage_path('installed'))) {
             if ($request->expectsJson()) {

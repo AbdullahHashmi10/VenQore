@@ -61,7 +61,7 @@ return new class extends Migration
                 $table->uuid('id')->primary();
                 $table->char('party_id', 36)->index();
                 // account_id: references accounts table
-                $table->unsignedBigInteger('account_id')->nullable()->index();
+                $table->char('account_id', 36)->nullable()->index();
                 $table->string('account_code', 10)->nullable(); // Also store code for easy lookup
                 $table->decimal('cached_balance', 15, 2)->default(0.00);
                 $table->char('last_journal_id', 36)->nullable();

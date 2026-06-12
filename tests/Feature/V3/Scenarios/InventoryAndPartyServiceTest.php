@@ -280,6 +280,7 @@ class InventoryAndPartyServiceTest extends TestCase
     {
         $account1200 = DB::table('accounts')->where('tenant_id', $this->tenantId)->where('code', '1200')->first();
 
+
         // Post the sale
         $this->accounting->createEntry([
             'entry_date'     => now()->toDateString(),
@@ -303,6 +304,7 @@ class InventoryAndPartyServiceTest extends TestCase
             ['account_code' => '1000', 'debit' => 10000.00, 'credit' => 0],
             ['account_code' => '1200', 'debit' => 0,        'credit' => 10000.00, 'party_id' => $this->customerId],
         ]);
+
 
         $snapshot = DB::table('party_snapshots')
             ->where('tenant_id', $this->tenantId)
