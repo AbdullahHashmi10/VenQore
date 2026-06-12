@@ -77,10 +77,18 @@ class StaffController extends Controller
 
         $allStaff = array_merge($members, $invites);
 
+        $currentUser = auth()->user();
+        $myMembership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $currentUser->id)
+            ->where('status', 'active')
+            ->first();
+
         return Inertia::render('Store/Staff/Index', [
-            'members'   => $allStaff,
-            'join_code' => $tenant->join_code,
+            'members'    => $allStaff,
+            'join_code'  => $tenant->join_code,
             'store_slug' => $tenant->slug,
+            'store_id'   => $tenant->id,
+            'my_role'    => $myMembership?->role ?? $currentUser->getAttributes()['role'] ?? null,
         ]);
     }
 
