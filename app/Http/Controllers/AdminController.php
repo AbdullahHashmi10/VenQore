@@ -3,9 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use App\Helpers\SettingsHelper;
+use App\Models\TenantUser;
 use App\Services\PlanGate;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -708,5 +712,91 @@ class AdminController extends Controller
         $user->delete();
 
         return redirect()->back()->with('success', 'User deleted successfully');
+    }
+    // ─── Member Management (Single Source of Truth) ──────────────────────────
+
+    /**
+     * Update a store member's role, permissions, display name, status, or passcode.
+     * Operates on TenantUser directly — the canonical record for store access.
+     */
+    public function updateMember(Request $request, TenantUser $member): RedirectResponse
+    {
+        $this->authorizeMemberAction($member);
+
+        $request->validate([
+            'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
+            'display_name' => 'nullable|string|max:50',
+            'status'       => 'nullable|in:active,suspended',
+            'permissions'  => 'nullable|array',
+            'passcode'     => [
+                'nullable', 'string', 'min:4', 'max:6',
+                function ($attribute, $value, $fail) use ($member) {
+                    $tenant = app('current.tenant');
+                    if ($tenant) {
+                        $exists = TenantUser::where('tenant_id', $tenant->id)
+                            ->where('user_id', '!=', $member->user_id)
+                            ->whereNotNull('pos_pin')
+                            ->get()->first(fn($tu) => Hash::check($value, $tu->pos_pin));
+                        if ($exists) {
+                            $fail('This passcode is already in use. Please choose a different one.');
+                        }
+                    }
+                },
+            ],
+        ]);
+
+        // Owner role is locked — cannot be changed
+        if ($member->role === 'owner' && $request->has('role')) {
+            abort(403, 'Owner role cannot be changed.');
+        }
+
+        $member->update($request->only(['role', 'display_name', 'status', 'permissions']));
+
+        if ($request->filled('passcode')) {
+            $member->update(['pos_pin' => Hash::make($request->passcode)]);
+            $user = $member->user;
+            if ($user) {
+                $user->passcode = $request->passcode;
+                $user->save();
+            }
+        }
+
+        return back()->with('success', 'Member updated.');
+    }
+
+    /**
+     * Remove a member from the store (deletes their TenantUser record).
+     */
+    public function removeMember(TenantUser $member): RedirectResponse
+    {
+        $this->authorizeMemberAction($member);
+
+        if ($member->role === 'owner') {
+            abort(403, 'Owner cannot be removed from a store.');
+        }
+
+        $member->delete();
+
+        return back()->with('success', 'Member removed.');
+    }
+
+    /**
+     * Ensure the acting user is owner or admin of the same store.
+     */
+    private function authorizeMemberAction(TenantUser $member): void
+    {
+        $tenant = app('current.tenant');
+
+        if ($member->tenant_id !== $tenant->id) {
+            abort(403);
+        }
+
+        $myMembership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        if (!in_array($myMembership->role, ['owner', 'admin'])) {
+            abort(403);
+        }
     }
 }

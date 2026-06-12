@@ -156,8 +156,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         // Staff management (within this store)
         Route::get('/staff',              [\App\Http\Controllers\StaffController::class, 'index'])->name('staff');
         Route::post('/staff/invite',      [\App\Http\Controllers\StaffController::class, 'invite'])->name('staff.invite');
-        Route::patch('/staff/{member}',   [\App\Http\Controllers\StaffController::class, 'update'])->name('staff.update');
-        Route::delete('/staff/{member}',  [\App\Http\Controllers\StaffController::class, 'remove'])->name('staff.remove');
 
         // Store billing
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
@@ -204,6 +202,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
             Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
+            // Member management — single source of truth
+            Route::patch('/users/{member}',  [\App\Http\Controllers\AdminController::class, 'updateMember'])->name('users.update');
+            Route::delete('/users/{member}', [\App\Http\Controllers\AdminController::class, 'removeMember'])->name('users.remove');
             Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
             Route::get('/staff',       function () { return redirect()->route('store.admin.attendance', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
 

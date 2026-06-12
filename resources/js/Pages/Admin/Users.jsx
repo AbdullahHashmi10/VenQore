@@ -1073,7 +1073,7 @@ function EditMemberModal({ member, onClose }) {
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('store.staff.update', { store_slug: store?.slug, member: member.membership_id }), {
+        patch(route('store.admin.users.update', { store_slug: store?.slug, member: member.membership_id }), {
             onSuccess: onClose,
         });
     };
@@ -1241,7 +1241,7 @@ function MembersTable({ users, store }) {
 
     const handleRemove = (member) => {
         if (!confirm(`Remove ${member.name} from the store? They will lose all access immediately.`)) return;
-        router.delete(route('store.staff.remove', { store_slug: store?.slug, member: member.membership_id }), {
+        router.delete(route('store.admin.users.remove', { store_slug: store?.slug, member: member.membership_id }), {
             onSuccess: () => setOpenMenu(null),
         });
     };
