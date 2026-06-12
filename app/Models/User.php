@@ -37,6 +37,7 @@ class User extends Authenticatable
      */
     protected ?TenantUser $resolvedMembership = null;
     protected bool $membershipResolved = false;
+    protected ?string $temp_passcode = null;
 
     protected $fillable = [
         'name',
@@ -327,8 +328,8 @@ class User extends Authenticatable
      */
     public function getPasscodeAttribute(): ?string
     {
-        if (!empty($this->attributes['passcode'])) {
-            return $this->attributes['passcode'];
+        if ($this->temp_passcode !== null) {
+            return $this->temp_passcode;
         }
 
         if (!$this->last_store_id) return null;
@@ -343,7 +344,7 @@ class User extends Authenticatable
     public function setPasscodeAttribute(?string $value): void
     {
         $hashed = $this->ensureHashed($value);
-        $this->attributes['passcode'] = $hashed;
+        $this->temp_passcode = $hashed;
 
         if (app()->bound('current.tenant')) {
             $membership = $this->getActiveMembership();

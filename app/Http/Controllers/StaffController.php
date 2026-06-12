@@ -295,16 +295,15 @@ class StaffController extends Controller
                 'max:6',
                 function ($attribute, $value, $fail) use ($member) {
                     $tenant = app('current.tenant');
-                    $exists = \App\Models\User::whereNotNull('passcode')
-                        ->where('id', '!=', $member->user_id)
-                        ->when($tenant, function($q) use ($tenant) {
-                            $q->whereHas('memberships', function($m) use ($tenant) {
-                                $m->where('tenant_id', $tenant->id);
+                    $exists = false;
+                    if ($tenant) {
+                        $exists = \App\Models\TenantUser::where('tenant_id', $tenant->id)
+                            ->where('user_id', '!=', $member->user_id)
+                            ->whereNotNull('pos_pin')
+                            ->get()->first(function($tu) use ($value) {
+                                return \Illuminate\Support\Facades\Hash::check($value, $tu->pos_pin);
                             });
-                        })
-                        ->get()->first(function($u) use ($value) {
-                            return \Illuminate\Support\Facades\Hash::check($value, $u->passcode);
-                        });
+                    }
                     if ($exists) {
                         $phrases = [
                             "That's a bit too simple, try another.",
@@ -333,7 +332,8 @@ class StaffController extends Controller
             
             $user = $member->user;
             if ($user) {
-                $user->update(['passcode' => $hashed]);
+                $user->passcode = $request->passcode;
+                $user->save();
             }
         }
 
