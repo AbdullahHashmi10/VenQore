@@ -265,7 +265,8 @@ class PurchaseController extends Controller
             foreach ($extras as $extra) {
                 if (($extra['amount'] ?? 0) > 0) {
                     \App\Models\Expense::create([
-                        'category' => \App\Models\ExpenseCategory::find($extra['category_id'])?->name ?? 'Landed Cost',
+                        'expense_category_id' => $extra['category_id'] ?? null,
+                        'category' => \App\Models\ExpenseCategory::find($extra['category_id'] ?? null)?->name ?? 'Landed Cost',
                         // expense_category_id: if you have such column, else 'category' string
                         'amount' => $extra['amount'],
                         'date' => $validated['date'],
@@ -561,7 +562,8 @@ class PurchaseController extends Controller
             foreach ($extras as $extra) {
                 if (($extra['amount'] ?? 0) > 0) {
                     \App\Models\Expense::create([
-                        'category' => \App\Models\ExpenseCategory::find($extra['category_id'])?->name ?? 'Landed Cost',
+                        'expense_category_id' => $extra['category_id'] ?? null,
+                        'category' => \App\Models\ExpenseCategory::find($extra['category_id'] ?? null)?->name ?? 'Landed Cost',
                         'amount' => $extra['amount'],
                         'date' => $validated['date'],
                         'description' => 'Landed Cost for ' . $purchase->invoice_number,
