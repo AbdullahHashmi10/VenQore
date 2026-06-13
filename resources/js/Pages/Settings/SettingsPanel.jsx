@@ -71,6 +71,7 @@ export default function SettingsPanel({ settings }) {
         store_name: settings.store_name || '',
         store_address: settings.store_address || '',
         store_phone: settings.store_phone || '',
+        product_cost_update_policy: settings.product_cost_update_policy || 'never',
 
         // Security
         enable_passcode: settings.enable_passcode === '1',
@@ -95,7 +96,8 @@ export default function SettingsPanel({ settings }) {
             store_address: data.store_address,
             store_phone: data.store_phone,
             default_tax_rate: data.default_tax_rate,
-            admin_passcode: data.admin_passcode
+            admin_passcode: data.admin_passcode,
+            product_cost_update_policy: data.product_cost_update_policy
         };
 
         router.post(route("store.settings.update", {
@@ -162,6 +164,19 @@ export default function SettingsPanel({ settings }) {
                                     />
                                     <Percent className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Auto-Update Product Cost</label>
+                                <select
+                                    value={data.product_cost_update_policy}
+                                    onChange={(e) => setData('product_cost_update_policy', e.target.value)}
+                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                >
+                                    <option value="never">Never (Keep V3 FIFO Batches Only)</option>
+                                    <option value="always">Always (Update to Latest Purchase Price)</option>
+                                    <option value="increase_only">On Cost Increase Only</option>
+                                    <option value="decrease_only">On Cost Decrease Only</option>
+                                </select>
                             </div>
                         </div>
                     </div>

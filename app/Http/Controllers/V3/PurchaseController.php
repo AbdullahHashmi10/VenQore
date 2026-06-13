@@ -75,7 +75,7 @@ class PurchaseController extends Controller
         $purchase = DB::transaction(function () use ($validated) {
 
             $purchaseId    = Str::uuid()->toString();
-            $invoiceNumber = 'PUR-' . strtoupper(Str::random(8));
+            $invoiceNumber = \App\Services\SequenceService::generateTransactionNumber('PUR');
 
             // ── 1. Calculate totals ───────────────────────────────────
             $subtotal  = 0.00;
@@ -216,6 +216,27 @@ class PurchaseController extends Controller
                 DB::table('purchase_items')->where('purchase_items.tenant_id', app('current.tenant')->id)
                     ->where('id', $itemId)
                     ->update(['inventory_batch_id' => $batch->id]);
+
+                // Auto-Update Product Cost Price based on policy
+                $product = \App\Models\Product::find($item['product_id']);
+                if ($product) {
+                    $policy = \App\Helpers\SettingsHelper::getProductCostUpdatePolicy();
+                    $newCost = (float)$item['unit_cost'];
+                    $oldCost = (float)$product->cost_price;
+
+                    $shouldUpdate = false;
+                    if ($policy === 'always') {
+                        $shouldUpdate = true;
+                    } elseif ($policy === 'increase_only' && $newCost > $oldCost) {
+                        $shouldUpdate = true;
+                    } elseif ($policy === 'decrease_only' && $newCost < $oldCost) {
+                        $shouldUpdate = true;
+                    }
+
+                    if ($shouldUpdate) {
+                        $product->update(['cost_price' => $newCost]);
+                    }
+                }
             }
 
             return DB::table('purchases')->where('purchases.tenant_id', app('current.tenant')->id)

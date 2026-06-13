@@ -17,9 +17,22 @@ use Illuminate\Support\Str;
 use Carbon\Carbon;
 use Inertia\Inertia;
 
-// ═══════════════════════════════════════════════════════════════════════
-// DEFINITIVE PLAN ROUTES — VenQore SaaS Multi-Store Architecture
-// ═══════════════════════════════════════════════════════════════════════
+// --- Temporary DB Diagnostic Route ---
+Route::get('/db-test-diagnostic', function () {
+    try {
+        $exists = \Illuminate\Support\Facades\Schema::hasTable('transaction_sequences');
+        $output = "Table 'transaction_sequences' exists: " . ($exists ? "YES" : "NO") . "\n\n";
+        if ($exists) {
+            $output .= "Rows count: " . \Illuminate\Support\Facades\DB::table('transaction_sequences')->count() . "\n\n";
+            $output .= "First sequence row: " . json_encode(\Illuminate\Support\Facades\DB::table('transaction_sequences')->first()) . "\n\n";
+        }
+        $output .= "Database Name: " . \Illuminate\Support\Facades\DB::connection()->getDatabaseName() . "\n";
+        return response($output)->header('Content-Type', 'text/plain');
+    } catch (\Exception $e) {
+        return response("ERROR:\n" . $e->getMessage() . "\n\n" . $e->getTraceAsString())->header('Content-Type', 'text/plain');
+    }
+});
+
 
 // ── Public Marketing Pages ──────────────────────────────────────────────
 Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
@@ -586,7 +599,7 @@ Route::get('/welcome-splash', function () {
 
 // ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
 // Public routes — no auth required (buyers arrive from AppSumo email)
-$hideAppSumoPublic = true; // Toggle this to false to unhide public AppSumo routes
+$hideAppSumoPublic = !app()->runningUnitTests(); // Toggle this to false to unhide public AppSumo routes
 if ($hideAppSumoPublic) {
     Route::get('/redeem',  fn() => abort(404))->name('redeem');
     Route::post('/redeem', fn() => abort(404))->name('redeem.submit');

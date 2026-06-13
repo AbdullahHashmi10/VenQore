@@ -241,7 +241,7 @@ class PurchaseController extends Controller
             /** @var Invoice $invoice */
             $invoice = Invoice::create([
                 'type' => 'purchase',
-                'invoice_number' => 'PUR-' . date('ymd') . '-' . substr(time(), -4),
+                'invoice_number' => \App\Services\SequenceService::generateTransactionNumber('PUR'),
                 'party_id' => $validated['party_id'],
                 'date' => $validated['date'],
                 'total_amount' => $vendorTotal, // Vendor Bill Amount
@@ -329,12 +329,23 @@ class PurchaseController extends Controller
                         // Increment Stock
                         $product->increment('stock_quantity', $item['quantity']);
 
-                        // Moving Average Calculation (Removed as per new specs: products.cost_price should not be overwritten by purchases, FIFO batches store the actual costs)
-                        // $oldVal   = $currentStock * $formattedCurrentCost;
-                        // $newVal   = $item['quantity'] * $effectiveCost;
-                        // $totalQty = $currentStock + $item['quantity'];
-                        // $newAvg   = ($totalQty > 0) ? ($oldVal + $newVal) / $totalQty : $effectiveCost;
-                        // $product->update(['cost_price' => $newAvg]);
+                        // Auto-Update Product Cost Price based on policy
+                        $policy = \App\Helpers\SettingsHelper::getProductCostUpdatePolicy();
+                        $newCost = (float)$effectiveCost;
+                        $oldCost = (float)$product->cost_price;
+
+                        $shouldUpdate = false;
+                        if ($policy === 'always') {
+                            $shouldUpdate = true;
+                        } elseif ($policy === 'increase_only' && $newCost > $oldCost) {
+                            $shouldUpdate = true;
+                        } elseif ($policy === 'decrease_only' && $newCost < $oldCost) {
+                            $shouldUpdate = true;
+                        }
+
+                        if ($shouldUpdate) {
+                            $product->update(['cost_price' => $newCost]);
+                        }
 
                         // Get default warehouse
                         $defaultWarehouse = \App\Models\Warehouse::first();
@@ -602,7 +613,7 @@ class PurchaseController extends Controller
 
         // A. AP Liability (Vendor Bill)
         $apLines = [];
-        $apLines[] = ['account_code' => '1100', 'debit' => $subtotal, 'credit' => 0, 'description' => "Goods received — {$invoice->invoice_number}"];
+        $apLines[] = ['account_code' => '1100', 'debit' => $subtotal - $discount, 'credit' => 0, 'description' => "Goods received — {$invoice->invoice_number}"];
         if ($tax > 0) {
             $apLines[] = ['account_code' => '2100', 'debit' => $tax, 'credit' => 0, 'description' => "Input tax — {$invoice->invoice_number}"];
         }

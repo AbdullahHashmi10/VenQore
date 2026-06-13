@@ -450,5 +450,13 @@ class SettingsHelper
     {
         return self::get('language', 'en');
     }
+
+    /**
+     * Get the product cost update policy setting (defaults to 'never')
+     */
+    public static function getProductCostUpdatePolicy(): string
+    {
+        return self::get('product_cost_update_policy', 'never');
+    }
 }
 
