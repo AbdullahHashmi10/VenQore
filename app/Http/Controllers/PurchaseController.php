@@ -78,13 +78,15 @@ class PurchaseController extends Controller
                     ->sum('amount');
                 
                 $subtotal = $purchase->items->sum(fn($item) => $item->quantity * $item->unit_price);
-                $grandTotal = $subtotal + $extras;
+                $discount = (float)($purchase->discount ?? 0);
+                $netSubtotal = $subtotal - $discount;
+                $grandTotal = $netSubtotal + $extras;
                 $paid = $purchase->paid_amount ?? 0;
-                $balance = $grandTotal - $paid;
+                $balance = max(0.0, $grandTotal - $paid);
                 
-                // Calculate proper payment status
+                // Calculate proper payment status with tolerance to match frontend's balance > 1 check
                 $paymentStatus = 'unpaid';
-                if ($paid >= $grandTotal) {
+                if ($balance <= 1.0) {
                     $paymentStatus = 'paid';
                 } elseif ($paid > 0) {
                     $paymentStatus = 'partial';
@@ -107,7 +109,7 @@ class PurchaseController extends Controller
                             'subtotal' => $item->quantity * $item->unit_price,
                         ];
                     }),
-                    'subtotal' => $subtotal,
+                    'subtotal' => $netSubtotal,
                     'extras' => $extras,
                     'total' => $grandTotal,
                     'paid' => $paid,
