@@ -65,6 +65,7 @@ export default function SettingsPanel({ settings }) {
         fbr_integration: settings.fbr_integration === '1',
         show_margin_percentage: settings.show_margin_percentage === '1',
         stop_sale_negative_stock: settings.stop_sale_negative_stock === '1',
+        round_off_total: settings.round_off_total === '1',
         default_tax_rate: settings.default_tax_rate || '0',
 
         // General
@@ -91,6 +92,7 @@ export default function SettingsPanel({ settings }) {
             fbr_integration: data.fbr_integration ? '1' : '0',
             show_margin_percentage: data.show_margin_percentage ? '1' : '0',
             stop_sale_negative_stock: data.stop_sale_negative_stock ? '1' : '0',
+            round_off_total: data.round_off_total ? '1' : '0',
             enable_passcode: data.enable_passcode ? '1' : '0',
             store_name: data.store_name,
             store_address: data.store_address,
@@ -211,6 +213,12 @@ export default function SettingsPanel({ settings }) {
                                     onChange={v => setData('show_margin_percentage', v)}
                                     label="Show Margin Percentage"
                                     description="Display profit margin in sales overview"
+                                />
+                                <Toggle
+                                    enabled={data.round_off_total}
+                                    onChange={v => setData('round_off_total', v)}
+                                    label="Round-off Invoice Totals"
+                                    description="Automatically round invoice totals to the nearest whole integer (e.g. 56.83 becomes 57, 56.33 becomes 56)"
                                 />
                                     <Toggle
                                         enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
