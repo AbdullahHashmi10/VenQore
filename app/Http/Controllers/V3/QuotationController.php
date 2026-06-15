@@ -102,10 +102,7 @@ class QuotationController extends Controller
             
             DB::transaction(function () use ($quotation, $items, $validated, $orderId, $tenantId) {
                 // 1. Create the Sales Order
-                $dateCode      = date('ymd');
-                $dailyCount    = SalesOrder::whereDate('created_at', today())->count();
-                $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
-                $orderNumber   = 'SO-' . $dateCode . '-' . $sequence;
+                $orderNumber   = \App\Services\SequenceService::generateTransactionNumber('SO');
 
                 $order = SalesOrder::create([
                     'id'            => $orderId,

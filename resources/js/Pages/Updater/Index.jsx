@@ -116,6 +116,7 @@ export default function Updater({ currentVersion }) {
     const [newVersion, setNewVersion] = useState('');
     const [dragOver, setDragOver] = useState(false);
     const fileInputRef = useRef(null);
+    const updateTokenRef = useRef(null);
 
     // ── System info ────────────────────────────────────────────
     const [sysInfo, setSysInfo] = useState(null);

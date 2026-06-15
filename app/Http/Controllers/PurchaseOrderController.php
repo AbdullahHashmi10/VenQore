@@ -88,7 +88,7 @@ class PurchaseOrderController extends Controller
             $po = PurchaseOrder::create([
                 'supplier_id' => $validated['supplier_id'],
                 'warehouse_id' => $validated['warehouse_id'],
-                'reference_number' => 'PO-' . date('Ymd') . '-' . rand(1000, 9999),
+                'reference_number' => \App\Services\SequenceService::generateTransactionNumber('PO'),
                 'status' => 'ordered',
                 'order_date' => $validated['order_date'],
                 'expected_delivery_date' => $validated['expected_delivery_date'],

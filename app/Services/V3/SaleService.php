@@ -71,7 +71,7 @@ class SaleService
         return DB::transaction(function () use ($data) {
 
             $saleId        = Str::uuid()->toString();
-            $invoiceNumber = 'INV-' . strtoupper(Str::random(8));
+            $invoiceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
 
             // ── 1. Calculate line totals and deduct stock ─────────────
             $subtotalGross      = 0.00;

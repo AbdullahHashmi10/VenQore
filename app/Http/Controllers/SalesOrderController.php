@@ -120,7 +120,7 @@ class SalesOrderController extends Controller
             $customerName = Party::find($customerId)->name;
 
             $order = SalesOrder::create([
-                'order_number' => 'SO-' . date('Ymd') . '-' . rand(1000, 9999),
+                'order_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
                 'customer_id' => $customerId,
                 'customer_name' => $customerName,
                 'order_date' => $validated['order_date'],
@@ -295,10 +295,7 @@ class SalesOrderController extends Controller
 
             $order = $salesOrder;
             $sale = DB::transaction(function () use ($order, $tenantId) {
-                $dateCode      = date('ymd');
-                $dailyCount    = Sale::whereDate('created_at', today())->count();
-                $sequence      = str_pad($dailyCount + 1, 3, '0', STR_PAD_LEFT);
-                $referenceNumber = (\App\Helpers\SettingsHelper::getSalePrefix() ?: 'INV-') . $dateCode . '-' . $sequence;
+                $referenceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
 
                 $warehouseId = Warehouse::first()?->id ?? 1;
 

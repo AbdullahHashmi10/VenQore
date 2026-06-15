@@ -66,6 +66,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password'          => 'hashed',
+            'passcode'          => 'hashed',
             'is_platform_admin' => 'boolean',
             'permissions'       => 'array',
         ];
@@ -342,6 +343,7 @@ class User extends Authenticatable
     {
         $hashed = $this->ensureHashed($value);
         $this->temp_passcode = $hashed;
+        $this->attributes['passcode'] = $hashed;
 
         if (app()->bound('current.tenant')) {
             $membership = $this->getActiveMembership();

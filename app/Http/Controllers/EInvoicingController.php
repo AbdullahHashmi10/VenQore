@@ -92,7 +92,7 @@ class EInvoicingController extends Controller
         $sale = Sale::findOrFail($request->sale_id);
 
         try {
-            $ewayBillNumber = 'EWB-' . date('Ymd') . '-' . rand(100000, 999999);
+            $ewayBillNumber = \App\Services\SequenceService::generateTransactionNumber('EWB');
 
             $sale->update([
                 'transporter_name' => $request->transporter_name,

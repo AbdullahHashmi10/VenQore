@@ -193,7 +193,7 @@ class SaleController extends Controller
             // 3. STORAGE: Create Sale Header
             $sale = Sale::create([
                 'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
-                'reference_number'     => \App\Helpers\SettingsHelper::getSalePrefix() . date('ymd') . '-' . str_pad(Sale::whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT),
+                'reference_number'     => \App\Services\SequenceService::generateTransactionNumber('SAL'),
                 'source'               => $request->source === 'pos' ? 'pos' : 'manual',
                 'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
                 'user_id'              => Auth::id() ?? 1,

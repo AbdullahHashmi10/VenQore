@@ -218,7 +218,7 @@ class ProposalController extends Controller
 
         DB::transaction(function () use ($validated, &$proposalId) {
             $proposal = Proposal::create([
-                'reference_number' => 'PROP-' . date('Ymd') . '-' . rand(1000, 9999),
+                'reference_number' => \App\Services\SequenceService::generateTransactionNumber('PROP'),
                 'customer_id' => $validated['customer_id'],
                 'customer_name' => $validated['customer_name'] ?? Party::find($validated['customer_id'])?->name,
                 'valid_until' => $validated['valid_until'],
@@ -313,7 +313,7 @@ class ProposalController extends Controller
 
                 // Create Sale
                 $sale = Sale::create([
-                    'reference_number' => 'INV-' . date('Ymd') . '-' . rand(1000, 9999),
+                    'reference_number' => \App\Services\SequenceService::generateTransactionNumber('SAL'),
                     'party_id' => $proposal->customer_id,
                     'status' => 'completed',
                     'payment_status' => 'pending',
@@ -404,7 +404,7 @@ class ProposalController extends Controller
             DB::transaction(function () use ($proposal, $tenantId) {
                 // Create Sales Order (Pre-Sale)
                 $salesOrder = \App\Models\SalesOrder::create([
-                    'reference_number' => 'SO-' . date('Ymd') . '-' . rand(1000, 9999),
+                    'reference_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
                     'customer_id' => $proposal->customer_id,
                     'customer_name' => $proposal->customer_name,
                     'status' => 'pending',

@@ -151,7 +151,7 @@ class ReturnController extends Controller
             }
 
             // 2. Create Sale Record (Type: Return)
-            $reference = 'RET-' . date('ymd') . '-' . str_pad(\App\Models\Sale::whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT);
+            $reference = \App\Services\SequenceService::generateTransactionNumber('SRET');
             
             $sale = Sale::forceCreate([
                 'reference_number' => $reference,
