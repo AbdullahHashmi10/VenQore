@@ -1294,6 +1294,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/profile/passcode', [ProfileController::class, 'updatePasscode'])->name('profile.passcode');
     Route::post('/profile/security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'updateSecurityPin'])->name('profile.security-pin');
     Route::post('/profile/verify-security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifySecurityPin'])->name('profile.verify-security-pin');
+    Route::post('/profile/verify-elevated-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'verifyElevatedPin'])->name('profile.verify-elevated-pin');
+    Route::get('/profile/store-members', [\App\Http\Controllers\ProfileSecurityController::class, 'storeMembers'])->name('profile.store-members');
     // ============================================
     // NEW FEATURES ROUTES (Returns, StockOps, etc)
     // ============================================

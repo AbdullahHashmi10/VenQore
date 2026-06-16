@@ -7,6 +7,7 @@ use App\Models\ExpenseCategory;
 use App\Models\Setting;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class CharityController extends Controller
 {
@@ -36,51 +37,67 @@ class CharityController extends Controller
         ]);
     }
 
-    /**
-     * Quick add charity
-     */
     public function add(Request $request)
     {
         $validated = $request->validate([
             'amount' => 'required|numeric|min:1'
         ]);
 
-        // Find or create charity category
+        // Find or create charity expense category
         $category = ExpenseCategory::firstOrCreate(
             ['name' => 'Charity/Donations'],
             [
-                'group' => 'Miscellaneous',
-                'icon' => 'HeartHandshake',
-                'color' => 'rose',
+                'group'      => 'Miscellaneous',
+                'icon'       => 'HeartHandshake',
+                'color'      => 'rose',
                 'sort_order' => 50
             ]
         );
 
-        // Create expense
+        // Create expense record
         $expense = Expense::create([
-            'date' => now()->toDateString(),
+            'date'                => now()->toDateString(),
             'expense_category_id' => $category->id,
-            'category' => 'Charity/Donations',
-            'amount' => $validated['amount'],
-            'payment_method' => 'cash',
-            'description' => 'Charity donation'
+            'category'            => 'Charity/Donations',
+            'amount'              => $validated['amount'],
+            'payment_method'      => 'cash',
+            'description'         => 'Charity donation',
         ]);
 
-        // Deduct from cash
-        $cashAccount = \App\Models\Account::where('code', '1000')->first();
-        if ($cashAccount) {
-            $cashAccount->decrement('balance', $validated['amount']);
+        // Post proper double-entry journal:
+        // DR 6000 Charity/Donations Expense  CR 1000 Cash in Hand
+        $tenant = app('current.tenant');
+        $expenseAccount = \App\Models\Account::where('tenant_id', $tenant->id)
+            ->where('code', '6000')
+            ->firstOrCreate(
+                ['code' => '6000', 'tenant_id' => $tenant->id],
+                ['name' => 'Charity & Donations', 'type' => 'expense', 'is_active' => true]
+            );
+        $cashAccount = \App\Models\Account::where('tenant_id', $tenant->id)
+            ->where('code', '1000')
+            ->first();
+
+        if ($expenseAccount && $cashAccount) {
+            app(\App\Services\V3\AccountingService::class)->createEntry([
+                'date'           => now()->toDateString(),
+                'reference_type' => 'expense',
+                'reference'      => $expense->id,
+                'description'    => 'Charity Donation — ' . \App\Helpers\SettingsHelper::formatCurrency($validated['amount']),
+                'party_id'       => null,
+            ], [
+                ['account_id' => $expenseAccount->id, 'debit' => $validated['amount'], 'credit' => 0],
+                ['account_id' => $cashAccount->id,    'debit' => 0, 'credit' => $validated['amount']],
+            ]);
         }
 
-        // Get updated stats
         $todayTotal = Expense::whereDate('date', Carbon::today())
             ->where('expense_category_id', $category->id)
             ->sum('amount');
 
         return response()->json([
-            'success' => true,
-            'message' => 'Charity added: Rs ' . number_format($validated['amount']),
-            'today_total' => $todayTotal
+            'success'     => true,
+            'message'     => 'Charity added: Rs ' . number_format($validated['amount']),
+            'today_total' => $todayTotal,
         ]);
     }
 

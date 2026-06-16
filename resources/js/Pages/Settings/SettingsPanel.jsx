@@ -71,6 +71,7 @@ export default function SettingsPanel({ settings }) {
         pos_return_mode: settings.pos_return_mode || 'reference',
         pos_return_window: settings.pos_return_window || '',
         pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
+        charity_enabled: settings.charity_enabled === '1' || settings.charity_enabled === true,
 
         // General
         store_name: settings.store_name || '',
@@ -106,7 +107,8 @@ export default function SettingsPanel({ settings }) {
             product_cost_update_policy: data.product_cost_update_policy,
             pos_return_mode: data.pos_return_mode,
             pos_return_window: data.pos_return_window,
-            pos_return_window_behavior: data.pos_return_window_behavior
+            pos_return_window_behavior: data.pos_return_window_behavior,
+            charity_enabled: data.charity_enabled ? '1' : '0',
         };
 
         router.post(route("store.settings.update", {
@@ -328,6 +330,21 @@ export default function SettingsPanel({ settings }) {
                                         )}
                                     </div>
                                 )}
+
+                                {/* Charity Donations Toggle */}
+                                <div className="flex items-center justify-between py-4 border-b border-slate-100 dark:border-slate-700">
+                                    <div>
+                                        <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Enable Charity Donations</span>
+                                        <span className="block text-xs text-slate-500">Show the Charity button on the POS for quick donation recording</span>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setData('charity_enabled', !data.charity_enabled)}
+                                        className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                    >
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.charity_enabled ? 'right-1' : 'left-1'}`}></div>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>

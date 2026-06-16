@@ -28,7 +28,7 @@ import {
     ExternalLink
 } from 'lucide-react';
 
-import SecurityPinModal from '@/Components/SecurityPinModal';
+import ElevatedPinModal from '@/Components/ElevatedPinModal';
 
 // --- Components ---
 
@@ -328,17 +328,19 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
         <OneGlanceLayout title="Fund Management" activeMenu="Money">
             <Head title="Fund Management" />
 
-            {/* Security Passcode Modal */}
-            <SecurityPinModal
+            {/* Elevated PIN Auth Modal */}
+            <ElevatedPinModal
                 isOpen={isSecurityModalOpen}
                 onClose={() => {
                     setIsSecurityModalOpen(false);
                     setPendingAction(null);
                 }}
-                onSuccess={(pin) => {
+                onSuccess={(pin, authorizedBy) => {
                     setVerifiedPin(pin);
                     confirmSubmit(pin);
                 }}
+                permission="funds.manage"
+                actionLabel={pendingAction ? pendingAction + ' funds' : 'this action'}
                 store={store}
             />
 
