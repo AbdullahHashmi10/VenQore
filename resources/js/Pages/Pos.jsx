@@ -212,6 +212,12 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return settings?.senior_mode === '1' || settings?.senior_mode === true;
     });
 
+    const [returnMode, setReturnMode] = useState(false);
+    const [returnSaleRef, setReturnSaleRef] = useState('');
+    const [returnSaleId, setReturnSaleId] = useState(null);
+    const [returnSaleLoading, setReturnSaleLoading] = useState(false);
+    const [returnProcessing, setReturnProcessing] = useState(false);
+
 
     // Free Quantity Visibility State (default: OFF)
     const [showFreeQty, setShowFreeQty] = useState(false);
@@ -1535,6 +1541,42 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         }
     };
 
+    const lookupSaleForReturn = async () => {
+        if (!returnSaleRef.trim()) return;
+        setReturnSaleLoading(true);
+        try {
+            const response = await axios.get(route('store.sales.index', { store_slug: store?.slug, search: returnSaleRef }), { headers: { 'Accept': 'application/json' } });
+            // Look for exact reference_number match in the paginated results
+            const sale = response.data?.data?.find(s => s.reference_number === returnSaleRef);
+            if (!sale) {
+                addToast('Sale not found. Check the reference number.', 'error');
+                setReturnSaleId(null);
+                return;
+            }
+            setReturnSaleId(sale.id);
+            // Load sale items into cart
+            const mappedCart = sale.items.map(item => ({
+                cartItemId: Date.now() + Math.random(),
+                id: item.product_id,
+                name: item.product?.name || 'Unknown Product',
+                price: parseFloat(item.unit_price),
+                qty: parseFloat(item.quantity),
+                freeQuantity: parseFloat(item.free_quantity || 0),
+                unit: item.product?.unit || 'pcs',
+                tax_rate: parseFloat(item.tax_rate || 0),
+                discount: parseFloat(item.discount || 0),
+                original_price: parseFloat(item.unit_price),
+            }));
+            updateActiveSale({ cart: mappedCart, customer: sale.customer || null });
+            addToast(`Sale #${returnSaleRef} loaded for return`, 'info');
+        } catch (err) {
+            addToast('Error looking up sale. Check reference number.', 'error');
+            setReturnSaleId(null);
+        } finally {
+            setReturnSaleLoading(false);
+        }
+    };
+
     // Load products when category changes (or on mount/reset)
     useEffect(() => {
         fetchCategoryProducts(selectedCategory);
@@ -1666,6 +1708,23 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             <span className={`relative inline-flex rounded-full h-2 w-2 ${seniorMode ? 'bg-indigo-500' : 'bg-slate-400'}`}></span>
                         </span>
                         <span>Senior Mode</span>
+                    </button>
+
+                    {/* Return Mode Toggle */}
+                    <button
+                        onClick={() => { setReturnMode(!returnMode); setReturnSaleRef(''); setReturnSaleId(null); }}
+                        className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
+                            returnMode
+                                ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800'
+                                : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 border-transparent'
+                        }`}
+                        title="Toggle Return Mode"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            {returnMode && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>}
+                            <span className={`relative inline-flex rounded-full h-2 w-2 ${returnMode ? 'bg-red-500' : 'bg-slate-400'}`}></span>
+                        </span>
+                        <span>Return Mode</span>
                     </button>
 
                     <button
@@ -1963,6 +2022,29 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             {activeSale.cart.length} ITEMS • {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY
                         </span>
                     </div>
+
+                    {returnMode && (
+                        <div className="mx-3 mb-2 mt-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
+                            <p className="text-xs font-bold text-red-500 mb-2 uppercase tracking-wider">⚠ Return Mode Active</p>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={returnSaleRef}
+                                    onChange={e => setReturnSaleRef(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && lookupSaleForReturn()}
+                                    placeholder="Enter sale reference number..."
+                                    className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                />
+                                <button
+                                    onClick={lookupSaleForReturn}
+                                    disabled={returnSaleLoading}
+                                    className="px-3 py-1.5 text-xs font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                                >
+                                    {returnSaleLoading ? '...' : 'Load'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Cart List (Moved from Left) */}
                     <div ref={cartListRef} className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2">
@@ -2363,18 +2445,49 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </button>
                         </div>
 
-                        <button
-                            id="tour-pos-checkout"
-                            onClick={handleCheckoutClick}
-                            disabled={processingPayment || activeSale.cart.length === 0}
-                            className={`w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        >
-                            {printOnComplete ? (
-                                <><Printer size={20} /> {processingPayment ? 'Processing...' : 'Complete & Print'}</>
-                            ) : (
-                                <><Check size={20} /> {processingPayment ? 'Processing...' : 'Complete Sale'}</>
-                            )}
-                        </button>
+                        {returnMode ? (
+                            <button
+                                onClick={async () => {
+                                    if (!returnSaleId) { addToast('Load a sale first', 'error'); return; }
+                                    if (activeSale.cart.length === 0) { addToast('No items in cart', 'error'); return; }
+                                    setReturnProcessing(true);
+                                    try {
+                                        await axios.post(route('store.sales.return', { store_slug: store?.slug, sale: returnSaleId }), {
+                                            refund_method: 'cash',
+                                            refund_source: 'cash_drawer',
+                                            reason: 'POS return',
+                                            items: activeSale.cart.map(i => ({ id: i.id, quantity: i.qty })),
+                                        });
+                                        addToast('Return processed successfully', 'success');
+                                        setReturnMode(false);
+                                        setReturnSaleId(null);
+                                        setReturnSaleRef('');
+                                        updateActiveSale({ cart: [], customer: null });
+                                    } catch (err) {
+                                        addToast(err.response?.data?.message || 'Return failed', 'error');
+                                    } finally {
+                                        setReturnProcessing(false);
+                                    }
+                                }}
+                                disabled={returnProcessing || !returnSaleId}
+                                className="w-full py-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 transition-all text-sm uppercase tracking-wider"
+                            >
+                                {returnProcessing ? 'Processing...' : '↩ Complete Return'}
+                            </button>
+                        ) : (
+                            <button
+                                id="tour-pos-checkout"
+                                onClick={handleCheckoutClick}
+                                disabled={processingPayment || activeSale.cart.length === 0}
+                                className={`w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            >
+                                {printOnComplete ? (
+                                    <><Printer size={20} /> {processingPayment ? 'Processing...' : 'Complete & Print'}</>
+                                ) : (
+                                    <><Check size={20} /> {processingPayment ? 'Processing...' : 'Complete Sale'}</>
+                                )}
+                            </button>
+                        )}
 
                         <div className="flex gap-3">
                             <button
