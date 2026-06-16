@@ -1110,6 +1110,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::resource('proposals', \App\Http\Controllers\ProposalController::class);
     Route::post('/proposals/{proposal}/convert', [\App\Http\Controllers\ProposalController::class, 'convertToSale'])->name('proposals.convert');
 
+    Route::get('/sales/lookup', [\App\Http\Controllers\SaleController::class, 'lookup'])->name('sales.lookup');
+
     // Parked Sales (Hold Bill) - MUST BE BEFORE /sales/{sale}
     Route::post('/sales/bulk-destroy', [\App\Http\Controllers\SaleController::class, 'bulkDestroy'])->name('sales.bulk-destroy');
     Route::post('/sales/park', [\App\Http\Controllers\SaleController::class, 'park'])->name('sales.park');
@@ -1122,7 +1124,6 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/{sale}/edit', [\App\Http\Controllers\SaleController::class, 'edit'])->name('sales.edit');
     Route::put('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'update'])->name('sales.update');
     Route::post('/sales/{sale}/cancel', [\App\Http\Controllers\SaleController::class, 'cancel'])->name('sales.cancel');
-    Route::get('/sales/lookup', [\App\Http\Controllers\SaleController::class, 'lookup'])->name('sales.lookup');
     Route::post('/pos/return', [\App\Http\Controllers\PosReturnController::class, 'store'])->name('pos.return.store');
     Route::post('/sales/{sale}/return', [\App\Http\Controllers\SaleController::class, 'returnSale'])->name('sales.return');
     Route::delete('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'destroy'])->name('sales.destroy');
