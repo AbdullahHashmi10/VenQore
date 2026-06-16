@@ -603,6 +603,18 @@ class SaleController extends Controller
         return $pdf->stream('receipt-' . $sale->reference_number . '.pdf');
     }
 
+    public function lookup(Request $request)
+    {
+        $ref = $request->input('ref');
+        if (!$ref) {
+            return response()->json(['error' => 'Reference required'], 422);
+        }
+        $sale = Sale::with(['items.product', 'customer'])
+            ->where('reference_number', $ref)
+            ->firstOrFail();
+        return response()->json($sale);
+    }
+
     public function returnSale(Request $request, $id)
     {
         $sale = Sale::with(['items', 'items.saleItemBatches'])->findOrFail($id);

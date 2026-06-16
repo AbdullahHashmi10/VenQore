@@ -56,6 +56,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const userRole = auth.user?.role;
     const userPerms = auth.user?.permissions || [];
     const hasDiscountPerm = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userPerms.some(p => p === 'pos.discounts' || p.startsWith('pos.discounts.'));
+    const posReturnMode = settings?.pos_return_mode || 'reference';
+    const posReturnWindow = settings?.pos_return_window ? parseInt(settings.pos_return_window) : null;
+    const posReturnWindowBehavior = settings?.pos_return_window_behavior || 'warn';
     const {
         posSessions,
         currentPosId,
@@ -217,6 +220,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const [returnSaleId, setReturnSaleId] = useState(null);
     const [returnSaleLoading, setReturnSaleLoading] = useState(false);
     const [returnProcessing, setReturnProcessing] = useState(false);
+
+
 
 
     // Free Quantity Visibility State (default: OFF)
@@ -969,6 +974,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         // Clear current sale
         updateActiveSale({ cart: [], cashReceived: '', searchTerm: '', customer: null });
 
+        // Refresh product catalog to show updated stock quantities
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('amd:refresh-products'));
+        }, 1000);
+
         // Auto-print if enabled
         if (paymentData.printReceipt) {
             // Build sale object for printing
@@ -1545,11 +1555,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         if (!returnSaleRef.trim()) return;
         setReturnSaleLoading(true);
         try {
-            const response = await axios.get(route('store.sales.index', { store_slug: store?.slug, search: returnSaleRef }), { headers: { 'Accept': 'application/json' } });
-            // Look for exact reference_number match in the paginated results
-            const sale = response.data?.data?.find(s => s.reference_number === returnSaleRef);
-            if (!sale) {
-                addToast('Sale not found. Check the reference number.', 'error');
+            const response = await axios.get(route('store.sales.lookup', { store_slug: store?.slug }), {
+                params: { ref: returnSaleRef.trim() },
+                headers: { 'Accept': 'application/json' },
+            });
+            const sale = response.data;
+            if (!sale || !sale.id) {
+                addToast(`Sale "${returnSaleRef}" not found.`, 'error');
+                setReturnSaleId(null);
+                return;
+            }
+            if (!sale.items || sale.items.length === 0) {
+                addToast('Sale found but has no items.', 'error');
                 setReturnSaleId(null);
                 return;
             }
@@ -1558,6 +1575,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             const mappedCart = sale.items.map(item => ({
                 cartItemId: Date.now() + Math.random(),
                 id: item.product_id,
+                sale_item_id: item.id,
                 name: item.product?.name || 'Unknown Product',
                 price: parseFloat(item.unit_price),
                 qty: parseFloat(item.quantity),
@@ -1570,7 +1588,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             updateActiveSale({ cart: mappedCart, customer: sale.customer || null });
             addToast(`Sale #${returnSaleRef} loaded for return`, 'info');
         } catch (err) {
-            addToast('Error looking up sale. Check reference number.', 'error');
+            console.error('Return lookup error:', err?.response?.status, err?.response?.data, err?.message);
+            addToast('Error looking up sale: ' + (err?.response?.data?.message || err?.message || 'Unknown error'), 'error');
             setReturnSaleId(null);
         } finally {
             setReturnSaleLoading(false);
@@ -1581,6 +1600,15 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     useEffect(() => {
         fetchCategoryProducts(selectedCategory);
     }, [selectedCategory, isOnline]);
+
+    useEffect(() => {
+        const handleRefresh = () => {
+            // Re-fetch featured/all products to update stock display
+            fetchCategoryProducts(selectedCategory);
+        };
+        window.addEventListener('amd:refresh-products', handleRefresh);
+        return () => window.removeEventListener('amd:refresh-products', handleRefresh);
+    }, [selectedCategory]);
 
     // Load parked sales and categories on mount
     useEffect(() => {
@@ -1712,7 +1740,15 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
                     {/* Return Mode Toggle */}
                     <button
-                        onClick={() => { setReturnMode(!returnMode); setReturnSaleRef(''); setReturnSaleId(null); }}
+                        onClick={() => {
+                            const entering = !returnMode;
+                            setReturnMode(entering);
+                            setReturnSaleRef('');
+                            setReturnSaleId(null);
+                            if (entering && posReturnMode !== 'open') {
+                                updateActiveSale({ cart: [], customer: null });
+                            }
+                        }}
                         className={`h-8 px-3 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold border ${
                             returnMode
                                 ? 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/40 dark:text-red-400 dark:border-red-800'
@@ -1922,7 +1958,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             categoryProducts.map(product => (
                                                 <button
                                                     key={product.id}
-                                                    onClick={() => handleProductSelect(product)}
+                                                    onClick={() => {
+                                                        if (returnMode && posReturnMode !== 'open') {
+                                                            addToast('In Return Mode, use the reference number to load items.', 'error');
+                                                            return;
+                                                        }
+                                                        handleProductSelect(product);
+                                                    }}
                                                     className="w-full bg-white dark:bg-slate-800 rounded-2xl border-2 border-transparent hover:border-indigo-500 transition-all shadow-sm hover:shadow-md text-left flex items-center justify-between p-3 gap-3 active:scale-98 relative overflow-hidden"
                                                 >
                                                     {/* Left Section: Image and Name */}
@@ -2026,23 +2068,51 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     {returnMode && (
                         <div className="mx-3 mb-2 mt-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
                             <p className="text-xs font-bold text-red-500 mb-2 uppercase tracking-wider">⚠ Return Mode Active</p>
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={returnSaleRef}
-                                    onChange={e => setReturnSaleRef(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && lookupSaleForReturn()}
-                                    placeholder="Enter sale reference number..."
-                                    className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
-                                />
-                                <button
-                                    onClick={lookupSaleForReturn}
-                                    disabled={returnSaleLoading}
-                                    className="px-3 py-1.5 text-xs font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
-                                >
-                                    {returnSaleLoading ? '...' : 'Load'}
-                                </button>
-                            </div>
+                            {posReturnMode === 'open' ? (
+                                <p className="text-[10px] text-red-400">Add items from the product grid and set quantities to return, then click Complete Return.</p>
+                            ) : posReturnMode === 'customer_or_reference' ? (
+                                <div className="space-y-2">
+                                    <p className="text-[10px] text-red-400 mb-2">Search by customer or enter a reference number.</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={returnSaleRef}
+                                            onChange={e => setReturnSaleRef(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && lookupSaleForReturn()}
+                                            placeholder="Reference number or customer name/phone..."
+                                            className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                        />
+                                        <button
+                                            onClick={lookupSaleForReturn}
+                                            disabled={returnSaleLoading}
+                                            className={`px-3 py-1.5 text-xs font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 ${!returnSaleRef.trim() ? 'animate-pulse' : ''}`}
+                                        >
+                                            {returnSaleLoading ? '...' : 'Load'}
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-2">
+                                    <p className="text-[10px] text-red-400 mb-2">Enter the original sale reference number to load items for return.</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={returnSaleRef}
+                                            onChange={e => setReturnSaleRef(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && lookupSaleForReturn()}
+                                            placeholder="Enter sale reference number..."
+                                            className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                        />
+                                        <button
+                                            onClick={lookupSaleForReturn}
+                                            disabled={returnSaleLoading}
+                                            className={`px-3 py-1.5 text-xs font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50 ${!returnSaleRef.trim() ? 'animate-pulse' : ''}`}
+                                        >
+                                            {returnSaleLoading ? '...' : 'Load'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -2391,7 +2461,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="space-y-3 mb-2">
                             <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">Amount Tendered</label>
+                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">
+                                        {returnMode ? 'AMOUNT TO REFUND' : 'Amount Tendered'}
+                                    </label>
                                     <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
                                         Cash
                                     </span>
@@ -2417,19 +2489,21 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </div>
 
                             {/* Change Display */}
-                            <div className={`p-4 rounded-xl border transition-colors ${changeDue >= 0
-                                ? 'bg-emerald-500/10 border-emerald-500/20'
-                                : 'bg-red-500/10 border-red-500/20'
-                                }`}>
-                                <div className="flex justify-between items-center">
-                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
-                                        {changeDue >= 0 ? 'Change Due' : 'Shortage'}
-                                    </span>
-                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
-                                        {formatCurrency(Math.abs(changeDue), store || settings)}
-                                    </span>
+                            {!returnMode && (
+                                <div className={`p-4 rounded-xl border transition-colors ${changeDue >= 0
+                                    ? 'bg-emerald-500/10 border-emerald-500/20'
+                                    : 'bg-red-500/10 border-red-500/20'
+                                    }`}>
+                                    <div className="flex justify-between items-center">
+                                        <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                            {changeDue >= 0 ? 'Change Due' : 'Shortage'}
+                                        </span>
+                                        <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                            {formatCurrency(Math.abs(changeDue), store || settings)}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
                     </div>
 
@@ -2448,28 +2522,48 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         {returnMode ? (
                             <button
                                 onClick={async () => {
-                                    if (!returnSaleId) { addToast('Load a sale first', 'error'); return; }
                                     if (activeSale.cart.length === 0) { addToast('No items in cart', 'error'); return; }
                                     setReturnProcessing(true);
                                     try {
-                                        await axios.post(route('store.sales.return', { store_slug: store?.slug, sale: returnSaleId }), {
-                                            refund_method: 'cash',
-                                            refund_source: 'cash_drawer',
-                                            reason: 'POS return',
-                                            items: activeSale.cart.map(i => ({ id: i.id, quantity: i.qty })),
-                                        });
-                                        addToast('Return processed successfully', 'success');
-                                        setReturnMode(false);
-                                        setReturnSaleId(null);
-                                        setReturnSaleRef('');
-                                        updateActiveSale({ cart: [], customer: null });
+                                        if (posReturnMode === 'open') {
+                                            // Open return — post to PosReturnController
+                                            const response = await axios.post(route('store.pos.return.store', { store_slug: store?.slug }), {
+                                                items: activeSale.cart.map(i => ({
+                                                    product_id: i.id,
+                                                    quantity: i.qty,
+                                                    price: i.price,
+                                                })),
+                                                refund_method: 'cash',
+                                                reason: 'POS Open Return',
+                                            });
+                                            addToast(`Return processed — Ref: ${response.data.reference}`, 'success');
+                                            setReturnMode(false);
+                                            updateActiveSale({ cart: [], customer: null });
+                                        } else {
+                                            if (!returnSaleId) {
+                                                addToast('Please load a sale using the reference number first', 'error');
+                                                setReturnProcessing(false);
+                                                return;
+                                            }
+                                            await axios.post(route('store.sales.return', { store_slug: store?.slug, sale: returnSaleId }), {
+                                                refund_method: 'cash',
+                                                refund_source: 'cash_drawer',
+                                                reason: 'POS return',
+                                                items: activeSale.cart.map(i => ({ id: i.sale_item_id || i.id, quantity: i.qty })),
+                                            });
+                                            addToast('Return processed successfully', 'success');
+                                            setReturnMode(false);
+                                            setReturnSaleId(null);
+                                            setReturnSaleRef('');
+                                            updateActiveSale({ cart: [], customer: null });
+                                        }
                                     } catch (err) {
                                         addToast(err.response?.data?.message || 'Return failed', 'error');
                                     } finally {
                                         setReturnProcessing(false);
                                     }
                                 }}
-                                disabled={returnProcessing || !returnSaleId}
+                                disabled={returnProcessing || activeSale.cart.length === 0}
                                 className="w-full py-4 rounded-2xl font-bold text-white bg-red-500 hover:bg-red-600 disabled:opacity-50 transition-all text-sm uppercase tracking-wider"
                             >
                                 {returnProcessing ? 'Processing...' : '↩ Complete Return'}
@@ -2490,13 +2584,15 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         )}
 
                         <div className="flex gap-3">
-                            <button
-                                onClick={handleParkBill}
-                                disabled={parkingBill || activeSale.cart.length === 0}
-                                className={`flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-white rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all ${parkingBill ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            >
-                                <Pause size={18} /> {parkingBill ? 'Parking...' : 'Hold'}
-                            </button>
+                            {!returnMode && (
+                                <button
+                                    onClick={handleParkBill}
+                                    disabled={parkingBill || activeSale.cart.length === 0}
+                                    className={`flex-1 py-3 bg-amber-500 hover:bg-amber-400 text-white rounded-xl font-bold flex items-center justify-center gap-2 active:scale-95 transition-all ${parkingBill ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                >
+                                    <Pause size={18} /> {parkingBill ? 'Parking...' : 'Hold'}
+                                </button>
+                            )}
 
                             <button
                                 onClick={() => updateActiveSale({ cart: [], cashReceived: '' })}

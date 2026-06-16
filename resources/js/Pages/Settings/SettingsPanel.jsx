@@ -47,6 +47,7 @@ export default function SettingsPanel({ settings }) {
 
     const [activeSection, setActiveSection] = useState('general');
     const [saved, setSaved] = useState(false);
+    const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [expandedCategories, setExpandedCategories] = useState(['org', 'ops', 'adv']);
 
@@ -67,6 +68,9 @@ export default function SettingsPanel({ settings }) {
         stop_sale_negative_stock: settings.stop_sale_negative_stock === '1',
         round_off_total: settings.round_off_total === '1',
         default_tax_rate: settings.default_tax_rate || '0',
+        pos_return_mode: settings.pos_return_mode || 'reference',
+        pos_return_window: settings.pos_return_window || '',
+        pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
 
         // General
         store_name: settings.store_name || '',
@@ -99,7 +103,10 @@ export default function SettingsPanel({ settings }) {
             store_phone: data.store_phone,
             default_tax_rate: data.default_tax_rate,
             admin_passcode: data.admin_passcode,
-            product_cost_update_policy: data.product_cost_update_policy
+            product_cost_update_policy: data.product_cost_update_policy,
+            pos_return_mode: data.pos_return_mode,
+            pos_return_window: data.pos_return_window,
+            pos_return_window_behavior: data.pos_return_window_behavior
         };
 
         router.post(route("store.settings.update", {
@@ -227,6 +234,100 @@ export default function SettingsPanel({ settings }) {
                                         description="Warning: Allows selling items even if inventory is 0"
                                         variant="danger"
                                     />
+                            </div>
+                        </div>
+
+                        {/* Return Mode Configuration Card */}
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                            <SectionHeader title="Return Mode Configuration" description="Configure return settings and validation rules" />
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center py-2">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">POS Return Mode</label>
+                                        <span className="block text-xs text-slate-500">Configure return authorization requirements</span>
+                                    </div>
+                                    <select
+                                        value={data.pos_return_mode}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setData('pos_return_mode', val);
+                                            if (val !== 'open') {
+                                                setAcknowledgeOpenReturn(false);
+                                            }
+                                        }}
+                                        className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    >
+                                        <option value="reference">Reference Number Required</option>
+                                        <option value="customer_or_reference">Customer or Reference</option>
+                                        <option value="open">Open Return — No Reference Needed</option>
+                                    </select>
+                                </div>
+
+                                {data.pos_return_mode === 'open' && (
+                                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-amber-500 text-lg">⚠️</span>
+                                            <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
+                                                Warning: Open returns cannot be linked to original sales. You are responsible for verifying returned items were genuinely purchased. The system cannot detect abuse.
+                                            </p>
+                                        </div>
+                                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                                            <input
+                                                type="checkbox"
+                                                checked={acknowledgeOpenReturn}
+                                                onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)}
+                                                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300"
+                                            />
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                I understand and acknowledge this risk
+                                            </span>
+                                        </label>
+                                    </div>
+                                )}
+
+                                {data.pos_return_mode === 'open' && (
+                                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                        <div className="flex justify-between items-center py-2">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Return Window (days)</label>
+                                                <span className="block text-xs text-slate-500">Max days allowed since original purchase for returns</span>
+                                            </div>
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                value={data.pos_return_window}
+                                                onChange={(e) => setData('pos_return_window', e.target.value)}
+                                                placeholder="e.g. 7, 14, 30 — leave empty to disable"
+                                                className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                            />
+                                        </div>
+
+                                        {data.pos_return_window && (
+                                            <div className="flex justify-between items-center py-2">
+                                                <div>
+                                                    <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Window Behavior</span>
+                                                    <span className="block text-xs text-slate-500">Action to take if return window has expired</span>
+                                                </div>
+                                                <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setData('pos_return_window_behavior', 'warn')}
+                                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+                                                    >
+                                                        Soft Warning
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setData('pos_return_window_behavior', 'block')}
+                                                        className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}
+                                                    >
+                                                        Hard Block
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -397,8 +498,8 @@ export default function SettingsPanel({ settings }) {
 
                                 <button
                                     type="submit"
-                                    disabled={processing || !isAdmin}
-                                    className={`relative group px-10 py-4 rounded-2xl font-black text-sm transition-all duration-500 transform active:scale-95 overflow-hidden shadow-2xl hover:shadow-indigo-500/40 ${!isAdmin ? 'opacity-50 grayscale' : ''}`}
+                                    disabled={processing || !isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)}
+                                    className={`relative group px-10 py-4 rounded-2xl font-black text-sm transition-all duration-500 transform active:scale-95 overflow-hidden shadow-2xl hover:shadow-indigo-500/40 ${(!isAdmin || (data.pos_return_mode === 'open' && !acknowledgeOpenReturn)) ? 'opacity-50 grayscale cursor-not-allowed' : ''}`}
                                 >
                                     {/* Midnight Nebula Background for Button */}
                                     <div className="absolute inset-0 bg-slate-900 z-0">

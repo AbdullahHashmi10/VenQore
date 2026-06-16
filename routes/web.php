@@ -1122,6 +1122,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/{sale}/edit', [\App\Http\Controllers\SaleController::class, 'edit'])->name('sales.edit');
     Route::put('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'update'])->name('sales.update');
     Route::post('/sales/{sale}/cancel', [\App\Http\Controllers\SaleController::class, 'cancel'])->name('sales.cancel');
+    Route::get('/sales/lookup', [\App\Http\Controllers\SaleController::class, 'lookup'])->name('sales.lookup');
+    Route::post('/pos/return', [\App\Http\Controllers\PosReturnController::class, 'store'])->name('pos.return.store');
     Route::post('/sales/{sale}/return', [\App\Http\Controllers\SaleController::class, 'returnSale'])->name('sales.return');
     Route::delete('/sales/{sale}', [\App\Http\Controllers\SaleController::class, 'destroy'])->name('sales.destroy');
 

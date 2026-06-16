@@ -22,6 +22,9 @@ class SettingsController extends Controller
     {
         $data = $request->validate([
             'settings' => 'required|array',
+            'settings.pos_return_mode' => 'nullable|string|in:reference,customer_or_reference,open',
+            'settings.pos_return_window' => 'nullable|integer',
+            'settings.pos_return_window_behavior' => 'nullable|string|in:warn,block',
         ]);
 
         foreach ($data['settings'] as $key => $value) {
