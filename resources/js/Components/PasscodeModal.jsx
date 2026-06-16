@@ -2,16 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, Delete, Lock, Check } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 
-export default function PasscodeModal({ isOpen, onClose, onSuccess, settings: propSettings }) {
+export default function PasscodeModal({ isOpen, onClose, onSuccess, externalError, settings: propSettings }) {
     const { settings: sharedSettings } = usePage().props;
     const settings = propSettings || sharedSettings;
 
     const [input, setInput] = useState('');
     const [error, setError] = useState(false);
 
-    // Determine the expected length
-    const validPasscode = settings?.admin_passcode || '123456';
-    const expectedLength = validPasscode.length;
+    const expectedLength = 6;
+
+    useEffect(() => {
+        if (externalError) {
+            setError(true);
+            setTimeout(() => setError(false), 600);
+        }
+    }, [externalError]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -66,19 +71,10 @@ export default function PasscodeModal({ isOpen, onClose, onSuccess, settings: pr
     };
 
     const verifyPasscode = (code) => {
-        if (code === validPasscode) {
-            // Reset state before success to prevent showing filled dots on next open if component isn't unmounted
-            setInput('');
-            setError(false);
-            onSuccess();
-        } else {
-            setError(true);
-            // Clear input after error animation
-            setTimeout(() => {
-                setInput('');
-                setError(false);
-            }, 600);
-        }
+        if (code.length < expectedLength) return;
+        setInput('');
+        setError(false);
+        onSuccess(code);
     };
 
     if (!isOpen) return null;

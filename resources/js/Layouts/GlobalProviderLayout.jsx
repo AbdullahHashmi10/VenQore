@@ -117,7 +117,7 @@ function InnerGlobalLayout({ children, settings }) {
         };
     }, []);
 
-    const handleExitSuccess = () => {
+    const handleExitSuccess = (code) => {
         console.log('[Global] Exit Authorized. Terminating...');
         if (window.amdAPI) {
             window.amdAPI.forceClose();
@@ -162,7 +162,7 @@ function InnerGlobalLayout({ children, settings }) {
                     <PasscodeModal
                         isOpen={showExitModal}
                         onClose={() => setShowExitModal(false)}
-                        onSuccess={handleExitSuccess}
+                        onSuccess={(code) => handleExitSuccess(code)}
                         settings={settings}
                     />
 

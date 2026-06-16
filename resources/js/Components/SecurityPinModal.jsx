@@ -77,7 +77,7 @@ export default function SecurityPinModal({ isOpen, onClose, onSuccess, store }) 
         try {
             const response = await axios.post(route('store.profile.verify-security-pin', { store_slug: store?.slug }), { pin });
             if (response.data.success) {
-                onSuccess();
+                onSuccess(pin);
                 onClose();
             }
         } catch (err) {

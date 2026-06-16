@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\RateLimiter;
 use App\Models\TenantUser;
 
 class ProfileSecurityController extends Controller
@@ -45,9 +46,6 @@ class ProfileSecurityController extends Controller
         return Redirect::back()->with('status', 'security-pin-updated');
     }
 
-    /**
-     * Verify the security pin.
-     */
     public function verifySecurityPin(Request $request)
     {
         $request->validate([
@@ -55,7 +53,18 @@ class ProfileSecurityController extends Controller
         ]);
 
         $user = $request->user();
-        
+        $rateLimitKey = 'security-pin:' . $user->id;
+
+        // Lock out after 5 failed attempts for 5 minutes
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 5)) {
+            $seconds = RateLimiter::availableIn($rateLimitKey);
+            return response()->json([
+                'success' => false,
+                'message' => "Too many incorrect attempts. Try again in {$seconds} seconds.",
+                'locked'  => true,
+            ], 429);
+        }
+
         if (!$user->last_store_id) {
             return response()->json(['success' => false, 'message' => 'No active store selected.'], 403);
         }
@@ -69,9 +78,15 @@ class ProfileSecurityController extends Controller
         }
 
         if (Hash::check($request->pin, $membership->security_pin)) {
+            RateLimiter::clear($rateLimitKey);
             return response()->json(['success' => true]);
         }
 
-        return response()->json(['success' => false, 'message' => 'Incorrect Security PIN.'], 401);
+        RateLimiter::hit($rateLimitKey, 300); // 300 seconds = 5 minutes
+        $remaining = 5 - RateLimiter::attempts($rateLimitKey);
+        return response()->json([
+            'success'   => false,
+            'message'   => 'Incorrect Security PIN.' . ($remaining > 0 ? " {$remaining} attempts remaining." : ''),
+        ], 401);
     }
 }

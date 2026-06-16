@@ -272,7 +272,16 @@ class FundController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'reason' => 'required|string|max:255',
             'notes' => 'nullable|string|max:1000',
+            'passcode' => 'required|string|size:6',
         ]);
+
+        // Backend PIN verification
+        $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+            return back()->with('error', 'Incorrect security PIN. Action blocked.');
+        }
 
         DB::beginTransaction();
         try {
@@ -366,7 +375,16 @@ class FundController extends Controller
             'amount' => 'required|numeric|min:0.01',
             'reason' => 'required|string|max:255',
             'notes' => 'nullable|string|max:1000',
+            'passcode' => 'required|string|size:6',
         ]);
+
+        // Backend PIN verification
+        $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+            return back()->with('error', 'Incorrect security PIN. Action blocked.');
+        }
 
         DB::beginTransaction();
         try {
@@ -474,7 +492,16 @@ class FundController extends Controller
             'to_bank_id' => 'required_if:to_type,bank|nullable|exists:bank_accounts,id',
             'amount' => 'required|numeric|min:0.01',
             'reason' => 'nullable|string|max:255',
+            'passcode' => 'required|string|size:6',
         ]);
+
+        // Backend PIN verification
+        $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+            return back()->with('error', 'Incorrect security PIN. Action blocked.');
+        }
 
         // Prevent same account transfer
         if ($request->from_type === $request->to_type) {
@@ -592,7 +619,16 @@ class FundController extends Controller
             'new_balance' => 'required|numeric|min:0',
             'reason' => 'required|string|max:255',
             'notes' => 'nullable|string|max:1000',
+            'passcode' => 'required|string|size:6',
         ]);
+
+        // Backend PIN verification
+        $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+            return back()->with('error', 'Incorrect security PIN. Action blocked.');
+        }
 
         DB::beginTransaction();
         try {

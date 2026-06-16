@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Services\V3\AccountingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use App\Models\TenantUser;
 
 class FundController extends Controller
 {
@@ -19,7 +22,16 @@ class FundController extends Controller
             'transaction_date' => ['required', 'date', 'before_or_equal:today'],
             'amount'         => ['required', 'numeric', 'min:0.01'],
             'payment_method' => ['required', 'in:cash,bank'],
+            'passcode'       => ['required', 'string', 'size:6'],
         ]);
+
+        // Backend PIN verification
+        $membership = TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !Hash::check($request->input('passcode', ''), $membership->security_pin)) {
+            return redirect()->back()->with('error', 'Incorrect security PIN. Action blocked.');
+        }
 
         $cashAccount = $validated['payment_method'] === 'bank' ? '1010' : '1000';
         $isDrawing   = $validated['type'] === 'drawing';

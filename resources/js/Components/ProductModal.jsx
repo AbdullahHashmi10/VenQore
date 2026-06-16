@@ -1528,7 +1528,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
             <PasscodeModal 
                 isOpen={showPasscodeModal}
                 onClose={() => setShowPasscodeModal(false)}
-                onSuccess={() => {
+                onSuccess={(code) => {
                     setShowPasscodeModal(false);
                     setIsStockUnlocked(true);
                     window.dispatchEvent(new CustomEvent('amd:toast', {

@@ -277,7 +277,7 @@ export default function AdminSettings({ settings = {} }) {
 
 
 
-    const saveSettings = () => {
+    const saveSettings = (code) => {
         post(route('store.admin.settings.update', { store_slug: store?.slug }), {
             onSuccess: () => {
                 setSaved(true);
@@ -809,7 +809,7 @@ export default function AdminSettings({ settings = {} }) {
             <PasscodeModal
                 isOpen={isPasscodeModalOpen}
                 onClose={() => setIsPasscodeModalOpen(false)}
-                onSuccess={saveSettings}
+                onSuccess={(code) => saveSettings(code)}
                 settings={settings}
             />
         </OneGlanceLayout >

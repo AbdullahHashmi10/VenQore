@@ -7,6 +7,8 @@ use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class PartyController extends Controller
 {
@@ -471,6 +473,14 @@ class PartyController extends Controller
             'ids.*'    => 'string',
             'passcode' => 'nullable|string',
         ]);
+
+        // Always require PIN for bulk delete
+        $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+            ->where('user_id', \Illuminate\Support\Facades\Auth::id())
+            ->first();
+        if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->input('passcode', ''), $membership->security_pin)) {
+            return response()->json(['message' => 'Security PIN required for bulk delete.'], 403);
+        }
 
         $tenantId = app('current.tenant')->id;
         $ids = $request->input('ids');

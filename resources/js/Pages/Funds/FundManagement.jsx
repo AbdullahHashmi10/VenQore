@@ -230,6 +230,7 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
     // Security PIN State
     const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
     const [pendingAction, setPendingAction] = useState(null); // 'add' | 'remove' | 'transfer' | 'adjust'
+    const [verifiedPin, setVerifiedPin] = useState('');
 
     // Search/Sort State
     const [searchTerm, setSearchTerm] = useState('');
@@ -271,11 +272,14 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
     };
 
     // Helper: Execute the final submission
-    const confirmSubmit = () => {
+    const confirmSubmit = (pin) => {
         if (!pendingAction) return;
         
         setProcessing(true);
-        router.post(route(`store.funds.${pendingAction}`, { store_slug: store.slug }), formData, {
+        router.post(route(`store.funds.${pendingAction}`, { store_slug: store.slug }), {
+            ...formData,
+            passcode: pin,
+        }, {
             onSuccess: () => {
                 setActiveModal(null);
                 setIsSecurityModalOpen(false);
@@ -331,7 +335,10 @@ export default function FundManagement({ cashAccount, bankAccounts = [], transac
                     setIsSecurityModalOpen(false);
                     setPendingAction(null);
                 }}
-                onSuccess={confirmSubmit}
+                onSuccess={(pin) => {
+                    setVerifiedPin(pin);
+                    confirmSubmit(pin);
+                }}
                 store={store}
             />
 

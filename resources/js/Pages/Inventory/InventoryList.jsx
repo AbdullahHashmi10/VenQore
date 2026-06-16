@@ -246,7 +246,7 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     setPendingDeleteAction(null);
                     setPendingDeleteId(null);
                 }}
-                onSuccess={() => {
+                onSuccess={(code) => {
                     setIsPasscodeModalOpen(false);
                     executeDelete();
                 }}
