@@ -391,7 +391,7 @@ class User extends Authenticatable
 
             // 2. Delegate to config/permissions.php — the CANONICAL permission map
             $role = $membership->role ?? 'viewer';
-            return config('permissions.' . $role, ['pos', 'sales_view']);
+            return config('permissions.' . $role, []);
         }
 
         if (!empty($this->attributes['permissions'])) {

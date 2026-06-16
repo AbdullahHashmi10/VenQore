@@ -51,38 +51,13 @@ class CheckPermissions
             return $next($request);
         }
 
-        // ── Map legacy broad permissions to granular actions for backward compatibility ──
-        $mappedPermissions = [];
-        $legacyMap = [
-            'inventory'  => ['inventory.view', 'inventory.create', 'inventory.edit', 'inventory.adjust', 'inventory.transfer', 'inventory.barcodes'],
-            'customers'  => ['purchases.suppliers', 'sales.create'],
-            'finance'    => ['finance.balances', 'finance.transactions', 'finance.receive_payment', 'finance.send_payment', 'finance.expenses', 'finance.journal'],
-            'sales'      => ['sales.create', 'sales.edit', 'sales.view'],
-            'sales_view' => ['sales.view', 'sales.create'],
-            'reports'    => ['reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit'],
-            'settings'   => ['admin.settings_view', 'admin.settings_manage'],
-            'users'      => ['admin.staff_view', 'admin.staff_manage'],
-            'audit'      => ['reports.audit'],
-            'returns'    => ['sales.returns'],
-            'pos'        => ['pos.open_session', 'pos.checkout', 'pos.discounts', 'pos.void_item', 'pos.refund', 'pos.close_session'],
-            'purchases'  => ['purchases.view', 'purchases.create', 'purchases.edit', 'purchases.void', 'purchases.costs', 'purchases.suppliers'],
-        ];
-
-        foreach ($permissions as $permission) {
-            $mappedPermissions[] = $permission;
-            if (isset($legacyMap[$permission])) {
-                $mappedPermissions = array_merge($mappedPermissions, $legacyMap[$permission]);
-            }
-        }
-        $mappedPermissions = array_unique($mappedPermissions);
-
         // If no required permissions specified, allow basic authenticated access
-        if (empty($mappedPermissions)) {
+        if (empty($permissions)) {
             return $next($request);
         }
 
         // ── Check if user holds at least one of the required granular keys ───
-        foreach ($mappedPermissions as $permission) {
+        foreach ($permissions as $permission) {
             if (in_array($permission, $userPerms)) {
                 return $next($request);
             }

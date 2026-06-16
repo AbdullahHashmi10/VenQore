@@ -29,6 +29,9 @@ function ToastItem({ toast, onClose, duration }) {
     const startTimeRef = useRef(null);
     const remainingRef = useRef(duration);
 
+    const onCloseRef = useRef(onClose);
+    onCloseRef.current = onClose;
+
     const typeStyles = {
         success: {
             bg: 'bg-emerald-50 dark:bg-emerald-900/30',
@@ -69,7 +72,7 @@ function ToastItem({ toast, onClose, duration }) {
 
         const startTimer = () => {
             timerRef.current = setTimeout(() => {
-                onClose();
+                onCloseRef.current();
             }, remainingRef.current);
         };
 
@@ -84,7 +87,7 @@ function ToastItem({ toast, onClose, duration }) {
         return () => {
             if (timerRef.current) clearTimeout(timerRef.current);
         };
-    }, [duration, onClose]);
+    }, [duration]);
 
     // Pause on hover
     const handleMouseEnter = () => {
@@ -102,7 +105,7 @@ function ToastItem({ toast, onClose, duration }) {
     const handleMouseLeave = () => {
         startTimeRef.current = Date.now();
         timerRef.current = setTimeout(() => {
-            onClose();
+            onCloseRef.current();
         }, remainingRef.current);
         if (progressRef.current) {
             progressRef.current.style.transition = `width ${remainingRef.current}ms linear`;

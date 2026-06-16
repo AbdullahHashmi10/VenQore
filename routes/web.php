@@ -790,10 +790,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         return Inertia::render('Pos', [
             'settings' => \App\Models\Setting::all()->pluck('value', 'key'),
         ]);
-    })->middleware('permission:pos')->name('pos');
+    })->middleware('permission:pos.checkout')->name('pos');
 
     // Inventory
-    Route::get('/inventory', [InventoryController::class, 'dashboard'])->middleware('permission:inventory')->name('inventory.dashboard');
+    Route::get('/inventory', [InventoryController::class, 'dashboard'])->middleware('permission:inventory.view')->name('inventory.dashboard');
     Route::get('/inventory/list', [InventoryController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/{id}/stats', [InventoryController::class, 'stats'])->name('inventory.stats');
     Route::post('/inventory', [InventoryController::class, 'store'])->name('inventory.store');
@@ -817,7 +817,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
 
     // Activity Log
-    Route::get('/activity-log', [\App\Http\Controllers\ActivityLogController::class, 'index'])->middleware('permission:audit')->name('activity-log.index');
+    Route::get('/activity-log', [\App\Http\Controllers\ActivityLogController::class, 'index'])->middleware('permission:reports.audit')->name('activity-log.index');
 
     // Background Sync API (Internal)
     Route::prefix('api')->name('api.')->group(function () {
@@ -835,10 +835,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Suppliers
 
     // Suppliers
-    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->middleware('permission:purchases');
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->middleware('permission:purchases.view');
 
     // Purchase Orders
-    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware('permission:purchases');
+    Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware('permission:purchases.view');
     Route::post('/purchase-orders/{purchaseOrder}/receive', [\App\Http\Controllers\PurchaseOrderController::class, 'receive'])->name('purchase-orders.receive');
     Route::get('/purchase-orders/{purchaseOrder}/print', [\App\Http\Controllers\PurchaseOrderController::class, 'print'])->name('purchase-orders.print');
 
@@ -862,7 +862,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // Reports
     // Reports
-    Route::middleware('permission:reports')->group(function () {
+    Route::middleware('permission:reports.summary')->group(function () {
         Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/daily-sales', [\App\Http\Controllers\ReportController::class, 'dailySales'])->name('reports.daily-sales');
         Route::get('/reports/sales', [\App\Http\Controllers\ReportController::class, 'sales'])->name('reports.sales');
@@ -928,7 +928,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/cookbook/simulate', [\App\Http\Controllers\CookbookController::class, 'simulate'])->name('cookbook.simulate');
 
     // growth-engine
-    Route::middleware('permission:reports')->group(function () {
+    Route::middleware('permission:reports.summary')->group(function () {
         Route::get('/growth-engine', [\App\Http\Controllers\GrowthEngineController::class, 'index'])->name('growth-engine.index');
         Route::post('/growth-engine/refresh', [\App\Http\Controllers\GrowthEngineController::class, 'refresh'])->name('growth-engine.refresh');
         Route::get('/growth-engine/dashboard', [\App\Http\Controllers\GrowthEngineController::class, 'dashboard'])->name('growth-engine.dashboard');
@@ -951,22 +951,22 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
 
     // Variants
-    Route::get('/products/{product}/variants', [\App\Http\Controllers\ProductVariantController::class, 'index'])->middleware('permission:inventory')->name('products.variants.index');
-    Route::post('/products/{product}/variants', [\App\Http\Controllers\ProductVariantController::class, 'store'])->middleware('permission:inventory')->name('products.variants.store');
-    Route::put('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'update'])->middleware('permission:inventory')->name('variants.update');
-    Route::delete('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'destroy'])->middleware('permission:inventory')->name('variants.destroy');
+    Route::get('/products/{product}/variants', [\App\Http\Controllers\ProductVariantController::class, 'index'])->middleware('permission:inventory.view')->name('products.variants.index');
+    Route::post('/products/{product}/variants', [\App\Http\Controllers\ProductVariantController::class, 'store'])->middleware('permission:inventory.create')->name('products.variants.store');
+    Route::put('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'update'])->middleware('permission:inventory.edit')->name('variants.update');
+    Route::delete('/variants/{variant}', [\App\Http\Controllers\ProductVariantController::class, 'destroy'])->middleware('permission:inventory.delete')->name('variants.destroy');
 
     // Attributes
-    Route::get('/attributes', [ProductAttributeController::class, 'index'])->middleware('permission:inventory')->name('attributes.index');
-    Route::post('/attributes', [ProductAttributeController::class, 'store'])->middleware('permission:inventory')->name('attributes.store');
-    Route::put('/attributes/{attribute}', [ProductAttributeController::class, 'update'])->middleware('permission:inventory')->name('attributes.update');
-    Route::delete('/attributes/{attribute}', [ProductAttributeController::class, 'destroy'])->middleware('permission:inventory')->name('attributes.destroy');
+    Route::get('/attributes', [ProductAttributeController::class, 'index'])->middleware('permission:inventory.view')->name('attributes.index');
+    Route::post('/attributes', [ProductAttributeController::class, 'store'])->middleware('permission:inventory.create')->name('attributes.store');
+    Route::put('/attributes/{attribute}', [ProductAttributeController::class, 'update'])->middleware('permission:inventory.edit')->name('attributes.update');
+    Route::delete('/attributes/{attribute}', [ProductAttributeController::class, 'destroy'])->middleware('permission:inventory.delete')->name('attributes.destroy');
 
     // Categories (Phase 1 - Unification)
-    Route::get('/inventory/categories', [InventoryController::class, 'categories'])->middleware('permission:inventory')->name('categories.index');
-    Route::post('/categories', [InventoryController::class, 'storeCategory'])->middleware('permission:inventory')->name('categories.store');
-    Route::put('/categories/{category}', [InventoryController::class, 'updateCategory'])->middleware('permission:inventory')->name('categories.update');
-    Route::delete('/categories/{category}', [InventoryController::class, 'destroyCategory'])->middleware('permission:inventory')->name('categories.destroy');
+    Route::get('/inventory/categories', [InventoryController::class, 'categories'])->middleware('permission:inventory.view')->name('categories.index');
+    Route::post('/categories', [InventoryController::class, 'storeCategory'])->middleware('permission:inventory.create')->name('categories.store');
+    Route::put('/categories/{category}', [InventoryController::class, 'updateCategory'])->middleware('permission:inventory.edit')->name('categories.update');
+    Route::delete('/categories/{category}', [InventoryController::class, 'destroyCategory'])->middleware('permission:inventory.delete')->name('categories.destroy');
 
     // Stock Levels
     Route::get('/inventory/stock-levels', [InventoryController::class, 'stockLevels'])->name('inventory.stock-levels');
@@ -983,18 +983,18 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // ============================================
 
     // Parties (Customers/Suppliers unified)
-    Route::get('/parties', [\App\Http\Controllers\PartyController::class, 'index'])->middleware('permission:customers')->name('parties.index');
-    Route::post('/parties', [\App\Http\Controllers\PartyController::class, 'store'])->middleware('permission:customers')->name('parties.store');
-    Route::put('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'update'])->middleware('permission:customers')->name('parties.update');
-    Route::delete('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'destroy'])->middleware('permission:customers')->name('parties.destroy');
-    Route::delete('/parties', [\App\Http\Controllers\PartyController::class, 'bulkDestroy'])->middleware('permission:customers')->name('parties.bulk-destroy');
+    Route::get('/parties', [\App\Http\Controllers\PartyController::class, 'index'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.index');
+    Route::post('/parties', [\App\Http\Controllers\PartyController::class, 'store'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.store');
+    Route::put('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'update'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.update');
+    Route::delete('/parties/{party}', [\App\Http\Controllers\PartyController::class, 'destroy'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.destroy');
+    Route::delete('/parties', [\App\Http\Controllers\PartyController::class, 'bulkDestroy'])->middleware('permission:sales.create,purchases.suppliers')->name('parties.bulk-destroy');
     Route::get('/parties/ledgers', [\App\Http\Controllers\PartyController::class, 'index'])->name('parties.ledgers');
     Route::get('/parties/{party}/ledger', [\App\Http\Controllers\PartyController::class, 'ledger'])->name('parties.ledger');
     Route::get('/parties/{party}', fn($party) => redirect()->route('store.parties.ledger', ['store_slug' => app('current.tenant')->slug, 'party' => $party]))->name('parties.show');
 
     // Expenses
     // Expenses
-    Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware('permission:finance')->name('expenses.index');
+    Route::get('/expenses', [\App\Http\Controllers\ExpenseController::class, 'index'])->middleware('permission:finance.expenses')->name('expenses.index');
     Route::post('/expenses', [\App\Http\Controllers\ExpenseController::class, 'store'])->name('expenses.store');
     Route::post('/expenses/category', [\App\Http\Controllers\ExpenseController::class, 'storeCategory'])->name('expenses.category.store');
     Route::put('/expenses/{expense}', [\App\Http\Controllers\ExpenseController::class, 'update'])->name('expenses.update');
@@ -1034,7 +1034,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // Payments
     // Payments
-    Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->middleware('permission:finance')->name('payments.index');
+    Route::get('/payments', [\App\Http\Controllers\PaymentController::class, 'index'])->middleware('permission:finance.transactions')->name('payments.index');
     Route::get('/payments/in', [\App\Http\Controllers\PaymentController::class, 'createIn'])->name('payments.in');
     Route::get('/payments/out', [\App\Http\Controllers\PaymentController::class, 'createOut'])->name('payments.out');
     Route::post('/payments', [\App\Http\Controllers\PaymentController::class, 'store'])->name('payments.store');
@@ -1093,8 +1093,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/parties-search',   [\App\Http\Controllers\PartyController::class, 'search'])->name('parties.search');
 
     // Sales
-    Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'dashboard'])->middleware('permission:sales,sales_view')->name('sales.dashboard');
-    Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales,sales_view')->name('sales.index');
+    Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'dashboard'])->middleware('permission:sales.view')->name('sales.dashboard');
+    Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'graphAnalytics'])->name('reports.analytics');
     Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->name('sales.export');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->name('sales.store');
@@ -1167,12 +1167,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     })->name('api.warehouses');
 
     // Finance Routes
-    Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance')->name('finance');
+    Route::get('/finance', [FinanceController::class, 'index'])->middleware('permission:finance.balances')->name('finance');
     Route::get('/finance/receivables', [FinanceController::class, 'receivables'])->name('finance.receivables');
     Route::get('/finance/payables', [FinanceController::class, 'payables'])->name('finance.payables');
 
     // Fund Management (Owner Capital, Transfers, Adjustments)
-    Route::get('/funds', [FundController::class, 'index'])->middleware('permission:finance')->name('funds.index');
+    Route::get('/funds', [FundController::class, 'index'])->middleware('permission:finance.balances')->name('funds.index');
     Route::post('/funds/add', [FundController::class, 'addFunds'])->name('funds.add');
     Route::post('/funds/remove', [FundController::class, 'removeFunds'])->name('funds.remove');
     Route::post('/funds/transfer', [FundController::class, 'transfer'])->name('funds.transfer');
@@ -1244,14 +1244,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/admin-panel/migration/analyze', [\App\Http\Controllers\MigrationController::class, 'analyze'])->name('legacy.admin.migration.analyze');
     Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('legacy.admin.migration.execute');
 
-    Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:users')->name('legacy.admin.users');
+    Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:admin.staff_manage')->name('legacy.admin.users');
     Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('legacy.admin.users.store');
     Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->name('legacy.admin.users.update');
     Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('legacy.admin.users.destroy');
-    Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:settings')->name('legacy.admin.settings');
+    Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_manage')->name('legacy.admin.settings');
     Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
-    Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:audit')->name('legacy.admin.logs');
-    Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:settings')->name('legacy.admin.database');
+    Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
+    Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:admin.settings_manage')->name('legacy.admin.database');
     Route::get('/admin-panel/staff', function () { return redirect()->route('legacy.admin.users'); })->name('legacy.admin.staff');
 
     // Staff Attendance
@@ -1264,7 +1264,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
 
 
-    Route::middleware('permission:pos')->group(function () {
+    Route::middleware('permission:pos.checkout')->group(function () {
         Route::get('/api/loyalty/{partyId}', [\App\Http\Controllers\GrowthEngineController::class, 'customerLoyalty'])->name('loyalty.info');
         Route::post('/api/loyalty/award', [\App\Http\Controllers\GrowthEngineController::class, 'awardPoints'])->name('loyalty.award');
         Route::post('/api/loyalty/redeem', [\App\Http\Controllers\GrowthEngineController::class, 'redeemPoints'])->name('loyalty.redeem');
@@ -1298,10 +1298,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Returns History — PROBLEM 10 FIX: Permission middleware added
     // returns.create/store: requires 'returns' (owner, admin, manager, cashier)
     // returns-history: requires 'returns' or 'sales_view' (accountant read-only)
-    Route::get('/returns-history', [\App\Http\Controllers\ReturnController::class, 'index'])->name('returns-history.index')->middleware('permission:returns,sales_view');
-    Route::get('/returns/create', [\App\Http\Controllers\ReturnController::class, 'create'])->name('returns.create')->middleware('permission:returns');
-    Route::post('/returns', [\App\Http\Controllers\ReturnController::class, 'store'])->name('returns.store')->middleware('permission:returns');
-    Route::get('/returns-history/{id}', [\App\Http\Controllers\ReturnController::class, 'show'])->name('returns-history.show')->middleware('permission:returns,sales_view');
+    Route::get('/returns-history', [\App\Http\Controllers\ReturnController::class, 'index'])->name('returns-history.index')->middleware('permission:sales.returns,sales.view');
+    Route::get('/returns/create', [\App\Http\Controllers\ReturnController::class, 'create'])->name('returns.create')->middleware('permission:sales.returns');
+    Route::post('/returns', [\App\Http\Controllers\ReturnController::class, 'store'])->name('returns.store')->middleware('permission:sales.returns');
+    Route::get('/returns-history/{id}', [\App\Http\Controllers\ReturnController::class, 'show'])->name('returns-history.show')->middleware('permission:sales.returns,sales.view');
 
     // Recurring Invoices
     Route::get('/recurring-invoices', [\App\Http\Controllers\RecurringInvoiceController::class, 'index'])->name('recurring-invoices.index');
@@ -1313,25 +1313,25 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::delete('/recurring-invoices/{id}', [\App\Http\Controllers\RecurringInvoiceController::class, 'destroy'])->name('recurring-invoices.destroy');
 
     // Stock Transfers
-    Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->middleware('permission:inventory')->name('stock-transfers.index');
-    Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->middleware('permission:inventory')->name('stock-transfers.create');
-    Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->middleware('permission:inventory')->name('stock-transfers.store');
-    Route::get('/stock-transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'show'])->middleware('permission:inventory')->name('stock-transfers.show');
+    Route::get('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'index'])->middleware('permission:inventory.transfer')->name('stock-transfers.index');
+    Route::get('/stock-transfers/create', [\App\Http\Controllers\StockTransferController::class, 'create'])->middleware('permission:inventory.transfer')->name('stock-transfers.create');
+    Route::post('/stock-transfers', [\App\Http\Controllers\StockTransferController::class, 'store'])->middleware('permission:inventory.transfer')->name('stock-transfers.store');
+    Route::get('/stock-transfers/{id}', [\App\Http\Controllers\StockTransferController::class, 'show'])->middleware('permission:inventory.transfer')->name('stock-transfers.show');
     Route::get('/stock-transfers/{id}/edit', function () { /* Placeholder */})->name('stock-transfers.edit');
 
     // Stock Take / Audit
-    Route::get('/stock-audit', [\App\Http\Controllers\StockTakeController::class, 'index'])->middleware('permission:inventory')->name('stock-takes.index');
-    Route::get('/stock-audit/create', [\App\Http\Controllers\StockTakeController::class, 'create'])->middleware('permission:inventory')->name('stock-takes.create');
-    Route::post('/stock-audit', [\App\Http\Controllers\StockTakeController::class, 'store'])->middleware('permission:inventory')->name('stock-takes.store');
-    Route::get('/stock-audit/{id}', [\App\Http\Controllers\StockTakeController::class, 'show'])->middleware('permission:inventory')->name('stock-takes.show');
+    Route::get('/stock-audit', [\App\Http\Controllers\StockTakeController::class, 'index'])->middleware('permission:inventory.adjust')->name('stock-takes.index');
+    Route::get('/stock-audit/create', [\App\Http\Controllers\StockTakeController::class, 'create'])->middleware('permission:inventory.adjust')->name('stock-takes.create');
+    Route::post('/stock-audit', [\App\Http\Controllers\StockTakeController::class, 'store'])->middleware('permission:inventory.adjust')->name('stock-takes.store');
+    Route::get('/stock-audit/{id}', [\App\Http\Controllers\StockTakeController::class, 'show'])->middleware('permission:inventory.adjust')->name('stock-takes.show');
 
     // Batch Tracking
-    Route::get('/batches', [\App\Http\Controllers\BatchTrackingController::class, 'index'])->middleware('permission:inventory')->name('batches.index');
-    Route::get('/batches/{id}', [\App\Http\Controllers\BatchTrackingController::class, 'show'])->middleware('permission:inventory')->name('batches.show');
+    Route::get('/batches', [\App\Http\Controllers\BatchTrackingController::class, 'index'])->middleware('permission:inventory.view')->name('batches.index');
+    Route::get('/batches/{id}', [\App\Http\Controllers\BatchTrackingController::class, 'show'])->middleware('permission:inventory.view')->name('batches.show');
 
     // Serial Tracking
-    Route::get('/serials', [\App\Http\Controllers\SerialTrackingController::class, 'index'])->middleware('permission:inventory')->name('serials.index');
-    Route::get('/serials/{id}', [\App\Http\Controllers\SerialTrackingController::class, 'show'])->middleware('permission:inventory')->name('serials.show');
+    Route::get('/serials', [\App\Http\Controllers\SerialTrackingController::class, 'index'])->middleware('permission:inventory.view')->name('serials.index');
+    Route::get('/serials/{id}', [\App\Http\Controllers\SerialTrackingController::class, 'show'])->middleware('permission:inventory.view')->name('serials.show');
 
     // Debit Notes
     Route::get('/debit-notes', [\App\Http\Controllers\DebitNoteController::class, 'index'])->name('debit-notes.index');

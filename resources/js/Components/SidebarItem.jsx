@@ -78,7 +78,9 @@ export default function SidebarItem({
                             if (onClick) onClick();
                         }
                     }}
-                    className="flex-1 flex items-center gap-3 p-3 relative z-10 outline-none"
+                    className={`flex-1 flex items-center relative z-10 outline-none ${
+                        isExpanded ? 'gap-3 p-3 justify-start' : 'p-3 justify-center'
+                    }`}
                 >
                     <div className="relative group-hover:scale-125 transition-transform duration-300 origin-center">
                         <Icon size={isPlatformHQ ? 22 : 20} className={`transition-all duration-300 ${isActive ? (isPlatformHQ ? 'text-white' : 'text-white') : (isPlatformHQ ? 'text-slate-500 group-hover:text-white' : 'group-hover:text-indigo-600')}`} />
@@ -87,9 +89,11 @@ export default function SidebarItem({
                             <div className="absolute -inset-1 rounded-full border-2 border-transparent group-hover:border-indigo-400/50 transition-all duration-300 group-hover:animate-pulse"></div>
                         )}
                     </div>
-                    <span className={`font-bold text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isExpanded ? 'w-auto opacity-100' : 'w-0 opacity-0'} ${isActive ? 'text-white' : (isPlatformHQ ? 'text-slate-400 group-hover:text-white' : 'text-slate-500')}`}>
-                        {displayName}
-                    </span>
+                    {isExpanded && (
+                        <span className={`font-bold text-sm whitespace-nowrap overflow-hidden transition-all duration-300 ${isActive ? 'text-white' : (isPlatformHQ ? 'text-slate-400 group-hover:text-white' : 'text-slate-500')}`}>
+                            {displayName}
+                        </span>
+                    )}
                 </Link>
 
                 {/* Arrow Click Zone - Toggle Submenu */}

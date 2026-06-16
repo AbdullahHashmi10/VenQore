@@ -255,6 +255,6 @@ If 1-2 items aren't done → assess: is it customer-facing on day 1, or invisibl
 ## PARKING LOT
 *(Anything new that comes up during the 10 days — write it here, don't act on it now.)*
 
--
+- **Stock adjustment passcode hardcoded:** The passcode popup that appears when updating product stock is hardcoded to `123456` instead of checking the user's actual saved passcode (`tenant_users.pos_pin` or `security_pin`). Need to find where this check lives (likely in inventory/stock controller or the frontend modal) and wire it to the real passcode verification — same pattern as Day 2's FundController fix.
 -
 -

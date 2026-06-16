@@ -282,6 +282,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         };
     }, [isIdle]);
 
+    const userPerms = props.auth?.user?.permissions || [];
+    const hasAnyPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
+
     const appMenuItems = [
         { name: 'Home', icon: Home, subs: [], 
           route: store ? 'store.home' : null, 
@@ -455,12 +458,17 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     // RBAC Permission Map
     const MENU_PERMISSIONS = {
         'Home': [],
-        'Sell': ['pos', 'sales', 'sales_view'],
-        'Purchase': ['purchases', 'inventory'],
-        'Stock': ['inventory', 'purchases'],
-        'Contacts': ['customers'],
-        'Money': ['finance', 'purchases'],
-        'VenSynQ': ['sales', 'inventory', 'discounts'],
+        // Sell: only roles that can actually create sales or open POS sessions
+        'Sell': ['sales.create', 'sales.view'],
+        // Purchase: only roles that can create purchase orders
+        'Purchase': ['purchases.create'],
+        // Stock: only roles that can manage/adjust inventory (not read-only view)
+        'Stock': ['inventory.create', 'inventory.adjust', 'inventory.edit'],
+        // Contacts: owner/admin/manager bypass above; others need purchases.suppliers
+        'Contacts': ['purchases.suppliers', 'admin.staff_view'],
+        // Money: anyone with finance access
+        'Money': ['finance.balances', 'finance.transactions', 'finance.expenses'],
+        'VenSynQ': ['sales.create', 'inventory.adjust'],
         'Insights': ['reports'],
         'Activity Log': ['audit'],
         'Recycle Bin': ['settings'],
@@ -489,8 +497,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         'Database': ['settings']
     };
 
-    const userPerms = props.auth?.user?.permissions || [];
-
     const rawMenuItems = mode === 'admin' ? adminMenuItems : appMenuItems;
 
     const menuItems = rawMenuItems.filter(item => {
@@ -514,8 +520,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         if (userRole === 'owner' || userRole === 'admin' || userRole === 'manager') return true;
 
         const required = MENU_PERMISSIONS[item.name];
-        // If not defined, assume public/open (like Home)
-        if (!required || required.length === 0) return true;
+        // Home is always visible; everything else requires explicit permission for non-named roles
+        if (item.name === 'Home') return true;
+        if (!required || required.length === 0) return false;
 
         // Prefix-aware permission check:
         // stored permissions are namespaced (e.g. 'pos.open_session', 'sales.view')
@@ -843,7 +850,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         <div className={`border-t border-slate-100 dark:border-slate-800 shrink-0 flex flex-col gap-3 relative z-10 ${isSidebarOpen ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
 
                             {/* POS BUTTON — only show when we have a store context and NOT in platform HQ */}
-                            {store && !(isPlatformAdmin && !store) && (
+                            {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos')) && (
                                 <Link
                                 href={store
                                     ? (isPosRoute ? route('store.dashboard', {store_slug: store.slug}) : route('store.pos', {store_slug: store.slug}))
@@ -889,7 +896,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         <Sparkles size={16} /> Take a Tour
                                     </button>
                                     {/* Admin Panel link — goes to new store-scoped route */}
-                                    {store && (
+                                    {store && (userRole === 'owner' || userRole === 'admin') && (
                                          <Link 
                                              id="tour-sidebar-admin"
                                              href={mode === 'admin' 
@@ -907,14 +914,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             <Package size={16} /> System Update
                                         </Link>
                                     )}
-                                    <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
-                                    <a 
-                                        href={`mailto:support@venqore.com?subject=${encodeURIComponent(`Support Request for ${store?.name || 'Store'}`)}`} 
-                                        className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-sm font-medium text-emerald-600 dark:text-emerald-400"
-                                        onClick={(e) => e.stopPropagation()}
-                                    >
-                                        <Activity size={16} /> Get Help
-                                    </a>
                                     <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
                                     <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
                                         <LogOut size={16} /> Logout
@@ -1163,7 +1162,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                 )}
 
                                 {/* Header Private Shortcut: Toggle Admin/Store Panel - Hide in Platform HQ */}
-                                {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin' || userRole === 'platform_admin') && (
+                                {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
                                     <Link
                                         href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
                                         className="hidden md:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300"

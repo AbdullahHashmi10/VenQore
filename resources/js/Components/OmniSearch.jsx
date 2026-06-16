@@ -34,9 +34,13 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
     const userRole = auth.user?.role;
     const userPerms = auth.user?.permissions || [];
 
+    const vensynq_enabled = usePage().props.vensynq_enabled;
+    const isFullAccess = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'platform_admin';
+    const canUseSmartCapture = vensynq_enabled && (isFullAccess || userPerms.some(p => p.startsWith('pos') || p.startsWith('sales') || p.startsWith('purchases')));
+
     const checkPerm = (required) => {
         if (userRole === 'platform_admin') return true;
-        if (!required || required.length === 0) return true;
+        if (!required || required.length === 0) return isFullAccess;
         return required.some(p => userPerms.includes(p));
     };
 
@@ -226,24 +230,26 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                     autoComplete="off"
                 />
 
-                <div className="flex items-center gap-1 shrink-0">
-                    <button
-                        type="button"
-                        onClick={() => { setSmartCaptureTab('image'); setIsSmartCaptureOpen(true); }}
-                        className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors"
-                        title="Snap Invoice"
-                    >
-                        <Camera size={15} />
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => { setSmartCaptureTab('audio'); setIsSmartCaptureOpen(true); }}
-                        className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors mr-1"
-                        title="Record Voice Memo"
-                    >
-                        <Mic size={15} />
-                    </button>
-                </div>
+                {canUseSmartCapture && (
+                    <div className="flex items-center gap-1 shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => { setSmartCaptureTab('image'); setIsSmartCaptureOpen(true); }}
+                            className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors"
+                            title="Snap Invoice"
+                        >
+                            <Camera size={15} />
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => { setSmartCaptureTab('audio'); setIsSmartCaptureOpen(true); }}
+                            className="p-1.5 text-slate-400 hover:text-indigo-500 dark:text-slate-550 dark:hover:text-indigo-400 transition-colors mr-1"
+                            title="Record Voice Memo"
+                        >
+                            <Mic size={15} />
+                        </button>
+                    </div>
+                )}
 
                 {query && (
                     <button

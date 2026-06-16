@@ -118,7 +118,8 @@ window.axios.interceptors.response.use(
         }
 
         // Dispatch error toast for failed requests with error messages (EXCLUDING 419)
-        if (error.response && error.response.data && error.response.status !== 419) {
+        const isGrowthEngine = error.config?.url && error.config.url.includes('growth-engine');
+        if (error.response && error.response.data && error.response.status !== 419 && !isGrowthEngine) {
 
             const errorMsg = error.response.data.message || error.response.data.error;
             if (errorMsg && typeof errorMsg === 'string') {

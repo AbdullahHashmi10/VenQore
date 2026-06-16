@@ -427,7 +427,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
     // ── Invite form submit
     const handleSubmit = (e) => {
         e.preventDefault();
-        post(route('store.admin.invitations.store', { store_slug: store?.slug }), {
+        if (!store?.slug) return;
+        post(route('store.admin.invitations.store', { store_slug: store.slug }), {
             onSuccess: () => { setShowAddModal(false); reset(); },
         });
     };
@@ -458,7 +459,8 @@ export default function AdminUsers({ users = [], invitations = [], attendance = 
 
     // ── Action helpers
     const action = (routeName, inv) => {
-        router.post(route(routeName, { store_slug: store?.slug, invitation: inv.id }), {}, {
+        if (!store?.slug) return;
+        router.post(route(routeName, { store_slug: store.slug, invitation: inv.id }), {}, {
             onSuccess: () => setOpenMenu(null),
         });
     };
@@ -1327,7 +1329,8 @@ function AttendanceDetailModal({ user, history, onClose }) {
 function EditMemberModal({ member, onClose }) {
     const { store } = usePage().props;
     const { data, setData, patch, processing, errors } = useForm({
-        role: member.role,
+        role: member.role || 'custom',
+        custom_role_name: member.custom_role_name ?? '',
         display_name: member.display_name ?? '',
         status: member.status,
         permissions: member.permissions ?? ROLE_PERMISSIONS[member.role] ?? [],
@@ -1344,7 +1347,10 @@ function EditMemberModal({ member, onClose }) {
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('store.admin.users.update', { store_slug: store?.slug, member: member.membership_id }), {
+        if (!store?.slug) return;
+        console.log('Submitting data:', JSON.stringify(data));
+        console.log('Patching to:', route('store.admin.users.update', { store_slug: store.slug, member: member.membership_id }));
+        patch(route('store.admin.users.update', { store_slug: store.slug, member: member.membership_id }), {
             onSuccess: onClose,
         });
     };
@@ -1359,7 +1365,7 @@ function EditMemberModal({ member, onClose }) {
                 </button>
 
                 {/* LEFT COLUMN: Form & Roles */}
-                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-[#0f172a] rounded-l-[2rem]">
+                <div className="w-full md:w-[450px] shrink-0 p-8 md:p-10 border-b md:border-b-0 md:border-r border-slate-700/50 flex flex-col bg-[#0f172a] rounded-l-[2rem] max-h-[85vh] overflow-y-auto">
                     <div className="flex items-center gap-4 mb-10">
                         <h3 className="font-extrabold text-2xl text-white tracking-tight">Edit Member</h3>
                         <div className="h-4 w-px bg-slate-700"></div>
@@ -1439,6 +1445,21 @@ function EditMemberModal({ member, onClose }) {
                                     );
                                 })}
                             </div>
+                            {data.role === 'custom' && (
+                                <div className="mt-3">
+                                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1 block">
+                                        Custom Role Name <span className="text-slate-500 font-normal normal-case">(optional — shown as badge)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        maxLength={30}
+                                        placeholder="e.g. Senior Accountant, Floor Supervisor..."
+                                        value={data.custom_role_name}
+                                        onChange={e => setData('custom_role_name', e.target.value)}
+                                        className="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition"
+                                    />
+                                </div>
+                            )}
                             {errors.role && <p className="text-[10px] text-red-400 ml-1">{errors.role}</p>}
                         </div>
                         
@@ -1512,7 +1533,8 @@ function MembersTable({ users, store }) {
 
     const handleRemove = (member) => {
         if (!confirm(`Remove ${member.name} from the store? They will lose all access immediately.`)) return;
-        router.delete(route('store.admin.users.remove', { store_slug: store?.slug, member: member.membership_id }), {
+        if (!store?.slug) return;
+        router.delete(route('store.admin.users.remove', { store_slug: store.slug, member: member.membership_id }), {
             onSuccess: () => setOpenMenu(null),
         });
     };
@@ -1549,8 +1571,25 @@ function MembersTable({ users, store }) {
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {filtered.map(user => {
-                                const role = getRoleInfo(user.role);
+                                const resolvedRole = (() => {
+                                    if (user.role && user.role !== 'custom' && ROLES[user.role]) return user.role;
+                                    if (user.custom_role_name) return 'custom';
+                                    // Find closest preset by permission overlap
+                                    let bestMatch = 'custom';
+                                    let bestScore = -1;
+                                    const userPerms = user.permissions ?? [];
+                                    for (const [key, perms] of Object.entries(ROLE_PERMISSIONS)) {
+                                        if (key === 'custom' || !perms.length) continue;
+                                        const score = perms.filter(p => userPerms.includes(p)).length;
+                                        if (score > bestScore) { bestScore = score; bestMatch = key; }
+                                    }
+                                    return bestMatch;
+                                })();
+                                const role = getRoleInfo(resolvedRole);
                                 const RoleIcon = role.icon;
+                                const badgeLabel = user.role === 'custom' && user.custom_role_name
+                                    ? user.custom_role_name
+                                    : role.name;
                                 const st = getStatusCfg(user.status);
                                 const isOwner = user.role === 'owner';
 
@@ -1572,7 +1611,7 @@ function MembersTable({ users, store }) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold uppercase ${role.badge}`}>
-                                                <RoleIcon size={10} />{role.name}
+                                                <RoleIcon size={10} />{badgeLabel}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm text-slate-500 font-mono">{user.email}</td>

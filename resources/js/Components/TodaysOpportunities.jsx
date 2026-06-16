@@ -35,14 +35,13 @@ const TodaysOpportunities = ({ className = '' }) => {
             setData(response.data);
             setError(null);
         } catch (err) {
-            if (err.response && err.response.status === 403) {
-                // User simply doesn't have permission for reports/growth engine
-                // We'll set a flag to hide the widget silently
-                setData({ forbidden: true });
+            if (err.response && (err.response.status === 403 || err.response.status === 401)) {
+                setData(null);
+                setError(null);
+                setLoading(false);
                 return;
             }
-            setError('Failed to load opportunities');
-            console.error(err);
+            setError('Failed to load opportunities.');
         } finally {
             setLoading(false);
         }

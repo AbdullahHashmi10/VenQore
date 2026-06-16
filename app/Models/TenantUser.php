@@ -21,6 +21,7 @@ class TenantUser extends Model
         'tenant_id',
         'user_id',
         'role',
+        'custom_role_name',
         'status',
         'display_name',
         'pos_pin',

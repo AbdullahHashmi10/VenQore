@@ -40,3 +40,6 @@ AMD_POS_Update_v*.zip
 *.exe
 php_files_in_zip.txt
 zip_contents.txt
+
+/public/build
+

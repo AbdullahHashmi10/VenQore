@@ -561,12 +561,18 @@ class AdminController extends Controller
             PlanGate::enforce('staff_limit', $staffCount);
         }
 
+        $permissions = $validated['permissions'] ?? [];
+        $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+        if (!$isOwner) {
+            $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
+        }
+
         $user = \App\Models\User::create([
             'name'          => $validated['name'],
             'email'         => $validated['email'],
             'password'      => bcrypt($validated['password']),
             'role'          => $validated['role'] ?? 'cashier',
-            'permissions'   => $validated['permissions'] ?? [],
+            'permissions'   => $permissions,
             'passcode'      => $validated['passcode'] ?? null,
             'last_store_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
         ]);
@@ -582,7 +588,7 @@ class AdminController extends Controller
                 'display_name' => $user->name,
                 'joined_at'    => now(),
                 'pos_pin'      => $user->passcode,
-                'permissions'  => $validated['permissions'] ?? [],
+                'permissions'  => $permissions,
             ]);
         }
 
@@ -646,6 +652,12 @@ class AdminController extends Controller
         // We always write the new role to both tables explicitly.
         $newRole        = $validated['role'] ?? null;
         $newPermissions = $validated['permissions'] ?? null;
+        if ($newPermissions !== null) {
+            $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+            if (!$isOwner) {
+                $newPermissions = array_filter($newPermissions, fn($p) => $p !== 'admin.billing_store');
+            }
+        }
 
         // Update the legacy users column only if a role was provided
         if ($newRole !== null) {
@@ -756,49 +768,65 @@ class AdminController extends Controller
      * Update a store member's role, permissions, display name, status, or passcode.
      * Operates on TenantUser directly — the canonical record for store access.
      */
-    public function updateMember(Request $request, TenantUser $member): RedirectResponse
+    public function updateMember(Request $request, TenantUser $member)
     {
-        $this->authorizeMemberAction($member);
+        try {
+            $this->authorizeMemberAction($member);
 
-        $request->validate([
-            'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
-            'display_name' => 'nullable|string|max:50',
-            'status'       => 'nullable|in:active,suspended',
-            'permissions'  => 'nullable|array',
-            'passcode'     => [
-                'nullable', 'string', 'min:4', 'max:6',
-                function ($attribute, $value, $fail) use ($member) {
-                    $tenant = app('current.tenant');
-                    if ($tenant) {
-                        $exists = TenantUser::where('tenant_id', $tenant->id)
-                            ->where('user_id', '!=', $member->user_id)
-                            ->whereNotNull('pos_pin')
-                            ->get()->first(fn($tu) => Hash::check($value, $tu->pos_pin));
-                        if ($exists) {
-                            $fail('This passcode is already in use. Please choose a different one.');
+            $request->validate([
+                'role'         => 'nullable|in:owner,franchise_admin,admin,manager,shift_supervisor,accountant,purchasing_officer,inventory_controller,sales_executive,cashier,hr_officer,kitchen_manager,dispenser,production_supervisor,fulfillment_lead,delivery_driver,viewer,custom',
+                'display_name'     => 'nullable|string|max:50',
+                'custom_role_name' => 'nullable|string|max:30',
+                'status'           => 'nullable|in:active,suspended',
+                'permissions'  => 'nullable|array',
+                'passcode'     => [
+                    'nullable', 'string', 'min:4', 'max:6',
+                    function ($attribute, $value, $fail) use ($member) {
+                        $tenant = app('current.tenant');
+                        if ($tenant) {
+                            $exists = TenantUser::where('tenant_id', $tenant->id)
+                                ->where('user_id', '!=', $member->user_id)
+                                ->whereNotNull('pos_pin')
+                                ->get()->first(fn($tu) => Hash::check($value, $tu->pos_pin));
+                            if ($exists) {
+                                $fail('This passcode is already in use. Please choose a different one.');
+                            }
                         }
-                    }
-                },
-            ],
-        ]);
+                    },
+                ],
+            ]);
 
-        // Owner role is locked — cannot be changed
-        if ($member->role === 'owner' && $request->has('role')) {
-            abort(403, 'Owner role cannot be changed.');
-        }
-
-        $member->update($request->only(['role', 'display_name', 'status', 'permissions']));
-
-        if ($request->filled('passcode')) {
-            $member->update(['pos_pin' => Hash::make($request->passcode)]);
-            $user = $member->user;
-            if ($user) {
-                $user->passcode = $request->passcode;
-                $user->save();
+            // Owner role is locked — cannot be changed
+            if ($member->role === 'owner' && $request->has('role')) {
+                abort(403, 'Owner role cannot be changed.');
             }
-        }
 
-        return back()->with('success', 'Member updated.');
+            $updateData = $request->only(['role', 'custom_role_name', 'display_name', 'status']);
+            \Log::info('updateMember data: ' . json_encode($updateData));
+            if ($request->has('permissions')) {
+                $permissions = $request->input('permissions') ?? [];
+                $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+                if (!$isOwner) {
+                    $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
+                }
+                $updateData['permissions'] = array_values($permissions);
+            }
+            $member->update($updateData);
+
+            if ($request->filled('passcode')) {
+                $member->update(['pos_pin' => Hash::make($request->passcode)]);
+                $user = $member->user;
+                if ($user) {
+                    $user->passcode = $request->passcode;
+                    $user->save();
+                }
+            }
+
+            return back()->with('success', 'Member updated.');
+        } catch (\Exception $e) {
+            \Log::error('updateMember error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     /**

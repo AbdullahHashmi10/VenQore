@@ -47,12 +47,13 @@ function PlanBadge({ plan }) {
     );
 }
 
-function RoleChip({ role }) {
+function RoleChip({ role, customRoleName }) {
     const cfg = ROLE_LABELS[role] ?? ROLE_LABELS.viewer;
     const Icon = cfg.icon;
+    const label = (role === 'custom' || !role) && customRoleName ? customRoleName : cfg.label;
     return (
         <span className={`inline-flex items-center gap-1 text-xs font-medium ${cfg.color}`}>
-            <Icon size={11} /> {cfg.label}
+            <Icon size={11} /> {label}
         </span>
     );
 }
@@ -97,7 +98,7 @@ function StoreCard({ membership, isLast }) {
                     </div>
                     <div className="flex items-center gap-3 flex-wrap">
                         <PlanBadge plan={membership.plan} />
-                        <RoleChip role={membership.role} />
+                        <RoleChip role={membership.role} customRoleName={membership.custom_role_name} />
                         {daysLeft !== null && daysLeft <= 7 && (
                             <span className="flex items-center gap-1 text-xs text-amber-400">
                                 <Clock size={10} />

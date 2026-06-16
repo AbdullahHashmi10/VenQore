@@ -35,6 +35,13 @@ export default function Dashboard({
     const { auth, store } = usePage().props;
     const isAdmin = auth?.user?.role === 'platform_admin' || auth?.user?.role === 'admin' || auth?.user?.role === 'owner';
 
+    const userPerms = auth?.user?.permissions || [];
+    const hasPerm = (...keys) => keys.some(k => userPerms.some(p => p === k || p.startsWith(k + '.')));
+    const canSales = isAdmin || hasPerm('sales', 'reports');
+    const canFinance = isAdmin || hasPerm('finance');
+    const canInventory = isAdmin || hasPerm('inventory');
+    const canReports = isAdmin || hasPerm('reports');
+
     const [profitView, setProfitView] = useState('Month');
     const [performancePeriod, setPerformancePeriod] = useState('Today');
     const [outstandingPeriod, setOutstandingPeriod] = useState('Month');
@@ -48,6 +55,7 @@ export default function Dashboard({
             <div className="grid grid-cols-12 grid-rows-6 gap-6 h-[calc(100vh-5rem)] w-full animate-in fade-in duration-500 pt-2 pb-2 pr-2">
 
                 {/* --- Row 1: High Level Stats (Top Left) --- */}
+                {canSales && (
                 <div id="tour-performance" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
                     <DualStatCard
                         title="Performance"
@@ -62,6 +70,8 @@ export default function Dashboard({
                         onRightClick={() => router.visit(route('store.reports.dashboard', { store_slug: store?.slug }))}
                     />
                 </div>
+                )}
+                {canFinance && (
                 <div id="tour-outstanding" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
                     <DualStatCard
                         title="Outstanding"
@@ -76,6 +86,8 @@ export default function Dashboard({
                         onRightClick={() => router.visit(route('store.finance.payables', { store_slug: store?.slug }))}
                     />
                 </div>
+                )}
+                {canFinance && (
                 <div id="tour-net-profit" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
                     {/* Quick Profit Check */}
                     <div
@@ -89,44 +101,45 @@ export default function Dashboard({
                                 <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 rounded-xl shadow-sm">
                                     <Wallet size={20} />
                                 </div>
-                                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 tracking-wide">Net Profit</span>
+                                <div className="text-left">
+                                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Net Profit</p>
+                                    <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight leading-none mt-1">
+                                        {formatCurrency(parseFloat(currentProfit.profit || 0), store)}
+                                    </h2>
+                                </div>
                             </div>
-                            <div onClick={(e) => e.stopPropagation()}>
-                                <PremiumDropdown
-                                    value={netProfitPeriod}
-                                    onChange={setNetProfitPeriod}
-                                    options={[
-                                        { value: 'Today', label: 'Today' },
-                                        { value: 'Month', label: 'Month' },
-                                        { value: 'Year', label: 'Year' },
-                                        { value: 'All Time', label: 'All Time' },
-                                    ]}
-                                />
-                            </div>
+                            <PremiumDropdown
+                                options={['Month', 'Quarter', 'Year']}
+                                selected={profitView}
+                                onChange={setProfitView}
+                            />
                         </div>
 
-                        <div className="relative z-10">
-                            <div className="grid grid-cols-2 gap-4 relative">
-                                {/* Vertical Divider */}
-                                <div className="absolute left-1/2 top-2 bottom-2 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+                        {/* Visual Breakdown Divider */}
+                        <div className="w-full h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
 
-                                <div className="text-center">
-                                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">Current Status</p>
-                                    <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
-                                </div>
-                                <div className="text-center">
-                                    <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}</p>
-                                    <p className="text-[10px] font-bold text-emerald-500 mt-1">{netProfit[netProfitPeriod]?.growth || ''}</p>
-                                    {/* Breakdown Explanation */}
-                                    <div className="flex gap-2 justify-center mt-1 text-[9px] font-medium opacity-80">
-                                        <span className="text-emerald-600 dark:text-emerald-400" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
-                                        <span className="text-red-500" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
-                                    </div>
+                        {/* Breakdown Metrics */}
+                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                            {/* Vertical Divider */}
+                            <div className="absolute left-1/2 top-2 bottom-2 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+
+                            <div className="text-center">
+                                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">Current Status</p>
+                                <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}</p>
+                                <p className="text-[10px] font-bold text-emerald-500 mt-1">{netProfit[netProfitPeriod]?.growth || ''}</p>
+                                {/* Breakdown Explanation */}
+                                <div className="flex gap-2 justify-center mt-1 text-[9px] font-medium opacity-80">
+                                    <span className="text-emerald-600 dark:text-emerald-400" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
+                                    <span className="text-red-500" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* --- RIGHT PANEL — PROBLEM 6 FIX: Only shown to owner/admin/manager/accountant --- */}
                 {(isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant') && (
@@ -142,9 +155,11 @@ export default function Dashboard({
                 )}
 
                 {/* --- MIDDLE: Sales Chart & Opportunities --- */}
+                {canSales && (
                 <div id="tour-sales-chart" className={`col-span-12 ${isAdmin ? 'lg:col-span-6' : 'lg:col-span-9'} row-span-3 min-h-[300px]`}>
                     <ChartSection salesData={salesData} />
                 </div>
+                )}
 
                 {isAdmin && (
                     <div id="tour-opportunities" className="col-span-12 lg:col-span-3 row-span-3 h-full min-h-0 flex flex-col">
@@ -155,6 +170,7 @@ export default function Dashboard({
                 {/* --- BOTTOM: Tables (Bottom Left) --- */}
 
                 {/* Top Selling Items */}
+                {canSales && (
                 <div id="tour-top-products" className="col-span-12 md:col-span-8 lg:col-span-6 row-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0 group">
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -203,8 +219,10 @@ export default function Dashboard({
                         </table>
                     </div>
                 </div>
+                )}
 
                 {/* LOW STOCK ITEMS */}
+                {canInventory && (
                 <div id="tour-low-stock" className="col-span-12 md:col-span-4 lg:col-span-3 row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0">
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
@@ -240,6 +258,7 @@ export default function Dashboard({
                         )}
                     </div>
                 </div>
+                )}
 
             </div>
 

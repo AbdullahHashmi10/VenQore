@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
 export default defineConfig({
     plugins: [
@@ -24,13 +23,5 @@ export default defineConfig({
                 '**/.git/**',
             ],
         },
-    },
-    resolve: {
-        alias: {
-            'react-dom/server': path.resolve(__dirname, 'node_modules/react-dom/server.browser.js'),
-            'react-dom': path.resolve(__dirname, 'node_modules/react-dom'),
-            'react': path.resolve(__dirname, 'node_modules/react'),
-        },
-        conditions: ['browser', 'import', 'module', 'default'],
     },
 });
