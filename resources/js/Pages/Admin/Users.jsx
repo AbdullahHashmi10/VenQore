@@ -77,12 +77,9 @@ const PERMISSION_CATEGORIES = [
         desc: 'Register cash flow and checkout operations',
         icon: ShoppingCart,
         permissions: [
-            { id: 'pos.open_session', name: 'Open Register Shift', desc: 'Open register shift & enter petty cash' },
             { id: 'pos.checkout', name: 'Scan & Checkout', desc: 'Process sales and payments at the register' },
             { id: 'pos.discounts', name: 'Apply Cart Discounts', desc: 'Apply discounts to active shopping cart items' },
-            { id: 'pos.void_item', name: 'Void Cart Item', desc: 'Void scanned items before completing payments' },
             { id: 'pos.refund', name: 'Register Refunds', desc: 'Process customer returns & refunds directly at the POS' },
-            { id: 'pos.close_session', name: 'Close Register Shift', desc: 'Close drawer shift and count final cash' },
         ]
     },
     {

@@ -53,6 +53,9 @@ import PosTourGuide from '@/Components/PosTourGuide';
 
 const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = [] }) => {
     const { auth, store } = usePage().props;
+    const userRole = auth.user?.role;
+    const userPerms = auth.user?.permissions || [];
+    const hasDiscountPerm = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userPerms.some(p => p === 'pos.discounts' || p.startsWith('pos.discounts.'));
     const {
         posSessions,
         currentPosId,
@@ -1940,19 +1943,21 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </h3>
                             
                             {/* Free Qty Toggle Button */}
-                            <label className="flex items-center gap-1.5 cursor-pointer select-none">
-                                <div className="relative">
-                                    <input
-                                        type="checkbox"
-                                        checked={showFreeQty}
-                                        onChange={(e) => setShowFreeQty(e.target.checked)}
-                                        className="sr-only"
-                                    />
-                                    <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                                    <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showFreeQty ? 'translate-x-4' : ''}`}></div>
-                                </div>
-                                <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
-                            </label>
+                            {hasDiscountPerm && (
+                                <label className="flex items-center gap-1.5 cursor-pointer select-none">
+                                    <div className="relative">
+                                        <input
+                                            type="checkbox"
+                                            checked={showFreeQty}
+                                            onChange={(e) => setShowFreeQty(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-8 h-4 rounded-full transition-colors ${showFreeQty ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                        <div className={`absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform ${showFreeQty ? 'translate-x-4' : ''}`}></div>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">FREE QTY</span>
+                                </label>
+                            )}
                         </div>
                         <span className={`px-2 py-0.5 rounded-lg font-black text-[10px] bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400`}>
                             {activeSale.cart.length} ITEMS • {activeSale.cart.reduce((sum, item) => sum + item.qty + (item.freeQuantity || 0), 0)} QTY
@@ -1988,19 +1993,25 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 {/* Price & Action Buttons */}
                                 <div className="flex items-center gap-2 shrink-0">
                                     <div className="flex flex-col items-end">
-                                        <button
-                                            onClick={() => openItemDiscountModal(item)}
-                                            className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
-                                        >
-                                            {item.discount > 0 ? (
-                                                <>
-                                                    <span className="line-through text-[9px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
-                                                    <span>{formatCurrency(item.price, store || settings)}</span>
-                                                </>
-                                            ) : (
-                                                formatCurrency(item.price, store || settings)
-                                            )}
-                                        </button>
+                                        {hasDiscountPerm ? (
+                                            <button
+                                                onClick={() => openItemDiscountModal(item)}
+                                                className="text-[11px] font-black text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-500/20 transition-all flex flex-col items-end min-w-[55px] leading-tight"
+                                            >
+                                                {item.discount > 0 ? (
+                                                    <>
+                                                        <span className="line-through text-[9px] text-slate-400 opacity-70">{formatCurrency(item.original_price, store || settings)}</span>
+                                                        <span>{formatCurrency(item.price, store || settings)}</span>
+                                                    </>
+                                                ) : (
+                                                    formatCurrency(item.price, store || settings)
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <span className="text-[11px] font-black text-slate-900 dark:text-white">
+                                                {formatCurrency(item.price, store || settings)}
+                                            </span>
+                                        )}
                                         {item.discount > 0 && (
                                             <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
                                                 Disc: -{formatCurrency(item.discount, store || settings)}
@@ -2039,7 +2050,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </div>
 
                                     {/* Free Qty Controls */}
-                                    {showFreeQty && (
+                                    {hasDiscountPerm && showFreeQty && (
                                         <div className="flex items-center bg-emerald-50 dark:bg-emerald-900/20 p-0.5 rounded-xl border border-emerald-100 dark:border-emerald-800/30">
                                             <button
                                                 onClick={() => updateFreeQty(item.cartItemId, -1)}
@@ -2182,31 +2193,33 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         {/* Discount & Payment Method Row */}
                         <div className="flex gap-2">
                             {/* Discount Button */}
-                            <div className="flex-1">
-                                <button
-                                    onClick={() => {
-                                        showInput('Apply Discount', 'Enter fixed discount amount', (val) => {
-                                            const disc = parseFloat(val);
-                                            if (!isNaN(disc)) {
-                                                updateActiveSale({ discountType: 'fixed', discountValue: disc });
-                                                addToast(`Discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
-                                            }
-                                        });
-                                    }}
-                                    className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
-                                >
-                                    <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
-                                    <div className="flex items-center gap-1.5">
-                                        <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
-                                        <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
-                                            {activeSale.discountType === 'percentage'
-                                                ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
-                                                : formatCurrency(globalDiscount, store || settings)
-                                            }
-                                        </span>
-                                    </div>
-                                </button>
-                            </div>
+                            {hasDiscountPerm && (
+                                <div className="flex-1">
+                                    <button
+                                        onClick={() => {
+                                            showInput('Apply Discount', 'Enter fixed discount amount', (val) => {
+                                                const disc = parseFloat(val);
+                                                if (!isNaN(disc)) {
+                                                    updateActiveSale({ discountType: 'fixed', discountValue: disc });
+                                                    addToast(`Discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
+                                                }
+                                            });
+                                        }}
+                                        className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
+                                    >
+                                        <label className="text-[9px] uppercase font-bold text-slate-500 block mb-0.5">Discount</label>
+                                        <div className="flex items-center gap-1.5">
+                                            <div className="w-4 h-4 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-500 flex items-center justify-center text-[10px] font-bold">%</div>
+                                            <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                                                {activeSale.discountType === 'percentage'
+                                                    ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
+                                                    : formatCurrency(globalDiscount, store || settings)
+                                                }
+                                            </span>
+                                        </div>
+                                    </button>
+                                </div>
+                            )}
 
                             {/* Payment Method Selector */}
                             <div className="flex-1">
