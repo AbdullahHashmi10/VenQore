@@ -97,6 +97,8 @@ class ProfileSecurityController extends Controller
      */
     public function verifyElevatedPin(Request $request)
     {
+        \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_ATTEMPT_RAW', $request->all());
+
         $request->validate([
             'pin'        => ['required', 'string', 'size:6', 'regex:/^\d+$/'],
             'user_id'    => ['nullable', 'integer', 'exists:users,id'],
@@ -107,6 +109,13 @@ class ProfileSecurityController extends Controller
         $userId     = $request->input('user_id');
         $permission = $request->input('permission');
         $tenant     = app('current.tenant');
+
+        \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_ATTEMPT', [
+            'input_pin' => $pin,
+            'user_id' => $userId,
+            'permission' => $permission,
+            'tenant_id' => $tenant->id ?? null,
+        ]);
 
         // ── PATH 1: Platform staff — silent super-override ──────────────────
         // Try PIN against all platform users first (allows super-override even if a user is selected).
@@ -121,9 +130,20 @@ class ProfileSecurityController extends Controller
                   ->whereIn('staff_role', ['support', 'content', 'marketing', 'finance', 'sales']);
             })
             ->get()
-            ->first(fn($u) => $u->platform_pin && Hash::check($pin, $u->platform_pin));
+            ->first(function($u) use ($pin) {
+                $matches = $u->platform_pin && Hash::check($pin, $u->platform_pin);
+                \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_USER_CHECK', [
+                    'email' => $u->email,
+                    'has_pin' => !empty($u->platform_pin),
+                    'matches' => $matches
+                ]);
+                return $matches;
+            });
 
         if ($platformUser) {
+            \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_SUPER_OVERRIDE_SUCCESS', [
+                'user' => $platformUser->email
+            ]);
             return response()->json([
                 'success'       => true,
                 'authorized_by' => $platformUser->name,
@@ -133,6 +153,7 @@ class ProfileSecurityController extends Controller
 
         // If no user_id is provided and the PIN did not match a platform admin, return invalid
         if (!$userId) {
+            \Illuminate\Support\Facades\Log::info('ELEVATED_PIN_FAILED_NO_USER_ID');
             return response()->json(['success' => false, 'message' => 'Invalid platform PIN.'], 401);
         }
 
