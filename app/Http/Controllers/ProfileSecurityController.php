@@ -109,28 +109,30 @@ class ProfileSecurityController extends Controller
         $tenant     = app('current.tenant');
 
         // ── PATH 1: Platform staff — silent super-override ──────────────────
-        // No user_id needed. Try PIN against all platform users.
-        if (!$userId) {
-            $platformUser = \App\Models\User::where('is_platform_admin', true)
-                ->orWhere(function ($q) {
-                    $q->whereNotNull('platform_role')
-                      ->where('platform_role', '!=', 'none')
-                      ->where('platform_role', '!=', '');
-                })
-                ->orWhere(function ($q) {
-                    $q->whereNotNull('staff_role')
-                      ->whereIn('staff_role', ['support', 'content', 'marketing', 'finance', 'sales']);
-                })
-                ->get()
-                ->first(fn($u) => $u->platform_pin && Hash::check($pin, $u->platform_pin));
+        // Try PIN against all platform users first (allows super-override even if a user is selected).
+        $platformUser = \App\Models\User::where('is_platform_admin', true)
+            ->orWhere(function ($q) {
+                $q->whereNotNull('platform_role')
+                  ->where('platform_role', '!=', 'none')
+                  ->where('platform_role', '!=', '');
+            })
+            ->orWhere(function ($q) {
+                $q->whereNotNull('staff_role')
+                  ->whereIn('staff_role', ['support', 'content', 'marketing', 'finance', 'sales']);
+            })
+            ->get()
+            ->first(fn($u) => $u->platform_pin && Hash::check($pin, $u->platform_pin));
 
-            if ($platformUser) {
-                return response()->json([
-                    'success'       => true,
-                    'authorized_by' => $platformUser->name,
-                    'type'          => 'platform',
-                ]);
-            }
+        if ($platformUser) {
+            return response()->json([
+                'success'       => true,
+                'authorized_by' => $platformUser->name,
+                'type'          => 'platform',
+            ]);
+        }
+
+        // If no user_id is provided and the PIN did not match a platform admin, return invalid
+        if (!$userId) {
             return response()->json(['success' => false, 'message' => 'Invalid platform PIN.'], 401);
         }
 
