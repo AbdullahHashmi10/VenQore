@@ -330,4 +330,48 @@ class RegressionFixesTest extends VenQoreTestCase
         $cashMethodTotal = collect($props['salesByMethod'])->where('payment_method', 'cash')->first()?->total ?? 0;
         $this->assertEquals(1500.00, (float)$cashMethodTotal);
     }
+
+    /** @test */
+    public function test_woocommerce_integration_is_gated_by_plan(): void
+    {
+        $tenant = $this->createTenant('gated-store', 'trial');
+        $user = $this->createTenantUser($tenant, 'owner');
+        $this->actingAsTenantUser($tenant, 'owner');
+
+        $platform = \App\Models\Platform::firstOrCreate(
+            ['slug' => 'venqore'],
+            ['name' => 'VenQore Platform', 'is_active' => true]
+        );
+
+        $plan = \App\Models\Plan::firstOrCreate(
+            ['slug' => 'trial'],
+            [
+                'platform_id' => $platform->id,
+                'name' => 'Trial Plan',
+                'type' => 'trial',
+                'is_active' => true,
+                'is_visible' => true,
+            ]
+        );
+
+        // 1. Disable WooCommerce on the plan
+        $plan->limits()->updateOrCreate(['key' => 'woocommerce'], ['value' => '0']);
+        \App\Services\PlanRepository::invalidatePlanCache('trial');
+
+        // Verify that visiting the WooCommerce URL redirects
+        $response = $this->get($this->storeUrl($tenant, 'woocommerce-sync'));
+        $response->assertStatus(302);
+
+        // Verify that visiting the direct connections route returns 403 Forbidden
+        $responseConnection = $this->get($this->storeUrl($tenant, 'woo/connections'));
+        $responseConnection->assertStatus(403);
+
+        // 2. Enable WooCommerce on the plan
+        $plan->limits()->updateOrCreate(['key' => 'woocommerce'], ['value' => '1']);
+        \App\Services\PlanRepository::invalidatePlanCache('trial');
+
+        // Verify that it redirects or renders successfully (not 403)
+        $response = $this->get($this->storeUrl($tenant, 'woocommerce-sync'));
+        $response->assertStatus(302); // Should redirect to connections.index
+    }
 }

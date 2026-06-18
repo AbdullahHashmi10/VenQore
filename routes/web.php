@@ -1372,7 +1372,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // ── WooCommerce Sync (Full System) ────────────────────────────────────────
     // Entry point: redirects to the new connection list
-    Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug')]))
+    Route::get('/woocommerce-sync', fn() => redirect()->route('store.woo.connections.index', ['store_slug' => request()->route('store_slug') ?? request()->segment(2)]))
         ->name('woocommerce.index');
     // WooSync — Connection Management & Sync Operations
     Route::prefix('woo')->name('woo.')->group(function () {

@@ -70,7 +70,8 @@ const SUITE_TESTS = {
     'excel import ignores helper row',
     'multi word search tokenization',
     'logout route does not support delete method',
-    'handle inertia requests version is null in local testing'
+    'handle inertia requests version is null in local testing',
+    'woocommerce integration is gated by plan'
   ]
 };
 
