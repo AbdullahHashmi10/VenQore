@@ -37,6 +37,10 @@ class WooConnectionController extends Controller
      */
     public function indexRedirect(Request $request)
     {
+        if (!\App\Services\PlanGate::check('woocommerce')) {
+            abort(403, 'WooCommerce integration is not available on your current plan.');
+        }
+
         return redirect()->route('store.woo.connections.index', [
             'store_slug' => $this->storeSlug()
         ]);
@@ -47,6 +51,10 @@ class WooConnectionController extends Controller
      */
     public function index(Request $request)
     {
+        if (!\App\Services\PlanGate::check('woocommerce')) {
+            abort(403, 'WooCommerce integration is not available on your current plan.');
+        }
+
         $tenantId = $this->tenantId();
 
         $connections = WooConnection::where('tenant_id', $tenantId)

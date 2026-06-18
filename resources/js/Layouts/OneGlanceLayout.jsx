@@ -77,7 +77,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
     const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
     const { url, props } = usePage();
-    const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled } = props;
+    const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled } = props;
 
     // Global Toast State
     const [toasts, setToasts] = useState([]);
@@ -351,7 +351,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             subs: [
                 { group: 'Multi-Channel', items: ['VenSynQ'] },
                 { group: 'Promotion', items: [{ label: 'Email Marketing', locked: true }, { label: 'SMS Marketing', locked: true }, { label: 'Campaigns', locked: true }] },
-                { group: 'Integrations', items: [isStarterOrLtd1 ? { label: 'WooCommerce Sync', locked: true } : 'WooCommerce Sync'] },
+                { group: 'Integrations', items: [woocommerce_enabled ? 'WooCommerce Sync' : null].filter(Boolean) },
                 { group: 'Configuration', items: ['VenSynQ Settings'] }
             ],
             route: store ? 'store.vensynq.index' : 'vensynq.index',

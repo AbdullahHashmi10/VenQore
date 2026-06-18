@@ -238,7 +238,7 @@ export default function SidebarItem({
                                 <p className="px-4 text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-1">
                                     {item.group}
                                 </p>
-                                {item.items.map((subItem, sIdx) => {
+                                {item.items.filter(Boolean).map((subItem, sIdx) => {
                                     const { label: itemName, locked } = (typeof subItem === 'object')
                                         ? { label: subItem.label, locked: subItem.locked }
                                         : { label: subItem, locked: false };

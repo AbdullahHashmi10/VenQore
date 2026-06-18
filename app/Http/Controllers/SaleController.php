@@ -371,22 +371,25 @@ class SaleController extends Controller
 
         // 1. Sales & Orders Today
         // net_sales = true revenue (ex-tax, ex-discount). All records are permanently normalised.
-        $todayStats = Sale::whereDate('created_at', $today)
+        $todayStats = Sale::where('status', '!=', 'returned')
+            ->whereDate('created_at', $today)
             ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
             ->first();
 
-        $yesterdaySales = Sale::whereDate('created_at', $yesterday)->sum('net_sales');
+        $yesterdaySales = Sale::where('status', '!=', 'returned')->whereDate('created_at', $yesterday)->sum('net_sales');
         
         $dailyGrowth = $yesterdaySales > 0 
             ? (($todayStats->total - $yesterdaySales) / $yesterdaySales) * 100 
             : ($todayStats->total > 0 ? 100 : 0);
 
         // 2. Monthly Net Sales
-        $monthStats = Sale::whereDate('created_at', '>=', $startOfMonth)
+        $monthStats = Sale::where('status', '!=', 'returned')
+            ->whereDate('created_at', '>=', $startOfMonth)
             ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
             ->first();
 
-        $lastMonthStats = Sale::whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
+        $lastMonthStats = Sale::where('status', '!=', 'returned')
+            ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
             ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
             ->first();
 
@@ -402,13 +405,15 @@ class SaleController extends Controller
         $avgGrowth = $avgLastMonth > 0 ? (($averageOrderValue - $avgLastMonth) / $avgLastMonth) * 100 : 0;
 
         // 4. Active Customers
-        $activeCustomers = Sale::whereDate('created_at', '>=', \Carbon\Carbon::now()->subDays(30))
+        $activeCustomers = Sale::where('status', '!=', 'returned')
+            ->whereDate('created_at', '>=', \Carbon\Carbon::now()->subDays(30))
             ->whereNotNull('customer_id')
             ->distinct('customer_id')
             ->count('customer_id');
 
         // Recent Sales (Optimized Select & Relations)
-        $recentSales = Sale::select('id', 'reference_number', 'total', 'payment_status', 'party_id', 'created_at')
+        $recentSales = Sale::where('status', 'posted')
+            ->select('id', 'reference_number', 'total', 'payment_status', 'party_id', 'created_at')
             ->with(['party:id,name'])
             ->latest()
             ->take(5)
@@ -421,6 +426,7 @@ class SaleController extends Controller
             ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.tenant_id', $tenantId)
+            ->where('sales.status', '!=', 'returned')
             ->whereDate('sales.created_at', $today)
             ->select(
                 'products.name',
@@ -448,6 +454,7 @@ class SaleController extends Controller
         $salesByMethod = DB::table('sales')
             ->where('tenant_id', $tenantId)
             ->whereNull('deleted_at')
+            ->where('status', '!=', 'returned')
             ->whereDate('created_at', '>=', $startOfMonth)
             ->select('payment_method', DB::raw('SUM(net_sales) as total'))
             ->groupBy('payment_method')
@@ -524,10 +531,10 @@ class SaleController extends Controller
             $query->orderBy($sortBy, $sortDir);
         }
 
-        // â”€â”€ Stats (computed before pagination, on the full filtered set) ──────
+        // ── Stats (computed before pagination, on the full filtered set) ──────
         // Clone the query builder so the filters above apply to stats too,
         // but pagination does NOT — stats must cover the entire filtered result set.
-        $statsQuery = clone $query;
+        $statsQuery = (clone $query)->where('status', '!=', 'returned');
 
         // BUG-03 FIX (CALCULATION_LOGIC.md §8 BUG-03)
         // OLD: sum('total')  — invoice_total, includes tax → inflated revenue figure

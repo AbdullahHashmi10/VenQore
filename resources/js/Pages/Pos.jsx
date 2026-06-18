@@ -711,6 +711,43 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         const val = activeSale.searchTerm.trim();
         if (!val) return;
 
+        // If it looks like a barcode (no spaces, min 4 chars), try optimized exact barcode/SKU lookup first
+        if (val.length >= 4 && !/\s/.test(val)) {
+            setIsSearching(true);
+            try {
+                if (isOnline) {
+                    const response = await axios.get(route('store.pos.barcode', { store_slug: store?.slug, code: val }));
+                    if (response.data.found) {
+                        const product = response.data.product;
+                        const variantId = response.data.variant_id;
+                        if (variantId && product.variants) {
+                            const variant = product.variants.find(v => v.id === variantId);
+                            addToCart(product, variant);
+                        } else {
+                            handleProductSelect(product);
+                        }
+                        updateActiveSale({ searchTerm: '' });
+                        setIsSearching(false);
+                        return;
+                    }
+                } else {
+                    const exactMatch = await db.products
+                        .filter(p => p.sku === val || p.barcode === val)
+                        .first();
+                    if (exactMatch) {
+                        handleProductSelect(exactMatch);
+                        updateActiveSale({ searchTerm: '' });
+                        setIsSearching(false);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error("Barcode exact match lookup failed, falling back to general search:", err);
+            } finally {
+                setIsSearching(false);
+            }
+        }
+
         // Check for Quantity Shortcut (Number only, and shorter than typical barcode)
         // Safety: If it's a number, we check if it's a product. If not, we treat as Qty.
         // If it IS a product (e.g. barcode "6"), we add the product.

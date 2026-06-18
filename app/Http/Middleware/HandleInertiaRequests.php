@@ -152,6 +152,10 @@ class HandleInertiaRequests extends Middleware
                 }
                 return (bool) config('vensynq.enabled', false);
             })(),
+            'woocommerce_enabled' => (function () use ($dbReady) {
+                if (!$dbReady || !app()->bound('current.tenant')) return false;
+                return \App\Services\PlanGate::check('woocommerce');
+            })(),
         ];
 
         return $shared;

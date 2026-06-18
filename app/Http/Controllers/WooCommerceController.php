@@ -22,6 +22,10 @@ class WooCommerceController extends Controller
 
     public function index()
     {
+        if (!\App\Services\PlanGate::check('woocommerce')) {
+            abort(403, 'WooCommerce integration is not available on your current plan.');
+        }
+
         // ── Phase 4.3: WooCommerce Feature Gate ────────────────────────────
         if (app()->bound('current.tenant')) {
             PlanGate::enforce('woocommerce');

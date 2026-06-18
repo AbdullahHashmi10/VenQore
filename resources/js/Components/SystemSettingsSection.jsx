@@ -3,8 +3,10 @@ import { ToggleLeft, Shield, Bell, Database, Wifi, Lock, Download, HardDrive } f
 import Toggle from '@/Components/Toggle';
 import axios from 'axios';
 import Swal from 'sweetalert2';
+import { usePage } from '@inertiajs/react';
 
 export default function SystemSettingsSection({ data, setData, activeSubSection = 'system' }) {
+    const { woocommerce_enabled } = usePage().props;
     const fileInputRef = useRef(null);
     const [restoring, setRestoring] = useState(false);
     const [downloading, setDownloading] = useState(false);
@@ -402,59 +404,61 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
 
                         <div className="space-y-6">
                             {/* WooCommerce */}
-                            <div className={`p-8 bg-white dark:bg-slate-800 border-2 rounded-[2.5rem] transition-all duration-300 ${data.woocommerce_enabled ? 'border-indigo-500 shadow-2xl shadow-indigo-500/10' : 'border-transparent shadow-lg'}`}>
-                                <div className="flex items-center gap-5 mb-6">
-                                    <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl flex-shrink-0">
-                                        <Wifi size={28} />
+                            {woocommerce_enabled && (
+                                <div className={`p-8 bg-white dark:bg-slate-800 border-2 rounded-[2.5rem] transition-all duration-300 ${data.woocommerce_enabled ? 'border-indigo-500 shadow-2xl shadow-indigo-500/10' : 'border-transparent shadow-lg'}`}>
+                                    <div className="flex items-center gap-5 mb-6">
+                                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl flex-shrink-0">
+                                            <Wifi size={28} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h5 className="text-lg font-black text-slate-900 dark:text-white leading-tight">WooCommerce</h5>
+                                            <p className="text-xs text-slate-500 font-medium">Sync online orders</p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => setData('woocommerce_enabled', !data.woocommerce_enabled)}
+                                            className={`relative w-12 h-6 rounded-full transition-all duration-200 ${data.woocommerce_enabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200 ${data.woocommerce_enabled ? 'left-7' : 'left-1'}`} />
+                                        </button>
                                     </div>
-                                    <div className="flex-1">
-                                        <h5 className="text-lg font-black text-slate-900 dark:text-white leading-tight">WooCommerce</h5>
-                                        <p className="text-xs text-slate-500 font-medium">Sync online orders</p>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setData('woocommerce_enabled', !data.woocommerce_enabled)}
-                                        className={`relative w-12 h-6 rounded-full transition-all duration-200 ${data.woocommerce_enabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}`}
-                                    >
-                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200 ${data.woocommerce_enabled ? 'left-7' : 'left-1'}`} />
-                                    </button>
-                                </div>
 
-                                {data.woocommerce_enabled && (
-                                    <div className="space-y-4 animate-in slide-in-from-top-4 duration-300 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Store URL</label>
-                                            <input
-                                                type="text"
-                                                value={data.woocommerce_url}
-                                                onChange={e => setData('woocommerce_url', e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                                                placeholder="https://yourstore.com"
-                                            />
+                                    {data.woocommerce_enabled && (
+                                        <div className="space-y-4 animate-in slide-in-from-top-4 duration-300 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Store URL</label>
+                                                <input
+                                                    type="text"
+                                                    value={data.woocommerce_url}
+                                                    onChange={e => setData('woocommerce_url', e.target.value)}
+                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                                                    placeholder="https://yourstore.com"
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Consumer Key</label>
+                                                <input
+                                                    type="text"
+                                                    value={data.woocommerce_consumer_key}
+                                                    onChange={e => setData('woocommerce_consumer_key', e.target.value)}
+                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                                                    placeholder="ck_..."
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Consumer Secret</label>
+                                                <input
+                                                    type="password"
+                                                    value={data.woocommerce_consumer_secret}
+                                                    onChange={e => setData('woocommerce_consumer_secret', e.target.value)}
+                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                                                    placeholder="cs_..."
+                                                />
+                                            </div>
                                         </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Consumer Key</label>
-                                            <input
-                                                type="text"
-                                                value={data.woocommerce_consumer_key}
-                                                onChange={e => setData('woocommerce_consumer_key', e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
-                                                placeholder="ck_..."
-                                            />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Consumer Secret</label>
-                                            <input
-                                                type="password"
-                                                value={data.woocommerce_consumer_secret}
-                                                onChange={e => setData('woocommerce_consumer_secret', e.target.value)}
-                                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
-                                                placeholder="cs_..."
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Stripe (Upcoming) */}
                             <div className="p-8 bg-white dark:bg-slate-800 border-2 rounded-[2.5rem] opacity-60">

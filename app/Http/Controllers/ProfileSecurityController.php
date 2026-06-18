@@ -178,19 +178,19 @@ class ProfileSecurityController extends Controller
             return response()->json(['success' => false, 'message' => 'User is not a member of this store.'], 403);
         }
 
-        if (!$membership->security_pin) {
-            return response()->json(['success' => false, 'message' => 'This user has not set up a security PIN.'], 404);
+        $authorizer = \App\Models\User::find($userId);
+        if (!$authorizer) {
+            return response()->json(['success' => false, 'message' => 'User not found.'], 404);
         }
 
-        // Check permission if required
-        if ($permission) {
-            $authorizer = \App\Models\User::find($userId);
-            if ($authorizer && !$authorizer->hasPermission($permission)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'This user does not have permission to authorize this action.',
-                ], 403);
-            }
+        // Rule 1: If the authorizing user's role does not grant the required permission -> reject immediately
+        if (!empty($permission) && !$authorizer->hasPermission($permission)) {
+            return response()->json(['success' => false, 'message' => 'This user does not have permission to authorize this action.'], 403);
+        }
+
+        // Rule 2: If the user has no security_pin set -> reject
+        if (empty($membership->security_pin)) {
+            return response()->json(['success' => false, 'message' => 'No action passcode set. Please set one in your profile settings.'], 403);
         }
 
         if (Hash::check($pin, $membership->security_pin)) {
