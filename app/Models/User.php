@@ -212,6 +212,12 @@ class User extends Authenticatable
     public function hasPermission(string $permission): bool
     {
         if ($this->is_platform_admin) return true;
+
+        $membership = $this->getActiveMembership();
+        if ($membership && in_array($membership->role, ['owner', 'admin'])) {
+            return true;
+        }
+
         $perms = $this->permissions; // delegates to getPermissionsAttribute()
         if (in_array('*', $perms)) return true;
         return in_array($permission, $perms);
