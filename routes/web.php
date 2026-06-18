@@ -396,6 +396,8 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::post('/security/set-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setPasscode'])->name('set-passcode');
         Route::post('/security/clear-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearPasscode'])->name('clear-passcode');
         Route::post('/security/change-password',[\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'changePassword'])->name('change-password');
+        Route::post('/security/set-action-passcode',   [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'setActionPasscode'])->name('set-action-passcode');
+        Route::post('/security/clear-action-passcode', [\App\Http\Controllers\Auth\PlatformOwnerAuthController::class, 'clearActionPasscode'])->name('clear-action-passcode');
 
         // ── VenSynQ Module Control ─────────────────────────────────────────
         Route::post('/vensynq/toggle', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleVenSynQ'])->name('vensynq.toggle');

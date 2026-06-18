@@ -161,4 +161,54 @@ class PlatformOwnerAuthController extends Controller
         $user->update(['password' => Hash::make($request->password)]);
         return back()->with('security_success', 'Password changed successfully.');
     }
+
+    public function setActionPasscode(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'passcode'             => 'required|string|min:4|max:8|confirmed',
+            'passcode_confirmation'=> 'required',
+            'current_password'     => 'required|string',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['action_current_password' => 'Your current password is incorrect.']);
+        }
+
+        $membership = \App\Models\TenantUser::where('user_id', $user->id)
+            ->where('tenant_id', $user->last_store_id ?: 1)
+            ->first();
+
+        if (!$membership) {
+            $membership = \App\Models\TenantUser::create([
+                'user_id' => $user->id,
+                'tenant_id' => $user->last_store_id ?: 1,
+                'role' => 'owner',
+                'status' => 'active'
+            ]);
+        }
+
+        $membership->update(['security_pin' => Hash::make($request->passcode)]);
+        return back()->with('security_success', 'Action passcode has been set successfully.');
+    }
+
+    public function clearActionPasscode(Request $request): RedirectResponse
+    {
+        $request->validate(['current_password' => 'required|string']);
+
+        $user = Auth::user();
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['action_clear_current_password' => 'Your current password is incorrect.']);
+        }
+
+        $membership = \App\Models\TenantUser::where('user_id', $user->id)
+            ->where('tenant_id', $user->last_store_id ?: 1)
+            ->first();
+
+        if ($membership) {
+            $membership->update(['security_pin' => null]);
+        }
+        return back()->with('security_success', 'Action passcode has been removed.');
+    }
 }

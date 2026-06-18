@@ -2049,6 +2049,10 @@ function SecuritySection() {
     const [clearPw, setClearPw] = useState('');
     const [hasDashPin, setHasDashPin] = useState(false);
 
+    // Action Passcode Form
+    const actionForm = useForm({ current_password: '', passcode: '', passcode_confirmation: '' });
+    const [clearActionPw, setClearActionPw] = useState('');
+
     const cardStyle = {
         background: T.bgCard,
         border: `1px solid ${T.border}`,
@@ -2213,6 +2217,71 @@ function SecuritySection() {
                         <input type="password" style={{ ...inputStyle, maxWidth: 260 }}
                             value={clearPw} onChange={e => setClearPw(e.target.value)}
                             placeholder="Only needed to remove PIN" />
+                    </div>
+                </form>
+            </div>
+
+            {/* Action Passcode Setup */}
+            <div style={cardStyle}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Shield size={16} color="#8b5cf6" />
+                    </div>
+                    <div>
+                        <div style={{ fontWeight: 700, color: T.text, fontSize: 14 }}>Action Passcode</div>
+                        <div style={{ fontSize: 12, color: T.textMuted }}>Set a 4–8 digit passcode required to authorize sensitive actions (voids, stock adjustments, discounts)</div>
+                    </div>
+                </div>
+
+                <form onSubmit={e => { e.preventDefault(); actionForm.post(route('platform.set-action-passcode'), { onSuccess: () => actionForm.reset() }); }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    <div>
+                        <label style={labelStyle}>Confirm with Current Password</label>
+                        <input type="password" style={inputStyle}
+                            value={actionForm.data.current_password}
+                            onChange={e => actionForm.setData('current_password', e.target.value)}
+                            placeholder="Your login password" />
+                        {actionForm.errors.current_password && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{actionForm.errors.current_password}</div>}
+                        {actionForm.errors.action_current_password && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{actionForm.errors.action_current_password}</div>}
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                        <div>
+                            <label style={labelStyle}>New Passcode (4–8 digits)</label>
+                            <input type="password" inputMode="numeric" maxLength={8} style={inputStyle}
+                                value={actionForm.data.passcode}
+                                onChange={e => actionForm.setData('passcode', e.target.value.replace(/\D/g, ''))}
+                                placeholder="e.g. 123456" />
+                            {actionForm.errors.passcode && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{actionForm.errors.passcode}</div>}
+                        </div>
+                        <div>
+                            <label style={labelStyle}>Confirm Passcode</label>
+                            <input type="password" inputMode="numeric" maxLength={8} style={inputStyle}
+                                value={actionForm.data.passcode_confirmation}
+                                onChange={e => actionForm.setData('passcode_confirmation', e.target.value.replace(/\D/g, ''))}
+                                placeholder="Repeat Passcode" />
+                        </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 10 }}>
+                        <button type="submit" style={{ ...btnStyle, background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }} disabled={actionForm.processing}>
+                            <KeyRound size={13} /> {actionForm.processing ? 'Saving…' : 'Set Passcode'}
+                        </button>
+                        <button type="button"
+                            style={{ ...btnStyle, background: 'rgba(239,68,68,0.12)', color: '#ef4444', boxShadow: 'none', border: '1px solid rgba(239,68,68,0.2)' }}
+                            onClick={() => {
+                                if (!clearActionPw) { alert('Enter your password below the buttons first.'); return; }
+                                router.post(route('platform.clear-action-passcode'), { current_password: clearActionPw }, {
+                                    onSuccess: () => setClearActionPw(''),
+                                });
+                            }}>
+                            Remove Passcode
+                        </button>
+                    </div>
+                    <div>
+                        <label style={labelStyle}>Password to Remove Passcode</label>
+                        <input type="password" style={{ ...inputStyle, maxWidth: 260 }}
+                            value={clearActionPw} onChange={e => setClearActionPw(e.target.value)}
+                            placeholder="Only needed to remove passcode" />
+                        {actionForm.errors.action_clear_current_password && <div style={{ fontSize: 11, color: '#ef4444', marginTop: 4 }}>{actionForm.errors.action_clear_current_password}</div>}
                     </div>
                 </form>
             </div>
