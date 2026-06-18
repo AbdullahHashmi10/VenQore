@@ -45,7 +45,7 @@ class StockTransferController extends Controller
     {
         return Inertia::render('StockTransfers/Create', [
              'warehouses' => \App\Models\Warehouse::query()->get(),
-             'products' => \App\Models\Product::select('id', 'name', 'code')->get()
+             'products' => \App\Models\Product::select('id', 'name', 'sku')->get()
         ]);
     }
 

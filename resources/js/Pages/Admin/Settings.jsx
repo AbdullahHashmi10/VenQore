@@ -33,7 +33,7 @@ const SETTINGS_CATEGORIES = [
         id: 'ops',
         name: 'Operations',
         icon: ShoppingCart,
-        sections: ['transaction', 'print', 'taxes', 'item', 'party', 'reminders', 'accounting']
+        sections: ['pos', 'transaction', 'print', 'taxes', 'item', 'party', 'reminders', 'accounting']
     },
     {
         id: 'adv',
@@ -53,6 +53,7 @@ const SETTINGS_SECTIONS = [
     { id: 'business', name: 'Business Info', icon: Building2, description: 'Company details and branding' },
     { id: 'general', name: 'General', icon: Settings, description: 'Passcode, Multi-firm & UI scaling' },
     { id: 'ai', name: 'AI Intelligence', icon: Sparkles, description: 'Gemini, OpenAI & Smart Search' },
+    { id: 'pos', name: 'POS & Sales', icon: ShoppingCart, description: 'Sales configuration & charity' },
     { id: 'transaction', name: 'Transaction', icon: FileText, description: 'Invoice headers, prefixes & billing' },
     { id: 'print', name: 'Print', icon: Printer, description: 'Regular & Thermal printer layouts' },
     { id: 'taxes', name: 'Taxes', icon: Percent, description: 'Tax rates and groups' },
@@ -79,6 +80,7 @@ export default function AdminSettings({ settings = {} }) {
     const [verificationResult, setVerificationResult] = useState(null);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [expandedCategories, setExpandedCategories] = useState(['org', 'ops', 'adv', 'zone']);
+    const [acknowledgeOpenReturn, setAcknowledgeOpenReturn] = useState(settings.pos_return_mode === 'open');
 
     const toggleCategory = (catId) => {
         setExpandedCategories(prev =>
@@ -250,6 +252,10 @@ export default function AdminSettings({ settings = {} }) {
         fbr_pos_id: settings.fbr_pos_id || '',
         fbr_usin: settings.fbr_usin || '',
         show_margin_percentage: settings.show_margin_percentage === '1' || settings.show_margin_percentage === true,
+        charity_enabled: settings.charity_enabled === '1' || settings.charity_enabled === true,
+        pos_return_mode: settings.pos_return_mode || 'reference',
+        pos_return_window: settings.pos_return_window || '',
+        pos_return_window_behavior: settings.pos_return_window_behavior || 'warn',
         default_tax_rate: settings.default_tax_rate || '0',
 
         // Third Party Integrations
@@ -321,6 +327,100 @@ export default function AdminSettings({ settings = {} }) {
                         verifyingKey={verifyingKey}
                         verificationResult={verificationResult}
                     />
+                );
+
+            case 'pos':
+                return (
+                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                            <SectionHeader title="Sales Configuration" description="Customize your point of sale experience" />
+                            <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                                <Toggle enabled={data.pos_auto_fill_cash} onChange={v => setData('pos_auto_fill_cash', v)} label="Auto-Fill Cash Received" description="Automatically populate the 'Cash Received' field with the total amount" />
+                                <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
+                                <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description="Automatically report sales to FBR and print QR codes" />
+                                <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
+                                <Toggle enabled={data.round_off_total} onChange={v => setData('round_off_total', v)} label="Round-off Invoice Totals" description="Automatically round invoice totals to the nearest whole integer" />
+                                <Toggle
+                                    enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
+                                    onChange={v => setData('stop_sale_negative_stock', !v)}
+                                    label="Allow Negative Stock (Overselling)"
+                                    description="Warning: Allows selling items even if inventory is 0"
+                                    variant="danger"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                            <SectionHeader title="Return Mode" description="Configure return authorization requirements" />
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center py-2">
+                                    <div>
+                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">POS Return Mode</label>
+                                        <span className="block text-xs text-slate-500">Configure return authorization requirements</span>
+                                    </div>
+                                    <select
+                                        value={data.pos_return_mode}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setData('pos_return_mode', val);
+                                            if (val !== 'open') setAcknowledgeOpenReturn(false);
+                                        }}
+                                        className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                    >
+                                        <option value="reference">Reference Number Required</option>
+                                        <option value="customer_or_reference">Customer or Reference</option>
+                                        <option value="open">Open Return — No Reference Needed</option>
+                                    </select>
+                                </div>
+                                {data.pos_return_mode === 'open' && (
+                                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3">
+                                        <div className="flex items-start gap-3">
+                                            <span className="text-amber-500 text-lg">⚠️</span>
+                                            <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
+                                                Warning: Open returns cannot be linked to original sales. You are responsible for verifying returned items were genuinely purchased.
+                                            </p>
+                                        </div>
+                                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                                            <input type="checkbox" checked={acknowledgeOpenReturn} onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" />
+                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">I understand and acknowledge this risk</span>
+                                        </label>
+                                    </div>
+                                )}
+                                {data.pos_return_mode === 'open' && (
+                                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                        <div className="flex justify-between items-center py-2">
+                                            <div>
+                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Return Window (days)</label>
+                                                <span className="block text-xs text-slate-500">Max days since purchase for returns (leave empty to disable)</span>
+                                            </div>
+                                            <input type="number" min="1" value={data.pos_return_window} onChange={(e) => setData('pos_return_window', e.target.value)} placeholder="e.g. 7, 14, 30" className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                        </div>
+                                        {data.pos_return_window && (
+                                            <div className="flex justify-between items-center py-2">
+                                                <div>
+                                                    <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Window Behavior</span>
+                                                    <span className="block text-xs text-slate-500">Action when return window has expired</span>
+                                                </div>
+                                                <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                                                    <button type="button" onClick={() => setData('pos_return_window_behavior', 'warn')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Soft Warning</button>
+                                                    <button type="button" onClick={() => setData('pos_return_window_behavior', 'block')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Hard Block</button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between py-4 border-t border-slate-100 dark:border-slate-700">
+                                    <div>
+                                        <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Enable Charity Donations</span>
+                                        <span className="block text-xs text-slate-500">Show the Charity button on the POS for quick donation recording</span>
+                                    </div>
+                                    <button type="button" onClick={() => setData('charity_enabled', !data.charity_enabled)} className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.charity_enabled ? 'right-1' : 'left-1'}`}></div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 );
 
             case 'transaction':

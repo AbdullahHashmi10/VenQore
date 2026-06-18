@@ -759,7 +759,6 @@ Route::middleware([])->group(function () {
     // Stock Legacy Routing
     Route::any('/stock-operations/{any}',    fn() => \redirect('/stock-operations'))->where('any', '.+');
     Route::any('/stock-transfers/{any?}',    [\App\Http\Controllers\StockTransferController::class, 'store'])->where('any', '.*');
-    Route::any('/stock-audit/{any?}',        fn() => \response()->json(['message' => 'Use stock-take module'], 404))->where('any', '.*');
     Route::any('/batches',                   fn() => \response()->json(['message' => 'Managed internally by FifoService'], 404));
     Route::any('/serials',                   fn() => \response()->json(['message' => 'Managed internally by FifoService'], 404));
 

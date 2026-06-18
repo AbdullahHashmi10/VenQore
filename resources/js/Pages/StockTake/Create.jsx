@@ -97,13 +97,13 @@ export default function Create({ warehouses, products, stocks }) {
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Warehouse</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
                                     value={data.warehouse_id}
                                     onChange={e => setData('warehouse_id', e.target.value)}
                                 >
-                                    <option value="">Select Warehouse...</option>
+                                    <option value="" className="text-slate-800 dark:text-slate-100">Select Warehouse...</option>
                                     {warehouses.map(w => (
-                                        <option key={w.id} value={w.id}>{w.name}</option>
+                                        <option key={w.id} value={w.id} className="text-slate-800 dark:text-slate-100">{w.name}</option>
                                     ))}
                                 </select>
                                 {errors.warehouse_id && <p className="text-red-500 text-xs">{errors.warehouse_id}</p>}
@@ -116,7 +116,7 @@ export default function Create({ warehouses, products, stocks }) {
                                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                     <input
                                         type="date"
-                                        className="w-full pl-10 text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                        className="w-full pl-10 text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
                                         value={data.date}
                                         onChange={e => setData('date', e.target.value)}
                                     />
@@ -128,12 +128,12 @@ export default function Create({ warehouses, products, stocks }) {
                             <div className="space-y-2">
                                 <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Status</label>
                                 <select
-                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500"
+                                    className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
                                     value={data.status}
                                     onChange={e => setData('status', e.target.value)}
                                 >
-                                    <option value="draft">Draft (Save & Continue later)</option>
-                                    <option value="completed">Completed (Adjust Stock)</option>
+                                    <option value="draft" className="text-slate-800 dark:text-slate-100">Draft (Save & Continue later)</option>
+                                    <option value="completed" className="text-slate-800 dark:text-slate-100">Completed (Adjust Stock)</option>
                                 </select>
                                 {errors.status && <p className="text-red-500 text-xs">{errors.status}</p>}
                             </div>
@@ -143,7 +143,7 @@ export default function Create({ warehouses, products, stocks }) {
                         <div className="mt-6 space-y-2">
                             <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Notes / Remarks</label>
                             <textarea
-                                className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 focus:ring-indigo-500 min-h-[60px]"
+                                className="w-full text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500 min-h-[60px]"
                                 placeholder="Any additional details..."
                                 value={data.notes}
                                 onChange={e => setData('notes', e.target.value)}
@@ -166,7 +166,7 @@ export default function Create({ warehouses, products, stocks }) {
                             </button>
                         </div>
 
-                        <div className="overflow-x-auto">
+                        <div>
                             <table className="w-full text-left text-sm">
                                 <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-xs">
                                     <tr>
@@ -201,7 +201,7 @@ export default function Create({ warehouses, products, stocks }) {
                                                     <input
                                                         type="number"
                                                         step="0.01"
-                                                        className="w-full text-sm text-right rounded-lg border-slate-200 dark:border-slate-700 focus:ring-indigo-500"
+                                                        className="w-full text-sm text-right rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:ring-indigo-500"
                                                         value={item.counted_quantity}
                                                         onChange={e => updateItem(index, 'counted_quantity', e.target.value)}
                                                     />

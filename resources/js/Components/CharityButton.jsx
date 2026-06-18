@@ -99,7 +99,7 @@ export default function CharityButton() {
                     flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300
                     ${showSuccess
                         ? 'bg-green-500 text-white'
-                        : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/30 border border-rose-200 dark:border-rose-800'
+                        : 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 hover:bg-amber-100 dark:hover:bg-amber-900/30 border border-amber-300 dark:border-amber-700'
                     }
                     ${isLoading ? 'opacity-50 cursor-wait' : ''}
                 `}
@@ -114,16 +114,16 @@ export default function CharityButton() {
                 <div className="flex flex-col items-start">
                     <span className="text-[10px] font-bold uppercase tracking-wide opacity-70">Charity</span>
                     <span className="text-xs font-black">
-                        {showSuccess ? 'Added!' : `Rs ${stats.today?.toLocaleString() || 0}`}
+                        {showSuccess ? 'Added!' : `${store?.currency_symbol || 'Rs'} ${stats.today?.toLocaleString() || 0}`}
                     </span>
                 </div>
             </button>
 
             {/* Edit Popup */}
             {showEdit && (
-                <div className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-rose-100 dark:border-rose-900/30 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
+                <div className="absolute top-full left-0 mt-2 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-amber-200 dark:border-amber-800/40 p-3 z-50 animate-in fade-in slide-in-from-top-2 min-w-[160px]">
                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1 block">
-                        Amount (Rs)
+                        Amount ({store?.currency_symbol || 'Rs'})
                     </label>
                     <div className="flex items-center gap-2">
                         <input
@@ -132,12 +132,12 @@ export default function CharityButton() {
                             value={customAmount}
                             onChange={(e) => setCustomAmount(e.target.value)}
                             onKeyDown={handleKeyDown}
-                            className="w-20 px-2 py-1.5 text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center focus:ring-2 ring-rose-500/20 outline-none"
+                            className="w-20 px-2 py-1.5 text-sm font-bold bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center focus:ring-2 ring-amber-500/20 outline-none"
                             min="1"
                         />
                         <button
                             onClick={saveCustomAmount}
-                            className="p-1.5 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors"
+                            className="p-1.5 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors"
                         >
                             <Check size={14} />
                         </button>

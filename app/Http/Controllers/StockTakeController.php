@@ -38,9 +38,9 @@ class StockTakeController extends Controller
     { 
         return Inertia::render('StockTake/Create', [
             'warehouses' => \App\Models\Warehouse::query()->get(),
-            'products' => \App\Models\Product::select('id', 'name', 'code', 'cost_price')->get(),
+            'products' => \App\Models\Product::select('id', 'name', 'sku', 'cost_price')->get(),
             // Pass simple stock map for frontend Quick Look if needed, though robust solution typically fetches per warehouse
-            'stocks' => \App\Models\Stock::select('warehouse_id', 'product_id', 'quantity')->get()->groupBy('warehouse_id')
+            'stocks' => \App\Models\Stock::select('warehouse_id', 'product_id', 'quantity', 'reserved_quantity')->get()->groupBy('warehouse_id')
         ]);
     }
 
@@ -58,7 +58,10 @@ class StockTakeController extends Controller
         ]);
 
         \Illuminate\Support\Facades\DB::transaction(function () use ($validated) {
+            $tenant = app('current.tenant');
+
             $audit = \App\Models\StockTake::create([
+                'tenant_id'    => $tenant->id,
                 'warehouse_id' => $validated['warehouse_id'],
                 'date' => $validated['date'],
                 'status' => $validated['status'],

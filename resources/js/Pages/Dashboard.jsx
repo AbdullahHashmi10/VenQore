@@ -25,6 +25,7 @@ export default function Dashboard({
     salesData,
     topSellingItems,
     lowStockItems,
+    recentPurchases = [],
     recentTransactions,
     plSummary,
     bankAccounts,
@@ -41,13 +42,35 @@ export default function Dashboard({
     const canFinance = isAdmin || hasPerm('finance');
     const canInventory = isAdmin || hasPerm('inventory');
     const canReports = isAdmin || hasPerm('reports');
+    const canPurchases = isAdmin || hasPerm('purchases');
+
+    // Dynamic grid spans for the bottom row cards
+    let topProductsSpan = "col-span-12 md:col-span-8 lg:col-span-6";
+    let lowStockSpan = "col-span-12 md:col-span-4 lg:col-span-3";
+    let purchasesSpan = "col-span-12 md:col-span-4 lg:col-span-3";
+
+    if (canSales && canInventory && canPurchases) {
+        topProductsSpan = "col-span-12 md:col-span-4 lg:col-span-3";
+        lowStockSpan = "col-span-12 md:col-span-4 lg:col-span-3";
+        purchasesSpan = "col-span-12 md:col-span-4 lg:col-span-3";
+    } else if (canSales && canPurchases) {
+        topProductsSpan = "col-span-12 md:col-span-8 lg:col-span-6";
+        purchasesSpan = "col-span-12 md:col-span-4 lg:col-span-3";
+    } else if (canInventory && canPurchases) {
+        lowStockSpan = "col-span-12 md:col-span-6 lg:col-span-5";
+        purchasesSpan = "col-span-12 md:col-span-6 lg:col-span-4";
+    } else if (canPurchases) {
+        purchasesSpan = "col-span-12 lg:col-span-9";
+    }
 
     const [profitView, setProfitView] = useState('Month');
     const [performancePeriod, setPerformancePeriod] = useState('Today');
     const [outstandingPeriod, setOutstandingPeriod] = useState('Month');
     const [netProfitPeriod, setNetProfitPeriod] = useState('Month');
+    const [purchasesPeriod, setPurchasesPeriod] = useState('Month');
 
     const currentProfit = plSummary[profitView] || { income: 0, expense: 0, profit: 0, status: 'good' };
+    const purchasesList = Array.isArray(recentPurchases) ? recentPurchases : (recentPurchases[purchasesPeriod] || []);
 
     return (
         <OneGlanceLayout activeMenu="Dashboard">
@@ -92,48 +115,45 @@ export default function Dashboard({
                     {/* Quick Profit Check */}
                     <div
                         onClick={() => router.visit(route('store.reports.profit-loss', { store_slug: store?.slug }))}
-                        className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col justify-center gap-4 h-full relative overflow-hidden group hover:-translate-y-1 transition-transform duration-300 cursor-pointer"
+                        className="bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col justify-center gap-2 h-full relative overflow-hidden group hover:-translate-y-0.5 transition-transform duration-300 cursor-pointer"
                     >
-                        <div className="absolute -right-6 -top-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                        <div className="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700 ease-in-out"></div>
 
-                        <div className="flex justify-between items-center relative z-10 w-full">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2.5 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 rounded-xl shadow-sm">
-                                    <Wallet size={20} />
-                                </div>
-                                <div className="text-left">
-                                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Net Profit</p>
-                                    <h2 className="text-lg font-black text-slate-800 dark:text-white tracking-tight leading-none mt-1">
-                                        {formatCurrency(parseFloat(currentProfit.profit || 0), store)}
-                                    </h2>
-                                </div>
+                        <div className="flex items-center gap-3 relative z-10 shrink-0">
+                            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600">
+                                <Wallet size={18} />
                             </div>
-                            <PremiumDropdown
-                                options={['Month', 'Quarter', 'Year']}
-                                selected={profitView}
-                                onChange={setProfitView}
-                            />
+                            <h3 className="font-bold text-slate-600 dark:text-slate-300 text-xs uppercase tracking-wide">Net Profit</h3>
+                            <div className="ml-auto" onClick={(e) => e.stopPropagation()}>
+                                <PremiumDropdown
+                                    options={[
+                                        { value: 'Today', label: 'Today' },
+                                        { value: 'Month', label: 'Month' },
+                                        { value: 'Year', label: 'Year' },
+                                        { value: 'All Time', label: 'All Time' }
+                                    ]}
+                                    value={netProfitPeriod}
+                                    onChange={setNetProfitPeriod}
+                                />
+                            </div>
                         </div>
 
-                        {/* Visual Breakdown Divider */}
-                        <div className="w-full h-px bg-slate-100 dark:bg-slate-800 my-1"></div>
-
                         {/* Breakdown Metrics */}
-                        <div className="grid grid-cols-2 gap-4 relative z-10">
+                        <div className="grid grid-cols-2 gap-3 relative z-10 grow items-center">
                             {/* Vertical Divider */}
-                            <div className="absolute left-1/2 top-2 bottom-2 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
+                            <div className="absolute left-1/2 top-1 bottom-1 w-px bg-slate-100 dark:bg-slate-800 -translate-x-1/2"></div>
 
-                            <div className="text-center">
-                                <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2">Current Status</p>
-                                <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
+                            <div className="text-center min-w-0">
+                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">Current Status</p>
+                                <h2 className="text-lg font-bold text-emerald-600 dark:text-emerald-400 tracking-tight truncate">{netProfit[netProfitPeriod]?.status || 'N/A'}</h2>
                             </div>
-                            <div className="text-center">
-                                <p className="text-lg font-bold text-slate-800 dark:text-white tracking-tight leading-none">{formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}</p>
-                                <p className="text-[10px] font-bold text-emerald-500 mt-1">{netProfit[netProfitPeriod]?.growth || ''}</p>
-                                {/* Breakdown Explanation */}
-                                <div className="flex gap-2 justify-center mt-1 text-[9px] font-medium opacity-80">
-                                    <span className="text-emerald-600 dark:text-emerald-400" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
-                                    <span className="text-red-500" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
+                            <div className="text-center min-w-0">
+                                <p className="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider truncate">
+                                    {formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}
+                                </p>
+                                <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-[9px] font-medium opacity-80 leading-none">
+                                    <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
+                                    <span className="text-red-500 whitespace-nowrap" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
                                 </div>
                             </div>
                         </div>
@@ -171,7 +191,7 @@ export default function Dashboard({
 
                 {/* Top Selling Items */}
                 {canSales && (
-                <div id="tour-top-products" className="col-span-12 md:col-span-8 lg:col-span-6 row-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0 group">
+                <div id="tour-top-products" className={`${topProductsSpan} row-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0 group`}>
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <div className="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
@@ -223,7 +243,7 @@ export default function Dashboard({
 
                 {/* LOW STOCK ITEMS */}
                 {canInventory && (
-                <div id="tour-low-stock" className="col-span-12 md:col-span-4 lg:col-span-3 row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0">
+                <div id="tour-low-stock" className={`${lowStockSpan} row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
                             <div className="w-1.5 h-5 bg-red-500 rounded-full"></div>
@@ -254,6 +274,63 @@ export default function Dashboard({
                             <div className="flex flex-col items-center justify-center h-full text-slate-400">
                                 <span className="text-2xl">✅</span>
                                 <p className="text-xs mt-2">Stock levels are healthy</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+                )}
+
+                {/* PURCHASES */}
+                {canPurchases && (
+                <div id="tour-purchases" className={`${purchasesSpan} row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
+                    <div className="flex justify-between items-center mb-4 shrink-0">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>
+                            <h3 className="font-bold text-slate-800 dark:text-white text-sm">Recent Purchases</h3>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <PremiumDropdown
+                                    options={[
+                                        { value: 'Today', label: 'Today' },
+                                        { value: 'Month', label: 'Month' },
+                                        { value: 'Year', label: 'Year' },
+                                        { value: 'All Time', label: 'All Time' }
+                                    ]}
+                                    value={purchasesPeriod}
+                                    onChange={setPurchasesPeriod}
+                                />
+                            </div>
+                            <button
+                                onClick={() => router.visit(route('store.purchases.index', { store_slug: store?.slug }))}
+                                className="text-xs text-indigo-600 font-medium hover:underline"
+                            >
+                                View All
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto min-h-0 pr-1 custom-scrollbar space-y-3">
+                        {purchasesList.map((item) => (
+                            <div
+                                key={item.id}
+                                onClick={() => router.visit(route('store.purchases.show', { store_slug: store?.slug, purchase: item.id }))}
+                                className="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-950/10 rounded-xl border border-orange-100 dark:border-orange-900/20 hover:scale-[1.01] transition-transform cursor-pointer"
+                            >
+                                <div className="min-w-0 flex-1 pr-2">
+                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{item.supplier_name}</p>
+                                    <p className="text-[10px] text-slate-400 font-medium">{item.date}</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{item.total_amount}</span>
+                                    <p className="text-[9px] uppercase tracking-wider font-bold text-slate-400 leading-none mt-0.5">{item.status}</p>
+                                </div>
+                            </div>
+                        ))}
+                        {purchasesList.length === 0 && (
+                            <div className="flex flex-col items-center justify-center h-full text-slate-400 py-8">
+                                <span className="text-2xl">📦</span>
+                                <p className="text-xs mt-2">No purchases recorded yet</p>
                             </div>
                         )}
                     </div>

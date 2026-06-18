@@ -307,3 +307,17 @@ Automation
 
 Toggle: Auto-mark as read when action is taken
 Toggle: Show in dashboard even after action taken (for follow-up tracking)
+
+
+### 8. Daily Enforced Random Stock Audits (Mandatory Cycle Counting)
+
+* **The Concept:** A setting in the Admin Settings that allows store owners to mandate daily, micro-level stock checks for staff.
+* **Why/Problem Solved:** Enforces routine, small audits (e.g., 5 to 10 random products a day) instead of overwhelming year-end audits. Over a month, a store with 300+ items will be completely cross-checked without disrupting operations.
+* **Functionality:**
+    1. **Mandatory Block:** Cashiers/staff cannot close their register, end the day, or proceed beyond a certain point without completing the "Daily Audit".
+    2. **Smart Random Selection:** The system automatically picks a configurable number (e.g., 5, 10, or custom) of products randomly.
+    3. **Prioritization Brain:**
+        - **High Priority (Hot Items):** Products that are selling fast or have high volume transactions (helps catch cashier errors or shoplifting quickly).
+        - **Low Priority (Idle Items):** Products that haven't sold in a long time (confirms that stock levels remain exactly correct and no slow-leak theft is happening).
+    4. **Configuration Setting:** Owner sets audit frequency (Every day, every 2 days, etc.) and item count.
+    5. **Discrepancy Trigger:** If differences are found, it generates a high-priority alert for the store owner.

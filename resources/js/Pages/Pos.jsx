@@ -2069,7 +2069,28 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         <div className="mx-3 mb-2 mt-2 p-3 bg-red-500/10 border border-red-500/30 rounded-xl">
                             <p className="text-xs font-bold text-red-500 mb-2 uppercase tracking-wider">⚠ Return Mode Active</p>
                             {posReturnMode === 'open' ? (
-                                <p className="text-[10px] text-red-400">Add items from the product grid and set quantities to return, then click Complete Return.</p>
+                                <div className="space-y-2">
+                                    <p className="text-[10px] text-red-400 mb-2">Add items to return. Optionally enter a reference number to link to the original sale.</p>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={returnSaleRef}
+                                            onChange={e => setReturnSaleRef(e.target.value)}
+                                            onKeyDown={e => e.key === 'Enter' && returnSaleRef.trim() && lookupSaleForReturn()}
+                                            placeholder="Reference number (optional)..."
+                                            className="flex-1 px-3 py-1.5 text-xs bg-slate-800 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 outline-none focus:border-red-400"
+                                        />
+                                        {returnSaleRef.trim() && (
+                                            <button
+                                                onClick={lookupSaleForReturn}
+                                                disabled={returnSaleLoading}
+                                                className="px-3 py-1.5 text-xs font-bold bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:opacity-50"
+                                            >
+                                                {returnSaleLoading ? '...' : 'Load'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             ) : posReturnMode === 'customer_or_reference' ? (
                                 <div className="space-y-2">
                                     <p className="text-[10px] text-red-400 mb-2">Search by customer or enter a reference number.</p>

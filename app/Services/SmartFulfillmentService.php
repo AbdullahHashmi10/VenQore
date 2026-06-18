@@ -272,7 +272,9 @@ class SmartFulfillmentService
                     'product_id' => $si['product_id'],
                     'quantity'   => $si['quantity'],
                     'unit_price' => $si['unit_price'],
-                    'total'      => $si['total'],
+                    'subtotal'   => $si['total'],
+                    'net_amount' => $si['total'],
+                    'line_total' => $si['total'],
                 ]);
             }
 

@@ -11,6 +11,7 @@ use App\Models\JournalItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use App\Services\V3\AccountingService;
 
 class PosReturnController extends Controller
 {
@@ -64,7 +65,8 @@ class PosReturnController extends Controller
                         'quantity'   => $item['quantity'],
                         'unit_price' => $item['price'],
                         'net_amount' => $item['price'] * $item['quantity'],
-                        'total'      => $item['price'] * $item['quantity'],
+                        'subtotal'   => $item['price'] * $item['quantity'],
+                        'line_total' => $item['price'] * $item['quantity'],
                     ]);
 
                     // Restore stock across all batches for this product
@@ -75,34 +77,42 @@ class PosReturnController extends Controller
                         ->increment('quantity', $item['quantity']);
                 }
 
-                // Post double-entry journal
-                $revenueAccount = Account::where('tenant_id', $tenant->id)->where('code', '4000')->first();
-                $arAccount      = Account::where('tenant_id', $tenant->id)->where('code', '1200')->first();
+                // Post proper double-entry journal for return via AccountingService
+                // DR 4000 Revenue (reverse the sale revenue)
+                // CR 1000 Cash in Hand (refund cash out)
+                // CR 5000 COGS (reverse the cost — stock is back)
+                // DR 1100 Inventory (stock asset restored)
 
-                if ($revenueAccount && $arAccount) {
-                    $journal = JournalEntry::create([
-                        'tenant_id'   => $tenant->id,
-                        'date'        => now()->toDateString(),
-                        'description' => "Open return: {$returnRef}",
-                        'reference'   => $returnRef,
-                        'user_id'     => Auth::id(),
-                    ]);
+                $revenueAccount   = Account::where('tenant_id', $tenant->id)->where('code', '4000')->first();
+                $cashAccount      = Account::where('tenant_id', $tenant->id)->where('code', '1000')->first();
+                $cogsAccount      = Account::where('tenant_id', $tenant->id)->where('code', '5000')->first();
+                $inventoryAccount = Account::where('tenant_id', $tenant->id)->where('code', '1100')->first();
 
-                    JournalItem::create([
-                        'journal_entry_id' => $journal->id,
-                        'account_id'       => $revenueAccount->id,
-                        'debit'            => $returnTotal,
-                        'credit'           => 0,
-                        'description'      => 'Return - revenue reversal',
-                    ]);
+                $returnCogs = collect($items)->sum(function ($item) {
+                    $product = \App\Models\Product::find($item['product_id']);
+                    return ($product?->cost_price ?? 0) * $item['quantity'];
+                });
 
-                    JournalItem::create([
-                        'journal_entry_id' => $journal->id,
-                        'account_id'       => $arAccount->id,
-                        'debit'            => 0,
-                        'credit'           => $returnTotal,
-                        'description'      => 'Return - refund to customer',
-                    ]);
+                $lines = [];
+
+                if ($revenueAccount && $cashAccount) {
+                    $lines[] = ['account_id' => $revenueAccount->id, 'debit' => $returnTotal, 'credit' => 0];
+                    $lines[] = ['account_id' => $cashAccount->id,    'debit' => 0, 'credit' => $returnTotal];
+                }
+
+                if ($cogsAccount && $inventoryAccount && $returnCogs > 0) {
+                    $lines[] = ['account_id' => $cogsAccount->id,      'debit' => 0,           'credit' => $returnCogs];
+                    $lines[] = ['account_id' => $inventoryAccount->id, 'debit' => $returnCogs, 'credit' => 0];
+                }
+
+                if (!empty($lines)) {
+                    app(\App\Services\V3\AccountingService::class)->createEntry([
+                        'date'           => now()->toDateString(),
+                        'reference_type' => 'sale_return',
+                        'reference'      => $sale->id,
+                        'description'    => "POS Return: {$returnRef}",
+                        'party_id'       => null,
+                    ], $lines);
                 }
             });
 

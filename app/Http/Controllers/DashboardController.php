@@ -233,6 +233,7 @@ class DashboardController extends Controller
         // Check if setup is completed via the tenant record (Injected by TenantMiddleware)
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
         $setupCompleted = $tenant ? $tenant->setup_completed : false;
+        $currencySym = $tenant?->currency_symbol ?? 'Rs';
 
         if (!$setupCompleted && ($user->hasRole('platform_admin') || $user->hasRole('admin'))) {
             return redirect()->route('store.setup', ['store_slug' => $tenant?->slug ?? 'default']);
@@ -422,6 +423,63 @@ class DashboardController extends Controller
                 })->values();
         }
 
+        // Recent Purchases
+        $recentPurchases = [
+            'Today'    => collect([]),
+            'Month'    => collect([]),
+            'Year'     => collect([]),
+            'All Time' => collect([]),
+        ];
+        $canSeePurchases = $user->hasRole('platform_admin') || $user->hasRole('admin') || $user->hasRole('owner') || $user->hasPermission('purchases.view');
+        if ($canSeePurchases) {
+            $periods = [
+                'Today'    => [$now->copy()->startOfDay(), $now->copy()->endOfDay()],
+                'Month'    => [$now->copy()->startOfMonth(), $now->copy()->endOfMonth()],
+                'Year'     => [$now->copy()->startOfYear(), $now->copy()->endOfYear()],
+                'All Time' => null,
+            ];
+
+            foreach ($periods as $periodKey => $range) {
+                try {
+                    $query = \App\Models\Invoice::where('type', 'purchase')->with('party:id,name');
+                    if ($range) {
+                        $query->whereBetween('created_at', $range);
+                    }
+                    $recentPurchases[$periodKey] = $query->latest()
+                        ->take(5)
+                        ->get()
+                        ->map(function ($po) use ($currencySym) {
+                            return [
+                                'id'            => $po->id,
+                                'supplier_name' => $po->party?->name ?? '—',
+                                'total_amount'  => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($po->total_amount),
+                                'status'        => $po->status ?? 'ordered',
+                                'date'          => $po->created_at->diffForHumans(),
+                            ];
+                        });
+                } catch (\Throwable $e) {
+                    try {
+                        $query = \App\Models\Purchase::with('party:id,name');
+                        if ($range) {
+                            $query->whereBetween('created_at', $range);
+                        }
+                        $recentPurchases[$periodKey] = $query->latest()
+                            ->take(5)
+                            ->get()
+                            ->map(function ($po) use ($currencySym) {
+                                return [
+                                    'id'            => $po->id,
+                                    'supplier_name' => $po->party?->name ?? '—',
+                                    'total_amount'  => $currencySym . ' ' . \App\Helpers\SettingsHelper::formatNumber($po->total_amount ?? $po->grand_total ?? 0),
+                                    'status'        => $po->status ?? 'ordered',
+                                    'date'          => $po->created_at->diffForHumans(),
+                                ];
+                            });
+                    } catch (\Throwable $e2) {}
+                }
+            }
+        }
+
         // Accounts (Right Sidebar)
         $bankAccounts = [];
         $cashAccounts = [];
@@ -502,6 +560,7 @@ class DashboardController extends Controller
         'salesData'          => $salesData,
         'topSellingItems'    => $topSellingItems,
         'lowStockItems'      => $lowStockItems,
+        'recentPurchases'    => $recentPurchases,
         'recentTransactions' => $recentTransactions,
         'plSummary'          => $plSummary,
         'bankAccounts'       => $bankAccounts,
@@ -706,7 +765,7 @@ class DashboardController extends Controller
             $tenantId = app('current.tenant')->id;
             // net_sales is the only correct revenue metric.
             // All records (including legacy) are permanently normalised by the backfill migration.
-            $sales = Sale::whereIn('status', ['posted', 'returned'])
+            $sales = Sale::where('status', 'posted')
                 ->whereBetween('posted_at', [$start, $end])
                 ->select(
                     DB::raw("DATE_FORMAT(posted_at, '$groupByFormat') as period"),
