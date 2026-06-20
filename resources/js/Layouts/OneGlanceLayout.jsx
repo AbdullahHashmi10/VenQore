@@ -52,7 +52,8 @@ import {
     Rss,
     UserCog,
     Layers,
-    Zap
+    Zap,
+    MoreVertical
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -160,16 +161,67 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         : null;
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const showExpandedSidebar = isSidebarOpen || mobileSidebarOpen;
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const { isDarkMode, setIsDarkMode } = useTheme();
     const [isLargeText, setIsLargeText] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [expandedMenu, setExpandedMenu] = useState(null);
     const userMenuRef = useRef(null);
     const notificationRef = useRef(null);
     const growthRef = useRef(null);
     const displayMenuRef = useRef(null);
+    const mobileMenuRef = useRef(null);
     const [isDisplayMenuOpen, setIsDisplayMenuOpen] = useState(false);
+
+    // Dynamic Mobile Bottom Nav Bar visibility check
+    const showMobileNavBar = (() => {
+        if (!props.auth?.user) return false;
+        if (fullScreen) return false;
+
+        const path = url.toLowerCase();
+
+        // 1. Explicitly check if returns history list page (should show navbar)
+        const isReturnsHistoryList = path.includes('/returns-history') && 
+            !path.includes('/create') && 
+            !path.includes('/edit') && 
+            !path.includes('/return-detail');
+
+        if (isReturnsHistoryList) return true;
+
+        // 2. Block on POS screen
+        if (path.includes('/pos')) return false;
+
+        // 3. Block on creation, editing, return making, or refunds
+        const isCreateFlow = path.includes('/create');
+        const isEditFlow = path.includes('/edit');
+        const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
+        const isRefundFlow = path.includes('/refund');
+        const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start');
+
+        if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
+            return false;
+        }
+
+        return true;
+    })();
+
+    // Active status for mobile navigation bar tabs
+    const isSaleInvoiceActive = route().current('store.sales.dashboard') || route().current('store.sales.*') || route().current('store.orders.*') || route().current('store.sales.index');
+    const isPurchaseActive = route().current('store.purchases.*') || route().current('store.purchases.index');
+    const isHomeActive = route().current('store.dashboard') || route().current('store.home');
+    const isExpenseActive = route().current('store.expenses.*') || route().current('store.expenses.index');
+    const isStockActive = route().current('store.inventory.*') || route().current('store.inventory.dashboard') || route().current('store.products.*');
+
+    const getMobileTabUrl = (routeName) => {
+        if (!store) return '#';
+        if (route().has(routeName)) {
+            return route(routeName, { store_slug: store.slug });
+        }
+        return '#';
+    };
 
     // Track if sidebar was expanded via hover (vs manual click)
     const wasHoverExpandedRef = useRef(false);
@@ -488,7 +540,6 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         'Support': [],
         'Activity Feed': [],
         'Demo Store': [],
-        'VenSynQ': [],
         'Settings': [],
         'System Update': [],
         'Staff Summaries': ['users'],
@@ -624,6 +675,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
     useEffect(() => {
         function handleClickOutside(event) {
+            // If the element clicked has been removed from the DOM during event propagation,
+            // ignore the event so it does not trigger accidental dropdown closures.
+            if (!document.body.contains(event.target)) return;
+
             if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
                 setIsUserMenuOpen(false);
             }
@@ -633,12 +688,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             if (growthRef.current && !growthRef.current.contains(event.target)) {
                 setIsGrowthOpen(false);
             }
+            if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+                setIsMobileMenuOpen(false);
+            }
         }
         document.addEventListener("mousedown", handleClickOutside);
         return () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
-    }, [userMenuRef]);
+    }, [userMenuRef, notificationRef, growthRef, mobileMenuRef]);
 
     return (
         <>
@@ -659,6 +717,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
+        @media (max-width: 1023px) {
+            ::-webkit-scrollbar {
+                display: none !important;
+            }
+            * {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+            }
+        }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
@@ -678,19 +745,23 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
                 {/* --- SIDEBAR --- */}
+                {mobileSidebarOpen && (
+                    <div className="fixed inset-0 bg-black/50 z-[90] lg:hidden" onClick={() => setMobileSidebarOpen(false)} />
+                )}
                 {!fullScreen && (
                     <aside
                         ref={sidebarRef}
                         onMouseLeave={handleSidebarMouseLeave}
                         onClick={handleSidebarInteraction}
                         className={`
-                            fixed md:relative top-0 left-0 h-[100vh] shrink-0 z-40
-                            transition-all duration-500 ease-[cubic-bezier(0.2,0.8,0.2,1)]
+                            fixed lg:relative inset-y-0 lg:inset-auto lg:top-0 left-0 h-[100vh] shrink-0 z-[100] lg:z-40
+                            transform lg:transform-none transition-all duration-300 lg:duration-500 lg:ease-[cubic-bezier(0.2,0.8,0.2,1)]
                             flex flex-col amd-no-drag
+                            ${mobileSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                             ${isPlatformAdmin && !store 
                                 ? (isDarkMode ? 'bg-[#020617]/95 backdrop-blur-2xl border-r border-white/5' : 'bg-white border-r border-slate-200')
                                 : 'bg-white dark:bg-slate-950 border-r border-slate-100 dark:border-slate-900'}
-                            ${isSidebarOpen ? 'w-[280px]' : 'w-[88px]'}
+                            ${showExpandedSidebar ? 'w-[280px]' : 'w-[280px] lg:w-[88px]'}
                             ${isPlatformAdmin && !store 
                                 ? (isDarkMode ? 'm-4 rounded-[32px] h-[calc(100vh-32px)] border border-white/10 shadow-[0_0_40px_rgba(0,0,0,0.5)]' : 'border-r border-slate-200 shadow-sm transition-all')
                                 : ''}
@@ -708,15 +779,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         <button
                             onClick={handleManualToggle}
                             className={`
-                        absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full shadow-md z-50 flex items-center justify-center text-slate-400 hover:text-indigo-500 transition-all group
-                        ${!isSidebarOpen && 'rotate-180'}
+                        hidden lg:flex absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-12 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-full shadow-md z-50 items-center justify-center text-slate-400 hover:text-indigo-500 transition-all group
+                        ${!showExpandedSidebar && 'rotate-180'}
                     `}
                         >
                             <ChevronLeft size={14} className="group-hover:scale-125 transition-transform" />
                         </button>
 
                         {/* Menu */}
-                        <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10">
+                        <div className="flex-1 overflow-y-auto py-6 px-4 custom-scrollbar relative z-10" onClick={() => setMobileSidebarOpen(false)}>
                             {menuItems.map((item) => (
                                 <SidebarItem
                                     key={item.name}
@@ -729,12 +800,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     menuKey={item.name}
                                     onHoverExpand={handleHoverExpand}
                                     isPlatformHQ={isPlatformAdmin && !store}
-                                    isExpanded={isSidebarOpen}
+                                    isExpanded={showExpandedSidebar}
                                     isMenuExpanded={expandedMenu === item.name}
                                     isActive={activeMenu === item.name}
                                     onToggle={() => {
                                         toggleMenu(item.name);
-                                        if (!isSidebarOpen) setIsSidebarOpen(true);
+                                        if (!showExpandedSidebar) setIsSidebarOpen(true);
                                     }}
                                 />
                             ))}
@@ -742,9 +813,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             {/* Activity Hub — PROBLEM 5 FIX: Viewer/Accountant see nothing; Cashier sees own sessions only */}
                             {(activeInvoices.length > 0 || posSessions.length > 0 || (activePurchases && activePurchases.length > 0)) && !(isPlatformAdmin && !store) && (
                                 <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-left-2">
-                                    <div className={`flex items-center gap-3 mb-4 px-2 ${!isSidebarOpen && 'justify-center'}`}>
+                                    <div className={`flex items-center gap-3 mb-4 px-2 ${!showExpandedSidebar && 'justify-center'}`}>
                                         <Activity size={18} className="text-indigo-500" />
-                                        {isSidebarOpen && <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Activity Hub</span>}
+                                        {showExpandedSidebar && <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Activity Hub</span>}
                                     </div>
 
                                     <div className="space-y-1">
@@ -759,12 +830,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 className={`
                                             w-full flex items-center gap-3 p-2 rounded-xl transition-all group
                                             ${currentInvoiceId === inv.id && url.includes('/sales/invoice/create') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}
-                                            ${!isSidebarOpen && 'justify-center'}
+                                            ${!showExpandedSidebar && 'justify-center'}
                                         `}
                                                 title={`Invoice: ${inv.customer?.name || `Sale #${idx + 1}`}`}
                                             >
                                                 <div className={`w-2 h-2 rounded-full ${currentInvoiceId === inv.id && url.includes('/sales/invoice/create') ? 'bg-emerald-500' : 'bg-green-500/50'}`}></div>
-                                                {isSidebarOpen && (
+                                                {showExpandedSidebar && (
                                                     <span className="text-sm font-medium truncate">
                                                         📄 {inv.customer?.name || `Sale #${idx + 1}`}
                                                     </span>
@@ -785,12 +856,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 className={`
                                             w-full flex items-center gap-3 p-2 rounded-xl transition-all group
                                             ${currentPosId === pos.id && url.startsWith('/pos') ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}
-                                            ${!isSidebarOpen && 'justify-center'}
+                                            ${!showExpandedSidebar && 'justify-center'}
                                         `}
                                                 title={`POS: ${pos.customer?.name || `Session #${idx + 1}`}`}
                                             >
                                                 <div className={`w-2 h-2 rounded-full ${currentPosId === pos.id && url.startsWith('/pos') ? 'bg-emerald-500' : 'bg-green-500/50'}`}></div>
-                                                {isSidebarOpen && (
+                                                {showExpandedSidebar && (
                                                     <span className="text-sm font-medium truncate">
                                                         🛒 {pos.customer?.name || `POS #${idx + 1}`}
                                                     </span>
@@ -809,12 +880,12 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 className={`
                                             w-full flex items-center gap-3 p-2 rounded-xl transition-all group
                                             ${currentPurchaseId === pur.id && url.includes('/purchases/create') ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800'}
-                                            ${!isSidebarOpen && 'justify-center'}
+                                            ${!showExpandedSidebar && 'justify-center'}
                                         `}
                                                 title={`Purchase: ${pur.supplier?.name || `Purchase #${idx + 1}`}`}
                                             >
                                                 <div className={`w-2 h-2 rounded-full ${currentPurchaseId === pur.id && url.includes('/purchases/create') ? 'bg-red-500' : 'bg-red-500/50'}`}></div>
-                                                {isSidebarOpen && (
+                                                {showExpandedSidebar && (
                                                     <span className="text-sm font-medium truncate">
                                                         🛍️ {pur.supplier?.name || `Purchase #${idx + 1}`}
                                                     </span>
@@ -835,19 +906,19 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         }
                                         className={`
                                     flex items-center gap-3 w-full p-3 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-all font-medium border border-indigo-100 dark:border-indigo-800
-                                    ${!isSidebarOpen && 'justify-center'}
+                                    ${!showExpandedSidebar && 'justify-center'}
                                 `}
                                         title="Back to Store"
                                     >
                                         <LogOut size={20} className="rotate-180" />
-                                        {isSidebarOpen && <span>Back to Store</span>}
+                                        {showExpandedSidebar && <span>Back to Store</span>}
                                     </Link>
                                 </div>
                             )}
                         </div>
 
                         {/* User & POS Button */}
-                        <div className={`border-t border-slate-100 dark:border-slate-800 shrink-0 flex flex-col gap-3 relative z-10 ${isSidebarOpen ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
+                        <div className={`border-t border-slate-100 dark:border-slate-800 shrink-0 flex flex-col gap-3 relative z-10 ${showExpandedSidebar ? 'p-4' : 'p-2'}`} ref={userMenuRef}>
 
                             {/* POS BUTTON — only show when we have a store context and NOT in platform HQ */}
                             {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'cashier' || hasAnyPerm('pos')) && (
@@ -858,7 +929,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                 }
                                 className={`
                             flex items-center justify-center gap-3 w-full py-4 rounded-2xl transition-all duration-300 group relative overflow-hidden shadow-lg hover:shadow-indigo-500/30
-                            ${isSidebarOpen ? 'px-4' : 'px-0'}
+                            ${showExpandedSidebar ? 'px-4' : 'px-0'}
                         `}
                             >
                                 {/* Premium Background */}
@@ -871,7 +942,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                                 <div className="relative z-10 flex items-center gap-3 text-white">
                                     <Monitor size={24} className="group-hover:scale-110 transition-transform duration-300" />
-                                    <span className={`font-bold tracking-wide whitespace-nowrap transition-all duration-300 ${isSidebarOpen ? 'w-auto opacity-100' : 'w-0 opacity-0 hidden'}`}>
+                                    <span className={`font-bold tracking-wide whitespace-nowrap transition-all duration-300 ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0 hidden'}`}>
                                         {isPosRoute ? 'Close POS' : 'Open POS'}
                                     </span>
                                 </div>
@@ -891,7 +962,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             localStorage.removeItem('amd_onboarding_driver_complete');
                                             window.location.reload();
                                         }}
-                                        className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors text-sm font-medium text-indigo-600 dark:text-indigo-400"
+                                        className="flex items-center gap-3 w-full p-2 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors text-sm font-medium text-indigo-600 dark:indigo-400"
                                     >
                                         <Sparkles size={16} /> Take a Tour
                                     </button>
@@ -922,7 +993,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             )}
 
                             <button
-                                className={`flex items-center ${isSidebarOpen ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700`}
+                                className={`flex items-center ${showExpandedSidebar ? 'justify-start px-3 gap-3' : 'justify-center px-0 gap-0'} w-full py-2.5 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700`}
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                             >
                                 <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md ring-2 ring-white dark:ring-slate-900">
@@ -937,7 +1008,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         return email.substring(0, 2).toUpperCase();
                                     })()}
                                 </div>
-                                <div className={`text-left transition-all duration-300 overflow-hidden ${isSidebarOpen ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
+                                <div className={`text-left transition-all duration-300 overflow-hidden ${showExpandedSidebar ? 'w-auto opacity-100' : 'w-0 opacity-0'}`}>
                                     <p className="text-sm font-bold text-slate-800 dark:text-white truncate max-w-[120px]">
                                         {props.auth?.user?.name || props.auth?.user?.email}
                                     </p>
@@ -1025,9 +1096,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                     {/* Header */}
                     {!hideHeader && !fullScreen && (
-                        <header className="h-14 px-8 flex items-center z-50 relative shrink-0">
+                        <header className="h-14 px-4 sm:px-8 flex items-center z-50 relative shrink-0">
                             {/* LEFT SECTION */}
-                            <div className="flex-1 flex items-center gap-8 text-slate-400">
+                            <div className="flex-1 flex items-center gap-3 sm:gap-8 text-slate-400">
+                                <button className="lg:hidden p-2 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                                    onClick={() => setMobileSidebarOpen(true)}>
+                                    <Menu size={20} />
+                                </button>
                                 <div className="hidden md:flex flex-col">
                                     <h1 className={`font-bold tracking-tight whitespace-nowrap ${isPlatformAdmin && !store 
                                         ? (isDarkMode ? 'text-2xl text-white' : 'text-2xl text-slate-900')
@@ -1036,9 +1111,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     </h1>
                                     {!isPosRoute && <p className="text-xs text-slate-400 font-medium">Welcome back, {props.auth?.user?.name || 'Abdullah'}</p>}
                                 </div>
-
+ 
                                 {/* OmniSearch - Universal Command Palette */}
-                                <div id="tour-omnisearch">
+                                <div id="tour-omnisearch" className="flex-1 max-w-[240px] sm:max-w-xs md:max-w-none">
                                     <OmniSearch
                                         onAskAi={(query) => {
                                             setAiModalQuery(query);
@@ -1048,7 +1123,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     />
                                 </div>
                             </div>
-
+ 
                             {/* CENTER SECTION */}
                             <div className="flex-none">
                                 {isTrial && (
@@ -1064,28 +1139,30 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     </Link>
                                 )}
                             </div>
-
+ 
                             {/* RIGHT SECTION */}
-                            <div className="flex-1 flex items-center justify-end gap-4">
-                                <CharityButton />
-
+                            <div className="flex-1 flex items-center justify-end gap-2 sm:gap-4">
+                                <div className="hidden lg:block">
+                                    <CharityButton />
+                                </div>
+ 
                                 {/* Actionable Intelligence (AI) Recommendation Engine */}
-                                <div className="relative z-50" ref={growthRef}>
+                                <div className="hidden lg:block relative z-50" ref={growthRef}>
                                     {showAiPopup && !isGrowthOpen && props.growth_engine?.popup && (
                                         <div className="absolute right-full mr-4 top-1/2 -translate-y-1/2 h-16 bg-white dark:bg-slate-900 pr-3 pl-4 rounded-2xl shadow-lg border border-indigo-100 dark:border-indigo-800 animate-in fade-in slide-in-from-right-4 duration-500 flex items-center gap-4">
                                             <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3 h-3 bg-white dark:bg-slate-900 border-t border-r border-indigo-100 dark:border-indigo-800 rotate-45"></div>
-
+ 
                                             <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl text-indigo-600 shrink-0">
                                                 <Sparkles size={18} />
                                             </div>
-
+ 
                                             <div className="flex flex-col justify-center w-72">
                                                 <p className="text-sm font-bold text-slate-800 dark:text-white truncate">Opportunity Detected</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                                                     {props.growth_engine.popup.description || 'New insights available.'}
                                                 </p>
                                             </div>
-
+ 
                                             <div className="flex items-center gap-2 border-l border-slate-100 dark:border-slate-800 pl-3 h-10">
                                                 <button
                                                     onClick={() => { setIsGrowthOpen(true); setShowAiPopup(false); }}
@@ -1103,24 +1180,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                             </div>
                                         </div>
                                     )}
-
+ 
                                         {/* Growth Engine - Hide in Platform HQ */}
                                         {!(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
                                             <button
                                                 id="tour-growth-engine"
                                                 onClick={() => setIsGrowthOpen(!isGrowthOpen)}
-                                                className={`group relative flex items-center gap-2 px-4 py-2.5 rounded-xl border transition-all duration-300 ${isGrowthOpen
+                                                className={`group relative flex items-center gap-2 px-2.5 sm:px-4 py-2 sm:py-2.5 rounded-xl border transition-all duration-300 ${isGrowthOpen
                                                     ? 'bg-indigo-600 text-white border-indigo-600 shadow-indigo-200 dark:shadow-none'
                                                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-700 hover:shadow-md'}`}
                                             >
                                                 <Sparkles size={16} className={isGrowthOpen ? 'text-indigo-200' : 'text-indigo-500'} />
-                                                <span className={`text-sm font-bold ${isGrowthOpen ? 'text-white' : 'bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent'}`}>
+                                                <span className={`text-sm font-bold hidden md:inline-block ${isGrowthOpen ? 'text-white' : 'bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent'}`}>
                                                     Growth Engine
                                                 </span>
                                                 {props.growth_engine?.count > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>}
                                             </button>
                                         )}
-
+ 
                                     {/* Growth Engine Dropdown */}
                                     {isGrowthOpen && (
                                         <div className="absolute right-0 top-full mt-3 w-96 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden animate-in fade-in zoom-in-95 origin-top-right z-[70]">
@@ -1131,7 +1208,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                 </h3>
                                                 <p className="text-indigo-100 text-xs mt-1 relative z-10">{props.growth_engine?.count || 0} Opportunities detected.</p>
                                             </div>
-
+ 
                                             <div className="p-2 max-h-[400px] overflow-y-auto custom-scrollbar">
                                                 {(!props.growth_engine?.count || props.growth_engine.count === 0) ? (
                                                     <div className="p-8 text-center text-slate-500">
@@ -1144,7 +1221,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                     </div>
                                                 )}
                                             </div>
-
+ 
                                             <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 text-center">
                                                 <Link href={route('store.growth-engine.index', { store_slug: store.slug })} className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center justify-center gap-1">
                                                     View All Recommendations <ArrowRight size={12} />
@@ -1153,19 +1230,19 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         </div>
                                     )}
                                 </div>
-
+ 
                                 {/* Store Switcher (Moved from Sidebar) */}
                                 {props.auth?.my_stores_count > 1 && (
                                     <div className="hidden lg:block relative">
                                         <StoreSwitcher />
                                     </div>
                                 )}
-
+ 
                                 {/* Header Private Shortcut: Toggle Admin/Store Panel - Hide in Platform HQ */}
                                 {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
                                     <Link
                                         href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
-                                        className="hidden md:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300"
+                                        className="hidden lg:flex group relative items-center gap-2 px-4 py-2.5 rounded-xl border bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-700 hover:shadow-md transition-all duration-300"
                                     >
                                         <ShieldCheck size={16} className={mode === 'admin' ? "text-indigo-500" : "text-amber-500"} />
                                         <span className={`text-sm font-bold bg-gradient-to-r ${mode === 'admin' ? 'from-indigo-600 to-violet-600' : 'from-amber-600 to-orange-600'} bg-clip-text text-transparent`}>
@@ -1173,15 +1250,15 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         </span>
                                     </Link>
                                 )}
-
+ 
                                 {/* Live Header Clock */}
-                                <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 shrink-0 font-mono shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300">
+                                <div className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-700 dark:text-slate-200 shrink-0 font-mono shadow-sm hover:border-indigo-300 dark:hover:border-indigo-700 transition-all duration-300">
                                     <Clock size={16} className="text-indigo-500 dark:text-indigo-400 animate-[pulse_2s_infinite]" />
                                     <span>{currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
                                 </div>
-
+ 
                                 {/* Display Settings Dropdown */}
-                                <div className="relative" ref={displayMenuRef}>
+                                <div className="hidden lg:block relative" ref={displayMenuRef}>
                                     <button
                                         onClick={() => setIsDisplayMenuOpen(!isDisplayMenuOpen)}
                                         className={`p-3 rounded-xl transition-all border shadow-sm relative ${isDisplayMenuOpen
@@ -1191,7 +1268,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     >
                                         <Settings2 size={18} />
                                     </button>
-
+ 
                                     {isDisplayMenuOpen && (
                                         <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 z-[60] overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-1">
                                             <button
@@ -1211,12 +1288,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                     <Type size={16} />
                                                     <span className="text-sm font-semibold">Senior Mode</span>
                                                 </div>
-                                                {/* Toggle Switch */}
                                                 <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
                                                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
                                                 </div>
                                             </button>
-
+ 
                                             <button
                                                 onClick={() => setIsDarkMode(!isDarkMode)}
                                                 className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isDarkMode
@@ -1227,11 +1303,109 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                                     {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
                                                     <span className="text-sm font-semibold">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
                                                 </div>
-                                                {/* Toggle Switch */}
                                                 <div className={`w-8 h-4 rounded-full relative transition-colors ${isDarkMode ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
                                                     <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
                                                 </div>
                                             </button>
+                                        </div>
+                                    )}
+                                </div>
+ 
+                                {/* Mobile Options Dropdown (lg:hidden) */}
+                                <div className="lg:hidden relative" ref={mobileMenuRef}>
+                                    <button
+                                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                        className={`p-3 rounded-xl transition-all border shadow-sm relative ${isMobileMenuOpen
+                                            ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 border-indigo-200 dark:border-indigo-800'
+                                            : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:shadow-md border-slate-100 dark:border-slate-700'}`}
+                                        title="More Options"
+                                    >
+                                        <MoreVertical size={18} />
+                                    </button>
+ 
+                                    {isMobileMenuOpen && (
+                                        <div className="absolute right-0 top-full mt-2 w-64 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 z-[60] overflow-hidden animate-in fade-in zoom-in-95 origin-top-right p-2 space-y-2">
+                                            {/* Store Switcher & Charity Button Row */}
+                                            {(props.auth?.my_stores_count > 1 || String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                                                <div className="p-2 border-b border-slate-100 dark:border-slate-800 flex items-end justify-between gap-3">
+                                                    {props.auth?.my_stores_count > 1 ? (
+                                                        <div className="flex-1">
+                                                            <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">Switch Store</p>
+                                                            <StoreSwitcher />
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-355 pl-2 pb-2">Charity Donations</span>
+                                                    )}
+                                                    {(String(settings?.charity_enabled) === '1' || settings?.charity_enabled === true) && (
+                                                        <div className="flex-none">
+                                                            <CharityButton />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+ 
+                                            {/* Admin / Store Link */}
+                                            {store && !(isPlatformAdmin && !store) && (userRole === 'owner' || userRole === 'admin') && (
+                                                <Link
+                                                    href={mode === 'admin' ? (store ? route('store.dashboard', {store_slug: store.slug}) : '#') : (store ? route('store.admin.home', {store_slug: store.slug}) : '#')}
+                                                    className={`flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-semibold ${mode === 'admin' ? 'text-indigo-600' : 'text-amber-600'}`}
+                                                >
+                                                    <ShieldCheck size={16} className={mode === 'admin' ? "text-indigo-500" : "text-amber-500"} />
+                                                    <span>{mode === 'admin' ? 'Back to Store' : 'Admin Panel'}</span>
+                                                </Link>
+                                            )}
+ 
+                                            {/* Display Settings */}
+                                            <div className="space-y-1">
+                                                <button
+                                                    onClick={() => {
+                                                        const newValue = settings?.senior_mode === '1' ? '0' : '1';
+                                                        router.post(route("store.settings.update", {
+                                                            store_slug: store.slug
+                                                        }), {
+                                                            settings: { ...settings, senior_mode: newValue }
+                                                        }, { preserveScroll: true });
+                                                    }}
+                                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${settings?.senior_mode === '1'
+                                                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                                                        : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <Type size={16} />
+                                                        <span className="text-sm font-semibold">Senior Mode</span>
+                                                    </div>
+                                                    <div className={`w-8 h-4 rounded-full relative transition-colors ${settings?.senior_mode === '1' ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${settings?.senior_mode === '1' ? 'left-4.5' : 'left-0.5'}`}></div>
+                                                    </div>
+                                                </button>
+ 
+                                                <button
+                                                    onClick={() => setIsDarkMode(!isDarkMode)}
+                                                    className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isDarkMode
+                                                        ? 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600'
+                                                        : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'}`}
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
+                                                        <span className="text-sm font-semibold">{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+                                                    </div>
+                                                    <div className={`w-8 h-4 rounded-full relative transition-colors ${isDarkMode ? 'bg-indigo-500' : 'bg-slate-200 dark:bg-slate-700'}`}>
+                                                        <div className={`absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all ${isDarkMode ? 'left-4.5' : 'left-0.5'}`}></div>
+                                                    </div>
+                                                </button>
+                                            </div>
+ 
+                                            {/* User Settings */}
+                                            <div className="border-t border-slate-100 dark:border-slate-800 pt-2 space-y-1">
+                                                {store && (
+                                                    <Link href={route('store.profile.edit', { store_slug: store.slug })} className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium text-slate-700 dark:text-slate-200">
+                                                        <User size={16} /> Profile Settings
+                                                    </Link>
+                                                )}
+                                                <Link href={route('logout')} method="post" as="button" className="flex items-center gap-3 w-full p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500 transition-colors text-sm font-medium">
+                                                    <LogOut size={16} /> Logout
+                                                </Link>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -1298,8 +1472,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
                     {/* DYNAMIC CONTENT AREA */}
-                    <div className={`flex-1 min-h-0 overflow-y-auto h-full w-full animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-8 pb-8'}`}>
+                    <div className={`flex-1 min-h-0 overflow-y-auto h-full w-full animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-4 sm:px-8 pb-8'}`}>
                         {children}
+                        {showMobileNavBar && (
+                            <div className="h-36 lg:hidden w-full shrink-0" />
+                        )}
                     </div>
                 </main >
 
@@ -1356,6 +1533,93 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             <VersionChecker />
             <OnboardingDriver />
             <GlobalOnboardingWidget store={store} />
+            {/* Mobile Bottom Navigation Bar (lg:hidden) */}
+            {showMobileNavBar && (
+                <div className="lg:hidden fixed bottom-5 left-4 right-4 z-[80] animate-in slide-in-from-bottom-6 cubic-bezier(0.16, 1, 0.3, 1) duration-500">
+                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/40 dark:border-slate-800/60 rounded-3xl shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.4)] px-3 py-2 flex items-center justify-between gap-1">
+                        {/* Tab 1: Sale (invoice) */}
+                        <Link
+                            href={getMobileTabUrl('store.sales.dashboard')}
+                            className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
+                                isSaleInvoiceActive
+                                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
+                                    : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                            }`}
+                        >
+                            <ShoppingCart size={20} className={`transition-transform duration-300 ${isSaleInvoiceActive ? 'scale-110' : ''}`} />
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Sale (invoice)</span>
+                            {isSaleInvoiceActive && (
+                                <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                            )}
+                        </Link>
+
+                        {/* Tab 2: Purchase */}
+                        <Link
+                            href={getMobileTabUrl('store.purchases.index')}
+                            className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
+                                isPurchaseActive
+                                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
+                                    : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                            }`}
+                        >
+                            <ShoppingBag size={20} className={`transition-transform duration-300 ${isPurchaseActive ? 'scale-110' : ''}`} />
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Purchase</span>
+                            {isPurchaseActive && (
+                                <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                            )}
+                        </Link>
+
+                        {/* Tab 3: Home (Dashboard) */}
+                        <Link
+                            href={getMobileTabUrl('store.dashboard')}
+                            className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
+                                isHomeActive
+                                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
+                                    : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                            }`}
+                        >
+                            <Home size={20} className={`transition-transform duration-300 ${isHomeActive ? 'scale-110' : ''}`} />
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Home (Dashboard)</span>
+                            {isHomeActive && (
+                                <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                            )}
+                        </Link>
+
+                        {/* Tab 4: Expense */}
+                        <Link
+                            href={getMobileTabUrl('store.expenses.index')}
+                            className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
+                                isExpenseActive
+                                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
+                                    : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                            }`}
+                        >
+                            <CreditCard size={20} className={`transition-transform duration-300 ${isExpenseActive ? 'scale-110' : ''}`} />
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Expense</span>
+                            {isExpenseActive && (
+                                <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                            )}
+                        </Link>
+
+                        {/* Tab 5: Stock */}
+                        <Link
+                            href={getMobileTabUrl('store.inventory.dashboard')}
+                            className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
+                                isStockActive
+                                    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
+                                    : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
+                            }`}
+                        >
+                            <Box size={20} className={`transition-transform duration-300 ${isStockActive ? 'scale-110' : ''}`} />
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Stock</span>
+                            {isStockActive && (
+                                <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
+                            )}
+                        </Link>
+                    </div>
+                </div>
+            )}
+
             {/* Global Toast Notifications */}
             <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
         </>

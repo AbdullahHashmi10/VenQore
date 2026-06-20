@@ -15,6 +15,38 @@ db.version(1).stores({
 
 export default function ChatWidget() {
     const { store, auth } = usePage().props;
+    const { url } = usePage();
+
+    // Check if the mobile nav bar is active to avoid overlapping
+    const showMobileNavBar = (() => {
+        if (!auth?.user) return false;
+
+        const path = url.toLowerCase();
+
+        // 1. Explicitly check if returns history list page (should show navbar)
+        const isReturnsHistoryList = path.includes('/returns-history') && 
+            !path.includes('/create') && 
+            !path.includes('/edit') && 
+            !path.includes('/return-detail');
+
+        if (isReturnsHistoryList) return true;
+
+        // 2. Block on POS screen
+        if (path.includes('/pos')) return false;
+
+        // 3. Block on creation, editing, return making, or refunds
+        const isCreateFlow = path.includes('/create');
+        const isEditFlow = path.includes('/edit');
+        const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
+        const isRefundFlow = path.includes('/refund');
+        const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start');
+
+        if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
+            return false;
+        }
+
+        return true;
+    })();
 
     const [isOpen, setIsOpen]         = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);  // sidebar mode
@@ -547,7 +579,7 @@ export default function ChatWidget() {
             </div>
 
             {/* ── FLOATING BUBBLE MODE ──────────────────────────────────────── */}
-            <div className="fixed bottom-6 right-6 z-[9998] font-sans" style={{ isolation: 'isolate' }}>
+            <div className={`fixed right-6 z-[9998] font-sans transition-all duration-300 ${showMobileNavBar ? 'bottom-[100px] lg:bottom-6' : 'bottom-6'}`} style={{ isolation: 'isolate' }}>
 
                 {/* Compact popup panel — hidden when sidebar is open */}
                 {isOpen && !isExpanded && (
