@@ -156,6 +156,12 @@ class HandleInertiaRequests extends Middleware
                 if (!$dbReady || !app()->bound('current.tenant')) return false;
                 return \App\Services\PlanGate::check('woocommerce');
             })(),
+            'cookbook_enabled' => (function () use ($dbReady) {
+                if (!$dbReady || !app()->bound('current.tenant')) return false;
+                return \App\Services\PlanGate::check('bill_of_materials');
+            })(),
+            'report_tiers' => \App\Services\ReportTierGate::allTiers(),
+            'allowed_reports' => \App\Services\ReportTierGate::allowedKeys(),
         ];
 
         return $shared;

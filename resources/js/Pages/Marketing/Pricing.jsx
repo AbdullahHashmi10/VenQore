@@ -29,7 +29,7 @@ const FaqItem = ({ question, answer, id }) => {
                 </span>
                 <ChevronDown
                     size={16}
-                    className={`flex-shrink-0 mt-0.5 transition-all duration-400 ${open ? 'rotate-180 text-indigo-400' : 'text-slate-600 group-hover:text-slate-400'}`}
+                    className={`flex-shrink-0 mt-0.5 transition-all duration-400 ${open ? 'rotate-180 text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`}
                 />
             </button>
             <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-80 pb-6' : 'max-h-0'}`}>
@@ -45,17 +45,17 @@ const TableRow = ({ label, starter, growth, enterprise, highlight }) => (
         <td className="py-3.5 pl-6 pr-4 text-xs text-slate-400 font-medium">{label}</td>
         <td className="py-3.5 px-4 text-center text-xs">
             {typeof starter === 'boolean'
-                ? (starter ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-700" />)
+                ? (starter ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
                 : <span className="text-slate-300 font-semibold">{starter}</span>}
         </td>
         <td className="py-3.5 px-4 text-center text-xs bg-indigo-950/20">
             {typeof growth === 'boolean'
-                ? (growth ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-700" />)
+                ? (growth ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
                 : <span className="text-slate-300 font-semibold">{growth}</span>}
         </td>
         <td className="py-3.5 pr-6 pl-4 text-center text-xs">
             {typeof enterprise === 'boolean'
-                ? (enterprise ? <Check size={14} className="mx-auto text-purple-400" /> : <X size={14} className="mx-auto text-slate-700" />)
+                ? (enterprise ? <Check size={14} className="mx-auto text-purple-400" /> : <X size={14} className="mx-auto text-slate-500" />)
                 : <span className="text-slate-300 font-semibold">{enterprise}</span>}
         </td>
     </tr>
@@ -77,7 +77,7 @@ const BillingToggle = ({ value, onChange }) => (
                         ? opt.key === 'ltd'
                             ? 'bg-amber-600/80 text-white shadow-md'
                             : 'bg-indigo-600 text-white shadow-md'
-                        : 'text-slate-500 hover:text-slate-300'}`}
+                        : 'text-slate-400 hover:text-slate-300'}`}
             >
                 {opt.label}
                 {opt.badge && (
@@ -402,7 +402,7 @@ export default function Pricing({ plans = [] }) {
         <div className="space-y-0">
 
             {/* ── Hero ─────────────────────────────────────────────── */}
-            <section className="relative pt-36 pb-16 px-6 text-center">
+            <section className="relative pt-28 sm:pt-36 pb-16 px-6 text-center">
                 <div className="max-w-3xl mx-auto">
                     <RevealOnScroll>
                         <SectionLabel icon={Sparkles}>14-Day Free Trial — No Card Required</SectionLabel>
@@ -489,7 +489,7 @@ export default function Pricing({ plans = [] }) {
                                                     </span>
                                                     {!isLTD && <span className="text-slate-500 text-sm font-semibold">/mo</span>}
                                                 </div>
-                                                <span className="text-[10px] text-slate-600 font-semibold mt-0.5 block">
+                                                <span className="text-[10px] text-slate-500 font-semibold mt-0.5 block">
                                                     {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
                                                 </span>
                                             </div>
@@ -514,8 +514,8 @@ export default function Pricing({ plans = [] }) {
                                                 ))}
                                                 {plan.excludes.map((f, i) => (
                                                     <div key={i} className="flex items-center gap-2.5">
-                                                        <X size={12} className="text-red-900/70 flex-shrink-0" />
-                                                        <span className="text-xs text-slate-600">{f}</span>
+                                                        <X size={12} className="text-slate-500 flex-shrink-0" />
+                                                        <span className="text-xs text-slate-500">{f}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -606,8 +606,8 @@ export default function Pricing({ plans = [] }) {
                                                             {isChosen && <Check size={10} className="text-white" strokeWidth={3} />}
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <div className="flex gap-3">
+                                                    <div className="flex items-center justify-between flex-wrap gap-2">
+                                                        <div className="flex gap-2 flex-wrap">
                                                             <span className="text-[10px] text-purple-400 bg-purple-500/[0.08] border border-purple-500/10 px-2 py-1 rounded-lg font-mono">
                                                                 {opt.queries} Queries/mo
                                                             </span>
@@ -649,10 +649,10 @@ export default function Pricing({ plans = [] }) {
                                                 </div>
                                             </div>
                                             <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                                                <span className="text-amber-400 font-black text-sm whitespace-nowrap">
+                                                <span className="text-amber-300 font-black text-sm whitespace-nowrap">
                                                     {isPK ? 'Rs 1,400' : '$5'} once
                                                 </span>
-                                                <span className="text-[9px] text-slate-600 font-bold uppercase tracking-wider">one-time unlock</span>
+                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
                                             </div>
                                         </button>
 
@@ -726,7 +726,7 @@ export default function Pricing({ plans = [] }) {
                                     )}
 
                                     {/* ── Continue CTA — visible right here after AI selection ── */}
-                                    <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 border-t border-white/[0.06]">
+                                    <div className="mt-6 flex flex-col gap-4 pt-6 border-t border-white/[0.06]">
                                         {/* Summary pill */}
                                         <div className="flex items-center gap-2.5 flex-wrap">
                                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
@@ -753,11 +753,11 @@ export default function Pricing({ plans = [] }) {
                                             )}
                                         </div>
 
-                                        {/* CTA */}
+                                        {/* CTA — full width on mobile */}
                                         <button
                                             id="ai-panel-continue"
                                             onClick={handleContinue}
-                                            className="flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[#020010] text-sm font-black uppercase tracking-widest hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.25)] shadow-lg transition-all duration-300 whitespace-nowrap flex-shrink-0"
+                                            className="w-full flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-white text-[#020010] text-sm font-black uppercase tracking-widest hover:shadow-[0_0_50px_-5px_rgba(255,255,255,0.25)] shadow-lg transition-all duration-300"
                                         >
                                             Continue <ArrowRight size={14} />
                                         </button>
@@ -783,11 +783,11 @@ export default function Pricing({ plans = [] }) {
                     </RevealOnScroll>
 
                     <RevealOnScroll delay={0.1}>
-                        <div className="rounded-[1.5rem] border border-white/[0.07] bg-white/[0.01] overflow-hidden">
-                            <table className="w-full">
+                        <div className="rounded-[1.5rem] border border-white/[0.07] bg-white/[0.01] overflow-x-auto">
+                            <table className="w-full min-w-[600px]">
                                 <thead>
                                     <tr className="border-b border-white/[0.07]">
-                                        <th className="py-5 pl-6 pr-4 text-left text-[10px] font-black text-slate-600 uppercase tracking-widest">Feature</th>
+                                        <th className="py-5 pl-6 pr-4 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Feature</th>
                                         <th className="py-5 px-4 text-center">
                                             <div className="flex flex-col items-center gap-1">
                                                 <Zap size={14} className="text-blue-400" />
@@ -813,7 +813,7 @@ export default function Pricing({ plans = [] }) {
                                 </thead>
                                 <tbody>
                                     {/* Limits */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-600 uppercase tracking-widest">Platform Limits</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Platform Limits</td></tr>
                                     <TableRow label="Store Locations" starter="1" growth="3" enterprise="10" />
                                     <TableRow label="Staff Accounts" starter="3" growth="10" enterprise="50" />
                                     <TableRow label="Product SKUs" starter="1,000" growth="10,000" enterprise="50,000" />
@@ -821,7 +821,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="14-Day Free Trial" starter={true} growth={true} enterprise={true} highlight />
 
                                     {/* POS */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-600 uppercase tracking-widest">POS & Checkout</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">POS & Checkout</td></tr>
                                     <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="WebUSB Thermal Printing" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Multi-Tab Checkout" starter="3 tabs" growth="10 tabs" enterprise="50 tabs" />
@@ -830,14 +830,14 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="Serial / IMEI Tracking" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Inventory */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-600 uppercase tracking-widest">Inventory</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Inventory</td></tr>
                                     <TableRow label="Product Variants & FIFO" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Batch & Expiry Tracking" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Bill of Materials (Recipes)" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Auto-Assembly Production" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Finance */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-600 uppercase tracking-widest">Finance & Accounting</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Finance & Accounting</td></tr>
                                     <TableRow label="Double-Entry Ledger" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Customer Khata (Credit)" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="WhatsApp Debt Alerts" starter={false} growth={true} enterprise={true} />
@@ -845,7 +845,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="Loyalty & Gift Cards" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Reports */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-600 uppercase tracking-widest">Reports</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Reports</td></tr>
                                     <TableRow label="Sales & Purchase Reports" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Profit & Loss Statement" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Balance Sheet" starter={false} growth={true} enterprise={true} />
@@ -853,7 +853,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="40-Report Full Suite" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Support */}
-                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-600 uppercase tracking-widest">Support</td></tr>
+                                    <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">Support</td></tr>
                                     <TableRow label="AI Support Chatbot (Vena)" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Live Agent Support (Handoff)" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Email Support" starter={true} growth={true} enterprise={true} />
@@ -896,7 +896,7 @@ export default function Pricing({ plans = [] }) {
                                     <span>{PLAN_DATA[selectedPlan]?.name} selected{selectedAIData ? ` + ${selectedAIData.name}` : selectedAI === 'byok' ? ' + BYOK' : ''}</span>
                                 </div>
                             ) : (
-                                <div className="text-slate-600 text-sm mb-4">Select a plan above to continue</div>
+                                <div className="text-slate-500 text-sm mb-4">Select a plan above to continue</div>
                             )}
                         </div>
                         <MagneticButton
@@ -911,7 +911,7 @@ export default function Pricing({ plans = [] }) {
                                 <>Select a plan to continue <ArrowRight size={16} /></>
                             )}
                         </MagneticButton>
-                        <p className="text-center text-[11px] text-slate-600 mt-3">
+                        <p className="text-center text-[11px] text-slate-500 mt-3">
                             {isCardRequired && selectedPlan
                                 ? 'Card authorized today. Charged only after 14-day trial ends.'
                                 : '14-day free trial. No card. No commitment.'}
@@ -1065,12 +1065,12 @@ export default function Pricing({ plans = [] }) {
                                                 {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[8px] font-black tracking-widest uppercase">Most Popular</span>}
                                             </div>
                                             <p className="text-slate-500 text-xs mt-1 leading-relaxed">{tier.desc}</p>
-                                            <p className="text-slate-600 text-[10px] mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
+                                            <p className="text-slate-500 text-[10px] mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
                                         </div>
                                     </div>
                                     <div className="text-right flex-shrink-0">
                                         <div className="text-white font-black text-lg">{isPK ? `Rs ${tierPrice}` : `$${tierPrice.toFixed(2)}`}</div>
-                                        <div className="text-[9px] text-slate-600 font-black uppercase tracking-widest">per product</div>
+                                        <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">per product</div>
                                         <div className="text-[9px] text-indigo-400 font-semibold mt-0.5">+{isPK ? 'Rs 50' : '$0.50'} / extra 5 variants</div>
                                     </div>
                                 </div>
@@ -1112,7 +1112,7 @@ export default function Pricing({ plans = [] }) {
                                         type="number" min="1" placeholder="e.g. 50"
                                         value={calcProducts}
                                         onChange={e => setCalcProducts(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 outline-none transition-all font-mono"
+                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
                                 </div>
                                 <div>
@@ -1124,9 +1124,9 @@ export default function Pricing({ plans = [] }) {
                                         type="number" min="1" placeholder="e.g. 3 (default: 1)"
                                         value={calcVariants}
                                         onChange={e => setCalcVariants(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 outline-none transition-all font-mono"
+                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
-                                    <p className="text-[10px] text-slate-600 mt-1.5">Leave blank if products have no variants or ≤5</p>
+                                    <p className="text-[10px] text-slate-500 mt-1.5">Leave blank if products have no variants or ≤5</p>
                                 </div>
                             </div>
 
@@ -1146,7 +1146,7 @@ export default function Pricing({ plans = [] }) {
                                         </div>
                                     )}
                                     {calcVariantsNum > 1 && (
-                                        <div className="flex items-center justify-between text-[10px] text-slate-600">
+                                        <div className="flex items-center justify-between text-[10px] text-slate-500">
                                             <span>Per product: {fmtCost(pricePerProduct)} ({calcVariantsNum} variants — first 5 free{extraBlocks > 0 ? `, +${extraBlocks} block${extraBlocks > 1 ? 's' : ''}` : ''})</span>
                                         </div>
                                     )}
@@ -1154,14 +1154,14 @@ export default function Pricing({ plans = [] }) {
                                         <span className="text-white font-black text-sm">Your estimated total</span>
                                         <span className="text-2xl font-black text-indigo-300 font-display">{fmtCost(serviceCostNum)}</span>
                                     </div>
-                                    <p className="text-[10px] text-slate-600 leading-relaxed">
+                                    <p className="text-[10px] text-slate-500 leading-relaxed">
                                         This is an estimate. Final invoice is generated when you initiate the service from your admin panel — after reviewing and confirming.
                                     </p>
                                 </div>
                             )}
 
                             {!hasEstimate && (
-                                <div className="text-center py-4 text-slate-600 text-xs">
+                                <div className="text-center py-4 text-slate-500 text-xs">
                                     Enter your product count above to see your estimated cost →
                                 </div>
                             )}
@@ -1270,7 +1270,7 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Plan */}
                             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4">Your Subscription</div>
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Your Subscription</div>
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <div className="text-white font-bold">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</div>
@@ -1322,7 +1322,7 @@ export default function Pricing({ plans = [] }) {
                             {/* Services */}
                             {selectedServiceData && (
                                 <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                    <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4">Optional Service</div>
+                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Optional Service</div>
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <div className="text-white font-bold">{selectedTier?.emoji} Catalog Loading — {selectedTier?.name}</div>
@@ -1338,7 +1338,7 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Billing Timeline */}
                             <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                                <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-5">Your Billing Timeline</div>
+                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5">Your Billing Timeline</div>
                                 <div className="space-y-5 relative pl-5 before:absolute before:left-1.5 before:top-2 before:bottom-2 before:w-px before:bg-white/[0.05]">
                                     <div className="relative">
                                         <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-emerald-400" />
@@ -1403,7 +1403,7 @@ export default function Pricing({ plans = [] }) {
                                         type="email" required placeholder="name@business.com"
                                         value={checkoutDetails.email}
                                         onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })}
-                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 outline-none transition-all"
+                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                     />
                                 </div>
                                 <div>
@@ -1412,7 +1412,7 @@ export default function Pricing({ plans = [] }) {
                                         type="tel" required placeholder="+1 (555) 000-0000"
                                         value={checkoutDetails.phone}
                                         onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })}
-                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 outline-none transition-all"
+                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                     />
                                 </div>
 
@@ -1420,7 +1420,7 @@ export default function Pricing({ plans = [] }) {
                                     <div className="space-y-3 pt-4 border-t border-white/[0.05]">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-black text-amber-400 uppercase tracking-wider">Card Details</span>
-                                            <span className="text-[10px] text-slate-600 flex items-center gap-1"><Lock size={9} /> Secured</span>
+                                            <span className="text-[10px] text-slate-500 flex items-center gap-1"><Lock size={9} /> Secured</span>
                                         </div>
                                         <div>
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-wider block mb-1.5">Cardholder Name</label>
@@ -1428,7 +1428,7 @@ export default function Pricing({ plans = [] }) {
                                                 type="text" required placeholder="Jane Doe"
                                                 value={checkoutDetails.cardholder}
                                                 onChange={e => setCheckoutDetails({ ...checkoutDetails, cardholder: e.target.value })}
-                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 outline-none transition-all"
+                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                             />
                                         </div>
                                         <div>
@@ -1437,7 +1437,7 @@ export default function Pricing({ plans = [] }) {
                                                 type="text" required placeholder="•••• •••• •••• ••••" maxLength="19"
                                                 value={checkoutDetails.cardNumber}
                                                 onChange={e => setCheckoutDetails({ ...checkoutDetails, cardNumber: e.target.value })}
-                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 font-mono outline-none transition-all"
+                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono outline-none transition-all"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
@@ -1447,7 +1447,7 @@ export default function Pricing({ plans = [] }) {
                                                     type="text" required placeholder="MM/YY" maxLength="5"
                                                     value={checkoutDetails.expiry}
                                                     onChange={e => setCheckoutDetails({ ...checkoutDetails, expiry: e.target.value })}
-                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 font-mono text-center outline-none transition-all"
+                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
                                                 />
                                             </div>
                                             <div>
@@ -1456,11 +1456,11 @@ export default function Pricing({ plans = [] }) {
                                                     type="password" required placeholder="•••" maxLength="4"
                                                     value={checkoutDetails.cvc}
                                                     onChange={e => setCheckoutDetails({ ...checkoutDetails, cvc: e.target.value })}
-                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-700 font-mono text-center outline-none transition-all"
+                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-[10px] text-slate-600 leading-relaxed">
+                                        <p className="text-[10px] text-slate-500 leading-relaxed">
                                             Encrypted connection. Your card is authorized today. Subscription is charged only after your 14-day trial ends — and only if you choose to continue.
                                         </p>
                                     </div>
@@ -1495,7 +1495,7 @@ export default function Pricing({ plans = [] }) {
                                 <button
                                     type="button"
                                     onClick={() => { setCurrentStep(3); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                                    className="w-full text-center text-slate-600 hover:text-slate-400 text-[11px] font-bold uppercase tracking-widest transition-colors"
+                                    className="w-full text-center text-slate-500 hover:text-slate-400 text-[11px] font-bold uppercase tracking-widest transition-colors"
                                 >
                                     ← Back
                                 </button>
@@ -1530,7 +1530,7 @@ export default function Pricing({ plans = [] }) {
 
                             {/* What's included */}
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 text-left space-y-3 mb-6">
-                                <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest mb-3">What you purchased</div>
+                                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">What you purchased</div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-slate-300">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</span>
                                     <span className="text-slate-400 font-semibold">{selectedPlan && planPriceStr(selectedPlan)}</span>
@@ -1557,7 +1557,7 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Timeline */}
                             <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 text-left space-y-4 mb-6">
-                                <div className="text-[10px] font-black text-slate-600 uppercase tracking-widest">What happens next</div>
+                                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">What happens next</div>
 
                                 {[
                                     { dot: 'bg-emerald-400', title: 'Right now', desc: `Your 14-day trial has started. Log in and explore everything.${totalDueToday > 0 ? ` BYOK activation fee of ${fmt(totalDueToday)} has been processed.` : ' No charge today.'}` },
@@ -1614,8 +1614,8 @@ export default function Pricing({ plans = [] }) {
                         const done = currentStep > s.n;
                         const active = currentStep === s.n;
                         return (
-                            <div key={s.n} className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-slate-700'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] transition-all ${active ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-600'}`}>
+                            <div key={s.n} className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] transition-all ${active ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-500'}`}>
                                     {done ? '✓' : s.n}
                                 </div>
                                 <span className="hidden sm:block">{s.label}</span>

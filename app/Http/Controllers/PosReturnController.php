@@ -75,6 +75,14 @@ class PosReturnController extends Controller
                         ->where('tenant_id', $tenant->id)
                         ->limit(1)
                         ->increment('quantity', $item['quantity']);
+
+                    app(\App\Services\V3\FifoService::class)->receiveBatch(
+                        productId:   $item['product_id'],
+                        warehouseId: DB::table('stocks')->where('product_id', $item['product_id'])->where('tenant_id', $tenant->id)->value('warehouse_id') ?? 1,
+                        qty:         $item['quantity'],
+                        unitCost:    \App\Models\Product::find($item['product_id'])?->cost_price ?? $item['price'],
+                        batchType:   'return'
+                    );
                 }
 
                 // Post proper double-entry journal for return via AccountingService
@@ -107,11 +115,12 @@ class PosReturnController extends Controller
 
                 if (!empty($lines)) {
                     app(\App\Services\V3\AccountingService::class)->createEntry([
-                        'date'           => now()->toDateString(),
-                        'reference_type' => 'sale_return',
-                        'reference'      => $sale->id,
-                        'description'    => "POS Return: {$returnRef}",
-                        'party_id'       => null,
+                        'date'            => now()->toDateString(),
+                        'reference_type'  => 'sale_return',
+                        'reference'       => $sale->id,
+                        'description'     => "POS Return: {$returnRef}",
+                        'idempotency_key' => "pos-return-{$returnRef}", // prevents duplicate journals on retry
+                        'party_id'        => null,
                     ], $lines);
                 }
             });

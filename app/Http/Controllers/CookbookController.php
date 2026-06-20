@@ -16,6 +16,10 @@ class CookbookController extends Controller
 {
     public function simulate(Request $request)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $validated = $request->validate([
             'recipe_id' => 'required|exists:recipes,id',
             'quantity' => 'required|numeric|min:0.01'
@@ -56,6 +60,10 @@ class CookbookController extends Controller
 
     public function index()
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $recipes = Recipe::with(['product', 'ingredients.ingredientProduct', 'media'])
             ->where('is_active', true)
             ->orderBy('name')
@@ -88,6 +96,10 @@ class CookbookController extends Controller
 
     public function create()
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $products = Product::orderBy('name')->get()->map(function ($p) {
             return [
                 'id' => $p->id,
@@ -112,6 +124,10 @@ class CookbookController extends Controller
 
     public function store(Request $request)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -167,6 +183,10 @@ class CookbookController extends Controller
 
     public function edit($id)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $recipe = Recipe::with(['ingredients', 'media'])->findOrFail($id);
 
         // Transform for form
@@ -223,6 +243,10 @@ class CookbookController extends Controller
 
     public function update(Request $request, $id)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $oldRecipe = Recipe::findOrFail($id);
 
         $validated = $request->validate([
@@ -300,6 +324,10 @@ class CookbookController extends Controller
 
     public function destroy($id)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $recipe = Recipe::findOrFail($id);
         $recipe->ingredients()->delete();
         $recipe->delete();

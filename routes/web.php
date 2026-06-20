@@ -209,7 +209,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         });
 
         // ── Store Admin Panel (Restored Legacy Experience) ──────────────────
-        Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
+        Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['permission:admin.settings_manage']], function () {
             Route::get('/',            [\App\Http\Controllers\AdminController::class, 'index'])->name('home');
             Route::get('/dashboard',   [\App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
             Route::get('/settings',    [\App\Http\Controllers\AdminController::class, 'settings'])->name('settings');

@@ -19,6 +19,7 @@ use App\Models\Category;
 use App\Models\Warehouse;
 use App\Models\StockMovement;
 use App\Services\FinancialReportingService;
+use App\Services\ReportTierGate;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
@@ -95,6 +96,7 @@ class ReportController extends Controller
 
     public function sales(Request $request)
     {
+        ReportTierGate::enforce('reports.sales');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $customerId = $request->input('customer_id');
 
@@ -153,10 +155,11 @@ class ReportController extends Controller
              return Carbon::parse($sale->posted_at)->format('Y-m-d');
         })->map(function($group, $date) {
              return [
-                 'name' => Carbon::parse($date)->format('d M'),
-                 'value' => $group->sum('total')
+                 'name'  => Carbon::parse($date)->format('d M'),
+                 'value' => $group->sum('net_sales')   // net_sales: ex-tax, ex-discount — matches all other revenue stats
              ];
         })->values();
+
 
         return Inertia::render('Reports/Sales', [
             'sales' => $sales,
@@ -174,6 +177,7 @@ class ReportController extends Controller
 
     public function dailySales(Request $request)
     {
+        ReportTierGate::enforce('reports.daily-sales');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Group sales by day in the range
@@ -205,6 +209,7 @@ class ReportController extends Controller
 
     public function purchases(Request $request)
     {
+        ReportTierGate::enforce('reports.purchases');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
         $supplierId = $request->input('supplier_id');
 
@@ -262,6 +267,7 @@ class ReportController extends Controller
 
     public function dayBook(Request $request)
     {
+        ReportTierGate::enforce('reports.day-book');
         $date = $request->input('date', Carbon::today()->toDateString());
 
         $tenantId = app('current.tenant')->id;
@@ -316,6 +322,7 @@ class ReportController extends Controller
 
     public function profitLoss(Request $request)
     {
+        ReportTierGate::enforce('reports.profit-loss');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 4 — Delegates entirely to FinancialReportingService.
@@ -343,6 +350,7 @@ class ReportController extends Controller
 
     public function accountLedger(Request $request)
     {
+        ReportTierGate::enforce('reports.account-ledger');
         $accountId = $request->input('account_id');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
@@ -408,6 +416,7 @@ class ReportController extends Controller
 
     public function partyStatement(Request $request)
     {
+        ReportTierGate::enforce('reports.party-statement');
         $partyId   = $request->input('party_id');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
@@ -509,6 +518,7 @@ class ReportController extends Controller
 
     public function transactions(Request $request)
     {
+        ReportTierGate::enforce('reports.transactions');
         $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
@@ -558,6 +568,7 @@ class ReportController extends Controller
     // Existing methods...
     public function stockValuation(Request $request)
     {
+        ReportTierGate::enforce('reports.stock-valuation');
         $products = (new FinancialReportingService())->getInventoryValuationReport();
 
         $stats = [
@@ -577,6 +588,7 @@ class ReportController extends Controller
 
     public function lowStock(Request $request)
     {
+        ReportTierGate::enforce('reports.low-stock');
         $categoryId = $request->input('category_id');
         $warehouseId = $request->input('warehouse_id');
 
@@ -623,6 +635,7 @@ class ReportController extends Controller
 
     public function movementHistory(Request $request)
     {
+        ReportTierGate::enforce('reports.movement-history');
         $productId = $request->input('product_id');
         $warehouseId = $request->input('warehouse_id');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
@@ -656,6 +669,7 @@ class ReportController extends Controller
 
     public function expenses(Request $request)
     {
+        ReportTierGate::enforce('reports.expenses');
         $category = $request->input('category_id'); // Actually category name string
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
@@ -699,6 +713,7 @@ class ReportController extends Controller
 
     public function tax(Request $request)
     {
+        ReportTierGate::enforce('reports.tax');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
@@ -735,6 +750,7 @@ class ReportController extends Controller
 
     public function bankStatement(Request $request)
     {
+        ReportTierGate::enforce('reports.bank-statement');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
         $bankAccountId = $request->input('bank_account_id');
@@ -763,6 +779,7 @@ class ReportController extends Controller
 
     public function expiryReport(Request $request)
     {
+        ReportTierGate::enforce('reports.expiry');
         $daysThreshold = $request->input('days_threshold', 90);
         $batches = (new FinancialReportingService())->getExpiringSoon($daysThreshold);
 
@@ -786,6 +803,7 @@ class ReportController extends Controller
 
     public function balanceSheet(Request $request)
     {
+        ReportTierGate::enforce('reports.balance-sheet');
         // BUG-02 FIX (CALCULATION_LOGIC.md §8 BUG-02)
         // Old code: read raw Account models with their cached .balance column — no date filter.
         // New code: delegates to FinancialReportingService::getBalanceSheet() which reads
@@ -798,6 +816,7 @@ class ReportController extends Controller
 
     public function allParties(Request $request)
     {
+        ReportTierGate::enforce('reports.all-parties');
         $type = $request->input('type');
 
         // Phase 4 — Live AR/AP balances from the Ledger, not cached columns
@@ -884,6 +903,7 @@ class ReportController extends Controller
 
     public function trialBalance(Request $request)
     {
+        ReportTierGate::enforce('reports.trial-balance');
         $tenantId = app('current.tenant')->id;
         $asOf = $request->input('date', now()->toDateString());
 
@@ -935,6 +955,7 @@ class ReportController extends Controller
 
     public function itemWiseProfit(Request $request)
     {
+        ReportTierGate::enforce('reports.item-wise-profit');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 2.2 — Delegates to FinancialReportingService.
@@ -967,6 +988,7 @@ class ReportController extends Controller
 
     public function partyWiseProfitLoss(Request $request)
     {
+        ReportTierGate::enforce('reports.party-wise-profit-loss');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // Phase 2.2 — Delegates to FinancialReportingService.
@@ -999,6 +1021,7 @@ class ReportController extends Controller
 
     public function discountReport(Request $request)
     {
+        ReportTierGate::enforce('reports.discount');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
         // FIX-17: Read from sales table (V3), not legacy invoices table
@@ -1023,6 +1046,7 @@ class ReportController extends Controller
 
     public function cashFlow(Request $request)
     {
+        ReportTierGate::enforce('reports.cash-flow');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
@@ -1045,6 +1069,7 @@ class ReportController extends Controller
 
     public function saleAging(Request $request)
     {
+        ReportTierGate::enforce('reports.sale-aging');
         // Phase 4 — AR aging uses the Ledger, not sale.paid_amount
         // For each party with an AR balance, we calculate how many days the oldest
         // unpaid sale has been outstanding.
@@ -1108,6 +1133,7 @@ class ReportController extends Controller
 
     public function saleOrders(Request $request)
     {
+        ReportTierGate::enforce('reports.sale-orders');
         $range = $request->input('range', 'this_month');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
@@ -1142,6 +1168,7 @@ class ReportController extends Controller
 
     public function billWiseProfit(Request $request)
     {
+        ReportTierGate::enforce('reports.bill-wise-profit');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
@@ -1163,6 +1190,7 @@ class ReportController extends Controller
 
     public function expenseByCategory(Request $request)
     {
+        ReportTierGate::enforce('reports.expense-by-category');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
@@ -1193,6 +1221,7 @@ class ReportController extends Controller
 
     public function expenseByItem(Request $request)
     {
+        ReportTierGate::enforce('reports.expense-by-item');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
@@ -1228,6 +1257,7 @@ class ReportController extends Controller
 
     public function stockSummaryByCategory(Request $request)
     {
+        ReportTierGate::enforce('reports.stock-summary-by-category');
         $tenantId = app('current.tenant')->id;
         $data = DB::table('products')
             ->where('products.tenant_id', $tenantId)
@@ -1264,6 +1294,7 @@ class ReportController extends Controller
 
     public function salePurchaseByParty(Request $request)
     {
+        ReportTierGate::enforce('reports.sale-purchase-by-party');
         $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
@@ -1326,6 +1357,7 @@ class ReportController extends Controller
 
     public function salePurchaseByItemCategory(Request $request)
     {
+        ReportTierGate::enforce('reports.sale-purchase-by-item-category');
         $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
@@ -1373,6 +1405,7 @@ class ReportController extends Controller
 
     public function itemCategoryWiseProfitLoss(Request $request)
     {
+        ReportTierGate::enforce('reports.item-category-wise-profit-loss');
          $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
          $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
  
@@ -1399,6 +1432,7 @@ class ReportController extends Controller
 
     public function itemWiseDiscount(Request $request)
     {
+        ReportTierGate::enforce('reports.item-wise-discount');
         $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
@@ -1432,6 +1466,7 @@ class ReportController extends Controller
 
     public function saleOrderItems(Request $request)
     {
+        ReportTierGate::enforce('reports.sale-order-items');
         $range = $request->input('range', 'this_month');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
@@ -1495,6 +1530,7 @@ class ReportController extends Controller
 
     public function stockAging(Request $request)
     {
+        ReportTierGate::enforce('reports.stock-aging');
         $batches = (new FinancialReportingService())->getStockAging();
 
         return Inertia::render('Reports/GenericReport', [
@@ -1521,6 +1557,7 @@ class ReportController extends Controller
 
     public function salePurchaseByPartyGroup(Request $request)
     {
+        ReportTierGate::enforce('reports.sale-purchase-by-party-group');
         $tenantId = app('current.tenant')->id;
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
@@ -1575,6 +1612,7 @@ class ReportController extends Controller
     }
     public function itemReportByParty(Request $request)
     {
+        ReportTierGate::enforce('reports.item-report-by-party');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
@@ -1611,6 +1649,7 @@ class ReportController extends Controller
 
     public function partyReportByItem(Request $request)
     {
+        ReportTierGate::enforce('reports.party-report-by-item');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
@@ -1647,6 +1686,7 @@ class ReportController extends Controller
 
     public function taxRateReport(Request $request)
     {
+        ReportTierGate::enforce('reports.tax-rate');
         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
@@ -1688,6 +1728,7 @@ class ReportController extends Controller
 
     public function graphAnalytics(Request $request)
     {
+        ReportTierGate::enforce('reports.graphAnalytics');
         $module = $request->input('module', 'sales');
         $range = $request->input('range', '30_days');
         $startDate = $request->input('start_date');
@@ -1831,6 +1872,7 @@ class ReportController extends Controller
 
     public function itemDetailReport(Request $request)
     {
+        ReportTierGate::enforce('reports.item-detail');
         $products = Product::with('category')->get()->map(function($product) {
             $product->stock_quantity = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
             return $product;
@@ -1843,6 +1885,7 @@ class ReportController extends Controller
 
     public function loanStatement(Request $request)
     {
+        ReportTierGate::enforce('reports.loan-statement');
         if (!$request->has('bank_account_id')) {
             $loanAccount = Account::where('code', '2500')->first();
             if ($loanAccount) {
@@ -1852,4 +1895,3 @@ class ReportController extends Controller
         return $this->bankStatement($request);
     }
 }
-

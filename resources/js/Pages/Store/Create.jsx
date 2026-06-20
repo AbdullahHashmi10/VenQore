@@ -69,7 +69,7 @@ function InputBase({ className = '', hasError, ...props }) {
     return (
         <input
             {...props}
-            className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-600 
+            className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-500 
                 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors
                 ${hasError ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}
                 ${className}`}
@@ -90,7 +90,7 @@ function SelectBase({ className = '', hasError, children, ...props }) {
             >
                 {children}
             </select>
-            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
     );
 }
@@ -210,7 +210,7 @@ export default function CreateStore({ available_license }) {
                             )}
                         </button>
 
-                        <p className="text-center text-xs text-slate-600">
+                        <p className="text-center text-xs text-slate-500">
                             You can rename your store and change settings at any time.
                         </p>
                     </form>

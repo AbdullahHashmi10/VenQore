@@ -63,7 +63,7 @@ const ChartSection = ({ isDarkMode, salesData }) => {
                 </div>
             </div>
             <div className="flex-1 w-full relative min-h-[300px]">
-                <div className="absolute inset-0">
+                <div className="w-full h-[300px] lg:absolute lg:inset-0 lg:h-auto">
                     <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
                         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                             <defs>

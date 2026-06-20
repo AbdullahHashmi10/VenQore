@@ -169,7 +169,7 @@ export default function JoinStore({ pending_invites = [] }) {
                                 onChange={e => setData('join_code', formatCode(e.target.value))}
                                 placeholder="VQ-XXXX"
                                 maxLength={7}
-                                className={`w-full px-5 py-4 rounded-xl bg-white/5 border text-white placeholder-slate-600
+                                className={`w-full px-5 py-4 rounded-xl bg-white/5 border text-white placeholder-slate-500
                                     font-mono text-2xl tracking-[0.25em] text-center uppercase
                                     focus:outline-none focus:ring-2 focus:ring-emerald-500/40 transition-colors
                                     ${errors.join_code ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}`}
@@ -214,7 +214,7 @@ export default function JoinStore({ pending_invites = [] }) {
                         </button>
                     </form>
 
-                    <p className="text-center text-xs text-slate-600 mt-6">
+                    <p className="text-center text-xs text-slate-500 mt-6">
                         Want to create your own store?{' '}
                         <Link href={route('store.create')} className="text-slate-400 hover:text-indigo-400 transition-colors underline underline-offset-2">
                             Create a store
@@ -232,7 +232,7 @@ export default function JoinStore({ pending_invites = [] }) {
                         {/* Modal Bg Decals */}
                         <div className="absolute top-0 right-0 p-8 pt-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mt-10 -mr-10 pointer-events-none"></div>
                         
-                        <div className="p-8 shrink-0">
+                        <div className="p-5 sm:p-8 shrink-0">
                             <h2 className="text-xl font-black text-white mb-2">
                                 Pending Invitations
                             </h2>
@@ -252,13 +252,13 @@ export default function JoinStore({ pending_invites = [] }) {
                                 ))
                             ) : (
                                 <div className="text-center py-6 rounded-2xl border border-slate-800 bg-slate-800/30">
-                                    <Mail size={24} className="text-slate-600 mx-auto mb-2" />
+                                    <Mail size={24} className="text-slate-500 mx-auto mb-2" />
                                     <p className="text-slate-400 text-sm">You have no pending invitations.</p>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-8 shrink-0 border-t border-slate-800 bg-slate-900/50">
+                        <div className="p-5 sm:p-8 shrink-0 border-t border-slate-800 bg-slate-900/50">
                             <h3 className="text-sm font-bold text-slate-300 mb-3 text-left">Have a short code?</h3>
                             <form onSubmit={handleCheckCode}>
                                 <input

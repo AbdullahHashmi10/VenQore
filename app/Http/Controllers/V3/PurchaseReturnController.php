@@ -150,8 +150,9 @@ class PurchaseReturnController extends Controller
             ], $journalLines);
 
             // Record the return for audit trail
-            DB::table('purchase_returns')->where('purchase_returns.tenant_id', app('current.tenant')->id)->insert([
+            DB::table('purchase_returns')->insert([
                 'id'               => $returnId,
+                'tenant_id'        => app('current.tenant')->id,
                 'purchase_id'      => $purchaseId,
                 'return_date'      => $validated['return_date'],
                 'reason'           => $validated['reason'],

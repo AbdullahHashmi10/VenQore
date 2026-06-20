@@ -34,6 +34,11 @@ return [
         'growth_engine'=> false,    // AI retention engine
         'multi_branch' => false,
         'owners_daily_pulse' => true, // Owner's Daily Pulse (all plans)
+        'production'         => false,
+        'e_invoicing'        => false,
+        'bank_reconciliation'=> false,
+        'marketing_campaigns'=> false,
+        'invoice_reminders'  => false,
     ],
 
     'growth' => [
@@ -47,6 +52,11 @@ return [
         'growth_engine'=> true,
         'multi_branch' => true,
         'owners_daily_pulse' => true,
+        'production'         => true,
+        'e_invoicing'        => true,
+        'bank_reconciliation'=> true,
+        'marketing_campaigns'=> true,
+        'invoice_reminders'  => true,
     ],
 
     'business' => [
@@ -60,6 +70,11 @@ return [
         'growth_engine'=> true,
         'multi_branch' => true,
         'owners_daily_pulse' => true,
+        'production'         => true,
+        'e_invoicing'        => true,
+        'bank_reconciliation'=> true,
+        'marketing_campaigns'=> true,
+        'invoice_reminders'  => true,
     ],
 
     // ── AppSumo LTD Plans (Phase 7) ─────────────────────────────────────────
@@ -76,6 +91,11 @@ return [
         'growth_engine'=> false,
         'multi_branch' => false,
         'owners_daily_pulse' => true,
+        'production'         => false,
+        'e_invoicing'        => false,
+        'bank_reconciliation'=> false,
+        'marketing_campaigns'=> false,
+        'invoice_reminders'  => false,
         'ltd'          => true,     // perpetual license flag
         'hosted_until' => '+2 years',
     ],
@@ -91,6 +111,11 @@ return [
         'growth_engine'=> true,
         'multi_branch' => true,
         'owners_daily_pulse' => true,
+        'production'         => true,
+        'e_invoicing'        => true,
+        'bank_reconciliation'=> true,
+        'marketing_campaigns'=> true,
+        'invoice_reminders'  => true,
         'ltd'          => true,
         'hosted_until' => '+2 years',
     ],
@@ -106,6 +131,11 @@ return [
         'growth_engine'=> true,
         'multi_branch' => true,
         'owners_daily_pulse' => true,
+        'production'         => true,
+        'e_invoicing'        => true,
+        'bank_reconciliation'=> true,
+        'marketing_campaigns'=> true,
+        'invoice_reminders'  => true,
         'ltd'          => true,
         'hosted_until' => '+2 years',
     ],

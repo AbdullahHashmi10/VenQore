@@ -54,6 +54,7 @@ class AccountingController extends Controller
 
     public function index()
     {
+        \App\Services\ReportTierGate::enforce('reports.chart-of-accounts');
         $accounts = Account::orderBy('code')->get();
         return Inertia::render('Accounting/ChartOfAccounts', [
             'accounts' => $accounts,

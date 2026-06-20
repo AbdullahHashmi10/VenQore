@@ -71,7 +71,12 @@ const SUITE_TESTS = {
     'multi word search tokenization',
     'logout route does not support delete method',
     'handle inertia requests version is null in local testing',
-    'woocommerce integration is gated by plan'
+    'sale stats exclude returned sales',
+    'verify elevated pin by platform user and membership',
+    'sales dashboard excludes returned sales',
+    'woocommerce integration is gated by plan',
+    'report tier gating restricts access',
+    'new features plan gating'
   ]
 };
 
@@ -302,6 +307,12 @@ function runTests(projectPath, ws) {
     'multi word search tokenization',
     'logout route does not support delete method',
     'handle inertia requests version is null in local testing',
+    'sale stats exclude returned sales',
+    'verify elevated pin by platform user and membership',
+    'sales dashboard excludes returned sales',
+    'woocommerce integration is gated by plan',
+    'report tier gating restricts access',
+    'new features plan gating',
     'ExampleTest',
     'Unit'
   ];

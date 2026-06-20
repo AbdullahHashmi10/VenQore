@@ -211,7 +211,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
     return (
         <div ref={containerRef} className="relative z-50">
             {/* Inline Input Bar */}
-            <div className={`relative flex items-center bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border transition-all rounded-2xl w-80 lg:w-96 ${isOpen ? 'border-slate-300 dark:border-slate-600 shadow-md' : 'border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600'}`}>
+            <div className={`relative flex items-center bg-white/80 dark:bg-slate-900/60 backdrop-blur-xl border transition-all rounded-2xl w-full sm:w-80 lg:w-96 ${isOpen ? 'border-slate-300 dark:border-slate-600 shadow-md' : 'border-slate-200 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600'}`}>
                 <div className="pl-4 text-slate-500 dark:text-slate-400">
                     <Search size={16} />
                 </div>
@@ -272,7 +272,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
             {/* Dropdown Results */}
             {isOpen && (
-                <div className="absolute top-full left-0 mt-3 w-[500px] max-h-[80vh] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 animate-in fade-in zoom-in-95 duration-150 flex flex-col">
+                <div className="fixed top-16 left-4 right-4 sm:absolute sm:top-full sm:left-0 sm:right-auto sm:w-[500px] mt-3 max-h-[50vh] sm:max-h-[75vh] overflow-hidden bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-2xl border border-slate-200 dark:border-slate-700/50 shadow-2xl shadow-black/20 dark:shadow-black/50 animate-in fade-in zoom-in-95 duration-150 flex flex-col">
                     {/* Header/Gradient Line */}
                     <div className="h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-500 opacity-50" />
 

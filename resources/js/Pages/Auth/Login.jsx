@@ -13,18 +13,18 @@ const AuthInput = ({ icon: Icon, label, error, ...props }) => {
     const [focused, setFocused] = useState(false);
     return (
         <div>
-            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-600'}`}>
+            <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-400'}`}>
                 {label}
             </label>
             <div className="relative group">
-                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-700'}`}>
+                <div className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-300 ${focused ? 'text-indigo-400' : 'text-slate-500'}`}>
                     <Icon size={18} />
                 </div>
                 <input
                     {...props}
                     onFocus={(e) => { setFocused(true); props.onFocus?.(e); }}
                     onBlur={(e) => { setFocused(false); props.onBlur?.(e); }}
-                    className={`w-full pl-12 pr-4 py-4 bg-white/[0.03] border rounded-2xl text-white text-sm placeholder:text-slate-700 outline-none transition-all duration-500
+                    className={`w-full pl-12 pr-4 py-3.5 sm:py-4 bg-white/[0.03] border rounded-2xl text-white text-sm placeholder:text-slate-500 outline-none transition-all duration-500
                         ${focused ? 'border-indigo-500/40 bg-indigo-500/[0.03] shadow-lg shadow-indigo-900/10' : 'border-white/[0.08] hover:border-white/[0.12]'}
                         ${error ? 'border-red-500/40' : ''}
                     `}
@@ -164,18 +164,18 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                 <div className="w-full max-w-md relative z-10">
 
                     {/* Mobile Logo */}
-                    <div className="lg:hidden flex justify-center mb-10">
-                        <div className="w-16 h-16 bg-white/[0.04] rounded-2xl flex items-center justify-center border border-white/[0.08]">
-                            <img src="/images/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
+                    <div className="lg:hidden flex justify-center mb-6 sm:mb-10">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white/[0.04] rounded-2xl flex items-center justify-center border border-white/[0.08]">
+                            <img src="/images/logo.png" alt="Logo" className="w-8 h-8 sm:w-10 sm:h-10 object-contain" />
                         </div>
                     </div>
 
                     {/* Header */}
-                    <div className="mb-10">
-                        <h2 className="text-3xl font-black text-white tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
+                    <div className="mb-6 sm:mb-10">
+                        <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight mb-2" style={{ fontFamily: "'Space Grotesk', 'Inter', sans-serif" }}>
                             Sign in
                         </h2>
-                        <p className="text-slate-600 text-sm">
+                        <p className="text-slate-400 text-sm">
                             Enter your credentials to access the dashboard.
                         </p>
                     </div>
@@ -242,7 +242,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                         <div className="space-y-6">
                             {/* Google OAuth */}
                             <button type="button" onClick={() => window.location.href = route('auth.google')}
-                                className="flex items-center justify-center gap-3 w-full py-4 px-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-sm font-bold text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 active:scale-[0.98]">
+                                className="flex items-center justify-center gap-3 w-full py-3.5 sm:py-4 px-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-sm font-bold text-white hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 active:scale-[0.98]">
                                 <svg className="w-5 h-5" viewBox="0 0 24 24">
                                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
@@ -256,7 +256,7 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/[0.06]" /></div>
                                 <div className="relative flex justify-center text-[10px]">
-                                    <span className="px-4 bg-[#020010] text-slate-700 font-bold uppercase tracking-widest">or</span>
+                                    <span className="px-4 bg-[#020010] text-slate-500 font-bold uppercase tracking-widest">or</span>
                                 </div>
                             </div>
 
@@ -274,9 +274,9 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                 />
 
                                 <div>
-                                    <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-600`}>Password</label>
+                                    <label className={`block text-[10px] font-black uppercase tracking-[0.25em] mb-2.5 text-slate-400`}>Password</label>
                                     <div className="relative group">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-700">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
                                             <Lock size={18} />
                                         </div>
                                         <input
@@ -285,10 +285,10 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                             onChange={(e) => setData('password', e.target.value)}
                                             placeholder="••••••••"
                                             autoComplete="current-password"
-                                            className="w-full pl-12 pr-12 py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-slate-700 outline-none focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] focus:shadow-lg focus:shadow-indigo-900/10 hover:border-white/[0.12] transition-all duration-500"
+                                            className="w-full pl-12 pr-12 py-3.5 sm:py-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl text-white text-sm placeholder:text-slate-500 outline-none focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] focus:shadow-lg focus:shadow-indigo-900/10 hover:border-white/[0.12] transition-all duration-500"
                                         />
                                         <button type="button" onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-700 hover:text-slate-400 transition-colors">
+                                            className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-500 hover:text-slate-300 transition-colors">
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>
@@ -300,10 +300,10 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                                     <label className="flex items-center cursor-pointer group">
                                         <input type="checkbox" checked={data.remember} onChange={(e) => setData('remember', e.target.checked)}
                                             className="w-4 h-4 rounded border-white/10 bg-white/[0.03] text-indigo-600 focus:ring-indigo-500/20 focus:ring-offset-0" />
-                                        <span className="ml-2.5 text-sm text-slate-600 group-hover:text-slate-400 transition-colors">Remember me</span>
+                                        <span className="ml-2.5 text-sm text-slate-400 group-hover:text-slate-200 transition-colors">Remember me</span>
                                     </label>
                                     {canResetPassword && (
-                                        <Link href={route('password.request')} className="text-sm font-medium text-indigo-400/70 hover:text-indigo-400 transition-colors">
+                                        <Link href={route('password.request')} className="text-sm font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
                                             Forgot password?
                                         </Link>
                                     )}
@@ -311,14 +311,14 @@ export default function Login({ status, canResetPassword, settings, passcode_log
 
                                 {/* Submit */}
                                 <button type="submit" disabled={processing}
-                                    className="w-full flex items-center justify-center gap-3 py-4 px-4 bg-white text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    className="w-full flex items-center justify-center gap-3 py-3.5 sm:py-4 px-4 bg-white text-[#020010] rounded-2xl font-black text-sm uppercase tracking-[0.1em] hover:shadow-[0_0_60px_-10px_rgba(255,255,255,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                                     {processing ? <><Loader2 size={18} className="animate-spin" /> Signing in...</> : <>Sign In <ArrowRight size={16} /></>}
                                 </button>
 
                                 {/* Passcode login */}
                                 {passcode_login_available && (
                                     <button type="button" onClick={() => setData('loginMethod', 'passcode')}
-                                        className="w-full flex items-center justify-center gap-2.5 py-3.5 px-4 bg-white/[0.03] border border-white/[0.06] text-slate-500 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.1] rounded-2xl font-bold text-sm transition-all active:scale-[0.98]">
+                                        className="w-full flex items-center justify-center gap-2.5 py-3 sm:py-3.5 px-4 bg-white/[0.03] border border-white/[0.06] text-slate-500 hover:text-white hover:bg-white/[0.06] hover:border-white/[0.1] rounded-2xl font-bold text-sm transition-all active:scale-[0.98]">
                                         <Grip size={18} /> Login with Passcode
                                     </button>
                                 )}
@@ -327,8 +327,8 @@ export default function Login({ status, canResetPassword, settings, passcode_log
                     )}
 
                     {/* Register link */}
-                    <div className="mt-10 text-center">
-                        <p className="text-sm text-slate-700">
+                    <div className="mt-8 sm:mt-10 text-center">
+                        <p className="text-sm text-slate-400">
                             Don't have an account?{' '}
                             <Link href={route('register')} className="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">
                                 Create one for free

@@ -9,10 +9,13 @@ use App\Models\Sale;
 use App\Services\FbrService;
 use App\Helpers\SettingsHelper;
 
+use App\Services\PlanGate;
+
 class EInvoicingController extends Controller
 {
     public function index()
     {
+        PlanGate::enforce('e_invoicing');
         $today = now()->today();
 
         $generatedToday = Sale::whereDate('posted_at', $today)
@@ -56,6 +59,7 @@ class EInvoicingController extends Controller
 
     public function generate(Request $request, FbrService $fbrService)
     {
+        PlanGate::enforce('e_invoicing');
         $request->validate([
             'sale_id' => 'required|exists:sales,id'
         ]);
@@ -83,6 +87,7 @@ class EInvoicingController extends Controller
 
     public function generateWaybill(Request $request)
     {
+        PlanGate::enforce('e_invoicing');
         $request->validate([
             'sale_id' => 'required|exists:sales,id',
             'transporter_name' => 'required|string|max:255',

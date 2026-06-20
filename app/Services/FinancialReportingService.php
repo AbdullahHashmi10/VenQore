@@ -219,7 +219,7 @@ class FinancialReportingService
                 'sib.sale_item_id', '=', 'sale_items.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', 'posted')
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'products.id as product_id',
@@ -282,7 +282,7 @@ class FinancialReportingService
                 'line_totals.sale_id', '=', 'sales.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', 'posted')
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'sales.id',
@@ -336,7 +336,7 @@ class FinancialReportingService
                 'sib.sale_item_id', '=', 'sale_items.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', 'posted')
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'categories.id as category_id',
@@ -392,7 +392,7 @@ class FinancialReportingService
                 'line_totals.sale_id', '=', 'sales.id'
             )
             ->where('sales.tenant_id', $tenantId)
-            ->where('sales.status', 'posted')
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
             ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
                 'parties.id as party_id',

@@ -215,7 +215,7 @@ function InnerGlobalLayout({ children, settings }) {
                     {!isInstaller && !isMarketing && props.auth?.user && !window.location.pathname.startsWith('/VenQore') && window.location.pathname !== '/hub' && (
                         <div
                             onClick={() => setShowShortcuts(true)}
-                            className="fixed bottom-1 left-1 z-[9999] opacity-40 hover:opacity-100 transition-opacity cursor-pointer group"
+                            className="hidden lg:block fixed bottom-1 left-1 z-[9999] opacity-40 hover:opacity-100 transition-opacity cursor-pointer group"
                             title="View Keyboard Shortcuts"
                         >
                             <div className="bg-black/80 text-white px-2 py-1 rounded text-[10px] font-mono flex items-center gap-1 shadow-lg backdrop-blur-sm border border-white/10">

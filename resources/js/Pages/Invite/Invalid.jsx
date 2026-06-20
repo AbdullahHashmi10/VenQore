@@ -11,21 +11,29 @@ export default function InviteInvalid({ reason = 'not_found' }) {
     const msg = messages[reason] || messages.not_found;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-950 to-slate-900 flex items-center justify-center p-6">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 flex items-center justify-center p-4 sm:p-6">
             <Head title="Invalid Invitation — VenQore" />
 
-            <div className="w-full max-w-md text-center">
-                <div className="w-20 h-20 bg-red-500/20 border border-red-500/30 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                    {reason === 'expired' ? <Clock size={40} className="text-red-400" /> : <ShieldX size={40} className="text-red-400" />}
+            <div className="w-full max-w-md">
+                {/* Card */}
+                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl text-center animate-fade-in">
+                    {/* Icon */}
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-red-500/10 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-xl shadow-red-900/10">
+                        {reason === 'expired' ? (
+                            <Clock className="text-red-400 w-8 h-8 sm:w-10 sm:h-10" />
+                        ) : (
+                            <ShieldX className="text-red-400 w-8 h-8 sm:w-10 sm:h-10" />
+                        )}
+                    </div>
+
+                    <h1 className="text-xl sm:text-2xl font-black text-white mb-2 sm:mb-3">{msg.title}</h1>
+                    <p className="text-slate-400 text-sm leading-relaxed mb-6 sm:mb-8 max-w-sm mx-auto">{msg.body}</p>
+
+                    <Link href="/login"
+                        className="w-full inline-flex items-center justify-center gap-2 py-3.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-2xl font-bold text-sm transition-all active:scale-98">
+                        <ArrowLeft size={16} /> Back to Login
+                    </Link>
                 </div>
-
-                <h1 className="text-2xl font-black text-white mb-3">{msg.title}</h1>
-                <p className="text-slate-400 text-sm leading-relaxed mb-8">{msg.body}</p>
-
-                <Link href="/login"
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-2xl font-bold text-sm transition-all">
-                    <ArrowLeft size={16} /> Back to Login
-                </Link>
             </div>
         </div>
     );

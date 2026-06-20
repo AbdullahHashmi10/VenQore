@@ -249,6 +249,7 @@ class InventoryService
                     'batch_type'    => 'purchase',
                     'unit_cost'     => $batch->unit_cost,
                     'initial_qty'   => $take,
+                    'original_qty'  => $take,
                     'remaining_qty' => $take,
                     'purchase_invoice_id' => $batch->purchase_invoice_id ?? null,
                     'notes'         => 'Transferred from warehouse ' .

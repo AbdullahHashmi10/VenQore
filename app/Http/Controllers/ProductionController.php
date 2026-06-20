@@ -10,10 +10,13 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Carbon\Carbon;
 
+use App\Services\PlanGate;
+
 class ProductionController extends Controller
 {
     public function index(Request $request)
     {
+        PlanGate::enforce('production');
         $query = ProductionRun::with(['product']);
 
         if ($request->filled('search')) {
@@ -75,6 +78,7 @@ class ProductionController extends Controller
 
     public function create()
     {
+        PlanGate::enforce('production');
         $products = Product::orderBy('name')->get();
         $warehouses = Warehouse::orderBy('name')->get();
 
@@ -86,6 +90,7 @@ class ProductionController extends Controller
 
     public function store(Request $request)
     {
+        PlanGate::enforce('production');
         $validated = $request->validate([
             'product_id' => 'required|exists:products,id',
             'quantity' => 'required|numeric|min:1',
@@ -110,6 +115,7 @@ class ProductionController extends Controller
 
     public function show($id)
     {
+        PlanGate::enforce('production');
         $run = ProductionRun::with(['product'])
             ->findOrFail($id);
 
@@ -120,6 +126,7 @@ class ProductionController extends Controller
 
     public function complete(Request $request, $id)
     {
+        PlanGate::enforce('production');
         $run = ProductionRun::findOrFail($id);
 
         // Mark as completed and update stock

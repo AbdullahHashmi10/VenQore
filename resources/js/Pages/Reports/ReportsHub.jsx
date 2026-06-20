@@ -7,15 +7,36 @@ import {
     BarChart2, ArrowRight, History, Landmark, AlertTriangle, Clock, Percent,
     RefreshCw, Scale, PieChart, Layers, Box, Hash, ArrowLeftRight, UserPlus,
     PackageSearch, Tags, BarChart3, Tag, Hourglass, Users2, Activity, BookOpen,
-    Search
+    Search, Lock
 } from 'lucide-react';
 
 const Card3D = ({ report }) => {
+    const { allowed_reports = [], report_tiers = {} } = usePage().props;
+
     const cardRef = useRef(null);
     const [transform, setTransform] = useState('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
     const [glowPos, setGlowPos] = useState({ x: 50, y: 50 });
     const [isHovered, setIsHovered] = useState(false);
     const Icon = report.icon;
+
+    // Extract reportKey from href
+    const getReportKey = (href) => {
+        if (!href) return '';
+        const parts = href.split('/reports/');
+        if (parts.length > 1) {
+            return `reports.${parts[1].split('?')[0]}`;
+        }
+        if (href.includes('/accounting')) {
+            return 'reports.chart-of-accounts';
+        }
+        return '';
+    };
+
+    const reportKey = getReportKey(report.href);
+    const isAllowed = allowed_reports.includes(reportKey);
+    const requiredTier = Object.keys(report_tiers).find(tier => 
+        report_tiers[tier].includes(reportKey)
+    ) || 'growth';
 
     // Define color map explicitly for the glow - HIGH INTENSITY (0.7)
     const getGlowColor = (colorClass) => {
@@ -54,6 +75,53 @@ const Card3D = ({ report }) => {
         setIsHovered(false);
         setTransform('perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)');
     };
+
+    if (!isAllowed) {
+        return (
+            <div
+                className="relative bg-slate-50/50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800/60 overflow-hidden flex flex-col h-full select-none cursor-not-allowed group/locked"
+            >
+                <div className="relative p-6 flex flex-col h-full z-10 opacity-50 filter blur-[0.5px]">
+                    {/* Header Section */}
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            {/* Icon */}
+                            <div className="flex items-center justify-center shrink-0">
+                                <Icon size={30} strokeWidth={1.5} className="text-slate-400" />
+                            </div>
+
+                            {/* Title & Short Desc */}
+                            <div className="flex flex-col justify-center">
+                                <h3 className="text-base font-bold text-slate-400 dark:text-slate-500 leading-tight">
+                                    {report.title}
+                                </h3>
+                                <p className="text-xs text-slate-400/80 font-medium line-clamp-1 mt-0.5">
+                                    {report.description}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Long Description (Bottom Area) */}
+                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/30 flex-grow">
+                        <p className="text-[12px] text-slate-400/80 leading-relaxed font-medium">
+                            {report.longDescription}
+                        </p>
+                    </div>
+                </div>
+
+                {/* Lock Overlay */}
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-2 bg-slate-900/20 dark:bg-black/40 backdrop-blur-[2px]">
+                    <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg border border-slate-100 dark:border-slate-700 text-slate-500 dark:text-slate-400 group-hover/locked:scale-110 transition-transform duration-300">
+                        <Lock size={16} />
+                    </div>
+                    <span className="text-[11px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 px-2.5 py-1 bg-white/95 dark:bg-slate-800/95 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
+                        Upgrade to {requiredTier === 'growth' ? 'Growth' : 'Business'}
+                    </span>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <Link

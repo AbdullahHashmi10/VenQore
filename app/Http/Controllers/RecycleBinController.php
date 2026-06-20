@@ -242,6 +242,10 @@ class RecycleBinController extends Controller
             $sale = \App\Models\Sale::withTrashed()->findOrFail($id);
             $ref = $sale->reference_number;
             
+            \App\Models\JournalEntry::where('reference', $sale->id)
+                ->where('tenant_id', $sale->tenant_id)
+                ->update(['is_reversed' => 1]);
+
             $sale->items()->withTrashed()->forceDelete();
             $sale->payments()->withTrashed()->forceDelete();
             $sale->forceDelete();

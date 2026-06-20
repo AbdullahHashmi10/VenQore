@@ -198,32 +198,20 @@ class ReturnController extends Controller
                     'cost_price' => $productRecord?->cost_price ?? 0,
                 ]);
 
-                // FifoService: restore to original batches if they exist, else create new batch
-                $saleBatches = DB::table('sale_item_batches')
-                    ->where('sale_item_id', $saleItem->id)
-                    ->where('is_reversed', 0)
-                    ->exists();
-
-                if ($saleBatches) {
-                    // V3 path: reverse the exact FIFO deductions made at sale time
-                    $fifo->restoreStock($saleItem->id);
-                    // Accumulate COGS from original batch costs
-                    $batchCogs = DB::table('sale_item_batches')
-                        ->where('sale_item_id', $saleItem->id)
-                        ->sum('total_cogs');
-                    $totalCogs += (float) $batchCogs;
-                } else {
-                    // Legacy path: no sale_item_batches — receive as new batch at product cost
-                    $unitCost = $productRecord?->cost_price ?? $data['price'];
-                    $fifo->receiveBatch(
-                        productId:   $data['product_id'],
-                        warehouseId: $warehouseId,
-                        qty:         $data['quantity'],
-                        unitCost:    $unitCost,
-                        batchType:   'return'
-                    );
-                    $totalCogs += $data['quantity'] * $unitCost;
-                }
+                // ReturnController receives fresh items from the frontend (product_id + price only),
+                // NOT original sale_item_id context. Therefore sale_item_batches will never exist
+                // on the newly-created return SaleItem. We always use receiveBatch() to put stock
+                // back as a new FIFO batch at the current product cost price.
+                // If the caller ever passes original_sale_item_id in the future, add that path here.
+                $unitCost = $productRecord?->cost_price ?? $data['price'];
+                $fifo->receiveBatch(
+                    productId:   $data['product_id'],
+                    warehouseId: $warehouseId,
+                    qty:         $data['quantity'],
+                    unitCost:    $unitCost,
+                    batchType:   'return'
+                );
+                $totalCogs += $data['quantity'] * $unitCost;
 
                 // [V3 SWAP DAY 1] Removed: manual Stock::increment() and Product::increment('stock_quantity').
                 // The canonical stock figure is derived from StockMovements (and verified by FifoService

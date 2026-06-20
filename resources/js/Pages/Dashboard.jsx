@@ -11,7 +11,8 @@ import {
     Wallet,
     MoreHorizontal,
     Activity,
-    ChevronDown
+    ChevronDown,
+    ChevronLeft
 } from 'lucide-react';
 import PremiumDropdown from '@/Components/PremiumDropdown';
 import TodaysOpportunities from '@/Components/TodaysOpportunities';
@@ -68,6 +69,7 @@ export default function Dashboard({
     const [outstandingPeriod, setOutstandingPeriod] = useState('Month');
     const [netProfitPeriod, setNetProfitPeriod] = useState('Month');
     const [purchasesPeriod, setPurchasesPeriod] = useState('Month');
+    const [mobileRightPanelOpen, setMobileRightPanelOpen] = useState(false);
 
     const currentProfit = plSummary[profitView] || { income: 0, expense: 0, profit: 0, status: 'good' };
     const purchasesList = Array.isArray(recentPurchases) ? recentPurchases : (recentPurchases[purchasesPeriod] || []);
@@ -75,11 +77,75 @@ export default function Dashboard({
     return (
         <OneGlanceLayout activeMenu="Dashboard">
             <Head title="Dashboard" />
-            <div className="grid grid-cols-12 grid-rows-6 gap-6 h-[calc(100vh-5rem)] w-full animate-in fade-in duration-500 pt-2 pb-2 pr-2">
+
+            <style>{`
+                @keyframes nudge-left {
+                    0%, 100% { transform: translateY(-50%) translateX(0); }
+                    50% { transform: translateY(-50%) translateX(-3px); }
+                }
+                .animate-nudge-left {
+                    animation: nudge-left 2.5s ease-in-out infinite;
+                }
+            `}</style>
+
+            {/* Mobile Right Panel Drawer (Rendered outside overflow clipping container) */}
+            {(isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant') && (
+                <div className="lg:hidden">
+                    {mobileRightPanelOpen && (
+                        <div className="fixed inset-0 bg-black/50 z-[90]" onClick={() => setMobileRightPanelOpen(false)} />
+                    )}
+                    <div
+                        className={`
+                            fixed top-0 right-0 h-[100vh] z-[100]
+                            transition-transform duration-300 ease-in-out transform
+                            ${mobileRightPanelOpen ? 'translate-x-0' : 'translate-x-full'}
+                            w-[320px] bg-white dark:bg-slate-900 border-l border-slate-100 dark:border-slate-800 p-4 flex flex-col h-full
+                        `}
+                    >
+                        {/* Custom curved sideline overlay notch on the left edge of the sidebar */}
+                        <button
+                            onClick={() => setMobileRightPanelOpen(!mobileRightPanelOpen)}
+                            className={`absolute left-[-24px] top-1/2 -translate-y-1/2 z-[110] lg:hidden w-6 h-32 flex items-center justify-center text-slate-400 dark:text-slate-500 hover:text-indigo-500 transition-colors pointer-events-auto ${!mobileRightPanelOpen ? 'animate-nudge-left' : ''}`}
+                            style={{ filter: 'drop-shadow(-4px 4px 6px rgba(0, 0, 0, 0.04))' }}
+                        >
+                            <svg
+                                className="absolute inset-0 w-full h-full text-white dark:text-slate-900 pointer-events-none"
+                                viewBox="0 0 24 128"
+                                fill="currentColor"
+                                xmlns="http://www.w3.org/2000/svg"
+                            >
+                                <path
+                                    d="M 24 0 C 24 20, 0 35, 0 64 C 0 93, 24 108, 24 128 Z"
+                                    fill="currentColor"
+                                />
+                                <path
+                                    d="M 24 0 C 24 20, 0 35, 0 64 C 0 93, 24 108, 24 128"
+                                    fill="none"
+                                    className="stroke-slate-100 dark:stroke-slate-800"
+                                    strokeWidth="1"
+                                />
+                            </svg>
+                            <ChevronLeft size={14} className={`relative z-10 transition-transform duration-300 ${mobileRightPanelOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
+                            <RightPanel
+                                recentTransactions={recentTransactions}
+                                bankAccounts={bankAccounts}
+                                cashAccounts={cashAccounts}
+                                cashData={cashData}
+                                inventoryValue={inventoryValue}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="grid grid-cols-12 lg:grid-rows-6 gap-6 lg:h-[calc(100vh-5rem)] h-auto w-full animate-in fade-in duration-500 pt-2 pb-2 pr-2">
 
                 {/* --- Row 1: High Level Stats (Top Left) --- */}
                 {canSales && (
-                <div id="tour-performance" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
+                <div id="tour-performance" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
                     <DualStatCard
                         title="Performance"
                         leftLabel="Sales" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
@@ -95,7 +161,7 @@ export default function Dashboard({
                 </div>
                 )}
                 {canFinance && (
-                <div id="tour-outstanding" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
+                <div id="tour-outstanding" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
                     <DualStatCard
                         title="Outstanding"
                         leftLabel="To Receive" leftValue={formatCurrency(parseFloat(outstanding[outstandingPeriod]?.receivables || 0), store)}
@@ -111,7 +177,7 @@ export default function Dashboard({
                 </div>
                 )}
                 {canFinance && (
-                <div id="tour-net-profit" className="col-span-12 md:col-span-6 lg:col-span-3 row-span-1">
+                <div id="tour-net-profit" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
                     {/* Quick Profit Check */}
                     <div
                         onClick={() => router.visit(route('store.reports.profit-loss', { store_slug: store?.slug }))}
@@ -161,28 +227,28 @@ export default function Dashboard({
                 </div>
                 )}
 
-                {/* --- RIGHT PANEL — PROBLEM 6 FIX: Only shown to owner/admin/manager/accountant --- */}
+                {/* --- RIGHT PANEL (Desktop Only) --- */}
                 {(isAdmin || auth?.user?.role === 'manager' || auth?.user?.role === 'accountant') && (
-                <div id="tour-right-panel" className="hidden lg:block col-span-3 row-span-6 h-full">
-                    <RightPanel
-                        recentTransactions={recentTransactions}
-                        bankAccounts={bankAccounts}
-                        cashAccounts={cashAccounts}
-                        cashData={cashData}
-                        inventoryValue={inventoryValue}
-                    />
-                </div>
+                    <div id="tour-right-panel" className="hidden lg:block col-span-3 lg:row-span-6 h-full">
+                        <RightPanel
+                            recentTransactions={recentTransactions}
+                            bankAccounts={bankAccounts}
+                            cashAccounts={cashAccounts}
+                            cashData={cashData}
+                            inventoryValue={inventoryValue}
+                        />
+                    </div>
                 )}
 
                 {/* --- MIDDLE: Sales Chart & Opportunities --- */}
                 {canSales && (
-                <div id="tour-sales-chart" className={`col-span-12 ${isAdmin ? 'lg:col-span-6' : 'lg:col-span-9'} row-span-3 min-h-[300px]`}>
+                <div id="tour-sales-chart" className={`col-span-12 ${isAdmin ? 'lg:col-span-6' : 'lg:col-span-9'} lg:row-span-3 min-h-[300px]`}>
                     <ChartSection salesData={salesData} />
                 </div>
                 )}
 
                 {isAdmin && (
-                    <div id="tour-opportunities" className="col-span-12 lg:col-span-3 row-span-3 h-full min-h-0 flex flex-col">
+                    <div id="tour-opportunities" className="col-span-12 lg:col-span-3 lg:row-span-3 h-full min-h-0 flex flex-col">
                         <TodaysOpportunities className="flex-1" />
                     </div>
                 )}
@@ -191,7 +257,7 @@ export default function Dashboard({
 
                 {/* Top Selling Items */}
                 {canSales && (
-                <div id="tour-top-products" className={`${topProductsSpan} row-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0 group`}>
+                <div id="tour-top-products" className={`${topProductsSpan} lg:row-span-2 bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0 group`}>
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
                             <div className="w-1.5 h-5 bg-emerald-500 rounded-full"></div>
@@ -243,7 +309,7 @@ export default function Dashboard({
 
                 {/* LOW STOCK ITEMS */}
                 {canInventory && (
-                <div id="tour-low-stock" className={`${lowStockSpan} row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
+                <div id="tour-low-stock" className={`${lowStockSpan} lg:row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <h3 className="font-bold text-slate-800 dark:text-white text-sm flex items-center gap-2">
                             <div className="w-1.5 h-5 bg-red-500 rounded-full"></div>
@@ -282,7 +348,7 @@ export default function Dashboard({
 
                 {/* PURCHASES */}
                 {canPurchases && (
-                <div id="tour-purchases" className={`${purchasesSpan} row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
+                <div id="tour-purchases" className={`${purchasesSpan} lg:row-span-2 h-full bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-slate-100 dark:border-slate-800 flex flex-col min-h-0`}>
                     <div className="flex justify-between items-center mb-4 shrink-0">
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-5 bg-orange-500 rounded-full"></div>

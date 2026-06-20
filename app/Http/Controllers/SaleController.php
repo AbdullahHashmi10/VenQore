@@ -627,11 +627,11 @@ class SaleController extends Controller
         $sale = Sale::with(['items', 'items.saleItemBatches'])->findOrFail($id);
 
         if ($sale->status === 'returned') {
-            return back()->withErrors(['error' => 'This sale has already been returned.']);
+            return back()->withErrors(['error' => 'This sale has already been fully returned.']);
         }
 
-        if ($sale->status !== 'posted') {
-            return back()->withErrors(['error' => "Only posted sales can be returned. Current status: {$sale->status}."]);
+        if (!in_array($sale->status, ['posted', 'partially_returned'])) {
+            return back()->withErrors(['error' => "Only posted or partially-returned sales can be returned. Current status: {$sale->status}."]);
         }
 
         $refundMethod  = $request->input('refund_method', 'cash');
@@ -670,10 +670,25 @@ class SaleController extends Controller
                     // partial counter journal entry proportional to the items returned.
 
                     $returnTotal = 0;
-                    $arAccount   = \App\Models\Account::where('code', '1200')->first();
-                    $cogsAccount = \App\Models\Account::where('code', '5000')->first();
-                    $invAccount  = \App\Models\Account::where('code', '1100')->first();
-                    $incAccount  = \App\Models\Account::where('code', '4000')->first();
+
+                    // Resolve the refund GL account based on the ORIGINAL sale's payment method.
+                    // Cash sale → refund comes from Cash (1000)
+                    // Bank/card/online → refund comes from Bank (1010)
+                    // Credit/ledger → reduce AR (1200)
+                    // This mirrors the same logic as postSaleJournal() line ~1219.
+                    $originalPaymentMethod = strtolower($sale->payment_method ?? 'cash');
+                    if (in_array($originalPaymentMethod, ['bank', 'card', 'online', 'upi'])) {
+                        $refundAccountCode = '1010';
+                    } elseif (in_array($originalPaymentMethod, ['credit', 'ledger', 'khata'])) {
+                        $refundAccountCode = '1200';
+                    } else {
+                        $refundAccountCode = '1000'; // cash default
+                    }
+
+                    $refundAccount = $this->accounting->getAccountByCode($refundAccountCode);
+                    $cogsAccount   = $this->accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense');
+                    $invAccount    = $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
+                    $incAccount    = $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income');
 
                     $journalItems = [];
 
@@ -743,10 +758,11 @@ class SaleController extends Controller
                             $journalItems[] = ['account_id' => $cogsAccount->id, 'debit' => 0,             'credit' => $costToRestore, 'description' => "COGS reversal: partial return of {$sale->reference_number}"];
                         }
 
-                        // DR Revenue (undo earned revenue) | CR AR (remove the receivable)
-                        if ($lineRevenue > 0 && $arAccount && $incAccount) {
-                            $journalItems[] = ['account_id' => $incAccount->id, 'debit' => $lineRevenue, 'credit' => 0,            'description' => "Revenue reversal: partial return of {$sale->reference_number}"];
-                            $journalItems[] = ['account_id' => $arAccount->id,  'debit' => 0,            'credit' => $lineRevenue, 'description' => "AR reduced: partial return of {$sale->reference_number}"];
+                        // DR Revenue (undo earned revenue) | CR refund account (cash/bank/AR)
+                        // Uses original sale's payment_method — NOT hardcoded AR.
+                        if ($lineRevenue > 0 && $refundAccount && $incAccount) {
+                            $journalItems[] = ['account_id' => $incAccount->id,   'debit' => $lineRevenue, 'credit' => 0,            'description' => "Revenue reversal: partial return of {$sale->reference_number}"];
+                            $journalItems[] = ['account_id' => $refundAccount->id, 'debit' => 0,           'credit' => $lineRevenue, 'description' => "Refund ({$refundAccountCode}): partial return of {$sale->reference_number}"];
                         }
                     }
 
@@ -762,8 +778,9 @@ class SaleController extends Controller
                         ], $journalItems);
                     }
 
-                    // Mark original sale as returned
-                    DB::statement("UPDATE sales SET status = 'returned', updated_at = ? WHERE id = ?", [now(), $sale->id]);
+                    // Mark original sale as partially returned — allows further partial returns later.
+                    // Only set to 'returned' when SaleReversalService::reverse() is called (full return).
+                    DB::statement("UPDATE sales SET status = 'partially_returned', updated_at = ? WHERE id = ?", [now(), $sale->id]);
                 }
 
                 // ─── Record the Refund Payment ─────────────────────────────────

@@ -12,6 +12,10 @@ class BomController extends Controller
 {
     public function store(Request $request)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         // ── Plan Gate: Bill of Materials ─────────────────────────────────────
         PlanGate::enforce('bill_of_materials');
 
@@ -96,6 +100,10 @@ class BomController extends Controller
 
     public function destroy(string $id)
     {
+        if (!\App\Services\PlanGate::check('bill_of_materials')) {
+            abort(403, 'Cookbook is not available on your current plan.');
+        }
+
         $bom = DB::table('bill_of_materials')->where('bill_of_materials.tenant_id', app('current.tenant')->id)->where('id', $id)->firstOrFail();
 
         $hasRuns = DB::table('production_runs')->where('production_runs.tenant_id', app('current.tenant')->id)

@@ -191,4 +191,54 @@ class RegressionFixesTest extends VenQoreTestCase
         $request = \Illuminate\Http\Request::create('/login', 'GET');
         $this->assertNull($middleware->version($request));
     }
+
+    /** @test */
+    public function test_report_tier_gating_restricts_access(): void
+    {
+        $tenant = $this->createTenant('gated-reports-store-2', 'ltd_1');
+        $this->actingAsTenantUser($tenant, 'owner');
+
+        // Access Starter tier report (reports.sales) -> should pass (200 status or redirect/render)
+        $responseSales = $this->get($this->storeUrl($tenant, 'reports/sales'));
+        $responseSales->assertStatus(200);
+
+        // Access Growth/Business report (reports.sale-aging) -> should fail (403 status)
+        $responseAging = $this->get($this->storeUrl($tenant, 'reports/sale-aging'));
+        $responseAging->assertStatus(403);
+        $responseAging->assertJson([
+            'upgrade' => true,
+            'required_tier' => 'business'
+        ]);
+
+        // Check Inertia shared props
+        $props = $responseSales->original->getData()['page']['props'];
+        $this->assertArrayHasKey('report_tiers', $props);
+        $this->assertArrayHasKey('allowed_reports', $props);
+        $this->assertContains('reports.sales', $props['allowed_reports']);
+        $this->assertNotContains('reports.sale-aging', $props['allowed_reports']);
+    }
+
+    /** @test */
+    public function test_new_features_plan_gating(): void
+    {
+        // 1. Create a Starter plan tenant (ltd_1 maps to starter)
+        $tenantStarter = $this->createTenant('starter-gated-store-2', 'ltd_1');
+        $this->actingAsTenantUser($tenantStarter, 'owner');
+
+        // Starter should get 403 on production, e_invoicing, bank_reconciliation, marketing_campaigns
+        $this->get($this->storeUrl($tenantStarter, 'inventory/production'))->assertStatus(403);
+        $this->get($this->storeUrl($tenantStarter, 'e-invoicing'))->assertStatus(403);
+        $this->get($this->storeUrl($tenantStarter, 'bank-reconciliation'))->assertStatus(403);
+        $this->get($this->storeUrl($tenantStarter, 'marketing/campaigns'))->assertStatus(403);
+
+        // 2. Create a Growth plan tenant (ltd_2 maps to growth)
+        $tenantGrowth = $this->createTenant('growth-gated-store-2', 'ltd_2');
+        $this->actingAsTenantUser($tenantGrowth, 'owner');
+
+        // Growth should successfully access (200 status)
+        $this->get($this->storeUrl($tenantGrowth, 'inventory/production'))->assertStatus(200);
+        $this->get($this->storeUrl($tenantGrowth, 'e-invoicing'))->assertStatus(200);
+        $this->get($this->storeUrl($tenantGrowth, 'bank-reconciliation'))->assertStatus(200);
+        $this->get($this->storeUrl($tenantGrowth, 'marketing/campaigns'))->assertStatus(200);
+    }
 }

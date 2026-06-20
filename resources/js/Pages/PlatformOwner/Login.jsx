@@ -44,6 +44,15 @@ const css = `
         to   { opacity: 1; transform: translateY(0); }
     }
 
+    .pin-card {
+        padding: 24px 16px;
+    }
+
+    .logo-container {
+        width: 52px;
+        height: 52px;
+    }
+
     .hq-input {
         width: 100%;
         background: rgba(255,255,255,0.05);
@@ -56,7 +65,7 @@ const css = `
         outline: none;
         transition: all 0.25s;
     }
-    .hq-input::placeholder { color: rgba(148,163,184,0.55); }
+    .hq-input::placeholder { color: rgba(148,163,184,0.75); }
     .hq-input:focus {
         border-color: rgba(99,102,241,0.7);
         background: rgba(99,102,241,0.07);
@@ -91,7 +100,7 @@ const css = `
     .hq-btn:hover::after { left: 120%; }
 
     .pin-key {
-        height: 58px; border-radius: 14px;
+        height: 48px; border-radius: 14px;
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.09);
         color: #f1f5f9; font-size: 20px; font-weight: 700;
@@ -146,7 +155,7 @@ const css = `
         color: #a5b4fc; border: 1px solid rgba(99,102,241,0.35);
     }
     .mode-tab.inactive {
-        background: transparent; color: rgba(148,163,184,0.5);
+        background: transparent; color: rgba(148,163,184,0.7);
         border: 1px solid transparent;
     }
     .mode-tab.inactive:hover { color: rgba(148,163,184,0.8); }
@@ -315,30 +324,29 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                     animation: 'glow-pulse 4s ease-in-out infinite',
                 }} />
 
-                <div style={{
+                <div className="pin-card" style={{
                     position: 'relative',
                     background: 'rgba(8, 10, 24, 0.88)',
                     backdropFilter: 'blur(40px)', WebkitBackdropFilter: 'blur(40px)',
                     borderRadius: 28,
                     border: '1px solid rgba(99,102,241,0.18)',
-                    padding: '44px 40px',
                     boxShadow: '0 40px 80px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.05)',
                 }}>
 
                     {/* Header */}
                     <div style={{ textAlign: 'center', marginBottom: 32 }}>
-                        <div style={{
+                        <div className="logo-container" style={{
                             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                            width: 70, height: 70, borderRadius: 20, marginBottom: 20,
+                            borderRadius: 20, marginBottom: 20,
                             background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.15))',
                             border: '1px solid rgba(99,102,241,0.35)',
                             boxShadow: '0 0 28px rgba(99,102,241,0.2)',
                         }}>
                             <img src="/images/logo.png" alt="VenQore"
-                                style={{ width: 42, height: 42, objectFit: 'contain' }}
+                                style={{ width: 32, height: 32, objectFit: 'contain' }}
                                 onError={e => { e.target.style.display='none'; e.target.nextSibling.style.display='flex'; }} />
                             <div style={{ display: 'none', alignItems: 'center', justifyContent: 'center' }}>
-                                <Shield size={30} color="#6366f1" />
+                                <Shield size={22} color="#6366f1" />
                             </div>
                         </div>
 
@@ -412,7 +420,7 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                     {mode === 'pin' && (
                         <div style={{ animation: 'fade-in 0.3s ease' }}>
                             <div style={{ marginBottom: 24, textAlign: 'center' }}>
-                                <p style={{ fontSize: 12, color: 'rgba(100,116,139,0.8)', marginBottom: 16, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700 }}>
+                                <p style={{ fontSize: 12, color: '#94a3b8', marginBottom: 16, letterSpacing: '0.04em', textTransform: 'uppercase', fontWeight: 700 }}>
                                     Enter your PIN
                                 </p>
                                 <PinDots value={pinForm.data.pin} hasError={!!pinForm.errors.pin} />
@@ -544,8 +552,8 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                         borderTop: '1px solid rgba(255,255,255,0.05)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                     }}>
-                        <Shield size={12} color="rgba(100,116,139,0.45)" />
-                        <span style={{ fontSize: 11, color: 'rgba(100,116,139,0.45)', letterSpacing: '0.02em' }}>
+                        <Shield size={12} color="#64748b" />
+                        <span style={{ fontSize: 11, color: '#64748b', letterSpacing: '0.02em' }}>
                             Rate-limited · Session-encrypted · Platform-restricted
                         </span>
                     </div>

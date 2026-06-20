@@ -33,7 +33,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                     href={route('logout')}
                     method="post"
                     as="button"
-                    className="text-sm text-slate-500 hover:text-slate-300 transition-colors"
+                    className="text-sm text-slate-400 hover:text-slate-200 transition-colors"
                 >
                     Sign out
                 </Link>
@@ -43,7 +43,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                 <div className="w-full max-w-2xl">
 
                     {/* Header */}
-                    <div className="text-center mb-12">
+                    <div className="text-center mb-8 sm:mb-12">
                         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-sm font-semibold mb-6">
                             <Sparkles size={14} />
                             {has_license ? `${license_plan.charAt(0).toUpperCase() + license_plan.slice(1)} plan ready` : 'Welcome to VenQore'}
@@ -62,7 +62,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                         {/* Create store */}
                         <Link
                             href={route('store.create')}
-                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-indigo-500/8 hover:border-indigo-500/40 p-8 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/10"
+                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-indigo-500/8 hover:border-indigo-500/40 p-5 sm:p-8 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl hover:shadow-indigo-500/10"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center mb-6 group-hover:bg-indigo-500/25 transition-colors">
                                 <Store size={24} className="text-indigo-400" />
@@ -102,7 +102,7 @@ export default function CreateOrJoin({ has_license = false, license_plan = 'tria
                         {/* Join store */}
                         <Link
                             href={route('store.join')}
-                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-emerald-500/5 hover:border-emerald-500/30 p-8 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/10"
+                            className="group relative rounded-2xl border border-white/10 bg-white/3 hover:bg-emerald-500/5 hover:border-emerald-500/30 p-5 sm:p-8 flex flex-col transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/10"
                         >
                             <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-6 group-hover:bg-emerald-500/20 transition-colors">
                                 <Key size={24} className="text-emerald-400" />

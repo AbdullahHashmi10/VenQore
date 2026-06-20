@@ -1474,8 +1474,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                     {/* DYNAMIC CONTENT AREA */}
                     <div className={`flex-1 min-h-0 overflow-y-auto h-full w-full animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-4 sm:px-8 pb-8'}`}>
                         {children}
+                        {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
                         {showMobileNavBar && (
-                            <div className="h-36 lg:hidden w-full shrink-0" />
+                            <div className="lg:hidden w-full shrink-0" style={{ height: '120px' }} aria-hidden="true" />
                         )}
                     </div>
                 </main >

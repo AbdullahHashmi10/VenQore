@@ -72,6 +72,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const [alertState, setAlertState] = useState({ show: false, title: '', message: '', type: 'info' });
     const [confirmState, setConfirmState] = useState({ show: false, title: '', message: '', onConfirm: () => { } });
     const [inputState, setInputState] = useState({ show: false, title: '', placeholder: '', onSubmit: () => { } });
+    const [activeMobileTab, setActiveMobileTab] = useState('catalog');
     
     // UI Helpers
     const addToast = (message, type = 'info') => {
@@ -773,17 +774,6 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             } else if (results.length === 1) {
                 // Formatting loose match
                 handleProductSelect(results[0]);
-            } else if (results.length === 0 && /^\d+$/.test(val) && lastAddedItemId) {
-                // NO PRODUCT FOUND, INPUT IS NUMERIC, HAS LAST ITEM
-                // Treat as Quantity Update
-                const qty = parseInt(val);
-                if (qty > 0) {
-                    const newCart = activeSale.cart.map(item =>
-                        item.cartItemId === lastAddedItemId ? { ...item, qty: qty } : item
-                    );
-                    updateActiveSale({ cart: newCart, searchTerm: '' });
-                    addToast(`Updated quantity to ${qty}`, 'success');
-                }
             } else {
                 // Ambiguous or no results
                 if (results.length > 0) {
@@ -1879,11 +1869,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
             </div>
 
+            {/* Mobile Tab Bar */}
+            <div className="lg:hidden flex border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 shrink-0">
+                {[['catalog','Catalog'],['cart','Cart'],['checkout','Pay']].map(([tab, label]) => (
+                    <button key={tab} onClick={() => setActiveMobileTab(tab)}
+                        className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors
+                            ${activeMobileTab === tab
+                                ? 'text-indigo-600 border-b-2 border-indigo-600'
+                                : 'text-slate-500 dark:text-slate-400'}`}>
+                        {label}
+                    </button>
+                ))}
+            </div>
+
             {/* MAIN WORKSPACE */}
             <div className="flex-1 flex gap-0 min-h-0 bg-slate-50 dark:bg-slate-950 rounded-t-3xl rounded-b-none shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden z-0 relative">
 
                 {/* LEFT: Transaction List */}
-                <div className="w-[40%] flex flex-col min-w-0 relative">
+                <div className={`w-full lg:w-[40%] flex flex-col min-w-0 relative ${activeMobileTab !== 'catalog' ? 'hidden lg:flex' : ''}`}>
                     {/* Search Bar */}
                     <div className="h-14 px-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 relative z-20">
                         <button
@@ -2070,7 +2073,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Cart & Payment Panel */}
-                <div className="w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-950 border-l border-slate-100 dark:border-slate-800">
+                <div className={`w-full lg:w-[40%] shrink-0 flex flex-col bg-slate-50 dark:bg-slate-950 border-l border-slate-100 dark:border-slate-800 ${activeMobileTab !== 'cart' ? 'hidden lg:flex' : ''}`}>
 
                     {/* Cart Header */}
                     <div className="h-14 px-3 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
@@ -2313,7 +2316,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 </div>
 
                 {/* RIGHT: Payment & Summary Panel */}
-                <div className="w-[20%] shrink-0 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-200 dark:border-slate-800">
+                <div className={`w-full lg:w-[20%] shrink-0 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white flex flex-col shadow-2xl relative overflow-hidden border-l border-slate-200 dark:border-slate-800 ${activeMobileTab !== 'checkout' ? 'hidden lg:flex' : ''}`}>
                     <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-10 pointer-events-none"></div>
 
                     <div className="h-14 px-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">

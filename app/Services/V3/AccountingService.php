@@ -116,6 +116,7 @@ class AccountingService
             } else {
                 $accountId = $line['account_id']
                     ?? throw new \InvalidArgumentException('Each journal line must have either account_code or account_id.');
+                $account = Account::find($accountId);
             }
 
             JournalItem::create([
@@ -127,6 +128,18 @@ class AccountingService
                 'debit'            => $line['debit'],
                 'credit'           => $line['credit'],
             ]);
+
+            // Keep accounts.balance in sync with every posted journal item.
+            // Convention: debit increases asset/expense; credit increases income/liability/equity.
+            if ($account) {
+                $debit  = (float) $line['debit'];
+                $credit = (float) $line['credit'];
+                if (in_array($account->type, ['asset', 'expense'])) {
+                    $account->increment('balance', $debit - $credit);
+                } else {
+                    $account->increment('balance', $credit - $debit);
+                }
+            }
 
             if (!empty($line['party_id'])) {
                 $partyIds[] = $line['party_id'];
@@ -197,13 +210,14 @@ class AccountingService
                 ];
             })->toArray();
 
+            // createEntry() handles accounts.balance updates for the reversal lines
             $reversalEntry = $this->createEntry([
                 'date'           => now()->toDateString(),
                 'reference_type' => 'reversal',
                 'reference'      => $journalEntryId,
                 'description'    => "Reversal of entry {$journalEntryId}: {$reason}",
                 'party_id'       => $original->party_id ?? null,
-                'is_reversed'    => 1, 
+                'is_reversed'    => 1,
             ], $reversalLines);
 
             DB::table('journal_entries')
@@ -214,6 +228,29 @@ class AccountingService
                     'reversed_by' => $reversalEntry->id,
                     'updated_at'  => now(),
                 ]);
+
+            // Undo the original entry's balance effect on each account.
+            // The reversal entry itself already incremented balances in the correct
+            // direction (via createEntry above). Additionally mark the original entry
+            // lines' net effect as undone by reversing the original balance change.
+            $originalLines = DB::table('journal_items')
+                ->where('tenant_id', $tid)
+                ->where('journal_entry_id', $journalEntryId)
+                ->get();
+
+            foreach ($originalLines as $origLine) {
+                $account = Account::find($origLine->account_id);
+                if ($account) {
+                    $debit  = (float) $origLine->debit;
+                    $credit = (float) $origLine->credit;
+                    // Undo the original posting: reverse the balance change it made
+                    if (in_array($account->type, ['asset', 'expense'])) {
+                        $account->decrement('balance', $debit - $credit);
+                    } else {
+                        $account->decrement('balance', $credit - $debit);
+                    }
+                }
+            }
 
             app(\App\Services\V3\AuditService::class)->log(
                 event:     'journal_reversed',
@@ -261,12 +298,29 @@ class AccountingService
         return round($totalCredit - $totalDebit, 2);
     }
 
+    /**
+     * Find or create a GL account by code, scoped strictly to the current tenant.
+     *
+     * REPLACES the old firstOrCreate(['code' => $code]) which was the root cause of
+     * Bug #3 — duplicate account codes across tenants. This version:
+     *   1. Scopes the lookup to tenant_id so it never finds another tenant's account.
+     *   2. Sets normal_balance correctly based on account type.
+     *   3. Used by SaleController, PurchaseController, ExpenseController.
+     */
     public function getAccountByCode(string $code, ?string $defaultName = null, string $type = 'asset'): Account
     {
-        $tid = $this->tenantId;
-        return Account::firstOrCreate(
-            ['code' => $code, 'tenant_id' => $tid],
-            ['name' => $defaultName ?? "Account {$code}", 'type' => $type, 'tenant_id' => $tid]
-        );
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : $this->tenantId;
+
+        return Account::where('tenant_id', $tenantId)
+            ->where('code', $code)
+            ->first()
+            ?? Account::create([
+                'tenant_id'      => $tenantId,
+                'code'           => $code,
+                'name'           => $defaultName ?? "Account {$code}",
+                'type'           => $type,
+                'normal_balance' => in_array($type, ['asset', 'expense']) ? 'debit' : 'credit',
+                'is_active'      => true,
+            ]);
     }
 }
