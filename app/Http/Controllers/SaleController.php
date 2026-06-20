@@ -263,7 +263,12 @@ class SaleController extends Controller
                     }
 
                     if ($stopNegative && ($avail < $totalQty)) {
-                        throw new \Exception("Insufficient stock for: {$product->name}");
+                        throw new \App\Exceptions\InsufficientStockException(
+                            $ld['product_id'],
+                            $sale->warehouse_id,
+                            $totalQty,
+                            $avail
+                        );
                     }
                 }
 

@@ -85,6 +85,28 @@ class LayoutAndAdminUsersRegressionTest extends VenQoreTestCase
     }
 
     /** @test */
+    public function test_update_member_validation_error_returns_422(): void
+    {
+        $tenant = $this->createTenant();
+        $owner = $this->createTenantUser($tenant, 'owner');
+        $staffUser = $this->createTenantUser($tenant, 'cashier');
+
+        $this->actingAsTenantUserModel($owner, $tenant);
+
+        $membership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $staffUser->id)
+            ->firstOrFail();
+
+        // Send an invalid role parameter to trigger validation failure
+        $response = $this->patch("/s/{$tenant->slug}/admin/users/{$membership->id}", [
+            'role' => 'invalid_role_name_here',
+        ]);
+
+        // Prior to the fix, this returned a 500 error because the validation exception was swallowed by the generic catch.
+        $response->assertStatus(422);
+    }
+
+    /** @test */
     public function test_remove_member_via_admin_controller(): void
     {
         $tenant = $this->createTenant();

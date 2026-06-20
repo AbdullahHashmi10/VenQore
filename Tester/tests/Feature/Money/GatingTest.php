@@ -222,3 +222,53 @@ test('Tenant featuresArray returns correct feature availability flags based on p
         ->and($featuresStarter['invoice_reminders'])->toBeFalse();
 });
 
+test('SaleController store handles InsufficientStockException and returns HTTP 422', function () {
+    $tenant = $this->createTenant('sale-insufficient-stock-store', 'starter');
+    $this->actingAsTenantUser($tenant, 'owner');
+    $this->seedTenantDefaults($tenant);
+    $warehouseId = DB::table("warehouses")->where("tenant_id", $tenant->id)->value("id");
+
+    // Set stop_sale_negative_stock settings on Tenant Settings model
+    $tenant->settings = array_merge($tenant->settings ?? [], [
+        'stop_sale_negative_stock' => true
+    ]);
+    $tenant->save();
+
+    $product = Product::factory()->create([
+        'tenant_id' => $tenant->id,
+        'cost_price' => 10,
+        'price' => 20
+    ]);
+    
+    // Create stock of 0 quantity
+    \App\Models\Stock::updateOrCreate(
+        ['product_id' => $product->id, 'warehouse_id' => $warehouseId],
+        ['quantity' => 0]
+    );
+
+    $payload = [
+        "warehouse_id" => $warehouseId,
+        "items" => [
+            [
+                "product_id" => $product->id,
+                "quantity" => 5, // exceeds available stock of 0
+                "price" => 20.00,
+                "discount" => 0
+            ]
+        ],
+        "discount" => 0,
+        "amount_paid" => 100.00,
+        "payment_method" => "cash",
+        "add_to_ledger" => true,
+    ];
+
+    // Assert that we get a 422 response with correct message indicating InsufficientStockException was processed
+    $response = $this->postJson("/s/{$tenant->slug}/sales", $payload);
+    $response->assertStatus(422);
+    $response->assertJson([
+        'success' => false
+    ]);
+    $this->assertStringContainsString('Insufficient stock', $response->json('message'));
+});
+
+

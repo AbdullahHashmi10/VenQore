@@ -823,6 +823,8 @@ class AdminController extends Controller
             }
 
             return back()->with('success', 'Member updated.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
             throw $e;
         } catch (\Exception $e) {
