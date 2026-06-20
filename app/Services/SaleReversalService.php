@@ -166,6 +166,9 @@ class SaleReversalService
         $reversalNote = "[{$type}] Reversal of {$sale->reference_number}: {$reason}";
 
         foreach ($sale->items()->with('saleItemBatches')->get() as $saleItem) {
+            $saleItem->returned_quantity = $saleItem->quantity;
+            $saleItem->save();
+
             // scopeActive() ensures we only process deductions that have not already
             // been reversed by a prior reversal (prevents double-restoration)
             $saleItemBatches = $saleItem->saleItemBatches()->active()->get();

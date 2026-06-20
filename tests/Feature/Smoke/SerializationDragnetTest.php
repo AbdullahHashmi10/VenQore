@@ -182,7 +182,7 @@ test('[DRAGNET] tenant dashboard serializes performance props correctly when sal
 // ──────────────────────────────────────────────────────────────────────────────
 
 test('[DRAGNET] generic reports return structurally valid Inertia prop bags', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(plan: 'ltd_3'); // business tier
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
@@ -250,7 +250,7 @@ test('[DRAGNET] daily-sales report serializes with correct prop structure', func
 })->group('dragnet', 'serialization');
 
 test('[DRAGNET] tax report serializes without error on empty data', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(plan: 'ltd_2'); // growth tier
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 

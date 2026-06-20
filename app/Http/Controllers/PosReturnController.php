@@ -22,24 +22,51 @@ class PosReturnController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity'   => 'required|numeric|min:0.001',
             'items.*.price'      => 'required|numeric|min:0',
+            'warehouse_id'       => 'required|exists:warehouses,id',
+            'idempotency_key'    => 'required|string',
             'refund_method'      => 'nullable|string',
             'reason'             => 'nullable|string',
         ]);
 
-        $returnTotal = 0;
-        $returnRef   = null;
+        $tenant = app('current.tenant');
+        $idempotencyKey = $request->input('idempotency_key');
+        $warehouseId = $request->input('warehouse_id');
+
+        $lock = \Illuminate\Support\Facades\Cache::lock("pos-return-lock-{$idempotencyKey}", 10);
 
         try {
-            DB::transaction(function () use ($request, &$returnTotal, &$returnRef) {
+            $lock->block(5);
 
-                $tenant  = app('current.tenant');
+            // Idempotency check: look up existing journal entry with this idempotency key
+            $existingEntry = \App\Models\JournalEntry::where('tenant_id', $tenant->id)
+                ->where('idempotency_key', "pos-return-{$idempotencyKey}")
+                ->first();
+
+            if ($existingEntry) {
+                $existingSale = \App\Models\Sale::where('tenant_id', $tenant->id)
+                    ->where('id', $existingEntry->reference)
+                    ->first();
+                if ($existingSale) {
+                    return response()->json([
+                        'success'   => true,
+                        'message'   => 'Return processed successfully',
+                        'reference' => $existingSale->reference_number,
+                        'total'     => abs($existingSale->total),
+                    ]);
+                }
+            }
+
+            $returnTotal = 0;
+            $returnRef   = null;
+
+            DB::transaction(function () use ($request, $tenant, $warehouseId, $idempotencyKey, &$returnTotal, &$returnRef) {
                 $items   = $request->input('items');
                 $reason  = $request->input('reason', 'POS Open Return');
 
                 $returnTotal = collect($items)->sum(fn($i) => $i['price'] * $i['quantity']);
                 $returnRef   = 'RET-' . strtoupper(uniqid());
 
-                // Create return sale record
+                // Create return sale record with negative values
                 $sale = Sale::create([
                     'tenant_id'        => $tenant->id,
                     'user_id'          => Auth::id(),
@@ -47,42 +74,73 @@ class PosReturnController extends Controller
                     'status'           => 'returned',
                     'payment_status'   => 'paid',
                     'payment_method'   => $request->input('refund_method', 'cash'),
-                    'subtotal'         => $returnTotal,
+                    'subtotal'         => -$returnTotal,
                     'tax'              => 0,
                     'discount'         => 0,
-                    'total'            => $returnTotal,
-                    'net_sales'        => $returnTotal,
-                    'invoice_total'    => $returnTotal,
+                    'total'            => -$returnTotal,
+                    'net_sales'        => -$returnTotal,
+                    'invoice_total'    => -$returnTotal,
                     'notes'            => $reason,
                     'posted_at'        => now(),
                 ]);
 
                 // Create sale items and restore stock
                 foreach ($items as $item) {
-                    SaleItem::create([
+                    $saleItem = SaleItem::create([
                         'sale_id'    => $sale->id,
                         'product_id' => $item['product_id'],
-                        'quantity'   => $item['quantity'],
+                        'quantity'   => $item['quantity'], // Keep quantity positive
                         'unit_price' => $item['price'],
-                        'net_amount' => $item['price'] * $item['quantity'],
-                        'subtotal'   => $item['price'] * $item['quantity'],
-                        'line_total' => $item['price'] * $item['quantity'],
+                        'net_amount' => -($item['price'] * $item['quantity']),
+                        'subtotal'   => -($item['price'] * $item['quantity']),
+                        'line_total' => -($item['price'] * $item['quantity']),
                     ]);
 
-                    // Restore stock across all batches for this product
-                    DB::table('stocks')
+                    // Restore stock scoped to product_id, warehouse_id, tenant_id
+                    $stock = DB::table('stocks')
                         ->where('product_id', $item['product_id'])
+                        ->where('warehouse_id', $warehouseId)
                         ->where('tenant_id', $tenant->id)
-                        ->limit(1)
-                        ->increment('quantity', $item['quantity']);
+                        ->first();
 
-                    app(\App\Services\V3\FifoService::class)->receiveBatch(
+                    if ($stock) {
+                        DB::table('stocks')
+                            ->where('id', $stock->id)
+                            ->increment('quantity', $item['quantity']);
+                    } else {
+                        DB::table('stocks')->insert([
+                            'id'           => \Illuminate\Support\Str::uuid()->toString(),
+                            'tenant_id'    => $tenant->id,
+                            'product_id'   => $item['product_id'],
+                            'warehouse_id' => $warehouseId,
+                            'quantity'     => $item['quantity'],
+                            'created_at'   => now(),
+                            'updated_at'   => now(),
+                        ]);
+                    }
+
+                    $unitCost = \App\Models\Product::find($item['product_id'])?->cost_price ?? $item['price'];
+
+                    $newBatch = app(\App\Services\V3\FifoService::class)->receiveBatch(
                         productId:   $item['product_id'],
-                        warehouseId: DB::table('stocks')->where('product_id', $item['product_id'])->where('tenant_id', $tenant->id)->value('warehouse_id') ?? 1,
+                        warehouseId: $warehouseId,
                         qty:         $item['quantity'],
-                        unitCost:    \App\Models\Product::find($item['product_id'])?->cost_price ?? $item['price'],
+                        unitCost:    $unitCost,
                         batchType:   'return'
                     );
+
+                    // Insert to sale_item_batches with negative qty_deducted and negative total_cogs
+                    DB::table('sale_item_batches')->insert([
+                        'id'                 => \Illuminate\Support\Str::uuid()->toString(),
+                        'tenant_id'          => $tenant->id,
+                        'sale_item_id'       => $saleItem->id,
+                        'inventory_batch_id' => $newBatch->id,
+                        'qty_deducted'       => -$item['quantity'],
+                        'unit_cost'          => $unitCost,
+                        'total_cogs'         => -($unitCost * $item['quantity']),
+                        'created_at'         => now(),
+                        'updated_at'         => now(),
+                    ]);
                 }
 
                 // Post proper double-entry journal for return via AccountingService
@@ -119,7 +177,7 @@ class PosReturnController extends Controller
                         'reference_type'  => 'sale_return',
                         'reference'       => $sale->id,
                         'description'     => "POS Return: {$returnRef}",
-                        'idempotency_key' => "pos-return-{$returnRef}", // prevents duplicate journals on retry
+                        'idempotency_key' => "pos-return-{$idempotencyKey}", // prevents duplicate journals on retry
                         'party_id'        => null,
                     ], $lines);
                 }
@@ -134,6 +192,8 @@ class PosReturnController extends Controller
 
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);
+        } finally {
+            optional($lock)->release();
         }
     }
 }

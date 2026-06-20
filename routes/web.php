@@ -157,7 +157,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
 
         // POS (on-demand API, no full catalog pre-load)
         Route::get('/pos',                     [\App\Http\Controllers\PosController::class, 'index'])->name('pos');
-        // GAP 1 FIX: Dead route removed. POS sales go through V3/SaleController via Route::post('sales', ...) at line ~1165.
+        // GAP 1 FIX: Dead route removed. POS sales go through the legacy SaleController via Route::post('sales', ...) at line 1101.
         // Route::post('/pos/sale', ...) was wired to PosController::completeSale() which does not exist.
         Route::get('/pos/products',            [\App\Http\Controllers\Api\PosSearchController::class, 'search'])->name('pos.search');
         Route::get('/pos/products/featured',   [\App\Http\Controllers\Api\PosSearchController::class, 'featured'])->name('pos.featured');

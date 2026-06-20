@@ -62,7 +62,7 @@ class PlanLimitException extends Exception
             'upgrade_url'  => $tenant ? route('store.billing.upgrade', ['store_slug' => $tenant->slug]) : '#',
             'billing_url'  => $tenant ? route('store.billing', ['store_slug' => $tenant->slug]) : '#',
             'portal_url'   => ($tenant && $tenant->lemon_squeezy_customer_id) ? route('store.billing.portal', ['store_slug' => $tenant->slug]) : '#',
-            'current_plan' => $tenant?->plan,
+            'current_plan' => $tenant?->plan === 'ltd' ? $tenant->effectivePlan() : $tenant?->plan,
             'current_count'=> $this->currentCount,
             'limit'        => $tenant?->getLimit($this->feature),
         ];

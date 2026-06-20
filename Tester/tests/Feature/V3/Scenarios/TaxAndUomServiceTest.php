@@ -83,12 +83,12 @@ class TaxAndUomServiceTest extends TestCase
         $this->assertEquals(500.00, $result['gross']);
     }
 
-    // ─── TEST 4: Tax report returns account 2200 vs 2300 breakdown ───
+    // ─── TEST 4: Tax report returns account 2100 vs 2300 breakdown ───
     /** @test */
-    public function it_returns_tax_report_with_2200_and_2300_breakdown()
+    public function it_returns_tax_report_with_2100_and_2300_breakdown()
     {
-        // Seed accounts 2200 and 2300
-        $this->seedAccount('2200', 'Sales Tax Payable',      'liability', 'credit');
+        // M1-06b correction: 2100 = Sales Tax Payable (2200 = Loans Payable — wrong account)
+        $this->seedAccount('2100', 'Sales Tax Payable',      'liability', 'credit');
         $this->seedAccount('2300', 'Input Tax Recoverable',  'asset',     'debit');
 
         // Post a fake sales tax entry
@@ -117,14 +117,14 @@ class TaxAndUomServiceTest extends TestCase
             'updated_at'     => now(),
         ]);
 
-        $account2200 = DB::table('accounts')->where('code', '2200')->first();
+        $account2100 = DB::table('accounts')->where('code', '2100')->first();
         $account2300 = DB::table('accounts')->where('code', '2300')->first();
 
         DB::table('journal_items')->insert([
             [
                 'id'               => Str::uuid()->toString(),
                 'journal_entry_id' => $je2,
-                'account_id'       => $account2200->id,
+                'account_id'       => $account2100->id,  // Sales Tax Payable (2100)
                 'debit'            => 0,
                 'credit'           => 500.00,
                 'created_at'       => now(),
@@ -144,7 +144,7 @@ class TaxAndUomServiceTest extends TestCase
             now()->endOfMonth()
         );
 
-        $this->assertArrayHasKey('sales_tax_collected',   $report); // 2200
+        $this->assertArrayHasKey('sales_tax_collected',   $report); // 2100
         $this->assertArrayHasKey('input_tax_recoverable', $report); // 2300
         $this->assertArrayHasKey('net_tax_payable',        $report);
 

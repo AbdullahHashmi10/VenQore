@@ -172,19 +172,20 @@ test('stock valuation report calculates correct value based on fifo', function (
 });
 
 test('tax report calculates correct tax payable', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(plan: 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
     $cashAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '1000')->first();
     
-    $outputTaxAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '2200')->first();
+    // M1-06b correction: 2100 = Sales Tax Payable (2200 = Loans Payable — wrong account).
+    $outputTaxAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '2100')->first();
     if (!$outputTaxAccount) {
         $outputTaxAccount = \App\Models\Account::forceCreate([
-            'tenant_id' => $tenant->id,
-            'code' => '2200',
-            'name' => 'Output Tax',
-            'type' => 'liability',
+            'tenant_id'      => $tenant->id,
+            'code'           => '2100',
+            'name'           => 'Sales Tax Payable',
+            'type'           => 'liability',
             'normal_balance' => 'credit',
         ]);
     }
@@ -192,10 +193,10 @@ test('tax report calculates correct tax payable', function () {
     $inputTaxAccount = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '2300')->first();
     if (!$inputTaxAccount) {
         $inputTaxAccount = \App\Models\Account::forceCreate([
-            'tenant_id' => $tenant->id,
-            'code' => '2300',
-            'name' => 'Input Tax',
-            'type' => 'asset',
+            'tenant_id'      => $tenant->id,
+            'code'           => '2300',
+            'name'           => 'Input Tax',
+            'type'           => 'asset',
             'normal_balance' => 'debit',
         ]);
     }
@@ -404,7 +405,7 @@ test('excludes returned sales and reversed cogs from gross profit calculations',
 });
 
 test('excludes reversed journal entries from party statement reports', function () {
-    $tenant = $this->createTenant();
+    $tenant = $this->createTenant(plan: 'business');
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
 
@@ -445,8 +446,8 @@ test('excludes reversed journal entries from party statement reports', function 
 });
 
 test('strictly isolates tenant data in v3 reports and exports', function () {
-    $tenantA = $this->createTenant();
-    $tenantB = $this->createTenant();
+    $tenantA = $this->createTenant(plan: 'business');
+    $tenantB = $this->createTenant(plan: 'business');
 
     // Create data in Tenant B
     $partyB = \App\Models\Party::factory()->create(['tenant_id' => $tenantB->id, 'type' => 'customer', 'name' => 'Foreign Client']);

@@ -24,7 +24,8 @@ use Tests\TestCase;
  *  - HasTenant global scope reads app('current.tenant') from DI container.
  *  - Tests bind tenant to DI directly, bypassing HTTP middleware,
  *    for unit-level speed. Route-level tests go through full HTTP stack.
- *  - RefreshDatabase: each test gets a fresh SQLite :memory: database.
+ *  - RefreshDatabase: each test gets a fresh MySQL amd_pos_test database
+ *    (migrated via RefreshDatabase; config in Tester/phpunit.xml + root .env.testing).
  */
 abstract class VenQoreTestCase extends TestCase
 {
@@ -33,33 +34,8 @@ abstract class VenQoreTestCase extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        if (DB::connection() instanceof \Illuminate\Database\SQLiteConnection) {
-            DB::connection()->getPdo()->sqliteCreateFunction('DATE_FORMAT', function ($date, $format) {
-                if (!$date) return null;
-                $timestamp = strtotime($date);
-                if ($timestamp === false) {
-                    return $date;
-                }
-                
-                $map = [
-                    '%Y' => 'Y',
-                    '%m' => 'm',
-                    '%d' => 'd',
-                    '%H' => 'H',
-                    '%i' => 'i',
-                    '%s' => 's',
-                ];
-                
-                $phpFormat = strtr($format, $map);
-                return date($phpFormat, $timestamp);
-            });
-
-            DB::connection()->getPdo()->sqliteCreateFunction('FIELD', function ($value, ...$fields) {
-                $idx = array_search($value, $fields);
-                return $idx === false ? 0 : $idx + 1;
-            });
-        }
+        // No SQLite shims needed: tests run on MySQL amd_pos_test (Tester-Fix-0).
+        // DB_CONNECTION=mysql is enforced by Tester/phpunit.xml and root .env.testing.
     }
 
     /**

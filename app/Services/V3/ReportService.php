@@ -762,13 +762,14 @@ class ReportService
 
     public function taxReport(Carbon $from, Carbon $to): array
     {
-        $outputTax = $this->periodAccountBalance('2200', $from, $to);
+        // M1-06b fix: 2100 is Sales Tax Payable; 2200 is Loans Payable (wrong account).
+        $outputTax = $this->periodAccountBalance('2100', $from, $to);
         $inputTax  = $this->periodAccountBalance('2300', $from, $to);
         $netTax    = round($outputTax - $inputTax, 2);
 
         return [
             'period'      => ['from' => $from->toDateString(), 'to' => $to->toDateString()],
-            'output_tax'  => $outputTax,  // 2200 — owed to government
+            'output_tax'  => $outputTax,  // 2100 — owed to government
             'input_tax'   => $inputTax,   // 2300 — recoverable
             'net_payable' => $netTax,     // positive = owe, negative = refund due
         ];

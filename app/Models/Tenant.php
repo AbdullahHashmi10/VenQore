@@ -269,17 +269,41 @@ class Tenant extends Model
         return $value;                             // string variant e.g. 'basic', 'advanced'
     }
 
-    /**
-     * Get an array of enabled features for the frontend.
-     */
     public function featuresArray(): array
     {
         return [
-            'variants'      => (bool)$this->feature_variants,
-            'serials'       => (bool)$this->feature_serials,
-            'batches'       => (bool)$this->feature_batches,
-            'manufacturing' => (bool)$this->feature_manufacturing,
+            'variants'            => (bool)$this->feature_variants,
+            'serials'             => (bool)$this->feature_serials,
+            'batches'             => (bool)$this->feature_batches,
+            'manufacturing'       => (bool)$this->feature_manufacturing,
+            'production'          => $this->getLimit('production') !== false,
+            'bill_of_materials'   => $this->getLimit('bill_of_materials') !== false,
+            'e_invoicing'         => $this->getLimit('e_invoicing') !== false,
+            'invoice_reminders'   => $this->getLimit('invoice_reminders') !== false,
+            'recurring_invoices'  => $this->getLimit('invoice_reminders') !== false,
+            'bank_reconciliation' => $this->getLimit('bank_reconciliation') !== false,
+            'fund_management'     => $this->getLimit('bank_reconciliation') !== false,
+            'email_marketing'     => $this->getLimit('marketing_campaigns') !== false,
+            'sms_marketing'       => $this->getLimit('marketing_campaigns') !== false,
+            'campaigns'           => $this->getLimit('marketing_campaigns') !== false,
+            'growth_engine'       => $this->getLimit('growth_engine') !== false,
         ];
+    }
+
+    public function effectivePlan(): string
+    {
+        if ($this->plan !== 'ltd') {
+            return $this->plan;
+        }
+        $txLimit = $this->getLimit('transactions_per_month');
+        if ($txLimit == 500) {
+            return 'ltd_1';
+        } elseif ($txLimit == 2000) {
+            return 'ltd_2';
+        } elseif ($txLimit == 6000) {
+            return 'ltd_3';
+        }
+        return 'ltd_1';
     }
 
     public function setPlanAttribute($value)

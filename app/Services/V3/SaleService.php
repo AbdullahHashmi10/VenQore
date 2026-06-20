@@ -210,7 +210,7 @@ class SaleService
 
             if ($taxTotal > 0) {
                 $journalLines[] = [
-                    'account_code' => '2200',
+                    'account_code' => '2100', // Sales Tax Payable (was 2200 = Loans Payable — M1-06b fix)
                     'debit'        => 0,
                     'credit'       => $taxTotal,
                 ];
@@ -439,6 +439,10 @@ class SaleService
             $saleItems = DB::table('sale_items')->where('tenant_id', $this->tenantId)->where('sale_id', $saleId)->get();
             foreach ($saleItems as $saleItem) {
                 $this->fifo->restoreStock($saleItem->id);
+                DB::table('sale_items')
+                    ->where('tenant_id', $this->tenantId)
+                    ->where('id', $saleItem->id)
+                    ->update(['returned_quantity' => $saleItem->quantity]);
             }
 
             // Reverse the journal entry (auto-voids payment allocations)

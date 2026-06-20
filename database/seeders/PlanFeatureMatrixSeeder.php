@@ -170,10 +170,10 @@ class PlanFeatureMatrixSeeder extends Seeder
             'jit_procurement'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'bulk_tracking_sync'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'multichannel_expense_alloc' => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
-            'woocommerce'                => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'woocommerce_customer_reg'   => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'woocommerce_stock_sync'     => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
-            'woocommerce_orders_bridge'  => ['trial' => '0', 'starter' => '0', 'growth' => '1', 'business' => '1'],
+            'woocommerce'                => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'woocommerce_customer_reg'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'woocommerce_stock_sync'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            'woocommerce_orders_bridge'  => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'web_catalog_toggles'        => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
 
             // Group 7 — Double-Entry Accounting & Finance

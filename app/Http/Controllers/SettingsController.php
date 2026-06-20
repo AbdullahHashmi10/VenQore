@@ -21,11 +21,31 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'settings' => 'required|array',
-            'settings.pos_return_mode' => 'nullable|string|in:reference,customer_or_reference,open',
-            'settings.pos_return_window' => 'nullable|integer',
-            'settings.pos_return_window_behavior' => 'nullable|string|in:warn,block',
-            'settings.charity_enabled' => 'nullable|string|in:0,1',
+            'settings'                              => 'required|array',
+            // Return flow
+            'settings.pos_return_mode'              => 'nullable|string|in:reference,customer_or_reference,open',
+            'settings.pos_return_window'            => 'nullable|integer|min:0',
+            'settings.pos_return_window_behavior'   => 'nullable|string|in:warn,block',
+            // Store info
+            'settings.store_name'                   => 'nullable|string|max:255',
+            'settings.currency_symbol'              => 'nullable|string|max:10',
+            'settings.store_address'                => 'nullable|string|max:500',
+            'settings.store_phone'                  => 'nullable|string|max:30',
+            // POS toggles (sent as '0'/'1' strings)
+            'settings.pos_auto_fill_cash'           => 'nullable|string|in:0,1',
+            'settings.senior_mode'                  => 'nullable|string|in:0,1',
+            'settings.fbr_integration'              => 'nullable|string|in:0,1',
+            'settings.show_margin_percentage'       => 'nullable|string|in:0,1',
+            'settings.stop_sale_negative_stock'     => 'nullable|string|in:0,1',
+            'settings.round_off_total'              => 'nullable|string|in:0,1',
+            'settings.charity_enabled'              => 'nullable|string|in:0,1',
+            // Numeric
+            'settings.default_tax_rate'             => 'nullable|numeric|min:0|max:100',
+            // Enum
+            'settings.product_cost_update_policy'   => 'nullable|string|in:never,always,increase_only,decrease_only',
+            // Security
+            'settings.enable_passcode'              => 'nullable|string|in:0,1',
+            'settings.admin_passcode'               => 'nullable|string|max:6|regex:/^[0-9]*$/',
         ]);
 
         foreach ($data['settings'] as $key => $value) {

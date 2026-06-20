@@ -350,8 +350,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             // PROBLEM 1 FIX: Cashier sees only POS. All other roles see full Sell menu sub-items.
             subs: props.auth?.user?.role === 'cashier' ? [] : [
                 { group: 'Transactions', items: ['Orders', 'Quotations / Pre-Sales', 'Proposals'] },
-                { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: true }, { label: 'Recurring Invoices', locked: true }] },
-                { group: 'Config', items: [{ label: 'E-Invoicing', locked: true }] }
+                { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: !store?.features?.invoice_reminders }, { label: 'Recurring Invoices', locked: !store?.features?.recurring_invoices }] },
+                { group: 'Config', items: [{ label: 'E-Invoicing', locked: !store?.features?.e_invoicing }] }
             ],
             route: store ? 'store.sales.dashboard' : 'sales.dashboard',
             routeParams: store ? { store_slug: store.slug } : {}
@@ -373,7 +373,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                 { group: 'Catalog', items: ['Products', 'Categories', 'Attributes', 'Labels'] },
                 { group: 'Operations', items: ['Stock Levels', 'Stock Operations', 'Stock Transfers', 'Stock Audit'] },
                 { group: 'Tracking', items: ['Batch Tracking', 'Serial Tracking'] },
-                { group: 'Manufacturing', items: [{ label: 'Production', locked: true }, { label: 'Cookbook', locked: true }] }
+                { group: 'Manufacturing', items: [{ label: 'Production', locked: !store?.features?.production }, { label: 'Cookbook', locked: !store?.features?.bill_of_materials }] }
             ],
             route: store ? 'store.inventory.dashboard' : 'inventory.dashboard',
             routeParams: store ? { store_slug: store.slug } : {}
@@ -392,7 +392,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             icon: Wallet,
             subs: [
                 { group: 'Cash Flow', items: ['Payments', 'Expenses', 'To Receive', 'To Pay'] },
-                { group: 'Banking', items: [{ label: 'Fund Management', locked: true }, 'Bank Accounts', { label: 'Bank Reconciliation', locked: true }] },
+                { group: 'Banking', items: [{ label: 'Fund Management', locked: !store?.features?.fund_management }, 'Bank Accounts', { label: 'Bank Reconciliation', locked: !store?.features?.bank_reconciliation }] },
             ],
             route: store ? 'store.transactions.index' : 'transactions.index',
             routeParams: store ? { store_slug: store.slug } : {}
@@ -402,7 +402,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             icon: RefreshCcw,
             subs: [
                 { group: 'Multi-Channel', items: ['VenSynQ'] },
-                { group: 'Promotion', items: [{ label: 'Email Marketing', locked: true }, { label: 'SMS Marketing', locked: true }, { label: 'Campaigns', locked: true }] },
+                { group: 'Promotion', items: [{ label: 'Email Marketing', locked: !store?.features?.email_marketing }, { label: 'SMS Marketing', locked: !store?.features?.sms_marketing }, { label: 'Campaigns', locked: !store?.features?.campaigns }] },
                 { group: 'Integrations', items: [woocommerce_enabled ? 'WooCommerce Sync' : null].filter(Boolean) },
                 { group: 'Configuration', items: ['VenSynQ Settings'] }
             ],
@@ -413,7 +413,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             name: 'Insights',
             icon: TrendingUp,
             subs: [
-                { group: 'Growth', items: [isStarterOrLtd1 ? { label: 'Growth Engine', locked: true } : 'Growth Engine'] },
+                { group: 'Growth', items: [!store?.features?.growth_engine ? { label: 'Growth Engine', locked: true } : 'Growth Engine'] },
                 { group: 'Financial Health', items: ['Chart of Accounts', 'Profit & Loss', 'Balance Sheet', 'Cash Flow', 'Tax Report'] },
                 { group: 'Sales Analysis', items: ['Sales Report', 'Discount Report', 'Sale Aging'] },
                 { group: 'Purchase Analysis', items: ['Purchase Report', 'Expense Report'] },

@@ -226,10 +226,10 @@ class FinancialReportingService
                 'products.name',
                 'products.sku',
                 // Revenue: net_amount is Phase 2.1 column. Fallback to subtotal for legacy rows.
-                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal)) as net_revenue'),
-                DB::raw('SUM(sale_items.quantity + COALESCE(sale_items.free_quantity, 0)) as total_qty'),
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as net_revenue'),
+                DB::raw('SUM((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) + COALESCE(sale_items.free_quantity, 0)) as total_qty'),
                 // COGS: FIFO batches first; fall back to static cost_price for pre-FIFO rows
-                DB::raw('SUM(COALESCE(sib.fifo_cogs, sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0)))) as total_cogs')
+                DB::raw('SUM(COALESCE(sib.fifo_cogs, sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as total_cogs')
             )
             ->groupBy('products.id', 'products.name', 'products.sku')
             ->orderByDesc('net_revenue')
@@ -267,9 +267,9 @@ class FinancialReportingService
             ->leftJoin('parties', 'parties.id', '=', 'sales.party_id')
             ->leftJoin(
                 DB::raw("(SELECT si.sale_id,
-                                 SUM(COALESCE(NULLIF(si.net_amount,0), si.subtotal)) as net_revenue,
+                                 SUM(COALESCE(NULLIF(si.net_amount,0), si.subtotal) * ((si.quantity - COALESCE(si.returned_quantity,0)) / NULLIF(si.quantity,0))) as net_revenue,
                                  SUM(COALESCE(sib_agg.fifo_cogs,
-                                              si.cost_price * (si.quantity + COALESCE(si.free_quantity,0)))) as total_cogs
+                                              si.cost_price * (si.quantity + COALESCE(si.free_quantity,0))) * ((si.quantity - COALESCE(si.returned_quantity,0)) / NULLIF(si.quantity,0))) as total_cogs
                           FROM sale_items si
                           LEFT JOIN (SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
                                      FROM sale_item_batches 
@@ -341,8 +341,8 @@ class FinancialReportingService
             ->select(
                 'categories.id as category_id',
                 'categories.name as category_name',
-                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal)) as net_revenue'),
-                DB::raw('SUM(COALESCE(sib.fifo_cogs, sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0)))) as total_cogs')
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as net_revenue'),
+                DB::raw('SUM(COALESCE(sib.fifo_cogs, sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as total_cogs')
             )
             ->groupBy('categories.id', 'categories.name')
             ->orderByDesc('net_revenue')
@@ -377,9 +377,9 @@ class FinancialReportingService
             ->join('parties', 'parties.id', '=', 'sales.party_id')
             ->leftJoin(
                 DB::raw("(SELECT si.sale_id,
-                                 SUM(COALESCE(NULLIF(si.net_amount,0), si.subtotal)) as net_revenue,
+                                 SUM(COALESCE(NULLIF(si.net_amount,0), si.subtotal) * ((si.quantity - COALESCE(si.returned_quantity,0)) / NULLIF(si.quantity,0))) as net_revenue,
                                  SUM(COALESCE(sib_agg.fifo_cogs,
-                                              si.cost_price * (si.quantity + COALESCE(si.free_quantity,0)))) as total_cogs
+                                              si.cost_price * (si.quantity + COALESCE(si.free_quantity,0))) * ((si.quantity - COALESCE(si.returned_quantity,0)) / NULLIF(si.quantity,0))) as total_cogs
                           FROM sale_items si
                           LEFT JOIN (SELECT sale_item_id, SUM(total_cogs) as fifo_cogs
                                      FROM sale_item_batches 

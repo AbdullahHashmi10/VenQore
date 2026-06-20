@@ -29,11 +29,28 @@ class SaleItem extends Model
 {
     use HasUuids, HasFactory, SoftDeletes, HasTenant;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'tenant_id',
+        'sale_id',
+        'product_id',
+        'product_variant_id',
+        'quantity',
+        'free_quantity',
+        'unit_price',
+        'cost_price',
+        'gross_amount',
+        'discount_amount',
+        'net_amount',
+        'tax_rate',
+        'tax_amount',
+        'line_total',
+        'subtotal',
+        'returned_quantity'
+    ];
 
     protected $casts = [
-        'quantity'        => 'float',
-        'free_quantity'   => 'float',
+        'quantity'        => 'decimal:4',
+        'free_quantity'   => 'decimal:4',
         'unit_price'      => 'float',
         'cost_price'      => 'float',
         'gross_amount'    => 'float',
@@ -43,6 +60,7 @@ class SaleItem extends Model
         'tax_amount'      => 'float',
         'line_total'      => 'float',
         'subtotal'        => 'float',
+        'returned_quantity' => 'decimal:4',
     ];
 
     // ─── Computed Attributes ──────────────────────────────────────────────────

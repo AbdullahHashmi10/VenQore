@@ -76,7 +76,7 @@ class TaxService
     }
 
     /**
-     * Tax report: Sales Tax Payable (2200) vs Input Tax Recoverable (2300).
+     * Tax report: Sales Tax Payable (2100) vs Input Tax Recoverable (2300).
      * Returns net tax payable to the government for a given period.
      *
      * @return array{
@@ -90,19 +90,20 @@ class TaxService
     public function taxReport(Carbon $from, Carbon $to): array
     {
         $tid = $this->tenantId;
-        $account2200 = DB::table('accounts')->where('tenant_id', $tid)->where('code', '2200')->first();
+        // M1-06b fix: 2100 is Sales Tax Payable (2200 is Loans Payable — wrong account).
+        $account2100 = DB::table('accounts')->where('tenant_id', $tid)->where('code', '2100')->first();
         $account2300 = DB::table('accounts')->where('tenant_id', $tid)->where('code', '2300')->first();
 
-        // 2200 Sales Tax Payable — credit-normal — balance = SUM(credit) - SUM(debit)
+        // 2100 Sales Tax Payable — credit-normal — balance = SUM(credit) - SUM(debit)
         $salesTaxCollected = 0.00;
-        if ($account2200) {
+        if ($account2100) {
             $row = DB::table('journal_items')
                 ->where('journal_items.tenant_id', $tid)
                 ->join('journal_entries', function($join) use ($tid) {
                     $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
                          ->where('journal_entries.tenant_id', $tid);
                 })
-                ->where('journal_items.account_id', $account2200->id)
+                ->where('journal_items.account_id', $account2100->id)
                 ->where('journal_entries.is_reversed', 0)
                 ->whereBetween('journal_entries.date', [
                     $from->toDateString(),

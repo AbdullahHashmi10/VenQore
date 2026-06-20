@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Route;
 use Tests\Feature\VenQoreTestCase;
 
 beforeEach(function () {
-    $this->tenant = $this->createTenant('store-1');
+    $this->tenant = $this->createTenant('store-1', 'ltd_3');
     $this->actingAsOwner($this->tenant);
     $this->seedTenantDefaults($this->tenant);
     $this->warehouseId = DB::table('warehouses')->where('tenant_id', $this->tenant->id)->value('id');
@@ -845,12 +845,22 @@ test('record_an_expense', function () {
 });
 
 test('add_money_to_bank_account', function () {
+    $membership = \App\Models\TenantUser::where('tenant_id', $this->tenant->id)
+        ->where('user_id', auth()->id())
+        ->first();
+    if ($membership) {
+        \Illuminate\Support\Facades\DB::table('tenant_users')
+            ->where('id', $membership->id)
+            ->update(['security_pin' => \Illuminate\Support\Facades\Hash::make('123456')]);
+    }
+
     $response = $this->postJson("/s/{$this->tenant->slug}/v3/funds", [
         'type' => 'injection',
         'description' => 'Owner Capital injection',
         'transaction_date' => now()->toDateString(),
         'amount' => 5000,
         'payment_method' => 'bank',
+        'passcode' => '123456',
     ]);
     
     $response->assertRedirect();

@@ -67,6 +67,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+
+
         // ── Auto-log all backend exceptions to error_logs table ──────────────
         $exceptions->report(function (\Throwable $e) {
             // Skip: validation errors, auth redirects, and 404s (not real bugs)

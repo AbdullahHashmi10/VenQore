@@ -16,9 +16,7 @@ class CookbookController extends Controller
 {
     public function simulate(Request $request)
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $validated = $request->validate([
             'recipe_id' => 'required|exists:recipes,id',
@@ -60,9 +58,7 @@ class CookbookController extends Controller
 
     public function index()
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $recipes = Recipe::with(['product', 'ingredients.ingredientProduct', 'media'])
             ->where('is_active', true)
@@ -96,9 +92,7 @@ class CookbookController extends Controller
 
     public function create()
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $products = Product::orderBy('name')->get()->map(function ($p) {
             return [
@@ -124,9 +118,7 @@ class CookbookController extends Controller
 
     public function store(Request $request)
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -178,14 +170,12 @@ class CookbookController extends Controller
             }
         }
 
-        return redirect()->route('cookbook.index')->with('success', 'Recipe created successfully');
+        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Recipe created successfully');
     }
 
     public function edit($id)
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $recipe = Recipe::with(['ingredients', 'media'])->findOrFail($id);
 
@@ -243,9 +233,7 @@ class CookbookController extends Controller
 
     public function update(Request $request, $id)
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $oldRecipe = Recipe::findOrFail($id);
 
@@ -319,19 +307,17 @@ class CookbookController extends Controller
             }
         }
 
-        return redirect()->route('cookbook.index')->with('success', "Recipe updated to Version {$newVersion} successfully");
+        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', "Recipe updated to Version {$newVersion} successfully");
     }
 
     public function destroy($id)
     {
-        if (!\App\Services\PlanGate::check('bill_of_materials')) {
-            abort(403, 'Cookbook is not available on your current plan.');
-        }
+        \App\Services\PlanGate::enforce('bill_of_materials');
 
         $recipe = Recipe::findOrFail($id);
         $recipe->ingredients()->delete();
         $recipe->delete();
 
-        return redirect()->route('cookbook.index')->with('success', 'Recipe deleted successfully');
+        return redirect()->route('store.cookbook.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Recipe deleted successfully');
     }
 }

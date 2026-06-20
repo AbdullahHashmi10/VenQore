@@ -241,19 +241,29 @@ class RecycleBinController extends Controller
         } elseif ($type === 'sale') {
             $sale = \App\Models\Sale::withTrashed()->findOrFail($id);
             $ref = $sale->reference_number;
-            
-            \App\Models\JournalEntry::where('reference', $sale->id)
-                ->where('tenant_id', $sale->tenant_id)
-                ->update(['is_reversed' => 1]);
 
-            $sale->items()->withTrashed()->forceDelete();
-            $sale->payments()->withTrashed()->forceDelete();
-            $sale->forceDelete();
+            $hasJournal = \App\Models\JournalEntry::where('tenant_id', $sale->tenant_id)
+                ->where(function ($q) use ($sale) {
+                    $q->where('reference', $sale->id)
+                      ->orWhere('reference', $sale->reference_number);
+                })->exists();
+
+            if ($hasJournal) {
+                return redirect()->back()->withErrors(['error' =>
+                    'This sale is posted to the ledger and cannot be permanently deleted. '
+                    . 'Use Return/Reverse to undo it — that keeps the books balanced.']);
+            }
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($sale) {
+                $sale->items()->withTrashed()->forceDelete();
+                $sale->payments()->delete();
+                $sale->forceDelete();
+            });
 
             ActivityLog::create([
                 'user_id' => Auth::id(),
                 'action' => 'force_delete',
-                'description' => "Permanently deleted Sale/Return: {$ref}",
+                'description' => "Permanently deleted unposted Sale: {$ref}",
                 'subject_type' => \App\Models\Sale::class,
                 'subject_id' => $id,
             ]);

@@ -20,9 +20,9 @@ class SubscriptionLifecycleMiddleware
             // 2. Check if the store is locked in View-Only mode
             if ($tenant->view_only_since !== null) {
                 
-                // Allow GET/HEAD requests to read data safely
-                if ($request->isMethod('GET') || $request->isMethod('HEAD')) {
-                    return $next($request);
+                // Allow GET/HEAD/OPTIONS requests to read data safely
+                if (in_array($request->method(), ['GET', 'HEAD', 'OPTIONS'])) {
+                    return $next($request); // reads always allowed
                 }
 
                 // Whitelist billing, backup recovery, and logout endpoints to allow payment/rescue

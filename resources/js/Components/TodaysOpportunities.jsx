@@ -130,6 +130,11 @@ const TodaysOpportunities = ({ className = '' }) => {
         return null;
     }
 
+    // No data (e.g. feature gated → 403, or empty): render nothing rather than crash.
+    if (!data) {
+        return null;
+    }
+
     return (
         <div className={`bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-white/5 shadow-sm overflow-hidden flex flex-col h-full ${className}`}>
             {/* Header */}

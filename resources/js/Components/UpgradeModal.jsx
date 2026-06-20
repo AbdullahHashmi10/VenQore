@@ -32,12 +32,16 @@ export default function UpgradeModal() {
     const [currentCount, setCurrentCount] = useState(null);
     const [limit, setLimit]               = useState(null);
 
-    const { flash, limit_grace_status } = usePage().props;
+    const { flash, limit_grace_status, store } = usePage().props;
 
     useEffect(() => {
         const handlePlanLimit = (e) => {
             const detail = e.detail || {};
-            setFeature(detail.feature || 'limit');
+            const feat = detail.feature;
+            if (feat && store?.features?.[feat] === true) {
+                return; // Already has feature
+            }
+            setFeature(feat || 'limit');
             setMessage(detail.message || "You've reached the limit for your current plan.");
             setCurrentPlan(detail.current_plan || 'starter');
             setUpgradeUrl(detail.upgrade_url || '#');
@@ -50,12 +54,16 @@ export default function UpgradeModal() {
 
         window.addEventListener('amd:plan-limit', handlePlanLimit);
         return () => window.removeEventListener('amd:plan-limit', handlePlanLimit);
-    }, []);
+    }, [store?.features]);
 
     useEffect(() => {
         if (flash?.plan_limit) {
             const detail = flash.plan_limit;
-            setFeature(detail.feature || 'limit');
+            const feat = detail.feature;
+            if (feat && store?.features?.[feat] === true) {
+                return; // Already has feature
+            }
+            setFeature(feat || 'limit');
             setMessage(detail.message || "You've reached the limit for your current plan.");
             setCurrentPlan(detail.current_plan || 'starter');
             setUpgradeUrl(detail.upgrade_url || '#');
@@ -65,7 +73,7 @@ export default function UpgradeModal() {
             setLimit(detail.limit || null);
             setIsOpen(true);
         }
-    }, [flash?.plan_limit]);
+    }, [flash?.plan_limit, store?.features]);
 
     const planPerks = {
         growth: [
@@ -91,6 +99,10 @@ export default function UpgradeModal() {
     const upgradeTo = (currentPlan === 'starter' || currentPlan === 'ltd_1') ? 'growth'
                      : (currentPlan === 'growth'  || currentPlan === 'ltd_2') ? 'business'
                      : 'business';
+    const isHighestTier = currentPlan === 'business' || currentPlan === 'ltd_3';
+    const upgradeLabel = isHighestTier
+        ? (currentPlan?.startsWith('ltd_') ? 'Subscription Plans' : 'Enterprise / Support')
+        : (upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1));
     const upgradePerks = planPerks[upgradeTo] || planPerks.growth;
 
     // LTD-specific logic: show AppSumo stacking CTA instead of subscription CTA
@@ -185,10 +197,16 @@ export default function UpgradeModal() {
                                 </span>
                             </div>
                             <h2 className="text-xl font-bold text-white leading-tight">
-                                Unlock More with{' '}
-                                <span className={upgradeTo === 'business' ? 'text-amber-400' : 'text-indigo-400'}>
-                                    {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
-                                </span>
+                                {isHighestTier ? (
+                                    <span>Plan Limit Reached</span>
+                                ) : (
+                                    <>
+                                        Unlock More with{' '}
+                                        <span className={upgradeTo === 'business' ? 'text-amber-400' : 'text-indigo-400'}>
+                                            {upgradeLabel}
+                                        </span>
+                                    </>
+                                )}
                             </h2>
                             <p className="text-slate-400 text-sm mt-1 leading-relaxed">
                                 {message}
@@ -205,7 +223,7 @@ export default function UpgradeModal() {
                     <div className="bg-slate-800/60 backdrop-blur-sm border border-slate-700/50 rounded-xl p-5 mb-6">
                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <Crown size={12} className={upgradeTo === 'business' ? 'text-amber-400' : 'text-indigo-400'} />
-                            What you unlock with {upgradeTo.charAt(0).toUpperCase() + upgradeTo.slice(1)}
+                            What you unlock with {upgradeLabel}
                         </p>
                         <div className="grid grid-cols-1 gap-2.5">
                             {upgradePerks.map((perk, i) => (

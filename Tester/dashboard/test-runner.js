@@ -200,6 +200,7 @@ function runTests(projectPath, ws) {
   const startTime = Date.now();
   const modules = [
     ...Array.from({ length: 21 }, (_, i) => `Tester/tests/Feature/Module${String(i + 1).padStart(2, '0')}`),
+    'Tester/tests/Feature/Money',
     'Tester/tests/Feature/Smoke',
     'Tester/tests/Feature/DemoStore',
     'Tester/tests/Feature/AppSumo',
@@ -250,6 +251,7 @@ function runTests(projectPath, ws) {
   // Init module states
   const keys = [
     ...Array.from({ length: 21 }, (_, i) => `Module${String(i + 1).padStart(2, '0')}`),
+    'Money',
     'Smoke',
     'DemoStore',
     'AppSumo',

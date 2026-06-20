@@ -237,7 +237,12 @@ class User extends Authenticatable
     public function getActiveMembership(): ?TenantUser
     {
         if ($this->membershipResolved) {
-            return $this->resolvedMembership;
+            $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+            if ($boundTenantId === null || ($this->resolvedMembership && (int)$this->resolvedMembership->tenant_id === (int)$boundTenantId)) {
+                return $this->resolvedMembership;
+            }
+            $this->membershipResolved = false;
+            $this->resolvedMembership = null;
         }
 
         // 1. If we are in a tenant context, query/match the membership for this specific tenant first
@@ -257,7 +262,7 @@ class User extends Authenticatable
         // 2. Fallback to globally bound current.membership if it matches this user
         if (app()->bound('current.membership')) {
             $membership = app('current.membership');
-            if ($membership->user_id === $this->id) {
+            if ((int)$membership->user_id === (int)$this->id) {
                 $this->resolvedMembership = $membership;
                 $this->membershipResolved = true;
                 return $membership;

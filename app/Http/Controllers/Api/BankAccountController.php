@@ -12,6 +12,10 @@ class BankAccountController extends Controller
      */
     public function __invoke(Request $request)
     {
-        return response()->json(\Illuminate\Support\Facades\DB::table('bank_accounts')->get());
+        if (!app()->bound('current.tenant')) {
+            return response()->json([], 403);
+        }
+        $tenantId = app('current.tenant')->id;
+        return response()->json(\Illuminate\Support\Facades\DB::table('bank_accounts')->where('tenant_id', $tenantId)->get());
     }
 }

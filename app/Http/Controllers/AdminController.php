@@ -823,6 +823,8 @@ class AdminController extends Controller
             }
 
             return back()->with('success', 'Member updated.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
         } catch (\Exception $e) {
             \Log::error('updateMember error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine());
             return response()->json(['error' => $e->getMessage()], 500);

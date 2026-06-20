@@ -427,7 +427,8 @@ class ReportController extends Controller
         $party          = null;
 
         if ($partyId) {
-            $party = Party::find($partyId);
+            $tenantId = app('current.tenant')->id;
+            $party = Party::where('id', $partyId)->where('tenant_id', $tenantId)->first();
 
             // Phase 4 — Party ledger is authoritative.
             // We look up the journal entry lines tagged with this party_id.
@@ -461,7 +462,10 @@ class ReportController extends Controller
                     ->where('journal_entries.date', '<', $startDate)
                     ->where('journal_entries.is_reversed', 0)
                     ->sum('journal_items.credit');
-                $openingBalance = $openingDebits - $openingCredits;
+                $isCreditNormal = ($party && $party->type === 'supplier');
+                $openingBalance = $isCreditNormal
+                    ? ($openingCredits - $openingDebits)
+                    : ($openingDebits - $openingCredits);
 
                 // Period Transactions
                 $rows = DB::table('journal_items')
@@ -482,8 +486,9 @@ class ReportController extends Controller
                     ->get();
 
                 $runningBalance = $openingBalance;
-                $transactions = $rows->map(function ($r) use (&$runningBalance) {
-                    $runningBalance += ($r->debit - $r->credit);
+                $transactions = $rows->map(function ($r) use (&$runningBalance, $isCreditNormal) {
+                    $delta = $isCreditNormal ? ($r->credit - $r->debit) : ($r->debit - $r->credit);
+                    $runningBalance += $delta;
                     return [
                         'date'    => $r->date,
                         'type'    => $r->debit > 0 ? 'Debit' : 'Credit',

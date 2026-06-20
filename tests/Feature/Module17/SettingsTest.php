@@ -349,3 +349,38 @@ test('resolves the settings panel without redirecting to the hub', function () {
     $response->assertStatus(200);
     $response->assertInertia(fn ($page) => $page->component('Settings/SettingsPanel'));
 });
+
+test('A4: store name and currency symbol persist via settings update', function () {
+    $tenant = $this->createTenant('a4-persist-test');
+    $this->actingAsOwner($tenant);
+
+    $response = $this->post("/s/{$tenant->slug}/settings", [
+        'settings' => [
+            'store_name' => 'New Shop Name',
+            'currency_symbol' => '£'
+        ]
+    ]);
+    $response->assertStatus(302);
+
+    $tenant->refresh();
+    expect($tenant->name)->toBe('New Shop Name')
+        ->and($tenant->currency_symbol)->toBe('£');
+});
+
+test('A4: existing whitelisted settings still save', function () {
+    $tenant = $this->createTenant('a4-whitelist-test');
+    $this->actingAsOwner($tenant);
+
+    $response = $this->post("/s/{$tenant->slug}/settings", [
+        'settings' => [
+            'charity_enabled' => '1'
+        ]
+    ]);
+    $response->assertStatus(302);
+
+    $this->assertDatabaseHas('settings', [
+        'tenant_id' => $tenant->id,
+        'key' => 'charity_enabled',
+        'value' => '1'
+    ]);
+});

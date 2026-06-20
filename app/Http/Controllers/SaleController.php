@@ -34,6 +34,12 @@ class SaleController extends Controller
     }
     public function store(Request $request)
     {
+        $monthlyCount = \App\Models\Sale::where('status', 'posted')
+            ->whereYear('created_at', now()->year)
+            ->whereMonth('created_at', now()->month)
+            ->count();
+        \App\Services\PlanGate::enforce('transactions_per_month', $monthlyCount);
+
         $request->validate([
             'customer_id'           => 'nullable|exists:parties,id',
             'items'                 => 'required|array|min:1',
@@ -64,9 +70,11 @@ class SaleController extends Controller
             $manufacturingNotifications = [];
 
             // 2. WATERFALL: Calculate totals
+            // PASS 1 — gather gross/item-discount/net per line; do NOT compute tax yet
+            // because tax must be charged on the net AFTER the global/order discount is
+            // apportioned (Finding F7 / M1-06 fix).
             $subtotalGross = 0;
             $totalItemDiscounts = 0;
-            $totalTax = 0;
             $globalDiscount = (float)($request->discount ?? 0);
             $lineItemsData = [];
 
@@ -81,34 +89,59 @@ class SaleController extends Controller
 
                 $gross = $unitPrice * $qty;
                 $freeValue = $unitPrice * $freeQty;
+                // net = line revenue after item-level discount (before global discount)
                 $net = max(0, $gross - $itemDiscount);
-                
+
                 $taxRate = ($product->tax_rate !== null) ? (float)$product->tax_rate : \App\Helpers\SettingsHelper::getDefaultTaxRate();
-                $taxAmt = round($net * ($taxRate / 100), 4);
 
                 $subtotalGross += $gross + $freeValue;
                 $totalItemDiscounts += $itemDiscount + $freeValue;
-                $totalTax += $taxAmt;
 
                 $lineItemsData[] = [
-                    'product' => $product,
+                    'product'    => $product,
                     'product_id' => $item['product_id'],
                     'variant_id' => $item['variant_id'] ?? null,
-                    'qty' => $qty,
-                    'free_qty' => $freeQty,
+                    'qty'        => $qty,
+                    'free_qty'   => $freeQty,
                     'unit_price' => $unitPrice,
-                    'gross' => $gross + $freeValue,
-                    'discount' => $itemDiscount + $freeValue,
-                    'net' => $net,
-                    'tax_rate' => $taxRate,
-                    'tax_amt' => $taxAmt,
-                    'serials' => $item['serials'] ?? [],
+                    'gross'      => $gross + $freeValue,
+                    'discount'   => $itemDiscount + $freeValue,
+                    'net'        => $net,
+                    'tax_rate'   => $taxRate,
+                    'tax_amt'    => 0.0, // filled in pass 2 below
+                    'serials'    => $item['serials'] ?? [],
                 ];
             }
 
-            $netSales = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
+            // PASS 2 — apportion global discount across lines proportionally to each
+            // line's after-item-discount net, then compute tax on the reduced taxable
+            // base.  This ensures the correct order of operations:
+            //   net_sales  = Σgross − Σitem_discounts − global_discount   (taxable base)
+            //   tax        = Σ round(line_taxable × rate / 100, 2)
+            //   invoice    = net_sales + tax
+            //
+            // If all lines share the same rate this collapses to:
+            //   tax = net_sales × rate — but the per-line path stays correct for
+            //   multi-rate invoices without any extra branch.
+            $sumLineNets = max(0, $subtotalGross - $totalItemDiscounts); // Σ(net after item discount)
+            $totalTax    = 0.0;
+
+            foreach ($lineItemsData as &$ld) {
+                // Each line's share of the global discount, weighted by its net.
+                // If sumLineNets is 0 (fully discounted away) the tax is 0.
+                $lineShare     = ($sumLineNets > 0)
+                    ? $globalDiscount * ($ld['net'] / $sumLineNets)
+                    : 0.0;
+                $lineTaxable   = max(0.0, $ld['net'] - $lineShare);
+                $taxAmt        = round($lineTaxable * ($ld['tax_rate'] / 100), 2);
+                $ld['tax_amt'] = $taxAmt;
+                $totalTax     += $taxAmt;
+            }
+            unset($ld); // release reference
+
+            $netSales     = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
             $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal($netSales + $totalTax);
-            $roundOff = $invoiceTotal - ($netSales + $totalTax);
+            $roundOff     = $invoiceTotal - ($netSales + $totalTax);
 
             // ── Credit Limit Check ──
             if ($request->customer_id) {
@@ -643,7 +676,7 @@ class SaleController extends Controller
         $isFullReturn = empty($itemsToReturn) || $this->isFullReturn($sale, $itemsToReturn);
 
         try {
-            DB::transaction(function () use ($sale, $request, $refundMethod, $refundSource, $reason, $itemsToReturn, $isFullReturn, &$returnTotal) {
+            $retVal = DB::transaction(function () use ($sale, $request, $refundMethod, $refundSource, $reason, $itemsToReturn, $isFullReturn, &$returnTotal) {
 
                 if ($isFullReturn) {
                     // ─── FULL RETURN ───────────────────────────────────────────
@@ -696,7 +729,10 @@ class SaleController extends Controller
                         $originalItem = $sale->items->firstWhere('id', $returnItem['id']);
                         if (!$originalItem) continue;
 
-                        $qty = min((float) $returnItem['quantity'], (float) $originalItem->quantity);
+                        $alreadyReturned     = (float) $originalItem->returned_quantity;
+                        $remainingReturnable = max(0.0, (float) $originalItem->quantity - $alreadyReturned);
+                        $qty                 = min((float) $returnItem['quantity'], $remainingReturnable);
+                        if ($qty <= 0) { continue; }   // nothing left to return on this line
 
                         // BUG-04 FIX (CALCULATION_LOGIC.md §8 BUG-04 & §9.2)
                         // OLD: unit_price × qty — gross price, before discounts
@@ -764,6 +800,13 @@ class SaleController extends Controller
                             $journalItems[] = ['account_id' => $incAccount->id,   'debit' => $lineRevenue, 'credit' => 0,            'description' => "Revenue reversal: partial return of {$sale->reference_number}"];
                             $journalItems[] = ['account_id' => $refundAccount->id, 'debit' => 0,           'credit' => $lineRevenue, 'description' => "Refund ({$refundAccountCode}): partial return of {$sale->reference_number}"];
                         }
+
+                        DB::table('sale_items')->where('id', $originalItem->id)
+                            ->increment('returned_quantity', $qty);
+                    }
+
+                    if ($returnTotal == 0 && empty($journalItems)) {
+                        return back()->withErrors(['error' => 'Nothing left to return on this sale.']);
                     }
 
                     // Post the partial reversal journal entry
@@ -805,6 +848,10 @@ class SaleController extends Controller
                 }
             });
 
+            if ($retVal instanceof \Illuminate\Http\RedirectResponse) {
+                return $retVal;
+            }
+
             $sourceLabel = match($refundSource) {
                 'bank_account' => 'bank transfer',
                 'online'       => 'online/card',
@@ -833,13 +880,28 @@ class SaleController extends Controller
     private function isFullReturn(Sale $sale, array $itemsToReturn): bool
     {
         if (empty($itemsToReturn)) return true;
-        foreach ($itemsToReturn as $returnItem) {
-            $originalItem = $sale->items->firstWhere('id', $returnItem['id'] ?? null);
-            if (!$originalItem) continue;
-            if ((float) ($returnItem['quantity'] ?? 0) < (float) $originalItem->quantity) {
+
+        $returnQtyMap = [];
+        foreach ($itemsToReturn as $item) {
+            if (isset($item['id'])) {
+                $returnQtyMap[$item['id']] = (float) ($item['quantity'] ?? 0);
+            }
+        }
+
+        foreach ($sale->items as $originalItem) {
+            $alreadyReturned     = (float) $originalItem->returned_quantity;
+            $remainingReturnable = max(0.0, (float) $originalItem->quantity - $alreadyReturned);
+
+            if ($remainingReturnable <= 0) {
+                continue;
+            }
+
+            $requestedQty = $returnQtyMap[$originalItem->id] ?? 0.0;
+            if ($requestedQty < $remainingReturnable) {
                 return false;
             }
         }
+
         return true;
     }
 

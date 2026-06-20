@@ -312,9 +312,9 @@ class SalesOrderController extends Controller
                     $subtotalGross += $qty * $unitPrice;
                     $totalDiscount += $itemDiscount;
                     
-                    // Tax calculation (currently 0% since sales_order_items doesn't store tax_rate, but let's be extensible)
                     $net = ($qty * $unitPrice) - $itemDiscount;
-                    $taxRate = 0.0;
+                    $product = Product::find($item->product_id);
+                    $taxRate = (float) ($product->tax_rate ?? 0);
                     $taxAmount = $net * ($taxRate / 100);
                     $totalTax += $taxAmount;
                 }
@@ -342,9 +342,11 @@ class SalesOrderController extends Controller
                 ]);
 
                 $fifo = app(\App\Services\V3\FifoService::class);
+                $totalCogs = 0.0;
 
                 foreach ($order->items as $item) {
                     $totalQty = (float)$item->quantity_requested;
+                    $product = Product::find($item->product_id);
 
                     // A. Deduct stock using FIFO (Batches)
                     $lineCogs = 0;
@@ -354,10 +356,11 @@ class SalesOrderController extends Controller
                         $lineCogs = collect($deductions)->sum('total_cost');
                     } catch (\App\Exceptions\InsufficientStockException $e) {
                         // Fallback: use static cost for backorders
-                        $product = Product::find($item->product_id);
                         $lineCogs = ($product->cost_price ?? 0) * $totalQty;
                         Log::warning("Backorder in conversion for product {$item->product_id}: using static cost.");
                     }
+
+                    $totalCogs += $lineCogs;
 
                     // B. Deduct Physical Stock from 'stocks' table (handles negatives)
                     $stock = Stock::where('product_id', $item->product_id)->where('warehouse_id', $warehouseId)->first();
@@ -389,7 +392,7 @@ class SalesOrderController extends Controller
                     $itemDiscount = (float)($item->discount ?? 0);
                     $gross = $qty * $unitPrice;
                     $net = $gross - $itemDiscount;
-                    $taxRate = 0.0;
+                    $taxRate = (float) ($product->tax_rate ?? 0);
                     $taxAmount = $net * ($taxRate / 100);
                     $lineTotal = $net + $taxAmount;
 
@@ -431,14 +434,28 @@ class SalesOrderController extends Controller
                 $accounting = resolve(\App\Services\V3\AccountingService::class);
                 $journalItems = [];
                 
-                // DR: AR
+                // DR: AR (1200)
                 $arAcc = $accounting->getAccountByCode('1200');
                 $journalItems[] = ['account_id' => $arAcc->id, 'debit' => $invoiceTotal, 'credit' => 0, 'description' => "AR from Conversion #{$sale->reference_number}"];
                 
-                // CR: Revenue
+                // CR: Revenue (4000)
                 $revAcc = $accounting->getAccountByCode('4000');
-                $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $invoiceTotal, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
+                $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $netSales, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
                 
+                // CR: Sales Tax Payable (2100) if applicable
+                if ($totalTax > 0) {
+                    $taxAcc = $accounting->getAccountByCode('2100'); // was '2200' (Loans Payable) — M1-06b fix
+                    $journalItems[] = ['account_id' => $taxAcc->id, 'debit' => 0, 'credit' => $totalTax, 'description' => "Sales Tax from Conversion #{$sale->reference_number}"];
+                }
+
+                // DR: COGS (5000) / CR: Inventory (1100)
+                if ($totalCogs > 0) {
+                    $cogsAcc = $accounting->getAccountByCode('5000');
+                    $invAcc  = $accounting->getAccountByCode('1100');
+                    $journalItems[] = ['account_id' => $cogsAcc->id, 'debit' => $totalCogs, 'credit' => 0,          'description' => "COGS from Conversion #{$sale->reference_number}"];
+                    $journalItems[] = ['account_id' => $invAcc->id,  'debit' => 0,          'credit' => $totalCogs, 'description' => "Inventory relief from Conversion #{$sale->reference_number}"];
+                }
+
                 // Post
                 $accounting->createEntry([
                     'date' => now()->toDateString(),

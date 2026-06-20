@@ -15,8 +15,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
-class WooConnectionController extends Controller
+use Illuminate\Routing\Controllers\HasMiddleware;
+
+class WooConnectionController extends Controller implements HasMiddleware
 {
+    public static function middleware(): array
+    {
+        return [
+            function ($request, $next) {
+                \App\Services\PlanGate::enforce('woocommerce');
+                return $next($request);
+            }
+        ];
+    }
+
     // ─── Helper: get current tenant ID (same pattern as all other controllers) ─
     private function tenantId(): int
     {

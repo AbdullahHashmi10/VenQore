@@ -561,6 +561,53 @@ class CodeStackingTest extends VenQoreTestCase
             'Read access must never be blocked when transaction limit is reached.');
         $this->assertNotEquals(403, $response->status(),
             'Read access must never be blocked when transaction limit is reached.');
+
+        // COMPANION ASSERTION: A WRITE (POST a new sale) while over limit is STILL blocked
+        $warehouseId = DB::table('warehouses')->where('tenant_id', $tenant->id)->value('id');
+        if (!$warehouseId) {
+            $warehouseId = \Illuminate\Support\Str::uuid()->toString();
+            DB::table('warehouses')->insert([
+                'id' => $warehouseId,
+                'tenant_id' => $tenant->id,
+                'name' => 'Default Warehouse',
+                'created_at' => now(),
+            ]);
+        }
+
+        $party = \App\Models\Party::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'tenant_id' => $tenant->id,
+            'name' => 'Test Customer',
+            'type' => 'customer',
+        ]);
+
+        $product = \App\Models\Product::create([
+            'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'tenant_id' => $tenant->id,
+            'name' => 'Test Product',
+            'sku' => 'SKU-TEST',
+            'base_unit' => 'unit',
+            'price' => 100.00,
+            'cost_price' => 50.00,
+        ]);
+
+        $writeResponse = $this->actingAsTenantUserModel($user, $tenant)
+            ->postJson(route('store.v3.sales.store', ['store_slug' => $tenant->slug]), [
+                'customer_id'    => $party->id,
+                'warehouse_id'   => $warehouseId,
+                'sale_date'      => now()->toDateString(),
+                'payment_method' => 'cash',
+                'amount_received'=> 100,
+                'items'          => [
+                    ['product_id' => $product->id, 'qty' => 1, 'unit_price' => 100, 'sale_uom' => 'unit'],
+                ],
+            ]);
+
+        $writeResponse->assertStatus(403)
+                     ->assertJson([
+                         'type'    => 'plan_limit',
+                         'feature' => 'transactions_per_month',
+                     ]);
     }
 
     /**
