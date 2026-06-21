@@ -16,6 +16,10 @@ class StockTransferItem extends Model
         'quantity'
     ];
 
+    protected $casts = [
+        'quantity' => 'decimal:4',
+    ];
+
     public function transfer()
     {
         return $this->belongsTo(StockTransfer::class, 'stock_transfer_id');

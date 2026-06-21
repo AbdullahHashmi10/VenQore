@@ -235,6 +235,9 @@ class SaleController extends Controller
                 'tax'                  => $totalTax,
                 'discount'             => $globalDiscount,
                 'total'                => $invoiceTotal,
+                'subtotal_gross'       => $subtotalGross,
+                'total_item_discounts' => $totalItemDiscounts,
+                'global_discount'      => $globalDiscount,
                 'net_sales'            => $netSales,
                 'total_tax'            => $totalTax,
                 'invoice_total'        => $invoiceTotal,
@@ -312,6 +315,7 @@ class SaleController extends Controller
                             $itemCogs += $d['total_cost'];
                             DB::table('sale_item_batches')->insert([
                                 'id'                 => \Illuminate\Support\Str::uuid()->toString(),
+                                'tenant_id'          => $sale->tenant_id,
                                 'sale_item_id'       => $saleItem->id,
                                 'inventory_batch_id' => $d['batch_id'],
                                 'qty_deducted'       => $d['qty_taken'],
@@ -401,20 +405,30 @@ class SaleController extends Controller
 
     public function dashboard()
     {
-        $today = \Carbon\Carbon::today();
-        $yesterday = \Carbon\Carbon::yesterday();
-        $startOfMonth = \Carbon\Carbon::now()->startOfMonth();
-        $startOfLastMonth = \Carbon\Carbon::now()->subMonth()->startOfMonth();
-        $endOfLastMonth = \Carbon\Carbon::now()->subMonth()->endOfMonth();
+        $tz = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        
+        $todayStart = \Carbon\Carbon::today($tz)->startOfDay()->utc();
+        $todayEnd = \Carbon\Carbon::today($tz)->endOfDay()->utc();
+        
+        $yesterdayStart = \Carbon\Carbon::yesterday($tz)->startOfDay()->utc();
+        $yesterdayEnd = \Carbon\Carbon::yesterday($tz)->endOfDay()->utc();
+        
+        $startOfMonth = \Carbon\Carbon::now($tz)->startOfMonth()->utc();
+        $startOfLastMonth = \Carbon\Carbon::now($tz)->subMonth()->startOfMonth()->utc();
+        $endOfLastMonth = \Carbon\Carbon::now($tz)->subMonth()->endOfMonth()->utc();
+        
+        $sub30Days = \Carbon\Carbon::now($tz)->subDays(30)->utc();
 
         // 1. Sales & Orders Today
         // net_sales = true revenue (ex-tax, ex-discount). All records are permanently normalised.
         $todayStats = Sale::where('status', '!=', 'returned')
-            ->whereDate('created_at', $today)
+            ->whereBetween('created_at', [$todayStart, $todayEnd])
             ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
             ->first();
 
-        $yesterdaySales = Sale::where('status', '!=', 'returned')->whereDate('created_at', $yesterday)->sum('net_sales');
+        $yesterdaySales = Sale::where('status', '!=', 'returned')
+            ->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd])
+            ->sum('net_sales');
         
         $dailyGrowth = $yesterdaySales > 0 
             ? (($todayStats->total - $yesterdaySales) / $yesterdaySales) * 100 
@@ -422,7 +436,7 @@ class SaleController extends Controller
 
         // 2. Monthly Net Sales
         $monthStats = Sale::where('status', '!=', 'returned')
-            ->whereDate('created_at', '>=', $startOfMonth)
+            ->where('created_at', '>=', $startOfMonth)
             ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
             ->first();
 
@@ -444,7 +458,7 @@ class SaleController extends Controller
 
         // 4. Active Customers
         $activeCustomers = Sale::where('status', '!=', 'returned')
-            ->whereDate('created_at', '>=', \Carbon\Carbon::now()->subDays(30))
+            ->where('created_at', '>=', $sub30Days)
             ->whereNotNull('customer_id')
             ->distinct('customer_id')
             ->count('customer_id');
@@ -465,7 +479,7 @@ class SaleController extends Controller
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('sales.tenant_id', $tenantId)
             ->where('sales.status', '!=', 'returned')
-            ->whereDate('sales.created_at', $today)
+            ->whereBetween('sales.created_at', [$todayStart, $todayEnd])
             ->select(
                 'products.name',
                 'products.price',
@@ -493,13 +507,13 @@ class SaleController extends Controller
             ->where('tenant_id', $tenantId)
             ->whereNull('deleted_at')
             ->where('status', '!=', 'returned')
-            ->whereDate('created_at', '>=', $startOfMonth)
+            ->where('created_at', '>=', $startOfMonth)
             ->select('payment_method', DB::raw('SUM(net_sales) as total'))
             ->groupBy('payment_method')
             ->get();
 
 
-        return Inertia::render('Sales/Dashboard', [
+        $data = [
             'stats' => [
                 'sales_today' => $todayStats->total,
                 'sales_today_growth' => round($dailyGrowth, 1),
@@ -514,7 +528,13 @@ class SaleController extends Controller
             'recentSales' => $recentSales,
             'topSelling' => $topSelling,
             'salesByMethod' => $salesByMethod
-        ]);
+        ];
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json($data);
+        }
+
+        return Inertia::render('Sales/Dashboard', $data);
     }
 
     public function index(Request $request)

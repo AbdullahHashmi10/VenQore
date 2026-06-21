@@ -13,6 +13,11 @@ class SalesOrderItem extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'quantity_requested' => 'decimal:4',
+        'quantity_reserved'  => 'decimal:4',
+    ];
+
     public function salesOrder()
     {
         return $this->belongsTo(SalesOrder::class);

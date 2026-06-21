@@ -851,7 +851,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/proposals/{proposal}/print', [\App\Http\Controllers\ProposalController::class, 'print'])->name('proposals.print');
 
     // Sales Orders (Pre-orders with Hold)
-    Route::resource('sales-orders', \App\Http\Controllers\SalesOrderController::class);
+    Route::resource('sales-orders', \App\Http\Controllers\SalesOrderController::class)->parameters([
+        'sales-orders' => 'order'
+    ]);
     Route::post('/sales-orders/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('sales-orders.convert');
     Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->name('sales-orders.export');
     Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->name('sales-orders.print');

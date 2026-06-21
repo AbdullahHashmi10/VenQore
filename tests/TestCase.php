@@ -9,6 +9,7 @@ abstract class TestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutVite();
 
         $fakeTenant = new class extends \App\Models\Tenant {
             public function __construct(array $attributes = [])

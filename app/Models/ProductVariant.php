@@ -16,6 +16,7 @@ class ProductVariant extends Model
 
     protected $casts = [
         'attributes' => 'array',
+        'stock' => 'decimal:4',
     ];
 
     public function product()

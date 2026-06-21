@@ -318,19 +318,19 @@ test('discount waterfall calculations are precise and correct', function () {
     // 2. Net Line Item:
     //    Net = Gross - Item Discount = 1,000.00 - 50.00 = 950.00
     //
-    // 3. Tax Amount (10% of Net Line Item):
-    //    Tax = 950.00 * (10 / 100) = 95.00
+    // 3. Tax Amount (10% of Net Sales since global discount reduces tax base):
+    //    Tax = 850.00 * (10 / 100) = 85.00
     //
     // 4. Net Sales (Subtotal Gross - Item Discounts - Global Discount):
     //    Net Sales = 1,000.00 - 50.00 - 100.00 = 850.00
     //
     // 5. Invoice Total (Net Sales + Tax):
-    //    Total = 850.00 + 95.00 = 945.00
+    //    Total = 850.00 + 85.00 = 935.00
 
     $expectedSubtotal = 1000.00;
     $expectedNetSales = 850.00;
-    $expectedTax      = 95.00;
-    $expectedTotal    = 945.00;
+    $expectedTax      = 85.00;
+    $expectedTotal    = 935.00;
 
     $product = Product::factory()->create([
         'tenant_id' => $this->tenant->id,
@@ -369,7 +369,7 @@ test('discount waterfall calculations are precise and correct', function () {
         ],
         'discount' => 100.00,
         'payment_method' => 'cash',
-        'amount_paid' => 945.00,
+        'amount_paid' => 935.00,
     ];
 
     $response = $this->post("/s/{$this->tenant->slug}/sales", $data);

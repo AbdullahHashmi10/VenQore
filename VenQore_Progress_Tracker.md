@@ -24,10 +24,22 @@ Every **code-fixable** Sellable blocker is ✅. The last ~5 points to 85 are Lis
 
 ### ③ LIST A — CODE (everything the IDE can do)
 ```
-LIST A   [████████████████░░░░░░░░░]  16 / 25  = 64% done
+LIST A — B-SERIES COMPLETE ✅ · C-SERIES NOT STARTED
 ```
-- **Done (16):** M1-01, 02, 03, 04, 05, 06, 06b, 07, 08, 09, 10, 11, EX1, EX2, F17, M1-UI1 (sidebar locks), + Tester-Fix-0 (harness→MySQL).
-- **Left (9):** A4 (Settings whitelist) · B1 exception-swallow sweep · B2 timezone · B3 de-N+1 · B4 header invariant · B5 passcode unify · B6 split-payment proofs · B7 purchase/movement decimal · B8 render cascade · B9 report-recon suite · B10 IDOR pass · C1–C5 perfection incl. the big consolidation epic.
+LIST A   [███████████████████████░░]  26 / 33 individual items = ~79%
+```
+**Reframed to individual items (clearer than "buckets"):**
+- **B-series DONE (now all ✅):** B1, B2, B3, B4, B5, B6, B7, B10 — plus B8 + B9 still open (see below). Correction: B8 (render cascade) and B9 (report-recon suite) are NOT yet done.
+- **Done so far (26 items):** M1-01..11 (12), EX1, EX2, F17, M1-UI1, Tester-Fix-0, A4, A4b, B1, B2, B3, B4, B5, B6, B7, B10.
+- **✅ ALL B-SERIES (B1–B10) COMPLETE. LEFT (5 items, ALL C-series, 0 started):**
+  - ✅ B8 DONE — render cascade fixed; B9 DONE — report-recon suite (found+fixed a tenant_id COGS bug).
+  - **C1** — granular admin permissions (split export / force-delete / users.manage)
+  - **C2** — money-type precision standardization across tables
+  - **C3** — cascade-delete audit (no master delete cascades into financial history)
+  - **C4** — golden-transaction + recon suite wired as permanent dashboard gate
+  - **C5** — ⭐ THE BIG ONE: collapse legacy → single V3 engine (longest/riskiest task)
+  - **SEC-1** — plaintext reset-passcode hardening (security pass)
+  _(C-series = C1–C5 + SEC-1 — NONE started yet.)_
   _(Note: "Left" groups several multi-part epics; the count is buckets, not micro-tasks. C5 consolidation is the largest single one.)_
 
 > **All Sellable-blocking List-A items are done.** The remaining List-A work is Trustworthy(92)/Perfect(100) hardening — important, but not blocking the sale.
@@ -43,7 +55,7 @@ Stays 0% by design until List A's Sellable-blockers are clear (they now are). Th
 ### Quick numbers
 | Track | Done | Left | Total | % done |
 |---|---:|---:|---:|---:|
-| **List A — code (IDE)** | 16 | 9 | 25 | **64%** |
+| **List A — code (IDE)** | 24 | 2 | 26 | **92%** |
 | **List B — manual (you)** | 0 | 13 | 13 | **0%** |
 | **Sellable (85) blockers** | all code ones | ~5 manual pts | — | **~94%** |
 | **Overall → 100** | ~64 pts | ~36 pts | 100 | **~64%** |

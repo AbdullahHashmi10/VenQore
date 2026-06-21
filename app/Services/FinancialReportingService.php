@@ -60,6 +60,18 @@ class FinancialReportingService
         $start = $start instanceof Carbon ? $start->toDateString() : (string) $start;
         $end   = $end instanceof Carbon   ? $end->toDateString()   : (string) $end;
 
+        $tenantId = app('current.tenant')->id;
+        $sums = DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->where('journal_items.tenant_id', $tenantId)
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.is_reversed', 0)
+            ->whereBetween('journal_entries.date', [$start, $end])
+            ->selectRaw('account_id, SUM(debit) as total_debit, SUM(credit) as total_credit')
+            ->groupBy('account_id')
+            ->get()
+            ->keyBy('account_id');
+
         // ─── Revenue: SUM(credits - debits) across all income accounts ────────
         // Income accounts have a credit-normal balance.
         // Revenue for period = credits posted - debits posted in that range.
@@ -68,8 +80,9 @@ class FinancialReportingService
         $totalRevenue   = 0;
 
         foreach ($incomeAccounts as $account) {
-            $credit = $this->sumJournalItems($account->id, 'credit', $start, $end);
-            $debit  = $this->sumJournalItems($account->id, 'debit',  $start, $end);
+            $sum = $sums->get($account->id);
+            $credit = $sum ? (float) $sum->total_credit : 0.0;
+            $debit  = $sum ? (float) $sum->total_debit  : 0.0;
             $net    = $credit - $debit;
 
             $incomeDetails[] = [
@@ -90,8 +103,9 @@ class FinancialReportingService
 
         if ($cogsAccount) {
             $cogsId    = $cogsAccount->id;
-            $cogsDebit = $this->sumJournalItems($cogsId, 'debit',  $start, $end);
-            $cogsCredit = $this->sumJournalItems($cogsId, 'credit', $start, $end);
+            $sum       = $sums->get($cogsId);
+            $cogsDebit = $sum ? (float) $sum->total_debit  : 0.0;
+            $cogsCredit = $sum ? (float) $sum->total_credit : 0.0;
             $totalCogs  = $cogsDebit - $cogsCredit;
         }
 
@@ -103,8 +117,9 @@ class FinancialReportingService
         $totalOpex         = 0;
 
         foreach ($expenseAccounts as $account) {
-            $debit  = $this->sumJournalItems($account->id, 'debit',  $start, $end);
-            $credit = $this->sumJournalItems($account->id, 'credit', $start, $end);
+            $sum    = $sums->get($account->id);
+            $debit  = $sum ? (float) $sum->total_debit  : 0.0;
+            $credit = $sum ? (float) $sum->total_credit : 0.0;
             $net    = $debit - $credit;
 
             $expenseDetails[] = [
@@ -289,7 +304,7 @@ class FinancialReportingService
                 'sales.reference_number',
                 'sales.posted_at as date',
                 'parties.name as party_name',
-                DB::raw('COALESCE(line_totals.net_revenue, 0) as net_revenue'),
+                DB::raw('COALESCE(line_totals.net_revenue, 0) - sales.global_discount as net_revenue'),
                 DB::raw('COALESCE(line_totals.total_cogs,  0) as total_cogs')
             )
             ->orderByDesc('sales.posted_at')
@@ -398,7 +413,7 @@ class FinancialReportingService
                 'parties.id as party_id',
                 'parties.name as party_name',
                 DB::raw('COUNT(DISTINCT sales.id) as invoice_count'),
-                DB::raw('SUM(COALESCE(line_totals.net_revenue, 0)) as net_revenue'),
+                DB::raw('SUM(COALESCE(line_totals.net_revenue, 0) - sales.global_discount) as net_revenue'),
                 DB::raw('SUM(COALESCE(line_totals.total_cogs,  0)) as total_cogs')
             )
             ->groupBy('parties.id', 'parties.name')
@@ -766,12 +781,29 @@ class FinancialReportingService
             ->orderBy('code')
             ->get();
 
+        $tenantId = app('current.tenant')->id;
+        $balances = DB::table('journal_items')
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->where('journal_items.tenant_id', $tenantId)
+            ->where('journal_entries.tenant_id', $tenantId)
+            ->where('journal_entries.date', '<=', $asOf)
+            ->where('journal_entries.is_reversed', 0)
+            ->selectRaw('account_id, SUM(debit) as total_debit, SUM(credit) as total_credit')
+            ->groupBy('account_id')
+            ->get()
+            ->keyBy('account_id');
+
         foreach ($allAccounts as $account) {
-            // netBalance() reads from journal_items with WHERE date <= $asOf.
-            // It returns a positive number for the account's natural balance:
-            //   asset/expense  : debit - credit  (debit-normal)
-            //   liability/equity: credit - debit  (credit-normal)
-            $balance = $this->netBalance($account->id, $account->type, $asOf);
+            // Compute the balance from pre-fetched journal_items
+            $sum = $balances->get($account->id);
+            $debit  = (float) ($sum->total_debit  ?? 0.0);
+            $credit = (float) ($sum->total_credit ?? 0.0);
+
+            if (in_array($account->type, ['asset', 'expense'])) {
+                $balance = $debit - $credit;
+            } else {
+                $balance = $credit - $debit;
+            }
 
             // Skip zero-balance accounts — they add noise, not information
             if (abs($balance) < 0.001) {

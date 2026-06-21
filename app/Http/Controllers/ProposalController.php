@@ -362,8 +362,9 @@ class ProposalController extends Controller
                     // Record batches if FIFO succeeded
                     if (isset($deductions)) {
                         foreach ($deductions as $deduction) {
-                            DB::table('sale_item_batches')->insert([
+                             DB::table('sale_item_batches')->insert([
                                 'id' => \Illuminate\Support\Str::uuid()->toString(),
+                                'tenant_id' => $tenantId,
                                 'sale_item_id' => $saleItem->id,
                                 'inventory_batch_id' => $deduction['batch_id'],
                                 'qty_deducted' => $deduction['qty_taken'],

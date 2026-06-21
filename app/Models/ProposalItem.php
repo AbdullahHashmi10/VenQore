@@ -13,6 +13,10 @@ class ProposalItem extends Model
 
     protected $guarded = [];
 
+    protected $casts = [
+        'quantity' => 'decimal:4',
+    ];
+
     public function proposal()
     {
         return $this->belongsTo(Proposal::class);

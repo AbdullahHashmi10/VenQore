@@ -98,9 +98,9 @@ test('M1-05: converting a pre-sale posts COGS and keeps the books balanced', fun
         'credit' => 2000.00,
     ]);
     $this->assertJournalEntry([
-        'tenant_id' => $this->tenant->id,
-        'account_code' => '2200', // Sales Tax Payable
-        'credit' => 200.00,
+        'tenant_id'    => $this->tenant->id,
+        'account_code' => '2100', // Sales Tax Payable (was '2200' = Loans Payable — M1-06b correction)
+        'credit'       => 200.00,
     ]);
 
     // Assert: trial balance remains zero

@@ -26,7 +26,7 @@ class ProductVariantController extends Controller
             'sku' => 'nullable|unique:product_variants,sku',
             'attributes' => 'required|array',
             'price' => 'nullable|numeric',
-            'stock_quantity' => 'nullable|integer',
+            'stock_quantity' => 'nullable|numeric',
         ]);
 
         $data = $request->all();
@@ -45,7 +45,7 @@ class ProductVariantController extends Controller
             'sku' => 'nullable|unique:product_variants,sku,' . $variant->id,
             'attributes' => 'required|array',
             'price' => 'nullable|numeric',
-            'stock_quantity' => 'nullable|integer',
+            'stock_quantity' => 'nullable|numeric',
         ]);
 
         $data = $request->all();

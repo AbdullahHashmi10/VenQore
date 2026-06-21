@@ -22,6 +22,7 @@ abstract class SmokeTestCase extends BaseTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        $this->withoutVite();
 
         // Allow an explicit override for live-server runs via env var.
         // Locally, DB_DATABASE from phpunit.xml ('amd_pos_test') is used as-is.

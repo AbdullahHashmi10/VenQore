@@ -87,8 +87,8 @@ class TaxAndUomServiceTest extends TestCase
     /** @test */
     public function it_returns_tax_report_with_2200_and_2300_breakdown()
     {
-        // Seed accounts 2200 and 2300
-        $this->seedAccount('2200', 'Sales Tax Payable',      'liability', 'credit');
+        // Seed accounts 2100 and 2300
+        $this->seedAccount('2100', 'Sales Tax Payable',      'liability', 'credit');
         $this->seedAccount('2300', 'Input Tax Recoverable',  'asset',     'debit');
 
         // Post a fake sales tax entry
@@ -117,14 +117,14 @@ class TaxAndUomServiceTest extends TestCase
             'updated_at'     => now(),
         ]);
 
-        $account2200 = DB::table('accounts')->where('code', '2200')->first();
+        $account2100 = DB::table('accounts')->where('code', '2100')->first();
         $account2300 = DB::table('accounts')->where('code', '2300')->first();
 
         DB::table('journal_items')->insert([
             [
                 'id'               => Str::uuid()->toString(),
                 'journal_entry_id' => $je2,
-                'account_id'       => $account2200->id,
+                'account_id'       => $account2100->id,
                 'debit'            => 0,
                 'credit'           => 500.00,
                 'created_at'       => now(),

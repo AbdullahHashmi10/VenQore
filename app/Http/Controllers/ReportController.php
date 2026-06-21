@@ -180,13 +180,19 @@ class ReportController extends Controller
         ReportTierGate::enforce('reports.daily-sales');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
+        $tz = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        $offset = Carbon::now($tz)->format('P');
+        
+        $startUtc = Carbon::createFromFormat('Y-m-d', $startDate, $tz)->startOfDay()->utc();
+        $endUtc = Carbon::createFromFormat('Y-m-d', $endDate, $tz)->endOfDay()->utc();
+
         // Group sales by day in the range
         $sales = DB::table('sales')
             ->where('tenant_id', app('current.tenant')->id)
             ->whereNull('deleted_at')
             ->where('status', 'posted')
-            ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->selectRaw('DATE(posted_at) as date, SUM(net_sales) as revenue, COUNT(*) as count, SUM(tax) as tax, SUM(discount) as discount')
+            ->whereBetween('posted_at', [$startUtc, $endUtc])
+            ->selectRaw('DATE(CONVERT_TZ(posted_at, ?, ?)) as date, SUM(net_sales) as revenue, COUNT(*) as count, SUM(tax) as tax, SUM(discount) as discount', ['+00:00', $offset])
             ->groupBy('date')
             ->orderBy('date', 'desc')
             ->get();
@@ -597,7 +603,7 @@ class ReportController extends Controller
         $categoryId = $request->input('category_id');
         $warehouseId = $request->input('warehouse_id');
 
-        $query = Product::with(['category', 'stocks']);
+        $query = Product::with(['category']);
 
         if ($categoryId) {
             $query->where('category_id', $categoryId);
@@ -606,9 +612,15 @@ class ReportController extends Controller
         // Sync logic with AdminController dashboard: use individual alert Level OR global threshold
         $globalThreshold = (int) \App\Helpers\SettingsHelper::getLowStockThreshold();
 
-        $products = $query->get()->map(function ($product) use ($globalThreshold) {
+        $stockSums = \App\Models\Stock::query()
+            ->when($warehouseId, fn($q) => $q->where('warehouse_id', $warehouseId))
+            ->selectRaw('product_id, SUM(quantity) as qty')
+            ->groupBy('product_id')
+            ->pluck('qty', 'product_id');
+
+        $products = $query->get()->map(function ($product) use ($globalThreshold, $stockSums) {
              // Synchronize with Catalog: Use legacy stocks table as current source of truth for quantity
-             $product->stock_quantity = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
+             $product->stock_quantity = (float)($stockSums[$product->id] ?? 0.0);
              
              // Effective threshold used for filtering and display
              $product->effective_threshold = $product->alert_quantity > 0 ? $product->alert_quantity : $globalThreshold;
@@ -1878,8 +1890,13 @@ class ReportController extends Controller
     public function itemDetailReport(Request $request)
     {
         ReportTierGate::enforce('reports.item-detail');
-        $products = Product::with('category')->get()->map(function($product) {
-            $product->stock_quantity = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
+        $stockSums = \App\Models\Stock::query()
+            ->selectRaw('product_id, SUM(quantity) as qty')
+            ->groupBy('product_id')
+            ->pluck('qty', 'product_id');
+
+        $products = Product::with('category')->get()->map(function($product) use ($stockSums) {
+            $product->stock_quantity = (float) ($stockSums[$product->id] ?? 0.0);
             return $product;
         });
 

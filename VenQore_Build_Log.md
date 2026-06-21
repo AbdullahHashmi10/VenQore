@@ -531,6 +531,176 @@ While confirming the account codes, I found that **M1-05 (`SalesOrderController:
 
 ---
 
+### ENTRY B5 — Unify passcode system; stock-adjust PIN; kill hardcoded 123456
+**Status:** ✅ VERIFIED
+**Finding:** parking-lot — hardcoded stock-adjust passcode; passcode systems not unified.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of stock-adjust guard + security_pin write paths + $fillable safety).
+
+- **Hardcode already gone:** `GlobalProviderLayout.jsx` L34 `admin_passcode:'123456'` commented out. Remaining `123456` = demo seeders / placeholder phones / FbrService POS-ID default — all NON-passcode, confirmed harmless. ✔
+- **All sensitive actions use ONE canonical hashed `security_pin`:** Fund (add/remove/transfer), PartyController::bulkDestroy, ProfileSecurity, and NOW stock-adjust — all `Hash::check($request->passcode, $membership->security_pin)`. Landscape table complete. ✔
+- **Stock-adjust guard correct:** `V3\StockAdjustmentController::store` L27-44 — requires passcode ONLY when `enable_passcode='1'`, validates 6-digit, `Hash::check` vs acting membership's security_pin, 403 on mismatch (JSON+redirect), BEFORE the mutation. Mirrors FundController byte-for-byte. Same added to legacy `StockOperationsController::adjust`. ✔
+- **`$fillable` security_pin addition — VERIFIED SAFE (I checked the mass-assign risk):** every `security_pin` WRITE is a controlled `Hash::make(...)` on a validated field for the acting user's OWN membership (ProfileSecurityController L38, PlatformOwnerAuth L192). NO `update($request->all())` path exists. `pos_pin` (also hashed) was ALREADY fillable — same precedent. Both `$hidden`. The fillable change was REQUIRED for Eloquent to persist the PIN (that's why the test failed until added). Not a vulnerability. ✔
+- Tests: new `manual stock adjustment requires correct passcode when enable_passcode enabled` (403 wrong / success right); Fund/Legacy passcode tests + Gating + Inventory stay green. ✔
+
+**⚠️ OPERATIONAL NOTE (not blocking):** IDE ran `migrate:fresh` on the test DB and committed+pushed to `dev` mid-session. migrate:fresh on amd_pos_test is fine (throwaway), but CONFIRM it never touched venqore_pos (production). The auto-push to dev is the IDE's workflow — verify the dev branch is intended for this.
+
+**B5 signed off. One hashed security_pin governs every sensitive action; stock adjustment is now PIN-gated; no live hardcoded passcode.**
+
+---
+
+### ENTRY B7 — Fractional quantity on adjacent paths (pre-sales, transfers, proposals, variant stock)
+**Status:** ✅ VERIFIED
+**Finding:** integer quantity columns truncate fractional qty on paths M1-07 didn't cover.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of migration + casts + test on MySQL).
+
+- **Scope was bigger than the plan's 2 tables — 5 columns found integer & fixed:** `product_variants.stock`, `proposal_items.quantity`, `sales_order_items.quantity_requested` + `quantity_reserved`, `stock_transfer_items.quantity`. All → `decimal(12,4)` (matches sale_items). ✔
+- **Migration clean:** every column guarded by hasTable/hasColumn; integer rollback in down(); does NOT touch sale_items (M1-07's rollback untouched). Including `quantity_reserved` was correct (sibling fractional qty, same bug). ✔
+- **Casts aligned:** ProductVariant/ProposalItem/SalesOrderItem/StockTransferItem → decimal:4. ✔
+- **Real write-path truncation fixed:** `ProductVariantController` validation `stock_quantity` changed `integer`→`numeric` so fractional variant stock can be entered. (Schema fix alone wouldn't have closed this.) ✔
+- **Test is genuine:** `FractionalQtyAdjacentTest` creates SalesOrderItem qty 2.5, asserts BOTH the Eloquent read AND the direct `DB::table()->value()` == 2.5 — proving it persists to MySQL uncut (an int column would've failed). + a stock-transfer 2.5 case. M1-07 FractionalQtyTest stays green. ✔
+- **IDE respected no-git rule** — only ran `git status` (read-only); left commits to user. ✔
+
+**B7 signed off. Fractional quantities now persist on pre-sales, transfers, proposals, and variant stock — proven on MySQL.**
+
+**Files changed (for user to review + commit):** migration `2026_06_21_103702_...`, ProductVariant/ProposalItem/SalesOrderItem/StockTransferItem models, ProductVariantController, FractionalQtyAdjacentTest.
+
+---
+
+### ENTRY B4 — Sale header invariant (subtotal − discounts == net_sales) + FOUND a real bug
+**Status:** ✅ VERIFIED
+**Finding:** invariant guardrail — AND the property test surfaced a genuine legacy data-loss bug.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of the fix + checked no reader was disturbed).
+
+- **The test found a REAL bug (its whole purpose):** legacy `SaleController::store()` COMPUTED `subtotal_gross`, `total_item_discounts`, `global_discount` but never WROTE them to `Sale::create()` → they sat at `0.0000` on every legacy sale. Fixed: L238-240 now persist all three.
+- **Fix verified SAFE — no reader disturbed (I checked):** grep shows these 3 columns are only ever WRITTEN (SmartCapture TransactionBuilder, V3 SaleService), never READ for a calculation. Profit reports (M1-02) read sale_items.net_amount/returned_quantity, NOT these header cols. So populating them with real values (vs 0) changes NO report output. ✔
+- **Legacy/V3 split again:** V3 SaleService L287-288 ALREADY wrote these correctly; only the legacy path was broken. (C5 consolidation will eventually kill this duality.)
+- **Test is genuine:** 40 randomized iterations / 240 assertions; invariants A (waterfall), B (net+tax==invoice), C (non-negativity), D (journal balances) to 2dp w/ epsilon. Found the bug, reported the cause, did NOT weaken the invariant. No rounding drift found. ✔
+- IDE respected no-git (only `git status`). ✔
+
+**B4 signed off. Header waterfall now fully persists on the legacy path; a permanent randomized invariant test guards it forever.**
+
+**Files changed (user to review + commit):** SaleController.php, SaleHeaderInvariantTest.php.
+
+---
+
+### ENTRY B2 — Tenant timezone on dashboard/date filters (F10)
+**Status:** ✅ VERIFIED
+**Finding:** F10 — date filters used server UTC, not tenant tz → "today's revenue" wrong for non-UTC shops.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of the conversion + both-direction test).
+
+- **Conversion is CORRECT (the easy-to-reverse part):** `SaleController::dashboard` L407-419 resolves `$tz` from tenant, then `Carbon::today($tz)->startOfDay()->utc()` → tenant-local midnight converted to its UTC instant; `whereBetween('created_at', [start,end])` replaces `whereDate(today())`. Same correct pattern for yesterday / month / last-month / 30-day. Applied to the right side. ✔
+- **Test proves BOTH directions (not a +5 hardcode):** Karachi tenant — a sale at 21:30 UTC (02:30 Karachi today) IS counted in today's revenue (==100). UTC tenant — the SAME 21:30-UTC sale is NOT counted today (no regression). Uses `Carbon::setTestNow()` to fix the clock (correct technique), cleans up after. ✔
+- All 6 dashboard date-filter sites converted (inventory table in IDE summary). JSON-response addition to dashboard() is contained + enables the test to read `stats.sales_today`. ✔
+- Dashboard "today" now matches the daily report for any timezone. Money + Fractional tests stay green. IDE respected no-git. ✔
+
+**B2 signed off. Every non-UTC shop (i.e. every Pakistani customer) now sees correct tenant-local 'today'; dashboard agrees with daily report.**
+
+**Files changed (user to review + commit):** SaleController.php, TenantTimezoneTest.php.
+
+---
+
+### ENTRY B3 — De-N+1 reports + fix low-stock warehouse filter (F12)
+**Status:** ✅ VERIFIED
+**Finding:** F12 — low-stock ignored warehouse filter (correctness) + N+1 queries on heavy reports (perf).
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of all 4 refactors + verified money semantics unchanged).
+
+- **Low-stock WAREHOUSE FILTER fixed (correctness):** `lowStock()` L609-610 now `->when($warehouseId, fn($q)=>$q->where('warehouse_id',...))` — the captured-but-ignored filter is now applied. Multi-warehouse shops get correct per-warehouse low-stock alerts. ✔
+- **Low-stock N+1 fixed (perf):** L609-613 one grouped `Stock` query → `$stockSums` map; L617 reads in-memory. N+1 → 2 queries regardless of catalog size. ✔
+- **P&L de-N+1 (L64-95) — money semantics PRESERVED (I verified):** single `GROUP BY account_id` keeps SAME filters (is_reversed=0, tenant on both tables, date range) and SAME sign conventions (income credit−debit, COGS debit−credit). Reads from pre-aggregate instead of querying per account. Numbers IDENTICAL; `2A+2` → 1 query. ✔
+- **Balance Sheet + itemDetail** same de-N+1 pattern; results identical. ✔
+- **Stock aggregate tenant-scoped** via the Stock model's HasTenant global scope. ✔
+- **Test changes are LEGITIMATE syncs, not weakening:** the `2200→2100` edits were on the ROOT `tests/Feature/...` COPIES (project mirrors test files in both `Tester/tests/` and `tests/`); M1-06b had only fixed the Tester copies. This brings the root copies into sync. ltd_3 tier needed for v3-report gate. Not a re-touch of correct code. ✔
+- Tests: LowStockWarehouseTest (warehouse-filter both ways + bounded query count) green; Money 26 passed; Module12 12 passed; TaxAndUom 10 passed. IDE respected no-git. ✔
+
+**⚠️ Maintenance note (not a bug):** project keeps DUPLICATE test files in `Tester/tests/Feature/` AND root `tests/Feature/` — drift risk (this session's 2200→2100 sync proves they CAN diverge). Candidate cleanup for the C-series.
+
+**B3 signed off. Low-stock honors warehouse; P&L/BS/low-stock/item-detail collapsed from N+1 to set-based SQL with identical numbers.**
+
+**Files changed (user to review + commit):** ReportController.php, FinancialReportingService.php, root ReportsTest.php + TaxAndUomServiceTest.php (sync), LowStockWarehouseTest.php (new).
+
+---
+
+### ENTRY B10 — IDOR sweep (every route-model binding tenant-checked) — FOUND a real leak
+**Status:** ✅ VERIFIED
+**Finding:** systematic cross-tenant isolation sweep — AND it found a genuine IDOR leak.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of the leak/fix + the test's actual assertions).
+
+- **REAL LEAK FOUND & FIXED (B10's whole purpose):** `sales-orders` resource — controller methods typehinted `SalesOrder $order` but the resource param was `sales_order` (mismatch). Laravel then SILENTLY skipped implicit binding and injected a BLANK SalesOrder → returned 200 (no isolation) for a foreign id. NOT a global-scope failure — a param-name mismatch DISABLING binding entirely (a subtle IDOR class only a systematic test catches). Fix: `->parameters(['sales-orders' => 'order'])` (web.php L854-855) realigns param→typehint → binding resolves through HasTenant scope → 404 for foreign id. Correct root-cause fix. ✔
+- **Test is genuinely thorough:** data-driven sweep over sales/purchases/parties/products/payments/bank-accounts/expenses/warehouses/proposals/sales-orders (show/edit/update/destroy + ledger), acting as Tenant A with Tenant B's real ids. THREE assertion layers: (1) status NOT 200; (2) body must NOT contain B's distinct values (B Warehouse/B Bank/Foreign Client); (3) NO-MUTATION — after all `PUT 'Hacked'` attempts, every B record still exists + unchanged, verified via withoutTenantScope(). 135 assertions. ✔
+- The no-mutation layer is the strongest proof A couldn't write to B. ✔
+
+**⚠️ MINOR polish (NOT a security hole, noted for C-series):** the status assertion accepts 302/403/404/**500**. 500 on a foreign id means the route ERRORED rather than cleanly 404'd — isolation still proven by the content + no-mutation checks (no leak, no mutation), but a clean 404 would be nicer than a 500. Cosmetic, not blocking.
+
+**B10 signed off. A real IDOR (sales-orders) is closed; every route-model binding now provably isolates tenants via a permanent test.**
+
+**Files changed (user to review + commit):** routes/web.php, IdorSweepTest.php (new).
+
+---
+
+### ENTRY B6 — Split-payment reconciliation proofs
+**Status:** ✅ VERIFIED
+**Finding:** guardrail — prove split-payment legs always sum to invoice_total + books balance.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of the 4 invariants + how the credit leg is counted).
+
+- **Invariant I (the key one) is FULL-total:** `SUM(Payment.amount WHERE sale_id) == invoice_total` (L204-210), AND each leg (cash/bank/credit) asserted individually (L216-229). The CREDIT leg IS a Payment row included in the sum — so the whole total reconciles, not just cash+bank. ✔
+- Invariant II trial balance zero; III header `net_sales+tax+shipping==invoice_total`; IV credit leg decrements `current_balance` by exactly the credit amount. ✔
+- Integer-cent arithmetic (L153) so legs sum exactly — correct (test's own math can't drift). ✔
+- 25 iterations across 5 split shapes (heavy-cash / no-credit / heavy-credit / equal-thirds / minimal-cash). "Deterministic not random" — acceptable: reproducible regression guard, covers the meaningful cases. ✔
+- **No drift found** — split path already reconciled; B6 now permanently guards it. 28 Money tests / 852 assertions green, zero regressions. IDE respected no-git. ✔
+
+**B6 signed off. Split payments provably reconcile (legs == total, books balance) across all split shapes — guarded forever.**
+
+**Files changed (user to review + commit):** SplitPaymentReconcileTest.php (new).
+
+---
+
+### ENTRY B8 — Render-cascade fix (Vite in test env) + stale root-test sync
+**Status:** ✅ VERIFIED
+**Finding:** Tester-Fix-1 — ~80+ reds from @vite throwing in the test env (no manifest/dev server).
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of withoutVite placement + scrutinized the money-test edits for cheating).
+
+- **Vite fix correct:** `withoutVite()` added at `tests/TestCase.php` L12 (and SmokeTestCase), right after parent::setUp(), in the LOWEST common base — so it reaches Auth, Money (via VenQoreTestCase), and Smoke tests. @vite returns empty in tests instead of throwing ViteManifestNotFoundException. Production app.blade.php UNTOUCHED. ✔
+- **Result:** root `tests/` suite ~286 failures → **531 passed, 100% green**. Tester Money suite 28 green. ✔
+- **Money-test edits SCRUTINIZED — legitimate syncs, NOT cheats (I verified):** IDE edited `tests/Feature/Module04/PaymentProcessingTest` (waterfall) and `tests/Feature/Money/PreSaleConversionTest` (2200→2100). These are the STALE ROOT-DIR DUPLICATES lagging behind the verified-correct Tester copies. The edits changed them to assert the CORRECT M1-06/M1-06b values (tax 85/total 935; account 2100) — i.e. synced stale→correct, NOT weakened. Confirmed the canonical Tester copies STILL hold the correct values (PreSaleConversion L102 = 2100; no 95/945/2200 anywhere in Tester). ✔
+
+**⚠️ Process note (honest):** IDE's diagnosis WANDERED — first blamed RefreshDatabase/"users table exists", then Vite, before landing on the real mix (Vite + stale root duplicates). End state is correct & verified, but the path was messy. **This is the 3rd time the DUPLICATE test files (tests/ vs Tester/tests/) caused drift** — strong candidate for a C-series cleanup (dedupe to one source of truth).
+
+**B8 signed off. Render cascade gone; root suite 531 green; stale duplicate money-tests synced to verified values (not weakened).**
+
+**Files changed (user to review + commit):** tests/TestCase.php, tests/SmokeTestCase.php, tests/Feature/Module04/PaymentProcessingTest.php, tests/Feature/Money/PreSaleConversionTest.php.
+
+---
+
+### ENTRY B9 — Report-reconciliation suite (43 reports) + FOUND a real tenant_id bug
+**Status:** ✅ VERIFIED · **LAST B-ITEM — B-series COMPLETE**
+**Finding:** reconciliation harness — AND it surfaced a latent multi-tenant COGS bug.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of the tenant_id fix + confirmed the test uses INDEPENDENT aggregates).
+
+- **Test methodology is RIGOROUS (the key requirement):** Tier-1 reports compared against SEPARATE `DB::table()->sum()` aggregates, NOT self-referential service calls. P&L revenue/COGS/GP (L216-218); item-wise profit incl. M1-02 north-star 13-units (L284-286); bill-wise + party-wise BOTH sum to P&L GP — cross-report reconciliation (L333-334); tax == SUM(credit to 2100) (L367-375, correct account); stock valuation == SUM(remaining_qty×unit_cost) (L392-394); trial balance debits==credits (L420-422). Tier-2 smoke-loads the rest. ✔
+- **REAL BUG FOUND & FIXED (B9's purpose):** raw `DB::table('sale_item_batches')->insert()` in SaleController (L316-325), SalesOrderController, ProposalController were inserting WITHOUT `tenant_id`. Since SaleItemBatch has the HasTenant global scope, those rows were INVISIBLE to scoped reads → return-COGS proration + profit reports silently dropped them. Fix: added `'tenant_id' => $sale->tenant_id` to all 3 raw inserts. **This was a latent COGS/profit-accuracy bug in production**, caught only by reconciling against independent math. ✔
+- Full suite 530 green; the reconciliation test self-re-asserts M1-02 (13 units) so the tenant_id change didn't regress return/profit math. IDE respected no-git. ✔
+
+**B9 signed off. Money-critical reports provably reconcile to independent DB aggregates; a latent tenant_id COGS bug is fixed. ✅ ALL B-SERIES (B1–B10) COMPLETE.**
+
+**Files changed (user to review + commit):** SaleController.php, SalesOrderController.php, ProposalController.php, ReportReconciliationTest.php.
+
+---
+
+## ════════ NEXT: C-SERIES (Perfection 100) — NOT YET STARTED ════════
+**C1 granular perms · C2 money precision · C3 cascade-delete audit · C4 golden-txn dashboard gate · C5 ⭐LEGACY→SINGLE ENGINE (the big/dangerous one) · SEC-1 plaintext passcode.**
+**⚠️ When C5 begins, auditor will issue an explicit "STARTING MOST DANGEROUS TASK" warning + go/no-go to the user FIRST.**
+
+---
+
 ## 🏁 CODE TRACK (Sellable blockers) COMPLETE — what remains for Sellable (85) is MANUAL
 
 All audit money/inventory/reporting/security/scalability blockers that are code-fixable are ✅ VERIFIED. Remaining M1 items are hands-on launch verification only the user can run:
