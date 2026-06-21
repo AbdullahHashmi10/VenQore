@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Models\TenantUser;
+use Illuminate\Support\Facades\Hash;
 use Tests\Feature\VenQoreTestCase;
 
 
@@ -437,7 +439,7 @@ test('manual stock adjustment requires correct passcode when enable_passcode is 
 
     // Set Owner Security PIN
     $membership = TenantUser::where('tenant_id', $tenant->id)
-        ->where('user_id', $owner->id)
+        ->where('user_id', auth()->id())
         ->first();
     $membership->update(['security_pin' => Hash::make('654321')]);
 
@@ -458,6 +460,14 @@ test('manual stock adjustment requires correct passcode when enable_passcode is 
     // 2. Assert request succeeds with correct passcode
     $payload['passcode'] = '654321';
     $response = $this->post("/s/{$tenant->slug}/v3/stock-adjustments", $payload);
+    if (session('error')) {
+        dd('Session error: ' . session('error'));
+    }
+    if (session('success')) {
+        // Log success
+    } else {
+        dd('No success or error in session', session()->all());
+    }
     $response->assertRedirect();
     expect($product->fresh()->stock_quantity)->toEqual(8.0);
 });

@@ -229,10 +229,11 @@ test('SaleController store handles InsufficientStockException and returns HTTP 4
     $warehouseId = DB::table("warehouses")->where("tenant_id", $tenant->id)->value("id");
 
     // Set stop_sale_negative_stock settings on Tenant Settings model
-    $tenant->settings = array_merge($tenant->settings ?? [], [
-        'stop_sale_negative_stock' => true
-    ]);
-    $tenant->save();
+    \App\Models\Setting::updateOrCreate(
+        ['tenant_id' => $tenant->id, 'key' => 'stop_sale_negative_stock'],
+        ['value' => '1']
+    );
+    \App\Helpers\SettingsHelper::clearCache();
 
     $product = Product::factory()->create([
         'tenant_id' => $tenant->id,

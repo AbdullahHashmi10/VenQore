@@ -31,6 +31,7 @@ class TenantUser extends Model
         'invited_at',
         'joined_at',
         'permissions',
+        'security_pin',
     ];
 
     protected $casts = [
