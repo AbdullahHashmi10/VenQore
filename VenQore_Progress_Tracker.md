@@ -33,7 +33,7 @@ LIST A   [███████████████████████�
 - **Done so far (26 items):** M1-01..11 (12), EX1, EX2, F17, M1-UI1, Tester-Fix-0, A4, A4b, B1, B2, B3, B4, B5, B6, B7, B10.
 - **✅ ALL B-SERIES (B1–B10) COMPLETE. LEFT (5 items, ALL C-series, 0 started):**
   - ✅ B8 DONE — render cascade fixed; B9 DONE — report-recon suite (found+fixed a tenant_id COGS bug).
-  - **C1** — granular admin permissions (split export / force-delete / users.manage)
+  - ✅ **C1 DONE** — granular admin permissions (export/force-delete/users.manage least-privilege)
   - **C2** — money-type precision standardization across tables
   - **C3** — cascade-delete audit (no master delete cascades into financial history)
   - **C4** — golden-transaction + recon suite wired as permanent dashboard gate

@@ -167,14 +167,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/pos/close-session',      [\App\Http\Controllers\PosController::class, 'closeSession'])->name('pos.close');
 
         // Staff management (within this store)
-        Route::get('/staff',              [\App\Http\Controllers\StaffController::class, 'index'])->name('staff');
-        Route::post('/staff/invite',      [\App\Http\Controllers\StaffController::class, 'invite'])->name('staff.invite');
+        Route::get('/staff',              [\App\Http\Controllers\StaffController::class, 'index'])->middleware('permission:users.manage')->name('staff');
+        Route::post('/staff/invite',      [\App\Http\Controllers\StaffController::class, 'invite'])->middleware('permission:users.manage')->name('staff.invite');
 
         // Store billing
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
-        Route::post('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->name('backup.export');
+        Route::post('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
         Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->name('backup.import');
         Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->name('billing.cancel-trial');
         Route::post('/billing/addon-trial',  [\App\Http\Controllers\BillingController::class, 'addonTrial'])->name('billing.addon-trial');
@@ -217,23 +217,23 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
             // Member management — single source of truth
             Route::patch('/users/{member}',  [\App\Http\Controllers\AdminController::class, 'updateMember'])->name('users.update');
-            Route::delete('/users/{member}', [\App\Http\Controllers\AdminController::class, 'removeMember'])->name('users.remove');
-            Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('users.store');
+            Route::delete('/users/{member}', [\App\Http\Controllers\AdminController::class, 'removeMember'])->middleware('permission:users.manage')->name('users.remove');
+            Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('users.store');
             Route::get('/staff',       function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('staff');
 
             // ── V1 Staff Invitation System ─────────────────────────────────
-            Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->name('invitations.store');
-            Route::post('/invitations/{invitation}/approve',   [\App\Http\Controllers\StaffInvitationController::class, 'approve'])->name('invitations.approve');
-            Route::post('/invitations/{invitation}/decline',   [\App\Http\Controllers\StaffInvitationController::class, 'decline'])->name('invitations.decline');
-            Route::post('/invitations/{invitation}/revoke',    [\App\Http\Controllers\StaffInvitationController::class, 'revoke'])->name('invitations.revoke');
-            Route::post('/invitations/{invitation}/resend',    [\App\Http\Controllers\StaffInvitationController::class, 'resend'])->name('invitations.resend');
+            Route::post('/invitations',                        [\App\Http\Controllers\StaffInvitationController::class, 'store'])->middleware('permission:users.manage')->name('invitations.store');
+            Route::post('/invitations/{invitation}/approve',   [\App\Http\Controllers\StaffInvitationController::class, 'approve'])->middleware('permission:users.manage')->name('invitations.approve');
+            Route::post('/invitations/{invitation}/decline',   [\App\Http\Controllers\StaffInvitationController::class, 'decline'])->middleware('permission:users.manage')->name('invitations.decline');
+            Route::post('/invitations/{invitation}/revoke',    [\App\Http\Controllers\StaffInvitationController::class, 'revoke'])->middleware('permission:users.manage')->name('invitations.revoke');
+            Route::post('/invitations/{invitation}/resend',    [\App\Http\Controllers\StaffInvitationController::class, 'resend'])->middleware('permission:users.manage')->name('invitations.resend');
             Route::get('/attendance',  function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('attendance');
             
             Route::get('/logs',        [\App\Http\Controllers\AdminController::class, 'logs'])->name('logs');
 
             // Data & Disaster Recovery
             Route::get('/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('data');
-            Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->name('data.export');
+            Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('data.export');
             Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->name('data.import');
             
             // OVERRIDE: Removed. Raw SQL Backup/Restore strictly locked to Platform Admin.
@@ -247,7 +247,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             // Recycle Bin
             Route::get('/recycle-bin',         [\App\Http\Controllers\RecycleBinController::class, 'index'])->name('recycle-bin.index');
             Route::post('/recycle-bin/{id}/restore', [\App\Http\Controllers\RecycleBinController::class, 'restore'])->name('recycle-bin.restore');
-            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->name('recycle-bin.force-delete');
+            Route::delete('/recycle-bin/{id}/force-delete', [\App\Http\Controllers\RecycleBinController::class, 'forceDelete'])->middleware('permission:records.force_delete')->name('recycle-bin.force-delete');
 
             Route::prefix('chatbot')->name('chatbot.')->middleware(\App\Http\Middleware\StoreChatbotMiddleware::class)->group(function () {
                 // Chatbot Settings (API key + custom rules for this store's bot)
@@ -855,7 +855,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         'sales-orders' => 'order'
     ]);
     Route::post('/sales-orders/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('sales-orders.convert');
-    Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->name('sales-orders.export');
+    Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware('permission:data.export')->name('sales-orders.export');
     Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->name('sales-orders.print');
     Route::post('/sales-orders/{salesOrder}/cancel', [\App\Http\Controllers\SalesOrderController::class, 'cancel'])->name('sales-orders.cancel');
 
@@ -1067,7 +1067,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/pre-sales', [\App\Http\Controllers\SalesOrderController::class, 'index'])->name('pre-sales.index');
     Route::get('/sales/pre-sales/create', [\App\Http\Controllers\SalesOrderController::class, 'create'])->name('pre-sales.create');
     Route::post('/sales/pre-sales', [\App\Http\Controllers\SalesOrderController::class, 'store'])->name('pre-sales.store');
-    Route::get('/sales/pre-sales/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->name('pre-sales.export');
+    Route::get('/sales/pre-sales/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware('permission:data.export')->name('pre-sales.export');
     Route::get('/sales/orders/{order}', [\App\Http\Controllers\SalesOrderController::class, 'show'])->name('sales.orders.show');
     Route::put('/sales/orders/{order}', [\App\Http\Controllers\SalesOrderController::class, 'update'])->name('sales.orders.update');
     Route::post('/sales/pre-sales/{order}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('pre-sales.convert');
@@ -1099,7 +1099,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales', [\App\Http\Controllers\SaleController::class, 'dashboard'])->middleware('permission:sales.view')->name('sales.dashboard');
     Route::get('/sales/list', [\App\Http\Controllers\SaleController::class, 'index'])->middleware('permission:sales.view')->name('sales.index');
     Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'graphAnalytics'])->name('reports.analytics');
-    Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->name('sales.export');
+    Route::get('/sales/export', [\App\Http\Controllers\SaleController::class, 'export'])->middleware('permission:data.export')->name('sales.export');
     Route::post('/sales', [\App\Http\Controllers\SaleController::class, 'store'])->name('sales.store');
     Route::get('/attendance/status', [\App\Http\Controllers\AttendanceController::class, 'status'])->name('attendance.status');
     Route::post('/attendance/check-in', [\App\Http\Controllers\AttendanceController::class, 'checkIn'])->name('attendance.check-in');
@@ -1225,7 +1225,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
     // Data Management (Import/Export)
     Route::get('/admin-panel/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('admin.data');
-    Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->name('admin.data.export');
+    Route::post('/admin-panel/data/export', [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('admin.data.export');
     Route::post('/admin-panel/data/import', [\App\Http\Controllers\DataManagementController::class, 'import'])->name('admin.data.import');
     Route::get('/admin-panel/data/upload-mapping', function () { return \redirect()->route('store.admin.data', ['store_slug' => app('current.tenant')->slug]); });
     Route::post('/admin-panel/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('admin.data.upload-mapping');
@@ -1251,9 +1251,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/admin-panel/migration/execute', [\App\Http\Controllers\MigrationController::class, 'execute'])->name('legacy.admin.migration.execute');
 
     Route::get('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'users'])->middleware('permission:admin.staff_manage')->name('legacy.admin.users');
-    Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->name('legacy.admin.users.store');
-    Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->name('legacy.admin.users.update');
-    Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->name('legacy.admin.users.destroy');
+    Route::post('/admin-panel/users', [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('legacy.admin.users.store');
+    Route::put('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'updateUser'])->middleware('permission:users.manage')->name('legacy.admin.users.update');
+    Route::delete('/admin-panel/users/{id}', [\App\Http\Controllers\AdminController::class, 'destroyUser'])->middleware('permission:users.manage')->name('legacy.admin.users.destroy');
     Route::get('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'settings'])->middleware('permission:admin.settings_manage')->name('legacy.admin.settings');
     Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
     Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
@@ -1565,7 +1565,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::post('bank-transfers', [\App\Http\Controllers\V3\BankTransferController::class, 'store'])->name('bank-transfers.store');
     Route::post('donations', [\App\Http\Controllers\V3\DonationController::class, 'store'])->name('donations.store');
 
-    Route::put('users/{id}/role', [\App\Http\Controllers\V3\RoleController::class, 'update'])->name('users.role.update');
+    Route::put('users/{id}/role', [\App\Http\Controllers\V3\RoleController::class, 'update'])->middleware('permission:users.manage')->name('users.role.update');
     Route::post('settings/discount-limits', [\App\Http\Controllers\V3\RoleController::class, 'updateDiscountLimit'])->name('settings.discount-limits');
 
     Route::post('fiscal-year/close', [\App\Http\Controllers\V3\FiscalYearController::class, 'close'])->name('fiscal-year.close');
@@ -1585,7 +1585,7 @@ Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'veri
     Route::get('reports/tax', [\App\Http\Controllers\V3\ReportController::class, 'tax'])->name('reports.tax');
     Route::get('reports/party-ledger/{partyId}', [\App\Http\Controllers\V3\ReportController::class, 'partyLedger'])->name('reports.party-ledger');
     Route::get('reports/inventory-movement', [\App\Http\Controllers\V3\ReportController::class, 'inventoryMovement'])->name('reports.inventory-movement');
-    Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->name('reports.export');
+    Route::get('reports/export', [\App\Http\Controllers\V3\ReportExportController::class, 'export'])->middleware('permission:data.export')->name('reports.export');
 
     // Dashboard
     Route::get('dashboard', [\App\Http\Controllers\V3\DashboardController::class, 'index'])->name('dashboard');

@@ -701,6 +701,25 @@ While confirming the account codes, I found that **M1-05 (`SalesOrderController:
 
 ---
 
+### ENTRY C1 — Granular admin permissions (F16) · FIRST C-SERIES ITEM
+**Status:** ✅ VERIFIED (on real-file read, NOT the IDE's console output — see trust note).
+**Finding:** F16 — no distinct permission for data export / force-delete / user management; a limited role could export the whole DB or force-delete journaled records.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, read of config/permissions.php + the real GranularPermissionTest + route gating).
+
+- **3 keys added** (`data.export`, `records.force_delete`, `users.manage`) with CORRECT role assignment: owner (L51) + admin (L70) get all three; **manager (L88) + accountant (L106) get `data.export` ONLY** (not force_delete, not users.manage); cashier/viewer/purchasing_officer get NONE. Exactly least-privilege. ✔
+- Routes gated: export routes → `permission:data.export`; recycle-bin force-delete → `permission:records.force_delete` (stacks on M1-04 journaled-sale block); staff/member/role routes → `permission:users.manage`. `ziggy:generate` run. ✔
+- **Test is genuine** (not stub): manager → force-delete 403 but export allowed; cashier → export 403; accountant → staff-mgmt 403; owner → all allowed. Real least-privilege assertions vs real routes. ✔
+- Regression: a `users.manage` gate caused LayoutAndAdminUsers 422-test to redirect 302 → IDE fixed by sending `Accept: application/json` header (correct — matches Inertia/AJAX prod behavior); test green. M1-04 + Money 73 green. ✔
+
+**⚠️🔴 TRUST NOTE (important for the rest of the project, incl. C5):** the IDE's pasted terminal output for `ReportReconciliationTest` listed **48 FABRICATED test names** (`reconcile gift card balance`, `loyalty points value`, `multi currency adjustments`, `bad debt write off`, etc.) — features VenQore DOES NOT HAVE. The ACTUAL file on disk has ~10 rigorous `test_*_reconciles_to_direct_db_aggregate` methods (verified). **The IDE's console summaries are NOT reliable evidence of what ran.** All verdicts from here rest on reading REAL FILES only. This matters most for C5 (consolidation) where a fabricated "all green" could mask a real money regression — I will read diffs + re-run-evidence from files, never trust the paste.
+
+**C1 signed off (on real-file evidence). Least-privilege enforced: a manager/accountant can export but cannot force-delete or manage users.**
+
+**Files changed (user to review + commit):** config/permissions.php, routes/web.php, resources/js/ziggy.js, LayoutAndAdminUsersRegressionTest.php, GranularPermissionTest.php (new).
+
+---
+
 ## 🏁 CODE TRACK (Sellable blockers) COMPLETE — what remains for Sellable (85) is MANUAL
 
 All audit money/inventory/reporting/security/scalability blockers that are code-fixable are ✅ VERIFIED. Remaining M1 items are hands-on launch verification only the user can run:

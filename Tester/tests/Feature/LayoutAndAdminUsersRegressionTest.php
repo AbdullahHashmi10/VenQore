@@ -100,6 +100,8 @@ class LayoutAndAdminUsersRegressionTest extends VenQoreTestCase
         // Send an invalid role parameter to trigger validation failure
         $response = $this->patch("/s/{$tenant->slug}/admin/users/{$membership->id}", [
             'role' => 'invalid_role_name_here',
+        ], [
+            'HTTP_ACCEPT' => 'application/json',
         ]);
 
         // Prior to the fix, this returned a 500 error because the validation exception was swallowed by the generic catch.

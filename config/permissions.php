@@ -47,6 +47,8 @@ return [
         'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
         // Store Administration
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery', 'admin.billing_store',
+        // Granular split permissions
+        'data.export', 'records.force_delete', 'users.manage',
     ],
 
     'admin' => [
@@ -64,6 +66,8 @@ return [
         'reports.summary', 'reports.financial', 'reports.stock', 'reports.performance', 'reports.audit',
         // Store Administration (excluding billing / store deletion)
         'admin.staff_view', 'admin.staff_manage', 'admin.settings_view', 'admin.settings_manage', 'admin.receipt_print', 'admin.taxes_methods', 'admin.warehouses', 'admin.data_recovery',
+        // Granular split permissions
+        'data.export', 'records.force_delete', 'users.manage',
     ],
 
     'manager' => [
@@ -80,6 +84,8 @@ return [
         'reports.summary', 'reports.stock', 'reports.performance',
         // Store Administration (Read general settings and edit print formats only)
         'admin.staff_view', 'admin.settings_view', 'admin.receipt_print',
+        // Granular split permissions
+        'data.export',
     ],
 
     'cashier' => [
@@ -96,6 +102,8 @@ return [
         'reports.summary', 'reports.financial', 'reports.audit',
         // Sales & Purchases Read-Only views for audits
         'sales.view', 'purchases.view', 'inventory.view',
+        // Granular split permissions
+        'data.export',
     ],
 
     'purchasing_officer' => [
