@@ -243,8 +243,8 @@ class FinancialReportingService
                 // Revenue: net_amount is Phase 2.1 column. Fallback to subtotal for legacy rows.
                 DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as net_revenue'),
                 DB::raw('SUM((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) + COALESCE(sale_items.free_quantity, 0)) as total_qty'),
-                // COGS: FIFO batches first; fall back to static cost_price for pre-FIFO rows
-                DB::raw('SUM(COALESCE(sib.fifo_cogs, sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as total_cogs')
+                // COGS: FIFO batches first; fall back to static cost_price for pre-FIFO rows (prorated for returns)
+                DB::raw('SUM(COALESCE(sib.fifo_cogs, sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0)) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0)))) as total_cogs')
             )
             ->groupBy('products.id', 'products.name', 'products.sku')
             ->orderByDesc('net_revenue')

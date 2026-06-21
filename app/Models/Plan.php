@@ -23,12 +23,12 @@ class Plan extends Model
         'is_active'      => 'boolean',
         'is_visible'     => 'boolean',
         'is_ltd'         => 'boolean',
-        'price_monthly'  => 'decimal:2',
-        'price_annual'   => 'decimal:2',
-        'price_lifetime' => 'decimal:2',
-        'price_monthly_pkr'  => 'decimal:2',
-        'price_annual_pkr'   => 'decimal:2',
-        'price_lifetime_pkr' => 'decimal:2',
+        'price_monthly'  => 'decimal:4',
+        'price_annual'   => 'decimal:4',
+        'price_lifetime' => 'decimal:4',
+        'price_monthly_pkr'  => 'decimal:4',
+        'price_annual_pkr'   => 'decimal:4',
+        'price_lifetime_pkr' => 'decimal:4',
     ];
 
     public function platform(): BelongsTo

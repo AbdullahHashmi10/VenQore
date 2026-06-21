@@ -201,6 +201,7 @@ function runTests(projectPath, ws) {
   const modules = [
     ...Array.from({ length: 21 }, (_, i) => `Tester/tests/Feature/Module${String(i + 1).padStart(2, '0')}`),
     'Tester/tests/Feature/Money',
+    'Tester/tests/Feature/Money/GoldenTransactionTest.php',
     'Tester/tests/Feature/Smoke',
     'Tester/tests/Feature/DemoStore',
     'Tester/tests/Feature/AppSumo',
@@ -252,6 +253,7 @@ function runTests(projectPath, ws) {
   const keys = [
     ...Array.from({ length: 21 }, (_, i) => `Module${String(i + 1).padStart(2, '0')}`),
     'Money',
+    'GoldenTransactionTest',
     'Smoke',
     'DemoStore',
     'AppSumo',

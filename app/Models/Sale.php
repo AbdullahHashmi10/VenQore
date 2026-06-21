@@ -36,7 +36,7 @@ class Sale extends Model
         'posted_at'             => 'datetime',
         'is_dropship'           => 'boolean',
         'financial_reconciled'  => 'boolean',
-        'gross_platform_fee'    => 'decimal:2',
+        'gross_platform_fee'    => 'decimal:4',
     ];
 
     protected $appends = ['paid_amount', 'total_amount'];

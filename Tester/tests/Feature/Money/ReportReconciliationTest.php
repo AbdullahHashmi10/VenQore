@@ -196,10 +196,10 @@ class ReportReconciliationTest extends VenQoreTestCase
             
             if ($fifoCogs == 0) {
                 $fifoCogs = $item->cost_price * $item->quantity;
+                $dbCogs += $fifoCogs * ($keptQty / $item->quantity);
+            } else {
+                $dbCogs += $fifoCogs;
             }
-
-            // Scale COGS for returned units
-            $dbCogs += $fifoCogs * ($keptQty / $item->quantity);
         }
 
         // Subtract global discount from P&L revenue to align with the ledger and reports
@@ -277,9 +277,6 @@ class ReportReconciliationTest extends VenQoreTestCase
             ->where('sale_item_id', $dbItem->id)
             ->where('is_reversed', 0)
             ->sum('total_cogs');
-        
-        // Scale COGS for returned units
-        $dbCogs = $dbCogs * ($keptQty / $dbItem->quantity);
 
         $this->assertEquals(13.0, (float)$reportItem['quantity']);
         $this->assertEquals($dbRevenue, (float)$reportItem['revenue']);

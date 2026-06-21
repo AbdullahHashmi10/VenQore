@@ -14,7 +14,7 @@ class Expense extends Model
 
     protected $casts = [
         'date' => 'date',
-        'tax_amount' => 'decimal:2',
+        'tax_amount' => 'decimal:4',
     ];
 
     public function bankAccount()

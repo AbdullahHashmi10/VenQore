@@ -24,8 +24,8 @@ class GiftCard extends Model
     ];
 
     protected $casts = [
-        'initial_value' => 'decimal:2',
-        'current_balance' => 'decimal:2',
+        'initial_value' => 'decimal:4',
+        'current_balance' => 'decimal:4',
         'expires_at' => 'date',
     ];
 

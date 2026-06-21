@@ -17,7 +17,7 @@ class ProductionLog extends Model
         'produced_at' => 'datetime',
         'expiry_date' => 'date',
         'quantity_produced' => 'decimal:2',
-        'actual_cost' => 'decimal:2',
+        'actual_cost' => 'decimal:4',
     ];
 
     public function recipe()

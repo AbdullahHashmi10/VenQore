@@ -27,12 +27,12 @@ class DailySnapshot extends Model
 
     protected $casts = [
         'date'              => 'date:Y-m-d',
-        'sales_value'       => 'decimal:2',
-        'purchases_value'   => 'decimal:2',
-        'stock_value'       => 'decimal:2',
-        'payables_value'    => 'decimal:2',
-        'receivables_value' => 'decimal:2',
-        'cash_value'        => 'decimal:2',
-        'expense_value'     => 'decimal:2',
+        'sales_value'       => 'decimal:4',
+        'purchases_value'   => 'decimal:4',
+        'stock_value'       => 'decimal:4',
+        'payables_value'    => 'decimal:4',
+        'receivables_value' => 'decimal:4',
+        'cash_value'        => 'decimal:4',
+        'expense_value'     => 'decimal:4',
     ];
 }

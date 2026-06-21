@@ -17,7 +17,7 @@ class EcommerceChannel extends Model
         'last_synced_at'            => 'datetime',
         'access_token_expires_at'   => 'datetime',
         'refresh_token_expires_at'  => 'datetime',
-        'fee_percentage'            => 'decimal:2',
+        'fee_percentage'            => 'decimal:4',
     ];
 
     // Never expose tokens in API responses or logs

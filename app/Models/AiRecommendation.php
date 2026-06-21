@@ -33,7 +33,7 @@ class AiRecommendation extends Model
         'is_read'           => 'boolean',
         'is_dismissed'      => 'boolean',
         'valid_until'       => 'date',
-        'potential_revenue' => 'decimal:2',
+        'potential_revenue' => 'decimal:4',
     ];
 
     public function party()

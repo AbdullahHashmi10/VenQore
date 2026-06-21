@@ -18,7 +18,7 @@ class StoreCreditBalance extends Model
     ];
 
     protected $casts = [
-        'balance' => 'decimal:2',
+        'balance' => 'decimal:4',
     ];
 
     public function party()

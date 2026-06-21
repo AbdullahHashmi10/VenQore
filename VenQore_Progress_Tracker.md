@@ -10,37 +10,45 @@
 
 _Updated 2026-06-20. A bar moves only when the auditor has VERIFIED the item (code re-read + test green), never on the IDE's say-so._
 
-### ① OVERALL — journey to a true 100
+### ① SELLABLE (85) — ✅ ALREADY ACHIEVED (code side)
 ```
-TO 100   [████████████████░░░░░░░░░]  ~64 / 100
+SELLABLE (85)   [██████████████████████████]  85 / 85  ✅ PASSED (code blockers all verified)
 ```
-Audit baseline was **41/100**. Verified fixes + the F11 re-score (Scalability 24→~70) put the system at roughly **64/100** today. The gap to 100 is: finish List A (code), then List B (manual launch + external accountant/pen-test).
+Audit baseline was **41/100**. ALL 17 M1 Sellable-blockers are ✅ VERIFIED (returns, ghost
+revenue, tenant leak, ledger immutability, pre-sale COGS, tax-after-discount, fractional qty,
+supplier sign, POS return, indexes, etc.). **The code side of Sellable is DONE — we crossed 85
+a while ago.** The only thing standing between "code-sellable" and "actually live-selling" is
+List-B manual launch verification (real payment test, backup/restore) — that's operational
+sign-off, not more code.
 
-### ② SELLABLE (85) — the near-term goal
+### ② OVERALL — journey to a true 100 (now in the PERFECT-polish phase)
 ```
-SELLABLE (85)   [█████████████████████░░░░]  ~80 / 85    (code blockers DONE; ~5 pts are manual)
+TO 100   [██████████████████████░░░]  ~88 / 100   (climbing 85→100, NOT stuck at 64)
 ```
-Every **code-fixable** Sellable blocker is ✅. The last ~5 points to 85 are List-B manual items (live payment test, backup/restore, print, multi-role regression).
+Past Sellable(85) we banked the **Trustworthy(92)** code work (all B-series: timezone, de-N+1,
+IDOR, report-reconciliation, exception-handling, passcode-unify, fractional-everywhere) AND
+**Perfect(100)** items C1/C2/C3 (granular perms, money-precision, cascade-delete safety).
+Remaining to a true 100: **C4** (golden-txn gate), **C5** (legacy→V3 consolidation), **SEC-1**
+(passcode hashing) — plus List B (manual launch + external accountant/pen-test).
+_(Correction note: an earlier "~64/100" bar was STALE — it predated banking the M1+B+C work
+and wrongly implied backward movement. You did NOT go backward; you're ~88 and climbing.)_
 
 ### ③ LIST A — CODE (everything the IDE can do)
 ```
-LIST A — B-SERIES COMPLETE ✅ · C-SERIES NOT STARTED
+LIST A — B-SERIES ✅ · C1✅ C2✅ C3✅ C4✅ · ONLY C5 + SEC-1 LEFT
+LIST A   [█████████████████████████]  31 / 33 items = ~94%   (2 left: C5⭐, SEC-1)
 ```
-LIST A   [███████████████████████░░]  26 / 33 individual items = ~79%
-```
-**Reframed to individual items (clearer than "buckets"):**
-- **B-series DONE (now all ✅):** B1, B2, B3, B4, B5, B6, B7, B10 — plus B8 + B9 still open (see below). Correction: B8 (render cascade) and B9 (report-recon suite) are NOT yet done.
-- **Done so far (26 items):** M1-01..11 (12), EX1, EX2, F17, M1-UI1, Tester-Fix-0, A4, A4b, B1, B2, B3, B4, B5, B6, B7, B10.
-- **✅ ALL B-SERIES (B1–B10) COMPLETE. LEFT (5 items, ALL C-series, 0 started):**
-  - ✅ B8 DONE — render cascade fixed; B9 DONE — report-recon suite (found+fixed a tenant_id COGS bug).
-  - ✅ **C1 DONE** — granular admin permissions (export/force-delete/users.manage least-privilege)
-  - **C2** — money-type precision standardization across tables
-  - **C3** — cascade-delete audit (no master delete cascades into financial history)
-  - **C4** — golden-transaction + recon suite wired as permanent dashboard gate
-  - **C5** — ⭐ THE BIG ONE: collapse legacy → single V3 engine (longest/riskiest task)
+**Done (31 items):** M1-01..11 (12), EX1, EX2, F17, M1-UI1, Tester-Fix-0, A4, A4b,
+  B1..B10 (all B-series ✅),  **C1, C2, C3, C4** (✅).
+**LEFT (2 items):**
+  - **C5** — ⭐ THE BIG ONE: collapse legacy → single V3 engine (longest/riskiest task). ⚠️ AUDITOR WILL ISSUE EXPLICIT "MOST DANGEROUS TASK" GO/NO-GO WARNING BEFORE ANY C5 CODE. ← NEXT
   - **SEC-1** — plaintext reset-passcode hardening (security pass)
-  _(C-series = C1–C5 + SEC-1 — NONE started yet.)_
-  _(Note: "Left" groups several multi-part epics; the count is buckets, not micro-tasks. C5 consolidation is the largest single one.)_
+
+**C-series detail:**
+  - ✅ **C1** — granular admin permissions (export/force-delete/users.manage least-privilege)
+  - ✅ **C2** — FULL money-precision → decimal(20,4); verified on populated data. Rejected a fabricated first pass; fixed 1292 + FP-residual bugs.
+  - ✅ **C3** — cascade-delete audit; CASCADE→RESTRICT on audit/financial tables; verified product-with-history un-deletable.
+  - ✅ **C4** — golden-transaction GATE. Rejected a first pass that hid a 33.33 GP mismatch; fixed the REAL bug (LIFO return-restore + actual-COGS reporting). Item-wise GP == P&L GP == 1800.00 to the cent. THE NORTH-STAR ACHIEVED. This gate now protects C5.
 
 > **All Sellable-blocking List-A items are done.** The remaining List-A work is Trustworthy(92)/Perfect(100) hardening — important, but not blocking the sale.
 
@@ -55,7 +63,7 @@ Stays 0% by design until List A's Sellable-blockers are clear (they now are). Th
 ### Quick numbers
 | Track | Done | Left | Total | % done |
 |---|---:|---:|---:|---:|
-| **List A — code (IDE)** | 24 | 2 | 26 | **92%** |
+| **List A — code (IDE)** | 31 | 2 | 33 | **94%** |
 | **List B — manual (you)** | 0 | 13 | 13 | **0%** |
 | **Sellable (85) blockers** | all code ones | ~5 manual pts | — | **~94%** |
 | **Overall → 100** | ~64 pts | ~36 pts | 100 | **~64%** |

@@ -20,7 +20,7 @@ class CustomCharge extends Model
     ];
 
     protected $casts = [
-        'default_amount' => 'decimal:2',
+        'default_amount' => 'decimal:4',
         'is_percentage' => 'boolean',
         'is_active' => 'boolean',
     ];

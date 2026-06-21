@@ -15,7 +15,7 @@ class ProductionLogIngredient extends Model
 
     protected $casts = [
         'quantity_used' => 'decimal:3',
-        'cost_at_time' => 'decimal:2',
+        'cost_at_time' => 'decimal:4',
     ];
 
     public function productionLog()

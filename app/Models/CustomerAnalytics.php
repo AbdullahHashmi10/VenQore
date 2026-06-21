@@ -24,8 +24,8 @@ class CustomerAnalytics extends Model
     ];
 
     protected $casts = [
-        'total_spent'          => 'decimal:2',
-        'average_order_value'  => 'decimal:2',
+        'total_spent'          => 'decimal:4',
+        'average_order_value'  => 'decimal:4',
         'last_order_date'      => 'date',
         'predicted_next_order' => 'date',
     ];

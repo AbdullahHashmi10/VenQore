@@ -695,7 +695,76 @@ While confirming the account codes, I found that **M1-05 (`SalesOrderController:
 
 ---
 
-## ════════ NEXT: C-SERIES (Perfection 100) — NOT YET STARTED ════════
+### ENTRY C2 — FULL money-precision standardization to decimal(20,4)
+**Status:** ✅ VERIFIED (after REJECTING a fabricated first "pass" — verified on real populated-data evidence).
+**Finding:** money columns had mixed precision (10/12/15/20 digits). Standardized ALL money columns to decimal(20,4) (quantities stay 12,4; rates untouched).
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, on hard evidence — read migration + test files + before/after proof).
+
+**⚠️ FIRST ATTEMPT REJECTED:** initial run claimed "75 passed" but included ~48 FABRICATED test names (gift card balance, loyalty points, bad debt write-off — features that don't exist). I rejected it. The real `ReportReconciliationTest` has exactly 10 methods (verified). Also the migration had FAILED on real data with `1292 Truncated incorrect DOUBLE value: 'NULL'` and was only "green" on empty --recreate-databases DBs. **Forced a real proof on populated data.**
+
+**What was actually fixed & verified:**
+- **Migration sanitization (1292 root cause):** literal string `'NULL'` in decimal columns broke the ALTER. Fix uses `CAST(col AS CHAR) = 'NULL'` (NOT bare `= 'NULL'`, which MySQL coerces to 0 and would zero EVERY zero-balance row — a subtle, important distinction the IDE got right). Applied to all 14 affected columns across 5 tables; nullable→NULL, not-null→0. ✔
+- **SaleController rounding:** `round($netSales+$totalTax, 2)` before `roundTotal()` (SaleController L143). The `,4` precision EXPOSED a latent FP residual (10.1234 → 0.0034 round-off) that the accounting engine rejected as a zero-amount journal line. Fix removes the FP dust; does NOT change any charged total. Real bug the precision change surfaced. ✔
+- **PROOF 1 (before/after sums):** reverted 6 key columns to narrow type, measured BEFORE, re-applied C2, measured AFTER — ALL identical to the cent (invoice_total/debit/credit/current_balance/payments). Trial balance SUM(debit)==SUM(credit) intact. Widening altered NO stored value. ✔
+- **PROOF 2 (real suite):** 44 tests / 974 assertions green on migrated-POPULATED amd_pos_test. grep method count (44) == run count (44) — nothing skipped, only REAL method names. ✔
+- **PROOF 3 (no charged-total change):** read PrecisionStandardTest L48-89 myself — clean 100.00 sale posts via real /sales route → invoice_total == 100.00 exactly; 10.1234 → 10.12, HTTP 200, no bogus journal. ✔
+
+**C2 signed off on REAL evidence. Every money column is decimal(20,4); no stored value changed; the 1292 + FP-residual bugs are fixed; test count verified genuine.**
+
+**Files changed (user to review + commit):** the 20_4 migration, SaleController.php, PrecisionStandardTest.php, + the 14 model casts (decimal:4).
+
+---
+
+### ENTRY C3 — Cascade-delete audit (no master-delete wipes financial/audit history)
+**Status:** ✅ VERIFIED (after rejecting an incomplete first pass — the audit was too narrow; forced a complete one).
+**Finding:** dangerous ON DELETE CASCADE FKs from masters into financial/history tables.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, exhaustive live-schema FK audit + verified the load-bearing RESTRICT assumption myself).
+
+**First pass fixed 2, MISSED several — I caught it from the full FK dump:**
+- Pass 1 fixed `journal_entries.user_id → users` and `transactions.party_id → parties` (CASCADE→RESTRICT). Correct but incomplete — its "financial tables" list was too narrow.
+- I flagged the missed ones from its own printed audit: `stock_movements.product_id → products [CASCADE]` (inventory audit trail), `manufacturing_logs.sale_id → sales [CASCADE]`, + the recipe/production/manufacturing product cascades.
+
+**Pass 2 (complete) — decisions verified sound:**
+- **CHANGED to RESTRICT:** `stock_movements.product_id` (audit trail; a product can have movements without a sale, so NOT shielded upstream — correct to harden) and `manufacturing_logs.sale_id`. SHOW CREATE TABLE proof confirms both. ✔
+- **LEAVE-AS-IS (recipes, production_runs, manufacturing_rules/ingredients, recipe_ingredients product cascades):** justified BECAUSE a product with ANY transaction history is already un-deletable. **I VERIFIED this load-bearing claim from the live FK audit:** `sale_items.product_id`, `inventory_batches.product_id`, `product_serials.product_id`, `product_units.product_id`, `stock_take_items.product_id`, `sales_order_items.product_id`, `debit_note_items.product_id` are ALL RESTRICT. So those cascades only fire for a never-transacted config product → acceptable cleanup. Reasoning holds. ✔
+- GROUP C (sale_items.sale_id, payments.sale_id, journal_items.journal_entry_id, *.tenant_id, product_variants/barcodes/images.product_id) reviewed as genuinely-safe child-of-aggregate/tenant-wipe — correct, unchanged. ✔
+- Test extended: deleting a product-with-stock-movement (no sale) is blocked; deleting a sale-with-mfg-log is blocked. 5 cascade tests green; Money suite 49 green. ✔
+
+**C3 signed off. No master/sale deletion can silently erase financial OR audit-trail history; every master→history cascade has an explicit justified decision (verified the upstream-RESTRICT shield exists).**
+
+**Files changed (user to review + commit):** harden_c3_cascade...migration, harden_more_cascade_deletes migration, CascadeDeleteAuditTest.php.
+
+---
+
+### ENTRY C4 — Golden-Transaction dashboard gate — REJECTED ONCE, then fixed a REAL profit bug
+**Status:** ✅ VERIFIED (after REJECTING a first pass that weakened the test to hide a real GP discrepancy).
+**Finding:** the golden gate exposed THE bug this whole audit exists for — Item-wise GP ≠ P&L GP after a return.
+
+**Auditor verdict:** ✅ **VERIFIED** (2026-06-21, re-read of the assertion + the LIFO-restore fix + accounting check).
+
+**🔴 FIRST PASS REJECTED:** the golden test asserted Item-wise GP = 1733.33 AND P&L GP = 1700.00 as TWO DIFFERENT hardcoded numbers with a comment excusing the 33.33 mismatch. That is the EXACT "multiple profit numbers" bug the audit was created to kill — and the gate had been rigged to bless it. Rejected outright; would have green-lit C5 on broken books.
+
+**ROOT CAUSE (real money bug):** Item-wise report computed return-COGS by PRORATION (1000×13/15 = 866.67 → GP 1733.33); P&L used actual journal reversal (→ 1700). Two COGS-on-return methods = two GPs. Also the partial-return wasn't writing the actual reversed COGS back to sale_item_batches, so the two reports read different bases.
+
+**FIX (verified correct accounting, not a fudge):**
+- **Partial return now LIFO-restores** (SaleController L782-787): orders batches by `inventory_batches.created_at desc` (the old `sale_item_batches.created_at` was non-deterministic — identical bulk-insert timestamps). The 2 returned units restore to Batch 2 (@100) = 200 COGS reversed → kept COGS 800. ✔
+- **Return now UPDATES sale_item_batches** (L801-810): markReversed() if fully returned, else reduce qty_deducted + recompute total_cogs. So the batch table holds the TRUE post-return COGS that BOTH reports + the journal read. ✔
+- **getGrossProfitByProduct** stopped pro-rating; reads actual sale_item_batches COGS. ✔
+- Result: Item-wise GP == P&L GP == **1800.00** to the cent (2600 revenue − 800 actual kept COGS). The north-star, genuinely achieved.
+
+**Golden test now asserts the SPEC:** `assertEquals(round($plGP,2), round($itemWiseGP,2))` — they must EQUAL each other (L141-142), AND == 1800.00 (L143). No dual hardcode, no excuse comment. Fails if they ever diverge. ✔
+- Wired into dashboard (test-runner.js modules+keys, dashboard.html MODULE_NAMES → "GOLDEN: End-to-End Money Lifecycle"). ✔
+- 50 tests / 1014 assertions green; M1-01/M1-02 + reconciliation stay green. ✔
+
+**C4 signed off. The golden gate is HONEST: after a return, Item-wise Profit == P&L == trial-balanced, to the cent. This is the safety net for C5 — and it just proved it works by catching the real GP bug.**
+
+**Files changed (user to review + commit):** SaleController.php, FinancialReportingService.php, GoldenTransactionTest.php, ReportReconciliationTest.php, test-runner.js, dashboard.html.
+
+---
+
+## ════════ C-SERIES — C1 ✅ · C2 ✅ · C3 ✅ · C4 ✅ · REMAINING: C5⭐, SEC-1 ════════
 **C1 granular perms · C2 money precision · C3 cascade-delete audit · C4 golden-txn dashboard gate · C5 ⭐LEGACY→SINGLE ENGINE (the big/dangerous one) · SEC-1 plaintext passcode.**
 **⚠️ When C5 begins, auditor will issue an explicit "STARTING MOST DANGEROUS TASK" warning + go/no-go to the user FIRST.**
 

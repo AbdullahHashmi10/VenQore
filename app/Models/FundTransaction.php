@@ -25,9 +25,9 @@ class FundTransaction extends Model
     ];
 
     protected $casts = [
-        'amount' => 'decimal:2',
-        'balance_before' => 'decimal:2',
-        'balance_after' => 'decimal:2',
+        'amount' => 'decimal:4',
+        'balance_before' => 'decimal:4',
+        'balance_after' => 'decimal:4',
     ];
 
     public function fromAccount()

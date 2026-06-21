@@ -140,7 +140,7 @@ class SaleController extends Controller
             unset($ld); // release reference
 
             $netSales     = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-            $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal($netSales + $totalTax);
+            $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax, 2));
             $roundOff     = $invoiceTotal - ($netSales + $totalTax);
 
             // ── Credit Limit Check ──
@@ -778,8 +778,13 @@ class SaleController extends Controller
                         $lineRevenue  = round($netAmountPerUnit * $qty, 4);
                         $returnTotal += $lineRevenue;
 
-                        // Restore FIFO stock for this specific item proportionally
-                        $activeBatches = $originalItem->saleItemBatches()->active()->get();
+                        // Restore FIFO stock for this specific item proportionally (LIFO order of deduction for returns)
+                        $activeBatches = $originalItem->saleItemBatches()
+                            ->select('sale_item_batches.*')
+                            ->join('inventory_batches', 'sale_item_batches.inventory_batch_id', '=', 'inventory_batches.id')
+                            ->active()
+                            ->orderBy('inventory_batches.created_at', 'desc')
+                            ->get();
                         $qtyToRestore  = $qty;
                         $costToRestore = 0.0;
 
@@ -792,6 +797,17 @@ class SaleController extends Controller
                                 $batch->increment('remaining_qty', $restoredQty);
                                 $costToRestore += $restoredQty * (float) $batch->unit_cost;
                                 Log::info("Partial FIFO restore: batch {$batch->id}, restored {$restoredQty}");
+                                
+                                // Decrease or mark reversed in sale_item_batches so getGrossProfitByProduct picks up the correct COGS
+                                if ($restoredQty >= $sib->qty_deducted) {
+                                    $sib->markReversed("Partial return of {$sale->reference_number}");
+                                } else {
+                                    $newQty = $sib->qty_deducted - $restoredQty;
+                                    $sib->update([
+                                        'qty_deducted' => $newQty,
+                                        'total_cogs' => $newQty * $sib->unit_cost
+                                    ]);
+                                }
                             }
                             $qtyToRestore -= $restoreFromThis;
                         }
@@ -1127,7 +1143,7 @@ class SaleController extends Controller
             }
 
             $netSales            = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal($netSales + $totalTax);
+            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax, 2));
             $roundOff            = $roundedInvoiceTotal - ($netSales + $totalTax);
 
             // 3. Update Sale Header with Phase 1.1 Columns
@@ -1383,10 +1399,11 @@ class SaleController extends Controller
         }
 
         // Round Off
-        if (abs($roundOff) > 0.0001) {
-            $code = $roundOff > 0 ? '4900' : '5900';
+        $roundedRoundOff = round($roundOff, 2);
+        if (abs($roundedRoundOff) > 0.001) {
+            $code = $roundedRoundOff > 0 ? '4900' : '5900';
             $acc = $this->accounting->getAccountByCode($code);
-            $journalItems[] = ['account_id' => $acc->id, 'debit' => $roundOff < 0 ? abs($roundOff) : 0, 'credit' => $roundOff > 0 ? abs($roundOff) : 0, 'description' => "Round off — #{$sale->reference_number}"];
+            $journalItems[] = ['account_id' => $acc->id, 'debit' => $roundedRoundOff < 0 ? abs($roundedRoundOff) : 0, 'credit' => $roundedRoundOff > 0 ? abs($roundedRoundOff) : 0, 'description' => "Round off — #{$sale->reference_number}"];
         }
 
         // COGS
