@@ -64,14 +64,33 @@ class StockOperationsController extends Controller
 
     public function adjust(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'product_id' => 'required|exists:products,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'adjustment_type' => 'required|in:add,remove',
             'quantity' => 'required|numeric|min:0.001',
             'reason' => 'required|string',
             'notes' => 'required|string',
-        ]);
+        ];
+
+        $enablePasscode = \App\Helpers\SettingsHelper::get('enable_passcode') === '1';
+        if ($enablePasscode) {
+            $rules['passcode'] = 'required|string|size:6';
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($enablePasscode) {
+            $membership = \App\Models\TenantUser::where('tenant_id', app('current.tenant')->id)
+                ->where('user_id', \Illuminate\Support\Facades\Auth::id())
+                ->first();
+            if (!$membership || !$membership->security_pin || !\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+                if ($request->wantsJson()) {
+                    return response()->json(['message' => 'Incorrect security PIN. Action blocked.'], 403);
+                }
+                return redirect()->back()->with('error', 'Incorrect security PIN. Action blocked.');
+            }
+        }
 
         $product = Product::findOrFail($validated['product_id']);
         $quantity = (float) $validated['quantity'];

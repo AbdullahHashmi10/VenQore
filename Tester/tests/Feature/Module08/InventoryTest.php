@@ -384,3 +384,81 @@ test('prevents v3 stock transfer from reading or mutating another tenants batche
     $batchB = \Illuminate\Support\Facades\DB::table('inventory_batches')->where('id', $batchIdB)->first();
     expect((float) $batchB->remaining_qty)->toEqual(10.0);
 });
+
+test('manual stock adjustment requires correct passcode when enable_passcode is enabled', function () {
+    $tenant = $this->createTenant();
+    $owner = $this->actingAsOwner($tenant);
+    $this->seedTenantDefaults($tenant);
+
+    // Create Stock Adjustment Loss and Gain accounts
+    \App\Models\Account::forceCreate([
+        'tenant_id' => $tenant->id,
+        'code' => '6300',
+        'name' => 'Stock Adjustment Loss',
+        'type' => 'expense',
+        'normal_balance' => 'debit',
+    ]);
+    \App\Models\Account::forceCreate([
+        'tenant_id' => $tenant->id,
+        'code' => '4200',
+        'name' => 'Stock Adjustment Gain',
+        'type' => 'revenue',
+        'normal_balance' => 'credit',
+    ]);
+
+    $warehouse = Warehouse::create(['tenant_id' => $tenant->id, 'name' => 'Main', 'code' => 'MAIN']);
+    $product = Product::factory()->create(['tenant_id' => $tenant->id, 'cost_price' => 100.00, 'stock_quantity' => 10]);
+
+    \App\Models\Stock::create([
+        'tenant_id' => $tenant->id,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'quantity' => 10,
+    ]);
+
+    $batchId = \Illuminate\Support\Str::uuid()->toString();
+    \Illuminate\Support\Facades\DB::table('inventory_batches')->insert([
+        'tenant_id' => $tenant->id,
+        'id' => $batchId,
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'batch_type' => 'purchase',
+        'unit_cost' => 100.00,
+        'original_qty' => 10.00,
+        'initial_qty' => 10.00,
+        'remaining_qty' => 10.00,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    // Enable passcode setting
+    \App\Models\Setting::updateOrCreate(['key' => 'enable_passcode'], ['value' => '1']);
+    \App\Helpers\SettingsHelper::clearCache();
+
+    // Set Owner Security PIN
+    $membership = TenantUser::where('tenant_id', $tenant->id)
+        ->where('user_id', $owner->id)
+        ->first();
+    $membership->update(['security_pin' => Hash::make('654321')]);
+
+    $payload = [
+        'product_id' => $product->id,
+        'warehouse_id' => $warehouse->id,
+        'direction' => 'decrease',
+        'qty' => 2,
+        'reason' => 'Damaged inventory',
+        'passcode' => '000000', // Incorrect
+    ];
+
+    // 1. Assert request fails with incorrect passcode
+    $response = $this->postJson("/s/{$tenant->slug}/v3/stock-adjustments", $payload);
+    $response->assertStatus(403);
+    expect($product->fresh()->stock_quantity)->toEqual(10.0);
+
+    // 2. Assert request succeeds with correct passcode
+    $payload['passcode'] = '654321';
+    $response = $this->post("/s/{$tenant->slug}/v3/stock-adjustments", $payload);
+    $response->assertRedirect();
+    expect($product->fresh()->stock_quantity)->toEqual(8.0);
+});
+
