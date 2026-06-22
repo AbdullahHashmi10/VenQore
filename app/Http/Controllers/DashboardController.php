@@ -709,24 +709,16 @@ class DashboardController extends Controller
         ];
     }
 
-    /**
-     * Get net profit for a date range.
-     *
-     * Strategy:
-     * 1. Try the journal ledger (income vs expense accounts).
-     * 2. If ledger income is 0 (historical import case), fall back to:
-     *    net_profit = net_sales - COGS - operating expenses
-     */
     private function getNetProfit($start, $end): array
     {
-        $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : $start;
-        $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : $end;
+        $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
+        $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        $reportSvc = app(\App\Services\V3\ReportService::class);
-        $pl = $reportSvc->profitAndLoss(Carbon::parse($startStr), Carbon::parse($endStr));
+        // C3.2: single read-engine (was V3\ReportService).
+        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
 
-        $income  = (float) $pl['total_revenue'];
-        $expense = (float) ($pl['total_cogs'] + $pl['total_expenses']);
+        $income  = (float) $pl['revenue'];
+        $expense = (float) $pl['total_expenses']; // cogs + operating expenses (combined)
         $profit  = (float) $pl['net_profit'];
 
         return [
@@ -740,14 +732,14 @@ class DashboardController extends Controller
 
     private function getPLSummary($start, $end)
     {
-        $reportSvc = app(\App\Services\V3\ReportService::class);
-        $pl = $reportSvc->profitAndLoss(
-            $start instanceof \Carbon\Carbon ? $start : Carbon::parse($start),
-            $end instanceof \Carbon\Carbon ? $end : Carbon::parse($end)
-        );
+        $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
+        $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        $income  = (float) $pl['total_revenue'];
-        $expense = (float) ($pl['total_cogs'] + $pl['total_expenses']);
+        // C3.2: single read-engine (was V3\ReportService).
+        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
+
+        $income  = (float) $pl['revenue'];
+        $expense = (float) $pl['total_expenses'];
         $profit  = (float) $pl['net_profit'];
 
         return [
@@ -760,98 +752,36 @@ class DashboardController extends Controller
 
     private function getChartData()
     {
-        // Helper to get grouped data efficiently
-        $getGroupedData = function($start, $end, $groupByFormat, $periodRange) {
-            $tenantId = app('current.tenant')->id;
-            // net_sales is the only correct revenue metric.
-            // All records (including legacy) are permanently normalised by the backfill migration.
-            $sales = Sale::where('status', 'posted')
-                ->whereBetween('posted_at', [$start, $end])
-                ->select(
-                    DB::raw("DATE_FORMAT(posted_at, '$groupByFormat') as period"),
-                    DB::raw('SUM(net_sales) as total')
-                )
-                ->groupBy('period')
-                ->get()
-                ->pluck('total', 'period');
+        $frs = app(\App\Services\FinancialReportingService::class);
 
-            // FIFO COGS (accurate for post-FIFO purchases)
-            $fifoCogs = DB::table('sale_item_batches')
-                ->join('sale_items', 'sale_item_batches.sale_item_id', '=', 'sale_items.id')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->where('sales.tenant_id', $tenantId)
-                ->whereBetween('sales.posted_at', [$start, $end])
-                ->select(
-                    DB::raw("DATE_FORMAT(sales.posted_at, '$groupByFormat') as period"),
-                    DB::raw('SUM(sale_item_batches.total_cogs) as cogs')
-                )
-                ->groupBy('period')
-                ->get()
-                ->pluck('cogs', 'period');
-
-            // Static cost_price fallback (for items sold before FIFO batches were built)
-            $staticCogs = DB::table('sale_items')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->where('sales.tenant_id', $tenantId)
-                ->whereBetween('sales.posted_at', [$start, $end])
-                ->whereNotIn('sale_items.id', function ($q) use ($tenantId) {
-                    $q->select('sale_item_id')
-                        ->from('sale_item_batches')
-                        ->join('sale_items as si2', 'sale_item_batches.sale_item_id', '=', 'si2.id')
-                        ->join('sales as s2', 'si2.sale_id', '=', 's2.id')
-                        ->where('s2.tenant_id', $tenantId);
-                })
-                ->select(
-                    DB::raw("DATE_FORMAT(sales.posted_at, '$groupByFormat') as period"),
-                    DB::raw('SUM(sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))) as cogs')
-                )
-                ->groupBy('period')
-                ->get()
-                ->pluck('cogs', 'period');
-
-            $data = [];
-            foreach ($periodRange as $label => $key) {
-                $salesAmount = (float) ($sales[$key] ?? 0);
-                $cogsAmount  = (float) ($fifoCogs[$key] ?? 0) + (float) ($staticCogs[$key] ?? 0);
-                $data[] = [
-                    'name'   => $label,
-                    'sales'  => $salesAmount,
-                    'profit' => $salesAmount - $cogsAmount,
-                ];
-            }
-            return $data;
-        };
-
-
-        // Today (Hourly)
-        $todayRange = [];
+        // Today (hourly)
+        $todayMap = $frs->getProfitByPeriod(Carbon::today()->startOfDay(), Carbon::today()->endOfDay(), 'hourly');
+        $today = [];
         for ($i = 0; $i < 24; $i++) {
             $h = str_pad($i, 2, '0', STR_PAD_LEFT);
-            $todayRange["$h:00"] = $h;
+            $row = $todayMap[$h] ?? null;
+            $today[] = ['name' => "$h:00", 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
         }
-        $today = $getGroupedData(Carbon::today()->startOfDay(), Carbon::today()->endOfDay(), '%H', $todayRange);
 
-        // Month (Daily)
-        $monthRange = [];
+        // Month (daily, last 30 days)
+        $monthMap = $frs->getProfitByPeriod(Carbon::now()->subDays(29)->startOfDay(), Carbon::now()->endOfDay(), 'daily');
+        $month = [];
         for ($i = 29; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
-            $monthRange[$date->format('d M')] = $date->format('Y-m-d');
+            $row = $monthMap[$date->format('Y-m-d')] ?? null;
+            $month[] = ['name' => $date->format('d M'), 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
         }
-        $month = $getGroupedData(Carbon::now()->subDays(29)->startOfDay(), Carbon::now()->endOfDay(), '%Y-%m-%d', $monthRange);
 
-        // Year (Monthly)
-        $yearRange = [];
+        // Year (monthly, last 12 months)
+        $yearMap = $frs->getProfitByPeriod(Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()->endOfMonth(), 'monthly');
+        $year = [];
         for ($i = 11; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
-            $yearRange[$date->format('M')] = $date->format('Y-m');
+            $row = $yearMap[$date->format('Y-m')] ?? null;
+            $year[] = ['name' => $date->format('M'), 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
         }
-        $year = $getGroupedData(Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()->endOfMonth(), '%Y-%m', $yearRange);
 
-        return [
-            'Today' => $today,
-            'Month' => $month,
-            'Year' => $year
-        ];
+        return ['Today' => $today, 'Month' => $month, 'Year' => $year];
     }
 
     /**

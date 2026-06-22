@@ -150,6 +150,56 @@ class FinancialReportingService
     }
 
     /**
+     * Per-period revenue/cogs/profit, grouped by BUSINESS DATE (je.date).
+     * One conditional-aggregation query (no N+1). Mirrors getProfitAndLoss definitions.
+     * $granularity: 'hourly' | 'daily' | 'monthly'.
+     * Returns [ periodKey => ['revenue'=>float,'cogs'=>float,'profit'=>float] ].
+     */
+    public function getProfitByPeriod($start, $end, string $granularity = 'daily'): array
+    {
+        $startStr = $start instanceof Carbon ? $start->toDateString() : (string) $start;
+        $endStr   = $end   instanceof Carbon ? $end->toDateString()   : (string) $end;
+        $tenantId = app('current.tenant')->id;
+
+        $incomeIds = Account::where('type', 'income')->pluck('id')->all();
+        if (empty($incomeIds)) { $incomeIds = ['00000000-0000-0000-0000-000000000000']; }
+        $cogsId = Account::where('code', '5000')->value('id') ?? '00000000-0000-0000-0000-000000000000';
+
+        // je.date is a DATE (no time). Hourly is only meaningful for the same-day "Today" view,
+        // so hourly buckets by the hour of je.created_at; daily/monthly bucket by je.date.
+        $periodExpr = match ($granularity) {
+            'hourly'  => "DATE_FORMAT(je.created_at, '%H')",
+            'monthly' => "DATE_FORMAT(je.date, '%Y-%m')",
+            default   => "DATE_FORMAT(je.date, '%Y-%m-%d')",
+        };
+
+        $incomePh = implode(',', array_fill(0, count($incomeIds), '?'));
+
+        $rows = DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->where('ji.tenant_id', $tenantId)
+            ->where('je.tenant_id', $tenantId)
+            ->where('je.is_reversed', 0)
+            ->whereBetween('je.date', [$startStr, $endStr])
+            ->selectRaw(
+                "$periodExpr as period, "
+                . "SUM(CASE WHEN ji.account_id IN ($incomePh) THEN ji.credit - ji.debit ELSE 0 END) as revenue, "
+                . "SUM(CASE WHEN ji.account_id = ? THEN ji.debit - ji.credit ELSE 0 END) as cogs",
+                array_merge($incomeIds, [$cogsId])
+            )
+            ->groupBy('period')
+            ->get();
+
+        $out = [];
+        foreach ($rows as $r) {
+            $rev = (float) $r->revenue;
+            $cogs = (float) $r->cogs;
+            $out[(string) $r->period] = ['revenue' => $rev, 'cogs' => $cogs, 'profit' => $rev - $cogs];
+        }
+        return $out;
+    }
+
+    /**
      * Get outstanding Receivables — real-time from journal_items.
      *
      * Account 1200 (Accounts Receivable) is a debit-normal asset account.
@@ -267,6 +317,30 @@ class FinancialReportingService
                 'margin_pct'  => $margin,
             ];
         });
+    }
+
+    /**
+     * Net revenue (ex-tax, returns-netted) attributed to each cashier (sales.user_id).
+     * Mirrors getGrossProfitByProduct's revenue basis, grouped by user. One query (no N+1).
+     * Returns [ user_id => net_revenue (float) ].
+     */
+    public function getNetRevenueByUser(string $start, string $end): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+
+        $rows = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'sales.user_id',
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as net_revenue')
+            )
+            ->groupBy('sales.user_id')
+            ->get();
+
+        return $rows->mapWithKeys(fn ($r) => [$r->user_id => (float) $r->net_revenue]);
     }
 
     /**

@@ -36,4 +36,26 @@ class Account extends Model
     {
         return $this->hasMany(JournalItem::class);
     }
+
+    public function getBalanceAttribute($cachedValue)
+    {
+        if (!$this->journalItems()->exists()) {
+            return (float) ($cachedValue ?? 0.0);
+        }
+
+        $totals = $this->journalItems()
+            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+            ->where('journal_entries.is_reversed', 0)
+            ->selectRaw('SUM(journal_items.debit) as total_debit, SUM(journal_items.credit) as total_credit')
+            ->first();
+
+        $debit  = (float) ($totals->total_debit ?? 0.0);
+        $credit = (float) ($totals->total_credit ?? 0.0);
+
+        if (in_array($this->type, ['asset', 'expense'])) {
+            return $debit - $credit;
+        }
+
+        return $credit - $debit;
+    }
 }

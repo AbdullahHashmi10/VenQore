@@ -183,8 +183,24 @@ class StoreAdminController extends Controller
             ])
             ->toArray();
 
+        $frs        = app(\App\Services\FinancialReportingService::class);
+        $allStart   = '1970-01-01';
+        $allEnd     = now()->format('Y-m-d');
+        $monthStart = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd   = now()->endOfMonth()->format('Y-m-d');
+
+        $netByUserAll   = $frs->getNetRevenueByUser($allStart, $allEnd);     // [user_id => net]
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd); // [user_id => net]
+
+        // Posted-scope transaction counts per user (ONE grouped query, same status scope as the engine)
+        $txnCounts = \App\Models\Sale::query()
+            ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+            ->selectRaw('user_id, COUNT(*) as c')
+            ->groupBy('user_id')
+            ->pluck('c', 'user_id'); // [user_id => count]
+
         // 5. Staff Summaries / Sales Performance Data
-        $staffData = collect($users)->map(function ($u) use ($tenant) {
+        $staffData = collect($users)->map(function ($u) use ($tenant, $netByUserAll, $netByUserMonth, $txnCounts) {
             $user_id = $u['id'];
             if (!$user_id) {
                 return [
@@ -198,18 +214,14 @@ class StoreAdminController extends Controller
                     'lastActive' => 'Never',
                 ];
             }
-            $sales = \App\Models\Sale::where('user_id', $user_id)->get();
-            $totalSales = $sales->sum('total');
-            $transactionCount = $sales->count();
-            $avgTransaction = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
-
-            $monthSales = \App\Models\Sale::where('user_id', $user_id)
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->sum('total');
-
-            $lastSale = $sales->sortByDesc('created_at')->first();
-            $lastActive = $lastSale ? $lastSale->created_at->diffForHumans() : 'Never';
+            $totalSales       = (float) ($netByUserAll[$user_id]   ?? 0);
+            $monthSales       = (float) ($netByUserMonth[$user_id] ?? 0);
+            $transactionCount = (int)   ($txnCounts[$user_id]      ?? 0);
+            $avgTransaction   = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+            $lastSale = \App\Models\Sale::where('user_id', $user_id)
+                ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                ->latest('posted_at')->first();
+            $lastActive = $lastSale ? $lastSale->posted_at->diffForHumans() : 'Never';
 
             return [
                 'id' => $user_id,

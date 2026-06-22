@@ -30,23 +30,24 @@ use Illuminate\Support\Facades\Log;
  */
 class AccountingService
 {
-    private $tenantId;
     protected PartyService $partyService;
     protected PaymentService $paymentService;
 
     public function __construct(PartyService $partyService, PaymentService $paymentService)
     {
+        $this->partyService = $partyService;
+        $this->paymentService = $paymentService;
+    }
+
+    private function getTenantId(): int
+    {
         $tenant = app('current.tenant');
         if (!$tenant) {
             throw new \RuntimeException(
-                'AccountingService V3: Cannot instantiate without 
-                tenant context. All journal entries require a 
-                valid tenant binding.'
+                'AccountingService V3: Cannot run without tenant context.'
             );
         }
-        $this->tenantId = $tenant->id;
-        $this->partyService = $partyService;
-        $this->paymentService = $paymentService;
+        return (int) $tenant->id;
     }
 
 
@@ -87,7 +88,7 @@ class AccountingService
             }
         }
 
-        $tenantId = $this->tenantId;
+        $tenantId = $this->getTenantId();
 
         $entry = JournalEntry::create([
             'id'               => \Illuminate\Support\Str::uuid()->toString(),
@@ -129,17 +130,6 @@ class AccountingService
                 'credit'           => $line['credit'],
             ]);
 
-            // Keep accounts.balance in sync with every posted journal item.
-            // Convention: debit increases asset/expense; credit increases income/liability/equity.
-            if ($account) {
-                $debit  = (float) $line['debit'];
-                $credit = (float) $line['credit'];
-                if (in_array($account->type, ['asset', 'expense'])) {
-                    $account->increment('balance', $debit - $credit);
-                } else {
-                    $account->increment('balance', $credit - $debit);
-                }
-            }
 
             if (!empty($line['party_id'])) {
                 $partyIds[] = $line['party_id'];
@@ -178,7 +168,7 @@ class AccountingService
     {
         return DB::transaction(function () use ($journalEntryId, $reason) {
 
-            $tid = $this->tenantId;
+            $tid = $this->getTenantId();
             
             $original = DB::table('journal_entries')
                 ->where('tenant_id', $tid)
@@ -229,28 +219,7 @@ class AccountingService
                     'updated_at'  => now(),
                 ]);
 
-            // Undo the original entry's balance effect on each account.
-            // The reversal entry itself already incremented balances in the correct
-            // direction (via createEntry above). Additionally mark the original entry
-            // lines' net effect as undone by reversing the original balance change.
-            $originalLines = DB::table('journal_items')
-                ->where('tenant_id', $tid)
-                ->where('journal_entry_id', $journalEntryId)
-                ->get();
 
-            foreach ($originalLines as $origLine) {
-                $account = Account::find($origLine->account_id);
-                if ($account) {
-                    $debit  = (float) $origLine->debit;
-                    $credit = (float) $origLine->credit;
-                    // Undo the original posting: reverse the balance change it made
-                    if (in_array($account->type, ['asset', 'expense'])) {
-                        $account->decrement('balance', $debit - $credit);
-                    } else {
-                        $account->decrement('balance', $credit - $debit);
-                    }
-                }
-            }
 
             app(\App\Services\V3\AuditService::class)->log(
                 event:     'journal_reversed',
@@ -266,7 +235,7 @@ class AccountingService
 
     public function getBalance(string $accountCode, ?\Carbon\Carbon $asOf = null): float
     {
-        $tid = $this->tenantId;
+        $tid = $this->getTenantId();
         
         $account = Account::where('tenant_id', $tid)->where('code', $accountCode)->first();
 
@@ -309,7 +278,7 @@ class AccountingService
      */
     public function getAccountByCode(string $code, ?string $defaultName = null, string $type = 'asset'): Account
     {
-        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : $this->tenantId;
+        $tenantId = $this->getTenantId();
 
         return Account::where('tenant_id', $tenantId)
             ->where('code', $code)

@@ -88,43 +88,7 @@ class SaleReversalService
             ->first();
 
         if ($originalEntry) {
-            // Create a new, counter journal entry — every debit becomes a credit and vice versa.
-            // This is not a deletion. This is a new entry in the permanent ledger.
-            $reversalEntry = JournalEntry::create([
-                'date'        => now()->toDateString(),
-                'reference'   => 'REV-' . $sale->reference_number,
-                'description' => "[{$type}] Reversal of {$sale->reference_number}: {$reason}",
-                'party_id'    => $sale->party_id,
-                'created_by'  => $userId,
-                'user_id'     => $userId,
-            ]);
-
-            // Mirror every journal item with flipped debit/credit
-            foreach ($originalEntry->items as $originalItem) {
-                JournalItem::create([
-                    'journal_entry_id' => $reversalEntry->id,
-                    'account_id'       => $originalItem->account_id,
-                    'debit'            => $originalItem->credit,  // Flip: original credit → reversal debit
-                    'credit'           => $originalItem->debit,   // Flip: original debit → reversal credit
-                    'description'      => "[REVERSAL] " . $originalItem->description,
-                ]);
-
-                // Update account balance in real time
-                $account = Account::find($originalItem->account_id);
-                if ($account) {
-                    // Undo the original effect:
-                    // If original was a credit to this account, reversal debits it (subtracts from balance)
-                    // If original was a debit to this account, reversal credits it (adds to balance)
-                    $netEffectToReverse = $originalItem->credit - $originalItem->debit;
-                    if (in_array($account->type, ['asset', 'expense'])) {
-                        $account->balance -= $netEffectToReverse;
-                    } else {
-                        $account->balance += $netEffectToReverse;
-                    }
-                    $account->save();
-                }
-            }
-
+            $reversalEntry = app(\App\Services\V3\AccountingService::class)->reverseEntry($originalEntry->id, "[{$type}] Reversal of {$sale->reference_number}: {$reason}");
             $summary['journal_reversed'] = true;
             Log::info("SaleReversalService: Journal reversed for {$sale->reference_number}", [
                 'original_entry_id' => $originalEntry->id,

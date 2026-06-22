@@ -99,15 +99,17 @@ class AdminController extends Controller
         })->values();
 
         // 3. Staff Performance (Top 5 by Current Month Sales)
+        $frs            = app(\App\Services\FinancialReportingService::class);
+        $monthStart     = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd       = now()->endOfMonth()->format('Y-m-d');
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd);
+
         $staffPerformance = \App\Models\User::whereHas('memberships', function($q) use ($tenant) {
                 if ($tenant) $q->where('tenant_id', $tenant->id);
             })
             ->get()
-            ->map(function ($user) use ($tenant) {
-                $mtdSales = \App\Models\Sale::where('user_id', $user->id)
-                    ->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()])
-                    ->where('status', 'posted')
-                    ->sum('total');
+            ->map(function ($user) use ($tenant, $netByUserMonth) {
+                $mtdSales = (float) ($netByUserMonth[$user->id] ?? 0);
 
                 $totalHours = \App\Models\StaffDailySummary::where('user_id', $user->id)
                     ->whereBetween('date', [now()->startOfMonth(), now()->endOfMonth()])
@@ -316,21 +318,32 @@ class AdminController extends Controller
             if ($tenant) $q->where('tenant_id', $tenant->id);
         })->get();
 
-        $staffData = $staffUsers->map(function ($user) use ($tenant) {
-            $sales = \App\Models\Sale::where('user_id', $user->id)->get();
-            $totalSales = $sales->sum('total');
-            $transactionCount = $sales->count();
-            $avgTransaction = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+        $frs        = app(\App\Services\FinancialReportingService::class);
+        $allStart   = '1970-01-01';
+        $allEnd     = now()->format('Y-m-d');
+        $monthStart = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd   = now()->endOfMonth()->format('Y-m-d');
 
-            // Month sales
-            $monthSales = \App\Models\Sale::where('user_id', $user->id)
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->sum('total');
+        $netByUserAll   = $frs->getNetRevenueByUser($allStart, $allEnd);     // [user_id => net]
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd); // [user_id => net]
 
-            // Last active
-            $lastSale = $sales->sortByDesc('created_at')->first();
-            $lastActive = $lastSale ? $lastSale->created_at->diffForHumans() : 'Never';
+        // Posted-scope transaction counts per user (ONE grouped query, same status scope as the engine)
+        $txnCounts = \App\Models\Sale::query()
+            ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+            ->selectRaw('user_id, COUNT(*) as c')
+            ->groupBy('user_id')
+            ->pluck('c', 'user_id'); // [user_id => count]
+
+        $staffData = $staffUsers->map(function ($user) use ($tenant, $netByUserAll, $netByUserMonth, $txnCounts) {
+            $totalSales       = (float) ($netByUserAll[$user->id]   ?? 0);
+            $monthSales       = (float) ($netByUserMonth[$user->id] ?? 0);
+            $transactionCount = (int)   ($txnCounts[$user->id]      ?? 0);
+            $avgTransaction   = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+
+            $lastSale = \App\Models\Sale::where('user_id', $user->id)
+                ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                ->latest('posted_at')->first();
+            $lastActive = $lastSale ? $lastSale->posted_at->diffForHumans() : 'Never';
 
             // Get role from membership
             $membership = $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
@@ -711,21 +724,32 @@ class AdminController extends Controller
             if ($tenant) $q->where('tenant_id', $tenant->id);
         })->get();
 
-        $staffData = $users->map(function ($user) use ($tenant) {
-            $sales = \App\Models\Sale::where('user_id', $user->id)->get();
-            $totalSales = $sales->sum('total');
-            $transactionCount = $sales->count();
-            $avgTransaction = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+        $frs        = app(\App\Services\FinancialReportingService::class);
+        $allStart   = '1970-01-01';
+        $allEnd     = now()->format('Y-m-d');
+        $monthStart = now()->startOfMonth()->format('Y-m-d');
+        $monthEnd   = now()->endOfMonth()->format('Y-m-d');
 
-            // Month sales
-            $monthSales = \App\Models\Sale::where('user_id', $user->id)
-                ->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->sum('total');
+        $netByUserAll   = $frs->getNetRevenueByUser($allStart, $allEnd);     // [user_id => net]
+        $netByUserMonth = $frs->getNetRevenueByUser($monthStart, $monthEnd); // [user_id => net]
 
-            // Last active
-            $lastSale = $sales->sortByDesc('created_at')->first();
-            $lastActive = $lastSale ? $lastSale->created_at->diffForHumans() : 'Never';
+        // Posted-scope transaction counts per user (ONE grouped query, same status scope as the engine)
+        $txnCounts = \App\Models\Sale::query()
+            ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+            ->selectRaw('user_id, COUNT(*) as c')
+            ->groupBy('user_id')
+            ->pluck('c', 'user_id'); // [user_id => count]
+
+        $staffData = $users->map(function ($user) use ($tenant, $netByUserAll, $netByUserMonth, $txnCounts) {
+            $totalSales       = (float) ($netByUserAll[$user->id]   ?? 0);
+            $monthSales       = (float) ($netByUserMonth[$user->id] ?? 0);
+            $transactionCount = (int)   ($txnCounts[$user->id]      ?? 0);
+            $avgTransaction   = $transactionCount > 0 ? $totalSales / $transactionCount : 0;
+
+            $lastSale = \App\Models\Sale::where('user_id', $user->id)
+                ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                ->latest('posted_at')->first();
+            $lastActive = $lastSale ? $lastSale->posted_at->diffForHumans() : 'Never';
 
             // Get role from membership
             $membership = $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;

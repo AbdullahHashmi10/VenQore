@@ -418,49 +418,63 @@ class AiController extends Controller
     {
         if ($name === 'get_sales_summary') {
             $this->checkAuthPermission('sales_view');
-            $query = Sale::query()->whereBetween('created_at', [$args['start_date'], $args['end_date']]);
+            $startDate = $args['start_date'];
+            $endDate   = $args['end_date'];
+            $frs = app(\App\Services\FinancialReportingService::class);
 
             if (!empty($args['product_name'])) {
                 $prod = Product::where('name', 'like', '%' . $args['product_name'] . '%')->first();
-                if ($prod) {
-                    $query->whereHas('items', function ($q) use ($prod) {
-                        $q->where('product_id', $prod->id);
-                    });
-                } else {
+                if (!$prod) {
                     return json_encode(['error' => "Product '{$args['product_name']}' not found."]);
                 }
+                // C3.2b: per-product NET revenue from the one engine (FIFO, returns-netted).
+                $row = $frs->getGrossProfitByProduct($startDate, $endDate)
+                           ->firstWhere('product_id', $prod->id);
+                $total = $row ? (float) $row['net_revenue'] : 0.0;
+                $count = Sale::query()
+                    ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                    ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                    ->whereHas('items', fn ($q) => $q->where('product_id', $prod->id))
+                    ->count();
+                return json_encode(['total_amount' => $total, 'transaction_count' => $count]);
             }
 
-            $total = $query->sum('final_total');
-            $count = $query->count();
+            // C3.2b: period NET revenue from the one engine (same as P&L & dashboard).
+            $total = (float) $frs->getProfitAndLoss($startDate, $endDate)['revenue'];
+            $count = Sale::query()
+                ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+                ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+                ->count();
             return json_encode(['total_amount' => $total, 'transaction_count' => $count]);
         }
 
         if ($name === 'get_stock_level') {
-            $prod = Product::where('name', 'like', '%' . $args['product_name'] . '%')->first();
-            return $prod
-                ? json_encode(['product' => $prod->name, 'stock' => $prod->stock_quantity, 'unit' => $prod->unit])
-                : json_encode(['error' => 'Product not found']);
+            $this->checkAuthPermission('pos');
+            $product = Product::where('name', 'like', '%' . $args['product_name'] . '%')->first();
+            if (!$product) {
+                return json_encode(['error' => 'Product not found']);
+            }
+            // FIFO truth — same basis as the Inventory Valuation report (SUM of stock batches).
+            $stock = (float) \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
+            return json_encode([
+                'product' => $product->name,
+                'stock'   => $stock,
+                'unit'    => $product->unit,
+            ]);
         }
 
         if ($name === 'get_profit_summary') {
             $this->checkAuthPermission('finance');
             $startDate = $args['start_date'];
-            $endDate = $args['end_date'];
+            $endDate   = $args['end_date'];
 
-            // Calculate revenue from sales
-            $revenue = Sale::whereBetween('created_at', [$startDate, $endDate])->sum('final_total');
+            // C3.2b: AI reads the ONE engine — identical to the P&L report & dashboard.
+            $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startDate, $endDate);
 
-            // Calculate cost (assuming cost_price on products * quantity sold)
-            $cost = DB::table('sale_items')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->join('products', 'sale_items.product_id', '=', 'products.id')
-                ->whereBetween('sales.created_at', [$startDate, $endDate])
-                ->select(DB::raw('SUM(sale_items.quantity * products.cost_price) as total_cost'))
-                ->value('total_cost') ?? 0;
-
-            $profit = $revenue - $cost;
-            $margin = $revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0;
+            $revenue = (float) $pl['revenue'];
+            $cost    = (float) $pl['total_expenses']; // cogs + operating expenses
+            $profit  = (float) $pl['net_profit'];     // revenue - cost
+            $margin  = $revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0;
 
             return json_encode([
                 'revenue' => $revenue,
@@ -472,13 +486,18 @@ class AiController extends Controller
 
         if ($name === 'get_expense_summary') {
             $this->checkAuthPermission('finance');
-            $query = Expense::whereBetween('date', [$args['start_date'], $args['end_date']]);
 
+            // C3.2f: authoritative operating expenses come from the ONE engine (journal opex,
+            // COGS excluded) — identical to the P&L "operating expenses" line.
+            $frs = app(\App\Services\FinancialReportingService::class);
+            $operatingExpenses = (float) $frs->getProfitAndLoss($args['start_date'], $args['end_date'])['operating_expenses'];
+
+            // Supplementary detail from the Expense table (NOT authoritative; for category breakdown).
+            $query = Expense::whereBetween('date', [$args['start_date'], $args['end_date']]);
             if (!empty($args['category'])) {
                 $query->where('category', 'like', '%' . $args['category'] . '%');
             }
-
-            $total = $query->sum('amount');
+            $expenseTableTotal = (float) $query->sum('amount');
             $count = $query->count();
             $byCategory = Expense::whereBetween('date', [$args['start_date'], $args['end_date']])
                 ->select('category', DB::raw('SUM(amount) as total'))
@@ -486,9 +505,13 @@ class AiController extends Controller
                 ->get();
 
             return json_encode([
-                'total_expenses' => $total,
-                'expense_count' => $count,
-                'by_category' => $byCategory
+                // Authoritative headline (matches the P&L card):
+                'total_expenses'       => $operatingExpenses,
+                'operating_expenses'   => $operatingExpenses,
+                // Supplementary (Expense-table view):
+                'expense_table_total'  => $expenseTableTotal,
+                'expense_count'        => $count,
+                'by_category'          => $byCategory,
             ]);
         }
 
@@ -496,33 +519,22 @@ class AiController extends Controller
             $this->checkAuthPermission('reports');
             $limit = $args['limit'] ?? 5;
 
-            $topProducts = DB::table('sale_items')
-                ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-                ->join('products', 'sale_items.product_id', '=', 'products.id')
-                ->whereBetween('sales.created_at', [$args['start_date'], $args['end_date']])
-                ->select('products.name', DB::raw('SUM(sale_items.quantity) as total_quantity'), DB::raw('SUM(sale_items.total) as total_revenue'))
-                ->groupBy('products.id', 'products.name')
-                ->orderByDesc('total_revenue')
-                ->limit($limit)
-                ->get();
+            // C3.2e: top products from the ONE engine (FIFO, returns-netted) — identical to the
+            // item-wise report. Already sorted by net_revenue DESC; just take the top N.
+            $frs = app(\App\Services\FinancialReportingService::class);
+            $topProducts = $frs->getGrossProfitByProduct($args['start_date'], $args['end_date'])
+                ->take($limit)
+                ->map(fn ($row) => [
+                    'name'           => $row['name'],
+                    'total_quantity' => (float) $row['quantity'],
+                    'total_revenue'  => (float) $row['net_revenue'],
+                    'gross_profit'   => (float) $row['gross_profit'],
+                ])
+                ->values();
 
             return json_encode(['top_products' => $topProducts]);
         }
 
-        if ($name === 'get_stock_level') {
-            $this->checkAuthPermission('pos');
-            $product = Product::where('name', 'like', '%' . $args['product_name'] . '%')->first();
-            if (!$product)
-                return json_encode(['error' => 'Product not found']);
-
-            $quantity = \App\Models\Stock::where('product_id', $product->id)->sum('quantity');
-
-            return json_encode([
-                'product' => $product->name,
-                'stock' => $quantity,
-                'price' => $product->price
-            ]);
-        }
 
         if ($name === 'get_purchase_summary') {
             $this->checkAuthPermission('purchases');
@@ -637,7 +649,7 @@ class AiController extends Controller
                 'suggestions' => $suggestions,
                 'recent_activity' => [
                     'cash_sales' => $recentSales->count(),
-                    'cash_sales_total' => $recentSales->sum('total'),
+                    'cash_sales_total' => $recentSales->sum('net_sales'),
                     'purchases' => $recentPurchases->count(),
                     'expenses' => $recentExpenses->count(),
                     'fund_transactions' => $fundTransactions->count()

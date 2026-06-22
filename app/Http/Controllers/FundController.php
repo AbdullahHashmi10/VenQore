@@ -746,42 +746,4 @@ class FundController extends Controller
         ]);
     }
 
-    /**
-     * Helper to create journal entries
-     * @deprecated Use app(\App\Services\V3\AccountingService::class)->createEntry() instead
-     */
-    private function createJournalEntry($description, $debitAccountCode, $creditAccountCode, $amount, $reference = null)
-    {
-        $debitAccount = $debitAccountCode ? Account::where('code', $debitAccountCode)->first() : null;
-        $creditAccount = $creditAccountCode ? Account::where('code', $creditAccountCode)->first() : null;
-
-        if (!$debitAccount && !$creditAccount) {
-            return; // Skip if no valid accounts
-        }
-
-        $journalEntry = JournalEntry::create([
-            'date' => now(),
-            'description' => $description . ($reference ? " - {$reference}" : ''),
-            'reference' => $reference,
-            'user_id' => Auth::id(),
-        ]);
-
-        if ($debitAccount) {
-            JournalItem::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $debitAccount->id,
-                'debit' => $amount,
-                'credit' => 0,
-            ]);
-        }
-
-        if ($creditAccount) {
-            JournalItem::create([
-                'journal_entry_id' => $journalEntry->id,
-                'account_id' => $creditAccount->id,
-                'debit' => 0,
-                'credit' => $amount,
-            ]);
-        }
-    }
 }

@@ -9,12 +9,21 @@ use Illuminate\Support\Str;
 
 class FifoService
 {
-    private $tenantId;
-
     public function __construct()
     {
-        $this->tenantId = app('current.tenant')->id;
     }
+
+    private function getTenantId(): int
+    {
+        $tenant = app('current.tenant');
+        if (!$tenant) {
+            throw new \RuntimeException(
+                'FifoService: Cannot run without tenant context.'
+            );
+        }
+        return (int) $tenant->id;
+    }
+
     /**
      * Deduct stock using FIFO (oldest batch first, per warehouse).
      * This is the ONLY method that reduces inventory_batches.remaining_qty.
@@ -35,11 +44,12 @@ class FifoService
 
             // Lock batches for this product+warehouse, oldest first
             $batches = DB::table('inventory_batches')
-                ->where('tenant_id', $this->tenantId)
+                ->where('tenant_id', $this->getTenantId())
                 ->where('product_id', $productId)
                 ->where('warehouse_id', $warehouseId)
                 ->where('remaining_qty', '>', 0)
                 ->orderBy('created_at', 'ASC') // FIFO — Golden Rule 3
+                ->orderBy('seq', 'ASC')        // deterministic tiebreaker for same-timestamp batches
                 ->lockForUpdate()
                 ->get();
 
@@ -64,7 +74,7 @@ class FifoService
 
                 // Decrement the batch
                 DB::table('inventory_batches')
-                    ->where('tenant_id', $this->tenantId)
+                    ->where('tenant_id', $this->getTenantId())
                     ->where('id', $batch->id)
                     ->decrement('remaining_qty', $take);
 
@@ -80,19 +90,19 @@ class FifoService
 
             if ($remaining > 0) {
                 $lastBatch = DB::table('inventory_batches')
-                    ->where('tenant_id', $this->tenantId)
+                    ->where('tenant_id', $this->getTenantId())
                     ->where('product_id', $productId)
                     ->where('warehouse_id', $warehouseId)
                     ->orderBy('created_at', 'DESC')
                     ->first();
 
                 if (!$lastBatch) {
-                    $product = DB::table('products')->where('tenant_id', $this->tenantId)->where('id', $productId)->first();
+                    $product = DB::table('products')->where('tenant_id', $this->getTenantId())->where('id', $productId)->first();
                     $unitCost = $product ? (float) ($product->cost_price ?? 0) : 0.0;
                     
                     $batchId = Str::uuid()->toString();
                     DB::table('inventory_batches')->insert([
-                        'tenant_id' => $this->tenantId,
+                        'tenant_id' => $this->getTenantId(),
                         'id' => $batchId,
                         'product_id' => $productId,
                         'warehouse_id' => $warehouseId,
@@ -113,7 +123,7 @@ class FifoService
                     ];
                 } else {
                     DB::table('inventory_batches')
-                        ->where('tenant_id', $this->tenantId)
+                        ->where('tenant_id', $this->getTenantId())
                         ->where('id', $lastBatch->id)
                         ->decrement('remaining_qty', $remaining);
                     
@@ -139,19 +149,19 @@ class FifoService
         DB::transaction(function () use ($saleItemId) {
 
             $rows = DB::table('sale_item_batches')
-                ->where('tenant_id', $this->tenantId)
+                ->where('tenant_id', $this->getTenantId())
                 ->where('sale_item_id', $saleItemId)
                 ->where('is_reversed', 0)
                 ->get();
 
             foreach ($rows as $row) {
                 DB::table('inventory_batches')
-                    ->where('tenant_id', $this->tenantId)
+                    ->where('tenant_id', $this->getTenantId())
                     ->where('id', $row->inventory_batch_id)
                     ->increment('remaining_qty', $row->qty_deducted);
 
                 DB::table('sale_item_batches')
-                    ->where('tenant_id', $this->tenantId)
+                    ->where('tenant_id', $this->getTenantId())
                     ->where('id', $row->id)
                     ->update(['is_reversed' => 1]);
             }
@@ -182,7 +192,7 @@ class FifoService
         $id = Str::uuid()->toString();
 
         DB::table('inventory_batches')->insert([
-            'tenant_id'         => $this->tenantId,
+            'tenant_id'         => $this->getTenantId(),
             'id'                => $id,
             'product_id'        => $productId,
             'warehouse_id'      => $warehouseId,
@@ -198,7 +208,7 @@ class FifoService
             'updated_at'        => now(),
         ]);
 
-        return DB::table('inventory_batches')->where('tenant_id', $this->tenantId)->where('id', $id)->first();
+        return DB::table('inventory_batches')->where('tenant_id', $this->getTenantId())->where('id', $id)->first();
     }
 
     /**
@@ -219,7 +229,7 @@ class FifoService
         $warnings   = [];
 
         $batches = DB::table('inventory_batches')
-            ->where('tenant_id', $this->tenantId)
+            ->where('tenant_id', $this->getTenantId())
             ->where('purchase_invoice_id', $purchaseInvoiceId)
             ->whereNull('deleted_at')
             ->get();
@@ -237,7 +247,7 @@ class FifoService
 
             // Zero and soft-delete the batch
             DB::table('inventory_batches')
-                ->where('tenant_id', $this->tenantId)
+                ->where('tenant_id', $this->getTenantId())
                 ->where('id', $batch->id)
                 ->update([
                     'remaining_qty' => 0,
@@ -264,7 +274,7 @@ class FifoService
         float      $qty
     ): bool {
         $available = DB::table('inventory_batches')
-            ->where('tenant_id', $this->tenantId)
+            ->where('tenant_id', $this->getTenantId())
             ->where('product_id', $productId)
             ->where('warehouse_id', $warehouseId)
             ->where('remaining_qty', '>', 0)

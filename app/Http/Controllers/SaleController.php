@@ -784,6 +784,7 @@ class SaleController extends Controller
                             ->join('inventory_batches', 'sale_item_batches.inventory_batch_id', '=', 'inventory_batches.id')
                             ->active()
                             ->orderBy('inventory_batches.created_at', 'desc')
+                            ->orderBy('inventory_batches.seq', 'desc')
                             ->get();
                         $qtyToRestore  = $qty;
                         $costToRestore = 0.0;
@@ -852,7 +853,7 @@ class SaleController extends Controller
 
                     // Post the partial reversal journal entry
                     if (!empty($journalItems)) {
-                        (new \App\Services\AccountingService())->createEntry([
+                        app(\App\Services\V3\AccountingService::class)->createEntry([
                             'date'        => now()->toDateString(),
                             'reference'   => 'PRET-' . $sale->reference_number,
                             'description' => "Partial return of {$sale->reference_number}. Reason: {$reason}",
