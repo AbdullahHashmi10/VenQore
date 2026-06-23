@@ -197,7 +197,16 @@ class ReportController extends Controller
             ->orderBy('date', 'desc')
             ->get();
 
-        return Inertia::render('Reports/DailySales', [
+        return Inertia::render('Reports/GenericReport', [
+            'title' => 'Daily Sales Report',
+            'columns' => [
+                ['label' => 'Date', 'key' => 'date'],
+                ['label' => 'Sales Count', 'key' => 'count'],
+                ['label' => 'Discount Given', 'key' => 'discount', 'type' => 'currency'],
+                ['label' => 'Tax Collected', 'key' => 'tax', 'type' => 'currency'],
+                ['label' => 'Net Revenue', 'key' => 'revenue', 'type' => 'currency'],
+            ],
+            'data' => $sales,
             'reports' => $sales,
             'filters' => [
                 'range' => $range,
