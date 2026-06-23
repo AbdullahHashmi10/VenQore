@@ -238,7 +238,7 @@ class User extends Authenticatable
     {
         if ($this->membershipResolved) {
             $boundTenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
-            if ($boundTenantId === null || ($this->resolvedMembership && (int)$this->resolvedMembership->tenant_id === (int)$boundTenantId)) {
+            if ($boundTenantId === null || ($this->resolvedMembership && (string)$this->resolvedMembership->tenant_id === (string)$boundTenantId)) {
                 return $this->resolvedMembership;
             }
             $this->membershipResolved = false;
@@ -262,7 +262,7 @@ class User extends Authenticatable
         // 2. Fallback to globally bound current.membership if it matches this user
         if (app()->bound('current.membership')) {
             $membership = app('current.membership');
-            if ((int)$membership->user_id === (int)$this->id) {
+            if ((string)$membership->user_id === (string)$this->id) {
                 $this->resolvedMembership = $membership;
                 $this->membershipResolved = true;
                 return $membership;

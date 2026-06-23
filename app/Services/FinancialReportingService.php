@@ -911,6 +911,18 @@ class FinancialReportingService
             $sections[$section]['total'] += $balance;
         }
 
+        // Add retained earnings (all-time net profit up to $asOf)
+        $plAllTime = $this->getProfitAndLoss('1900-01-01', $asOf);
+        $retainedEarnings = (float) $plAllTime['net_profit'];
+
+        $sections['equity']['accounts'][] = [
+            'id'      => 'RE',
+            'code'    => 'RE',
+            'name'    => 'Retained Earnings (current period)',
+            'balance' => round($retainedEarnings, 2),
+        ];
+        $sections['equity']['total'] += $retainedEarnings;
+
         // Round the section totals
         foreach ($sections as &$s) {
             $s['total'] = round($s['total'], 2);
@@ -1052,7 +1064,7 @@ class FinancialReportingService
         ];
     }
 
-    public function getAgedReceivables(?string $asOf = null): array
+    public function getAgedReceivables(?string $asOf = null): AgedReportResult
     {
         $asOf     = $asOf ?? now()->toDateString();
         $tenantId = app('current.tenant')->id;
@@ -1061,9 +1073,9 @@ class FinancialReportingService
             ->join('parties as p', function($join) use ($tenantId) {
                 $join->on('s.party_id', '=', 'p.id')->where('p.tenant_id', $tenantId);
             })
-            ->where('s.status', 'posted')
+            ->whereIn('s.status', ['posted', 'partially_returned'])
             ->whereNotIn('s.payment_status', ['paid', 'written_off'])
-            ->where('s.posted_at', '<=', $asOf)
+            ->where('s.posted_at', '<=', $asOf . ' 23:59:59')
             ->selectRaw('s.id, s.reference_number, s.posted_at, s.invoice_total AS total_amount,
                          p.id AS party_id, p.name AS party_name')
             ->get();
@@ -1073,7 +1085,12 @@ class FinancialReportingService
             $allocated = (float) DB::table('payment_allocations')
                 ->where('tenant_id', $tenantId)->where('sale_id', $sale->id)
                 ->where('status', 'active')->sum('allocated_amount');
-            $outstanding = round($sale->total_amount - $allocated, 2);
+            $returnedAmount = (float) DB::table('sale_items')
+                ->where('sale_id', $sale->id)
+                ->where('tenant_id', $tenantId)
+                ->selectRaw('SUM(returned_quantity * (net_amount / COALESCE(NULLIF(quantity, 0), 1))) as ret')
+                ->value('ret');
+            $outstanding = round($sale->total_amount - $allocated - $returnedAmount, 2);
             if ($outstanding <= 0) continue;
             $ageDays = Carbon::parse($sale->posted_at)->diffInDays($asOf);
             $rows[] = [
@@ -1081,16 +1098,18 @@ class FinancialReportingService
                 'invoice_number' => $sale->reference_number, 'sale_date' => $sale->posted_at,
                 'outstanding' => $outstanding, 'age_days' => $ageDays,
                 'bucket' => $this->ageBucket($ageDays),
+                'total' => $outstanding,
+                'balance' => $outstanding,
             ];
         }
-        return [
+        return new AgedReportResult([
             'as_of'   => $asOf, 'rows' => $rows,
             'summary' => $this->ageBucketSummary($rows),
             'total'   => round(array_sum(array_column($rows, 'outstanding')), 2),
-        ];
+        ]);
     }
 
-    public function getAgedPayables(?string $asOf = null): array
+    public function getAgedPayables(?string $asOf = null): AgedReportResult
     {
         $asOf     = $asOf ?? now()->toDateString();
         $tenantId = app('current.tenant')->id;
@@ -1118,13 +1137,15 @@ class FinancialReportingService
                 'invoice_number' => $purchase->invoice_number, 'purchase_date' => $purchase->purchase_date,
                 'outstanding' => $outstanding, 'age_days' => $ageDays,
                 'bucket' => $this->ageBucket($ageDays),
+                'total' => $outstanding,
+                'balance' => $outstanding,
             ];
         }
-        return [
+        return new AgedReportResult([
             'as_of'   => $asOf, 'rows' => $rows,
             'summary' => $this->ageBucketSummary($rows),
             'total'   => round(array_sum(array_column($rows, 'outstanding')), 2),
-        ];
+        ]);
     }
 
     public function getSalesReport(string $from, string $to, ?string $partyId = null, ?string $productId = null): array
@@ -1347,6 +1368,36 @@ class FinancialReportingService
         }
 
         return $credit - $debit;
+    }
+}
+
+class AgedReportResult implements \ArrayAccess, \IteratorAggregate, \JsonSerializable, \Countable
+{
+    private array $data;
+
+    public function __construct(array $data)
+    {
+        $this->data = $data;
+    }
+
+    public function offsetExists($offset): bool { return isset($this->data[$offset]); }
+    public function offsetGet($offset): mixed { return $this->data[$offset]; }
+    public function offsetSet($offset, $value): void { $this->data[$offset] = $value; }
+    public function offsetUnset($offset): void { unset($this->data[$offset]); }
+
+    public function getIterator(): \Traversable
+    {
+        return new \ArrayIterator($this->data['rows'] ?? []);
+    }
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->data;
+    }
+
+    public function count(): int
+    {
+        return count($this->data['rows'] ?? []);
     }
 }
 
