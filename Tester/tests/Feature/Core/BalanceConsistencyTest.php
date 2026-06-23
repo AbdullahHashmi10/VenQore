@@ -7,7 +7,6 @@ use App\Models\Tenant;
 use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\JournalItem;
-use App\Models\User;
 use App\Models\BankAccount;
 use App\Services\V3\AccountingService;
 use Illuminate\Support\Facades\DB;
@@ -20,12 +19,7 @@ class BalanceConsistencyTest extends VenQoreTestCase
         $this->seedTenantDefaults($tenant);
         app()->instance('current.tenant', $tenant);
 
-        // Fetch or create user
-        $user = User::first() ?? User::create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-            'password' => bcrypt('password')
-        ]);
+        $user = $this->createTenantUser($tenant, 'owner');
 
         $accountingSvc = app(AccountingService::class);
 
@@ -46,7 +40,7 @@ class BalanceConsistencyTest extends VenQoreTestCase
             'date' => now()->toDateString(),
             'reference' => 'TEST-001',
             'description' => 'Credit Sale',
-            'user_id' => $user->id
+            'created_by' => $user->id
         ], [
             ['account_id' => $arAcc->id, 'debit' => 500, 'credit' => 0],
             ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => 500],
@@ -57,7 +51,7 @@ class BalanceConsistencyTest extends VenQoreTestCase
             'date' => now()->toDateString(),
             'reference' => 'TEST-002',
             'description' => 'Payment Receipt',
-            'user_id' => $user->id
+            'created_by' => $user->id
         ], [
             ['account_id' => $cashAcc->id, 'debit' => 300, 'credit' => 0],
             ['account_id' => $arAcc->id, 'debit' => 0, 'credit' => 300],
@@ -68,7 +62,7 @@ class BalanceConsistencyTest extends VenQoreTestCase
             'date' => now()->toDateString(),
             'reference' => 'TEST-003',
             'description' => 'Fund Transfer',
-            'user_id' => $user->id
+            'created_by' => $user->id
         ], [
             ['account_id' => $bankAcc->id, 'debit' => 200, 'credit' => 0],
             ['account_id' => $cashAcc->id, 'debit' => 0, 'credit' => 200],
