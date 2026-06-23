@@ -28,14 +28,23 @@ class AdminController extends Controller
     public function dashboard()
     {
         // 1. Critical Cash Flow KPIs (Real-time V3 Journal)
-        $reportSvc = app(\App\Services\V3\ReportService::class);
         $financeSvc = app(\App\Services\FinancialReportingService::class);
         
         // Today's snapshot for the Right Panel
-        $todayMovement = $reportSvc->getCashMovement(now()->startOfDay(), now()->endOfDay());
+        $todayFlow = $financeSvc->getCashFlowReport(now()->startOfDay()->toDateString(), now()->endOfDay()->toDateString());
+        $todayMovement = [
+            'cash_in'  => $todayFlow['operating_inflow'],
+            'cash_out' => $todayFlow['operating_outflow'],
+            'net'      => $todayFlow['net_cash_flow'],
+        ];
         
         // MTD (Month to Date) for the main KPI tiles
-        $mtdMovement = $reportSvc->getCashMovement(now()->startOfMonth(), now()->endOfMonth());
+        $mtdFlow = $financeSvc->getCashFlowReport(now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString());
+        $mtdMovement = [
+            'cash_in'  => $mtdFlow['operating_inflow'],
+            'cash_out' => $mtdFlow['operating_outflow'],
+            'net'      => $mtdFlow['net_cash_flow'],
+        ];
         
         $totalRevenue = $mtdMovement['cash_in'];
         $totalExpenses = $mtdMovement['cash_out'];
@@ -75,14 +84,19 @@ class AdminController extends Controller
         }
 
         // 2. Profitability Trend (Last 6 Months) - Now using Cash Basis
-        $profitData = collect(range(5, 0))->map(function ($i) use ($reportSvc, $tenant) {
+        $profitData = collect(range(5, 0))->map(function ($i) use ($financeSvc, $tenant) {
             $date = now()->subMonths($i);
             $monthName = $date->format('M');
             
             $start = $date->copy()->startOfMonth();
             $end = $date->copy()->endOfMonth();
             
-            $movement = $reportSvc->getCashMovement($start, $end);
+            $flow = $financeSvc->getCashFlowReport($start->toDateString(), $end->toDateString());
+            $movement = [
+                'cash_in'  => $flow['operating_inflow'],
+                'cash_out' => $flow['operating_outflow'],
+                'net'      => $flow['net_cash_flow'],
+            ];
             
             $purchases = \App\Models\Invoice::where('type', 'purchase')
                 ->where('tenant_id', $tenant->id ?? null)

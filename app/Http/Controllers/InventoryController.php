@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Services\StorageService;
 use App\Models\ActivityLog;
 use App\Models\Activity;
-use App\Services\V3\ReportService;
+use App\Services\FinancialReportingService;
 use App\Services\V3\InventoryService as V3InventoryService;
 
 
@@ -25,10 +25,8 @@ class InventoryController extends Controller
     {
         $tenantId = app('current.tenant')->id;
         
-        // V3 Logic: Use ReportService for valuation and stats
-        $reportService = resolve(ReportService::class);
-        $valuationData = $reportService->inventoryValuation();
-        $inventoryValue = $valuationData['grand_total'];
+        // V3 Logic: Use FinancialReportingService for valuation
+        $inventoryValue = app(FinancialReportingService::class)->getInventoryValue();
 
         $lowStockCount = DB::table('products as p')
             ->leftJoin('inventory_batches as ib', 'p.id', '=', 'ib.product_id')
@@ -227,8 +225,7 @@ class InventoryController extends Controller
             return response()->json($products);
         }
 
-        $reportService = resolve(ReportService::class);
-        $valuationData = $reportService->inventoryValuation();
+        // Resolved via FinancialReportingService below
 
         return Inertia::render('Inventory/InventoryList', [
             'products' => $products,
@@ -247,7 +244,7 @@ class InventoryController extends Controller
                     ->get()
                     ->filter(fn($p) => (float)$p->total_qty <= (float)$p->min_stock_alert)
                     ->count(),
-                'inventory_value' => $valuationData['grand_total'],
+                'inventory_value' => app(FinancialReportingService::class)->getInventoryValue(),
             ],
             'warehouses' => Warehouse::query()->get(),
             'categories' => Category::query()->get(),

@@ -188,8 +188,12 @@ class FinanceController extends Controller
         $cashBalance = $bankAccounts->where('account_type', 'cash')->sum('current_balance');
 
         // Today's transactions
-        $reportSvc = app(\App\Services\V3\ReportService::class);
-        $todayMovement = $reportSvc->getCashMovement(now()->startOfDay(), now()->endOfDay());
+        $financeSvc = app(\App\Services\FinancialReportingService::class);
+        $todayFlow = $financeSvc->getCashFlowReport(now()->startOfDay()->toDateString(), now()->endOfDay()->toDateString());
+        $todayMovement = [
+            'cash_in'  => $todayFlow['operating_inflow'],
+            'cash_out' => $todayFlow['operating_outflow'],
+        ];
 
         return Inertia::render('BankAccounts/BankAccountsList', [
             'bankAccounts' => $bankAccounts,
