@@ -33,7 +33,7 @@ use Carbon\Carbon;
  * STANDING RULE: NEVER change these expected values to match bad output.
  * If a value fails, the implementation is wrong — fix it and report back.
  */
-class OneCoreReconciliationGate extends VenQoreTestCase
+class OneCoreReconciliationGateTest extends VenQoreTestCase
 {
     private FinancialReportingService $frs;
     private $tenant;
