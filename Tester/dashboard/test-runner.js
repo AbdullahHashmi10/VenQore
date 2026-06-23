@@ -367,7 +367,9 @@ function runTests(projectPath, ws) {
       }
     }
 
-    // Save results
+    // Save results (without heavy rawLines to avoid huge file size)
+    delete results.rawLines;
+
     let history = { runs: [] };
     if (fs.existsSync(RESULTS_FILE)) {
       try { history = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf8')); } catch (e) { }
