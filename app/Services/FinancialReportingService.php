@@ -922,6 +922,369 @@ class FinancialReportingService
         ];
     }
 
+    public function getTrialBalance(?string $asOf = null): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $query = DB::table('accounts as a')
+            ->where('a.tenant_id', $tenantId)
+            ->leftJoin('journal_items as ji', function($join) use ($tenantId) {
+                $join->on('ji.account_id', '=', 'a.id')
+                     ->where('ji.tenant_id', $tenantId);
+            })
+            ->leftJoin('journal_entries as je', function ($join) use ($asOf, $tenantId) {
+                $join->on('ji.journal_entry_id', '=', 'je.id')
+                     ->where('je.tenant_id', $tenantId)
+                     ->where('je.is_reversed', 0);
+                if ($asOf) {
+                    $join->where('je.date', '<=', $asOf);
+                }
+            })
+            ->where('a.is_active', 1)
+            ->groupBy('a.id', 'a.code', 'a.name', 'a.type', 'a.normal_balance')
+            ->orderBy('a.code')
+            ->selectRaw('
+                a.id, a.code, a.name, a.type, a.normal_balance,
+                COALESCE(SUM(ji.debit), 0)  AS total_debit,
+                COALESCE(SUM(ji.credit), 0) AS total_credit
+            ')
+            ->get();
+
+        $rows = []; $grandDebit = 0; $grandCredit = 0;
+        foreach ($query as $row) {
+            $balance = $row->normal_balance === 'debit'
+                ? round($row->total_debit - $row->total_credit, 2)
+                : round($row->total_credit - $row->total_debit, 2);
+            $rows[] = [
+                'code'           => $row->code,
+                'name'           => $row->name,
+                'type'           => $row->type,
+                'normal_balance' => $row->normal_balance,
+                'total_debit'    => round((float) $row->total_debit,  2),
+                'total_credit'   => round((float) $row->total_credit, 2),
+                'balance'        => $balance,
+            ];
+            $grandDebit  += $row->total_debit;
+            $grandCredit += $row->total_credit;
+        }
+        return [
+            'as_of'        => $asOf ?? 'all time',
+            'rows'         => $rows,
+            'grand_debit'  => round($grandDebit,  2),
+            'grand_credit' => round($grandCredit, 2),
+            'balanced'     => abs($grandDebit - $grandCredit) < 0.01,
+        ];
+    }
+
+    public function getDetailedCashFlow(string $start, string $end): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $cashAccounts = ['1000', '1010'];
+        $rows = DB::table('journal_items as ji')
+            ->where('ji.tenant_id', $tenantId)
+            ->join('journal_entries as je', function($join) use ($tenantId) {
+                $join->on('ji.journal_entry_id', '=', 'je.id')
+                     ->where('je.tenant_id', $tenantId);
+            })
+            ->join('accounts as a', function($join) use ($tenantId) {
+                $join->on('ji.account_id', '=', 'a.id')
+                     ->where('a.tenant_id', $tenantId);
+            })
+            ->where('je.is_reversed', 0)
+            ->whereIn('a.code', $cashAccounts)
+            ->whereBetween('je.date', [$start, $end])
+            ->selectRaw('
+                je.reference_type, je.description, je.date,
+                SUM(ji.debit)  AS cash_in,
+                SUM(ji.credit) AS cash_out
+            ')
+            ->groupBy('je.id', 'je.reference_type', 'je.description', 'je.date')
+            ->orderBy('je.date')
+            ->get();
+
+        $operating = []; $investing = []; $financing = [];
+        $operatingTypes = ['sale','payment','purchase','salary_payment',
+            'settlement_payment','cash_shortage','operating_expense',
+            'donation','advance_receipt','advance_payment'];
+        $investingTypes = ['asset_purchase','insurance_recovery'];
+        $financingTypes = ['loan_drawdown','loan_repayment',
+            'owner_drawing','capital_injection','bank_transfer'];
+
+        foreach ($rows as $row) {
+            $net   = round((float)$row->cash_in - (float)$row->cash_out, 2);
+            $entry = [
+                'date'        => $row->date,
+                'description' => $row->description,
+                'type'        => $row->reference_type,
+                'cash_in'     => round((float)$row->cash_in,  2),
+                'cash_out'    => round((float)$row->cash_out, 2),
+                'net'         => $net,
+            ];
+            if (in_array($row->reference_type, $operatingTypes))      { $operating[] = $entry; }
+            elseif (in_array($row->reference_type, $investingTypes))   { $investing[] = $entry; }
+            elseif (in_array($row->reference_type, $financingTypes))   { $financing[] = $entry; }
+            else                                                         { $operating[] = $entry; }
+        }
+        $sumNet = fn($arr) => round(array_sum(array_column($arr, 'net')), 2);
+        return [
+            'period'             => ['from' => $start, 'to' => $end],
+            'operating'          => $operating,
+            'investing'          => $investing,
+            'financing'          => $financing,
+            'net_operating'      => $sumNet($operating),
+            'net_investing'      => $sumNet($investing),
+            'net_financing'      => $sumNet($financing),
+            'net_change_in_cash' => round($sumNet($operating)+$sumNet($investing)+$sumNet($financing), 2),
+        ];
+    }
+
+    public function getAgedReceivables(?string $asOf = null): array
+    {
+        $asOf     = $asOf ?? now()->toDateString();
+        $tenantId = app('current.tenant')->id;
+        $sales = DB::table('sales as s')
+            ->where('s.tenant_id', $tenantId)
+            ->join('parties as p', function($join) use ($tenantId) {
+                $join->on('s.party_id', '=', 'p.id')->where('p.tenant_id', $tenantId);
+            })
+            ->where('s.status', 'posted')
+            ->whereNotIn('s.payment_status', ['paid', 'written_off'])
+            ->where('s.posted_at', '<=', $asOf)
+            ->selectRaw('s.id, s.reference_number, s.posted_at, s.invoice_total AS total_amount,
+                         p.id AS party_id, p.name AS party_name')
+            ->get();
+
+        $rows = [];
+        foreach ($sales as $sale) {
+            $allocated = (float) DB::table('payment_allocations')
+                ->where('tenant_id', $tenantId)->where('sale_id', $sale->id)
+                ->where('status', 'active')->sum('allocated_amount');
+            $outstanding = round($sale->total_amount - $allocated, 2);
+            if ($outstanding <= 0) continue;
+            $ageDays = Carbon::parse($sale->posted_at)->diffInDays($asOf);
+            $rows[] = [
+                'party_id' => $sale->party_id, 'party_name' => $sale->party_name,
+                'invoice_number' => $sale->reference_number, 'sale_date' => $sale->posted_at,
+                'outstanding' => $outstanding, 'age_days' => $ageDays,
+                'bucket' => $this->ageBucket($ageDays),
+            ];
+        }
+        return [
+            'as_of'   => $asOf, 'rows' => $rows,
+            'summary' => $this->ageBucketSummary($rows),
+            'total'   => round(array_sum(array_column($rows, 'outstanding')), 2),
+        ];
+    }
+
+    public function getAgedPayables(?string $asOf = null): array
+    {
+        $asOf     = $asOf ?? now()->toDateString();
+        $tenantId = app('current.tenant')->id;
+        $purchases = DB::table('invoices as pu')
+            ->where('pu.tenant_id', $tenantId)
+            ->join('parties as p', function($join) use ($tenantId) {
+                $join->on('pu.party_id', '=', 'p.id')->where('p.tenant_id', $tenantId);
+            })
+            ->where('pu.type', 'purchase')
+            ->where('pu.date', '<=', $asOf)
+            ->selectRaw('pu.id, pu.invoice_number, pu.date AS purchase_date,
+                         pu.total_amount, p.id AS party_id, p.name AS party_name')
+            ->get();
+
+        $rows = [];
+        foreach ($purchases as $purchase) {
+            $allocated = (float) DB::table('payment_allocations')
+                ->where('tenant_id', $tenantId)->where('purchase_id', $purchase->id)
+                ->where('status', 'active')->sum('allocated_amount');
+            $outstanding = round($purchase->total_amount - $allocated, 2);
+            if ($outstanding <= 0) continue;
+            $ageDays = Carbon::parse($purchase->purchase_date)->diffInDays($asOf);
+            $rows[] = [
+                'party_id' => $purchase->party_id, 'party_name' => $purchase->party_name,
+                'invoice_number' => $purchase->invoice_number, 'purchase_date' => $purchase->purchase_date,
+                'outstanding' => $outstanding, 'age_days' => $ageDays,
+                'bucket' => $this->ageBucket($ageDays),
+            ];
+        }
+        return [
+            'as_of'   => $asOf, 'rows' => $rows,
+            'summary' => $this->ageBucketSummary($rows),
+            'total'   => round(array_sum(array_column($rows, 'outstanding')), 2),
+        ];
+    }
+
+    public function getSalesReport(string $from, string $to, ?string $partyId = null, ?string $productId = null): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $query = DB::table('sales as s')
+            ->where('s.tenant_id', $tenantId)
+            ->join('sale_items as si', fn($j) => $j->on('si.sale_id','=','s.id')->where('si.tenant_id',$tenantId))
+            ->join('products as pr',   fn($j) => $j->on('si.product_id','=','pr.id')->where('pr.tenant_id',$tenantId))
+            ->join('parties as pa',    fn($j) => $j->on('s.party_id','=','pa.id')->where('pa.tenant_id',$tenantId))
+            ->where('s.status', 'posted')
+            ->whereBetween('s.posted_at', [$from, $to])
+            ->selectRaw('s.id, s.reference_number AS invoice_number, s.posted_at AS sale_date,
+                         pa.name AS customer_name, pr.id AS product_id, pr.name AS product_name,
+                         si.quantity AS qty, si.unit_price, si.tax_rate, si.line_total,
+                         si.cost_price AS cogs_amount')
+            ->orderBy('s.posted_at');
+        if ($partyId)   { $query->where('s.party_id',     $partyId); }
+        if ($productId) { $query->where('si.product_id',  $productId); }
+        $rows = $query->get()->toArray();
+        return [
+            'period'        => ['from' => $from, 'to' => $to],
+            'rows'          => $rows,
+            'total_revenue' => round(array_sum(array_column($rows, 'line_total')),   2),
+            'total_cogs'    => round(array_sum(array_column($rows, 'cogs_amount')), 2),
+        ];
+    }
+
+    public function getPurchasesReport(string $from, string $to, ?string $partyId = null): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $query = DB::table('invoices as pu')
+            ->where('pu.tenant_id', $tenantId)
+            ->join('invoice_items as pi', fn($j) => $j->on('pi.invoice_id','=','pu.id')->where('pi.tenant_id',$tenantId))
+            ->join('products as pr',      fn($j) => $j->on('pi.product_id','=','pr.id')->where('pr.tenant_id',$tenantId))
+            ->join('parties as pa',       fn($j) => $j->on('pu.party_id','=','pa.id')->where('pa.tenant_id',$tenantId))
+            ->where('pu.type', 'purchase')
+            ->whereBetween('pu.date', [$from, $to])
+            ->selectRaw('pu.id, pu.invoice_number, pu.date AS purchase_date,
+                         pa.name AS supplier_name, pr.name AS product_name,
+                         pi.quantity AS qty, pi.unit_price AS unit_cost, pi.total AS line_total')
+            ->orderBy('pu.date');
+        if ($partyId) { $query->where('pu.party_id', $partyId); }
+        $rows = $query->get()->toArray();
+        return [
+            'period'      => ['from' => $from, 'to' => $to],
+            'rows'        => $rows,
+            'total_spend' => round(array_sum(array_column($rows, 'line_total')), 2),
+        ];
+    }
+
+    public function getCogsReport(string $from, string $to): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('sale_item_batches as sib')
+            ->where('sib.tenant_id', $tenantId)
+            ->join('sale_items as si',  fn($j) => $j->on('sib.sale_item_id','=','si.id')->where('si.tenant_id',$tenantId))
+            ->join('sales as s',        fn($j) => $j->on('si.sale_id','=','s.id')->where('s.tenant_id',$tenantId))
+            ->join('products as p',     fn($j) => $j->on('si.product_id','=','p.id')->where('p.tenant_id',$tenantId))
+            ->where('s.status', 'posted')
+            ->where('sib.is_reversed', 0)
+            ->whereBetween('s.posted_at', [$from, $to])
+            ->selectRaw('p.id AS product_id, p.name AS product_name,
+                         SUM(sib.qty_deducted) AS total_qty_sold,
+                         SUM(sib.total_cogs)   AS total_cogs')
+            ->groupBy('p.id', 'p.name')
+            ->orderByDesc('total_cogs')
+            ->get()->toArray();
+
+        $cogsAccount = Account::where('code', '5000')->first();
+        $ledger5000  = 0.0;
+        if ($cogsAccount) {
+            $ledger5000 = (float) $this->sumJournalItems($cogsAccount->id, 'debit', $from, $to)
+                        - (float) $this->sumJournalItems($cogsAccount->id, 'credit', $from, $to);
+        }
+        return [
+            'period'      => ['from' => $from, 'to' => $to],
+            'rows'        => $rows,
+            'total_cogs'  => round(array_sum(array_column($rows, 'total_cogs')), 2),
+            'ledger_5000' => $ledger5000,
+            'reconciled'  => abs(array_sum(array_column($rows, 'total_cogs')) - $ledger5000) < 0.01,
+        ];
+    }
+
+    public function getPartyLedger(string $partyId, string $from, string $to): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $party = DB::table('parties')->where('tenant_id', $tenantId)->where('id', $partyId)->firstOrFail();
+        $lines = DB::table('journal_items as ji')
+            ->where('ji.tenant_id', $tenantId)
+            ->join('journal_entries as je', fn($j) => $j->on('ji.journal_entry_id','=','je.id')->where('je.tenant_id',$tenantId))
+            ->join('accounts as a',         fn($j) => $j->on('ji.account_id','=','a.id')->where('a.tenant_id',$tenantId))
+            ->where('ji.party_id', $partyId)
+            ->where('je.is_reversed', 0)
+            ->whereBetween('je.date', [$from, $to])
+            ->selectRaw('je.date, je.reference_type, je.description,
+                         a.code AS account_code, a.name AS account_name, ji.debit, ji.credit')
+            ->orderBy('je.date')->orderBy('je.created_at')
+            ->get()->toArray();
+
+        $openingBalance = (float) DB::table('journal_items as ji')
+            ->where('ji.tenant_id', $tenantId)
+            ->join('journal_entries as je', fn($j) => $j->on('ji.journal_entry_id','=','je.id')->where('je.tenant_id',$tenantId))
+            ->where('ji.party_id', $partyId)
+            ->where('je.is_reversed', 0)
+            ->where('je.date', '<', $from)
+            ->selectRaw('SUM(ji.debit) - SUM(ji.credit) AS balance')
+            ->value('balance') ?? 0;
+
+        $runningBalance = $openingBalance;
+        $ledgerLines = [];
+        foreach ($lines as $line) {
+            $runningBalance += (float)$line->debit - (float)$line->credit;
+            $ledgerLines[] = array_merge((array)$line, ['running_balance' => round($runningBalance, 2)]);
+        }
+        return [
+            'party'           => ['id' => $party->id, 'name' => $party->name],
+            'period'          => ['from' => $from, 'to' => $to],
+            'opening_balance' => round($openingBalance, 2),
+            'lines'           => $ledgerLines,
+            'closing_balance' => round($runningBalance, 2),
+        ];
+    }
+
+    public function getInventoryMovement(string $from, string $to, ?string $productId = null): array
+    {
+        $tenantId = app('current.tenant')->id;
+        $inflows = DB::table('inventory_batches as ib')
+            ->where('ib.tenant_id', $tenantId)
+            ->join('products as p', fn($j) => $j->on('ib.product_id','=','p.id')->where('p.tenant_id',$tenantId))
+            ->whereNull('ib.deleted_at')
+            ->whereBetween('ib.created_at', [$from.' 00:00:00', $to.' 23:59:59'])
+            ->selectRaw('p.id AS product_id, p.name AS product_name, ib.batch_type,
+                         SUM(ib.initial_qty) AS qty_in, SUM(ib.initial_qty * ib.unit_cost) AS value_in')
+            ->groupBy('p.id', 'p.name', 'ib.batch_type')->orderBy('p.name');
+        if ($productId) { $inflows->where('ib.product_id', $productId); }
+
+        $outflows = DB::table('sale_item_batches as sib')
+            ->where('sib.tenant_id', $tenantId)
+            ->join('sale_items as si', fn($j) => $j->on('sib.sale_item_id','=','si.id')->where('si.tenant_id',$tenantId))
+            ->join('sales as s',       fn($j) => $j->on('si.sale_id','=','s.id')->where('s.tenant_id',$tenantId))
+            ->join('products as p',    fn($j) => $j->on('si.product_id','=','p.id')->where('p.tenant_id',$tenantId))
+            ->where('s.status', 'posted')->where('sib.is_reversed', 0)
+            ->whereBetween('s.posted_at', [$from, $to])
+            ->selectRaw('p.id AS product_id, p.name AS product_name,
+                         SUM(sib.qty_deducted) AS qty_out, SUM(sib.total_cogs) AS value_out')
+            ->groupBy('p.id', 'p.name');
+        if ($productId) { $outflows->where('si.product_id', $productId); }
+
+        return [
+            'period'   => ['from' => $from, 'to' => $to],
+            'inflows'  => $inflows->get()->toArray(),
+            'outflows' => $outflows->get()->toArray(),
+        ];
+    }
+
+    private function ageBucket(int $days): string
+    {
+        return match(true) {
+            $days <= 30  => '0-30',
+            $days <= 60  => '31-60',
+            $days <= 90  => '61-90',
+            default      => '90+',
+        };
+    }
+
+    private function ageBucketSummary(array $rows): array
+    {
+        $buckets = ['0-30' => 0, '31-60' => 0, '61-90' => 0, '90+' => 0];
+        foreach ($rows as $row) {
+            $buckets[$row['bucket']] = round($buckets[$row['bucket']] + $row['outstanding'], 2);
+        }
+        return $buckets;
+    }
+
     // ─── Private Helpers ──────────────────────────────────────────────────────
 
     /**

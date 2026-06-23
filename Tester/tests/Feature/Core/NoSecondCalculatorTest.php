@@ -24,7 +24,7 @@ class NoSecondCalculatorTest extends VenQoreTestCase
         // V3/ReportController and V3/ReportExportController are exempt 
         // until their missing methods are ported — remove them from this 
         // list once ported in a later instruction.
-        $allowList = ['ReportController.php', 'ReportExportController.php'];
+        $allowList = [];
         $realViolations = array_diff($violations, $allowList);
         $this->assertEmpty(
             $realViolations,

@@ -3,124 +3,126 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
+use App\Services\FinancialReportingService;
 use App\Services\ReportTierGate;
-use App\Services\V3\ReportService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
-    public function __construct(private ReportService $reports) {}
+    public function __construct(private FinancialReportingService $frs) {}
 
     public function trialBalance(Request $request)
     {
         ReportTierGate::enforce('reports.trial-balance');
-        $asOf = $request->has('as_of') ? Carbon::parse($request->query('as_of')) : null;
-        return response()->json($this->reports->trialBalance($asOf));
+        $asOf = $request->has('as_of') ? $request->query('as_of') : null;
+        return response()->json($this->frs->getTrialBalance($asOf));
     }
 
     public function profitAndLoss(Request $request)
     {
         ReportTierGate::enforce('reports.profit-loss');
-        $from = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to   = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
-        return response()->json($this->reports->profitAndLoss($from, $to));
+        $from = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to   = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
+        return response()->json($this->frs->getProfitAndLoss($from, $to));
     }
 
     public function balanceSheet(Request $request)
     {
         ReportTierGate::enforce('reports.balance-sheet');
-        $asOf = $request->has('as_of') ? Carbon::parse($request->query('as_of')) : Carbon::today();
-        return response()->json($this->reports->balanceSheet($asOf));
+        $asOf = $request->has('as_of') ? $request->query('as_of') : Carbon::today()->toDateString();
+        return response()->json($this->frs->getBalanceSheet($asOf));
     }
 
     public function cashFlow(Request $request)
     {
         ReportTierGate::enforce('reports.cash-flow');
-        $from = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to   = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
-        return response()->json($this->reports->cashFlow($from, $to));
+        $from = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to   = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
+        return response()->json($this->frs->getDetailedCashFlow($from, $to));
     }
 
     public function agedReceivables(Request $request)
     {
         ReportTierGate::enforce('reports.sale-aging');
-        $asOf = $request->has('as_of') ? Carbon::parse($request->query('as_of')) : null;
-        return response()->json($this->reports->agedReceivables($asOf));
+        $asOf = $request->has('as_of') ? $request->query('as_of') : null;
+        return response()->json($this->frs->getAgedReceivables($asOf));
     }
 
     public function agedPayables(Request $request)
     {
         ReportTierGate::enforce('reports.sale-aging');
-        $asOf = $request->has('as_of') ? Carbon::parse($request->query('as_of')) : null;
-        return response()->json($this->reports->agedPayables($asOf));
+        $asOf = $request->has('as_of') ? $request->query('as_of') : null;
+        return response()->json($this->frs->getAgedPayables($asOf));
     }
 
     public function sales(Request $request)
     {
         ReportTierGate::enforce('reports.sales');
-        $from      = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to        = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
+        $from      = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to        = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
         $partyId   = $request->query('party_id');
         $productId = $request->query('product_id');
-        return response()->json($this->reports->salesReport($from, $to, $partyId, $productId));
+        return response()->json($this->frs->getSalesReport($from, $to, $partyId, $productId));
     }
 
     public function purchases(Request $request)
     {
         ReportTierGate::enforce('reports.purchases');
-        $from    = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to      = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
+        $from    = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to      = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
         $partyId = $request->query('party_id');
-        return response()->json($this->reports->purchasesReport($from, $to, $partyId));
+        return response()->json($this->frs->getPurchasesReport($from, $to, $partyId));
     }
 
     public function inventoryValuation(Request $request)
     {
         ReportTierGate::enforce('reports.stock-valuation');
-        $warehouseId = $request->query('warehouse_id');
-        return response()->json($this->reports->inventoryValuation($warehouseId));
+        return response()->json([
+            'rows'        => $this->frs->getInventoryValuationReport()->toArray(),
+            'grand_total' => $this->frs->getInventoryValue(),
+        ]);
     }
 
     public function cogs(Request $request)
     {
         ReportTierGate::enforce('reports.item-wise-profit');
-        $from = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to   = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
-        return response()->json($this->reports->cogsReport($from, $to));
+        $from = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to   = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
+        return response()->json($this->frs->getCogsReport($from, $to));
     }
 
     public function grossProfit(Request $request)
     {
         ReportTierGate::enforce('reports.item-wise-profit');
-        $from      = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to        = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
+        $from      = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to        = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
         $productId = $request->query('product_id');
-        return response()->json($this->reports->grossProfit($from, $to, $productId));
+        return response()->json($this->frs->getGrossProfitByProduct($from, $to)->toArray());
     }
 
     public function tax(Request $request)
     {
         ReportTierGate::enforce('reports.tax');
-        $from = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to   = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
-        return response()->json($this->reports->taxReport($from, $to));
+        $from = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to   = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
+        return response()->json($this->frs->getTaxSummary($from, $to));
     }
 
     public function partyLedger(Request $request, string $partyId)
     {
         ReportTierGate::enforce('reports.party-statement');
-        $from = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to   = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
-        return response()->json($this->reports->partyLedger($partyId, $from, $to));
+        $from = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to   = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
+        return response()->json($this->frs->getPartyLedger($partyId, $from, $to));
     }
 
     public function inventoryMovement(Request $request)
     {
         ReportTierGate::enforce('reports.movement-history');
-        $from      = $request->has('from') ? Carbon::parse($request->query('from')) : Carbon::today()->startOfMonth();
-        $to        = $request->has('to') ? Carbon::parse($request->query('to')) : Carbon::today();
+        $from      = $request->has('from') ? $request->query('from') : Carbon::today()->startOfMonth()->toDateString();
+        $to        = $request->has('to')   ? $request->query('to')   : Carbon::today()->toDateString();
         $productId = $request->query('product_id');
-        return response()->json($this->reports->inventoryMovement($from, $to, $productId));
+        return response()->json($this->frs->getInventoryMovement($from, $to, $productId));
     }
 }

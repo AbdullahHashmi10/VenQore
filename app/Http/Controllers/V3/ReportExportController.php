@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\V3;
 
 use App\Http\Controllers\Controller;
-use App\Services\V3\ReportService;
+use App\Services\FinancialReportingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 
 class ReportExportController extends Controller
 {
-    public function __construct(private ReportService $reports) {}
+    public function __construct(private FinancialReportingService $frs) {}
 
     public function export(Request $request)
     {
@@ -21,46 +21,39 @@ class ReportExportController extends Controller
             'format' => ['required', 'in:json,csv'],
         ]);
 
-        $from = isset($validated['from']) ? Carbon::parse($validated['from']) : null;
-        $to   = isset($validated['to'])   ? Carbon::parse($validated['to'])   : Carbon::today();
+        $from = $validated['from'] ?? null;
+        $to   = $validated['to']   ?? Carbon::today()->toDateString();
 
         $data = match($validated['report']) {
-            'trial_balance'      => $this->reports->trialBalance($to),
-            'profit_loss'        => $this->reports->profitAndLoss($from ?? Carbon::today()->startOfYear(), $to),
-            'balance_sheet'      => $this->reports->balanceSheet($to),
-            'aged_receivables'   => $this->reports->agedReceivables($to),
-            'aged_payables'      => $this->reports->agedPayables($to),
-            'inventory_valuation'=> $this->reports->inventoryValuation(),
-            'sales'              => $this->reports->salesReport($from ?? Carbon::today()->startOfMonth(), $to),
-            'purchases'          => $this->reports->purchasesReport($from ?? Carbon::today()->startOfMonth(), $to),
-            'cogs'               => $this->reports->cogsReport($from ?? Carbon::today()->startOfMonth(), $to),
-            'tax'                => $this->reports->taxReport($from ?? Carbon::today()->startOfMonth(), $to),
+            'trial_balance'       => $this->frs->getTrialBalance($to),
+            'profit_loss'         => $this->frs->getProfitAndLoss($from ?? Carbon::today()->startOfYear()->toDateString(), $to),
+            'balance_sheet'       => $this->frs->getBalanceSheet($to),
+            'aged_receivables'    => $this->frs->getAgedReceivables($to),
+            'aged_payables'       => $this->frs->getAgedPayables($to),
+            'inventory_valuation' => ['rows' => $this->frs->getInventoryValuationReport()->toArray(), 'grand_total' => $this->frs->getInventoryValue()],
+            'sales'               => $this->frs->getSalesReport($from ?? Carbon::today()->startOfMonth()->toDateString(), $to),
+            'purchases'           => $this->frs->getPurchasesReport($from ?? Carbon::today()->startOfMonth()->toDateString(), $to),
+            'cogs'                => $this->frs->getCogsReport($from ?? Carbon::today()->startOfMonth()->toDateString(), $to),
+            'tax'                 => $this->frs->getTaxSummary($from ?? Carbon::today()->startOfMonth()->toDateString(), $to),
         };
 
         if ($validated['format'] === 'csv') {
             return $this->toCsv($data, $validated['report']);
         }
-
         return response()->json($data);
     }
 
     private function toCsv(array $data, string $reportName): \Illuminate\Http\Response
     {
         $rows = $data['rows'] ?? $data;
-
-        if (empty($rows)) {
-            return Response::make('No data', 204);
-        }
-
+        if (empty($rows)) { return Response::make('No data', 204); }
         $csv  = implode(',', array_keys((array)$rows[0])) . "\n";
-
         foreach ($rows as $row) {
             $csv .= implode(',', array_map(
                 fn($v) => '"' . str_replace('"', '""', $v) . '"',
                 array_values((array)$row)
             )) . "\n";
         }
-
         return Response::make($csv, 200, [
             'Content-Type'        => 'text/csv',
             'Content-Disposition' => "attachment; filename=\"{$reportName}.csv\"",
