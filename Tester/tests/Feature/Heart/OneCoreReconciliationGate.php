@@ -1,6 +1,6 @@
 <?php
 
-namespace Tester\tests\Feature\Heart;
+namespace Tests\Feature\Heart;
 
 use Tests\Feature\VenQoreTestCase;
 use App\Models\Product;
