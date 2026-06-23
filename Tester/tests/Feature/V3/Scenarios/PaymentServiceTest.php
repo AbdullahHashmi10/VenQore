@@ -16,6 +16,7 @@ class PaymentServiceTest extends TestCase
     private PaymentService   $payments;
     private AccountingService $accounting;
 
+    private string $tenantId;
     private string $customerId;
     private string $saleId;
     private float  $saleTotal = 10000.00;
@@ -24,6 +25,11 @@ class PaymentServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $tenant = \App\Models\Tenant::factory()->create();
+        $this->tenantId = $tenant->id;
+        app()->instance('current.tenant', $tenant);
+
         $this->payments   = app(PaymentService::class);
         $this->accounting = app(AccountingService::class);
 
@@ -34,13 +40,16 @@ class PaymentServiceTest extends TestCase
         $this->seedAccount('2000', 'Accounts Payable',    'liability', 'credit');
 
         // Create a user for user_id foreign keys
-        $user = \App\Models\User::factory()->create();
+        $user = \App\Models\User::factory()->create([
+            'last_store_id' => $tenant->id,
+        ]);
         $this->actingAs($user);
 
         // Create a party (customer)
         $this->customerId = Str::uuid()->toString();
         DB::table('parties')->insertOrIgnore([
             'id'         => $this->customerId,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Test Customer',
             'type'       => 'customer',
             'created_at' => now(),
@@ -51,6 +60,7 @@ class PaymentServiceTest extends TestCase
         $this->saleId = Str::uuid()->toString();
         DB::table('sales')->insertOrIgnore([
             'id'             => $this->saleId,
+            'tenant_id'      => $this->tenantId,
             'reference_number' => 'INV-TEST-' . Str::random(6),
             'party_id'       => $this->customerId,
             //'sale_date'      => now()->toDateString(),
@@ -257,11 +267,11 @@ class PaymentServiceTest extends TestCase
     // ─── Helpers ──────────────────────────────────────────────────────
     private function seedAccount(string $code, string $name, string $type, string $normalBalance): void
     {
-        $exists = DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists();
+        $exists = DB::table('accounts')->where('code', $code)->where('tenant_id', $this->tenantId)->exists();
         if (!$exists) {
             DB::table('accounts')->insert([
                 'id'             => Str::uuid()->toString(),
-                'tenant_id'      => null,
+                'tenant_id'      => $this->tenantId,
                 'code'           => $code,
                 'name'           => $name,
                 'type'           => $type,
@@ -277,6 +287,7 @@ class PaymentServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('warehouses')->insertOrIgnore([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Default Warehouse',
             'is_default' => 1,
             'created_at' => now(),
@@ -290,6 +301,7 @@ class PaymentServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('journal_entries')->insert([
             'id'             => $id,
+            'tenant_id'      => $this->tenantId,
             'date'     => now()->toDateString(),
             'reference_type' => 'sale',
             'reference'   => Str::uuid()->toString(),

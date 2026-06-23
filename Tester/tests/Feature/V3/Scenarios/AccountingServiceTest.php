@@ -15,17 +15,24 @@ class AccountingServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->accounting = app(AccountingService::class);
-        $user = \App\Models\User::factory()->create();
+
+        $tenant = \App\Models\Tenant::factory()->create();
+        app()->instance('current.tenant', $tenant);
+
+        $user = \App\Models\User::factory()->create([
+            'last_store_id' => $tenant->id,
+        ]);
         $this->actingAs($user);
+
+        $this->accounting = app(AccountingService::class);
 
         // Seed necessary accounts that normally come from global seeders
         \App\Models\Account::firstOrCreate(
-            ['code' => '1000'],
+            ['code' => '1000', 'tenant_id' => $tenant->id],
             ['name' => 'Cash in Hand', 'type' => 'asset', 'normal_balance' => 'debit']
         );
         \App\Models\Account::firstOrCreate(
-            ['code' => '4000'],
+            ['code' => '4000', 'tenant_id' => $tenant->id],
             ['name' => 'Sales Revenue', 'type' => 'income', 'normal_balance' => 'credit']
         );
     }

@@ -4,7 +4,7 @@ namespace Tests\Feature\V3\Scenarios;
 
 use Tests\TestCase;
 use App\Services\V3\SettlementService;
-use App\Services\V3\ReportService;
+use App\Services\FinancialReportingService;
 use App\Services\V3\AccountingService;
 use App\Services\V3\FifoService;
 use Illuminate\Support\Str;
@@ -16,10 +16,11 @@ class SettlementAndReportServiceTest extends TestCase
     use RefreshDatabase;
 
     private SettlementService $settlement;
-    private ReportService     $reports;
+    private FinancialReportingService $reports;
     private AccountingService $accounting;
     private FifoService       $fifo;
 
+    private string $tenantId;
     private string $employeeId;
     private string $warehouseId;
     private string $productId;
@@ -29,11 +30,17 @@ class SettlementAndReportServiceTest extends TestCase
     {
         parent::setUp();
 
-        $user = \App\Models\User::factory()->create();
+        $tenant = \App\Models\Tenant::factory()->create();
+        $this->tenantId = $tenant->id;
+        app()->instance('current.tenant', $tenant);
+
+        $user = \App\Models\User::factory()->create([
+            'last_store_id' => $tenant->id,
+        ]);
         $this->actingAs($user);
 
         $this->settlement = app(SettlementService::class);
-        $this->reports    = app(ReportService::class);
+        $this->reports    = app(FinancialReportingService::class);
         $this->accounting = app(AccountingService::class);
         $this->fifo       = app(FifoService::class);
 
@@ -64,10 +71,10 @@ class SettlementAndReportServiceTest extends TestCase
             'payment_method'       => 'cash',
         ]);
 
-        $account6100 = DB::table('accounts')->where('code', '6100')->first();
-        $account6800 = DB::table('accounts')->where('code', '6800')->first();
-        $account2400 = DB::table('accounts')->where('code', '2400')->first();
-        $account1000 = DB::table('accounts')->where('code', '1000')->first();
+        $account6100 = DB::table('accounts')->where('code', '6100')->where('tenant_id', $this->tenantId)->first();
+        $account6800 = DB::table('accounts')->where('code', '6800')->where('tenant_id', $this->tenantId)->first();
+        $account2400 = DB::table('accounts')->where('code', '2400')->where('tenant_id', $this->tenantId)->first();
+        $account1000 = DB::table('accounts')->where('code', '1000')->where('tenant_id', $this->tenantId)->first();
 
         // Find the accrual journal entry
         $accrualJe = DB::table('journal_entries')
@@ -184,7 +191,7 @@ class SettlementAndReportServiceTest extends TestCase
             ['account_code' => '4000', 'debit'  => 0,       'credit' => 5000.00],
         ]);
 
-        $tb = $this->reports->trialBalance();
+        $tb = $this->reports->getTrialBalance();
 
         $this->assertArrayHasKey('rows',          $tb);
         $this->assertArrayHasKey('grand_debit',   $tb);
@@ -231,21 +238,23 @@ class SettlementAndReportServiceTest extends TestCase
             ['account_code' => '1000', 'debit'  => 0,       'credit' => 1000.00],
         ]);
 
-        $pl = $this->reports->profitAndLoss(
+        $pl = $this->reports->getProfitAndLoss(
             now()->startOfMonth(),
             now()->endOfMonth()
         );
 
-        $this->assertArrayHasKey('total_revenue', $pl);
-        $this->assertArrayHasKey('total_cogs',    $pl);
-        $this->assertArrayHasKey('gross_profit',  $pl);
-        $this->assertArrayHasKey('total_expenses',$pl);
-        $this->assertArrayHasKey('net_profit',    $pl);
+        $this->assertArrayHasKey('revenue',            $pl);
+        $this->assertArrayHasKey('cogs',               $pl);
+        $this->assertArrayHasKey('gross_profit',       $pl);
+        $this->assertArrayHasKey('total_expenses',     $pl);
+        $this->assertArrayHasKey('operating_expenses', $pl);
+        $this->assertArrayHasKey('net_profit',         $pl);
 
-        $this->assertEquals(10000.00, $pl['total_revenue']);
-        $this->assertEquals(6000.00,  $pl['total_cogs']);
+        $this->assertEquals(10000.00, $pl['revenue']);
+        $this->assertEquals(6000.00,  $pl['cogs']);
         $this->assertEquals(4000.00,  $pl['gross_profit']);  // 10000 - 6000
-        $this->assertEquals(1000.00,  $pl['total_expenses']);
+        $this->assertEquals(1000.00,  $pl['operating_expenses']);
+        $this->assertEquals(7000.00,  $pl['total_expenses']); // COGS + Operating Expenses
         $this->assertEquals(3000.00,  $pl['net_profit']);    // 4000 - 1000
     }
 
@@ -264,7 +273,7 @@ class SettlementAndReportServiceTest extends TestCase
             ['account_code' => '3000', 'debit'  => 0,        'credit' => 50000.00],
         ]);
 
-        $bs = $this->reports->balanceSheet(now());
+        $bs = $this->reports->getBalanceSheet(now()->toDateString());
 
         $this->assertArrayHasKey('total_assets',      $bs);
         $this->assertArrayHasKey('total_liabilities', $bs);
@@ -285,14 +294,13 @@ class SettlementAndReportServiceTest extends TestCase
         $this->fifo->receiveBatch($this->productId, $this->warehouseId, 10, 100.00, 'purchase');
         $this->fifo->receiveBatch($this->productId, $this->warehouseId, 5,  200.00, 'purchase');
 
-        $valuation = $this->reports->inventoryValuation();
+        $valuation = $this->reports->getInventoryValuationReport();
 
         // Total expected = (10×100) + (5×200) = 1000 + 1000 = 2000
-        $productLine = collect($valuation['rows'])
-            ->firstWhere('product_id', $this->productId);
+        $productLine = $valuation->firstWhere('id', $this->productId);
 
         $this->assertNotNull($productLine);
-        $this->assertEquals(2000.00, $productLine['total_value']);
+        $this->assertEquals(2000.00, $productLine['stock_value']);
     }
 
     // ─── TEST 8: Aged receivables buckets correctly ───────────────────
@@ -303,6 +311,7 @@ class SettlementAndReportServiceTest extends TestCase
         // Post a sale dated 45 days ago — should land in 31-60 bucket
         DB::table('sales')->insert([
             'id'             => $saleId,
+            'tenant_id'      => $this->tenantId,
             'reference_number' => 'INV-TEST-45',
             'party_id'       => $this->customerId,
             'subtotal'       => 3000.00,
@@ -330,7 +339,7 @@ class SettlementAndReportServiceTest extends TestCase
             ['account_code' => '4000', 'debit'  => 0,       'credit' => 3000.00],
         ]);
 
-        $ar = $this->reports->agedReceivables();
+        $ar = $this->reports->getAgedReceivables();
 
         $this->assertArrayHasKey('summary',       $ar);
         // Keys inside summary are 0-30, 31-60, 61-90, 90+ based on the service buckets
@@ -360,7 +369,7 @@ class SettlementAndReportServiceTest extends TestCase
 
         $this->accounting->reverseEntry($entry->id, 'Test reversal');
 
-        $tb = $this->reports->trialBalance();
+        $tb = $this->reports->getTrialBalance();
 
         // Reversed entry + its reversal cancel each other out
         // The Rs.9999 should NOT appear as a net balance in either account
@@ -395,10 +404,10 @@ class SettlementAndReportServiceTest extends TestCase
             ['6800', 'Gratuity & Severance',       'expense',   'debit'],
         ];
         foreach ($accounts as [$code, $name, $type, $balance]) {
-            if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
+            if (!DB::table('accounts')->where('code', $code)->where('tenant_id', $this->tenantId)->exists()) {
                 DB::table('accounts')->insert([
                     'id'             => Str::uuid()->toString(),
-                    'tenant_id'      => null,
+                    'tenant_id'      => $this->tenantId,
                     'code'           => $code,
                     'name'           => $name,
                     'type'           => $type,
@@ -416,6 +425,7 @@ class SettlementAndReportServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('warehouses')->insert([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Main Warehouse',
             'is_default' => 1,
             'created_at' => now(),
@@ -429,6 +439,7 @@ class SettlementAndReportServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('products')->insert([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Report Test Product',
             'sku'        => 'RPT-' . Str::random(5),
             'base_unit'  => 'PCS',
@@ -445,6 +456,7 @@ class SettlementAndReportServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('parties')->insert([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => ucfirst($type) . ' ' . Str::random(4),
             'type'       => $type,
             'created_at' => now(),
@@ -458,6 +470,7 @@ class SettlementAndReportServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('employees')->insert([
             'id'             => $id,
+            'tenant_id'      => $this->tenantId,
             'name'           => 'Test Employee',
             'monthly_salary' => $salary,
             'hire_date'      => now()->subYear()->toDateString(),

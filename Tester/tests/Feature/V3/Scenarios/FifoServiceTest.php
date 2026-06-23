@@ -14,12 +14,23 @@ class FifoServiceTest extends TestCase
     use RefreshDatabase;
 
     private FifoService $fifo;
+    private string $tenantId;
     private string $productId;
     private string $warehouseId;
 
     protected function setUp(): void
     {
         parent::setUp();
+
+        $tenant = \App\Models\Tenant::factory()->create();
+        $this->tenantId = $tenant->id;
+        app()->instance('current.tenant', $tenant);
+
+        $user = \App\Models\User::factory()->create([
+            'last_store_id' => $tenant->id,
+        ]);
+        $this->actingAs($user);
+
         $this->fifo = app(FifoService::class);
 
         // Seed a product and warehouse for all tests
@@ -28,6 +39,7 @@ class FifoServiceTest extends TestCase
 
         DB::table('products')->insert([
             'id'           => $this->productId,
+            'tenant_id'    => $this->tenantId,
             'name'         => 'Test Product',
             'sku'          => 'TEST-' . Str::random(6),
             'base_unit'    => 'PCS',
@@ -39,6 +51,7 @@ class FifoServiceTest extends TestCase
 
         DB::table('warehouses')->insertOrIgnore([
             'id'         => $this->warehouseId,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Test Warehouse',
             'is_default' => 1,
             'created_at' => now(),
@@ -47,6 +60,7 @@ class FifoServiceTest extends TestCase
 
         DB::table('settings')->insertOrIgnore([
             'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'tenant_id' => $this->tenantId,
             'key' => 'stop_sale_negative_stock',
             'value' => '1',
             'group' => 'general',
@@ -62,6 +76,7 @@ class FifoServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('inventory_batches')->insert([
             'id'           => $id,
+            'tenant_id'    => $this->tenantId,
             'product_id'   => $this->productId,
             'warehouse_id' => $this->warehouseId,
             'batch_type'   => 'purchase',
@@ -181,6 +196,7 @@ class FifoServiceTest extends TestCase
         $saleId = Str::uuid()->toString();
         DB::table('sales')->insert([
             'id' => $saleId,
+            'tenant_id' => $this->tenantId,
             'reference_number' => 'INV-TEST',
             'user_id' => $userId,
             'subtotal' => 0.00,
@@ -192,6 +208,7 @@ class FifoServiceTest extends TestCase
         $saleItemId = Str::uuid()->toString();
         DB::table('sale_items')->insert([
             'id' => $saleItemId,
+            'tenant_id' => $this->tenantId,
             'sale_id' => $saleId,
             'product_id' => $this->productId,
             'quantity' => 6,
@@ -206,6 +223,7 @@ class FifoServiceTest extends TestCase
         foreach ($deductions as $d) {
             DB::table('sale_item_batches')->insert([
                 'id'                   => Str::uuid()->toString(),
+                'tenant_id'            => $this->tenantId,
                 'sale_item_id'         => $saleItemId,
                 'inventory_batch_id'   => $d['batch_id'],
                 'qty_deducted'         => $d['qty_taken'],
@@ -261,6 +279,7 @@ class FifoServiceTest extends TestCase
         $otherWarehouseId = Str::uuid()->toString();
         DB::table('warehouses')->insert([
             'id'         => $otherWarehouseId,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Other Warehouse',
             'is_default' => 0,
             'created_at' => now(),
@@ -274,6 +293,7 @@ class FifoServiceTest extends TestCase
         $otherBatchId = Str::uuid()->toString();
         DB::table('inventory_batches')->insert([
             'id'            => $otherBatchId,
+            'tenant_id'     => $this->tenantId,
             'product_id'    => $this->productId,
             'warehouse_id'  => $otherWarehouseId,
             'batch_type'    => 'purchase',

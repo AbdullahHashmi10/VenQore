@@ -18,6 +18,7 @@ class ManufacturingServiceTest extends TestCase
     private FifoService          $fifo;
     private AccountingService    $accounting;
 
+    private string $tenantId;
     private string $finishedGoodId;
     private string $rawMaterial1Id;
     private string $rawMaterial2Id;
@@ -28,7 +29,13 @@ class ManufacturingServiceTest extends TestCase
     {
         parent::setUp();
 
-        $user = \App\Models\User::factory()->create();
+        $tenant = \App\Models\Tenant::factory()->create();
+        $this->tenantId = $tenant->id;
+        app()->instance('current.tenant', $tenant);
+
+        $user = \App\Models\User::factory()->create([
+            'last_store_id' => $tenant->id,
+        ]);
         $this->actingAs($user);
 
         $this->manufacturing = app(ManufacturingService::class);
@@ -94,8 +101,8 @@ class ManufacturingServiceTest extends TestCase
         // Material cost: (5×2×50) + (5×1×20) = 500 + 100 = 600
         $expectedMaterialCost = 600.00;
 
-        $account6400 = DB::table('accounts')->where('code', '6400')->first();
-        $account1100 = DB::table('accounts')->where('code', '1100')->first();
+        $account6400 = DB::table('accounts')->where('code', '6400')->where('tenant_id', $this->tenantId)->first();
+        $account1100 = DB::table('accounts')->where('code', '1100')->where('tenant_id', $this->tenantId)->first();
 
         // Expensed to 6400 Manufacturing Cost instead of WIP
         $wip = DB::table('journal_items')
@@ -159,8 +166,8 @@ class ManufacturingServiceTest extends TestCase
             ->where('reference', $run->id)
             ->first();
 
-        $account6400 = DB::table('accounts')->where('code', '6400')->first();
-        $account1100 = DB::table('accounts')->where('code', '1100')->first();
+        $account6400 = DB::table('accounts')->where('code', '6400')->where('tenant_id', $this->tenantId)->first();
+        $account1100 = DB::table('accounts')->where('code', '1100')->where('tenant_id', $this->tenantId)->first();
 
         // 1100 Inventory debited (finished goods IN)
         $invDebit = DB::table('journal_items')
@@ -243,6 +250,7 @@ class ManufacturingServiceTest extends TestCase
         $userId = DB::table('users')->value('id') ?? \App\Models\User::factory()->create()->id;
         DB::table('sales')->insert([
             'id' => $saleId,
+            'tenant_id' => $this->tenantId,
             'reference_number' => 'INV-TEST',
             'user_id' => $userId,
             'subtotal' => 0.00,
@@ -252,6 +260,7 @@ class ManufacturingServiceTest extends TestCase
         ]);
         DB::table('sale_items')->insert([
             'id' => $saleItemId,
+            'tenant_id' => $this->tenantId,
             'sale_id' => $saleId,
             'product_id' => $this->finishedGoodId,
             'quantity' => 4,
@@ -262,6 +271,7 @@ class ManufacturingServiceTest extends TestCase
         ]);
         DB::table('sale_item_batches')->insert([
             'id' => \Illuminate\Support\Str::uuid()->toString(),
+            'tenant_id' => $this->tenantId,
             'sale_item_id' => $saleItemId,
             'inventory_batch_id' => $fgBatch->id,
             'qty_deducted' => 4.0,
@@ -408,10 +418,10 @@ class ManufacturingServiceTest extends TestCase
             ['6410', 'Applied Manufacturing Labor','expense', 'debit'],
         ];
         foreach ($accounts as [$code, $name, $type, $balance]) {
-            if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
+            if (!DB::table('accounts')->where('code', $code)->where('tenant_id', $this->tenantId)->exists()) {
                 DB::table('accounts')->insert([
                     'id'             => Str::uuid()->toString(),
-                    'tenant_id'      => null,
+                    'tenant_id'      => $this->tenantId,
                     'code'           => $code,
                     'name'           => $name,
                     'type'           => $type,
@@ -428,6 +438,7 @@ class ManufacturingServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('warehouses')->insert([
             'id'         => $id,
+            'tenant_id'  => $this->tenantId,
             'name'       => 'Factory Warehouse',
             'is_default' => 1,
             'created_at' => now(),
@@ -441,6 +452,7 @@ class ManufacturingServiceTest extends TestCase
         $id = Str::uuid()->toString();
         DB::table('products')->insert([
             'id'          => $id,
+            'tenant_id'   => $this->tenantId,
             'name'        => $sku,
             'sku'         => $sku . '-' . Str::random(4),
             'base_unit'   => $baseUom,
@@ -457,6 +469,7 @@ class ManufacturingServiceTest extends TestCase
         $bomId = Str::uuid()->toString();
         DB::table('bill_of_materials')->insert([
             'id'             => $bomId,
+            'tenant_id'      => $this->tenantId,
             'product_id'     => $this->finishedGoodId,
             'version'        => 1,
             'effective_from' => now()->toDateString(),
@@ -468,6 +481,7 @@ class ManufacturingServiceTest extends TestCase
         foreach ($items as $item) {
             DB::table('bom_items')->insert([
                 'id'             => Str::uuid()->toString(),
+                'tenant_id'      => $this->tenantId,
                 'bom_id'         => $bomId,
                 'product_id'     => $item['product_id'],
                 'qty_per_unit'   => $item['qty_per_unit'],
@@ -485,6 +499,7 @@ class ManufacturingServiceTest extends TestCase
         $dbomId = Str::uuid()->toString();
         DB::table('disassembly_boms')->insert([
             'id'         => $dbomId,
+            'tenant_id'  => $this->tenantId,
             'product_id' => $productId,
             'created_at' => now(),
             'updated_at' => now(),
@@ -493,6 +508,7 @@ class ManufacturingServiceTest extends TestCase
         foreach ($components as $comp) {
             DB::table('disassembly_bom_items')->insert([
                 'id'                   => Str::uuid()->toString(),
+                'tenant_id'            => $this->tenantId,
                 'disassembly_bom_id'   => $dbomId,
                 'component_product_id' => $comp['component_product_id'],
                 'allocation_percent'   => $comp['allocation_percent'],
