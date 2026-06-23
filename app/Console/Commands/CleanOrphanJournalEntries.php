@@ -20,7 +20,7 @@ class CleanOrphanJournalEntries extends Command
         $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
 
         if ($this->option('tenant')) {
-            $tenantQuery->where('id', (int) $this->option('tenant'));
+            $tenantQuery->where('id', $this->option('tenant'));
         }
 
         $tenants = $tenantQuery->get();
@@ -38,7 +38,7 @@ class CleanOrphanJournalEntries extends Command
         return 0;
     }
 
-    private function processForTenant(int $tenantId): void
+    private function processForTenant(string|int $tenantId): void
     {
         $this->info('   Checking for orphan journal entries...');
 

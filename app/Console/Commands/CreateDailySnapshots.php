@@ -36,7 +36,7 @@ class CreateDailySnapshots extends Command
         $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
 
         if ($this->option('tenant')) {
-            $tenantQuery->where('id', (int) $this->option('tenant'));
+            $tenantQuery->where('id', $this->option('tenant'));
         }
 
         $tenants = $tenantQuery->get();

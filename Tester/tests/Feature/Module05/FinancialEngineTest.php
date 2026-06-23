@@ -179,14 +179,11 @@ test('createEntry throws if account_code does not exist for the current tenant',
 test('AccountingService constructor throws RuntimeException without tenant context', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
-    
-    $partyService = app(App\Services\V3\PartyService::class);
-    $paymentService = app(App\Services\V3\PaymentService::class);
 
     // Explicitly clear tenant binding
     app()->forgetInstance('current.tenant');
 
-    expect(fn () => new AccountingService($partyService, $paymentService))
+    expect(fn () => app(AccountingService::class))
         ->toThrow(\Illuminate\Contracts\Container\BindingResolutionException::class);
 });
 

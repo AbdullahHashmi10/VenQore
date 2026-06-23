@@ -25,7 +25,7 @@ class AuditFinancialIntegrity extends Command
 
         $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
         if ($this->option('tenant')) {
-            $tenantQuery->where('id', (int) $this->option('tenant'));
+            $tenantQuery->where('id', $this->option('tenant'));
         }
 
         $tenants = $tenantQuery->get();
@@ -39,7 +39,7 @@ class AuditFinancialIntegrity extends Command
         return 0;
     }
 
-    private function auditForTenant(int $tenantId): void
+    private function auditForTenant(string|int $tenantId): void
     {
         DB::transaction(function () use ($tenantId) {
 

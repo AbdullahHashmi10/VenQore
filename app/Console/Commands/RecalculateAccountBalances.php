@@ -18,7 +18,7 @@ class RecalculateAccountBalances extends Command
         $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
 
         if ($this->option('tenant')) {
-            $tenantQuery->where('id', (int) $this->option('tenant'));
+            $tenantQuery->where('id', $this->option('tenant'));
         }
 
         $tenants = $tenantQuery->get();
@@ -36,7 +36,7 @@ class RecalculateAccountBalances extends Command
         return 0;
     }
 
-    private function recalculateForTenant(int $tenantId): void
+    private function recalculateForTenant(string|int $tenantId): void
     {
         $this->info('   Recalculating account balances...');
 
@@ -67,8 +67,9 @@ class RecalculateAccountBalances extends Command
                     ? $totalDebit - $totalCredit
                     : $totalCredit - $totalDebit;
 
-                if (abs((float)$account->balance - (float)$newBalance) > 0.001) {
-                    $this->line("   Account '{$account->name}': {$account->balance} → {$newBalance}");
+                $cachedBalance = $account->getRawOriginal('balance') ?? 0.0;
+                if (abs((float)$cachedBalance - (float)$newBalance) > 0.001) {
+                    $this->line("   Account '{$account->name}': {$cachedBalance} → {$newBalance}");
                     $account->balance = $newBalance;
                     $account->save();
                     $count++;

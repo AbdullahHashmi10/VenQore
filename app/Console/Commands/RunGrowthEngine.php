@@ -26,7 +26,7 @@ class RunGrowthEngine extends Command
         $tenantQuery = Tenant::whereIn('status', ['active', 'trial']);
 
         if ($this->option('tenant')) {
-            $tenantQuery->where('id', (int) $this->option('tenant'));
+            $tenantQuery->where('id', $this->option('tenant'));
         }
 
         $tenants = $tenantQuery->get();
@@ -45,7 +45,7 @@ class RunGrowthEngine extends Command
         return 0;
     }
 
-    private function processForTenant(int $tenantId): void
+    private function processForTenant(string|int $tenantId): void
     {
         // Load AI Settings
         $settings = $this->loadSettings($tenantId);
@@ -73,7 +73,7 @@ class RunGrowthEngine extends Command
         $this->runRecoveryAlerts($tenantId);
     }
 
-    private function loadSettings(int $tenantId): array
+    private function loadSettings(string|int $tenantId): array
     {
         $settings = DB::table('ai_settings')
             ->where('tenant_id', $tenantId)
@@ -97,7 +97,7 @@ class RunGrowthEngine extends Command
         ];
     }
 
-    private function runInventoryForecaster(int $tenantId, array $settings): void
+    private function runInventoryForecaster(string|int $tenantId, array $settings): void
     {
         $this->info('   📦 Brain B: Inventory Forecaster...');
 
@@ -192,7 +192,7 @@ class RunGrowthEngine extends Command
         $this->info("   - Created {$created} stock risk alerts.");
     }
 
-    private function runChurnDetector(int $tenantId): void
+    private function runChurnDetector(string|int $tenantId): void
     {
         $this->info('   ⚠️ Brain C: Churn Detector...');
 
@@ -253,7 +253,7 @@ class RunGrowthEngine extends Command
         $this->info("   - Created {$created} churn alerts.");
     }
 
-    private function runRecoveryAlerts(int $tenantId): void
+    private function runRecoveryAlerts(string|int $tenantId): void
     {
         $this->info('   💰 Recovery Alerts...');
 
