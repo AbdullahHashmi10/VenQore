@@ -727,26 +727,41 @@ class FinancialReportingService
      */
     public function getTaxSummary(string $start, string $end): array
     {
-        $taxAccount = Account::where('code', '2100')->first();
-        if (!$taxAccount) {
-            return [
-                'output_tax' => 0.0,
-                'input_tax'  => 0.0,
-                'net_payable'=> 0.0,
-                'details'    => []
-            ];
+        // Output Tax: credits on account 2100 (Sales Tax Payable — credit-normal liability)
+        $outputTaxAccount = Account::where('code', '2100')->first();
+        $outputTax = 0.0;
+        if ($outputTaxAccount) {
+            $outputTax = $this->sumJournalItems($outputTaxAccount->id, 'credit', $start, $end)
+                       - $this->sumJournalItems($outputTaxAccount->id, 'debit',  $start, $end);
+            $outputTax = max(0.0, (float) $outputTax);
         }
 
-        $outputTax = $this->sumJournalItems($taxAccount->id, 'credit', $start, $end);
-        $inputTax  = $this->sumJournalItems($taxAccount->id, 'debit',  $start, $end);
+        // Input Tax: debits on account 2300 (Input Tax — debit-normal asset)
+        // Also accept debits on 2100 itself (legacy: some setups post input tax on 2100)
+        $inputTaxAccount = Account::where('code', '2300')->first();
+        $inputTax = 0.0;
+        if ($inputTaxAccount) {
+            $inputTax = $this->sumJournalItems($inputTaxAccount->id, 'debit',  $start, $end)
+                      - $this->sumJournalItems($inputTaxAccount->id, 'credit', $start, $end);
+            $inputTax = max(0.0, (float) $inputTax);
+        }
+        // Fallback: if no 2300 account, input tax = debits on 2100
+        if (!$inputTaxAccount) {
+            $inputTax = $outputTaxAccount
+                ? (float) $this->sumJournalItems($outputTaxAccount->id, 'debit', $start, $end)
+                : 0.0;
+        }
 
         $tenantId = app('current.tenant')->id;
-        // Detailed records for the report table
         $details = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
             ->where('journal_items.tenant_id', $tenantId)
             ->where('journal_entries.tenant_id', $tenantId)
-            ->where('journal_items.account_id', $taxAccount->id)
+            ->where('journal_entries.is_reversed', 0)
+            ->where(function($q) use ($outputTaxAccount, $inputTaxAccount) {
+                if ($outputTaxAccount) $q->orWhere('journal_items.account_id', $outputTaxAccount->id);
+                if ($inputTaxAccount)  $q->orWhere('journal_items.account_id', $inputTaxAccount->id);
+            })
             ->whereBetween('journal_entries.date', [$start, $end])
             ->select(
                 'journal_entries.date',
@@ -762,7 +777,7 @@ class FinancialReportingService
             'output_tax'  => (float) $outputTax,
             'input_tax'   => (float) $inputTax,
             'net_payable' => (float) ($outputTax - $inputTax),
-            'details'     => $details
+            'details'     => $details,
         ];
     }
 

@@ -78,8 +78,18 @@ class ReportController extends Controller
     public function inventoryValuation(Request $request)
     {
         ReportTierGate::enforce('reports.stock-valuation');
+        $rows = $this->frs->getInventoryValuationReport()->map(fn($row) => [
+            'product_id'  => $row['id'],
+            'name'        => $row['name'],
+            'sku'         => $row['sku'],
+            'category'    => $row['category'],
+            'total_qty'   => $row['stock_quantity'],
+            'unit_cost'   => $row['unit_cost'],
+            'total_value' => $row['stock_value'],
+            'retail_value'=> $row['retail_value'],
+        ]);
         return response()->json([
-            'rows'        => $this->frs->getInventoryValuationReport()->toArray(),
+            'rows'        => $rows->values()->toArray(),
             'grand_total' => $this->frs->getInventoryValue(),
         ]);
     }
