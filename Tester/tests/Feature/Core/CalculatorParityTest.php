@@ -10,7 +10,6 @@ use App\Models\Account;
 use App\Models\JournalEntry;
 use App\Models\JournalItem;
 use App\Services\FinancialReportingService;
-use App\Services\V3\ReportService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
@@ -138,20 +137,7 @@ class CalculatorParityTest extends VenQoreTestCase
         $frsPayables = (float) $frs->getPayables($today);
         $frsInventory = (float) $frs->getInventoryValue();
 
-        // ─────────────────────────────────────────────────────────────────
-        // (B) V3\ReportService
-        // ─────────────────────────────────────────────────────────────────
-        $rs = app(ReportService::class);
-        $rsPL = $rs->profitAndLoss($todayCarbon, $todayCarbon);
-
-        $rsRevenue = (float) $rsPL['total_revenue'];
-        $rsCogs = (float) $rsPL['total_cogs'];
-        $rsNetProfit = (float) $rsPL['net_profit'];
-        $rsGrossProfit = (float) $rsPL['gross_profit'];
-        $rsTaxPayable = (float) $rs->taxReport($todayCarbon, $todayCarbon)['net_payable'];
-        $rsReceivables = (float) $rs->agedReceivables($todayCarbon)['total'];
-        $rsPayables = (float) $rs->agedPayables($todayCarbon)['total'];
-        $rsInventory = (float) $rs->inventoryValuation()['grand_total'];
+        // V3\ReportService has been deleted. Comparing FRS directly to Referee DB aggregates.
 
         // ─────────────────────────────────────────────────────────────────
         // (C) Referee (Direct DB Aggregate)
@@ -236,22 +222,21 @@ class CalculatorParityTest extends VenQoreTestCase
 
         // Print comparative markdown table to stdout/logs
         $metrics = [
-            'total_revenue'  => [$frsRevenue, $rsRevenue, $refereeRevenue],
-            'total_cogs'     => [$frsCogs, $rsCogs, $refereeCogs],
-            'gross_profit'   => [$frsGrossProfit, $rsGrossProfit, $refereeGrossProfit],
-            'net_profit'     => [$frsNetProfit, $rsNetProfit, $refereeNetProfit],
-            'tax_payable'    => [$frsTaxPayable, $rsTaxPayable, $refereeTaxPayable],
-            'receivables'    => [$frsReceivables, $rsReceivables, $refereeReceivables],
-            'payables'       => [$frsPayables, $rsPayables, $refereePayables],
-            'inventory_val'  => [$frsInventory, $rsInventory, $refereeInventory],
+            'total_revenue'  => [$frsRevenue, $refereeRevenue],
+            'total_cogs'     => [$frsCogs, $refereeCogs],
+            'gross_profit'   => [$frsGrossProfit, $refereeGrossProfit],
+            'net_profit'     => [$frsNetProfit, $refereeNetProfit],
+            'tax_payable'    => [$frsTaxPayable, $refereeTaxPayable],
+            'receivables'    => [$frsReceivables, $refereeReceivables],
+            'payables'       => [$frsPayables, $refereePayables],
+            'inventory_val'  => [$frsInventory, $refereeInventory],
         ];
 
-        echo "\n\n| Metric | FRS (A) | RS (B) | DirectDB (C) | Matches |\n";
-        echo "| --- | --- | --- | --- | --- |\n";
-        foreach ($metrics as $name => [$a, $b, $c]) {
-            $matches = ($a == $c ? 'FRS' : '') . ($b == $c ? ($a == $c ? '+RS' : 'RS') : '');
-            if ($matches == '') $matches = 'None';
-            echo sprintf("| %s | %.2f | %.2f | %.2f | %s |\n", $name, $a, $b, $c, $matches);
+        echo "\n\n| Metric | FRS (A) | DirectDB (C) | Matches |\n";
+        echo "| --- | --- | --- | --- |\n";
+        foreach ($metrics as $name => [$a, $c]) {
+            $matches = ($a == $c ? 'FRS' : 'None');
+            echo sprintf("| %s | %.2f | %.2f | %s |\n", $name, $a, $c, $matches);
         }
         echo "\n";
 

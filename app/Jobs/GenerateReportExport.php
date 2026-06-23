@@ -3,7 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Tenant;
-use App\Services\V3\ReportService;
+use App\Services\FinancialReportingService;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +28,7 @@ class GenerateReportExport implements ShouldQueue
         private readonly string  $cacheKey,
     ) {}
 
-    public function handle(ReportService $reports): void
+    public function handle(FinancialReportingService $frs): void
     {
         // 1. Resolve and Bind Tenant — CRITICAL for HasTenant global scope
         $tenant = Tenant::findOrFail($this->tenantId);
@@ -39,11 +39,11 @@ class GenerateReportExport implements ShouldQueue
         $to   = Carbon::parse($this->to);
 
         $data = match($this->reportType) {
-            'profit_loss'   => $reports->profitAndLoss($from, $to),
-            'balance_sheet' => $reports->balanceSheet($to),
-            'sales'         => $reports->salesReport($from, $to),
-            'cogs'          => $reports->cogsReport($from, $to),
-            default         => $reports->trialBalance($to),
+            'profit_loss'   => $frs->getProfitAndLoss($from->toDateString(), $to->toDateString()),
+            'balance_sheet' => $frs->getBalanceSheet($to->toDateString()),
+            'sales'         => $frs->getSalesReport($from->toDateString(), $to->toDateString()),
+            'cogs'          => $frs->getCogsReport($from->toDateString(), $to->toDateString()),
+            default         => $frs->getTrialBalance($to->toDateString()),
         };
 
         // 3. Cache result for 10 minutes — controller polls this key
