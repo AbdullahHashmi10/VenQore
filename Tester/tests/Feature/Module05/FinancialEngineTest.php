@@ -176,14 +176,20 @@ test('createEntry throws if account_code does not exist for the current tenant',
 
 // ─── Test 7: No tenant context throws RuntimeException ────────────────────
 
-test('AccountingService constructor throws RuntimeException without tenant context', function () {
+test('AccountingService throws RuntimeException without tenant context', function () {
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
+
+    $svc = app(AccountingService::class);
 
     // Explicitly clear tenant binding
     app()->forgetInstance('current.tenant');
 
-    expect(fn () => app(AccountingService::class))
+    // The constructor resolves fine (no tenant needed there),
+    // but any operation that reads tenant_id must throw because
+    // app('current.tenant') raises BindingResolutionException
+    // when the instance has been forgotten.
+    expect(fn () => $svc->getBalance('1000'))
         ->toThrow(\Illuminate\Contracts\Container\BindingResolutionException::class);
 });
 
