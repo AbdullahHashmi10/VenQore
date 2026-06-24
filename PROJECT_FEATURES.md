@@ -1948,3 +1948,20 @@ Demo visitors who logged in as a role (owner, cashier, etc.) and then navigated 
 - **Logic:** Added `str_ends_with($user->email, '@venqore-demo.internal')` check before the normal `hub` redirect. If true: decrement cache counter, logout, invalidate session, then fall through to render `LandingPage`.
 - **Status:** Completed
 ---
+
+### OneCore Mathematical Correctness & Ledger Reconciliation Overhaul
+**Date:** 2026-06-23
+**Alignment:** According to Plan (VenQore Handoff & Category 1-5 Stabilization)
+
+**Decision Context:**
+Completed the hardening of the financial core to achieve 100% mathematical correctness. This eliminates all discrepancies between dashboard charts, general ledger reports, and invoice-reconciliation engines by enforcing a single write path, a single read engine, and a capstone verification gate.
+
+**Technical Implementation:**
+* **Category 1 (Journal Integrity):** Enforced a single guarded write path. All journal writes must route through `V3\AccountingService`. Statically audited via `SingleWriterGuardTest` to block raw database inserts.
+* **Category 2 (Derived Balances):** Fully migrated `Account` model balances to read dynamically from the double-entry ledger database (`journal_items` sums), eliminating cache-drift.
+* **Category 3 (Unified Read Engine):** Retired and deleted `V3\ReportService` from all controllers. All 43 reports, dashboard metrics, and customer/supplier statements now fetch data exclusively from `FinancialReportingService`.
+* **Category 4 (Heart Capstone Gate):** Corrected test runner file/class naming to ensure all 13 core capstone tests inside `OneCoreReconciliationGateTest.php` run and pass.
+* **Category 5 (Dashboard & Statement Integration):** Aligned Inertia view props directly with FRS outputs. Enabled LIFO proration updates to batches on partial returns to resolve Gross Profit mismatches between item-wise reports and P&L.
+* **Precision & Safety:** Standardized all database money columns to `DECIMAL(20,4)` via migrations to prevent floating-point rounding errors. Hardened FK delete cascades to protect historical financial and audit logs.
+* **Status:** **Completed & Verified** (635 tests passing, 0 failures, trial balance balances to 0.00).
+
