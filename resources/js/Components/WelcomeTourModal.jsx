@@ -213,6 +213,21 @@ export default function WelcomeTourModal({ store }) {
         );
     };
 
+    const activeSteps = [
+        'welcome',
+        'purchase_tour_start',
+        'invoice_tour_start',
+        'pos_tour_start',
+        'expense_tour_start',
+        'stock_value',
+        'sidebar_stock',
+        'purchase_tour_sidebar'
+    ];
+
+    if (!activeSteps.includes(currentStep) || store?.onboarding_completed) {
+        return null;
+    }
+
     // Welcome Screen
     if (currentStep === 'welcome') {
         return (

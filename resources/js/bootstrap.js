@@ -1,6 +1,31 @@
 import axios from 'axios';
 window.axios = axios;
 
+// Automatically rewrite local development URLs (like 127.0.0.1:8000 or localhost:8000)
+// to match the actual domain/port the user is visiting from. This prevents ERR_CONNECTION_REFUSED
+// in production if the server's APP_URL is misconfigured, or if the developer runs on a different local port.
+window.axios.interceptors.request.use(
+    config => {
+        if (config.url) {
+            const localRegex = /^https?:\/\/(127\.0\.0\.1|localhost)(:8000)?/;
+            if (localRegex.test(config.url)) {
+                const path = config.url.replace(localRegex, '');
+                config.url = `${window.location.origin}${path}`;
+            }
+        }
+        return config;
+    },
+    error => Promise.reject(error)
+);
+
+// Suppress transient Recharts layout width/height warning logs in console
+const originalWarn = console.warn;
+console.warn = (...args) => {
+    if (args[0] && typeof args[0] === 'string' && args[0].includes('The width(-1) and height(-1) of chart should be greater than 0')) {
+        return;
+    }
+    originalWarn(...args);
+};
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 window.axios.defaults.withCredentials = true;

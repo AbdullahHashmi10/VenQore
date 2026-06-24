@@ -530,7 +530,7 @@ class SaleController extends Controller
             'salesByMethod' => $salesByMethod
         ];
 
-        if (request()->wantsJson() || request()->ajax()) {
+        if (!request()->header('X-Inertia') && (request()->wantsJson() || request()->ajax())) {
             return response()->json($data);
         }
 

@@ -195,8 +195,8 @@ class TenantMiddleware
                 'logo_url'        => $tenant->logo_url,
                 'logo_style'      => $tenant->logo_style,
                 'features'        => array_merge($tenant->featuresArray(), [
-                    'chat_support'     => (bool)$tenant->getLimit('chat_support'),
-                    'live_chat_widget' => (bool)$tenant->getLimit('live_chat_widget'),
+                    'chat_support'     => $tenant->getLimit('chat_support') !== false,
+                    'live_chat_widget' => $tenant->getLimit('live_chat_widget') !== false,
                 ]),
             ],
             'membership'      => $membership,

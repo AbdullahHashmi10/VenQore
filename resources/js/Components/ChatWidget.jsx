@@ -579,7 +579,7 @@ export default function ChatWidget() {
             </div>
 
             {/* ── FLOATING BUBBLE MODE ──────────────────────────────────────── */}
-            <div className={`fixed right-6 z-[9998] font-sans transition-all duration-300 ${showMobileNavBar ? 'bottom-[100px] lg:bottom-6' : 'bottom-6'}`} style={{ isolation: 'isolate' }}>
+            <div className={`fixed right-6 z-[55] font-sans transition-all duration-300 ${showMobileNavBar ? 'bottom-[100px] lg:bottom-6' : 'bottom-6'}`} style={{ isolation: 'isolate' }}>
 
                 {/* Compact popup panel — hidden when sidebar is open */}
                 {isOpen && !isExpanded && (

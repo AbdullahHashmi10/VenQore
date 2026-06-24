@@ -11,18 +11,22 @@ use Illuminate\Support\Facades\DB;
 // Create or update user test@venqore.com
 $user = User::where('email', 'test@venqore.com')->first();
 if (!$user) {
-    $user = User::create([
+    $user = new User([
         'name' => 'Test User',
         'email' => 'test@venqore.com',
         'password' => Hash::make('password'),
-        'is_platform_admin' => true,
+        'is_platform_admin' => false,
     ]);
+    $user->email_verified_at = now();
+    $user->save();
     echo "User test@venqore.com created.\n";
 } else {
     $user->update([
         'password' => Hash::make('password'),
-        'is_platform_admin' => true,
+        'is_platform_admin' => false,
     ]);
+    $user->email_verified_at = now();
+    $user->save();
     echo "User test@venqore.com updated.\n";
 }
 

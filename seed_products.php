@@ -13,6 +13,14 @@ try {
     echo "Starting Seeding...\n";
 
     // Ensure Prerequisites
+    $tenant = \App\Models\Tenant::first();
+    if (!$tenant) {
+        echo "No tenant found. Please run create_test_user.php first.\n";
+        exit;
+    }
+    app()->instance('current.tenant', $tenant);
+    echo "Using Tenant: " . $tenant->name . " (" . $tenant->slug . ")\n";
+
     $category = Category::firstOrCreate(
         ['name' => 'Test Category'],
         [
@@ -40,7 +48,6 @@ try {
                 'brand_id' => $brand->id,
                 'price' => rand(100, 1000),
                 'cost_price' => rand(50, 90),
-                'stock' => rand(10, 100), // Assuming stock is a column or accessible
                 'description' => "Auto-generated test product $i",
                 'type' => 'standard',
                 'base_unit' => 'pcs'

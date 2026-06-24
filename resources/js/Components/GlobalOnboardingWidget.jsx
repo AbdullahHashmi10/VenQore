@@ -99,8 +99,41 @@ export default function GlobalOnboardingWidget({ store }) {
         );
     };
 
-    const { component } = usePage();
+    const { component, url, props } = usePage();
     const step = store?.onboarding_step;
+
+    // Check if the mobile nav bar is active to avoid overlapping
+    const showMobileNavBar = (() => {
+        if (!store) return false;
+        const auth = props?.auth;
+        if (!auth?.user) return false;
+
+        const path = url.toLowerCase();
+
+        // 1. Explicitly check if returns history list page (should show navbar)
+        const isReturnsHistoryList = path.includes('/returns-history') && 
+            !path.includes('/create') && 
+            !path.includes('/edit') && 
+            !path.includes('/return-detail');
+
+        if (isReturnsHistoryList) return true;
+
+        // 2. Block on POS screen
+        if (path.includes('/pos')) return false;
+
+        // 3. Block on creation, editing, return making, or refunds
+        const isCreateFlow = path.includes('/create');
+        const isEditFlow = path.includes('/edit');
+        const isReturnFlow = path.includes('/return') && !path.includes('/returns-history');
+        const isRefundFlow = path.includes('/refund');
+        const isSetupFlow = path.includes('/setup') || path.includes('/new-store') || path.includes('/start');
+
+        if (isCreateFlow || isEditFlow || isReturnFlow || isRefundFlow || isSetupFlow) {
+            return false;
+        }
+
+        return true;
+    })();
 
     // Helper to determine if an active spotlight/tour modal is currently running on the page
     const isTourActive = () => {
@@ -155,6 +188,21 @@ export default function GlobalOnboardingWidget({ store }) {
         return null;
     }
 
+    // Explicitly blocked patterns — active creation/transaction/setup flows
+    const path = window.location.pathname.toLowerCase();
+    const blockedPatterns = [
+        '/pos',
+        '/create',
+        '/edit',
+        '/new-store',
+        '/setup',
+        '/refund',
+        '/return',
+    ];
+    if (blockedPatterns.some(p => path.includes(p))) {
+        return null;
+    }
+
     const progress = getOnboardingProgress(step);
     const circumference = 2 * Math.PI * 18;
     const progressOffset = circumference * (1 - progress / 100);
@@ -165,7 +213,7 @@ export default function GlobalOnboardingWidget({ store }) {
             <div 
                 onClick={() => toggleMinimized(false)}
                 title="Onboarding Incomplete. Click to view progress checklist."
-                className="fixed bottom-24 right-6 z-[95] w-14 h-14 bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/30 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-110 active:scale-95 hover:border-indigo-400/50 transition-all duration-300 group animate-in zoom-in-90"
+                className={`fixed right-6 z-[95] w-14 h-14 bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/30 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-110 active:scale-95 hover:border-indigo-400/50 transition-all duration-300 group animate-in zoom-in-90 ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}
             >
                 <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 44 44">
                     <circle
@@ -200,9 +248,8 @@ export default function GlobalOnboardingWidget({ store }) {
         );
     }
 
-    // Expanded Banner
     return (
-        <div className="fixed bottom-24 right-6 z-[95] max-w-sm w-full bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto">
+        <div className={`fixed right-6 z-[95] max-w-sm w-full bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}>
             {/* Minimize button */}
             <button 
                 onClick={() => toggleMinimized(true)}

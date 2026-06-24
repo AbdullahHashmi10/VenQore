@@ -25,7 +25,7 @@ export default function VersionChecker({ checkInterval = 60000 }) {
             if (checking) return;
             // setChecking(true); // Optional: don't really need to block strictly
 
-            const response = await axios.get('/api/app-version');
+            const response = await axios.get('/api/app-version', { _skipGlobalErrorHandler: true });
             const serverVersion = response.data.version;
 
             if (isInitial) {

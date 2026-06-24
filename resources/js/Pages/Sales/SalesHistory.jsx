@@ -29,6 +29,7 @@ import {
     Truck,
     XCircle,
     Clock,
+    Filter
 } from 'lucide-react';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import PrintService from '@/Utils/PrintService';
@@ -137,19 +138,21 @@ export default function SalesIndex({ sales, filters, stats }) {
     const [activeActionMenu, setActiveActionMenu] = useState(null);
     const [activeSharePopup, setActiveSharePopup] = useState(null);
     const [draggedColumn, setDraggedColumn] = useState(null);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
 
-    // Columns Configuration
     const [tableColumns, setTableColumns] = useState([
         { key: 'date', label: 'Date', width: '12%' },
         { key: 'reference', label: 'Invoice No', width: '15%' },
         { key: 'party_name', label: 'Party Name', width: '15%' },
-        { key: 'transaction', label: 'Transaction', width: '10%' },
-        { key: 'payment_method', label: 'Payment Type', width: '10%' },
+        { key: 'transaction', label: 'Transaction', width: '10%', className: 'hidden md:table-cell' },
+        { key: 'payment_method', label: 'Payment Type', width: '10%', className: 'hidden md:table-cell' },
         { key: 'amount', label: 'Amount', width: '10%' },
-        { key: 'balance', label: 'Balance', width: '10%' },
-        { key: 'due_date', label: 'Due Date', width: '8%' },
+        { key: 'balance', label: 'Balance', width: '10%', className: 'hidden md:table-cell' },
+        { key: 'due_date', label: 'Due Date', width: '8%', className: 'hidden md:table-cell' },
         { key: 'status', label: 'Status', width: '10%' },
-        { key: 'actions', label: 'Actions', width: '10%', frozen: true }
+        { key: 'actions', label: 'Actions', width: '10%', frozen: true, className: 'hidden md:table-cell' }
     ]);
 
     // Debounced Search Logic
@@ -303,15 +306,43 @@ export default function SalesIndex({ sales, filters, stats }) {
         <OneGlanceLayout title="Sales History" activeMenu="Sell">
             <Head title="Sales History" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden relative">
+            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
 
 
 
                 <SellModuleTabs activeTab="orders" />
 
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                {/* Mobile Stats Toggle/Summary (Visible below md) */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            {/* Top line: Sales & Txns */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-600 dark:text-indigo-400">Sale: {formatCurrency(stats?.total_sale || 0, store)}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-blue-600 dark:text-blue-400">Txns: {stats?.transaction_count || 0}</span>
+                            </div>
+                            {/* Bottom line: Paid & Due */}
+                            <div className="flex items-center gap-2">
+                                <span className="text-emerald-600">Paid: {formatCurrency(stats?.total_paid || 0, store)}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-rose-600">Due: {formatCurrency(stats?.total_unpaid || 0, store)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Stats Cards Section */}
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
+                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
                                 <FileText size={16} />
@@ -320,7 +351,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                         </div>
                         <p className="text-base font-black text-slate-900 dark:text-white">{formatCurrency(stats?.total_sale || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
                                 <CheckSquare size={16} />
@@ -329,7 +360,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                         </div>
                         <p className="text-base font-black text-emerald-600">{formatCurrency(stats?.total_paid || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
                                 <Clock size={16} />
@@ -338,7 +369,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                         </div>
                         <p className="text-base font-black text-rose-600">{formatCurrency(stats?.total_unpaid || 0, store)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-start gap-1 justify-between sm:flex-row sm:items-center">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                                 <History size={16} />
@@ -349,8 +380,8 @@ export default function SalesIndex({ sales, filters, stats }) {
                     </div>
                 </div>
 
-                {/* 1. Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* 1. Header Area - PC / Desktop Layout (Hidden on Mobile) */}
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
@@ -416,6 +447,101 @@ export default function SalesIndex({ sales, filters, stats }) {
                     </div>
                 </div>
 
+                {/* 1. Header Area - Mobile Layout (4 Buttons) */}
+                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between w-full">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Sales <span className="text-indigo-600">Transactions</span>
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            {/* Button 1: Search Toggle */}
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            {/* Button 2: Filter Toggle */}
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filters"
+                            >
+                                <Filter size={16} />
+                            </button>
+                            {/* Button 3: Spreadsheet/Export */}
+                            <a
+                                href={route('store.sales.export', { ...filters, store_slug: store?.slug })}
+                                className="p-2 bg-slate-100 dark:bg-slate-800 text-emerald-600 hover:bg-slate-200 rounded-lg transition-colors"
+                                title="Export spreadsheet"
+                            >
+                                <FileSpreadsheet size={16} />
+                            </a>
+                            {/* Button 4: Graph/Analytics */}
+                            <Link
+                                href={route('store.reports.analytics', { store_slug: store?.slug })}
+                                className="p-2 bg-slate-100 dark:bg-slate-800 text-indigo-600 hover:bg-slate-200 rounded-lg transition-colors"
+                                title="View analytics graph"
+                            >
+                                <BarChart3 size={16} />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Expandable Search Input on Mobile */}
+                    {showMobileSearch && (
+                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search invoice, customer..."
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                            />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {/* Expandable Filters Panel on Mobile */}
+                    {showMobileFilters && (
+                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                <button
+                                    onClick={() => { setActiveFilter('all'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'all', from_date: '', to_date: '' }); }}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => { setActiveFilter('today'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'today', from_date: '', to_date: '' }); }}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Today</button>
+                                <button
+                                    onClick={() => { setActiveFilter('month'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'month', from_date: '', to_date: '' }); }}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >This Month</button>
+                                <button
+                                    onClick={() => { setActiveFilter('year'); setDateRange({ from: '', to: '' }); applyFilters({ filter: 'year', from_date: '', to_date: '' }); }}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'year' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >This Year</button>
+                                <button
+                                    onClick={() => setActiveFilter('custom')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'custom' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Custom</button>
+                            </div>
+                            {activeFilter === 'custom' && (
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <input type="date" name="from" value={dateRange.from} onChange={handleDateChange}
+                                        className="px-2 py-1 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500 flex-1" />
+                                    <span className="text-slate-400 text-xs">→</span>
+                                    <input type="date" name="to" value={dateRange.to} onChange={handleDateChange}
+                                        className="px-2 py-1 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-md text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-indigo-500 flex-1" />
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 {/* Bulk Action Bar */}
                 {selectedSales.length > 0 && (
                     <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg mb-2 animate-in slide-in-from-top-2">
@@ -440,11 +566,11 @@ export default function SalesIndex({ sales, filters, stats }) {
                 )}
 
                 {/* 2. Main Transactions Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
+                <div className="flex-1 min-h-[calc(100vh-190px)] lg:min-h-0 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                <th className="p-4 w-10">
+                                <th className="p-2 md:p-4 w-8 md:w-10">
                                     <input
                                         type="checkbox"
                                         className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
@@ -461,8 +587,9 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         onDrop={(e) => handleDrop(e, index)}
                                         onClick={() => col.key !== 'actions' && handleSort(col.key)}
                                         className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
+                                            p-2 md:p-4 text-[10px] md:text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
                                             cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
+                                            ${col.className || ''}
                                             ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
                                         `}
                                         style={{ width: col.width }}
@@ -510,7 +637,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             ${quickViewSale?.id === row.id ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50 dark:bg-indigo-900/20' : ''}
                                         `}
                                     >
-                                        <td className="p-4 w-10 sticky left-0 z-10 bg-white dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
+                                        <td className="p-2 md:p-4 w-8 md:w-10 sticky left-0 z-10 bg-white dark:bg-slate-900" onClick={(e) => e.stopPropagation()}>
                                             <input
                                                 type="checkbox"
                                                 className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
@@ -519,7 +646,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             />
                                         </td>
                                         {tableColumns.map((col) => (
-                                            <td key={`${row.id}- ${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
+                                            <td key={`${row.id}- ${col.key}`} className={`p-2 md:p-4 text-xs md:text-sm text-slate-700 dark:text-slate-300 ${col.className || ''}`}>
                                                 {(() => {
                                                     switch (col.key) {
                                                         case 'date': return <span className="font-medium">{formatDate(row.created_at)}</span>;
@@ -676,6 +803,201 @@ export default function SalesIndex({ sales, filters, stats }) {
                             )}
                         </tbody >
                     </table>
+
+                    {/* Mobile View - Cards List */}
+                    <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
+                        {sortedSales.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                <FileText size={32} className="mx-auto text-slate-400 mb-2" />
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No sales found</p>
+                            </div>
+                        ) : (
+                            sortedSales.map((row) => {
+                                const isReturn = row.status === 'returned' || (row.reference_number && row.reference_number.startsWith('RET'));
+                                const isPos = row.source === 'pos';
+                                const paid = parseFloat(row.paid_amount || (row.payment_status === 'paid' ? row.total : 0) || 0);
+                                const balance = parseFloat(row.total) - paid;
+                                return (
+                                    <div
+                                        key={row.id}
+                                        onClick={() => handleRowClick(row)}
+                                        className={`
+                                            p-3 bg-white dark:bg-slate-900 rounded-xl border shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-indigo-400 transition-colors
+                                            ${quickViewSale?.id === row.id ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20 dark:bg-indigo-900/10' : ''}
+                                            ${isPos ? 'border-orange-200 dark:border-orange-900/40' : 'border-slate-200 dark:border-slate-800'}
+                                        `}
+                                    >
+                                        {/* Row 1: Party Name (Left), Invoice reference & Date (Right) */}
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm">
+                                                    {row.customer?.name || 'Walk-in'}
+                                                </h3>
+                                                {row.customer?.phone && (
+                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.customer.phone}</p>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                    {row.reference_number}
+                                                </span>
+                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                    {formatDate(row.created_at)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Badges (Transaction type & payment status) */}
+                                        <div className="flex items-center gap-1.5">
+                                            {isReturn ? (
+                                                <span className="text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                                    Return
+                                                </span>
+                                            ) : isPos ? (
+                                                <span className="text-[9px] font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
+                                                    POS Sale
+                                                </span>
+                                            ) : (
+                                                <span className="text-[9px] font-black uppercase bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded border border-emerald-200/30">
+                                                    Sale
+                                                </span>
+                                            )}
+
+                                            {(() => {
+                                                let status = row.payment_status;
+                                                const pAmt = parseFloat(row.paid_amount || (status === 'paid' ? row.total : 0));
+                                                const tAmt = parseFloat(row.total);
+                                                if (pAmt > tAmt + 1) status = 'overpaid';
+
+                                                const statusStyles = {
+                                                    paid: 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20',
+                                                    partial: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20',
+                                                    unpaid: 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-500/20',
+                                                    overpaid: 'bg-blue-100/50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-500/20'
+                                                };
+                                                return (
+                                                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[status] || 'bg-slate-100 text-slate-700'}`}>
+                                                        {status}
+                                                    </span>
+                                                );
+                                            })()}
+                                        </div>
+
+                                        {/* Row 3: Totals & Action Icons */}
+                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                            <div className="flex items-center gap-6">
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-xs font-black text-slate-900 dark:text-white">
+                                                        {formatCurrency(row.total, store)}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
+                                                    {balance > 1 ? (
+                                                        <span className="text-xs font-black text-rose-600 dark:text-rose-450">
+                                                            {formatCurrency(balance, store)}
+                                                        </span>
+                                                    ) : balance < -1 ? (
+                                                        <span className="text-xs font-black text-blue-600 dark:text-blue-400">
+                                                            +{formatCurrency(Math.abs(balance), store)}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
+                                                            Settled
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    onClick={() => PrintService.quickPrint(row)}
+                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    title="Print"
+                                                >
+                                                    <Printer size={16} />
+                                                </button>
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setActiveSharePopup(activeSharePopup === row.id ? null : row.id)}
+                                                        className={`p-1.5 rounded-lg transition-colors ${activeSharePopup === row.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                        title="Share"
+                                                    >
+                                                        <CornerUpRight size={16} />
+                                                    </button>
+                                                    {activeSharePopup === row.id && (
+                                                        <div className="absolute right-0 bottom-full mb-2 w-40 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                            <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm">
+                                                                <Mail size={14} className="text-red-500" /> Email
+                                                            </button>
+                                                            <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm">
+                                                                <MessageCircle size={14} className="text-green-500" /> WhatsApp
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setActiveActionMenu(activeActionMenu === row.id ? null : row.id)}
+                                                        className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                    >
+                                                        <MoreVertical size={16} />
+                                                    </button>
+                                                    {activeActionMenu === row.id && (
+                                                        <div className="absolute right-0 bottom-full mb-2 w-64 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                            <div className="py-1">
+                                                                {row.source === 'pos' ? (
+                                                                    <a href={route('store.pos', { store_slug: store?.slug }) + '?recall=' + row.id} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                        <Edit size={14} /> Open in POS
+                                                                    </a>
+                                                                ) : (
+                                                                    <Link href={route('store.sales.edit', { store_slug: store?.slug, sale: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                        <Edit size={14} /> View/Edit
+                                                                    </Link>
+                                                                )}
+                                                                <Link href={route('store.sales.show', { store_slug: store?.slug, sale: row.id }) + '?action=return'} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                    <RefreshCcw size={14} /> Convert To Return
+                                                                </Link>
+                                                                <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                    <Truck size={14} /> Preview Delivery Challan
+                                                                </button>
+                                                                <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                    <History size={14} /> Payment History
+                                                                </button>
+                                                                <button
+                                                                    onClick={async () => { if (await confirm('Cancel invoice? Stock will be restored.')) router.post(route('store.sales.cancel', { store_slug: store?.slug, sale: row.id })); }}
+                                                                    className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-red-650"
+                                                                >
+                                                                    <XCircle size={14} /> Cancel Invoice
+                                                                </button>
+                                                                {isSuperAdmin && (
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (confirm('Are you sure you want to permanently delete this sale? This will restore stock.')) {
+                                                                                router.delete(route('store.sales.destroy', { store_slug: store?.slug, sale: row.id }), {
+                                                                                    preserveScroll: true,
+                                                                                    onSuccess: () => setActiveActionMenu(null)
+                                                                                });
+                                                                            }
+                                                                        }}
+                                                                        className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"
+                                                                    >
+                                                                        <Trash2 size={14} /> Delete
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
 
                     {/* Infinite Scroll Sentinel inside scroll container */}
                     <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm opacity-0 h-4">

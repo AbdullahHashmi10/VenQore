@@ -31,6 +31,7 @@ import {
     RefreshCcw,
     ChevronLeft,
     ChevronRight,
+    ChevronUp,
     BookOpen,
     FileText,
     ShieldCheck,
@@ -162,6 +163,44 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [isMobileFabsOpen, setIsMobileFabsOpen] = useState(false);
+    const [budIconType, setBudIconType] = useState('setup'); // 'setup' or 'chat'
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setBudIconType(prev => prev === 'setup' ? 'chat' : 'setup');
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        if (isMobileFabsOpen) {
+            document.body.classList.add('mobile-fabs-expanded');
+        } else {
+            document.body.classList.remove('mobile-fabs-expanded');
+        }
+    }, [isMobileFabsOpen]);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!isMobileFabsOpen) return;
+            const target = event.target;
+            const isClickOnBud = target.closest('#mobile-fabs-toggle-bud');
+            const isClickOnFloatingPanel = target.closest('.fixed.right-6.z-\\[55\\]') || target.closest('.fixed.right-6.z-\\[95\\]') || target.closest('#tour-chat-widget-btn');
+            
+            if (!isClickOnBud && !isClickOnFloatingPanel) {
+                setIsMobileFabsOpen(false);
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('touchstart', handleClickOutside);
+        };
+    }, [isMobileFabsOpen]);
+
     const showExpandedSidebar = isSidebarOpen || mobileSidebarOpen;
     const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
     const { isDarkMode, setIsDarkMode } = useTheme();
@@ -1472,11 +1511,11 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
 
                     {/* DYNAMIC CONTENT AREA */}
-                    <div className={`flex-1 min-h-0 overflow-y-auto h-full w-full animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-4 sm:px-8 pb-8'}`}>
+                    <div className={`flex-1 min-h-0 overflow-y-auto h-full w-full animate-[fadeIn_0.4s_ease-out] ${noPadding ? '' : 'px-2 sm:px-8 pb-8'}`}>
                         {children}
                         {/* Spacer to ensure content is not hidden behind the mobile bottom nav bar */}
                         {showMobileNavBar && (
-                            <div className="lg:hidden w-full shrink-0" style={{ height: '120px' }} aria-hidden="true" />
+                            <div className="lg:hidden w-full shrink-0" style={{ height: '80px' }} aria-hidden="true" />
                         )}
                     </div>
                 </main >
@@ -1537,7 +1576,29 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             {/* Mobile Bottom Navigation Bar (lg:hidden) */}
             {showMobileNavBar && (
                 <div className="lg:hidden fixed bottom-5 left-4 right-4 z-[80] animate-in slide-in-from-bottom-6 cubic-bezier(0.16, 1, 0.3, 1) duration-500">
-                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/40 dark:border-slate-800/60 rounded-3xl shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.4)] px-3 py-2 flex items-center justify-between gap-1">
+                    <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/40 dark:border-slate-800/60 rounded-3xl shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.4)] px-3 py-2 flex items-center justify-between gap-1 relative">
+                        
+                        {/* Glowing Bud Toggle for Mobile FABs */}
+                        <div className="absolute -top-3 right-6 z-[90]">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsMobileFabsOpen(!isMobileFabsOpen);
+                                }}
+                                id="mobile-fabs-toggle-bud"
+                                className="px-2.5 py-1 rounded-full bg-slate-900/90 dark:bg-slate-950/90 border border-indigo-500/40 flex items-center gap-1 text-white shadow-lg shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
+                            >
+                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500 animate-ping opacity-75" />
+                                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500" />
+                                {budIconType === 'setup' ? (
+                                    <Sparkles size={10} className="text-indigo-400 animate-in fade-in zoom-in duration-300" />
+                                ) : (
+                                    <MessageSquare size={10} className="text-indigo-400 animate-in fade-in zoom-in duration-300" />
+                                )}
+                                <ChevronUp size={10} className={`transition-transform duration-300 ${isMobileFabsOpen ? 'rotate-180' : ''}`} />
+                            </button>
+                        </div>
+
                         {/* Tab 1: Sale (invoice) */}
                         <Link
                             href={getMobileTabUrl('store.sales.dashboard')}
@@ -1623,6 +1684,29 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
             {/* Global Toast Notifications */}
             <Toast toasts={toasts} removeToast={removeToast} duration={4000} />
+
+            {/* Global Style Injections for Mobile FABs Drawer */}
+            <style>{`
+                @media (max-width: 1023px) {
+                    /* Hide FABs by translating down */
+                    div[class*="z-[55]"],
+                    div[class*="z-[95]"],
+                    div[class*="z-[150]"] {
+                        transform: translateY(400px) !important;
+                        opacity: 0 !important;
+                        pointer-events: none !important;
+                        transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease !important;
+                    }
+                    /* Slide up when active and offset slightly higher to clear bottom bar/bud overlap */
+                    body.mobile-fabs-expanded div[class*="z-[55]"],
+                    body.mobile-fabs-expanded div[class*="z-[95]"],
+                    body.mobile-fabs-expanded div[class*="z-[150]"] {
+                        transform: translateY(-20px) !important;
+                        opacity: 1 !important;
+                        pointer-events: auto !important;
+                    }
+                }
+            `}</style>
         </>
     );
 }
