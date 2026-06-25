@@ -1357,20 +1357,18 @@ const CreateInvoice = ({ sale }) => {
                                 >
                                     <Settings size={13} />
                                 </button>
-                            </div>
-
-                            {/* Row 2: Customer Search (Left), Payment & Term Controls (Right) */}
+                            </div>                            {/* Row 2: Customer Search (Left), Payment & Term Controls (Right) */}
                             <div className="flex items-center gap-1.5 w-full">
                                 <div id="tour-invoice-customer-mobile" className="relative flex-1 min-w-0">
                                     <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
-                                        <User size={12} />
+                                        <User size={13} />
                                     </div>
                                     {currentInvoice.customer ? (
                                         <div className="relative">
-                                            <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1 flex items-center justify-between shadow-sm min-h-[28px]">
+                                            <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
                                                 <div className="min-w-0 flex-1">
-                                                    <p className="font-bold text-slate-200 text-[10px] truncate leading-tight">{currentInvoice.customer.name}</p>
-                                                    <p className="text-[8px] text-slate-500 leading-none">{currentInvoice.customer.phone || 'No Phone'}</p>
+                                                    <p className="font-bold text-slate-200 text-xs truncate leading-tight">{currentInvoice.customer.name}</p>
+                                                    <p className="text-[9px] text-slate-500 leading-none">{currentInvoice.customer.phone || 'No Phone'}</p>
                                                 </div>
                                                 <button
                                                     onClick={() => { patchInvoice({ customer: null }); setCustomerSearch(''); }}
@@ -1396,6 +1394,7 @@ const CreateInvoice = ({ sale }) => {
                                                 }}
                                                 placeholder="Search Party..."
                                                 addNewLabel="Create Party"
+                                                inputClassName="h-9 min-h-[36px] text-xs py-1.5"
                                             />
                                             {customerError && (
                                                 <p className="absolute -bottom-3 text-[8px] font-bold text-red-500 animate-pulse">
@@ -1408,24 +1407,24 @@ const CreateInvoice = ({ sale }) => {
 
                                 {/* Compact Credit/Cash toggle & wallet */}
                                 <div className="flex items-center gap-1 shrink-0">
-                                    <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5 border border-slate-700 h-[28px]">
+                                    <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5 border border-slate-700 h-[36px]">
                                         <button
                                             onClick={() => patchInvoice({ paymentMethod: 'credit' })}
-                                            className={`px-1.5 py-0.5 rounded text-[8px] font-black transition-all ${currentInvoice.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
                                         >
                                             CREDIT
                                         </button>
                                         <button
                                             onClick={() => patchInvoice({ paymentMethod: 'cash' })}
-                                            className={`px-1.5 py-0.5 rounded text-[8px] font-black transition-all ${currentInvoice.paymentMethod === 'cash' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === 'cash' ? 'bg-orange-600 text-white shadow-sm' : 'text-slate-500'}`}
                                         >
                                             CASH
                                         </button>
                                     </div>
                                     
-                                    <div className="relative group/accounts-mobile shrink-0 h-[28px]">
-                                        <button className="flex items-center justify-center w-7 h-[28px] rounded-lg bg-slate-800 text-indigo-400 border border-slate-700 shadow-sm active:scale-95">
-                                            <Wallet size={11} />
+                                    <div className="relative group/accounts-mobile shrink-0 h-[36px]">
+                                        <button className="flex items-center justify-center w-9 h-[36px] rounded-lg bg-slate-800 text-indigo-400 border border-slate-700 shadow-sm active:scale-95">
+                                            <Wallet size={13} />
                                         </button>
                                         <div className="absolute right-0 top-full pt-1 z-50 hidden group-hover/accounts-mobile:block">
                                             <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden w-36 p-1">
@@ -1467,30 +1466,33 @@ const CreateInvoice = ({ sale }) => {
                             {/* Row 3: Metadata - Invoice #, Date, Terms */}
                             <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-slate-800/40 pt-1">
                                 <div>
-                                    <span className="text-[8px] text-slate-300 font-bold uppercase block mb-0">Invoice #</span>
+                                    <span className="text-[8px] text-slate-305 font-bold uppercase block mb-0">Invoice #</span>
                                     <input
                                         type="text"
                                         value={currentInvoice.invoiceNumber || ''}
                                         onChange={(e) => patchInvoice({ invoiceNumber: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded-md px-1.5 h-6 text-slate-200 text-[10px] font-medium focus:ring-1 ring-indigo-500/20 outline-none placeholder-slate-600"
+                                        style={{ minHeight: 'unset', height: '22px' }}
+                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded px-1.5 text-slate-200 text-[9px] font-bold focus:ring-1 ring-indigo-500/20 outline-none placeholder-slate-600"
                                         placeholder="INV-XXXXXX"
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-[8px] text-slate-300 font-bold uppercase block mb-0">Date</span>
+                                    <span className="text-[8px] text-slate-305 font-bold uppercase block mb-0">Date</span>
                                     <input
                                         type="date"
                                         value={currentInvoice.date || ''}
                                         onChange={(e) => patchInvoice({ date: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded-md px-1.5 h-6 text-slate-200 text-[10px] font-medium focus:ring-1 ring-indigo-500/20 outline-none"
+                                        style={{ minHeight: 'unset', height: '22px' }}
+                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded px-1.5 text-slate-200 text-[9px] font-bold focus:ring-1 ring-indigo-500/20 outline-none"
                                     />
                                 </div>
                                 <div>
-                                    <span className="text-[8px] text-slate-300 font-bold uppercase block mb-0">Terms</span>
+                                    <span className="text-[8px] text-slate-305 font-bold uppercase block mb-0">Terms</span>
                                     <select
                                         value={currentInvoice.paymentTerms || 'net30'}
                                         onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
-                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded-md px-1.5 h-6 text-slate-200 text-[10px] font-medium focus:ring-1 ring-indigo-500/20 outline-none"
+                                        style={{ minHeight: 'unset', height: '22px' }}
+                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded px-1.5 text-slate-200 text-[9px] font-bold focus:ring-1 ring-indigo-500/20 outline-none"
                                     >
                                         <option value="immediate">Immediate</option>
                                         <option value="net7">7 Days</option>
