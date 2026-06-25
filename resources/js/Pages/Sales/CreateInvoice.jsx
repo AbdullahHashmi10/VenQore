@@ -1462,45 +1462,6 @@ const CreateInvoice = ({ sale }) => {
                                     </div>
                                 </div>
                             </div>
-                            
-                            {/* Row 3: Metadata - Invoice #, Date, Terms */}
-                            <div className="grid grid-cols-3 gap-1 mt-0.5 border-t border-slate-800/40 pt-1">
-                                <div>
-                                    <span className="text-[8px] text-slate-305 font-bold uppercase block mb-0">Invoice #</span>
-                                    <input
-                                        type="text"
-                                        value={currentInvoice.invoiceNumber || ''}
-                                        onChange={(e) => patchInvoice({ invoiceNumber: e.target.value })}
-                                        style={{ minHeight: 'unset', height: '22px' }}
-                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded px-1.5 text-slate-200 text-[9px] font-bold focus:ring-1 ring-indigo-500/20 outline-none placeholder-slate-600"
-                                        placeholder="INV-XXXXXX"
-                                    />
-                                </div>
-                                <div>
-                                    <span className="text-[8px] text-slate-305 font-bold uppercase block mb-0">Date</span>
-                                    <input
-                                        type="date"
-                                        value={currentInvoice.date || ''}
-                                        onChange={(e) => patchInvoice({ date: e.target.value })}
-                                        style={{ minHeight: 'unset', height: '22px' }}
-                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded px-1.5 text-slate-200 text-[9px] font-bold focus:ring-1 ring-indigo-500/20 outline-none"
-                                    />
-                                </div>
-                                <div>
-                                    <span className="text-[8px] text-slate-305 font-bold uppercase block mb-0">Terms</span>
-                                    <select
-                                        value={currentInvoice.paymentTerms || 'net30'}
-                                        onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
-                                        style={{ minHeight: 'unset', height: '22px' }}
-                                        className="w-full bg-slate-800/50 border border-slate-700/60 rounded px-1.5 text-slate-200 text-[9px] font-bold focus:ring-1 ring-indigo-500/20 outline-none"
-                                    >
-                                        <option value="immediate">Immediate</option>
-                                        <option value="net7">7 Days</option>
-                                        <option value="net15">15 Days</option>
-                                        <option value="net30">30 Days</option>
-                                    </select>
-                                </div>
-                            </div>
                         </div>
 
                         {/* ITEMS AREA CONTAINER */}
@@ -1950,12 +1911,12 @@ const CreateInvoice = ({ sale }) => {
                         </div>
 
                         {/* STICKY ADD BUTTON */}
-                        <div className="shrink-0 px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <div className="shrink-0 px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-center">
                             <button
                                 onClick={addItem}
-                                className="w-full flex items-center justify-center gap-2 text-indigo-600 font-bold text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/20 py-3 rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 transition-all"
+                                className="px-5 py-2 flex items-center justify-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-bold text-xs hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 transition-all active:scale-95 shadow-sm"
                             >
-                                <Plus size={18} /> ADD NEW ITEM
+                                <Plus size={14} /> ADD NEW ITEM
                             </button>
                         </div>
 
@@ -2688,6 +2649,49 @@ const CreateInvoice = ({ sale }) => {
 
                             {/* Settings Content */}
                             <div className="flex-1 p-4 space-y-4 overflow-y-auto">
+                                {/* Invoice Details */}
+                                <div className="space-y-3">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Invoice Details</h4>
+                                    
+                                    {/* Invoice # */}
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-white">Invoice #</p>
+                                        <input
+                                            type="text"
+                                            value={currentInvoice.invoiceNumber || ''}
+                                            onChange={(e) => patchInvoice({ invoiceNumber: e.target.value })}
+                                            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-750 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-white focus:ring-2 ring-indigo-500/20 outline-none"
+                                            placeholder="INV-XXXXXX"
+                                        />
+                                    </div>
+
+                                    {/* Date */}
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-white">Invoice Date</p>
+                                        <input
+                                            type="date"
+                                            value={currentInvoice.date || ''}
+                                            onChange={(e) => patchInvoice({ date: e.target.value })}
+                                            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-750 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-white focus:ring-2 ring-indigo-500/20 outline-none"
+                                        />
+                                    </div>
+
+                                    {/* Payment Terms */}
+                                    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-1.5">
+                                        <p className="text-sm font-bold text-slate-700 dark:text-white">Payment Terms</p>
+                                        <select
+                                            value={currentInvoice.paymentTerms || 'net30'}
+                                            onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
+                                            className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-750 rounded-lg px-3 py-2 text-sm font-bold text-slate-700 dark:text-white focus:ring-2 ring-indigo-500/20 outline-none"
+                                        >
+                                            <option value="immediate">Immediate</option>
+                                            <option value="net7">7 Days</option>
+                                            <option value="net15">15 Days</option>
+                                            <option value="net30">30 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+
                                 {/* Display Settings */}
                                 <div className="space-y-3">
                                     <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wide">Display</h4>
@@ -2876,21 +2880,6 @@ const CreateInvoice = ({ sale }) => {
                                             </div>
                                         </div>
 
-                                        {/* Payment Terms */}
-                                        <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl space-y-2">
-                                            <p className="text-sm font-bold text-slate-700 dark:text-white">Payment Terms</p>
-                                            <select
-                                                value={currentInvoice.paymentTerms || 'net30'}
-                                                onChange={(e) => patchInvoice({ paymentTerms: e.target.value })}
-                                                className="w-full bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 text-sm font-medium focus:ring-2 ring-indigo-500/20"
-                                            >
-                                                <option value="immediate">Immediate</option>
-                                                <option value="net7">Net 7 Days</option>
-                                                <option value="net15">Net 15 Days</option>
-                                                <option value="net30">Net 30 Days</option>
-                                                <option value="net60">Net 60 Days</option>
-                                            </select>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
