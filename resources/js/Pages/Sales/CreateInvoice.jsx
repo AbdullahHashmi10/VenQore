@@ -1428,10 +1428,10 @@ const CreateInvoice = ({ sale }) => {
                                                 }}
                                                 placeholder="Search Party..."
                                                 addNewLabel="Create Party"
-                                                inputClassName="h-9 min-h-[36px] text-xs py-1.5"
+                                                inputClassName={`h-9 min-h-[36px] text-xs py-1.5 ${customerError ? '!border-red-500 !ring-red-500/20' : ''}`}
                                             />
                                             {customerError && (
-                                                <p className="absolute -bottom-3 text-[8px] font-bold text-red-500 animate-pulse">
+                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
                                                     Please select customer
                                                 </p>
                                             )}
