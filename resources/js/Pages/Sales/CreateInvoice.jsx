@@ -320,6 +320,24 @@ const CreateInvoice = ({ sale }) => {
     const [quickResults, setQuickResults] = useState([]);
     const [activeItemIndex, setActiveItemIndex] = useState(null);
     const [saving, setSaving] = useState(false);
+    
+    // Auto Scroll Items Ref
+    const itemsContainerRef = useRef(null);
+    const prevItemsLengthRef = useRef(currentInvoice.items.length);
+
+    useEffect(() => {
+        if (currentInvoice.items.length > prevItemsLengthRef.current) {
+            if (itemsContainerRef.current) {
+                setTimeout(() => {
+                    itemsContainerRef.current.scrollTo({
+                        top: itemsContainerRef.current.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
+        prevItemsLengthRef.current = currentInvoice.items.length;
+    }, [currentInvoice.items.length]);
 
     // Quick Entry State
     const [showQuickEntry, setShowQuickEntry] = useState(false);
@@ -1465,7 +1483,7 @@ const CreateInvoice = ({ sale }) => {
                         </div>
 
                         {/* ITEMS AREA CONTAINER */}
-                        <div className="flex-1 overflow-y-auto hide-scrollbar px-2 py-2">
+                        <div ref={itemsContainerRef} className="flex-1 overflow-y-auto hide-scrollbar px-2 py-2">
                             {/* Desktop View Table */}
                             <table className="hidden md:table w-full border-separate border-spacing-y-1.5">
                                 <thead>
@@ -1803,7 +1821,7 @@ const CreateInvoice = ({ sale }) => {
                                     </div>
                                 ) : (
                                     currentInvoice.items.map((item, idx) => (
-                                        <div key={item.id} className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2">
+                                        <div key={item.id} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1.5">
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2 flex-1 min-w-0">
                                                     <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
@@ -1826,6 +1844,7 @@ const CreateInvoice = ({ sale }) => {
                                                             placeholder="Select Product..."
                                                             addNewLabel="Add Product"
                                                             hideCostAndMargin={true}
+                                                            inputClassName="!h-[34px] !py-1 !text-xs !pl-9"
                                                         />
                                                     </div>
                                                 </div>
