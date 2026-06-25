@@ -1368,13 +1368,29 @@ const CreateInvoice = ({ sale }) => {
                                     <ChevronDown size={11} className="text-indigo-400 shrink-0" />
                                 </button>
 
-                                <button
-                                    onClick={() => setShowSettingsDrawer(true)}
-                                    className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm"
-                                    title="Settings"
-                                >
-                                    <Settings size={13} />
-                                </button>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    <button
+                                        onClick={() => setShowSettingsDrawer(true)}
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm hover:text-white"
+                                        title="Settings"
+                                    >
+                                        <Settings size={13} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm("Are you sure you want to cancel and discard this sale?")) {
+                                                removeInvoice(currentInvoice.id);
+                                                if (activeInvoices.length === 1) {
+                                                    router.visit(route('store.sales.index', { store_slug: store?.slug }));
+                                                }
+                                            }
+                                        }}
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-red-400 hover:text-red-500 border border-slate-700 shadow-sm active:scale-95 transition-all"
+                                        title="Cancel Sale"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
                             </div>                            {/* Row 2: Customer Search (Left), Payment & Term Controls (Right) */}
                             <div className="flex items-center gap-1.5 w-full">
                                 <div id="tour-invoice-customer-mobile" className="relative flex-1 min-w-0">
