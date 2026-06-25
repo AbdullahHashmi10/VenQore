@@ -213,11 +213,11 @@ export default function GlobalOnboardingWidget({ store }) {
             <div 
                 onClick={() => toggleMinimized(false)}
                 title="Onboarding Incomplete. Click to view progress checklist."
-                className={`fixed right-6 z-[95] w-14 h-14 bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/30 rounded-full shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-110 active:scale-95 hover:border-indigo-400/50 transition-all duration-300 group animate-in zoom-in-90 ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}
+                className={`fixed right-6 z-[95] w-14 h-14 bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-indigo-500/30 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-110 active:scale-95 hover:border-indigo-400/50 transition-all duration-300 group animate-in zoom-in-90 ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}
             >
                 <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 44 44">
                     <circle
-                        className="text-slate-800 dark:text-slate-800"
+                        className="text-slate-100 dark:text-slate-800"
                         strokeWidth="3.5"
                         stroke="currentColor"
                         fill="transparent"
@@ -238,7 +238,7 @@ export default function GlobalOnboardingWidget({ store }) {
                         cy="22"
                     />
                 </svg>
-                <div className="relative z-10 text-indigo-400 group-hover:text-white transition-colors duration-200">
+                <div className="relative z-10 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-white transition-colors duration-200">
                     <Sparkles size={18} className="animate-pulse" />
                 </div>
                 <span className="absolute -top-1 -right-1 bg-indigo-600 text-[8px] font-black text-white px-1.5 py-0.5 rounded-full shadow">
@@ -249,27 +249,27 @@ export default function GlobalOnboardingWidget({ store }) {
     }
 
     return (
-        <div className={`fixed right-6 z-[95] max-w-sm w-full bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}>
+        <div className={`fixed right-6 z-[95] max-w-sm w-full bg-white dark:bg-slate-950/98 border border-slate-200 dark:border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}>
             {/* Minimize button */}
             <button 
                 onClick={() => toggleMinimized(true)}
-                className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors border border-slate-700/50"
+                className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-400 dark:hover:text-white transition-colors border border-slate-200 dark:border-slate-700/50"
                 title="Minimize to widget"
             >
                 <Minimize2 size={12} />
             </button>
 
             <div className="flex items-start gap-3 mb-3">
-                <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 shrink-0">
+                <div className="p-2 bg-indigo-50 dark:bg-indigo-500/10 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0">
                     <Sparkles size={20} className="animate-pulse" />
                 </div>
                 <div>
-                    <h4 className="text-sm font-bold text-white uppercase tracking-wider">Setup Incomplete</h4>
-                    <p className="text-[10px] text-indigo-400 font-semibold uppercase tracking-wide">{getPhaseName(progress)} ({progress}%)</p>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Setup Incomplete</h4>
+                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wide">{getPhaseName(progress)} ({progress}%)</p>
                 </div>
             </div>
 
-            <p className="text-xs text-slate-300 leading-relaxed font-medium mb-4 pr-6">
+            <p className="text-xs text-slate-650 dark:text-slate-300 leading-relaxed font-medium mb-4 pr-6">
                 You haven't completed the store setup tour yet. Finish it to unlock the dashboard analytics!
             </p>
 
@@ -283,7 +283,7 @@ export default function GlobalOnboardingWidget({ store }) {
                 </button>
                 <button
                     onClick={handleMarkComplete}
-                    className="flex-1 py-2.5 px-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1"
+                    className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-850 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1"
                 >
                     <Check size={12} />
                     <span>Done</span>

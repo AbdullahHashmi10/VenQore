@@ -598,7 +598,7 @@ export default function ChatWidget() {
                     <button
                         id="tour-chat-widget-btn"
                         onClick={() => setIsOpen(v => !v)}
-                        className="w-14 h-14 rounded-full bg-slate-900 text-white border border-slate-800 hover:bg-indigo-700 shadow-2xl flex items-center justify-center transform hover:scale-110 active:scale-95 transition-all duration-300 group relative overflow-hidden">
+                        className="w-14 h-14 rounded-full bg-white dark:bg-slate-900 text-slate-700 dark:text-white border border-slate-200 dark:border-slate-800 hover:text-white shadow-2xl flex items-center justify-center transform hover:scale-110 active:scale-95 transition-all duration-300 group relative overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-tr from-indigo-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <div className="absolute inset-0 bg-[url('/images/noise.svg')] opacity-15 pointer-events-none" />
                         <div className="relative z-10 flex items-center justify-center">

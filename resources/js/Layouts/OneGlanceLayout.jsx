@@ -1586,7 +1586,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     setIsMobileFabsOpen(!isMobileFabsOpen);
                                 }}
                                 id="mobile-fabs-toggle-bud"
-                                className="px-2.5 py-1 rounded-full bg-slate-900/90 dark:bg-slate-950/90 border border-indigo-500/40 flex items-center gap-1 text-white shadow-lg shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
+                                className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-950/90 border border-slate-200/85 dark:border-indigo-500/40 flex items-center gap-1 text-slate-800 dark:text-white shadow-lg shadow-slate-200/50 dark:shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
                             >
                                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500 animate-ping opacity-75" />
                                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500" />
