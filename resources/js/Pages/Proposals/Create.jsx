@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { getCurrencySymbol } from "@/Utils/format";
+import { getCurrencySymbol, formatCurrency } from "@/Utils/format";
 import { Head, router, usePage } from "@inertiajs/react";
 import OneGlanceLayout from "@/Layouts/OneGlanceLayout";
 import SellModuleTabs from "@/Components/SellModuleTabs";
@@ -14,6 +14,7 @@ import {
     X,
     ChevronRight,
     ChevronLeft,
+    ChevronDown,
     CreditCard,
     Banknote,
     Percent,
@@ -35,6 +36,7 @@ import {
     ShoppingCart,
     FileText,
     ChevronUp,
+    ArrowLeft
 } from "lucide-react";
 import axios from "axios";
 import { useWorkspace } from "@/Contexts/WorkspaceContext";
@@ -1205,13 +1207,11 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                     .text-scale-5 .text-xs { font-size: 1.15rem !important; }
                 `}</style>
 
-                <div
-                    className={`flex-1 flex gap-2 min-h-0 px-2 pb-0 pt-2 overflow-hidden text-scale-${textSize}`}
-                >
+                <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 lg:overflow-hidden overflow-y-auto text-scale-${textSize}`}>
                     {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
-                    <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-0">
-                        {/* TABS BAR - Now inside left section */}
-                        <div className="flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                    <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
+                        {/* TABS BAR - Now inside left section (Desktop Only) */}
+                        <div className="hidden lg:flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                             {activeInvoices.map((inv, idx) => (
                                 <div
                                     key={inv.id}
@@ -1266,8 +1266,13 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                             }
                                         }}
                                         className="ml-auto opacity-0 group-hover:opacity-100 p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded text-red-500 transition-all"
+                                        className={`ml-auto flex items-center justify-center w-5 h-5 rounded-md transition-all ${
+                                            currentInvoiceId === inv.id
+                                                ? "bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 opacity-100"
+                                                : "opacity-0 group-hover:opacity-100 text-slate-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600"
+                                        }`}
                                     >
-                                        <X size={12} />
+                                        <X size={10} strokeWidth={3} />
                                     </button>
                                 </div>
                             ))}
@@ -1286,8 +1291,166 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                             </button>
                         </div>
 
-                        {/* TOP ACTION BAR */}
-                        <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                        {/* TOP ACTION BAR - Mobile View (Compact & Premium) */}
+                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-[#0f121d] border-b border-slate-800/80 shrink-0">
+                            {/* Row 1: Back (Left), Proposal Pill (Center), Settings (Right) */}
+                            <div className="flex items-center justify-between w-full relative">
+                                <button
+                                    onClick={() => router.visit(route("store.proposals.index", { store_slug: store?.slug }))}
+                                    className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm"
+                                    title="Go Back"
+                                >
+                                    <ArrowLeft size={14} />
+                                </button>
+                                
+                                <button
+                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-[11px] font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
+                                >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0"></span>
+                                    <span className="truncate">
+                                        {currentInvoice.customer?.name || `Proposal #${activeInvoices.findIndex(inv => inv.id === currentInvoice.id) + 1}`}
+                                    </span>
+                                </button>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    <button
+                                        onClick={() => setShowSettingsDrawer(true)}
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm hover:text-white"
+                                        title="Settings"
+                                    >
+                                        <Settings size={13} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm("Are you sure you want to cancel and discard this proposal?")) {
+                                                removeInvoice(currentInvoice.id);
+                                                if (activeInvoices.length === 1) {
+                                                    router.visit(route("store.proposals.index", { store_slug: store?.slug }));
+                                                }
+                                            }
+                                        }}
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-red-400 hover:text-red-500 border border-slate-700 shadow-sm active:scale-95 transition-all"
+                                        title="Cancel Proposal"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Row 2: Customer Search (Left), Payment & Term Controls (Right) */}
+                            <div className="flex items-center gap-1.5 w-full">
+                                <div className="relative flex-1 min-w-0">
+                                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
+                                        <User size={13} />
+                                    </div>
+                                    {currentInvoice.customer ? (
+                                        <div className="relative">
+                                            <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-bold text-slate-200 text-xs truncate leading-tight">{currentInvoice.customer.name}</p>
+                                                    <p className="text-[9px] text-slate-500 leading-none">{currentInvoice.customer.phone || "No Phone"}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { patchInvoice({ customer: null }); setCustomerSearch(""); }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="relative">
+                                            <AsyncPartyCombobox
+                                                type="all"
+                                                selectedItem={currentInvoice.customer}
+                                                onSelect={(customer) => {
+                                                    patchInvoice({ customer });
+                                                    setCustomerError(false);
+                                                }}
+                                                onCreateNew={() => setIsPartyModalOpen(true)}
+                                                onEdit={(customer) => {
+                                                    setEditingParty(customer);
+                                                    setIsPartyModalOpen(true);
+                                                }}
+                                                placeholder="Search Party..."
+                                                addNewLabel="Create Party"
+                                                inputClassName={`h-9 min-h-[36px] text-xs py-1.5 ${customerError ? "!border-red-500 !ring-red-500/20" : ""}`}
+                                            />
+                                            {customerError && (
+                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
+                                                    Please select customer
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Compact Credit/Cash toggle & wallet */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5 border border-slate-700 h-[36px]">
+                                        <button
+                                            type="button"
+                                            onClick={() => patchInvoice({ paymentMethod: "credit" })}
+                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === "credit" ? "bg-emerald-600 text-white shadow-sm" : "text-slate-500"}`}
+                                        >
+                                            CREDIT
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => patchInvoice({ paymentMethod: "cash" })}
+                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === "cash" ? "bg-orange-600 text-white shadow-sm" : "text-slate-500"}`}
+                                        >
+                                            CASH
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="relative group/accounts-mobile shrink-0 h-[36px]">
+                                        <button type="button" className="flex items-center justify-center w-9 h-[36px] rounded-lg bg-slate-800 text-indigo-400 border border-slate-700 shadow-sm active:scale-95">
+                                            <Wallet size={13} />
+                                        </button>
+                                        <div className="absolute right-0 top-full pt-1 z-50 hidden group-hover/accounts-mobile:block">
+                                            <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden w-36 p-1">
+                                                <div className="p-1 border-b border-slate-700 bg-slate-900/50">
+                                                    <p className="text-[8px] font-bold text-slate-500 uppercase">Deposit To</p>
+                                                </div>
+                                                <div className="max-h-32 overflow-y-auto custom-scrollbar p-0.5">
+                                                    {accounts.map(acc => (
+                                                        <button
+                                                            key={acc.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (acc.isBank) {
+                                                                    patchInvoice({
+                                                                        paymentAccountId: acc.realAccountId,
+                                                                        selectedBankName: acc.name,
+                                                                        paymentReference: `Deposited to: ${acc.name}`
+                                                                    });
+                                                                } else {
+                                                                    patchInvoice({
+                                                                        paymentAccountId: acc.id,
+                                                                        selectedBankName: null,
+                                                                        paymentReference: ''
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className={`w-full text-left px-2.5 py-1.5 rounded text-[10px] font-bold transition-colors flex items-center justify-between ${(currentInvoice.paymentAccountId || 1) === acc.id
+                                                                ? "bg-indigo-900/40 text-indigo-400"
+                                                                : "text-slate-350 hover:bg-slate-700/50"
+                                                                }`}
+                                                        >
+                                                            <span className="truncate">{acc.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* TOP ACTION BAR - Desktop Only */}
+                        <div className="hidden lg:flex px-3 py-2 border-b border-slate-100 dark:border-slate-800 items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                             {/* Left - Quick Entry & Scan Mode */}
                             <div className="flex items-center gap-2">
                                 <button
@@ -1529,7 +1692,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                         </div>
                         {/* ITEMS TABLE AREA */}
                         <div className="flex-1 overflow-y-auto hide-scrollbar px-4 py-3">
-                            <table className="w-full border-separate border-spacing-y-1.5">
+                            <table className="hidden md:table w-full border-separate border-spacing-y-1.5">
                                 <thead>
                                     <tr className="text-left text-xs font-bold text-slate-400 uppercase tracking-wide">
                                         <th className="pb-2 w-8"></th>
@@ -2134,6 +2297,177 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                     ))}
                                 </tbody>
                             </table>
+
+                            {/* Mobile View - Items Card List */}
+                            <div className="md:hidden flex flex-col gap-2">
+                                {showQuickEntry && (
+                                    <div className="bg-indigo-50/30 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-indigo-600"><Zap size={16} /></span>
+                                            <div className="flex-1">
+                                                <AsyncProductCombobox
+                                                    selectedItem={quickEntry.product}
+                                                    onSelect={selectQuickProduct}
+                                                    onCreateNew={(name) => {
+                                                        setProductModalMode('create');
+                                                        setEditingProduct({ name });
+                                                        setIsProductModalOpen(true);
+                                                    }}
+                                                    onEdit={(product) => {
+                                                        setEditingProduct(product);
+                                                        setProductModalMode('edit');
+                                                        setIsProductModalOpen(true);
+                                                    }}
+                                                    placeholder="Quick Add Product..."
+                                                    addNewLabel="Add Product"
+                                                    hideCostAndMargin={true}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                <input
+                                                    type="number"
+                                                    value={quickEntry.quantity}
+                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
+                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-indigo-500/20"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                <input
+                                                    type="number"
+                                                    value={quickEntry.price}
+                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-xs font-bold py-1.5 px-2 focus:ring-2 ring-indigo-500/20"
+                                                />
+                                            </div>
+                                            <div className="flex items-end">
+                                                <button
+                                                    onClick={addQuickItem}
+                                                    className="w-full h-[32px] bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all flex items-center justify-center gap-1 text-xs font-bold active:scale-95"
+                                                >
+                                                    <Plus size={14} /> Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {currentInvoice.items.length === 0 ? (
+                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                        <Package size={32} className="mx-auto text-slate-400 mb-2" />
+                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-350">No items added</p>
+                                    </div>
+                                ) : (
+                                    currentInvoice.items.map((item, idx) => (
+                                        <div key={item.id} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1.5 animate-in fade-in duration-200">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <AsyncProductCombobox
+                                                            selectedItem={item.product}
+                                                            onSelect={(product) => selectProduct(product, item.id)}
+                                                            onCreateNew={(name) => {
+                                                                setEditingProduct({ name });
+                                                                setProductModalMode('create');
+                                                                setIsProductModalOpen(true);
+                                                            }}
+                                                            onEdit={(product) => {
+                                                                setEditingProduct(product);
+                                                                setProductModalMode('edit');
+                                                                setIsProductModalOpen(true);
+                                                            }}
+                                                            placeholder="Select Product..."
+                                                            addNewLabel="Add Product"
+                                                            hideCostAndMargin={true}
+                                                            inputClassName="!h-[34px] !py-1 !text-xs !pl-9"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeItem(item.id)}
+                                                    className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all shrink-0 ml-2"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+
+                                            {item.product && (
+                                                <div className="grid grid-cols-12 gap-1.5 mt-1 items-end animate-in fade-in slide-in-from-top-1 duration-200">
+                                                    {/* Qty */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                        <WheelInput
+                                                            type="number"
+                                                            value={item.quantity ?? 1}
+                                                            onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-indigo-500/20 outline-none"
+                                                        />
+                                                    </div>
+
+                                                    {/* Free */}
+                                                    <div className="col-span-2 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 uppercase">Free</span>
+                                                        <WheelInput
+                                                            type="number"
+                                                            value={item.freeQuantity || ''}
+                                                            placeholder="0"
+                                                            onChange={(e) => updateItem(item.id, 'freeQuantity', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-indigo-500/20 outline-none"
+                                                        />
+                                                    </div>
+
+                                                    {/* Price */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                        <WheelInput
+                                                            type="number"
+                                                            value={item.price ?? 0}
+                                                            onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-bold py-1 px-1.5 focus:ring-1 ring-indigo-500/20 outline-none"
+                                                        />
+                                                    </div>
+
+                                                    {/* Discount */}
+                                                    <div className="col-span-2 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Disc</span>
+                                                        <div className="flex items-center gap-0.5">
+                                                            <WheelInput
+                                                                type="number"
+                                                                value={item.discount ?? 0}
+                                                                onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-[10px] font-bold py-1 px-0.5 focus:ring-1 ring-indigo-500/20 outline-none"
+                                                            />
+                                                            <button
+                                                                onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
+                                                                className="px-0.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[8px] font-bold shrink-0"
+                                                            >
+                                                                {item.discountType === 'percent' ? '%' : (getCurrencySymbol(store))}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Total */}
+                                                    <div className="col-span-2 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                                                        <input
+                                                            type="number"
+                                                            disabled
+                                                            value={parseFloat(calculateLineTotal(item).toFixed(2))}
+                                                            className="w-full bg-slate-100 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-[10px] font-black py-1 px-0.5 text-slate-800 dark:text-slate-200"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
                         {/* STICKY ADD BUTTON */}
                         <div className="shrink-0 px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
@@ -2144,10 +2478,66 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                 <Plus size={18} /> ADD NEW ITEM
                             </button>
                         </div>
+
+                        {/* MOBILE STICKY CHECKOUT PANEL (Mobile Only) */}
+                        <div className="lg:hidden flex flex-col shrink-0">
+                            {/* Row 1: Compact financial input fields */}
+                            <div className="grid grid-cols-4 gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                                <div>
+                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
+                                    <input
+                                        type="number"
+                                        value={currentInvoice.discount ?? 0}
+                                        onChange={(e) => patchInvoice({ discount: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div>
+                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Paid</span>
+                                    <input
+                                        type="number"
+                                        value={currentInvoice.amountPaid ?? 0}
+                                        onChange={(e) => patchInvoice({ amountPaid: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
+                                    <div className={`w-full bg-slate-100 dark:bg-slate-800 rounded-lg px-1.5 h-9 text-xs font-extrabold text-right border ${balanceDue > 0 ? 'text-red-500 border-red-500/20' : 'text-emerald-500 border-emerald-500/20'} flex items-center justify-end`}>
+                                        {formatCurrency(balanceDue, store)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 2: Cancel (25%) & Complete Proposal (75%) */}
+                            <div className="flex items-center gap-2 px-2 py-1.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm("Are you sure you want to cancel and discard this proposal?")) {
+                                            removeInvoice(currentInvoice.id);
+                                            router.visit(route("store.proposals.index", { store_slug: store.slug }));
+                                        }
+                                    }}
+                                    className="w-1/4 py-3.5 border border-red-200 dark:border-red-800 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-95 transition-all text-center flex items-center justify-center"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => initiateSave(false)}
+                                    disabled={saving}
+                                    className="w-3/4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 disabled:opacity-50"
+                                >
+                                    <CheckCircle2 size={16} />
+                                    {saving ? 'SAVING...' : `CONFIRM PROPOSAL (${formatCurrency(grandTotal, store)})`}
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
-                    {/* RIGHT SECTION - Side Info Panel */}
-                    <div className="w-80 bg-[#1a1d2e] flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800">
+                    {/* RIGHT SECTION - Side Info Panel (Desktop Only) */}
+                    <div className="hidden lg:flex w-80 bg-[#1a1d2e] flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
                         {/* Customer Summary Section - Text Size Responsive */}
                         <div className="p-4 border-b border-slate-800/50 bg-slate-900/30 shrink-0">
                             {currentInvoice.customer ? (

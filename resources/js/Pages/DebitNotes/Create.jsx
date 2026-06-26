@@ -31,13 +31,16 @@ import {
     Type,
     ArrowLeftRight,
     Wallet,
-    Edit
+    Edit,
+    ArrowLeft,
+    ChevronDown
 } from 'lucide-react';
 import axios from 'axios';
 
 import { useAlert } from '@/Contexts/AlertContext';
 import AsyncProductCombobox from '@/Components/AsyncProductCombobox';
 import AsyncPartyCombobox from '@/Components/AsyncPartyCombobox';
+import WheelInput from '@/Components/WheelInput';
 import QuickPartyModal from '@/Components/QuickPartyModal';
 import ProductModal from '@/Components/ProductModal';
 import { shouldStopNegativeStock } from '@/Utils/settings';
@@ -963,8 +966,8 @@ const Create = ({ debitNote }) => {
     }
 
     return (
-        <OneGlanceLayout title={isEditMode ? `Edit Sale #${editState?.invoiceNumber || ''}` : "Add Sale"} activeMenu="Sales" fullScreen={false} hideHeader={true} noPadding={true}>
-            <Head title={isEditMode ? "Edit Sale" : "Add Sale"} />
+        <OneGlanceLayout title={isEditMode ? `Edit Debit Note #${editState?.invoiceNumber || ''}` : "New Debit Note"} activeMenu="Returns" fullScreen={false} hideHeader={true} noPadding={true}>
+            <Head title={isEditMode ? "Edit Debit Note" : "New Debit Note"} />
             <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
                 <style>{`
                     .senior-mode input, .senior-mode button, .senior-mode p, .senior-mode span, .senior-mode td, .senior-mode th {
@@ -1013,11 +1016,11 @@ const Create = ({ debitNote }) => {
 
 
 
-                <div className={`flex-1 flex gap-2 min-h-0 px-2 pb-0 pt-2 overflow-hidden text-scale-${textSize}`}>
+                <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 lg:overflow-hidden overflow-y-auto text-scale-${textSize}`}>
                     {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
-                    <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-0">
-                        {/* TABS BAR - Now inside left section */}
-                        <div className="flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                    <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
+                        {/* TABS BAR - Now inside left section (Desktop Only) */}
+                        <div className="hidden lg:flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                             {activeInvoices.map((inv, idx) => (
                                 <div
                                     key={inv.id}
@@ -1075,8 +1078,162 @@ const Create = ({ debitNote }) => {
                             </button>
                         </div>
 
-                        {/* TOP ACTION BAR */}
-                        <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+                        {/* TOP ACTION BAR - Mobile View (Compact & Premium) */}
+                        <div className="flex lg:hidden flex-col gap-1.5 p-1.5 bg-[#0f121d] border-b border-slate-800/80 shrink-0">
+                            {/* Row 1: Back (Left), Note Pill (Center), Settings (Right) */}
+                            <div className="flex items-center justify-between w-full relative">
+                                <button
+                                    onClick={() => router.visit(route('store.debit-notes.index', { store_slug: store?.slug }))}
+                                    className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm"
+                                    title="Go Back"
+                                >
+                                    <ArrowLeft size={14} />
+                                </button>
+                                
+                                <button
+                                    className="flex items-center gap-1.5 px-2.5 py-0.5 bg-indigo-900/30 border border-indigo-800 rounded-full text-[11px] font-black text-indigo-400 max-w-[60%] shadow-sm active:scale-95 transition-all"
+                                >
+                                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0"></span>
+                                    <span className="truncate">
+                                        {currentInvoice.customer?.name || `Note #${activeInvoices.findIndex(inv => inv.id === currentInvoice.id) + 1}`}
+                                    </span>
+                                </button>
+
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    <button
+                                        onClick={() => setShowSettingsDrawer(true)}
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 shadow-sm hover:text-white"
+                                        title="Settings"
+                                    >
+                                        <Settings size={13} />
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            if (window.confirm("Are you sure you want to cancel and discard this note?")) {
+                                                removeInvoice(currentInvoice.id);
+                                                router.visit(route('store.debit-notes.index', { store_slug: store.slug }));
+                                            }
+                                        }}
+                                        className="flex items-center justify-center w-7 h-7 rounded-lg bg-slate-800 text-red-400 hover:text-red-500 border border-slate-700 shadow-sm active:scale-95 transition-all"
+                                        title="Cancel Note"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            {/* Row 2: Customer Search (Left), Payment & Term Controls (Right) */}
+                            <div className="flex items-center gap-1.5 w-full">
+                                <div className="relative flex-1 min-w-0">
+                                    <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
+                                        <User size={13} />
+                                    </div>
+                                    {currentInvoice.customer ? (
+                                        <div className="relative">
+                                            <div className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-7 py-1.5 flex items-center justify-between shadow-sm min-h-[36px]">
+                                                <div className="min-w-0 flex-1">
+                                                    <p className="font-bold text-slate-200 text-xs truncate leading-tight">{currentInvoice.customer.name}</p>
+                                                    <p className="text-[9px] text-slate-500 leading-none">{currentInvoice.customer.phone || 'No Phone'}</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => { patchInvoice({ customer: null }); setCustomerSearch(''); }}
+                                                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <X size={12} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="relative">
+                                            <AsyncPartyCombobox
+                                                type="all"
+                                                selectedItem={currentInvoice.customer}
+                                                onSelect={(customer) => {
+                                                    patchInvoice({ customer });
+                                                    setCustomerError(false);
+                                                }}
+                                                onCreateNew={() => setIsPartyModalOpen(true)}
+                                                onEdit={(customer) => {
+                                                    setEditingParty(customer);
+                                                    setIsPartyModalOpen(true);
+                                                }}
+                                                placeholder="Search Party..."
+                                                addNewLabel="Create Party"
+                                                inputClassName={`h-9 min-h-[36px] text-xs py-1.5 ${customerError ? '!border-red-500 !ring-red-500/20' : ''}`}
+                                            />
+                                            {customerError && (
+                                                <p className="absolute -bottom-2 left-3.5 bg-red-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded shadow-md z-20 animate-pulse">
+                                                    Please select customer
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Compact Credit/Cash toggle & wallet */}
+                                <div className="flex items-center gap-1 shrink-0">
+                                    <div className="flex items-center gap-0.5 bg-slate-800 rounded-lg p-0.5 border border-slate-700 h-[36px]">
+                                        <button
+                                            type="button"
+                                            onClick={() => patchInvoice({ paymentMethod: 'credit' })}
+                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === 'credit' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-500'}`}
+                                        >
+                                            CREDIT
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => patchInvoice({ paymentMethod: 'cash' })}
+                                            className={`px-2 py-1 rounded text-[10px] font-black transition-all ${currentInvoice.paymentMethod === 'cash' ? 'bg-orange-655 text-white shadow-sm' : 'text-slate-500'}`}
+                                        >
+                                            CASH
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="relative group/accounts-mobile shrink-0 h-[36px]">
+                                        <button type="button" className="flex items-center justify-center w-9 h-[36px] rounded-lg bg-slate-800 text-indigo-400 border border-slate-700 shadow-sm active:scale-95">
+                                            <Wallet size={13} />
+                                        </button>
+                                        <div className="absolute right-0 top-full pt-1 z-50 hidden group-hover/accounts-mobile:block">
+                                            <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 overflow-hidden w-36 p-1">
+                                                <div className="p-1 border-b border-slate-700 bg-slate-900/50">
+                                                    <p className="text-[8px] font-bold text-slate-500 uppercase">Deposit To</p>
+                                                </div>
+                                                <div className="max-h-32 overflow-y-auto custom-scrollbar p-0.5">
+                                                    {accounts.map(acc => (
+                                                        <button
+                                                            key={acc.id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                if (acc.isBank) {
+                                                                    patchInvoice({
+                                                                        paymentAccountId: acc.realAccountId,
+                                                                        selectedBankName: acc.name,
+                                                                        paymentReference: `Deposited to: ${acc.name}`
+                                                                    });
+                                                                } else {
+                                                                    patchInvoice({
+                                                                        paymentAccountId: acc.id,
+                                                                        selectedBankName: null,
+                                                                        paymentReference: ''
+                                                                    });
+                                                                }
+                                                            }}
+                                                            className={`w-full text-left px-1.5 py-0.5 rounded text-[9px] font-bold transition-colors flex items-center justify-between ${(currentInvoice.paymentAccountId || 1) === acc.id ? 'bg-indigo-900/20 text-indigo-400' : 'text-slate-300 hover:bg-slate-700'}`}
+                                                        >
+                                                            <span className="truncate">{acc.name}</span>
+                                                            {(currentInvoice.paymentAccountId || 1) === acc.id && <CheckCircle2 size={9} />}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* TOP ACTION BAR - Desktop View (Hidden on Mobile) */}
+                        <div className="hidden lg:flex px-3 py-2 border-b border-slate-100 dark:border-slate-800 items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                             {/* Left - Quick Entry & Scan Mode */}
                             <div className="flex items-center gap-2">
                                 <button
@@ -1259,7 +1416,6 @@ const Create = ({ debitNote }) => {
                                         </div>
                                     )}
                                 </div>
-                                {/* Quick Settings */}
                                 <button
                                     onClick={() => setShowSettingsDrawer(true)}
                                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 text-[10px] font-black"
@@ -1269,9 +1425,9 @@ const Create = ({ debitNote }) => {
                                 </button>
                             </div>
                         </div>
-                        {/* ITEMS TABLE AREA */}
-                        <div className="flex-1 overflow-y-auto hide-scrollbar px-4 py-3">
-                            <table className="w-full border-separate border-spacing-y-1.5">
+                        {/* ITEMS AREA CONTAINER */}
+                        <div className="flex-1 overflow-y-auto hide-scrollbar px-2 py-2">
+                            <table className="hidden md:table w-full border-separate border-spacing-y-1.5">
                                 <thead>
                                     <tr className="text-left text-xs font-bold text-slate-400 uppercase tracking-wide">
                                         <th className="pb-2 w-8"></th>
@@ -1385,21 +1541,13 @@ const Create = ({ debitNote }) => {
                                         </tr>
                                     )}
 
-                                    {/* EXISTING ITEMS */}
+                                    {/* EXISTING ITEMS (Desktop Table Rows) */}
                                     {currentInvoice.items.map((item, idx) => (
                                         <tr
                                             key={item.id}
                                             className={`group animate-in fade-in duration-200 ${draggedItemIndex === idx ? 'opacity-50' : ''}`}
                                             draggable
-                                            onDragStart={(e) => {
-                                                // Prevent drag unless handle is targeted - handled by grip logic below essentially, 
-                                                // but HTML5 drag starts on the element.
-                                                // We need to check if the target was the grip.
-                                                // Actually, strictly setting draggable={false} on TR if not gripping is hard.
-                                                // The common way is onMouseDown on grip sets a flag or parent draggable.
-                                                // Better: Add draggable only to the handle TD? No, TR moves.
-                                                // Sol: dragging the TR but only if handle is held.
-                                            }}
+                                            onDragStart={(e) => {}}
                                             onDragOver={(e) => handleDragOver(e, idx)}
                                             onDragEnd={handleDragEnd}
                                         >
@@ -1407,13 +1555,11 @@ const Create = ({ debitNote }) => {
                                             <td
                                                 className="bg-slate-50 dark:bg-slate-800/50 rounded-l-xl py-3 pl-2 cursor-ns-resize group-active:cursor-grabbing"
                                                 onMouseDown={(e) => {
-                                                    // Enable Drag Scope
                                                     e.currentTarget.parentElement.setAttribute('draggable', 'true');
                                                 }}
                                                 onMouseUp={(e) => {
                                                     e.currentTarget.parentElement.setAttribute('draggable', 'false');
                                                 }}
-                                            // Initial state non-draggable row, enabled only on grip mousedown
                                             >
                                                 <GripVertical size={16} className="text-slate-300 hover:text-slate-500 transition-colors" />
                                             </td>
@@ -1441,9 +1587,9 @@ const Create = ({ debitNote }) => {
                                                 />
                                             </td>
                                             {/* Quantity */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center">
+                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center align-middle">
                                                 <div className="relative flex flex-col items-center">
-                                                    <input
+                                                    <WheelInput
                                                         type="number"
                                                         value={item.quantity ?? 1}
                                                         onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
@@ -1452,7 +1598,7 @@ const Create = ({ debitNote }) => {
                                                             setActiveItemIndex(null);
                                                             setProductResults([]);
                                                         }}
-                                                        className="w-16 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 transition-all"
+                                                        className="w-16 bg-white dark:bg-slate-700 border border-slate-205 dark:border-slate-600 rounded-lg text-center text-sm font-bold py-2 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
                                                     />
                                                     {item.product && (
                                                         <span className={`absolute -bottom-4 text-[10px] font-bold whitespace-nowrap ${item.available_stock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>
@@ -1462,18 +1608,18 @@ const Create = ({ debitNote }) => {
                                                 </div>
                                             </td>
                                             {/* Free Quantity */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center">
-                                                <input
+                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-center align-middle">
+                                                <WheelInput
                                                     type="number"
                                                     value={item.freeQuantity || ''}
                                                     placeholder="0"
                                                     onChange={(e) => updateItem(item.id, 'freeQuantity', parseFloat(e.target.value) || 0)}
-                                                    className="w-16 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/50 dark:border-emerald-800/30 rounded-lg text-center text-sm font-bold text-emerald-600 dark:text-emerald-400 py-2 focus:ring-2 ring-emerald-500/20 transition-all placeholder-emerald-300/50"
+                                                    className="w-16 bg-emerald-50/50 dark:bg-emerald-900/10 border border-emerald-200/50 dark:border-emerald-800/30 rounded-lg text-center text-sm font-bold text-emerald-600 dark:text-emerald-400 py-2 focus:ring-2 ring-emerald-500/20 transition-all placeholder-emerald-300/50 no-spinner"
                                                 />
                                             </td>
                                             {/* Price */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right">
-                                                <input
+                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right align-middle">
+                                                <WheelInput
                                                     type="number"
                                                     value={item.price ?? 0}
                                                     onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
@@ -1482,17 +1628,17 @@ const Create = ({ debitNote }) => {
                                                         setActiveItemIndex(null);
                                                         setProductResults([]);
                                                     }}
-                                                    className="w-24 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all"
+                                                    className="w-24 bg-white dark:bg-slate-700 border border-slate-205 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
                                                 />
                                             </td>
                                             {/* Discount */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right">
+                                            <td className="bg-slate-50 dark:bg-slate-800/50 py-3 text-right align-middle">
                                                 <div className="flex items-center justify-end gap-2">
-                                                    <input
+                                                    <WheelInput
                                                         type="number"
                                                         value={item.discount ?? 0}
                                                         onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
-                                                        className="w-20 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all"
+                                                        className="w-20 bg-white dark:bg-slate-700 border border-slate-205 dark:border-slate-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/20 transition-all no-spinner"
                                                     />
                                                     <button
                                                         onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
@@ -1516,17 +1662,17 @@ const Create = ({ debitNote }) => {
                                                     >
                                                         {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol()) : '#'}
                                                     </button>
-                                                    <input
+                                                    <WheelInput
                                                         type="number"
                                                         value={parseFloat(calculateLineTotal(item).toFixed(2))}
                                                         onChange={(e) => handleTotalChange(item, e.target.value)}
                                                         onFocus={(e) => e.target.select()}
-                                                        className="w-24 bg-white dark:bg-slate-700 border border-indigo-300 dark:border-indigo-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/30 transition-all text-slate-800 dark:text-white"
+                                                        className="w-24 bg-white dark:bg-slate-700 border border-indigo-300 dark:border-indigo-600 rounded-lg text-right text-sm font-bold py-2 px-3 focus:ring-2 ring-indigo-500/30 transition-all text-slate-800 dark:text-white no-spinner"
                                                     />
                                                 </div>
                                             </td>
                                             {/* Delete */}
-                                            <td className="bg-slate-50 dark:bg-slate-800/50 rounded-r-xl py-3 pr-3">
+                                            <td className="bg-slate-50 dark:bg-slate-800/50 rounded-r-xl py-3 pr-3 align-middle">
                                                 <button
                                                     onClick={() => removeItem(item.id)}
                                                     className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
@@ -1538,20 +1684,257 @@ const Create = ({ debitNote }) => {
                                     ))}
                                 </tbody>
                             </table>
+
+                            {/* Mobile View - Items Card List (Mobile Only) */}
+                            <div className="md:hidden flex flex-col gap-2">
+                                {showQuickEntry && (
+                                    <div className="bg-indigo-50/30 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-200/50 dark:border-indigo-800/50 flex flex-col gap-2 animate-in slide-in-from-top-2 duration-200">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-indigo-600"><Zap size={16} /></span>
+                                            <div className="flex-1">
+                                                <AsyncProductCombobox
+                                                    selectedItem={quickEntry.product}
+                                                    onSelect={selectQuickProduct}
+                                                    onCreateNew={(name) => {
+                                                        setProductModalMode('create');
+                                                        setEditingProduct({ name });
+                                                        setIsProductModalOpen(true);
+                                                    }}
+                                                    onEdit={(product) => {
+                                                        setEditingProduct(product);
+                                                        setProductModalMode('edit');
+                                                        setIsProductModalOpen(true);
+                                                    }}
+                                                    placeholder="Quick Add Product..."
+                                                    addNewLabel="Add Product"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-4 gap-2">
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                <input
+                                                    type="number"
+                                                    value={quickEntry.quantity}
+                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, quantity: parseFloat(e.target.value) || 0 }))}
+                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-indigo-500/20"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Free</span>
+                                                <input
+                                                    type="number"
+                                                    value={quickEntry.freeQuantity || ''}
+                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, freeQuantity: parseFloat(e.target.value) || 0 }))}
+                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-center text-xs font-bold py-1.5 focus:ring-2 ring-indigo-500/20"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-1">
+                                                <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                <input
+                                                    type="number"
+                                                    value={quickEntry.price}
+                                                    onChange={(e) => setQuickEntry(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                                                    className="w-full bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-900/30 rounded-lg text-right text-xs font-bold py-1.5 px-2 focus:ring-2 ring-indigo-500/20"
+                                                />
+                                            </div>
+                                            <div className="flex items-end">
+                                                <button
+                                                    onClick={addQuickItem}
+                                                    className="w-full h-[32px] bg-indigo-650 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1 active:scale-95"
+                                                >
+                                                    <Plus size={12} /> Add
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {currentInvoice.items.length === 0 ? (
+                                    <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                        <Package size={32} className="mx-auto text-slate-400 mb-2" />
+                                        <p className="text-xs font-bold text-slate-700 dark:text-slate-350">No items added to note</p>
+                                    </div>
+                                ) : (
+                                    currentInvoice.items.map((item, idx) => (
+                                        <div key={item.id} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                    <span className="w-5 h-5 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-[10px] font-black text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+                                                        {idx + 1}
+                                                    </span>
+                                                    <div className="flex-1">
+                                                        <AsyncProductCombobox
+                                                            selectedItem={item.product}
+                                                            onSelect={(product) => selectProduct(product, item.id)}
+                                                            onCreateNew={(name) => {
+                                                                setEditingProduct({ name });
+                                                                setProductModalMode('create');
+                                                                setIsProductModalOpen(true);
+                                                            }}
+                                                            onEdit={(product) => {
+                                                                setEditingProduct(product);
+                                                                setProductModalMode('edit');
+                                                                setIsProductModalOpen(true);
+                                                            }}
+                                                            placeholder="Select Product..."
+                                                            addNewLabel="Add Product"
+                                                            inputClassName="!h-[34px] !py-1 !text-xs !pl-9"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => removeItem(item.id)}
+                                                    className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all shrink-0 ml-2"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+
+                                            {item.product && (
+                                                <div className="grid grid-cols-12 gap-1.5 mt-1 items-end">
+                                                    {/* Qty */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
+                                                        <WheelInput
+                                                            type="number"
+                                                            value={item.quantity ?? 1}
+                                                            onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-indigo-500/20 outline-none no-spinner"
+                                                        />
+                                                    </div>
+
+                                                    {/* Price */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                        <WheelInput
+                                                            type="number"
+                                                            value={item.price ?? 0}
+                                                            onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg text-right text-xs font-bold py-1 px-1.5 focus:ring-1 ring-indigo-500/20 outline-none no-spinner"
+                                                        />
+                                                    </div>
+
+                                                    {/* Discount */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Disc</span>
+                                                        <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg pr-0.5">
+                                                            <WheelInput
+                                                                type="number"
+                                                                value={item.discount ?? 0}
+                                                                onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                                                                className="w-full bg-transparent border-none text-right text-xs font-bold py-1 pl-1 pr-0.5 focus:ring-0 outline-none no-spinner"
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
+                                                                className={`w-3.5 h-3.5 rounded text-[8px] font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
+                                                            >
+                                                                {item.discountType === 'percent' ? '%' : (getCurrencySymbol())}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Total */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5 text-right">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleItemTotalMode(item.id)}
+                                                                className={`w-5 h-5 rounded text-[8px] font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                                    getItemTotalMode(item.id) === 'price'
+                                                                        ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500'
+                                                                        : 'bg-emerald-600 dark:bg-emerald-500 text-white border-emerald-600 dark:border-emerald-500'
+                                                                }`}
+                                                            >
+                                                                {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol()) : '#'}
+                                                            </button>
+                                                            <WheelInput
+                                                                type="number"
+                                                                value={parseFloat(calculateLineTotal(item).toFixed(2))}
+                                                                onChange={(e) => handleTotalChange(item, e.target.value)}
+                                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg text-right text-xs font-extrabold py-1 px-1 focus:ring-1 ring-indigo-500/20 text-slate-800 dark:text-white outline-none no-spinner"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))
+                                )}
+                            </div>
                         </div>
+
                         {/* STICKY ADD BUTTON */}
-                        <div className="shrink-0 px-4 py-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <div className="shrink-0 px-4 py-2 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-center">
                             <button
                                 onClick={addItem}
-                                className="w-full flex items-center justify-center gap-2 text-indigo-600 font-bold text-sm hover:bg-indigo-50 dark:hover:bg-indigo-900/20 py-3 rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 transition-all"
+                                className="px-5 py-2 flex items-center justify-center gap-1.5 text-indigo-600 dark:text-indigo-400 font-bold text-xs hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl border border-dashed border-indigo-200 dark:border-indigo-800 transition-all active:scale-95 shadow-sm"
                             >
-                                <Plus size={18} /> ADD NEW ITEM
+                                <Plus size={14} /> ADD NEW ITEM
                             </button>
+                        </div>
+
+                        {/* MOBILE STICKY CHECKOUT PANEL (Mobile Only) */}
+                        <div className="lg:hidden flex flex-col shrink-0">
+                            {/* Row 1: Compact financial input fields */}
+                            <div className="grid grid-cols-4 gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                                <div>
+                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Discount</span>
+                                    <input
+                                        type="number"
+                                        value={currentInvoice.discount ?? 0}
+                                        onChange={(e) => patchInvoice({ discount: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div>
+                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Refund</span>
+                                    <input
+                                        type="number"
+                                        value={currentInvoice.amountPaid ?? 0}
+                                        onChange={(e) => patchInvoice({ amountPaid: parseFloat(e.target.value) || 0 })}
+                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-205 dark:border-slate-700 rounded-lg px-1.5 h-9 text-slate-800 dark:text-white text-xs font-bold text-right outline-none"
+                                        placeholder="0"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <span className="text-[8px] text-slate-400 font-bold block mb-0.5 uppercase">Bal Due</span>
+                                    <div className={`w-full bg-slate-100 dark:bg-slate-800 rounded-lg px-1.5 h-9 text-xs font-extrabold text-right border ${balanceDue > 0 ? 'text-red-500 border-red-500/20' : 'text-emerald-500 border-emerald-500/20'} flex items-center justify-end`}>
+                                        {formatCurrency(balanceDue, store)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Row 2: Cancel (25%) & Complete Return (75%) */}
+                            <div className="flex items-center gap-2 px-2 py-1.5 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                                <button
+                                    onClick={() => {
+                                        if (window.confirm("Are you sure you want to cancel and discard this note?")) {
+                                            removeInvoice(currentInvoice.id);
+                                            router.visit(route('store.debit-notes.index', { store_slug: store.slug }));
+                                        }
+                                    }}
+                                    className="w-1/4 py-3.5 border border-red-200 dark:border-red-800 text-red-500 rounded-xl font-bold text-sm hover:bg-red-50 dark:hover:bg-red-950/20 active:scale-95 transition-all text-center flex items-center justify-center"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => initiateSave(false)}
+                                    disabled={saving}
+                                    className="w-3/4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 disabled:opacity-50"
+                                >
+                                    <CheckCircle2 size={16} />
+                                    {saving ? 'SAVING...' : `CONFIRM DEBIT NOTE (${formatCurrency(grandTotal, store)})`}
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     {/* RIGHT SECTION - Side Info Panel */}
-                    <div className="w-80 bg-[#1a1d2e] flex flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800">
+                    <div className="hidden lg:flex w-full lg:w-80 bg-[#1a1d2e] flex-col overflow-hidden rounded-2xl shadow-2xl border border-slate-800 shrink-0">
 
                         {/* Customer (Supplier) Summary Section */}
                         <div className="p-4 border-b border-slate-800/50 bg-slate-900/30 shrink-0">

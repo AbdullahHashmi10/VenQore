@@ -1872,73 +1872,77 @@ const CreateInvoice = ({ sale }) => {
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-12 gap-1.5 mt-1 items-end">
-                                                {/* Qty */}
-                                                <div className="col-span-3 flex flex-col gap-0.5">
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
-                                                    <WheelInput
-                                                        type="number"
-                                                        value={item.quantity ?? 1}
-                                                        onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-indigo-500/20 outline-none"
-                                                    />
-                                                </div>
-
-                                                {/* Price */}
-                                                <div className="col-span-3 flex flex-col gap-0.5">
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
-                                                    <WheelInput
-                                                        type="number"
-                                                        value={item.price ?? 0}
-                                                        onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-bold py-1 px-1.5 focus:ring-1 ring-indigo-500/20 outline-none"
-                                                    />
-                                                </div>
-
-                                                {/* Discount (Conditional) */}
-                                                {settings?.billing_type !== 'lite' && (
+                                            {item.product && (
+                                                <div className="grid grid-cols-12 gap-1.5 mt-1 items-end">
+                                                    {/* Qty */}
                                                     <div className="col-span-3 flex flex-col gap-0.5">
-                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Disc</span>
-                                                        <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pr-0.5">
-                                                            <WheelInput
-                                                                type="number"
-                                                                value={item.discount ?? 0}
-                                                                onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
-                                                                className="w-full bg-transparent border-none text-right text-xs font-bold py-1 pl-1 pr-0.5 focus:ring-0 outline-none"
-                                                            />
-                                                            <button
-                                                                onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
-                                                                className={`w-3.5 h-3.5 rounded text-[8px] font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
-                                                            >
-                                                                {item.discountType === 'percent' ? '%' : (getCurrencySymbol(store || settings))}
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Total + Conversion mode toggle */}
-                                                <div className={`${settings?.billing_type !== 'lite' ? 'col-span-3' : 'col-span-6'} flex flex-col gap-0.5 text-right`}>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
-                                                    <div className="flex items-center gap-1">
-                                                        <button
-                                                            onClick={() => toggleItemTotalMode(item.id)}
-                                                            className={`w-5 h-5 rounded text-[8px] font-black transition-all shrink-0 border flex items-center justify-center ${
-                                                                getItemTotalMode(item.id) === 'price'
-                                                                    ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500'
-                                                                    : 'bg-emerald-600 dark:bg-emerald-500 text-white border-emerald-600 dark:border-emerald-500'
-                                                            }`}
-                                                        >
-                                                            {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol(store || settings)) : '#'}
-                                                        </button>
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Qty</span>
                                                         <WheelInput
                                                             type="number"
-                                                            value={parseFloat(calculateLineTotal(item).toFixed(2))}
-                                                            onChange={(e) => handleTotalChange(item, e.target.value)}
-                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-extrabold py-1 px-1 focus:ring-1 ring-indigo-500/20 text-slate-800 dark:text-white outline-none"
+                                                            value={item.quantity ?? 1}
+                                                            onChange={(e) => updateItem(item.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-center text-xs font-bold py-1 focus:ring-1 ring-indigo-500/20 outline-none"
                                                         />
                                                     </div>
+
+                                                    {/* Price */}
+                                                    <div className="col-span-3 flex flex-col gap-0.5">
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Price</span>
+                                                        <WheelInput
+                                                            type="number"
+                                                            value={item.price ?? 0}
+                                                            onChange={(e) => updateItem(item.id, 'price', parseFloat(e.target.value) || 0)}
+                                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-bold py-1 px-1.5 focus:ring-1 ring-indigo-500/20 outline-none"
+                                                        />
+                                                    </div>
+
+                                                    {/* Discount (Conditional) */}
+                                                    {settings?.billing_type !== 'lite' && (
+                                                        <div className="col-span-3 flex flex-col gap-0.5">
+                                                            <span className="text-[9px] font-bold text-slate-400 uppercase">Disc</span>
+                                                            <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg pr-0.5">
+                                                                <WheelInput
+                                                                    type="number"
+                                                                    value={item.discount ?? 0}
+                                                                    onChange={(e) => updateItem(item.id, 'discount', parseFloat(e.target.value) || 0)}
+                                                                    className="w-full bg-transparent border-none text-right text-xs font-bold py-1 pl-1 pr-0.5 focus:ring-0 outline-none"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateItem(item.id, 'discountType', item.discountType === 'fixed' ? 'percent' : 'fixed')}
+                                                                    className={`w-3.5 h-3.5 rounded text-[8px] font-black transition-all flex items-center justify-center shrink-0 ${item.discountType === 'percent' ? 'bg-indigo-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-550'}`}
+                                                                >
+                                                                    {item.discountType === 'percent' ? '%' : (getCurrencySymbol(store || settings))}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Total + Conversion mode toggle */}
+                                                    <div className={`${settings?.billing_type !== 'lite' ? 'col-span-3' : 'col-span-6'} flex flex-col gap-0.5 text-right`}>
+                                                        <span className="text-[9px] font-bold text-slate-400 uppercase">Total</span>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => toggleItemTotalMode(item.id)}
+                                                                className={`w-5 h-5 rounded text-[8px] font-black transition-all shrink-0 border flex items-center justify-center ${
+                                                                    getItemTotalMode(item.id) === 'price'
+                                                                        ? 'bg-indigo-600 dark:bg-indigo-500 text-white border-indigo-600 dark:border-indigo-500'
+                                                                        : 'bg-emerald-600 dark:bg-emerald-500 text-white border-emerald-600 dark:border-emerald-500'
+                                                                }`}
+                                                            >
+                                                                {getItemTotalMode(item.id) === 'price' ? (getCurrencySymbol(store || settings)) : '#'}
+                                                            </button>
+                                                            <WheelInput
+                                                                type="number"
+                                                                value={parseFloat(calculateLineTotal(item).toFixed(2))}
+                                                                onChange={(e) => handleTotalChange(item, e.target.value)}
+                                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-right text-xs font-extrabold py-1 px-1 focus:ring-1 ring-indigo-500/20 text-slate-800 dark:text-white outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
                                     ))
                                 )}
