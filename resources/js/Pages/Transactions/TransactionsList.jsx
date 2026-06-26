@@ -28,7 +28,8 @@ import {
     ArrowDownCircle,
     Download,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Filter
 } from 'lucide-react';
 
 export default function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {}, store }) {
