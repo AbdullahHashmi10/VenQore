@@ -105,11 +105,11 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
 
     return (
         <OneGlanceLayout title={title} activeMenu="Insights" noPadding>
-            <div className={`flex h-full overflow-hidden bg-slate-50 dark:bg-slate-950 ${showSidebar ? 'gap-4 p-4 pt-2' : ''}`}> {/* Added padding to container if sidebar is shown */}
+            <div className={`flex h-full overflow-hidden bg-slate-50 dark:bg-slate-950 ${showSidebar ? 'lg:gap-4 p-2 lg:p-4 pt-2' : ''}`}> {/* Added padding to container if sidebar is shown */}
 
                 {/* Midnight Nebula Sidebar */}
                 {showSidebar && (
-                    <div className={`${sidebarCollapsed ? 'w-20' : 'w-64'} bg-slate-900 rounded-[2rem] border border-slate-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-300`}>
+                    <div className={`hidden lg:flex ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-slate-900 rounded-[2rem] border border-slate-800 shadow-2xl p-3 shrink-0 flex flex-col relative overflow-hidden transition-all duration-300`}>
                         {/* Nebula Background Elements */}
                         <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-600/20 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-600/10 rounded-full blur-[40px] translate-y-1/3 -translate-x-1/3 pointer-events-none" />
@@ -207,7 +207,7 @@ export default function ReportsLayout({ children, title, showSidebar = true }) {
                         </>
                     )}
 
-                    <div className={`relative z-10 h-full overflow-y-auto custom-scrollbar ${showSidebar ? 'p-5' : 'p-6'}`}>
+                    <div className={`relative z-10 h-full overflow-y-auto custom-scrollbar ${showSidebar ? 'p-3 lg:p-5' : 'p-4 lg:p-6'}`}>
                         {children}
                     </div>
                 </div>
