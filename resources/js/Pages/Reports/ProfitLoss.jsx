@@ -104,7 +104,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
             <div className="flex flex-col h-full gap-4 w-full relative">
 
                 {/* 1. Header & Controls */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center gap-4 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <div className="flex items-center gap-3 pl-2">
                         <Link href={route("store.reports.index", {
                             store_slug: store.slug
@@ -113,14 +113,14 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                         </Link>
                         <div>
                             <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-2">
-                                Profit & Loss <span className="text-slate-400 font-medium text-sm">Statement</span>
+                                Profit & Loss <span className="text-slate-400 font-medium text-sm hidden sm:inline">Statement</span>
                             </h1>
                             <p className="text-xs text-slate-500 font-medium">Financial performance for the selected period</p>
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row items-center gap-2">
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl overflow-x-auto max-w-full shrink-0">
                             {[
                                 { id: 'this_month', label: 'This Month' },
                                 { id: 'last_month', label: 'Last Month' },
@@ -130,7 +130,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                                 <button
                                     key={opt.id}
                                     onClick={() => handleRangeChange(opt.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${range === opt.id
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${range === opt.id
                                         ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400'
                                         : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
                                         }`}
@@ -141,23 +141,23 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                         </div>
 
                         {range === 'custom' && (
-                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1.5 rounded-xl w-full sm:w-auto">
                                 <input
                                     type="date"
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 w-full sm:w-auto"
                                 />
-                                <span className="text-slate-400 text-xs font-bold">TO</span>
+                                <span className="text-slate-400 text-xs font-bold text-center shrink-0">TO</span>
                                 <input
                                     type="date"
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                    className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 w-full sm:w-auto"
                                 />
                                 <button
                                     onClick={applyCustomRange}
-                                    className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm"
+                                    className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm w-full sm:w-auto text-center"
                                 >
                                     Apply
                                 </button>
@@ -167,7 +167,7 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
                 </div>
 
                 {/* 2. Top Level KPI Cards (Key Ratios) */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 shrink-0">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 shrink-0">
                     <RatioCard
                         title="Net Profit"
                         value={formatCurrency(netProfit, store)}
@@ -203,20 +203,20 @@ export default function ProfitLoss({ stats = {}, filters = {} }) {
 
                     {/* LEFT COL: Detailed P&L Statement (Spans 2 cols) */}
                     <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white">Income Statement</h2>
-                            <button className="text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors">
+                        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
+                            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white">Income Statement</h2>
+                            <button className="text-[10px] sm:text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 px-2.5 py-1.5 rounded-lg transition-colors">
                                 Download PDF
                             </button>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-2">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
+                        <div className="flex-1 overflow-y-auto p-1 sm:p-2">
+                            <table className="w-full text-xs sm:text-sm text-left">
+                                <thead className="text-[10px] text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
                                     <tr>
-                                        <th className="px-6 py-3 rounded-l-lg">Description</th>
-                                        <th className="px-6 py-3 text-right">Amount</th>
-                                        <th className="px-6 py-3 text-right rounded-r-lg">% Sales</th>
+                                        <th className="px-3 sm:px-6 py-2 sm:py-3 rounded-l-lg">Description</th>
+                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-right">Amount</th>
+                                        <th className="px-3 sm:px-6 py-2 sm:py-3 text-right rounded-r-lg">% Sales</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -476,16 +476,16 @@ function RatioCard({ title, value, subtitle, color, icon }) {
     };
 
     return (
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+        <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden group">
             <div className="flex justify-between items-start mb-2">
-                <div className={`p-2 rounded-lg ${colors[color]} shrink-0`}>
-                    {React.cloneElement(icon, { size: 18 })}
+                <div className={`p-1.5 sm:p-2 rounded-lg ${colors[color]} shrink-0`}>
+                    {React.cloneElement(icon, { size: 16 })}
                 </div>
             </div>
             <div>
-                <p className="text-xs font-bold text-slate-500 uppercase">{title}</p>
-                <h3 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight my-1">{value}</h3>
-                <p className={`text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-slate-400'}`}>{subtitle}</p>
+                <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">{title}</p>
+                <h3 className="text-lg sm:text-2xl font-black text-slate-800 dark:text-white tracking-tight my-0.5 sm:my-1">{value}</h3>
+                <p className={`text-[10px] sm:text-xs font-medium ${color === 'rose' ? 'text-rose-500' : 'text-slate-400'}`}>{subtitle}</p>
             </div>
         </div>
     );
@@ -495,28 +495,28 @@ function StatementRow({ label, amount, percent, info, isHeader, isNegative, acti
 
     return (
         <tr className={`group transition-colors ${action ? 'hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer' : ''}`} onClick={action}>
-            <td className="px-6 py-4">
+            <td className="px-3 sm:px-6 py-2.5 sm:py-4">
                 <div className="flex items-center gap-2">
-                    <span className={`font-medium ${isHeader ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
+                    <span className={`font-medium text-xs sm:text-sm ${isHeader ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-600 dark:text-slate-300'}`}>
                         {label}
                     </span>
                     <div className="group/tooltip relative">
-                        <Info size={14} className="text-slate-300 hover:text-indigo-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
+                        <Info size={13} className="text-slate-300 hover:text-indigo-500 transition-colors cursor-help" />
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-[9px] sm:text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
                             {info}
                             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
                         </div>
                     </div>
                 </div>
-                {action && <p className="text-[10px] text-indigo-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
+                {action && <p className="text-[9px] sm:text-[10px] text-indigo-500 font-bold mt-0.5 ml-1">View Ledger &rarr;</p>}
             </td>
-            <td className={`px-6 py-4 text-right font-bold ${isNegative ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
+            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right font-bold text-xs sm:text-sm ${isNegative ? 'text-rose-500' : 'text-slate-700 dark:text-slate-200'}`}>
                 {formatCurrency(amount, store)}
             </td>
-            <td className="px-6 py-4 text-right">
-                <div className="flex items-center justify-end gap-2">
-                    <span className="text-xs text-slate-400 font-medium">{percent}%</span>
-                    <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+            <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right">
+                <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+                    <span className="text-[10px] sm:text-xs text-slate-400 font-medium">{percent}%</span>
+                    <div className="w-12 sm:w-16 h-1 sm:h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0">
                         <div className="h-full bg-slate-300 dark:bg-slate-600 rounded-full" style={{ width: `${Math.min(percent, 100)}%` }}></div>
                     </div>
                 </div>
@@ -531,24 +531,24 @@ function SummaryRow({ label, amount, type, info, store }) {
 
     return (
         <tr className={`bg-slate-50/80 dark:bg-slate-800/30 ${isTotal ? 'border-t-2 border-slate-200 dark:border-slate-700' : ''}`}>
-            <td className="px-6 py-4">
+            <td className="px-3 sm:px-6 py-2.5 sm:py-4">
                 <div className="flex items-center gap-2">
-                    <span className={`uppercase tracking-wider ${isTotal ? 'text-base font-black text-slate-900 dark:text-white' : 'text-sm font-bold text-slate-700 dark:text-slate-200'}`}>
+                    <span className={`uppercase tracking-wider ${isTotal ? 'text-sm sm:text-base font-black text-slate-900 dark:text-white' : 'text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200'}`}>
                         {label}
                     </span>
                     <div className="group/tooltip relative">
-                        <Info size={14} className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help" />
-                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-48 bg-slate-800 text-white text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
+                        <Info size={13} className="text-slate-400 hover:text-indigo-500 transition-colors cursor-help" />
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 w-42 sm:w-48 bg-slate-800 text-white text-[9px] sm:text-[10px] p-2 rounded-lg opacity-0 invisible group-hover/tooltip:opacity-100 group-hover/tooltip:visible transition-all z-50 pointer-events-none shadow-xl">
                             {info}
                             <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-slate-800"></div>
                         </div>
                     </div>
                 </div>
             </td>
-            <td className={`px-6 py-4 text-right ${isTotal ? 'text-xl font-black' : 'text-lg font-bold'} ${isLoss ? 'text-rose-600' : 'text-emerald-600'}`}>
+            <td className={`px-3 sm:px-6 py-2.5 sm:py-4 text-right ${isTotal ? 'text-base sm:text-xl font-black' : 'text-sm sm:text-lg font-bold'} ${isLoss ? 'text-rose-600' : 'text-emerald-600'}`}>
                 {formatCurrency(amount, store)}
             </td>
-            <td className="px-6 py-4 text-right"></td>
+            <td className="px-3 sm:px-6 py-2.5 sm:py-4 text-right"></td>
         </tr>
     );
 }
