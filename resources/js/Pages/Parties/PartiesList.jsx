@@ -6,7 +6,7 @@ import ContactsModuleTabs from '@/Components/ContactsModuleTabs';
 import FormModal, { FormField, FormInput, FormSelect, FormTextarea, PrimaryButton, SecondaryButton } from '@/Components/FormModal';
 import {
     Users, Plus, UserCheck, Building2, TrendingUp, TrendingDown, FileText,
-    Search, Download, Printer, Edit2, Trash2, Eye, ChevronUp, ChevronDown, X
+    Search, Download, Printer, Edit2, Trash2, Eye, ChevronUp, ChevronDown, X, Filter
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import axios from 'axios';
@@ -46,6 +46,11 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
 
     // Bulk Selection State
     const [selectedParties, setSelectedParties] = useState([]);
+
+    // Mobile responsiveness toggle states
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Debounced Search Logic
     const [debouncedSearch] = useMemo(() => {
@@ -342,8 +347,26 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
                 <ContactsModuleTabs activeTab={activeTab} />
 
+                {/* Mobile Stats Toggle/Summary */}
+                <div className="sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={14} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    {!isStatsExpanded && (
+                        <div className="text-[10px] font-bold text-slate-500 truncate">
+                            <span className="text-emerald-600">Rec: {formatCurrency(stats.receivables)}</span>
+                            <span className="mx-1">|</span>
+                            <span className="text-rose-600">Pay: {formatCurrency(stats.payables)}</span>
+                        </div>
+                    )}
+                </div>
+
                 {/* Stats Cards - Responsive Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
+                <div className={`grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden sm:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
                         <div className="flex items-center gap-1.5 shrink-0">
                             <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
@@ -382,8 +405,88 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                     </div>
                 </div>
 
-                {/* Header Bar - Title + Filter Pills + Search + Add Button */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* Mobile Toolbar (sm:hidden) */}
+                <div className="sm:hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between px-3 py-2">
+                        <h1 className="text-xs font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            {activeTab === 'customers' ? 'Customers' : activeTab === 'suppliers' ? 'Suppliers' : 'All'} <span className="text-indigo-600">Contacts</span>
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-1.5 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={14} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-1.5 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filter"
+                            >
+                                <Filter size={14} />
+                            </button>
+                            <div className="flex items-center border-l border-slate-200 dark:border-slate-800 pl-1.5 ml-0.5">
+                                <button className="p-1 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 rounded" title="Export">
+                                    <Download size={14} />
+                                </button>
+                                <button className="p-1 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 rounded" title="Print">
+                                    <Printer size={14} />
+                                </button>
+                            </div>
+                            <button
+                                onClick={handleCreate}
+                                className="ml-1 px-2.5 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg flex items-center gap-1 transition-all shadow-md font-bold text-[10px]"
+                            >
+                                <Plus size={12} /> Add
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Expandable Mobile Search */}
+                    {showMobileSearch && (
+                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
+                            <div className="relative w-full">
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={handleServerSearch}
+                                    placeholder="Search contacts..."
+                                    className="w-full pl-8 pr-4 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
+                                />
+                                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={12} />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Expandable Mobile Filters panel */}
+                    {showMobileFilters && (
+                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Type:</span>
+                                <div className="flex bg-slate-100 dark:bg-slate-850 rounded-lg p-1 gap-1 flex-1">
+                                    <button
+                                        onClick={() => { handleTypeFilter('all'); setShowMobileFilters(false); }}
+                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'all' ? 'bg-white dark:bg-slate-705 text-indigo-650 dark:text-indigo-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                    >All</button>
+                                    <button
+                                        onClick={() => { handleTypeFilter('customer'); setShowMobileFilters(false); }}
+                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'customer' ? 'bg-white dark:bg-slate-705 text-blue-650 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                    >Customers</button>
+                                    <button
+                                        onClick={() => { handleTypeFilter('supplier'); setShowMobileFilters(false); }}
+                                        className={`flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === 'supplier' ? 'bg-white dark:bg-slate-705 text-amber-650 dark:text-amber-400 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`}
+                                    >Suppliers</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop Header Bar (sm:flex, hidden on mobile) */}
+                <div className="hidden sm:flex flex-row items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
                         <div className="flex items-center gap-2">
