@@ -342,8 +342,8 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
                 <ContactsModuleTabs activeTab={activeTab} />
 
-                {/* Stats Cards - 4 Separate Cards in Row */}
-                <div className="grid grid-cols-4 gap-1 shrink-0">
+                {/* Stats Cards - Responsive Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -465,164 +465,244 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
                     </div>
                 )}
 
-                {/* Main Table */}
+                {/* Main Contacts Area */}
                 <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
-                                <th className="p-3 w-10">
-                                    <input
-                                        type="checkbox"
-                                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
-                                        checked={selectedParties.length === sortedParties.length && sortedParties.length > 0}
-                                        onChange={handleSelectAll}
-                                    />
-                                </th>
-                                <th
-                                    onClick={() => handleSort('name')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
-                                >
-                                    <div className="flex items-center gap-1">
-                                        Party Name <SortIcon columnKey="name" />
-                                    </div>
-                                </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
-                                    Type
-                                </th>
-                                <th
-                                    onClick={() => handleSort('balance')}
-                                    className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-right"
-                                >
-                                    <div className="flex items-center justify-end gap-1">
-                                        Balance <SortIcon columnKey="balance" />
-                                    </div>
-                                </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">
-                                    Credit Limit
-                                </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                                    Phone
-                                </th>
-                                <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {sortedParties.length > 0 ? (
-                                sortedParties.map((party) => (
-                                    <tr
-                                        key={party.id}
-                                        className={`
-                                            hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer
-                                            ${party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'}
-                                            ${selectedParties.includes(party.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
-                                        `}
-                                        onClick={() => handleViewLedger(party)}
+                    
+                    {/* Desktop Table View */}
+                    <div className="hidden sm:block">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
+                                    <th className="p-3 w-10">
+                                        <input
+                                            type="checkbox"
+                                            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                            checked={selectedParties.length === sortedParties.length && sortedParties.length > 0}
+                                            onChange={handleSelectAll}
+                                        />
+                                    </th>
+                                    <th
+                                        onClick={() => handleSort('name')}
+                                        className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800"
                                     >
-                                        <td className="p-3 w-10" onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type="checkbox"
-                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
-                                                checked={selectedParties.includes(party.id)}
-                                                onChange={() => handleSelectRow(party.id)}
-                                            />
-                                        </td>
-                                        <td className="p-3">
-                                            <div className="flex items-center gap-2">
-                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${party.type === 'customer'
-                                                    ? 'bg-blue-100 dark:bg-blue-900/30'
-                                                    : 'bg-amber-100 dark:bg-amber-900/30'
-                                                    }`}>
-                                                    {party.type === 'customer' ? (
-                                                        <UserCheck size={14} className="text-blue-600 dark:text-blue-400" />
-                                                    ) : (
-                                                        <Building2 size={14} className="text-amber-600 dark:text-amber-400" />
-                                                    )}
+                                        <div className="flex items-center gap-1">
+                                            Party Name <SortIcon columnKey="name" />
+                                        </div>
+                                    </th>
+                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                        Type
+                                    </th>
+                                    <th
+                                        onClick={() => handleSort('balance')}
+                                        className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 text-right"
+                                    >
+                                        <div className="flex items-center justify-end gap-1">
+                                            Balance <SortIcon columnKey="balance" />
+                                        </div>
+                                    </th>
+                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">
+                                        Credit Limit
+                                    </th>
+                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                                        Phone
+                                    </th>
+                                    <th className="p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">
+                                        Actions
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                {sortedParties.length > 0 ? (
+                                    sortedParties.map((party) => (
+                                        <tr
+                                            key={party.id}
+                                            className={`
+                                                hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all cursor-pointer
+                                                ${party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'}
+                                                ${selectedParties.includes(party.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
+                                            `}
+                                            onClick={() => handleViewLedger(party)}
+                                        >
+                                            <td className="p-3 w-10" onClick={(e) => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                                    checked={selectedParties.includes(party.id)}
+                                                    onChange={() => handleSelectRow(party.id)}
+                                                />
+                                            </td>
+                                            <td className="p-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${party.type === 'customer'
+                                                        ? 'bg-blue-100 dark:bg-blue-900/30'
+                                                        : 'bg-amber-100 dark:bg-amber-900/30'
+                                                        }`}>
+                                                        {party.type === 'customer' ? (
+                                                            <UserCheck size={14} className="text-blue-600 dark:text-blue-400" />
+                                                        ) : (
+                                                            <Building2 size={14} className="text-amber-600 dark:text-amber-400" />
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-sm text-slate-800 dark:text-white">{party.name}</p>
+                                                        {party.email && <p className="text-[10px] text-slate-400">{party.email}</p>}
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className="font-bold text-sm text-slate-800 dark:text-white">{party.name}</p>
-                                                    {party.email && <p className="text-[10px] text-slate-400">{party.email}</p>}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-3 text-center">
-                                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${party.type === 'customer'
-                                                ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
-                                                : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
-                                                }`}>
-                                                {party.type === 'customer' ? 'Customer' : 'Supplier'}
-                                            </span>
-                                        </td>
-                                        <td className="p-3 text-right">
-                                            <div>
-                                                <span className={`font-bold text-sm ${(party.type === 'customer' && party.current_balance >= 0) || (party.type === 'supplier' && party.current_balance < 0)
-                                                    ? 'text-emerald-600' // Asset (Receivable)
-                                                    : 'text-red-600'     // Liability (Payable)
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${party.type === 'customer'
+                                                    ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400'
+                                                    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400'
                                                     }`}>
-                                                    {formatCurrency(Math.abs(party.current_balance || 0))}
+                                                    {party.type === 'customer' ? 'Customer' : 'Supplier'}
                                                 </span>
-                                                <p className="text-[10px] text-slate-400">
-                                                    {party.current_balance > 0 ? (party.type === 'customer' ? 'To Receive' : 'To Pay') :
-                                                        party.current_balance < 0 ? (party.type === 'customer' ? 'To Pay' : 'To Receive') : 'Settled'}
-                                                </p>
-                                            </div>
-                                        </td>
-                                        <td className="p-3 text-right text-sm text-slate-600 dark:text-slate-400">
-                                            {party.credit_limit ? formatCurrency(party.credit_limit) : '-'}
-                                        </td>
-                                        <td className="p-3 text-sm text-slate-600 dark:text-slate-400">
-                                            {party.phone || '-'}
-                                        </td>
-                                        <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
-                                            <div className="flex items-center justify-center gap-1">
+                                            </td>
+                                            <td className="p-3 text-right">
+                                                <div>
+                                                    <span className={`font-bold text-sm ${(party.type === 'customer' && party.current_balance >= 0) || (party.type === 'supplier' && party.current_balance < 0)
+                                                        ? 'text-emerald-600' // Asset (Receivable)
+                                                        : 'text-red-600'     // Liability (Payable)
+                                                        }`}>
+                                                        {formatCurrency(Math.abs(party.current_balance || 0))}
+                                                    </span>
+                                                    <p className="text-[10px] text-slate-400">
+                                                        {party.current_balance > 0 ? (party.type === 'customer' ? 'To Receive' : 'To Pay') :
+                                                            party.current_balance < 0 ? (party.type === 'customer' ? 'To Pay' : 'To Receive') : 'Settled'}
+                                                    </p>
+                                                </div>
+                                            </td>
+                                            <td className="p-3 text-right text-sm text-slate-600 dark:text-slate-400">
+                                                {party.credit_limit ? formatCurrency(party.credit_limit) : '-'}
+                                            </td>
+                                            <td className="p-3 text-sm text-slate-600 dark:text-slate-400">
+                                                {party.phone || '-'}
+                                            </td>
+                                            <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center justify-center gap-1">
+                                                    <button
+                                                        onClick={() => handleViewLedger(party)}
+                                                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all"
+                                                        title="View Ledger"
+                                                    >
+                                                        <FileText size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleEdit(party)}
+                                                        className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDelete(party)}
+                                                        className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={7} className="p-12">
+                                            <div className="flex flex-col items-center justify-center text-center">
+                                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
+                                                    <Users size={28} className="text-slate-400" />
+                                                </div>
+                                                <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-1">No parties found</p>
+                                                <p className="text-sm text-slate-500 mb-3">Add your first customer or supplier</p>
                                                 <button
-                                                    onClick={() => handleViewLedger(party)}
-                                                    className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all"
-                                                    title="View Ledger"
+                                                    onClick={handleCreate}
+                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-bold text-sm"
                                                 >
-                                                    <FileText size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleEdit(party)}
-                                                    className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
-                                                    title="Edit"
-                                                >
-                                                    <Edit2 size={16} />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDelete(party)}
-                                                    className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 size={16} />
+                                                    <Plus size={16} />
+                                                    Add Party
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={7} className="p-12">
-                                        <div className="flex flex-col items-center justify-center text-center">
-                                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-3">
-                                                <Users size={28} className="text-slate-400" />
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {/* Mobile Stacked Card View */}
+                    <div className="block sm:hidden divide-y divide-slate-150 dark:divide-slate-800">
+                        {sortedParties.length > 0 ? (
+                            sortedParties.map((party) => (
+                                <div
+                                    key={party.id}
+                                    onClick={() => handleViewLedger(party)}
+                                    className={`p-3 hover:bg-indigo-50/20 dark:hover:bg-indigo-900/10 flex flex-col gap-2 cursor-pointer relative ${
+                                        party.type === 'customer' ? 'border-l-4 border-blue-500' : 'border-l-4 border-amber-500'
+                                    } ${selectedParties.includes(party.id) ? 'bg-indigo-50/40 dark:bg-indigo-900/10' : ''}`}
+                                >
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="flex gap-2 items-start">
+                                            <div className="pt-0.5" onClick={(e) => e.stopPropagation()}>
+                                                <input
+                                                    type="checkbox"
+                                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                                                    checked={selectedParties.includes(party.id)}
+                                                    onChange={() => handleSelectRow(party.id)}
+                                                />
                                             </div>
-                                            <p className="text-base font-bold text-slate-700 dark:text-slate-300 mb-1">No parties found</p>
-                                            <p className="text-sm text-slate-500 mb-3">Add your first customer or supplier</p>
-                                            <button
-                                                onClick={handleCreate}
-                                                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-bold text-sm"
-                                            >
-                                                <Plus size={16} />
-                                                Add Party
+                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                                party.type === 'customer' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-amber-100 dark:bg-amber-900/30'
+                                            }`}>
+                                                {party.type === 'customer' ? (
+                                                    <UserCheck size={14} className="text-blue-600 dark:text-blue-400" />
+                                                ) : (
+                                                    <Building2 size={14} className="text-amber-600 dark:text-amber-400" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-850 dark:text-white text-xs">{party.name}</p>
+                                                {party.phone && (
+                                                    <p className="text-[10px] text-slate-500 font-mono mt-0.5">{party.phone}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="text-right shrink-0">
+                                            <span className={`font-black text-xs ${
+                                                (party.type === 'customer' && party.current_balance >= 0) || (party.type === 'supplier' && party.current_balance < 0)
+                                                    ? 'text-emerald-600' : 'text-red-600'
+                                            }`}>
+                                                {formatCurrency(Math.abs(party.current_balance || 0))}
+                                            </span>
+                                            <p className="text-[9px] text-slate-400 uppercase font-bold tracking-tight">
+                                                {party.current_balance > 0 ? (party.type === 'customer' ? 'To Receive' : 'To Pay') :
+                                                    party.current_balance < 0 ? (party.type === 'customer' ? 'To Pay' : 'To Receive') : 'Settled'}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between text-[10px] text-slate-500 bg-slate-50/50 dark:bg-slate-900/50 p-1.5 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                                        <span>Limit: {party.credit_limit ? formatCurrency(party.credit_limit) : '-'}</span>
+                                        <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                                            <button onClick={() => handleViewLedger(party)} className="p-1 text-slate-400 hover:text-indigo-600 rounded">
+                                                <FileText size={14} />
+                                            </button>
+                                            <button onClick={() => handleEdit(party)} className="p-1 text-slate-400 hover:text-blue-600 rounded">
+                                                <Edit2 size={14} />
+                                            </button>
+                                            <button onClick={() => handleDelete(party)} className="p-1 text-slate-400 hover:text-red-600 rounded">
+                                                <Trash2 size={14} />
                                             </button>
                                         </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="p-12 text-center text-slate-400 text-xs">
+                                <Users size={24} className="mx-auto mb-2 opacity-50" />
+                                No contacts available
+                            </div>
+                        )}
+                    </div>
+
                     {/* Infinite Scroll Sentinel inside scroll container */}
                     <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm opacity-0 h-4">
                         {nextPageUrl ? 'Loading...' : ''}
