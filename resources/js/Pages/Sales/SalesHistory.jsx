@@ -1009,20 +1009,20 @@ export default function SalesIndex({ sales, filters, stats }) {
             {/* Quick View Modal - Centered Popup */}
             {
                 quickViewSale && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewSale(null)}>
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setQuickViewSale(null)}>
                         <div
                             className="quick-view-modal w-full max-w-3xl max-h-[90vh] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200"
                             onClick={(e) => e.stopPropagation()}
                         >
                             {/* Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
-                                <div className="flex items-center gap-4">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-white dark:from-slate-800 dark:to-slate-900 shrink-0">
+                                <div className="flex flex-wrap items-center gap-3">
                                     <div>
-                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
-                                        <h3 className="text-xl font-black text-indigo-600">{quickViewSale.reference_number}</h3>
+                                        <p className="text-[10px] sm:text-xs font-bold text-slate-400 uppercase tracking-wider">Invoice Preview</p>
+                                        <h3 className="text-lg sm:text-xl font-black text-indigo-600 truncate">{quickViewSale.reference_number}</h3>
                                     </div>
                                     {quickViewSale.source === 'pos' && (
-                                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase">POS</span>
+                                        <span className="text-[10px] font-black bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 px-2 py-1 rounded-full uppercase shrink-0">POS</span>
                                     )}
                                     {(() => {
                                         const statusStyles = {
@@ -1037,7 +1037,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         );
                                     })()}
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 justify-end">
                                     <PrintButton
                                         sale={quickViewSale}
                                         label="Print"
@@ -1063,7 +1063,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                             {/* Content */}
                             <div className="flex-1 overflow-auto p-4">
                                 {/* Top Info Row */}
-                                <div className="grid grid-cols-4 gap-3 mb-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase mb-1">Customer</p>
                                         <p className="font-bold text-slate-800 dark:text-white text-sm">{quickViewSale.customer?.name || 'Walk-in'}</p>
@@ -1093,7 +1093,8 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             Items in this Invoice ({quickViewSale.items?.length || 0})
                                         </p>
                                     </div>
-                                    <div className="max-h-[300px] overflow-auto">
+                                    {/* Desktop Table View */}
+                                    <div className="hidden sm:block max-h-[300px] overflow-auto">
                                         <table className="w-full text-sm">
                                             <thead className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
                                                 <tr>
@@ -1136,9 +1137,53 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             </tbody>
                                         </table>
                                     </div>
+
+                                    {/* Mobile Stacked List View */}
+                                    <div className="block sm:hidden divide-y divide-slate-150 dark:divide-slate-800 max-h-[300px] overflow-auto">
+                                        {quickViewSale.items && quickViewSale.items.length > 0 ? (
+                                            quickViewSale.items.map((item, idx) => (
+                                                <div key={idx} className="p-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 flex flex-col gap-2">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="flex gap-2 items-start">
+                                                            <span className="text-slate-400 font-mono text-xs">{idx + 1}.</span>
+                                                            <div>
+                                                                <p className="font-semibold text-slate-800 dark:text-white text-xs">{item.product?.name || item.name || 'Unknown Item'}</p>
+                                                                {item.product?.sku && (
+                                                                    <p className="text-[10px] text-slate-400 font-mono mt-0.5">{item.product.sku}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-xs font-bold text-slate-800 dark:text-white shrink-0">
+                                                            {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0), store)}
+                                                        </p>
+                                                    </div>
+                                                    <div className="grid grid-cols-3 gap-2 text-[10px] bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
+                                                        <div>
+                                                            <span className="text-slate-400 block uppercase">Qty</span>
+                                                            <span className="font-bold text-slate-700 dark:text-slate-300">{item.quantity}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-slate-400 block uppercase">Rate</span>
+                                                            <span className="font-semibold text-slate-700 dark:text-slate-300">{formatCurrency(item.price || item.unit_price || 0, store)}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span className="text-slate-400 block uppercase">Discount</span>
+                                                            <span className="font-semibold text-orange-600">
+                                                                {item.discount ? `-${formatCurrency(item.discount, store)}` : '-'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="p-6 text-center text-slate-400 text-xs">
+                                                No items data available
+                                            </div>
+                                        )}
+                                    </div>
                                     {/* Summary Row */}
                                     <div className="bg-slate-50 dark:bg-slate-800 px-4 py-3 border-t border-slate-200 dark:border-slate-700">
-                                        <div className="flex justify-end gap-8">
+                                        <div className="flex flex-wrap justify-between sm:justify-end gap-4 sm:gap-8">
                                             <div className="text-right">
                                                 <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
                                                 <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal || quickViewSale.total, store)}</p>
@@ -1164,8 +1209,8 @@ export default function SalesIndex({ sales, filters, stats }) {
                                 </div>
 
                                 {/* Payment Info */}
-                                <div className="mt-4 flex justify-between items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                    <div className="flex gap-6">
+                                <div className="mt-4 flex flex-col sm:flex-row gap-3 justify-between sm:items-center p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                    <div className="flex gap-6 justify-between w-full sm:w-auto">
                                         <div>
                                             <p className="text-[10px] text-slate-400 uppercase">Paid Amount</p>
                                             <p className="font-bold text-emerald-600">{formatCurrency(quickViewSale.paid_amount || (quickViewSale.payment_status === 'paid' ? quickViewSale.total : 0), store)}</p>
@@ -1184,7 +1229,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                             return null;
                                         })()}
                                     </div>
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-2 w-full sm:w-auto justify-end">
                                         <button
                                             onClick={() => { /* TODO: WhatsApp share */ }}
                                             className="px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 text-xs font-bold rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors flex items-center gap-1"

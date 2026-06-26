@@ -62,8 +62,8 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
         <OneGlanceLayout title="Sell Command Center" activeMenu="Sell">
             <Head title="Sales Hub" />
 
-            {/* Dashboard Container - Full Height, No Scroll */}
-            <div className="flex flex-col h-full gap-4 pb-2 overflow-hidden">
+            {/* Dashboard Container - Full Height on Desktop, Scrollable on Mobile */}
+            <div className="flex flex-col xl:h-full gap-4 pb-2">
 
                 {/* 1. Header & Pulse (Auto Height) */}
                 <div className="shrink-0 space-y-4">
@@ -112,12 +112,12 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                 </div>
 
                 {/* 2. Middle & Bottom Sections (Flexible Grid) */}
-                <div className="flex-1 min-h-0 grid grid-rows-1 xl:grid-rows-2 gap-4">
+                <div className="flex-1 flex flex-col xl:grid xl:grid-rows-2 gap-4 min-h-0">
 
                     {/* Top Selling & Payment Breakdown */}
-                    <section className="min-h-0 grid grid-cols-1 xl:grid-cols-3 gap-4 h-full">
+                    <section className="grid grid-cols-1 xl:grid-cols-3 gap-4 xl:h-full min-h-0">
                         {/* Top Selling */}
-                        <div className="xl:col-span-2 flex flex-col h-full min-h-0">
+                        <div className="xl:col-span-2 flex flex-col xl:h-full xl:min-h-0 min-h-[300px]">
                             <div className="flex items-center justify-between shrink-0 mb-2">
                                 <div className="flex items-center gap-2">
                                     <div className="w-1 h-6 bg-amber-500 rounded-full"></div>
@@ -156,7 +156,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                         </div>
 
                         {/* Payment Breakdown */}
-                        <div className="flex flex-col h-full min-h-0">
+                        <div className="flex flex-col xl:h-full xl:min-h-0 min-h-[250px]">
                             <div className="flex items-center gap-2 shrink-0 mb-2">
                                 <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
                                 <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Payment Breakdown</h2>
@@ -198,7 +198,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                     </section>
 
                     {/* Live Feed */}
-                    <section className="min-h-0 flex flex-col h-full">
+                    <section className="flex flex-col xl:h-full min-h-[350px]">
                         <div className="flex items-center gap-2 shrink-0 mb-2">
                             <div className="w-1 h-6 bg-emerald-600 rounded-full"></div>
                             <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Live Sales Feed</h2>
@@ -206,7 +206,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
 
                         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm flex-1 min-h-0 flex flex-col overflow-hidden">
                             <div className="flex-1 overflow-auto custom-scrollbar">
-                                <table className="w-full text-left text-sm">
+                                <table className="w-full text-left text-sm min-w-[600px] xl:min-w-0">
                                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-400 font-bold uppercase text-[10px] tracking-widest sticky top-0 z-10 backdrop-blur-sm">
                                         <tr>
                                             <th className="px-6 py-3">Reference</th>

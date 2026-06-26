@@ -76,6 +76,10 @@ class InventoryController extends Controller
             ->with(['category', 'brand', 'images', 'variants', 'barcodes'])
             ->whereNull('deleted_at');
 
+        if ($request->filled('category_id') && $request->category_id !== 'all') {
+            $query->where('category_id', $request->category_id);
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -229,7 +233,7 @@ class InventoryController extends Controller
 
         return Inertia::render('Inventory/InventoryList', [
             'products' => $products,
-            'filters' => $request->only(['search']),
+            'filters' => $request->only(['search', 'category_id']),
             'stats' => [
                 'total_products' => $products->total(),
                 'low_stock_count' => DB::table('products as p')

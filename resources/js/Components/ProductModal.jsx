@@ -530,7 +530,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     );
 
     const renderReservationsTab = () => (
-        <div className="p-8 space-y-6">
+        <div className="p-4 sm:p-8 space-y-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-1">Active Reservations</h3>
@@ -623,17 +623,17 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 font-sans">
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6 font-sans">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
             ></div>
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-5xl h-[85vh] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 dark:border-slate-800">
+            <div className="relative w-full max-w-5xl h-full sm:h-[85vh] bg-white dark:bg-slate-900 rounded-none sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100 dark:border-slate-800">
 
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
+                <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                             {data.main_image_preview ? (
@@ -693,7 +693,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                     {/* DETAILS TAB */}
                     {activeTab === 'details' && (
-                        <div className="p-8 space-y-8">
+                        <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
 
                             {/* Basic Info */}
                             <section>
@@ -945,7 +945,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                     {/* EXTRA DETAILS TAB */}
                     {activeTab === 'extra' && (
-                        <div className="p-8 space-y-8">
+                        <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
                             <div className="space-y-4">
                                 <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                                     <FileText size={16} className="text-indigo-500" /> Additional Info
@@ -1097,7 +1097,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                     {/* VARIANTS TAB */}
                     {activeTab === 'variants' && (
-                        <div className="p-8 space-y-6">
+                        <div className="p-4 sm:p-8 space-y-6">
                             <div className="flex items-center justify-between mb-6">
                                 <div>
                                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Product Variants</h3>
@@ -1450,7 +1450,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                     {/* PURCHASE STATS TAB */}
                     {activeTab === 'purchase_stats' && mode !== 'create' && (
-                        <div className="p-8 space-y-8">
+                        <div className="p-4 sm:p-8 space-y-6 sm:space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <StatCard title="Purchased Today" value={product.purchased_day || 0} icon={<Box size={20} className="text-indigo-500" />} />
                                 <StatCard title="Purchased This Month" value={product.purchased_month || 0} icon={<Box size={20} className="text-indigo-500" />} />
@@ -1505,7 +1505,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
 
                 {/* Footer */}
                 {isEditable && (
-                    <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end gap-3 z-10">
+                    <div className="p-4 sm:p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex justify-end gap-3 z-10">
                         <button
                             onClick={onClose}
                             className="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

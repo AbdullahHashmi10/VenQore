@@ -24,7 +24,8 @@ import {
     CheckSquare,
     Edit,
     Clock,
-    ShoppingBag
+    ShoppingBag,
+    Filter
 } from 'lucide-react';
 import axios from 'axios';
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
@@ -66,6 +67,9 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
     const [activeActionMenu, setActiveActionMenu] = useState(null);
     const [activeSharePopup, setActiveSharePopup] = useState(null);
     const [draggedColumn, setDraggedColumn] = useState(null);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
 
     // Columns Configuration
     const [tableColumns, setTableColumns] = useState([
@@ -268,11 +272,37 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
     return (
         <OneGlanceLayout title="Purchases History" activeMenu="Purchase">
             <Head title="Purchases History" />
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
                 <PurchaseModuleTabs activeTab="purchases" />
 
+                {/* Mobile Stats Toggle/Summary */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-600 dark:text-indigo-400">Purchase: {renderCurrency(stats?.total_purchase || 0, store)}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-blue-600 dark:text-blue-400">Txns: {purchases?.total || 0}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-emerald-600">Paid: {renderCurrency(stats?.total_paid || 0, store)}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-rose-600">Due: {renderCurrency(stats?.total_due || 0, store)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -311,8 +341,8 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     </div>
                 </div>
 
-                {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* PC / Desktop Header Area (Hidden on Mobile) */}
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
@@ -370,9 +400,74 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                     </div>
                 </div>
 
-                {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
+                {/* Mobile Layout Header Area */}
+                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between w-full">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Purchase Transactions
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filters"
+                            >
+                                <Filter size={16} />
+                            </button>
+                            <Link
+                                href={route('store.purchases.create', { store_slug: store?.slug })}
+                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                title="New Purchase"
+                            >
+                                <Plus size={16} />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {showMobileSearch && (
+                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search purchase #, supplier..."
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none text-slate-800 dark:text-white"
+                            />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {showMobileFilters && (
+                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                <button
+                                    onClick={() => applyFilterType('all')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => applyFilterType('today')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Today</button>
+                                <button
+                                    onClick={() => applyFilterType('month')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'month' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Month</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Main Table / Container */}
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
@@ -553,6 +648,149 @@ export default function PurchasesIndex({ purchases = {}, filters = {}, stats = {
                             )}
                         </tbody>
                     </table>
+
+                    {/* Mobile View - Cards List */}
+                    <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
+                        {sortedPurchases.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                <ShoppingBag size={32} className="mx-auto text-slate-400 mb-2" />
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No purchases found</p>
+                            </div>
+                        ) :                             sortedPurchases.map((row) => {
+                                const paid = parseFloat(row.paid || 0);
+                                const total = parseFloat(row.total || 0);
+                                const balance = row.balance ?? (total - paid);
+                                let paymentStatus = row.payment_status || 'unpaid';
+                                const isJitDraft = row.is_jit === 1 && row.approval_status === 'draft' && vensynq_enabled;
+                                const statusStyles = {
+                                    paid: 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20',
+                                    partial: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20',
+                                    unpaid: 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-500/20',
+                                };
+                                return (
+                                    <div
+                                        key={row.id}
+                                        onClick={() => handleRowClick(row)}
+                                        className={`
+                                            p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-indigo-400 transition-colors
+                                            ${quickViewItem?.id === row.id ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20 dark:bg-indigo-900/10' : ''}
+                                        `}
+                                    >
+                                        {/* Row 1: Supplier Name (Left), Invoice Reference & Date (Right) */}
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm">
+                                                    {row.supplier?.name || 'Unknown Supplier'}
+                                                </h3>
+                                                {row.supplier?.phone && (
+                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                    {row.invoice_number || row.reference_number || '-'}
+                                                </span>
+                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                    {formatDate(row.date || row.created_at)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Badges (Transaction type & payment status) */}
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[9px] font-black uppercase bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400 px-2 py-0.5 rounded border border-orange-200/30">
+                                                Purchase
+                                            </span>
+                                            {isJitDraft && (
+                                                <span className="text-[9px] font-black bg-amber-50 border border-amber-200/50 text-amber-600 dark:bg-amber-950/40 dark:border-amber-900/40 dark:text-amber-400 px-2 py-0.5 rounded uppercase tracking-wide">
+                                                    JIT Draft
+                                                </span>
+                                            )}
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[paymentStatus] || 'bg-slate-100 text-slate-700'}`}>
+                                                {paymentStatus}
+                                            </span>
+                                        </div>
+
+                                        {/* Row 3: Totals & Action Icons */}
+                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                            <div className="flex items-center gap-6">
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-xs font-black text-slate-900 dark:text-white">
+                                                        {renderCurrency(total, store)}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Balance</span>
+                                                    {balance > 1 ? (
+                                                        <span className="text-xs font-black text-red-500">
+                                                            {renderCurrency(balance, store)}
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-450 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-500/10">
+                                                            Settled
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                {isJitDraft && (
+                                                    <button 
+                                                        onClick={(e) => { 
+                                                            e.stopPropagation();
+                                                            if(confirm('Approve this JIT draft and finalize the purchase?')) {
+                                                                router.patch(route('store.vensynq.jit.approve', { store_slug: store?.slug, purchase: row.id }), {}, { preserveScroll: true });
+                                                            }
+                                                        }}
+                                                        className="px-2 py-1 bg-amber-500 text-white text-[10px] font-bold rounded flex items-center gap-1 shadow-sm"
+                                                        title="Approve JIT Auto-Draft"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => PrintService.quickPrint(row)}
+                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    title="Print"
+                                                >
+                                                    <Printer size={16} />
+                                                </button>
+                                                <div className="relative">
+                                                    <button 
+                                                        onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} 
+                                                        className={`p-1.5 rounded-lg transition-colors ${activeActionMenu === row.id ? 'text-indigo-600 bg-slate-100 dark:bg-slate-800' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                                                    >
+                                                        <MoreVertical size={16} />
+                                                    </button>
+                                                    {activeActionMenu === row.id && (
+                                                        <div className="absolute right-0 bottom-full mb-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
+                                                            <div className="py-1">
+                                                                <Link href={route("store.purchases.edit", [store.slug, row.id])} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                    <Eye size={14} /> View Details
+                                                                </Link>
+                                                                <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                    <History size={14} /> Payment History
+                                                                </button>
+                                                                <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleDeleteClick(row.id); }}
+                                                                    className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"
+                                                                >
+                                                                    <Trash2 size={14} /> Delete
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                    </div>
+
                     {/* Infinite Scroll Sentinel */}
                     <div ref={observerTarget} className="mt-4 p-4 text-center text-slate-400 text-sm opacity-0 h-4">
                         {nextPageUrl ? 'Loading...' : ''}

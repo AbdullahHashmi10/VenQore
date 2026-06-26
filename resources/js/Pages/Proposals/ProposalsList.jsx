@@ -73,6 +73,10 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
     const [quickViewItem, setQuickViewItem] = useState(null);
     const [clickTimeout, setClickTimeout] = useState(null);
 
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+
     useEffect(() => {
         setSortedData(defaultData);
     }, [proposals]);
@@ -156,6 +160,11 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
         }, { preserveState: true });
     };
 
+    const applyFilterType = (type) => {
+        setActiveFilter(type);
+        applyFilters({ filter: type });
+    };
+
     // Sorting
     const handleSort = (key) => {
         let direction = 'asc';
@@ -217,11 +226,37 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
         <OneGlanceLayout title="Proposals" activeMenu="Sell">
             <Head title="Proposals" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
                 <SellModuleTabs activeTab="proposals" />
 
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                {/* Mobile Stats Toggle/Summary */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-600 dark:text-indigo-400">Proposal: {stats?.total_count || sortedData.length}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-emerald-600">Accepted: {stats?.accepted_count || 0}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-amber-600">Pending: {stats?.pending_count || 0}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-blue-600">Value: {formatCurrency(stats?.total_value || 0, store)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Stats Cards Section */}
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -260,8 +295,8 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                     </div>
                 </div>
 
-                {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* PC / Desktop Header Area (Hidden on Mobile) */}
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
@@ -337,9 +372,74 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                     </div>
                 </div>
 
+                {/* Mobile Layout Header Area */}
+                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between w-full">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Proposals
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filters"
+                            >
+                                <ChevronDown size={16} />
+                            </button>
+                            <Link
+                                href={route('store.proposals.create', { store_slug: store?.slug })}
+                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                title="New Proposal"
+                            >
+                                <Plus size={16} />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {showMobileSearch && (
+                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search proposals..."
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                            />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {showMobileFilters && (
+                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                <button
+                                    onClick={() => applyFilterType('all')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => applyFilterType('pending')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Pending</button>
+                                <button
+                                    onClick={() => applyFilterType('accepted')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'accepted' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Accepted</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
@@ -477,6 +577,75 @@ export default function ProposalsList({ proposals = [], filters = {}, stats = {}
                             )}
                         </tbody>
                     </table>
+
+                    {/* Mobile View - Cards List */}
+                    <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
+                        {sortedData.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                <FileText size={32} className="mx-auto text-slate-400 mb-2" />
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No proposals found</p>
+                            </div>
+                        ) : (
+                            sortedData.map((row) => {
+                                const isExpired = row.valid_until && new Date(row.valid_until) < new Date();
+                                return (
+                                    <div
+                                        key={row.id}
+                                        onClick={() => handleRowClick(row)}
+                                        className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-3 active:scale-[0.99] transition-transform cursor-pointer"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.proposal_number || `PROP-${row.id}`}</span>
+                                                <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                                ${row.status === 'accepted' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                  row.status === 'converted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                  row.status === 'rejected' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                }
+                                            `}>
+                                                {row.status || 'pending'}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex justify-between items-center border-t border-b border-slate-100 dark:border-slate-800/60 py-2.5">
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer</p>
+                                                <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{row.customer?.name || 'Walk-in'}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Value</p>
+                                                <p className="text-sm font-black text-slate-900 dark:text-white mt-0.5">{formatCurrency(row.total, store)}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center text-xs">
+                                            <div className={isExpired ? 'text-red-500 font-bold' : 'text-slate-500'}>
+                                                Valid Until: {formatDate(row.valid_until) || 'No expiry'}
+                                            </div>
+                                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                                <a
+                                                    href={route('store.proposals.print', { store_slug: store?.slug, proposal: row.id })}
+                                                    target="_blank"
+                                                    className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors border border-slate-100 dark:border-slate-700"
+                                                >
+                                                    <Printer size={14} />
+                                                </a>
+                                                <Link
+                                                    href={route('store.proposals.show', { store_slug: store?.slug, proposal: row.id })}
+                                                    className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                                                >
+                                                    View
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
                 </div>
             </div>
 

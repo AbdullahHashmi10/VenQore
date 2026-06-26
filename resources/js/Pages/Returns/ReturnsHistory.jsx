@@ -123,6 +123,10 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
             return 0;
         });
     }, [allReturns, sortConfig]);
+
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
     const [activeActionMenu, setActiveActionMenu] = useState(null);
     const [draggedColumn, setDraggedColumn] = useState(null);
 
@@ -147,7 +151,7 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
             start_date: dateRange.from,
             end_date: dateRange.to,
             ...newParams
-        }, { preserveState: true, preserveScroll: true });
+        }, { preserveState: true, preserveScroll: true, replace: true });
     };
 
     const handleServerSearch = (e) => {
@@ -163,6 +167,11 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
         if (newRange.from && newRange.to) {
             applyFilters({ start_date: newRange.from, end_date: newRange.to });
         }
+    };
+
+    const applyFilterType = (type) => {
+        setActiveFilter(type);
+        applyFilters({ filter: type });
     };
 
     // Sorting
@@ -190,11 +199,32 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
     return (
         <OneGlanceLayout title="Returns History" activeMenu="Sell">
             <Head title="Returns History" />
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
                 <SellModuleTabs activeTab="returns" />
 
-                {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                {/* Mobile Stats Toggle/Summary */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-600 dark:text-indigo-400">Total: {stats?.total_returns || 0}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-emerald-600">Refunded: {formatCurrency(stats?.total_refunded || 0)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Stats Cards Section */}
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -233,8 +263,8 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                     </div>
                 </div>
 
-                {/* Header Area */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* PC / Desktop Header Area (Hidden on Mobile) */}
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
@@ -267,18 +297,16 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
 
                     {/* Right: Search + Actions */}
                     <div className="flex items-center gap-2">
-                        <div className="w-52">
-                            <div className="w-64 relative">
-                                <input
-                                    type="text"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    onKeyDown={handleServerSearch}
-                                    placeholder="Search returns..."
-                                    className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
-                                />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                            </div>
+                        <div className="w-64 relative">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search returns..."
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                            />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                         </div>
                         <div className="flex items-center gap-2 border-l border-slate-200 dark:border-slate-700 pl-2">
                             <Link
@@ -295,9 +323,68 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                     </div>
                 </div>
 
-                {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
+                {/* Mobile Layout Header Area */}
+                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between w-full">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Returns History
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filters"
+                            >
+                                <ChevronDown size={16} />
+                            </button>
+                            <Link
+                                href={route('store.returns.create', { store_slug: store.slug })}
+                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                title="New Return"
+                            >
+                                <Plus size={16} />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {showMobileSearch && (
+                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search returns..."
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                            />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {showMobileFilters && (
+                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                <button
+                                    onClick={() => applyFilterType('all')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => applyFilterType('today')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Today</button>
+                            </div>
+                        </div>
+                    )}
+                </div>                {/* Main Table */}
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
@@ -406,6 +493,65 @@ export default function ReturnsHistory({ returns = {}, filters = {}, stats = {} 
                             )}
                         </tbody>
                     </table>
+
+                    {/* Mobile View - Cards List */}
+                    <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
+                        {sortedReturns.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                <RefreshCcw size={32} className="mx-auto text-slate-400 mb-2" />
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No returns found</p>
+                            </div>
+                        ) : (
+                            sortedReturns.map((row) => (
+                                <div
+                                    key={row.id}
+                                    onClick={() => setQuickViewReturn(row)}
+                                    className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-3 active:scale-[0.99] transition-transform cursor-pointer"
+                                >
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.reference_number || `RET-${row.id}`}</span>
+                                            <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                        </div>
+                                        <span className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                            {row.status}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center border-t border-b border-slate-100 dark:border-slate-800/60 py-2.5">
+                                        <div>
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer</p>
+                                            <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{row.customer?.name || 'Walk-in'}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Refund Amount</p>
+                                            <p className="text-sm font-black text-emerald-600 mt-0.5">{formatCurrency(row.total)}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-between items-center text-xs">
+                                        <div>
+                                            Items: <span className="font-bold">{row.items?.length || 0}</span> • Method: <span className="uppercase font-bold">{row.payment_method || '-'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                onClick={() => PrintService.quickPrint(row)}
+                                                className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors border border-slate-100 dark:border-slate-700"
+                                            >
+                                                <Printer size={14} />
+                                            </button>
+                                            <Link
+                                                href={route("store.sales.show", [store.slug, row.id])}
+                                                className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                                            >
+                                                View
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
 
                     {/* Infinite Scroll Sentinel */}
                     <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0">

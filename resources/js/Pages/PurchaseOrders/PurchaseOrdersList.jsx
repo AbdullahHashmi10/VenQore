@@ -19,7 +19,8 @@ import {
     CheckSquare,
     Clock,
     History,
-    Package
+    Package,
+    Filter
 } from 'lucide-react';
 import PurchaseModuleTabs from '@/Components/PurchaseModuleTabs';
 import axios from 'axios';
@@ -73,6 +74,10 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
     // Quick View Modal State
     const [quickViewItem, setQuickViewItem] = useState(null);
     const [clickTimeout, setClickTimeout] = useState(null);
+
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
 
     // Columns Configuration
     const tableColumns = [
@@ -193,8 +198,29 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
             <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
                 <PurchaseModuleTabs activeTab="pre-purchases" />
 
+                {/* Mobile Stats Toggle/Summary */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-600 dark:text-indigo-400">Total: {formatCurrency(totalValue, store)}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-blue-600 dark:text-blue-400">Txns: {totalOrders}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Stats Cards Section - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
@@ -233,8 +259,8 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                     </div>
                 </div>
 
-                {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* PC / Desktop Header Area (Hidden on Mobile) */}
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
@@ -283,9 +309,78 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                     </div>
                 </div>
 
-                {/* Main Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
+                {/* Mobile Layout Header Area */}
+                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between w-full">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Pre-Purchases
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filters"
+                            >
+                                <Filter size={16} />
+                            </button>
+                            <Link
+                                href={route('store.purchase-orders.create', { store_slug: store.slug })}
+                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                title="New Purchase Order"
+                            >
+                                <Plus size={16} />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {showMobileSearch && (
+                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search purchase orders..."
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-shadow outline-none text-slate-800 dark:text-white"
+                            />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {showMobileFilters && (
+                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                <button
+                                    onClick={() => handleFilterChange('all')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => handleFilterChange('pending')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Pending</button>
+                                <button
+                                    onClick={() => handleFilterChange('ordered')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'ordered' ? 'bg-blue-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Ordered</button>
+                                <button
+                                    onClick={() => handleFilterChange('received')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'received' ? 'bg-emerald-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Received</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Main Table Container */}
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 {tableColumns.map((col) => (
@@ -384,6 +479,104 @@ export default function PurchaseOrdersIndex({ orders = {}, stats = {} }) {
                             )}
                         </tbody>
                     </table>
+
+                    {/* Mobile View - Cards List */}
+                    <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
+                        {sortedOrders.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                <ShoppingCart size={32} className="mx-auto text-slate-400 mb-2" />
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No purchase orders found</p>
+                            </div>
+                        ) : (
+                            sortedOrders.map((row) => {
+                                const statusStyles = {
+                                    received: 'bg-emerald-100/50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 border border-emerald-500/20',
+                                    ordered: 'bg-blue-100/50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-500/20',
+                                    pending: 'bg-amber-100/50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 border border-amber-500/20',
+                                    cancelled: 'bg-red-100/50 text-red-700 dark:bg-red-500/10 dark:text-red-400 border border-red-500/20'
+                                };
+                                return (
+                                    <div
+                                        key={row.id}
+                                        onClick={() => handleRowClick(row)}
+                                        className={`
+                                            p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 relative cursor-pointer hover:border-indigo-400 transition-colors
+                                            ${quickViewItem?.id === row.id ? 'ring-2 ring-indigo-500 ring-inset bg-indigo-50/20 dark:bg-indigo-900/10' : ''}
+                                        `}
+                                    >
+                                        {/* Row 1: Supplier Name (Left), Invoice Reference & Date (Right) */}
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm">
+                                                    {row.supplier?.name || 'Unknown Supplier'}
+                                                </h3>
+                                                {row.supplier?.phone && (
+                                                    <p className="text-[10px] text-slate-400 font-semibold">{row.supplier.phone}</p>
+                                                )}
+                                            </div>
+                                            <div className="text-right">
+                                                <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                    {row.reference_number || '-'}
+                                                </span>
+                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                    {formatDate(row.order_date || row.created_at)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Badges (Transaction type & status) */}
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[9px] font-black uppercase bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400 px-2 py-0.5 rounded border border-purple-200/30">
+                                                Pre-Purchase
+                                            </span>
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${statusStyles[row.status] || 'bg-slate-100 text-slate-700'}`}>
+                                                {row.status}
+                                            </span>
+                                        </div>
+
+                                        {/* Row 3: Totals & Action Icons */}
+                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                            <div className="flex items-center gap-6">
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Total</span>
+                                                    <span className="text-xs font-black text-slate-900 dark:text-white">
+                                                        {formatCurrency(row.total_amount, store)}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Items</span>
+                                                    <span className="text-xs font-black text-slate-700 dark:text-slate-350">
+                                                        {row.items?.length || 0}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                {row.status !== 'received' && (
+                                                    <Link
+                                                        href={route('store.purchase-orders.edit', row.id)}
+                                                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-amber-600 transition-colors"
+                                                        title="Edit"
+                                                    >
+                                                        <Edit size={16} />
+                                                    </Link>
+                                                )}
+                                                <Link
+                                                    href={route('store.purchase-orders.show', row.id)}
+                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-indigo-600 dark:text-indigo-400 transition-colors"
+                                                    title="View"
+                                                >
+                                                    <Eye size={16} />
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+
                     {/* Infinite Scroll Sentinel */}
                     <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0">
                         {nextPageUrl ? 'Loading...' : (sortedOrders.length > 0 ? 'End of list' : '')}

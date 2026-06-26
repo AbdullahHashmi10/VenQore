@@ -78,12 +78,15 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
     
     // UI State
     const [searchTerm, setSearchTerm] = useState(params.get('search') || '');
+    const [activeCategory, setActiveCategory] = useState(params.get('category_id') || 'all');
     const [activeActionMenu, setActiveActionMenu] = useState(null);
     const [sortConfig, setSortConfig] = useState({ 
         key: params.get('sort_by') || 'name', 
         direction: params.get('sort_dir') || 'asc' 
     });
     const [draggedColumn, setDraggedColumn] = useState(null);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
 
     // Modal State
     const [selectedProduct, setSelectedProduct] = useState(null);
@@ -120,8 +123,14 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
             search: searchTerm,
             sort_by: sortConfig.key,
             sort_dir: sortConfig.direction,
+            category_id: activeCategory,
             ...newParams
         }, { preserveState: true, preserveScroll: true });
+    };
+
+    const handleCategoryChange = (catId) => {
+        setActiveCategory(catId);
+        applyFilters({ category_id: catId });
     };
 
     // Sorting
@@ -271,14 +280,29 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
 
             <ProductTourGuide isModalOpen={isModalOpen} store={store} categories={categories} />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden relative">
-
-
+            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-y-auto md:overflow-hidden relative">
 
                 <StockModuleTabs activeTab="products" />
 
+                {/* Mobile Stats Toggle */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    {!isStatsExpanded && (
+                        <div className="flex items-center gap-3 text-xs font-extrabold">
+                            <span className="text-indigo-600">{stats?.total_products?.toLocaleString() || 0} Products</span>
+                            <span className="text-amber-600">{stats?.low_stock_count?.toLocaleString() || 0} Low</span>
+                        </div>
+                    )}
+                </div>
+
                 {/* Compact Stats Cards */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -310,20 +334,99 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     </div>
                 </div>
 
-                {/* Header Actions */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
-                    {/* Left: Title */}
+                {/* Category Bar Row - Integrated below stats */}
+                <div
+                    className="bg-white dark:bg-slate-900 px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0 flex items-center gap-2 overflow-x-auto custom-scrollbar select-none"
+                >
+                    <div className="hidden md:flex items-center gap-2 shrink-0">
+                        <Layers size={14} className="text-slate-400" />
+                        <span className="text-xs font-bold text-slate-500 uppercase mr-2">Categories:</span>
+                    </div>
+
+                    <button
+                        onClick={() => handleCategoryChange('all')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+                    >
+                        <span className="md:hidden">All</span>
+                        <span className="hidden md:inline">All Categories</span>
+                    </button>
+
+                    {categories.map(cat => (
+                        <button
+                            key={cat.id}
+                            onClick={() => handleCategoryChange(cat.id)}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${String(activeCategory) === String(cat.id) ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/30' : 'bg-indigo-50 dark:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/30'}`}
+                        >
+                            <span>{cat.name}</span>
+                        </button>
+                    ))}
+                </div>
+
+                {/* Mobile Toolbar */}
+                <div className="md:hidden flex flex-col gap-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between px-3 py-2">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Product <span className="text-indigo-600">Inventory</span>
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <Link
+                                href={route('store.admin.data', { store_slug: store?.slug })}
+                                className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-500 rounded-lg transition-colors"
+                                title="Import/Export"
+                            >
+                                <Upload size={16} />
+                            </Link>
+                            <button
+                                id="tour-add-product"
+                                onClick={handleAddProduct}
+                                className="ml-1 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
+                            >
+                                <Plus size={14} /> Add
+                            </button>
+                        </div>
+                    </div>
+                    {showMobileSearch && (
+                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800 pt-2 animate-in slide-in-from-top duration-200">
+                            <div className="relative w-full flex gap-2">
+                                <div className="relative flex-1">
+                                    <input
+                                        autoFocus
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={handleServerSearch}
+                                        placeholder="Search products..."
+                                        className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                    />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                                </div>
+                                <button
+                                    onClick={() => { applyFilters({ search: searchTerm }); setShowMobileSearch(false); }}
+                                    className="px-3 py-1.5 bg-indigo-600 text-white rounded-xl text-xs font-bold"
+                                >
+                                    Go
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Desktop Header Actions */}
+                <div className="hidden md:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
                             Product <span className="text-indigo-600">Inventory</span>
                         </h1>
                         <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <span className="text-[10px] font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">
-                            List View
-                        </span>
+                        <span className="text-[10px] font-bold uppercase rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 px-2.5 py-1">List View</span>
                     </div>
-
-                    {/* Right: Search + Button */}
                     <div className="flex items-center gap-2">
                         <div className="w-64 relative">
                             <input
@@ -336,32 +439,15 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                             {searchTerm && (
-                                <button
-                                    onClick={() => {
-                                        setSearchTerm('');
-                                        applyFilters({ search: '' });
-                                    }}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                                >
+                                <button onClick={() => { setSearchTerm(''); applyFilters({ search: '' }); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                                     <X size={14} />
                                 </button>
                             )}
                         </div>
-                        <button
-                            onClick={() => applyFilters({ search: searchTerm })}
-                            className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20"
-                        >
-                            Search
-                        </button>
+                        <button onClick={() => applyFilters({ search: searchTerm })} className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20">Search</button>
                         <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <Link href={route('store.admin.data', { store_slug: store?.slug })} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                                <Upload size={16} />
-                            </Link>
-                            <button
-                                id="tour-add-product"
-                                onClick={handleAddProduct}
-                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20"
-                            >
+                            <Link href={route('store.admin.data', { store_slug: store?.slug })} className="p-1.5 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"><Upload size={16} /></Link>
+                            <button id="tour-add-product" onClick={handleAddProduct} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-sm shadow-indigo-500/20">
                                 <Plus size={14} /> Add Product
                             </button>
                         </div>
@@ -373,181 +459,71 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                     <div className="bg-indigo-600 text-white px-4 py-2 rounded-xl flex items-center justify-between shadow-lg animate-in slide-in-from-top-2">
                         <span className="font-bold text-sm">{selectedProducts.length} Selected</span>
                         <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleBulkDelete}
-                                className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors flex items-center gap-1"
-                            >
+                            <button onClick={handleBulkDelete} className="px-3 py-1 bg-white text-indigo-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition-colors flex items-center gap-1">
                                 <Trash2 size={14} /> Delete Selected
                             </button>
-                            <button
-                                onClick={() => setSelectedProducts([])}
-                                className="p-1 hover:bg-indigo-700 rounded transition-colors"
-                            >
-                                <X size={16} />
-                            </button>
+                            <button onClick={() => setSelectedProducts([])} className="p-1 hover:bg-indigo-700 rounded transition-colors"><X size={16} /></button>
                         </div>
                     </div>
                 )}
 
-                {/* Custom Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                {/* Desktop Table */}
+                <div className="hidden md:flex flex-1 flex-col overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 <th className="p-4 w-10">
-                                    <input
-                                        type="checkbox"
-                                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
-                                        checked={selectedProducts.length === sortedProducts.length && sortedProducts.length > 0}
-                                        onChange={handleSelectAll}
-                                    />
+                                    <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" checked={selectedProducts.length === sortedProducts.length && sortedProducts.length > 0} onChange={handleSelectAll} />
                                 </th>
                                 {tableColumns.map((col, index) => (
-                                    <th
-                                        key={col.key}
-                                        draggable
-                                        onDragStart={(e) => handleDragStart(e, index)}
-                                        onDragOver={(e) => handleDragOver(e, index)}
-                                        onDrop={(e) => handleDrop(e, index)}
-                                        onClick={() => col.key !== 'actions' && handleSort(col.key)}
-                                        className={`
-                                            p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider 
-                                            cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors
-                                            ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}
-                                        `}
+                                    <th key={col.key} draggable onDragStart={(e) => handleDragStart(e, index)} onDragOver={(e) => handleDragOver(e, index)} onDrop={(e) => handleDrop(e, index)} onClick={() => col.key !== 'actions' && handleSort(col.key)}
+                                        className={`p-4 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer select-none hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${draggedColumn === index ? 'opacity-50 border-2 border-dashed border-indigo-500' : ''}`}
                                         style={{ width: col.width }}
                                     >
-                                        <div className="flex items-center gap-2">
-                                            {col.label}
-                                            {col.key !== 'actions' && sortConfig.key === col.key && (
-                                                sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />
-                                            )}
-                                        </div>
+                                        <div className="flex items-center gap-2">{col.label}{col.key !== 'actions' && sortConfig.key === col.key && (sortConfig.direction === 'asc' ? <ChevronUp size={14} className="text-indigo-500" /> : <ChevronDown size={14} className="text-indigo-500" />)}</div>
                                     </th>
                                 ))}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {sortedProducts.length === 0 ? (
-                                <tr>
-                                    <td colSpan={tableColumns.length + 1} className="p-12 text-center text-slate-500">
-                                        <div className="flex flex-col items-center justify-center">
-                                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4">
-                                                <Package size={32} className="text-slate-400" />
-                                            </div>
-                                            <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No products found</p>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <tr><td colSpan={tableColumns.length + 1} className="p-12 text-center text-slate-500">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mb-4"><Package size={32} className="text-slate-400" /></div>
+                                        <p className="text-lg font-bold text-slate-700 dark:text-slate-300">No products found</p>
+                                    </div>
+                                </td></tr>
                             ) : (
                                 sortedProducts.map((row) => (
-                                    <tr
-                                        key={row.id}
-                                        className={`
-                                            hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer
-                                            ${selectedProducts.includes(row.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}
-                                        `}
-                                        onClick={() => handleViewProduct(row)}
-                                    >
+                                    <tr key={row.id} className={`hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group cursor-pointer ${selectedProducts.includes(row.id) ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''}`} onClick={() => handleViewProduct(row)}>
                                         <td className="p-4 w-10" onClick={(e) => e.stopPropagation()}>
-                                            <input
-                                                type="checkbox"
-                                                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600"
-                                                checked={selectedProducts.includes(row.id)}
-                                                onChange={() => handleSelectRow(row.id)}
-                                            />
+                                            <input type="checkbox" className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-600" checked={selectedProducts.includes(row.id)} onChange={() => handleSelectRow(row.id)} />
                                         </td>
                                         {tableColumns.map((col) => (
                                             <td key={`${row.id}-${col.key}`} className="p-4 text-sm text-slate-700 dark:text-slate-300">
                                                 {(() => {
                                                     switch (col.key) {
-                                                        case 'name':
-                                                            return (
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">
-                                                                        {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : <Package size={14} className="text-indigo-600 dark:text-indigo-400" />}
+                                                        case 'name': return (<div className="flex items-center gap-3"><div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">{row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : <Package size={14} className="text-indigo-600 dark:text-indigo-400" />}</div><div><p className="font-semibold text-slate-800 dark:text-white">{row.name}</p><p className="text-xs text-slate-400">{row.unit || 'pcs'}</p></div></div>);
+                                                        case 'sku': return row.sku || '-';
+                                                        case 'category': return <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-semibold">{row.category}</span>;
+                                                        case 'available_stock': return (<div className="flex flex-col"><span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>{row.available_stock}</span>{row.reserved_stock > 0 && <span className="text-[10px] text-amber-500">{row.reserved_stock} Rsrvd</span>}</div>);
+                                                        case 'cost_price': return formatCurrency(row.cost_price || 0, store);
+                                                        case 'price': return <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>;
+                                                        case 'status': return (<span className={`px-2 py-1 rounded-full text-[10px] font-bold border ${row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''} ${row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' : ''} ${row.status === 'Out of Stock' ? 'bg-red-50 text-red-600 border-red-200' : ''}`}>{row.status}</span>);
+                                                        case 'actions': return (
+                                                            <div className="relative action-menu-container">
+                                                                <button onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === row.id ? null : row.id); }} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"><MoreVertical size={16} /></button>
+                                                                {activeActionMenu === row.id && (
+                                                                    <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 animate-in zoom-in-95 p-1">
+                                                                        <Link href={route('store.products.variants.index', { store_slug: store?.slug, product: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Layers size={14} /> Variants</Link>
+                                                                        <button onClick={(e) => handleEditProduct(row, e)} className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Edit size={14} /> Edit Details</button>
+                                                                        <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                                                        <button onClick={() => { setActiveActionMenu(null); handleDeleteProduct(row); }} className="w-full text-left px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 text-sm text-red-600"><Trash2 size={14} /> Delete</button>
                                                                     </div>
-                                                                    <div>
-                                                                        <p className="font-semibold text-slate-800 dark:text-white">{row.name}</p>
-                                                                        <p className="text-xs text-slate-400">{row.unit || 'pcs'}</p>
-                                                                    </div>
-                                                                </div>
-                                                            );
-                                                        case 'sku':
-                                                            return row.sku || '-';
-                                                        case 'category':
-                                                            return (
-                                                                <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-semibold">
-                                                                    {row.category}
-                                                                </span>
-                                                            )
-                                                        case 'available_stock':
-                                                            return (
-                                                                <div className="flex flex-col">
-                                                                    <span className={`font-bold ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-slate-700 dark:text-slate-200'}`}>
-                                                                        {row.available_stock}
-                                                                    </span>
-                                                                    {row.reserved_stock > 0 && <span className="text-[10px] text-amber-500">{row.reserved_stock} Rsrvd</span>}
-                                                                </div>
-                                                            );
-                                                        case 'cost_price':
-                                                            return formatCurrency(row.cost_price || 0, store);
-                                                        case 'price':
-                                                            return <span className="font-bold">{formatCurrency(row.price || 0, store)}</span>;
-                                                        case 'status':
-                                                            return (
-                                                                <span className={`
-                                                                    px-2 py-1 rounded-full text-[10px] font-bold border
-                                                                    ${row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : ''}
-                                                                    ${row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' : ''}
-                                                                    ${row.status === 'Out of Stock' ? 'bg-red-50 text-red-600 border-red-200' : ''}
-                                                                `}>
-                                                                    {row.status}
-                                                                </span>
-                                                            );
-                                                        case 'actions':
-                                                            return (
-                                                                <div className="relative action-menu-container">
-                                                                    <button
-                                                                        onClick={(e) => {
-                                                                            e.stopPropagation();
-                                                                            setActiveActionMenu(activeActionMenu === row.id ? null : row.id);
-                                                                        }}
-                                                                        className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
-                                                                    >
-                                                                        <MoreVertical size={16} />
-                                                                    </button>
-
-                                                                    {activeActionMenu === row.id && (
-                                                                        <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-50 animate-in zoom-in-95 p-1">
-                                                                            <Link
-                                                                                href={route('store.products.variants.index', { store_slug: store?.slug, product: row.id })}
-                                                                                className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
-                                                                            >
-                                                                                <Layers size={14} /> Variants
-                                                                            </Link>
-                                                                            <button
-                                                                                onClick={(e) => handleEditProduct(row, e)}
-                                                                                className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"
-                                                                            >
-                                                                                <Edit size={14} /> Edit Details
-                                                                            </button>
-                                                                            <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    setActiveActionMenu(null);
-                                                                                    handleDeleteProduct(row);
-                                                                                }}
-                                                                                className="w-full text-left px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg flex items-center gap-2 text-sm text-red-600"
-                                                                            >
-                                                                                <Trash2 size={14} /> Delete
-                                                                            </button>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            );
-                                                        default:
-                                                            return row[col.key];
+                                                                )}
+                                                            </div>
+                                                        );
+                                                        default: return row[col.key];
                                                     }
                                                 })()}
                                             </td>
@@ -557,10 +533,81 @@ export default function Inventory({ products: serverProducts, filters, stats, wa
                             )}
                         </tbody>
                     </table>
-
-                    {/* Infinite Scroll Sentinel */}
                     <div ref={observerTarget} className="p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0">
                         {nextPageUrl ? 'Loading...' : (sortedProducts.length > 0 ? 'End of list' : '')}
+                    </div>
+                </div>
+
+                {/* Mobile Product Cards */}
+                <div className="md:hidden flex flex-col gap-2 pb-20">
+                    {sortedProducts.length === 0 ? (
+                        <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                            <Package size={32} className="mx-auto text-slate-400 mb-2" />
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No products found</p>
+                            <p className="text-xs text-slate-400 mt-1">Try adjusting your search or add a new product.</p>
+                        </div>
+                    ) : (
+                        sortedProducts.map((row) => (
+                            <div
+                                key={row.id}
+                                className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+                                onClick={() => handleViewProduct(row)}
+                            >
+                                {/* Row 1: Image + Name (Left) | Status (Right) */}
+                                <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="w-10 h-10 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700 shrink-0">
+                                            {row.image ? <img src={row.image} alt="" className="w-full h-full object-cover" /> : <Package size={18} className="text-indigo-600 dark:text-indigo-400" />}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-extrabold text-slate-800 dark:text-white text-sm leading-tight">{row.name}</h3>
+                                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{row.unit || 'pcs'}{row.sku ? ` • ${row.sku}` : ''}</p>
+                                        </div>
+                                    </div>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-black border shrink-0 ${
+                                        row.status === 'In Stock' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                        row.status === 'Low Stock' ? 'bg-amber-50 text-amber-600 border-amber-200' :
+                                        'bg-red-50 text-red-600 border-red-200'
+                                    }`}>{row.status}</span>
+                                </div>
+
+                                {/* Row 2: Category badge */}
+                                {row.category && (
+                                    <div>
+                                        <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50">
+                                            {row.category}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Row 3: Stock + Price + Actions */}
+                                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                    <div className="flex items-center gap-5">
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Stock</span>
+                                            <span className={`text-xs font-black tabular-nums ${row.available_stock < (row.min_stock_alert || 5) ? 'text-red-500' : 'text-slate-800 dark:text-white'}`}>
+                                                {row.available_stock}
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Price</span>
+                                            <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 tabular-nums">{formatCurrency(row.price || 0, store)}</span>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Cost</span>
+                                            <span className="text-xs font-black text-slate-600 dark:text-slate-400 tabular-nums">{formatCurrency(row.cost_price || 0, store)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                        <button onClick={(e) => handleEditProduct(row, e)} className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors" title="Edit"><Edit size={16} /></button>
+                                        <button onClick={() => handleDeleteProduct(row)} className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors" title="Delete"><Trash2 size={16} /></button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                    <div ref={observerTarget} className="py-4 text-center text-slate-400 text-sm">
+                        {nextPageUrl ? 'Loading more...' : ''}
                     </div>
                 </div>
             </div>

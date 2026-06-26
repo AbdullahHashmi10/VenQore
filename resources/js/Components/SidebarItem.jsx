@@ -219,7 +219,7 @@ export default function SidebarItem({
                             'VenSynQ': 'vensynq.index',
                             'VenSynQ Settings': 'vensynq.settings',
                             'WooCommerce Sync': 'store.woocommerce.index',
-                            'E-Invoicing': 'store.e-invoicing.index',
+                            'E-Invoicing (Coming Soon)': 'store.e-invoicing.index',
                             'Bank Reconciliation': 'store.bank-reconciliation.index',
                             'Activity Log': 'store.activity-log.index',
                             'Recycle Bin': 'store.recycle-bin.index',
@@ -256,9 +256,15 @@ export default function SidebarItem({
                                         ? `store.${baseRoute}`
                                         : baseRoute;
 
+                                    const isComingSoon = itemName.includes('Coming Soon');
+
                                     return (
-                                        <FeatureLockBadge key={sIdx} isLocked={locked} showBadge={false}>
-                                            {locked ? (
+                                        <FeatureLockBadge key={sIdx} isLocked={locked || isComingSoon} showBadge={false}>
+                                            {isComingSoon ? (
+                                                <span className="block pl-4 py-1.5 text-xs font-medium text-slate-400 dark:text-slate-600 cursor-pointer">
+                                                    {itemName}
+                                                </span>
+                                            ) : locked ? (
                                                 <button
                                                     onClick={(e) => {
                                                         e.preventDefault();

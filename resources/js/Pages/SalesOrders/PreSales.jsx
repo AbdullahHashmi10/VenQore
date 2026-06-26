@@ -123,26 +123,37 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
     const [quickViewItem, setQuickViewItem] = useState(null);
     const [clickTimeout, setClickTimeout] = useState(null);
 
-    // Handle Click Outside (Existing logic)
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+
+    // Debounced Search Logic
+    const [debouncedSearch] = useMemo(() => {
+        let timer;
+        return [
+            (val) => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    applyServerFilters({ search: val });
+                }, 400);
+            }
+        ];
+    }, [activeFilter, dateRange]);
+
     useEffect(() => {
-        const handleClickOutside = (e) => {
-            if (e.target.closest('.quick-view-modal')) return;
-            setActiveActionMenu(null);
-            setActiveSharePopup(null);
-        };
-        document.addEventListener('click', handleClickOutside);
-        return () => document.removeEventListener('click', handleClickOutside);
-    }, []);
+        if (searchTerm !== (filters?.search || '')) {
+            debouncedSearch(searchTerm);
+        }
+    }, [searchTerm]);
 
     // Keyboard shortcuts
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === 'Escape' && quickViewItem) setQuickViewItem(null);
-            if (e.key === 'Enter') applyServerFilters({ search: searchTerm }); // Global enter search
         };
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [quickViewItem, searchTerm]);
+    }, [quickViewItem]);
 
     // Handle row click
     const handleRowClick = useCallback((row) => {
@@ -167,16 +178,17 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
             from_date: dateRange.from,
             to_date: dateRange.to,
             ...newParams
-        }, { preserveState: true, preserveScroll: true });
+        }, { preserveState: true, preserveScroll: true, replace: true });
     };
 
-    const handleSearch = (val) => {
-        setSearchTerm(val);
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
     };
 
-    const handleServerSearch = (item) => {
-        const val = item ? item.order_number : searchTerm;
-        applyServerFilters({ search: val });
+    const handleServerSearch = (e) => {
+        if (e.key === 'Enter') {
+            applyServerFilters({ search: searchTerm });
+        }
     };
 
     const applyFilterType = (type) => {
@@ -243,11 +255,37 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
     return (
         <OneGlanceLayout title="Pre-Orders" activeMenu="Sell">
             <Head title="Pre-Orders" />
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col min-h-full lg:h-full bg-slate-50 dark:bg-slate-950 p-1 md:p-2 gap-1 lg:overflow-hidden relative">
                 <SellModuleTabs activeTab="pre-sales" />
 
-                {/* Stats Cards - Compact Single Line */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                {/* Mobile Stats Toggle/Summary (Visible below md) */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span className="text-indigo-600 dark:text-indigo-400">Total: {stats?.order_count || 0}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-emerald-600">Confirmed: {stats?.confirmed_count || 0}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-amber-600">Pending: {stats?.pending_count || 0}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-blue-600">Value: {formatCurrency(stats?.total_orders || 0, store)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Stats Cards Section */}
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
@@ -286,8 +324,8 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                     </div>
                 </div>
 
-                {/* Header Area - Compact Single Row */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                {/* PC / Desktop Header Area (Hidden on Mobile) */}
+                <div className="hidden lg:flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
                             Pre-<span className="text-indigo-600">Orders</span>
@@ -308,17 +346,16 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                     </div>
 
                     <div className="flex items-center gap-2">
-                        <div className="w-52">
-                            <SmartCombobox
-                                items={allOrders}
+                        <div className="w-64 relative">
+                            <input
+                                type="text"
                                 value={searchTerm}
-                                onQueryChange={handleSearch}
-                                onSelect={(item) => { handleServerSearch(item); }}
+                                onChange={handleSearch}
+                                onKeyDown={handleServerSearch}
                                 placeholder="Search orders..."
-                                displayKey="order_number"
-                                filterKey="order_number"
-                                inputClassName="py-1.5 text-xs h-9"
+                                className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
                             />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                         </div>
                         <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
                             <Link href={route('store.pre-sales.create', { store_slug: store?.slug })} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 shadow-sm transition-colors">
@@ -328,9 +365,74 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                     </div>
                 </div>
 
+                {/* Mobile Layout Header Area */}
+                <div className="flex lg:hidden flex-col gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <div className="flex items-center justify-between w-full">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Pre-<span className="text-indigo-600">Orders</span>
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filters"
+                            >
+                                <ChevronDown size={16} />
+                            </button>
+                            <Link
+                                href={route('store.pre-sales.create', { store_slug: store?.slug })}
+                                className="p-2 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg transition-colors"
+                                title="New Pre-Order"
+                            >
+                                <Plus size={16} />
+                            </Link>
+                        </div>
+                    </div>
+
+                    {showMobileSearch && (
+                        <div className="w-full relative mt-1 border-t border-slate-100 dark:border-slate-800 pt-2">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={handleSearch}
+                                onKeyDown={handleServerSearch}
+                                placeholder="Search orders..."
+                                className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                            />
+                            <Search className="absolute left-3 top-[65%] -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
+                        </div>
+                    )}
+
+                    {showMobileFilters && (
+                        <div className="w-full mt-1 border-t border-slate-100 dark:border-slate-800 pt-2 flex flex-col gap-2">
+                            <div className="flex flex-wrap gap-1.5">
+                                <button
+                                    onClick={() => applyFilterType('all')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'all' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >All</button>
+                                <button
+                                    onClick={() => applyFilterType('today')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'today' ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Today</button>
+                                <button
+                                    onClick={() => applyFilterType('confirmed')}
+                                    className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${activeFilter === 'confirmed' ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'}`}
+                                >Confirmed</button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Main Orders Table */}
-                <div className="flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
-                    <table className="w-full text-left border-collapse">
+                <div className="flex-1 overflow-auto md:rounded-xl md:border md:border-slate-200 md:dark:border-slate-800 md:shadow-sm bg-transparent md:bg-white md:dark:bg-slate-900">
+                    <table className="hidden md:table w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10">
                                 {tableColumns.map((col, index) => (
@@ -433,8 +535,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                             <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
                                                                                 <div className="py-1">
                                                                                     <Link href={route('store.sales.orders.show', { store_slug: store?.slug, order: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Edit size={14} /> View/Edit</Link>
-                                                                                     <button onClick={async () => {
-                                                                                        // Rule 3: Smart Check
+                                                                                    <button onClick={async () => {
                                                                                         try {
                                                                                             const items = row.items || [];
                                                                                             let isStockAvailable = true;
@@ -448,7 +549,6 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                                                     break;
                                                                                                 }
                                                                                             }
-
                                                                                             if (isStockAvailable) {
                                                                                                 showConfirm?.({
                                                                                                     title: 'Convert Sale?',
@@ -467,8 +567,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                                                 });
                                                                                             }
                                                                                         } catch (err) {
-                                                                                            // Fallback if check fails
-                                                                                                    router.post(route('store.pre-sales.convert', { store_slug: store?.slug, order: row.id }));
+                                                                                                router.post(route('store.pre-sales.convert', { store_slug: store?.slug, order: row.id }));
                                                                                         }
                                                                                     }} className="w-full text-left px-3 py-2 hover:bg-emerald-50 rounded dark:hover:bg-emerald-900/20 flex items-center gap-2 text-sm text-emerald-600"><ShoppingCart size={14} /> Convert To Sale</button>
                                                                                     <button className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Truck size={14} /> Delivery Challan</button>
@@ -482,7 +581,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                                             onConfirm: () => router.post(route('store.sales-orders.cancel', { store_slug: store?.slug, salesOrder: row.id }))
                                                                                         });
                                                                                     }} className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> Cancel Order</button>
-                                                                                     <button onClick={() => { showConfirm?.({ title: 'Delete Pre-Sale?', message: 'Are you sure you want to delete this order? It will be moved to the Recycle Bin.', type: 'error', confirmLabel: 'Delete', onConfirm: () => router.delete(route('store.pre-sales.destroy', { store_slug: store?.slug, order: row.id }), { onSuccess: () => setAllOrders(prev => prev.filter(o => o.id !== row.id)) }) }); }} className="w-full text-left px-3 py-2 hover:bg-red-100 rounded dark:hover:bg-red-900/30 flex items-center gap-2 text-sm text-red-700 dark:text-red-400 font-bold"><Trash2 size={14} /> Delete</button>
+                                                                                    <button onClick={() => { showConfirm?.({ title: 'Delete Pre-Sale?', message: 'Are you sure you want to delete this order? It will be moved to the Recycle Bin.', type: 'error', confirmLabel: 'Delete', onConfirm: () => router.delete(route('store.pre-sales.destroy', { store_slug: store?.slug, order: row.id }), { onSuccess: () => setAllOrders(prev => prev.filter(o => o.id !== row.id)) }) }); }} className="w-full text-left px-3 py-2 hover:bg-red-100 rounded dark:hover:bg-red-900/30 flex items-center gap-2 text-sm text-red-700 dark:text-red-400 font-bold"><Trash2 size={14} /> Delete</button>
                                                                                 </div>
                                                                             </div>
                                                                         )}
@@ -505,6 +604,86 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                             </tr>
                         </tbody>
                     </table>
+
+                    {/* Mobile View - Cards List */}
+                    <div className="md:hidden flex flex-col gap-2 px-0 py-1.5 bg-transparent">
+                        {sortedData.length === 0 ? (
+                            <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                                <ShoppingBag size={32} className="mx-auto text-slate-400 mb-2" />
+                                <p className="text-sm font-bold text-slate-700 dark:text-slate-350">No pre-orders found</p>
+                            </div>
+                        ) : (
+                            sortedData.map((row) => {
+                                const paid = parseFloat(row.paid_amount || 0);
+                                const balance = parseFloat(row.total_amount) - paid;
+                                return (
+                                    <div
+                                        key={row.id}
+                                        onClick={() => handleRowClick(row)}
+                                        className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-3 active:scale-[0.99] transition-transform cursor-pointer"
+                                    >
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <span className="font-mono text-xs text-indigo-600 dark:text-indigo-400 font-bold">{row.order_number}</span>
+                                                <p className="text-[10px] text-slate-400 mt-0.5">{formatDate(row.created_at)}</p>
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider
+                                                ${row.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                  row.status === 'converted' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                                                  row.status === 'cancelled' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                  'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                }
+                                            `}>
+                                                {row.status || 'pending'}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex justify-between items-center border-t border-b border-slate-100 dark:border-slate-800/60 py-2.5">
+                                            <div>
+                                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Customer</p>
+                                                <p className="text-sm font-black text-slate-800 dark:text-white mt-0.5">{row.customer?.name || 'Walk-in'}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Value</p>
+                                                <p className="text-sm font-black text-slate-900 dark:text-white mt-0.5">{formatCurrency(row.total_amount, store)}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center text-xs">
+                                            <div>
+                                                {balance > 1 ? (
+                                                    <span className="text-red-500 font-bold">Due: {formatCurrency(balance, store)}</span>
+                                                ) : balance < -1 ? (
+                                                    <span className="text-blue-600 font-bold">Overpaid: {formatCurrency(Math.abs(balance), store)}</span>
+                                                ) : (
+                                                    <span className="text-emerald-500 font-semibold bg-emerald-50 dark:bg-emerald-950/20 px-2 py-0.5 rounded-full">Settled</span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                                <a
+                                                    href={route("store.sales.print", { store_slug: store.slug, sale: row.id })}
+                                                    target="_blank"
+                                                    className="p-1.5 bg-slate-50 dark:bg-slate-800 rounded-lg text-slate-500 hover:text-indigo-600 transition-colors border border-slate-100 dark:border-slate-700"
+                                                >
+                                                    <Printer size={14} />
+                                                </a>
+                                                <Link
+                                                    href={route('store.sales.orders.show', { store_slug: store?.slug, order: row.id })}
+                                                    className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 transition-colors"
+                                                >
+                                                    View / Edit
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                        {/* Mobile Infinite Scroll Loader */}
+                        <div ref={observerTarget} className="py-4 text-center shrink-0">
+                            {isLoading.current && <span className="text-xs text-slate-400">Loading more...</span>}
+                        </div>
+                    </div>
                 </div>
             </div>
             {/* Quick View Modal - Centered Popup */}

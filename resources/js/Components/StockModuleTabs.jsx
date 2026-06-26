@@ -69,6 +69,7 @@ export default function StockModuleTabs({ activeTab }) {
     };
 
     const [activeGroup, setActiveGroup] = useState(getInitialGroup);
+    const [isCollapsed, setIsCollapsed] = useState(true);
 
     // Update active group if activeTab changes from outside (e.g. navigation)
     useEffect(() => {
@@ -79,74 +80,92 @@ export default function StockModuleTabs({ activeTab }) {
     }, [activeTab]);
 
     return (
-        <div className="flex flex-col lg:flex-row items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm shrink-0">
-            {/* Level 1: Category Selector (Left Side) */}
-            <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full">
-                {groups.map((group) => {
-                    const Icon = group.icon;
-                    const isActive = activeGroup === group.id;
-
-                    return (
-                        <button
-                            key={group.id}
-                            onClick={() => setActiveGroup(group.id)}
-                            className={`
-                                flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
-                                ${isActive
-                                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
-                                }
-                            `}
-                        >
-                            <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
-                            {group.label}
-                        </button>
-                    );
-                })}
+        <div className="flex flex-col lg:flex-row lg:items-center gap-2 lg:gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-2 rounded-2xl shadow-sm shrink-0">
+            {/* Mobile Header Toggle */}
+            <div className="flex lg:hidden items-center justify-between w-full px-1.5 py-1">
+                <div className="flex items-center gap-2">
+                    <Layers size={14} className="text-slate-400" />
+                    <span className="text-xs font-black text-slate-500 uppercase tracking-wider">Stock Navigation Menu</span>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500 transition-colors"
+                >
+                    <ChevronRight size={16} className={`transition-transform duration-200 ${isCollapsed ? 'rotate-90' : '-rotate-90'}`} />
+                </button>
             </div>
 
-            {/* Separator / Arrow */}
-            <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
-                <ChevronRight size={16} />
-            </div>
+            {/* Collapsible Area */}
+            <div className={`flex-col lg:flex-row items-center gap-3 lg:gap-4 w-full lg:w-auto lg:flex-1 ${isCollapsed ? 'hidden lg:flex' : 'flex'}`}>
+                {/* Level 1: Category Selector (Left Side) */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-xl shrink-0 overflow-x-auto max-w-full w-full lg:w-auto">
+                    {groups.map((group) => {
+                        const Icon = group.icon;
+                        const isActive = activeGroup === group.id;
 
-            {/* Level 2: Navigation Items (Right Side) */}
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full lg:w-auto flex-1 mask-linear-fade">
-                {groups.find(g => g.id === activeGroup)?.items.map((tab) => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
+                        return (
+                            <button
+                                key={group.id}
+                                onClick={() => setActiveGroup(group.id)}
+                                className={`
+                                    flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap
+                                    ${isActive
+                                        ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5 dark:ring-white/10'
+                                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-700/50'
+                                    }
+                                `}
+                            >
+                                <Icon size={14} className={isActive ? 'opacity-100' : 'opacity-70'} />
+                                {group.label}
+                            </button>
+                        );
+                    })}
+                </div>
 
-                    return (
-                        <FeatureLockBadge key={tab.id} isLocked={tab.locked} showBadge={false}>
-                            {tab.locked ? (
-                                <div
-                                    className={`
-                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap cursor-not-allowed
-                                        text-slate-400 dark:text-slate-600 border-transparent
-                                    `}
-                                >
-                                    <Icon size={14} />
-                                    {tab.label}
-                                    <span className="text-[9px] px-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 ml-1">LOCK</span>
-                                </div>
-                            ) : (
-                                <Link
-                                    href={tab.href}
-                                    className={`
-                                        flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap
-                                        ${isActive
-                                            ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-semibold'
-                                            : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
-                                        }
-                                    `}
-                                >
-                                    <Icon size={14} />
-                                    {tab.label}
-                                </Link>
-                            )}
-                        </FeatureLockBadge>
-                    );
-                })}
+                {/* Separator / Arrow */}
+                <div className="hidden lg:flex items-center text-slate-300 dark:text-slate-600">
+                    <ChevronRight size={16} />
+                </div>
+
+                {/* Level 2: Navigation Items (Right Side) */}
+                <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full lg:w-auto flex-1 mask-linear-fade">
+                    {groups.find(g => g.id === activeGroup)?.items.map((tab) => {
+                        const Icon = tab.icon;
+                        const isActive = activeTab === tab.id;
+
+                        return (
+                            <FeatureLockBadge key={tab.id} isLocked={tab.locked} showBadge={false}>
+                                {tab.locked ? (
+                                    <div
+                                        className={`
+                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap cursor-not-allowed
+                                            text-slate-400 dark:text-slate-600 border-transparent
+                                        `}
+                                    >
+                                        <Icon size={14} />
+                                        {tab.label}
+                                        <span className="text-[9px] px-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-500 ml-1">LOCK</span>
+                                    </div>
+                                ) : (
+                                    <Link
+                                        href={tab.href}
+                                        className={`
+                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap
+                                            ${isActive
+                                                ? 'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-400 font-semibold'
+                                                : 'bg-transparent border-transparent text-slate-600 hover:bg-slate-50 hover:border-slate-200 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-700'
+                                            }
+                                        `}
+                                    >
+                                        <Icon size={14} />
+                                        {tab.label}
+                                    </Link>
+                                )}
+                            </FeatureLockBadge>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

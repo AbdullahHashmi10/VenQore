@@ -32,7 +32,10 @@ import {
     User,
     Building2,
     Monitor,
-    AlertTriangle
+    AlertTriangle,
+    Filter,
+    History,
+    CornerUpRight
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -277,6 +280,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
     const [isDragging, setIsDragging] = useState(false);
     const [startX, setStartX] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
+    const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+    const [showMobileSearch, setShowMobileSearch] = useState(false);
+    const [showMobileFilters, setShowMobileFilters] = useState(false);
 
     // Column Config
     // Parse URL params for sync
@@ -412,6 +418,13 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
             };
             container.addEventListener('wheel', handleWheel, { passive: false });
             return () => container.removeEventListener('wheel', handleWheel);
+        }
+    }, []);
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(window.location.search);
+        if (queryParams.get('action') === 'add') {
+            handleCreate();
         }
     }, []);
 
@@ -581,11 +594,32 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
         <OneGlanceLayout title="Expenses" activeMenu="Money">
             <Head title="Expenses" />
 
-            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden">
+            <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-y-auto md:overflow-hidden">
                 <MoneyModuleTabs activeTab="expenses" />
 
+                {/* Mobile Stats Toggle/Summary */}
+                <div className="flex md:hidden items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    <button
+                        onClick={() => setIsStatsExpanded(!isStatsExpanded)}
+                        className="flex items-center gap-1.5 text-xs font-bold text-slate-500 uppercase text-left shrink-0 mr-2"
+                    >
+                        <span>Stats Summary</span>
+                        <ChevronDown size={16} className={`transition-transform duration-200 ${isStatsExpanded ? 'rotate-180' : ''}`} />
+                    </button>
+                    
+                    {!isStatsExpanded && (
+                        <div className="flex flex-col gap-1 items-end text-xs font-extrabold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                                <span className="text-rose-605 dark:text-rose-400">Today: {formatCurrency(stats.today)}</span>
+                                <span className="text-slate-300 dark:text-slate-700">|</span>
+                                <span className="text-purple-605 dark:text-purple-400">Month: {formatCurrency(stats.month)}</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
                 {/* Stats Cards - Compact Row */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0">
+                <div className={`grid grid-cols-2 md:grid-cols-4 gap-1 shrink-0 ${isStatsExpanded ? 'grid' : 'hidden md:grid'}`}>
                     <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
@@ -633,7 +667,8 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     onMouseMove={handleMouseMove}
                     className="bg-white dark:bg-slate-900 px-2 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0 flex items-center gap-2 overflow-x-auto custom-scrollbar cursor-grab active:cursor-grabbing select-none"
                 >
-                    <div className="flex items-center gap-2 shrink-0">
+                    {/* Label: hidden on mobile */}
+                    <div className="hidden md:flex items-center gap-2 shrink-0">
                         <Layers size={14} className="text-slate-400" />
                         <span className="text-xs font-bold text-slate-500 uppercase mr-2">Categories:</span>
                     </div>
@@ -651,7 +686,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                     if (e.key === 'Escape') setIsCreatingCategory(false);
                                 }}
                                 placeholder="Category Name"
-                                className="w-56 px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-indigo-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none transition-all shadow-sm"
+                                className="w-40 md:w-56 px-3 py-1.5 text-xs font-semibold bg-white dark:bg-slate-800 border border-indigo-300 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 outline-none transition-all shadow-sm"
                             />
                             <div className="flex items-center gap-1">
                                 <button
@@ -671,12 +706,23 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                             </div>
                         </div>
                     ) : (
-                        <button
-                            onClick={() => setIsCreatingCategory(true)}
-                            className="px-3 py-1.5 rounded-lg text-xs font-bold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all whitespace-nowrap flex items-center gap-1"
-                        >
-                            <Plus size={12} /> Add Category
-                        </button>
+                        <>
+                            {/* Desktop: full label button */}
+                            <button
+                                onClick={() => setIsCreatingCategory(true)}
+                                className="hidden md:flex px-3 py-1.5 rounded-lg text-xs font-bold border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all whitespace-nowrap items-center gap-1"
+                            >
+                                <Plus size={12} /> Add Category
+                            </button>
+                            {/* Mobile: icon-only button */}
+                            <button
+                                onClick={() => setIsCreatingCategory(true)}
+                                className="md:hidden p-1.5 rounded-lg border border-dashed border-slate-300 dark:border-slate-600 text-slate-500 hover:text-indigo-600 hover:border-indigo-300 hover:bg-indigo-50 transition-all shrink-0"
+                                title="Add Category"
+                            >
+                                <Plus size={14} />
+                            </button>
+                        </>
                     )}
 
                     <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-1 shrink-0"></div>
@@ -685,7 +731,9 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         onClick={() => handleCategoryChange('all')}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeCategory === 'all' ? 'bg-slate-800 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'}`}
                     >
-                        All Categories
+                        {/* Mobile: shorter label */}
+                        <span className="md:hidden">All</span>
+                        <span className="hidden md:inline">All Categories</span>
                     </button>
 
                     {categories.map(cat => (
@@ -699,30 +747,125 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                     ))}
                 </div>
 
-                {/* Main Content Area */}
-                <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                    {/* Toolbar */}
-                    <div className="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/50">
-                        <div className="flex items-center gap-2">
-                            <div className="w-64 relative">
+                {/* Mobile Toolbar (hidden on desktop) */}
+                <div className="md:hidden flex flex-col gap-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                    {/* Title row + icon buttons */}
+                    <div className="flex items-center justify-between px-3 py-2">
+                        <h1 className="text-sm font-black text-slate-800 dark:text-white uppercase tracking-tight">
+                            Expenses <span className="text-rose-600">Transactions</span>
+                        </h1>
+                        <div className="flex items-center gap-1">
+                            <button
+                                onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Search"
+                            >
+                                <Search size={16} />
+                            </button>
+                            <button
+                                onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                title="Filter"
+                            >
+                                <Filter size={16} />
+                            </button>
+                            <button
+                                id="tour-expense-create-btn-mobile"
+                                onClick={handleCreate}
+                                className="ml-1 px-3.5 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
+                            >
+                                <Plus size={14} /> Record
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Expandable Search */}
+                    {showMobileSearch && (
+                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800 pt-2 animate-in slide-in-from-top duration-200">
+                            <div className="relative w-full">
                                 <input
+                                    autoFocus
                                     type="text"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     onKeyDown={handleServerSearch}
                                     placeholder="Search expenses..."
-                                    className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                    className="w-full pl-9 pr-4 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
                                 />
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                            </div>
-
-                            <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
-                                <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
-                                <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={14} />
                             </div>
                         </div>
+                    )}
 
-                        <div className="flex items-center gap-2">
+                    {/* Expandable Filters */}
+                    {showMobileFilters && (
+                        <div className="px-3 pb-2 border-t border-slate-100 dark:border-slate-800 pt-2 animate-in slide-in-from-top duration-200 flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Period:</span>
+                                <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 gap-1 flex-1">
+                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>All</button>
+                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                    <button onClick={() => { handleFilterChange('month'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'month' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Month</button>
+                                    <button onClick={() => { handleFilterChange('year'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'year' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Year</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Main Content Area - Desktop table / Mobile cards below */}
+                <div className="hidden md:flex flex-col flex-1 min-h-0 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                    {/* Toolbar */}
+                    <div className="p-2 md:p-3 border-b border-slate-200 dark:border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-2 bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
+                        {/* Left/Top actions: Search & Filters (Desktop) / Mobile Toggle Buttons */}
+                        <div className="flex items-center justify-between md:justify-start gap-2 w-full md:w-auto">
+                            <div className="hidden md:flex items-center gap-2">
+                                <div className="w-64 relative">
+                                    <input
+                                        type="text"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        onKeyDown={handleServerSearch}
+                                        placeholder="Search expenses..."
+                                        className="w-full pl-9 pr-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                    />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                                </div>
+
+                                <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1">
+                                    <button onClick={() => handleFilterChange('all')} className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
+                                    <button onClick={() => handleFilterChange('today')} className={`px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                </div>
+                            </div>
+
+                            {/* Mobile Toggle Buttons */}
+                            <div className="flex md:hidden items-center gap-1">
+                                <button
+                                    onClick={() => { setShowMobileSearch(!showMobileSearch); if (showMobileFilters) setShowMobileFilters(false); }}
+                                    className={`p-2 rounded-lg transition-colors ${showMobileSearch ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                >
+                                    <Search size={18} />
+                                </button>
+                                <button
+                                    onClick={() => { setShowMobileFilters(!showMobileFilters); if (showMobileSearch) setShowMobileSearch(false); }}
+                                    className={`p-2 rounded-lg transition-colors ${showMobileFilters ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'}`}
+                                >
+                                    <Filter size={18} />
+                                </button>
+                            </div>
+
+                            <button
+                                id="tour-expense-create-btn-mobile"
+                                onClick={handleCreate}
+                                className="md:hidden px-3.5 py-2 bg-gradient-to-r from-rose-600 to-orange-600 hover:from-rose-700 hover:to-orange-700 text-white rounded-lg flex items-center gap-1.5 transition-all shadow-md active:scale-95 font-bold text-xs"
+                            >
+                                <Plus size={14} />
+                                Record
+                            </button>
+                        </div>
+
+                        {/* Desktop Create Button */}
+                        <div className="hidden md:flex items-center gap-2">
                             <button
                                 id="tour-expense-create-btn"
                                 onClick={handleCreate}
@@ -734,9 +877,39 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         </div>
                     </div>
 
-                    {/* Table */}
-                    <div className="flex-1 overflow-auto">
-                        <table className="w-full text-left border-collapse">
+                    {/* Mobile Expandable Search */}
+                    {showMobileSearch && (
+                        <div className="md:hidden px-3 py-2 border-b border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 animate-in slide-in-from-top duration-200 w-full">
+                            <div className="relative w-full">
+                                <input
+                                    type="text"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    onKeyDown={handleServerSearch}
+                                    placeholder="Search expenses..."
+                                    className="w-full pl-9 pr-4 py-2 text-sm bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow outline-none"
+                                />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Mobile Expandable Filters */}
+                    {showMobileFilters && (
+                        <div className="md:hidden px-3 py-2.5 border-b border-slate-150 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 animate-in slide-in-from-top duration-200 flex flex-col gap-2 w-full">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Time:</span>
+                                <div className="flex bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 p-1 flex-1">
+                                    <button onClick={() => { handleFilterChange('all'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'all' ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white' : 'text-slate-400 hover:text-slate-600'}`}>All Time</button>
+                                    <button onClick={() => { handleFilterChange('today'); setShowMobileFilters(false); }} className={`flex-1 text-center py-1 rounded text-[10px] font-bold uppercase transition-colors ${activeFilter === 'today' ? 'bg-rose-100 dark:bg-rose-900/20 text-rose-600' : 'text-slate-400 hover:text-slate-600'}`}>Today</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Table / List View */}
+                    <div className="flex-1 overflow-auto hidden md:block">
+                        <table className="hidden md:table w-full text-left border-collapse">
                             <thead className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                                 <tr>
                                     <th onClick={() => handleSort('date')} className="p-4 text-xs font-bold text-slate-500 uppercase cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors w-[12%]">
@@ -804,23 +977,210 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                                 )}
                             </tbody>
                         </table>
-                        <div ref={observerTarget} className="mt-4 p-4 text-center text-slate-400 text-sm opacity-0 h-4">
+
+                        {/* Mobile View - Cards List (hidden — rendered outside this container for natural page scroll) */}
+                        <div className="hidden">
+                            {sortedExpenses.length === 0 ? (
+                                <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800 mx-2">
+                                    <Layers size={32} className="mx-auto text-slate-400 mb-2" />
+                                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No expenses found</p>
+                                </div>
+                            ) : (
+                                sortedExpenses.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className="p-3 mx-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex flex-col gap-2 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
+                                        onClick={() => handleEdit(item)}
+                                    >
+                                        {/* Row 1: Description/Payee (Left), Reference & Date (Right) */}
+                                        <div className="flex items-start justify-between">
+                                            <div>
+                                                <h3 className="font-extrabold text-slate-800 dark:text-white text-sm leading-tight">
+                                                    {item.description || 'No description'}
+                                                </h3>
+                                                {item.payee && (
+                                                    <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{item.payee}</p>
+                                                )}
+                                            </div>
+                                            <div className="text-right shrink-0 ml-2">
+                                                {item.reference && (
+                                                    <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                        {item.reference}
+                                                    </span>
+                                                )}
+                                                <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                                    {formatDate(item.date)}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Row 2: Category badge + payment method badge */}
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                                {item.category || 'Uncategorized'}
+                                            </span>
+                                            {item.payment_method && (
+                                                <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
+                                                    {item.payment_method}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Row 3: Amount (Left) + Action Icons (Right) */}
+                                        <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                            <div className="flex items-center gap-6">
+                                                <div>
+                                                    <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
+                                                    <span className="text-xs font-black text-rose-600 dark:text-rose-400 tabular-nums">
+                                                        {formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}
+                                                    </span>
+                                                </div>
+                                                {parseFloat(item.tax_amount) > 0 && (
+                                                    <div>
+                                                        <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
+                                                        <span className="text-xs font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                                                            {formatCurrency(item.tax_amount)}
+                                                        </span>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Action Buttons */}
+                                            <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                                <button
+                                                    onClick={() => handleEdit(item)}
+                                                    className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <Edit size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteClick(item.id)}
+                                                    className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* Desktop infinite scroll observer */}
+                        <div ref={observerTarget} className="hidden md:block mt-4 p-4 text-center text-slate-400 text-sm opacity-0 h-4">
                             {nextPageUrl ? 'Loading...' : ''}
                         </div>
+                    </div>
+                </div>
+
+                {/* Mobile Cards - outside the container so page scrolls freely */}
+                <div className="md:hidden flex flex-col gap-2 pb-20">
+                    {sortedExpenses.length === 0 ? (
+                        <div className="bg-white dark:bg-slate-900 rounded-xl p-8 text-center border border-slate-200 dark:border-slate-800">
+                            <Layers size={32} className="mx-auto text-slate-400 mb-2" />
+                            <p className="text-sm font-bold text-slate-700 dark:text-slate-300">No expenses found</p>
+                            <p className="text-xs text-slate-400 mt-1">Try adjusting filters or record a new expense.</p>
+                        </div>
+                    ) : (
+                        sortedExpenses.map((item) => (
+                            <div
+                                key={item.id}
+                                className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col gap-2 cursor-pointer hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+                                onClick={() => handleEdit(item)}
+                            >
+                                {/* Row 1: Description/Payee (Left), Reference & Date (Right) */}
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <h3 className="font-extrabold text-slate-800 dark:text-white text-sm leading-tight">
+                                            {item.description || 'No description'}
+                                        </h3>
+                                        {item.payee && (
+                                            <p className="text-[10px] text-slate-400 font-semibold mt-0.5">{item.payee}</p>
+                                        )}
+                                    </div>
+                                    <div className="text-right shrink-0 ml-2">
+                                        {item.reference && (
+                                            <span className="font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
+                                                {item.reference}
+                                            </span>
+                                        )}
+                                        <span className="text-[10px] text-slate-400 font-semibold block mt-0.5">
+                                            {formatDate(item.date)}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Row 2: Category badge + payment method badge */}
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[9px] font-black uppercase bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-400 px-2 py-0.5 rounded border border-rose-200/30">
+                                        {item.category || 'Uncategorized'}
+                                    </span>
+                                    {item.payment_method && (
+                                        <span className="text-[9px] font-black uppercase bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 px-2 py-0.5 rounded border border-slate-200/50 dark:border-slate-700/50">
+                                            {item.payment_method}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Row 3: Amount + Tax (Left) | Actions (Right) */}
+                                <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800/60 pt-2 mt-1">
+                                    <div className="flex items-center gap-6">
+                                        <div>
+                                            <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Amount</span>
+                                            <span className="text-xs font-black text-rose-600 dark:text-rose-400 tabular-nums">
+                                                {formatCurrency(parseFloat(item.amount) + (parseFloat(item.tax_amount) || 0))}
+                                            </span>
+                                        </div>
+                                        {parseFloat(item.tax_amount) > 0 && (
+                                            <div>
+                                                <span className="text-[9px] text-slate-400 font-bold uppercase block tracking-wider">Tax</span>
+                                                <span className="text-xs font-black text-amber-600 dark:text-amber-400 tabular-nums">
+                                                    {formatCurrency(item.tax_amount)}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                                        <button
+                                            onClick={() => handleEdit(item)}
+                                            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                            title="Edit"
+                                        >
+                                            <Edit size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteClick(item.id)}
+                                            className="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg text-slate-400 hover:text-rose-600 transition-colors"
+                                            title="Delete"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+
+                    {/* Mobile infinite scroll observer */}
+                    <div ref={observerTarget} className="py-4 text-center text-slate-400 text-sm">
+                        {nextPageUrl ? 'Loading more...' : ''}
                     </div>
                 </div>
             </div>
 
             {/* -- Modern Pro Expense Modal -- */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6" style={{ backdropFilter: 'blur(16px)', backgroundColor: 'rgba(15, 23, 42, 0.85)' }}>
-                    <div className="relative w-full max-w-[95vw] 2xl:max-w-[1500px] bg-slate-50 dark:bg-slate-900 rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500" style={{ maxHeight: '96vh' }}>
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-6" style={{ backdropFilter: 'blur(16px)', backgroundColor: 'rgba(15, 23, 42, 0.85)' }}>
+                    <div className="relative w-full max-w-[95vw] 2xl:max-w-[1500px] h-full sm:h-auto sm:max-h-[96vh] bg-slate-50 dark:bg-slate-900 rounded-none sm:rounded-3xl shadow-[0_0_80px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-500">
 
                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-emerald-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/2 pointer-events-none" />
 
                         {/* -- Header -- */}
-                        <div className="relative z-10 px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/90 backdrop-blur-xl">
+                        <div className="relative z-10 px-4 sm:px-8 py-4 sm:py-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/90 backdrop-blur-xl">
                             <div className="flex items-center gap-6">
                                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-800 flex items-center justify-center shadow-xl shadow-indigo-500/30 transform transition-transform hover:rotate-3 duration-300">
                                     <Receipt size={28} className="text-white" />
@@ -858,7 +1218,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         </div>
 
                         {/* -- Body -- */}
-                        <div className="relative z-10 flex-1 overflow-y-auto px-8 py-8 custom-scrollbar">
+                        <div className="relative z-10 flex-1 overflow-y-auto px-4 sm:px-8 py-4 sm:py-8 custom-scrollbar">
                             {errors && Object.keys(errors).length > 0 && (
                                 <div className="mb-6 p-6 rounded-[2rem] bg-rose-500/10 border-2 border-rose-500/20 dark:bg-rose-950/20 dark:border-rose-500/30 text-rose-600 dark:text-rose-400 animate-in slide-in-from-top-4 duration-300">
                                     <div className="flex items-center gap-3 mb-3">
@@ -1124,7 +1484,7 @@ export default function ExpensesIndex({ expenses = [], categories = [], stats = 
                         </div>
 
                         {/* -- Footer -- */}
-                        <div className="relative z-20 px-8 py-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div className="relative z-20 px-4 sm:px-8 py-4 sm:py-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6">
                             <div className="flex items-center gap-8">
                                 <div className="flex flex-col">
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-2">Total Payable</p>

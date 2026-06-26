@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import FeatureLockBadge from '@/Components/FeatureLockBadge';
 import {
     Plus,
     ClipboardList,
@@ -47,7 +48,7 @@ export default function SellModuleTabs({ activeTab }) {
             label: 'Config',
             icon: Settings,
             items: [
-                { id: 'e-invoicing', label: 'E-Invoicing', href: getRoute('store.e-invoicing.index'), icon: FileText, locked: !store?.features?.e_invoicing }
+                { id: 'e-invoicing', label: 'E-Invoicing (Coming Soon)', href: getRoute('store.e-invoicing.index'), icon: FileText, locked: true }
             ]
         }
     ];
@@ -138,7 +139,22 @@ export default function SellModuleTabs({ activeTab }) {
                     {groups.find(g => g.id === activeGroup)?.items.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
+                        const isComingSoon = tab.label.includes('Coming Soon');
                         const isLocked = tab.locked;
+
+                        if (isComingSoon) {
+                            return (
+                                <FeatureLockBadge key={tab.id} isLocked={true} showBadge={false}>
+                                    <button
+                                        type="button"
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap bg-transparent border-transparent text-slate-400 dark:text-slate-600 cursor-pointer"
+                                    >
+                                        <Icon size={14} />
+                                        <span>{tab.label}</span>
+                                    </button>
+                                </FeatureLockBadge>
+                            );
+                        }
 
                         if (isLocked) {
                             return (

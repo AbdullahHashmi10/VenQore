@@ -54,7 +54,9 @@ import {
     UserCog,
     Layers,
     Zap,
-    MoreVertical
+    MoreVertical,
+    Plus,
+    Factory
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -262,6 +264,102 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         return '#';
     };
 
+    // Tap-and-hold / Long-press handling state for Dropdowns
+    const [activeDropdown, setActiveDropdown] = useState(null); // 'sales' | 'purchases' | 'dashboard' | 'expenses' | 'stock' | null
+    const pressTimerRef = useRef(null);
+    const wasLongPressRef = useRef(false);
+
+    const startPress = (menuKey) => {
+        wasLongPressRef.current = false;
+        pressTimerRef.current = setTimeout(() => {
+            wasLongPressRef.current = true;
+            setActiveDropdown(menuKey);
+        }, 400); // 400ms long-press duration
+    };
+
+    const cancelPress = () => {
+        if (pressTimerRef.current) {
+            clearTimeout(pressTimerRef.current);
+        }
+    };
+
+    const handleLinkClick = (menuKey, defaultRouteName) => (e) => {
+        if (wasLongPressRef.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            wasLongPressRef.current = false;
+            return;
+        }
+        // Direct click normal behavior
+        router.visit(getMobileTabUrl(defaultRouteName));
+    };
+
+    const getDropdownOptions = (menuKey) => {
+        switch (menuKey) {
+            case 'sales':
+                return [
+                    { label: 'Invoices List', href: 'store.sales.index', icon: <FileText size={14} /> },
+                    { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
+                    { label: 'Sales Orders', href: 'store.pre-sales.index', icon: <ShoppingCart size={14} /> },
+                    { label: 'Proposals', href: 'store.proposals.index', icon: <FileText size={14} /> },
+                    { label: 'Return History', href: 'store.returns-history.index', icon: <History size={14} /> },
+                    { label: 'Invoice Reminders', href: 'store.invoice-reminders.index', icon: <Clock size={14} /> },
+                    { label: 'Recurring Invoices', href: 'store.recurring-invoices.index', icon: <RefreshCcw size={14} /> },
+                ];
+            case 'purchases':
+                return [
+                    { label: 'Purchases List', href: 'store.purchases.index', icon: <ShoppingBag size={14} /> },
+                    { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
+                    { label: 'Purchase Orders', href: 'store.purchase-orders.index', icon: <FileText size={14} /> },
+                    { label: 'Debit Notes', href: 'store.debit-notes.index', icon: <CreditCard size={14} /> },
+                ];
+            case 'dashboard':
+                return [
+                    { label: 'Business Dashboard', href: 'store.dashboard', icon: <LayoutDashboard size={14} /> },
+                    { label: 'Point of Sale (POS)', href: 'store.pos', icon: <Monitor size={14} /> },
+                    { label: 'New Sale', href: 'store.sales.create', icon: <Plus size={14} /> },
+                    { label: 'New Purchase', href: 'store.purchases.create', icon: <Plus size={14} /> },
+                    { label: 'New Expense', action: 'expense-modal', icon: <CreditCard size={14} /> },
+                    { label: 'All Parties', href: 'store.parties.index', icon: <Users size={14} /> },
+                    { label: 'All Inventory', href: 'store.inventory.index', icon: <Box size={14} /> },
+                ];
+            case 'expenses':
+                return [
+                    { label: 'Expenses List', href: 'store.expenses.index', icon: <CreditCard size={14} /> },
+                    { label: 'New Expense', action: 'expense-modal', icon: <Plus size={14} /> },
+                ];
+            case 'stock':
+                return [
+                    { label: 'Products List', href: 'store.inventory.index', icon: <Box size={14} /> },
+                    { label: 'Categories', href: 'store.categories.index', icon: <Layers size={14} /> },
+                    { label: 'Attributes', href: 'store.attributes.index', icon: <Settings size={14} /> },
+                    { label: 'Stock Levels', href: 'store.inventory.stock-levels', icon: <BarChart2 size={14} /> },
+                    { label: 'Stock Adjustments', href: 'store.stock-operations', query: { tab: 'adjustments' }, icon: <Layers size={14} /> },
+                    { label: 'Warehouses', href: 'store.stock-operations', query: { tab: 'warehouses' }, icon: <Box size={14} /> },
+                    { label: 'Stock Transfers', href: 'store.stock-transfers.index', icon: <RefreshCcw size={14} /> },
+                    { label: 'Stock Audit', href: 'store.stock-takes.index', icon: <Search size={14} /> },
+                    { label: 'Batch Tracking', href: 'store.batches.index', icon: <Package size={14} /> },
+                    { label: 'Serial Tracking', href: 'store.serials.index', icon: <Package size={14} /> },
+                    { label: 'Production', href: 'store.production.index', icon: <Factory size={14} /> },
+                    { label: 'Cookbook', href: 'store.cookbook.index', icon: <BookOpen size={14} /> },
+                ];
+            default:
+                return [];
+        }
+    };
+
+    const handleOptionClick = (option) => {
+        setActiveDropdown(null);
+        if (option.action === 'expense-modal') {
+            router.visit(route('store.expenses.index', { store_slug: store?.slug }) + '?action=add');
+            return;
+        }
+        if (option.href) {
+            const url = route(option.href, { store_slug: store?.slug, ...(option.query || {}) });
+            router.visit(url);
+        }
+    };
+
     // Track if sidebar was expanded via hover (vs manual click)
     const wasHoverExpandedRef = useRef(false);
     const sidebarRef = useRef(null);
@@ -390,7 +488,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             subs: props.auth?.user?.role === 'cashier' ? [] : [
                 { group: 'Transactions', items: ['Orders', 'Quotations / Pre-Sales', 'Proposals'] },
                 { group: 'Post-Sale', items: ['Returns History', { label: 'Invoice Reminders', locked: !store?.features?.invoice_reminders }, { label: 'Recurring Invoices', locked: !store?.features?.recurring_invoices }] },
-                { group: 'Config', items: [{ label: 'E-Invoicing', locked: !store?.features?.e_invoicing }] }
+                { group: 'Config', items: [{ label: 'E-Invoicing (Coming Soon)', locked: true }] }
             ],
             route: store ? 'store.sales.dashboard' : 'sales.dashboard',
             routeParams: store ? { store_slug: store.slug } : {}
@@ -1573,20 +1671,50 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             <VersionChecker />
             <OnboardingDriver />
             <GlobalOnboardingWidget store={store} />
-            {/* Mobile Bottom Navigation Bar (lg:hidden) */}
+            
+            {/* Mobile Bottom Navigation Bar */}
             {showMobileNavBar && (
-                <div className="lg:hidden fixed bottom-5 left-4 right-4 z-[80] animate-in slide-in-from-bottom-6 cubic-bezier(0.16, 1, 0.3, 1) duration-500">
+                <div className="lg:hidden fixed bottom-5 left-4 right-4 z-[100] animate-in slide-in-from-bottom-6 cubic-bezier(0.16, 1, 0.3, 1) duration-500">
                     <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/40 dark:border-slate-800/60 rounded-3xl shadow-[0_16px_36px_rgba(0,0,0,0.08)] dark:shadow-[0_16px_36px_rgba(0,0,0,0.4)] px-3 py-2 flex items-center justify-between gap-1 relative">
                         
+                        {/* Upward Drop-up Menu */}
+                        {activeDropdown && (
+                            <>
+                                <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-xs transition-opacity" onClick={() => setActiveDropdown(null)} />
+                                <div className="absolute left-3 right-3 bottom-[4.5rem] bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-3 z-[120] animate-in slide-in-from-bottom-2 duration-200 max-h-[60vh] overflow-y-auto">
+                                    <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-100 dark:border-slate-800">
+                                        <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                                            {activeDropdown} Options
+                                        </span>
+                                        <button onClick={() => setActiveDropdown(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full text-slate-400 dark:text-slate-500">
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {getDropdownOptions(activeDropdown).map((option, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => handleOptionClick(option)}
+                                                className="flex items-center gap-2 px-3 py-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-150/50 dark:border-slate-800/80 text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl transition-all text-left text-xs font-extrabold"
+                                            >
+                                                <span className="text-slate-400 shrink-0">{option.icon}</span>
+                                                <span className="truncate">{option.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            </>
+                        )}
+
                         {/* Glowing Bud Toggle for Mobile FABs */}
-                        <div className="absolute -top-3 right-6 z-[90]">
+                        <div className="absolute -top-3 right-6 z-[105]">
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
                                     setIsMobileFabsOpen(!isMobileFabsOpen);
                                 }}
                                 id="mobile-fabs-toggle-bud"
-                                className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-950/90 border border-slate-200/85 dark:border-indigo-500/40 flex items-center gap-1 text-slate-800 dark:text-white shadow-lg shadow-slate-200/50 dark:shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
+                                className="px-2.5 py-1 rounded-full bg-slate-900/90 dark:bg-slate-950/90 border border-indigo-500/40 flex items-center gap-1 text-white shadow-lg shadow-indigo-500/20 hover:border-indigo-400 cursor-pointer relative active:scale-95 transition-all duration-300 text-[10px] font-bold uppercase tracking-wider"
                             >
                                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500 animate-ping opacity-75" />
                                 <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-indigo-500" />
@@ -1601,7 +1729,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                         {/* Tab 1: Sale (invoice) */}
                         <Link
-                            href={getMobileTabUrl('store.sales.dashboard')}
+                            href={getMobileTabUrl('store.sales.index')}
+                            onMouseDown={() => startPress('sales')}
+                            onMouseUp={cancelPress}
+                            onMouseLeave={cancelPress}
+                            onTouchStart={() => startPress('sales')}
+                            onTouchEnd={cancelPress}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onClick={handleLinkClick('sales', 'store.sales.index')}
                             className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
                                 isSaleInvoiceActive
                                     ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
@@ -1609,7 +1744,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             }`}
                         >
                             <ShoppingCart size={20} className={`transition-transform duration-300 ${isSaleInvoiceActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Sale (invoice)</span>
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Sale</span>
                             {isSaleInvoiceActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}
@@ -1618,6 +1753,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         {/* Tab 2: Purchase */}
                         <Link
                             href={getMobileTabUrl('store.purchases.index')}
+                            onMouseDown={() => startPress('purchases')}
+                            onMouseUp={cancelPress}
+                            onMouseLeave={cancelPress}
+                            onTouchStart={() => startPress('purchases')}
+                            onTouchEnd={cancelPress}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onClick={handleLinkClick('purchases', 'store.purchases.index')}
                             className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
                                 isPurchaseActive
                                     ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
@@ -1631,17 +1773,24 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                             )}
                         </Link>
 
-                        {/* Tab 3: Home (Dashboard) */}
+                        {/* Tab 3: Dashboard */}
                         <Link
                             href={getMobileTabUrl('store.dashboard')}
+                            onMouseDown={() => startPress('dashboard')}
+                            onMouseUp={cancelPress}
+                            onMouseLeave={cancelPress}
+                            onTouchStart={() => startPress('dashboard')}
+                            onTouchEnd={cancelPress}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onClick={handleLinkClick('dashboard', 'store.dashboard')}
                             className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
                                 isHomeActive
                                     ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
                                     : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-350 hover:bg-slate-50/50 dark:hover:bg-slate-800/20'
                             }`}
                         >
-                            <Home size={20} className={`transition-transform duration-300 ${isHomeActive ? 'scale-110' : ''}`} />
-                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Home (Dashboard)</span>
+                            <LayoutDashboard size={20} className={`transition-transform duration-300 ${isHomeActive ? 'scale-110' : ''}`} />
+                            <span className="text-[8px] sm:text-[9px] font-medium tracking-tighter text-center leading-tight whitespace-nowrap">Dashboard</span>
                             {isHomeActive && (
                                 <span className="absolute bottom-1 w-1.5 h-1 bg-indigo-500 dark:bg-indigo-400 rounded-full shadow-[0_0_8px_rgba(99,102,241,0.6)] animate-pulse"></span>
                             )}
@@ -1650,6 +1799,13 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                         {/* Tab 4: Expense */}
                         <Link
                             href={getMobileTabUrl('store.expenses.index')}
+                            onMouseDown={() => startPress('expenses')}
+                            onMouseUp={cancelPress}
+                            onMouseLeave={cancelPress}
+                            onTouchStart={() => startPress('expenses')}
+                            onTouchEnd={cancelPress}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onClick={handleLinkClick('expenses', 'store.expenses.index')}
                             className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
                                 isExpenseActive
                                     ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
@@ -1665,7 +1821,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                         {/* Tab 5: Stock */}
                         <Link
-                            href={getMobileTabUrl('store.inventory.dashboard')}
+                            href={getMobileTabUrl('store.inventory.index')}
+                            onMouseDown={() => startPress('stock')}
+                            onMouseUp={cancelPress}
+                            onMouseLeave={cancelPress}
+                            onTouchStart={() => startPress('stock')}
+                            onTouchEnd={cancelPress}
+                            onContextMenu={(e) => e.preventDefault()}
+                            onClick={handleLinkClick('stock', 'store.inventory.index')}
                             className={`flex flex-col items-center justify-center gap-1.5 flex-1 py-2 px-1 rounded-2xl transition-all duration-300 relative ${
                                 isStockActive
                                     ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/80 dark:bg-indigo-950/40 font-semibold scale-[1.03] shadow-sm border border-indigo-100/30 dark:border-indigo-900/30'
