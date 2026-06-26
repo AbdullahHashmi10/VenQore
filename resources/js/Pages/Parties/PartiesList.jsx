@@ -344,103 +344,109 @@ export default function PartiesIndex({ parties = {}, stats = {}, flash }) {
 
                 {/* Stats Cards - Responsive Grid */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0">
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg">
-                                <Users size={16} />
+                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0">
+                                <Users size={14} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Total Parties</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Total Parties</p>
                         </div>
-                        <p className="text-lg font-black text-slate-900 dark:text-white">{stats.total || 0}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0">{stats.total || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                                <UserCheck size={16} />
+                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0">
+                                <UserCheck size={14} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Customers</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Customers</p>
                         </div>
-                        <p className="text-lg font-black text-blue-600">{stats.customers || 0}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0">{stats.customers || 0}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg">
-                                <TrendingUp size={16} />
+                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0">
+                                <TrendingUp size={14} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">To Receive</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">To Receive</p>
                         </div>
-                        <p className="text-lg font-black text-emerald-600">{formatCurrency(stats.receivables)}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.receivables)}</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <div className="p-1.5 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg">
-                                <TrendingDown size={16} />
+                    <div className="bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1">
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            <div className="p-1 bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 rounded-lg shrink-0">
+                                <TrendingDown size={14} />
                             </div>
-                            <p className="text-xs font-bold text-slate-500 uppercase">Payables</p>
+                            <p className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate">Payables</p>
                         </div>
-                        <p className="text-lg font-black text-rose-600">{formatCurrency(stats.payables)}</p>
+                        <p className="text-sm sm:text-base md:text-lg font-black text-rose-600 leading-none mt-1 sm:mt-0">{formatCurrency(stats.payables)}</p>
                     </div>
                 </div>
 
                 {/* Header Bar - Title + Filter Pills + Search + Add Button */}
-                <div className="flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0">
                     {/* Left: Title + Filter Pills */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
-                            {activeTab === 'customers' ? 'Customers' : activeTab === 'suppliers' ? 'Suppliers' : 'All'} <span className="text-indigo-600">Contacts</span>
-                        </h1>
-                        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
-                        <button
-                            onClick={() => handleTypeFilter('all')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === 'all'
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
-                                }`}
-                        >All</button>
-                        <button
-                            onClick={() => handleTypeFilter('customer')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === 'customer'
-                                ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-lg shadow-blue-500/30'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
-                                }`}
-                        >Customers</button>
-                        <button
-                            onClick={() => handleTypeFilter('supplier')}
-                            className={`px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === 'supplier'
-                                ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg shadow-amber-500/30'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
-                                }`}
-                        >Suppliers</button>
+                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-sm sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0">
+                                {activeTab === 'customers' ? 'Customers' : activeTab === 'suppliers' ? 'Suppliers' : 'All'} <span className="text-indigo-600">Contacts</span>
+                            </h1>
+                            <div className="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+                        </div>
+                        <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                            <button
+                                onClick={() => handleTypeFilter('all')}
+                                className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'all'
+                                    ? 'bg-indigo-600 text-white shadow-sm'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    }`}
+                            >All</button>
+                            <button
+                                onClick={() => handleTypeFilter('customer')}
+                                className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'customer'
+                                    ? 'bg-gradient-to-r from-blue-500 to-cyan-600 text-white shadow-sm shadow-blue-500/20'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    }`}
+                            >Customers</button>
+                            <button
+                                onClick={() => handleTypeFilter('supplier')}
+                                className={`px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase rounded-full transition-all shrink-0 ${typeFilter === 'supplier'
+                                    ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm shadow-amber-500/20'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200'
+                                    }`}
+                            >Suppliers</button>
+                        </div>
                     </div>
 
                     {/* Right: Search + Actions + Add Button */}
-                    <div className="flex items-center gap-2">
-                        <div className="relative">
-                            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                        <div className="relative flex-1 sm:flex-none">
+                            <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
                             <input
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 onKeyDown={handleServerSearch}
-                                placeholder="Search parties..."
-                                className="pl-9 pr-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 outline-none w-44"
+                                placeholder="Search..."
+                                className="pl-8 pr-2 py-1 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 outline-none w-full sm:w-36"
                             />
                         </div>
-                        <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-2">
-                            <button className="p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
-                                <Download size={16} />
-                            </button>
-                            <button className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print">
-                                <Printer size={16} />
+                        <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-1.5">
+                                <button className="p-1 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600" title="Export">
+                                    <Download size={14} />
+                                </button>
+                                <button className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500" title="Print">
+                                    <Printer size={14} />
+                                </button>
+                            </div>
+                            <button
+                                onClick={handleCreate}
+                                className="flex items-center gap-1 px-2.5 py-1 text-xs bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-bold shadow-md shrink-0"
+                            >
+                                <Plus size={12} />
+                                <span>Add Party</span>
                             </button>
                         </div>
-                        <button
-                            onClick={handleCreate}
-                            className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all font-bold text-xs shadow-lg shadow-indigo-500/20"
-                        >
-                            <Plus size={14} />
-                            Add Party
-                        </button>
                     </div>
                 </div>
  
