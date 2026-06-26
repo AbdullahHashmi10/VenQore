@@ -38,8 +38,8 @@ export default function SellModuleTabs({ activeTab }) {
             icon: FileText,
             items: [
                 { id: 'returns', label: 'Returns History', href: getRoute('store.returns-history.index'), icon: FileText },
-                { id: 'recurring', label: 'Recurring Invoices', href: getRoute('store.recurring-invoices.index'), icon: PauseCircle },
-                { id: 'reminders', label: 'Invoice Reminders', href: getRoute('store.invoice-reminders.index'), icon: PauseCircle }
+                { id: 'recurring', label: 'Recurring Invoices', href: getRoute('store.recurring-invoices.index'), icon: PauseCircle, locked: !store?.features?.recurring_invoices },
+                { id: 'reminders', label: 'Invoice Reminders', href: getRoute('store.invoice-reminders.index'), icon: PauseCircle, locked: !store?.features?.invoice_reminders }
             ]
         },
         {
@@ -47,7 +47,7 @@ export default function SellModuleTabs({ activeTab }) {
             label: 'Config',
             icon: Settings,
             items: [
-                { id: 'e-invoicing', label: 'E-Invoicing', href: getRoute('store.e-invoicing.index'), icon: FileText }
+                { id: 'e-invoicing', label: 'E-Invoicing', href: getRoute('store.e-invoicing.index'), icon: FileText, locked: !store?.features?.e_invoicing }
             ]
         }
     ];
@@ -138,6 +138,33 @@ export default function SellModuleTabs({ activeTab }) {
                     {groups.find(g => g.id === activeGroup)?.items.map((tab) => {
                         const Icon = tab.icon;
                         const isActive = activeTab === tab.id;
+                        const isLocked = tab.locked;
+
+                        if (isLocked) {
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        window.dispatchEvent(new CustomEvent('amd:plan-limit', {
+                                            detail: {
+                                                feature: tab.id === 'e-invoicing' ? 'e_invoicing' : (tab.id === 'recurring' ? 'recurring_invoicing' : tab.id.replace('-', '_')),
+                                                message: `${tab.label} is not available on your current plan. Please upgrade your plan to unlock.`,
+                                                current_plan: store?.plan === 'ltd' ? 'starter' : 'starter',
+                                                upgrade_url: `/s/${store?.slug}/billing/upgrade`,
+                                                billing_url: `/s/${store?.slug}/billing`,
+                                                portal_url: `/s/${store?.slug}/billing/portal`
+                                            }
+                                        }));
+                                    }}
+                                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 border whitespace-nowrap bg-transparent border-transparent text-slate-400 hover:text-indigo-600 dark:text-slate-600 dark:hover:text-indigo-400 cursor-pointer"
+                                >
+                                    <Icon size={14} />
+                                    <span>{tab.label}</span>
+                                    <span className="text-[10px]">🔒</span>
+                                </button>
+                            );
+                        }
 
                         return (
                             <Link
