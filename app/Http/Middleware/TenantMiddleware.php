@@ -179,6 +179,7 @@ class TenantMiddleware
 
         // ── Share store data with all Inertia pages ────────────────────────
         Inertia::share([
+            'allowed_reports' => \App\Services\ReportTierGate::allowedKeys(),
             'store' => [
                 'id'              => $tenant->id,
                 'slug'            => $tenant->slug,
