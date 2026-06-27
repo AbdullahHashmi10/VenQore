@@ -63,6 +63,20 @@ Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marke
 Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->name('marketing.contact.submit');
 
+// Newsletter subscription
+Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
+Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->name('marketing.newsletter.submit');
+
+// Digital products list page
+Route::get('/digital-products', [\App\Http\Controllers\Marketing\DigitalProductsPublicController::class, 'index'])->name('marketing.digital-products');
+
+// Secret Support Desk (accessed via VenQore.html link)
+Route::get('/partner-support', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'index'])->name('marketing.partner-support');
+Route::post('/api/partner-support/chat', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'startChat'])->name('partner-support.start');
+Route::get('/api/partner-support/chat/{ticket_id}', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'getMessages'])->name('partner-support.messages');
+Route::post('/api/partner-support/chat/{ticket_id}/reply', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'reply'])->name('partner-support.reply');
+
+
 // Barcode Generator (Module 03)
 Route::get('/barcode/generate', [\App\Http\Controllers\BarcodeController::class, 'generate'])->name('barcode.generate');
 
@@ -292,6 +306,21 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
     ->name('platform.')
     ->group(function () {
         Route::get('/',                   [\App\Http\Controllers\Admin\SuperAdminController::class, 'dashboard'])->name('dashboard');
+
+        // Digital Hub (Etsy Partner Support & Product Registry CRUD)
+        Route::get('/digital-hub', [\App\Http\Controllers\Admin\DigitalHubController::class, 'index'])->name('digital-hub');
+        Route::get('/digital-hub/chats', [\App\Http\Controllers\Admin\DigitalHubController::class, 'chats'])->name('digital-hub.chats');
+        Route::post('/digital-hub/chats/{ticket_id}/reply', [\App\Http\Controllers\Admin\DigitalHubController::class, 'reply'])->name('digital-hub.chats.reply');
+        Route::post('/digital-hub/chats/{ticket_id}/status', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateStatus'])->name('digital-hub.chats.status');
+        Route::get('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'getProducts'])->name('digital-hub.products');
+        Route::post('/digital-hub/products', [\App\Http\Controllers\Admin\DigitalHubController::class, 'createProduct'])->name('digital-hub.products.create');
+        Route::post('/digital-hub/products/{id}/update', [\App\Http\Controllers\Admin\DigitalHubController::class, 'updateProduct'])->name('digital-hub.products.update');
+        Route::delete('/digital-hub/products/{id}', [\App\Http\Controllers\Admin\DigitalHubController::class, 'deleteProduct'])->name('digital-hub.products.delete');
+
+        // Newsletter Hub (Platform Newsletters & Subscribers lists)
+        Route::get('/newsletter-hub', [\App\Http\Controllers\Admin\NewsletterHubController::class, 'index'])->name('newsletter-hub');
+        Route::get('/newsletter-hub/subscribers', [\App\Http\Controllers\Admin\NewsletterHubController::class, 'subscribers'])->name('newsletter-hub.subscribers');
+
 
         // Chatbot Settings
         Route::get('/chatbot/settings',            [\App\Http\Controllers\ChatbotSettingsController::class, 'index'])->name('chatbot.settings');

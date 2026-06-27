@@ -17,6 +17,7 @@ class SupportTicket extends Model
         'status', 'priority', 'requester_email', 'requester_name', 'resolved_at',
         'source',          // 'vena_chat' | 'manual' | null
         'escalation_type', // 'ai_failure' | 'billing_or_complex' | 'user_requested' | 'repeated_failure'
+        'purchase_source', 'trial_status', 'attachment_path'
     ];
 
     protected $casts = ['resolved_at' => 'datetime'];

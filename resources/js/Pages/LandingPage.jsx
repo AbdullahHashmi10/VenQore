@@ -6,8 +6,9 @@ import {
     RefreshCw, Globe, BarChart3, ScanBarcode, MessageCircle,
     ZapOff, AlertTriangle, Fingerprint, Lock, ChevronRight,
     Layers, Database, GitBranch, Activity, Target,
-    ArrowUpRight, Sparkles, Eye, Users, Workflow, Menu, X
+    ArrowUpRight, Sparkles, Eye, Users, Workflow, Menu, X, Mail
 } from 'lucide-react';
+import axios from 'axios';
 
 /* ═══════════════════════════════════════════════════════════════════════
    VENQORE LANDING PAGE — "The Books Are Always Right."
@@ -179,6 +180,29 @@ export default function LandingPage() {
     const [heroLoaded, setHeroLoaded] = useState(false);
     const [mobileMenu, setMobileMenu] = useState(false);
     const [activeArch, setActiveArch] = useState(0);
+
+    const [newsletterEmail, setNewsletterEmail] = useState('');
+    const [newsletterStatus, setNewsletterStatus] = useState('idle');
+    const [newsletterMsg, setNewsletterMsg] = useState('');
+
+    const handleNewsletterSubmit = async (e) => {
+        e.preventDefault();
+        setNewsletterStatus('loading');
+        setNewsletterMsg('');
+        try {
+            const res = await axios.post('/subscribe', {
+                email: newsletterEmail,
+                interest: 'cloud'
+            });
+            setNewsletterStatus('success');
+            setNewsletterMsg('Awesome! You have successfully subscribed to our newsletter.');
+            setNewsletterEmail('');
+        } catch (err) {
+            setNewsletterStatus('error');
+            setNewsletterMsg(err.response?.data?.errors?.email?.[0] || err.response?.data?.message || 'Subscription failed.');
+        }
+    };
+
 
     useEffect(() => {
         setHeroLoaded(true);
@@ -602,6 +626,50 @@ export default function LandingPage() {
                                 <FaqItem question="Does it work with unstable power?" answer="Yes. The desktop station runs locally and syncs when online. Active carts survive crashes, reloads, and power interruptions. The Hardware Heartbeat system distinguishes power cuts from manual shutdowns." />
                                 <FaqItem question="What happens to my data if I cancel?" answer="It's yours. Export it at any time. We don't hold data hostage." />
                             </div>
+                        </Reveal>
+                    </div>
+                </section>
+
+                {/* ══════════════════════════════════════════════════
+                   7.5 NEWSLETTER SIGNUP
+                   ══════════════════════════════════════════════════ */}
+                <section className="py-24 px-6 border-t border-white/5 relative bg-slate-950/20">
+                    <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 to-transparent pointer-events-none" />
+                    <div className="max-w-4xl mx-auto relative z-10 text-center">
+                        <Reveal>
+                            <Label icon={Mail}>Stay Updated</Label>
+                            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter mb-4 uppercase" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
+                                Subscribe to <span className="text-indigo-400">VenQore Insights</span>
+                            </h2>
+                            <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto mb-8 leading-relaxed">
+                                Get direct news on system upgrades, cloud accounting releases, and platform enhancements.
+                            </p>
+                        </Reveal>
+
+                        <Reveal delay={0.1}>
+                            <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto flex flex-col sm:flex-row items-center gap-3">
+                                <input
+                                    type="email"
+                                    required
+                                    value={newsletterEmail}
+                                    onChange={e => setNewsletterEmail(e.target.value)}
+                                    placeholder="Enter your email address"
+                                    className="w-full px-5 py-3.5 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-indigo-500/40 rounded-xl text-white text-sm outline-none transition-all duration-300"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={newsletterStatus === 'loading'}
+                                    className="w-full sm:w-auto h-12 px-8 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2 transition-colors disabled:opacity-50 shrink-0 shadow-lg shadow-indigo-600/10"
+                                >
+                                    {newsletterStatus === 'loading' ? 'Subscribing...' : 'Subscribe'}
+                                    <ArrowRight size={14} />
+                                </button>
+                            </form>
+                            {newsletterMsg && (
+                                <p className={`text-xs mt-4 font-semibold ${newsletterStatus === 'success' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {newsletterMsg}
+                                </p>
+                            )}
                         </Reveal>
                     </div>
                 </section>

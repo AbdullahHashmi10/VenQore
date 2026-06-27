@@ -56,7 +56,8 @@ import {
     Zap,
     MoreVertical,
     Plus,
-    Factory
+    Factory,
+    Mail
 } from 'lucide-react';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import PwaInstallPrompt from '@/Components/PwaInstallPrompt';
@@ -598,6 +599,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         { name: 'VenSynQ', icon: RefreshCcw, subs: [], route: 'platform.dashboard', routeParams: { tab: 'vensynq' } },
         { name: 'Settings', icon: Settings, subs: [], route: 'platform.dashboard', routeParams: { tab: 'settings' } },
         { name: 'System Update', icon: Package, subs: [], route: 'updater.index' },
+        { name: 'Digital Products', icon: Package, subs: [], route: 'platform.digital-hub' },
+        { name: 'Newsletter Hub', icon: Mail, subs: [], route: 'platform.newsletter-hub' },
     ] : [
         // ── Store Admin Panel — Restored Full Legacy Experience ──────────────
         // Scoped to /s/{store_slug}/admin/... to maintain SaaS isolation.

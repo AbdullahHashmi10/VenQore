@@ -136,14 +136,17 @@ export const SectionLabel = ({ children, icon: Icon }) => (
    GLASS CARD — Glassmorphism card with hover depth
    ═══════════════════════════════════════════════════════════════════════ */
 
-export const GlassCard = ({ children, className = '', hover = true, padding = 'p-8' }) => (
-    <div className={`
-        relative ${padding} rounded-[2rem] bg-white/[0.03] border border-white/[0.06]
-        backdrop-blur-sm
-        ${hover ? 'hover:bg-white/[0.06] hover:border-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-900/10 hover:-translate-y-1' : ''}
-        transition-all duration-500 group
-        ${className}
-    `}>
+export const GlassCard = ({ children, className = '', hover = true, padding = 'p-8', ...props }) => (
+    <div 
+        className={`
+            relative ${padding} rounded-[2rem] bg-white/[0.03] border border-white/[0.06]
+            backdrop-blur-sm
+            ${hover ? 'hover:bg-white/[0.06] hover:border-indigo-500/20 hover:shadow-2xl hover:shadow-indigo-900/10 hover:-translate-y-1' : ''}
+            transition-all duration-500 group
+            ${className}
+        `}
+        {...props}
+    >
         {children}
     </div>
 );

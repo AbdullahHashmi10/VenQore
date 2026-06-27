@@ -15,7 +15,8 @@ import {
     ShieldCheck,
     Store,
     Database,
-    Zap
+    Zap,
+    Mail
 } from 'lucide-react';
 import Toast from '@/Components/Toast';
 
@@ -33,6 +34,8 @@ export default function SuperAdminLayout({ children, title }) {
         { label: 'Tenant Overrides', icon: Zap, href: route('platform.tenants.overrides'), active: route().current('platform.tenants.*') },
         { label: 'Manage Stores', icon: Store, href: route('platform.stores'), active: route().current('platform.stores') },
         { label: 'Manage Users', icon: Users, href: route('platform.users'), active: route().current('platform.users') },
+        { label: 'Digital Products', icon: Package, href: route('platform.digital-hub'), active: route().current('platform.digital-hub') },
+        { label: 'Newsletter Hub', icon: Mail, href: route('platform.newsletter-hub'), active: route().current('platform.newsletter-hub') },
     ];
 
     return (
