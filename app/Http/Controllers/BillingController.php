@@ -463,7 +463,7 @@ class BillingController extends Controller
             return back()->with('error', 'You are already on the ' . ucfirst($targetPlan) . ' plan.');
         }
 
-        $planOrder = ['starter', 'growth', 'business'];
+        $planOrder = ['trial', 'starter', 'growth', 'business'];
         $currentIdx = array_search($currentPlan, $planOrder);
         $targetIdx = array_search($targetPlan, $planOrder);
 
@@ -480,6 +480,7 @@ class BillingController extends Controller
         $currentPlanModel = Plan::where('slug', $currentPlan)->first();
 
         $fallbackPrices = [
+            'trial'    => 0.00,
             'starter'  => 19.00,
             'growth'   => 49.00,
             'business' => 99.00,
