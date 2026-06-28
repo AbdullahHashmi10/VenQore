@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { Sparkles, ArrowRight, ArrowLeft, Box, HelpCircle, Trophy, Home, Plus, Upload, Minimize2 } from 'lucide-react';
 
@@ -16,6 +17,11 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
     const [liveMargin, setLiveMargin] = useState(null);
+
+    const renderPortal = (content) => {
+        if (typeof document === 'undefined') return null;
+        return createPortal(content, document.body);
+    };
 
     // Track step transitions based on modal open state
     useEffect(() => {
@@ -102,22 +108,43 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
             return;
         }
 
+        const getVisibleElement = (id) => {
+            const elements = document.querySelectorAll(`[id="${id}"]`);
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i];
+                const rect = el.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    return el;
+                }
+            }
+            return elements[0] || null;
+        };
+
         const updateCoords = () => {
-            const el = document.getElementById(targetId);
+            const el = getVisibleElement(targetId);
             if (el) {
                 const rect = el.getBoundingClientRect();
-                setCoords({
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height,
+                setCoords(prev => {
+                    if (prev && 
+                        prev.top === rect.top && 
+                        prev.left === rect.left && 
+                        prev.width === rect.width && 
+                        prev.height === rect.height) {
+                        return prev; // No change, skip state update to prevent infinite re-renders
+                    }
+                    return {
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height,
+                    };
                 });
             } else {
                 setCoords(null);
             }
         };
 
-        const el = document.getElementById(targetId);
+        const el = getVisibleElement(targetId);
         if (el && currentStep > 0) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -294,11 +321,11 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
     }
 
     if (store?.onboarding_step === 'congratulations') {
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+        return renderPortal(
+            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
                     <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -354,7 +381,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                 transform: 'translate(-50%, -50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 115,
+                zIndex: 151,
             };
         }
 
@@ -366,7 +393,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                 transform: 'translateX(-50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 115,
+                zIndex: 151,
             };
         }
 
@@ -379,7 +406,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                 top: coords.top + (coords.height / 2) - 80,
                 left: coords.left + coords.width + 20,
                 width: '320px',
-                zIndex: 115,
+                zIndex: 151,
             };
         } else if (spaceOnLeft > 340) {
             return {
@@ -387,7 +414,7 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                 top: coords.top + (coords.height / 2) - 80,
                 left: coords.left - 340,
                 width: '320px',
-                zIndex: 115,
+                zIndex: 151,
             };
         } else {
             return {
@@ -395,13 +422,13 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                 top: coords.top + coords.height + 20,
                 left: coords.left + (coords.width / 2) - 160,
                 width: '320px',
-                zIndex: 115,
+                zIndex: 151,
             };
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[105] overflow-hidden pointer-events-none">
+    return renderPortal(
+        <div className="fixed inset-0 z-[150] overflow-hidden pointer-events-none">
             {/* Dimming Mask / Spotlight */}
             {coords && (
                 <div
@@ -413,13 +440,13 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
                         height: coords.height + 12,
                         borderRadius: currentStep === 0 ? '8px' : '12px',
                         boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 15px 5px rgba(99, 102, 241, 0.4), 0 0 0 2px rgb(99, 102, 241)',
-                        zIndex: 110,
+                        zIndex: 150,
                     }}
                 />
             )}
 
             {!coords && (
-                <div className="fixed inset-0 bg-slate-950/75 pointer-events-none z-[90]"></div>
+                <div className="fixed inset-0 bg-slate-950/75 pointer-events-none z-[150]"></div>
             )}
 
             {/* Floating Tooltip */}

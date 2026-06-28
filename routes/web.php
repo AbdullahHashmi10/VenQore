@@ -188,7 +188,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
-        Route::post('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
+        Route::get('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
         Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->name('backup.import');
         Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->name('billing.cancel-trial');
         Route::post('/billing/addon-trial',  [\App\Http\Controllers\BillingController::class, 'addonTrial'])->name('billing.addon-trial');
@@ -201,6 +201,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/google/disconnect',   [\App\Http\Controllers\GoogleDriveAuthController::class, 'disconnect'])->name('google.disconnect');
         Route::post('/google/settings',     [\App\Http\Controllers\GoogleDriveAuthController::class, 'updateSettings'])->name('google.settings');
         Route::post('/google/sync-now',     [\App\Http\Controllers\VqBackupController::class, 'syncToGoogleDrive'])->name('google.sync-now');
+        Route::get('/google/backup/download/{fileId}', [\App\Http\Controllers\VqBackupController::class, 'downloadFromGoogleDrive'])->name('google.backup.download');
+        Route::post('/google/backup/delete/{fileId}',   [\App\Http\Controllers\VqBackupController::class, 'deleteFromGoogleDrive'])->name('google.backup.delete');
+        Route::post('/google/backup/restore/{fileId}',  [\App\Http\Controllers\VqBackupController::class, 'restoreFromGoogleDrive'])->name('google.backup.restore');
 
         // Store settings
         Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings');

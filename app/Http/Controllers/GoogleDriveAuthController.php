@@ -76,6 +76,7 @@ class GoogleDriveAuthController extends Controller
             // 2. Complete token exchange via Socialite
             $googleUser = Socialite::driver('google')
                 ->redirectUrl(route('google.callback'))
+                ->stateless()
                 ->user();
 
             $accessToken = $googleUser->token;
@@ -97,6 +98,10 @@ class GoogleDriveAuthController extends Controller
             $tenant->google_refresh_token = $refreshToken;
             $tenant->google_backup_email = $email;
             $tenant->google_backup_enabled = true;
+            if ($tenant->onboarding_step === 'drive_sync_tour') {
+                $tenant->onboarding_step = 'completed';
+                $tenant->onboarding_completed = true;
+            }
             $tenant->save();
 
             // 4. Verify/Create initial folder on Google Drive
@@ -107,11 +112,11 @@ class GoogleDriveAuthController extends Controller
 
             Log::info("Tenant {$tenant->id} ('{$tenant->slug}') successfully integrated Google Drive backups ({$email})");
 
-            return redirect()->route('store.admin.data', ['store_slug' => $slug, 'tab' => 'backup'])
+            return redirect()->route('store.admin.data', ['store_slug' => $slug, 'tab' => 'drive_sync'])
                 ->with('success', 'Google Drive connected successfully! Daily automatic backups are now enabled.');
 
         } catch (\Exception $e) {
-            Log::error("Error handling Google OAuth callback: " . $e->getMessage());
+            Log::error("Error handling Google OAuth callback: " . $e->getMessage(), ['exception' => $e]);
             return redirect()->route('hub')->with('error', 'Google authentication failed: ' . $e->getMessage());
         }
     }

@@ -34,6 +34,14 @@ class OnboardingController extends Controller
                 }
             }
 
+            if ($request->completed_step) {
+                $done = $tenant->onboarding_steps_done ?? [];
+                if (!in_array($request->completed_step, $done)) {
+                    $done[] = $request->completed_step;
+                    $tenant->onboarding_steps_done = $done;
+                }
+            }
+
             if ($request->step === 'completed') {
                 $tenant->onboarding_completed = true;
             }

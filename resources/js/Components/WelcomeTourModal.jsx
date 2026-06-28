@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { Sparkles, Compass, Rocket, ArrowRight, X, ArrowLeft, Box, HelpCircle } from 'lucide-react';
 
@@ -9,6 +10,13 @@ export default function WelcomeTourModal({ store }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+
+    const renderPortal = (content) => {
+        if (typeof document === 'undefined') return null;
+        return createPortal(content, document.body);
+    };
+
+    console.log('WelcomeTourModal render - currentStep:', currentStep, 'coords:', coords, 'store onboarding_step:', store?.onboarding_step, 'element:', typeof document !== 'undefined' ? document.getElementById('tour-stock-value') : 'no doc');
 
     // Sync currentStep with store state changes
     useEffect(() => {
@@ -71,6 +79,18 @@ export default function WelcomeTourModal({ store }) {
             return;
         }
 
+        const getVisibleElement = (id) => {
+            const elements = document.querySelectorAll(`[id="${id}"]`);
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i];
+                const rect = el.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    return el;
+                }
+            }
+            return elements[0] || null;
+        };
+
         const updateCoords = () => {
             let targetId = 'tour-stock-value';
             if (currentStep === 'sidebar_stock') {
@@ -79,15 +99,26 @@ export default function WelcomeTourModal({ store }) {
                 targetId = 'tour-sidebar-purchases';
             }
 
-            const el = document.getElementById(targetId);
+            const el = getVisibleElement(targetId);
             if (el) {
                 const rect = el.getBoundingClientRect();
-                setCoords({
-                    top: rect.top,
-                    left: rect.left,
-                    width: rect.width,
-                    height: rect.height,
+                setCoords(prev => {
+                    if (prev && 
+                        prev.top === rect.top && 
+                        prev.left === rect.left && 
+                        prev.width === rect.width && 
+                        prev.height === rect.height) {
+                        return prev; // No change, skip state update to prevent infinite re-renders
+                    }
+                    return {
+                        top: rect.top,
+                        left: rect.left,
+                        width: rect.width,
+                        height: rect.height,
+                    };
                 });
+            } else {
+                setCoords(null);
             }
         };
 
@@ -108,11 +139,15 @@ export default function WelcomeTourModal({ store }) {
         };
     }, [currentStep]);
 
-    const handleUpdateStep = (stepValue) => {
+    const handleUpdateStep = (stepValue, completedStepValue = null) => {
         setIsSubmitting(true);
+        const data = { step: stepValue };
+        if (completedStepValue) {
+            data.completed_step = completedStepValue;
+        }
         router.post(
             route('store.onboarding.step', { store_slug: store?.slug }),
-            { step: stepValue },
+            data,
             {
                 preserveScroll: true,
                 onFinish: () => setIsSubmitting(false),
@@ -168,17 +203,17 @@ export default function WelcomeTourModal({ store }) {
     const handleSkipInvoiceOrPos = () => {
         const doneSteps = store?.onboarding_steps_done || [];
         const nextStep = !doneSteps.includes('pos') ? 'pos_tour_start' : 'expense_tour_start';
-        handleUpdateStep(nextStep);
+        handleUpdateStep(nextStep, 'invoice');
     };
 
     const handleSkipPos = () => {
         const doneSteps = store?.onboarding_steps_done || [];
         const nextStep = !doneSteps.includes('invoice') ? 'invoice_tour_start' : 'expense_tour_start';
-        handleUpdateStep(nextStep);
+        handleUpdateStep(nextStep, 'pos');
     };
 
     const handleSkipExpense = () => {
-        handleUpdateStep('completed');
+        handleUpdateStep('completed', 'expense');
     };
 
     const handleFinalizeTour = () => {
@@ -230,11 +265,11 @@ export default function WelcomeTourModal({ store }) {
 
     // Welcome Screen
     if (currentStep === 'welcome') {
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+        return renderPortal(
+            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
                     <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -258,7 +293,7 @@ export default function WelcomeTourModal({ store }) {
                                 Welcome to <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">{store?.name || 'Your Store'}</span>!
                             </h2>
 
-                            <p className="text-slate-400 text-sm font-medium mb-2">
+                            <p className="text-slate-400 text-sm font-semibold mb-2">
                                 Your store setup is complete. Let's get you up and running!
                             </p>
 
@@ -293,11 +328,11 @@ export default function WelcomeTourModal({ store }) {
 
     // Purchase Tour Start Modal
     if (currentStep === 'purchase_tour_start') {
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+        return renderPortal(
+            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
                     <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -356,11 +391,11 @@ export default function WelcomeTourModal({ store }) {
 
     // Invoice Tour Start Modal
     if (currentStep === 'invoice_tour_start') {
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+        return renderPortal(
+            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
                     <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -420,11 +455,11 @@ export default function WelcomeTourModal({ store }) {
 
     // POS Tour Start Modal
     if (currentStep === 'pos_tour_start') {
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+        return renderPortal(
+            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
                     <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -484,11 +519,11 @@ export default function WelcomeTourModal({ store }) {
 
     // Expense Tour Start Modal
     if (currentStep === 'expense_tour_start') {
-        return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+        return renderPortal(
+            <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
                 <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
 
-                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[101] animate-in zoom-in-95 duration-300">
+                <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
                     <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
                         
                         <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -558,7 +593,7 @@ export default function WelcomeTourModal({ store }) {
                 transform: 'translateX(-50%)',
                 width: 'calc(100% - 32px)',
                 maxWidth: '360px',
-                zIndex: 95,
+                zIndex: 151,
             };
         }
 
@@ -568,7 +603,7 @@ export default function WelcomeTourModal({ store }) {
                 top: coords.top + (coords.height / 2) - 90,
                 left: coords.left - 340,
                 width: '320px',
-                zIndex: 95,
+                zIndex: 151,
             };
         }
 
@@ -578,15 +613,15 @@ export default function WelcomeTourModal({ store }) {
                 top: coords.top + (coords.height / 2) - 80,
                 left: coords.left + coords.width + 20,
                 width: '320px',
-                zIndex: 95,
+                zIndex: 151,
             };
         }
 
         return {};
     };
 
-    return (
-        <div className="fixed inset-0 z-[90] overflow-hidden pointer-events-none">
+    return renderPortal(
+        <div className="fixed inset-0 z-[150] overflow-hidden pointer-events-none">
             {/* Spotlight Highlighter Mask */}
             {coords && (
                 <div
@@ -598,20 +633,20 @@ export default function WelcomeTourModal({ store }) {
                         height: coords.height + 12,
                         borderRadius: currentStep === 'stock_value' ? '24px' : '8px',
                         boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 18px 6px rgba(99, 102, 241, 0.45), 0 0 0 2px rgb(99, 102, 241)',
-                        zIndex: 90,
+                        zIndex: 150,
                     }}
                 />
             )}
 
             {/* Backdrop placeholder if coordinates are loading */}
             {!coords && (
-                <div className="fixed inset-0 bg-slate-950/75 pointer-events-auto z-[90]"></div>
+                <div className="fixed inset-0 bg-slate-950/75 pointer-events-auto z-[150]"></div>
             )}
 
             {/* Floating Tooltip Box */}
             <div
                 style={getTooltipStyle()}
-                className="bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-[95] animate-in fade-in slide-in-from-bottom-4 duration-300"
+                className="bg-slate-900/95 dark:bg-slate-950/98 border border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(99,102,241,0.2)] p-6 pointer-events-auto relative z-[151] animate-in fade-in slide-in-from-bottom-4 duration-300"
             >
                 {/* Arrow indicator (Desktop only) */}
                 {!isMobile && currentStep === 'stock_value' && (

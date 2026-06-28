@@ -148,10 +148,10 @@ export default function ExpenseTourGuide({ store, categories = [] }) {
     const handleCompleteTour = () => {
         router.post(
             route('store.onboarding.step', { store_slug: store?.slug }),
-            { step: 'dashboard_tour' },
+            { step: 'drive_sync_tour' },
             {
                 onSuccess: () => {
-                    router.visit(route('store.dashboard', { store_slug: store?.slug }));
+                    router.visit(route('store.admin.data', { store_slug: store?.slug, tab: 'drive_sync' }));
                 }
             }
         );

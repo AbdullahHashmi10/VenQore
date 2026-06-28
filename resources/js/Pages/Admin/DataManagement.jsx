@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import {
@@ -27,22 +28,82 @@ import {
 } from 'lucide-react';
 import MidnightNebula from '@/Components/MidnightNebula';
 import PremiumSelect from '@/Components/PremiumSelect';
+import { useAlert } from '@/Contexts/AlertContext';
 
 export default function DataManagement() {
-    const { store } = usePage().props;
+    const { store, googleBackups = [] } = usePage().props;
+    const { showConfirm, showAlert } = useAlert();
+    const csrfToken = typeof document !== 'undefined' ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : '';
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
-    const [activeTab, setActiveTab] = useState(urlParams?.get('tab') || 'export');
+    const [activeTab, setActiveTab] = useState(urlParams?.get('tab') || 'drive_sync');
 
     const [exportFormat, setExportFormat] = useState('xlsx');
     const [selectedExports, setSelectedExports] = useState([]);
     const [uploadingBackup, setUploadingBackup] = useState(false);
     const [syncingToDrive, setSyncingToDrive] = useState(false);
+    const [actionInProgress, setActionInProgress] = useState(null);
+
+    const renderPortal = (content) => {
+        if (typeof document === 'undefined') return null;
+        return createPortal(content, document.body);
+    };
 
     // Google Drive settings state
     const driveForm = useForm({
         google_backup_enabled: store?.google_backup_enabled ?? false,
         google_backup_retention: store?.google_backup_retention ?? 7,
     });
+
+    const formatBytes = (bytes) => {
+        if (!bytes) return 'N/A';
+        const k = 1024;
+        const dm = 2;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    };
+
+    const handleGoogleRestore = (fileId, fileName) => {
+        showConfirm({
+            title: 'Restore from Google Drive?',
+            text: `This will download "${fileName}" from Google Drive and completely replace all your current store data. This operation CANNOT be undone!`,
+            icon: 'warning',
+            onConfirm: () => {
+                setActionInProgress(fileId);
+                router.post(route('store.google.backup.restore', { store_slug: store?.slug, fileId: fileId }), {}, {
+                    onSuccess: () => {
+                        showAlert({
+                            title: "Success",
+                            message: "Store data restored directly from Google Drive backup successfully!",
+                            type: "success"
+                        });
+                    },
+                    onFinish: () => setActionInProgress(null)
+                });
+            }
+        });
+    };
+
+    const handleGoogleDelete = (fileId, fileName) => {
+        showConfirm({
+            title: 'Delete from Google Drive?',
+            text: `Are you sure you want to delete "${fileName}" from your Google Drive folder?`,
+            icon: 'warning',
+            onConfirm: () => {
+                setActionInProgress(fileId);
+                router.post(route('store.google.backup.delete', { store_slug: store?.slug, fileId: fileId }), {}, {
+                    onFinish: () => setActionInProgress(null)
+                });
+            }
+        });
+    };
+
+    const getEstimatedTotalStorage = () => {
+        const avgSize = googleBackups.length > 0 
+            ? googleBackups.reduce((acc, f) => acc + (parseInt(f.size) || 0), 0) / googleBackups.length 
+            : 500000; // fallback to 500KB if empty
+        return formatBytes(avgSize * driveForm.data.google_backup_retention);
+    };
 
     const handleGoogleSettingsChange = (fields) => {
         const updatedData = {
@@ -152,19 +213,30 @@ export default function DataManagement() {
         const file = e.target.files[0];
         if (!file) return;
 
-        if (confirm("WARNING: Restoring a full system backup (.vq) will COMPLETELY OVERWRITE all products, transactions, stock, cash in hand, and configuration settings in this store. This cannot be undone. Are you sure you want to proceed?")) {
-            setUploadingBackup(true);
-            const formData = new FormData();
-            formData.append('file', file);
+        showConfirm({
+            title: "Confirm",
+            message: "WARNING: Restoring a full system backup (.vq) will COMPLETELY OVERWRITE all products, transactions, stock, cash in hand, and configuration settings in this store. This cannot be undone. Are you sure you want to proceed?",
+            type: "warning",
+            confirmLabel: "Yes, Continue",
+            cancelLabel: "Cancel",
+            onConfirm: () => {
+                setUploadingBackup(true);
+                const formData = new FormData();
+                formData.append('file', file);
 
-            router.post(route('store.backup.import', { store_slug: store?.slug }), formData, {
-                forceFormData: true,
-                onSuccess: () => {
-                    alert("Store restored successfully!");
-                },
-                onFinish: () => setUploadingBackup(false)
-            });
-        }
+                router.post(route('store.backup.import', { store_slug: store?.slug }), formData, {
+                    forceFormData: true,
+                    onSuccess: () => {
+                        showAlert({
+                            title: "Success",
+                            message: "Store restored successfully!",
+                            type: "success"
+                        });
+                    },
+                    onFinish: () => setUploadingBackup(false)
+                });
+            }
+        });
     };
 
     const downloadTemplate = () => {
@@ -189,9 +261,10 @@ export default function DataManagement() {
 
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
                         {[
+                            { id: 'drive_sync', label: 'Drive Sync', icon: Cloud },
                             { id: 'export', label: 'Export Data', icon: Download },
                             { id: 'import', label: 'Import Data', icon: Upload },
-                            { id: 'backup', label: 'Full System Backup (.vq)', icon: ShieldCheck }
+                            { id: 'backup', label: 'Full System', icon: ShieldCheck }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -211,6 +284,193 @@ export default function DataManagement() {
 
                 {/* Main Content */}
                 <div className="flex-1 min-h-0 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    {activeTab === 'drive_sync' && (
+                        <div className="h-full flex flex-col gap-6 animate-in fade-in duration-300">
+                            {/* Main Connection Status Card */}
+                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 shadow-sm">
+                                <div className="flex-1 space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
+                                            <Cloud size={22} />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                                                Google Drive Automated Backups
+                                                {store.google_connected && (
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest text-emerald-600 bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 animate-pulse">
+                                                        CONNECTED & ACTIVE
+                                                    </span>
+                                                )}
+                                            </h3>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                                                Link your Google account to automatically sync your encrypted store database every night. VenQore limits its access to only write files inside its own folder, keeping your personal Drive items 100% private.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {store.google_connected && (
+                                        <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
+                                            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                                                <span className="font-medium text-slate-400">Connected Account:</span>
+                                                <span className="font-bold">{store.google_backup_email}</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-4">
+                                                <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={driveForm.data.google_backup_enabled}
+                                                        onChange={(e) => handleGoogleSettingsChange({ google_backup_enabled: e.target.checked })}
+                                                        className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                                                    />
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200">Daily Auto-Backup</span>
+                                                </label>
+
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-medium text-slate-400">Keep last:</span>
+                                                    <select
+                                                        value={driveForm.data.google_backup_retention}
+                                                        onChange={(e) => handleGoogleSettingsChange({ google_backup_retention: parseInt(e.target.value) })}
+                                                        className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                                    >
+                                                        <option value={7}>7 backups</option>
+                                                        <option value={14}>14 backups</option>
+                                                        <option value={30}>30 backups</option>
+                                                    </select>
+                                                    <span className="text-slate-400 dark:text-slate-500 text-[11px] ml-1">
+                                                        (Est. total size: ~{getEstimatedTotalStorage()})
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex shrink-0 gap-3 w-full md:w-auto">
+                                    {store.google_connected ? (
+                                        <>
+                                            <button
+                                                onClick={handleGoogleSyncNow}
+                                                disabled={syncingToDrive}
+                                                className="flex-1 md:flex-none px-5 py-3 border-2 border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center gap-1.5"
+                                            >
+                                                {syncingToDrive ? (
+                                                    <RefreshCw className="animate-spin" size={14} />
+                                                ) : (
+                                                    <RefreshCw size={14} />
+                                                )}
+                                                {syncingToDrive ? "Uploading..." : "Sync Now"}
+                                            </button>
+                                            <form action={route('store.google.disconnect', { store_slug: store?.slug })} method="POST" className="flex-1 md:flex-none">
+                                                <input type="hidden" name="_token" value={csrfToken} />
+                                                <button
+                                                    type="submit"
+                                                    className="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
+                                                >
+                                                    <Unlink size={14} /> Disconnect
+                                                </button>
+                                            </form>
+                                        </>
+                                    ) : (
+                                        <a
+                                            href={route('store.google.redirect', { store_slug: store?.slug })}
+                                            className="w-full md:w-auto px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-black text-xs uppercase tracking-widest text-center shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-transform active:scale-95 whitespace-nowrap"
+                                        >
+                                            <Link2 size={16} /> Link Google Drive
+                                        </a>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Backups History List */}
+                            {store.google_connected && (
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm flex-1 flex flex-col min-h-[400px]">
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 pb-6 border-b border-slate-100 dark:border-slate-800/60 font-bold">
+                                        <div>
+                                            <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
+                                                <Database className="text-indigo-500" size={20} />
+                                                Google Drive Backup Vault
+                                            </h3>
+                                            <p className="text-xs font-normal text-slate-500 dark:text-slate-400 mt-1">
+                                                Manage and restore historical database checkpoints stored directly on your cloud drive.
+                                            </p>
+                                        </div>
+                                        <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300">
+                                            {googleBackups.length} of {driveForm.data.google_backup_retention} backup slots used
+                                        </div>
+                                    </div>
+
+                                    {googleBackups.length === 0 ? (
+                                        <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+                                            <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center text-slate-400 mb-4 animate-bounce">
+                                                <Cloud size={28} />
+                                            </div>
+                                            <h4 className="font-bold text-slate-700 dark:text-slate-300">No backups found on Google Drive</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mt-2">
+                                                Click "Sync Now" above to upload your first database backup checkpoint directly into your VenQore folder.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="border-b border-slate-100 dark:border-slate-800/60 text-xs font-bold uppercase tracking-wider text-slate-400">
+                                                        <th className="pb-3 pl-2">Filename</th>
+                                                        <th className="pb-3">Created At</th>
+                                                        <th className="pb-3">File Size</th>
+                                                        <th className="pb-3 text-right pr-2">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
+                                                    {googleBackups.map((file) => (
+                                                        <tr key={file.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 group">
+                                                            <td className="py-4 pl-2 font-bold text-slate-700 dark:text-slate-200 max-w-[400px] truncate">
+                                                                <span className="flex items-center gap-2">
+                                                                    <Cloud className="text-blue-500 shrink-0" size={16} />
+                                                                    {file.name}
+                                                                </span>
+                                                            </td>
+                                                            <td className="py-4 text-slate-500 dark:text-slate-400">
+                                                                {new Date(file.createdTime).toLocaleString()}
+                                                            </td>
+                                                            <td className="py-4 text-slate-500 dark:text-slate-400">
+                                                                {formatBytes(file.size)}
+                                                            </td>
+                                                            <td className="py-4 text-right pr-2">
+                                                                <div className="flex justify-end items-center gap-2">
+                                                                    <button
+                                                                        onClick={() => handleGoogleRestore(file.id, file.name)}
+                                                                        disabled={actionInProgress !== null}
+                                                                        className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-600 dark:text-emerald-400 hover:text-white rounded-lg font-bold text-xs transition-colors"
+                                                                    >
+                                                                        {actionInProgress === file.id ? 'Restoring...' : 'Restore'}
+                                                                    </button>
+                                                                    <a
+                                                                        href={route('store.google.backup.download', { store_slug: store?.slug, fileId: file.id })}
+                                                                        className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500 text-indigo-600 dark:text-indigo-400 hover:text-white rounded-lg font-bold text-xs transition-colors"
+                                                                    >
+                                                                        Download
+                                                                    </a>
+                                                                    <button
+                                                                        onClick={() => handleGoogleDelete(file.id, file.name)}
+                                                                        disabled={actionInProgress !== null}
+                                                                        className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-600 dark:text-red-400 hover:text-white rounded-lg font-bold text-xs transition-colors"
+                                                                    >
+                                                                        {actionInProgress === file.id ? 'Deleting...' : 'Delete'}
+                                                                    </button>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                     {activeTab === 'export' && (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
 
@@ -443,15 +703,12 @@ export default function DataManagement() {
                                     </div>
 
                                     <div>
-                                        <form action={route('store.backup.export', { store_slug: store?.slug })} method="POST">
-                                            <input type="hidden" name="_token" value={usePage().props.csrf_token} />
-                                            <button
-                                                type="submit"
-                                                className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-base shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
-                                            >
-                                                <Download size={18} /> Download Encrypted Backup (.vq)
-                                            </button>
-                                        </form>
+                                        <a
+                                            href={route('store.backup.export', { store_slug: store?.slug })}
+                                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold text-base shadow-xl shadow-indigo-500/20 flex items-center justify-center gap-2 transition-all active:scale-95 text-center"
+                                        >
+                                            <Download size={18} /> Download Encrypted Backup (.vq)
+                                        </a>
                                     </div>
                                 </div>
                             </div>
@@ -488,104 +745,64 @@ export default function DataManagement() {
                                 </div>
                             </div>
 
-                            {/* Full Width: Google Drive Auto-Sync Integration */}
-                            <div className="lg:col-span-12">
-                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 shadow-sm">
-                                    <div className="flex-1 space-y-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500">
-                                                <Cloud size={22} />
-                                            </div>
-                                            <div>
-                                                <h3 className="font-bold text-lg text-slate-800 dark:text-white flex items-center gap-2">
-                                                    Google Drive Automated Backups
-                                                    {store.google_connected && (
-                                                        <span className="px-2 py-0.5 rounded-full text-[10px] font-black tracking-widest text-emerald-600 bg-emerald-100 dark:bg-emerald-950/30 dark:text-emerald-400 animate-pulse">
-                                                            CONNECTED & ACTIVE
-                                                        </span>
-                                                    )}
-                                                </h3>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                                                    Link your Google account to automatically sync your encrypted store database every night. VenQore limits its access to only write files inside its own folder, keeping your personal Drive items 100% private.
-                                                </p>
-                                            </div>
-                                        </div>
 
-                                        {store.google_connected && (
-                                            <div className="flex flex-wrap items-center gap-6 pt-4 border-t border-slate-100 dark:border-slate-800/60 text-xs">
-                                                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                                    <span className="font-medium text-slate-400">Connected Account:</span>
-                                                    <span className="font-bold">{store.google_backup_email}</span>
-                                                </div>
-
-                                                <div className="flex items-center gap-4">
-                                                    <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={driveForm.data.google_backup_enabled}
-                                                            onChange={(e) => handleGoogleSettingsChange({ google_backup_enabled: e.target.checked })}
-                                                            className="rounded border-slate-300 dark:border-slate-700 text-indigo-600 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="font-bold text-slate-700 dark:text-slate-200">Daily Auto-Backup</span>
-                                                    </label>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-slate-400">Keep last:</span>
-                                                        <select
-                                                            value={driveForm.data.google_backup_retention}
-                                                            onChange={(e) => handleGoogleSettingsChange({ google_backup_retention: parseInt(e.target.value) })}
-                                                            className="px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                                        >
-                                                            <option value={7}>7 backups</option>
-                                                            <option value={14}>14 backups</option>
-                                                            <option value={30}>30 backups</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex shrink-0 gap-3 w-full md:w-auto">
-                                        {store.google_connected ? (
-                                            <>
-                                                <button
-                                                    onClick={handleGoogleSyncNow}
-                                                    disabled={syncingToDrive}
-                                                    className="flex-1 md:flex-none px-5 py-3 border-2 border-indigo-200 dark:border-indigo-800/50 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-xl font-bold text-xs uppercase tracking-wider text-slate-600 dark:text-slate-300 transition-colors flex items-center justify-center gap-1.5"
-                                                >
-                                                    {syncingToDrive ? (
-                                                        <RefreshCw className="animate-spin" size={14} />
-                                                    ) : (
-                                                        <RefreshCw size={14} />
-                                                    )}
-                                                    {syncingToDrive ? "Uploading..." : "Sync Now"}
-                                                </button>
-                                                <form action={route('store.google.disconnect', { store_slug: store?.slug })} method="POST" className="flex-1 md:flex-none">
-                                                    <input type="hidden" name="_token" value={usePage().props.csrf_token} />
-                                                    <button
-                                                        type="submit"
-                                                        className="w-full px-5 py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
-                                                    >
-                                                        <Unlink size={14} /> Disconnect
-                                                    </button>
-                                                </form>
-                                            </>
-                                        ) : (
-                                            <a
-                                                href={route('store.google.redirect', { store_slug: store?.slug })}
-                                                className="w-full md:w-auto px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-black text-xs uppercase tracking-widest text-center shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-transform active:scale-95 whitespace-nowrap animate-pulse"
-                                            >
-                                                <Link2 size={16} /> Link Google Drive
-                                            </a>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
                         </div>
                     )}
                 </div>
             </div>
+
+            {/* Google Drive Onboarding Step Modal */}
+            {store?.onboarding_step === 'drive_sync_tour' && renderPortal(
+                <div className="fixed inset-0 z-[150] flex items-center justify-center overflow-x-hidden overflow-y-auto outline-none focus:outline-none">
+                    <div className="fixed inset-0 bg-slate-950/65 backdrop-blur-md transition-opacity duration-300 animate-in fade-in"></div>
+
+                    <div className="relative w-full max-w-lg mx-auto my-6 px-4 z-[151] animate-in zoom-in-95 duration-300">
+                        <div className="relative flex flex-col w-full bg-slate-900/90 dark:bg-slate-950/95 border border-indigo-500/20 rounded-3xl shadow-[0_20px_50px_rgba(99,102,241,0.15)] overflow-hidden">
+                            <div className="absolute -top-12 -left-12 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                            <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                            <div className="p-8 flex flex-col items-center text-center relative z-10">
+                                <div className="w-16 h-16 bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 mb-6 shadow-inner">
+                                    <Cloud size={32} className="animate-pulse" />
+                                </div>
+
+                                <h2 className="text-2xl font-extrabold text-white tracking-tight mb-3">
+                                    Secure Your Store Data! ☁️
+                                </h2>
+
+                                <p className="text-slate-400 text-sm font-semibold mb-4">
+                                    Final Step: Enable Automated Daily Backups
+                                </p>
+
+                                <p className="text-slate-300 text-xs leading-relaxed max-w-sm mb-8">
+                                    Amazing job setting up your catalog, purchases, sales, and expenses!
+                                    <br /><br />
+                                    Now, connect your Google Drive to enable automated nightly backups. This guarantees you never lose your database, keeping your data safe and private inside its own folder.
+                                </p>
+
+                                <div className="flex flex-col w-full gap-3">
+                                    <a
+                                        href={route('store.google.redirect', { store_slug: store?.slug })}
+                                        className="w-full flex items-center justify-center gap-2 py-3.5 px-5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-blue-500/20 transition-all duration-200 hover:scale-[1.01] active:scale-[0.99] cursor-pointer text-sm"
+                                    >
+                                        <Link2 size={16} /> Connect Google Drive
+                                    </a>
+                                    <button
+                                        onClick={() => {
+                                            router.post(route('store.onboarding.step', { store_slug: store?.slug }), { step: 'completed' }, {
+                                                onSuccess: () => router.visit(route('store.dashboard', { store_slug: store?.slug }))
+                                            });
+                                        }}
+                                        className="w-full py-3 px-5 bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white font-bold rounded-xl transition-all text-xs border border-slate-700/50 cursor-pointer"
+                                    >
+                                        Maybe Later / Skip
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </OneGlanceLayout>
     );
 }

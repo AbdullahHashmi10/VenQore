@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { router } from '@inertiajs/react';
 import { ArrowRight, ArrowLeft, CheckCircle2 } from 'lucide-react';
 
@@ -6,6 +7,11 @@ export default function DashboardTourGuide({ store }) {
     const [currentStep, setCurrentStep] = useState(0);
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+
+    const renderPortal = (content) => {
+        if (typeof document === 'undefined') return null;
+        return createPortal(content, document.body);
+    };
 
     const isVisible = store?.onboarding_step === 'dashboard_tour';
 
@@ -40,8 +46,20 @@ export default function DashboardTourGuide({ store }) {
             return;
         }
 
+        const getVisibleElement = (id) => {
+            const elements = document.querySelectorAll(`[id="${id}"]`);
+            for (let i = 0; i < elements.length; i++) {
+                const el = elements[i];
+                const rect = el.getBoundingClientRect();
+                if (rect.width > 0 && rect.height > 0) {
+                    return el;
+                }
+            }
+            return elements[0] || null;
+        };
+
         const updateCoords = () => {
-            const el = document.getElementById(targetId);
+            const el = getVisibleElement(targetId);
             if (el) {
                 const rect = el.getBoundingClientRect();
                 setCoords({
@@ -55,7 +73,7 @@ export default function DashboardTourGuide({ store }) {
             }
         };
 
-        const el = document.getElementById(targetId);
+        const el = getVisibleElement(targetId);
         if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
@@ -145,8 +163,8 @@ export default function DashboardTourGuide({ store }) {
         };
     };
 
-    return (
-        <div className="fixed inset-0 z-[105] overflow-hidden pointer-events-none">
+    return renderPortal(
+        <div className="fixed inset-0 z-[150] overflow-hidden pointer-events-none">
             {coords && (
                 <div
                     className="fixed pointer-events-none transition-all duration-300 ease-out"
@@ -157,7 +175,7 @@ export default function DashboardTourGuide({ store }) {
                         height: coords.height + 12,
                         borderRadius: currentStep === 5 ? '50%' : '12px',
                         boxShadow: '0 0 0 9999px rgba(3, 7, 18, 0.75), 0 0 15px 5px rgba(99, 102, 241, 0.4), 0 0 0 2px rgb(99, 102, 241)',
-                        zIndex: 110,
+                        zIndex: 151,
                     }}
                 />
             )}

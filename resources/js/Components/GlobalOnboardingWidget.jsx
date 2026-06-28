@@ -32,7 +32,8 @@ export default function GlobalOnboardingWidget({ store }) {
             case 'pos_congratulations': return 90;
             case 'expense_tour_start': return 92;
             case 'expense_tour': return 95;
-            case 'expense_congratulations': return 98;
+            case 'expense_congratulations': return 97;
+            case 'drive_sync_tour': return 99;
             default: return 0;
         }
     };
@@ -41,7 +42,8 @@ export default function GlobalOnboardingWidget({ store }) {
         if (progress < 50) return 'Phase 1: Catalog Products';
         if (progress >= 50 && progress < 75) return 'Phase 2: Record Purchase';
         if (progress >= 75 && progress < 92) return 'Phase 3: Record Sale';
-        return 'Phase 4: Add Expense';
+        if (progress >= 92 && progress < 98) return 'Phase 4: Add Expense';
+        return 'Phase 5: Secure Database';
     };
 
     const handleResume = () => {
@@ -86,6 +88,8 @@ export default function GlobalOnboardingWidget({ store }) {
             } else {
                 router.visit(route('store.dashboard', { store_slug: store.slug }));
             }
+        } else if (step === 'drive_sync_tour') {
+            router.visit(route('store.admin.data', { store_slug: store.slug, tab: 'drive_sync' }));
         } else {
             router.visit(route('store.dashboard', { store_slug: store.slug }));
         }
@@ -101,6 +105,34 @@ export default function GlobalOnboardingWidget({ store }) {
 
     const { component, url, props } = usePage();
     const step = store?.onboarding_step;
+    const onboarding_metrics = props.onboarding_metrics;
+
+    const metrics = onboarding_metrics || {
+        has_products: false,
+        has_purchases: false,
+        has_sales: false,
+        has_expenses: false,
+        has_drive_sync: false
+    };
+
+    const checklist = [
+        { key: 'inventory', label: 'Catalog First Product', isDone: metrics.has_products },
+        { key: 'purchase', label: 'Record First Purchase', isDone: metrics.has_purchases },
+        { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: metrics.has_sales },
+        { key: 'expense', label: 'Record Store Expense', isDone: metrics.has_expenses },
+        { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: metrics.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected }
+    ];
+    const remainingCount = checklist.filter(item => !item.isDone).length;
+
+    useEffect(() => {
+        if (remainingCount === 0 && store && !store.onboarding_completed && step !== 'completed') {
+            router.post(
+                route('store.onboarding.step', { store_slug: store?.slug }),
+                { step: 'completed' },
+                { preserveScroll: true }
+            );
+        }
+    }, [remainingCount, store?.onboarding_completed, step]);
 
     // Check if the mobile nav bar is active to avoid overlapping
     const showMobileNavBar = (() => {
@@ -199,7 +231,8 @@ export default function GlobalOnboardingWidget({ store }) {
         '/refund',
         '/return',
     ];
-    if (blockedPatterns.some(p => path.includes(p))) {
+    const isProfileEdit = path.includes('/profile/edit') || path.includes('/profile');
+    if (blockedPatterns.some(p => path.includes(p) && !(p === '/edit' && isProfileEdit))) {
         return null;
     }
 
@@ -207,12 +240,56 @@ export default function GlobalOnboardingWidget({ store }) {
     const circumference = 2 * Math.PI * 18;
     const progressOffset = circumference * (1 - progress / 100);
 
+    const handleStepClick = (item) => {
+        if (item.isDone) return;
+        
+        let targetStep = '';
+        let targetRoute = '';
+        let routeParams = { store_slug: store?.slug };
+
+        switch (item.key) {
+            case 'inventory':
+                targetStep = 'inventory_tour';
+                targetRoute = 'store.inventory.index';
+                break;
+            case 'purchase':
+                targetStep = 'purchase_tour_start';
+                targetRoute = 'store.dashboard';
+                break;
+            case 'sale':
+                targetStep = 'invoice_tour_start';
+                targetRoute = 'store.dashboard';
+                break;
+            case 'expense':
+                targetStep = 'expense_tour_start';
+                targetRoute = 'store.dashboard';
+                break;
+            case 'drive_sync':
+                targetStep = 'drive_sync_tour';
+                targetRoute = 'store.admin.data';
+                routeParams.tab = 'drive_sync';
+                break;
+            default:
+                return;
+        }
+
+        router.post(
+            route('store.onboarding.step', { store_slug: store?.slug }),
+            { step: targetStep },
+            {
+                onSuccess: () => {
+                    router.visit(route(targetRoute, routeParams));
+                }
+            }
+        );
+    };
+
     if (isMinimized) {
         // Minimized floating circle widget
         return (
             <div 
                 onClick={() => toggleMinimized(false)}
-                title="Onboarding Incomplete. Click to view progress checklist."
+                title={`Onboarding Checklist: ${remainingCount} steps remaining`}
                 className={`fixed right-6 z-[95] w-14 h-14 bg-white dark:bg-slate-950/95 border border-slate-200 dark:border-indigo-500/30 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(99,102,241,0.3)] backdrop-blur-md flex items-center justify-center cursor-pointer pointer-events-auto hover:scale-110 active:scale-95 hover:border-indigo-400/50 transition-all duration-300 group animate-in zoom-in-90 ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}
             >
                 <svg className="absolute w-full h-full -rotate-90" viewBox="0 0 44 44">
@@ -241,15 +318,15 @@ export default function GlobalOnboardingWidget({ store }) {
                 <div className="relative z-10 text-indigo-600 dark:text-indigo-400 group-hover:text-indigo-700 dark:group-hover:text-white transition-colors duration-200">
                     <Sparkles size={18} className="animate-pulse" />
                 </div>
-                <span className="absolute -top-1 -right-1 bg-indigo-600 text-[8px] font-black text-white px-1.5 py-0.5 rounded-full shadow">
-                    {progress}%
+                <span className="absolute -top-1 -right-2 bg-rose-600 text-[8px] font-black text-white px-2 py-0.5 rounded-full shadow whitespace-nowrap">
+                    {remainingCount} left
                 </span>
             </div>
         );
     }
 
     return (
-        <div className={`fixed right-6 z-[95] max-w-sm w-full bg-white dark:bg-slate-950/98 border border-slate-200 dark:border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}>
+        <div className={`fixed right-6 z-[95] max-w-sm w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-indigo-500/30 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.08)] dark:shadow-[0_15px_40px_rgba(99,102,241,0.25)] p-5 backdrop-blur-md animate-in slide-in-from-bottom-4 duration-300 pointer-events-auto ${showMobileNavBar ? 'bottom-[172px] lg:bottom-24' : 'bottom-24'}`}>
             {/* Minimize button */}
             <button 
                 onClick={() => toggleMinimized(true)}
@@ -264,14 +341,41 @@ export default function GlobalOnboardingWidget({ store }) {
                     <Sparkles size={20} className="animate-pulse" />
                 </div>
                 <div>
-                    <h4 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Setup Incomplete</h4>
-                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wide">{getPhaseName(progress)} ({progress}%)</p>
+                    <h4 className="text-sm font-bold text-slate-800 dark:text-white uppercase tracking-wider">Setup Checklist</h4>
+                    <p className="text-[10px] text-indigo-600 dark:text-indigo-400 font-semibold uppercase tracking-wide">
+                        {remainingCount === 0 ? 'All Completed!' : `${remainingCount} steps remaining`}
+                    </p>
                 </div>
             </div>
 
-            <p className="text-xs text-slate-650 dark:text-slate-300 leading-relaxed font-medium mb-4 pr-6">
-                You haven't completed the store setup tour yet. Finish it to unlock the dashboard analytics!
-            </p>
+            {/* Checklist of steps */}
+            <div className="my-4 space-y-1.5 border-t border-b border-slate-100 dark:border-slate-800/80 py-3">
+                {checklist.map((item, idx) => (
+                    <button
+                        key={idx}
+                        onClick={() => handleStepClick(item)}
+                        disabled={item.isDone}
+                        className={`w-full flex items-center justify-between text-xs p-1.5 rounded-lg transition-all text-left ${item.isDone ? 'cursor-not-allowed opacity-80' : 'hover:bg-slate-50 dark:hover:bg-slate-900/50 cursor-pointer'}`}
+                        title={item.isDone ? `${item.label} completed` : `Click to jump to ${item.label}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-slate-100 dark:bg-slate-850 text-slate-400'}`}>
+                                {item.isDone ? (
+                                    <Check size={10} strokeWidth={3} />
+                                ) : (
+                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
+                                )}
+                            </div>
+                            <span className={`font-semibold ${item.isDone ? 'text-slate-400 dark:text-slate-600 line-through' : 'text-slate-750 dark:text-slate-200'}`}>
+                                {item.label}
+                            </span>
+                        </div>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                            {item.isDone ? 'Done' : 'Start'}
+                        </span>
+                    </button>
+                ))}
+            </div>
 
             <div className="flex gap-2">
                 <button
@@ -283,7 +387,7 @@ export default function GlobalOnboardingWidget({ store }) {
                 </button>
                 <button
                     onClick={handleMarkComplete}
-                    className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-850 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1"
+                    className="flex-1 py-2.5 px-3 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border-slate-700 dark:text-slate-400 dark:hover:text-white font-bold rounded-xl text-xs transition-all cursor-pointer hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-1"
                 >
                     <Check size={12} />
                     <span>Done</span>

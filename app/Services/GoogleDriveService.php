@@ -170,7 +170,7 @@ class GoogleDriveService
         try {
             $response = Http::withToken($accessToken)
                 ->get('https://www.googleapis.com/drive/v3/files', [
-                    'q' => "'{$folderId}' in parents and trashed = false and name like '%.vq'",
+                    'q' => "'{$folderId}' in parents and trashed = false and name contains '.vq'",
                     'orderBy' => 'createdTime desc',
                     'fields' => 'files(id, name, createdTime, size)',
                 ]);
@@ -228,5 +228,62 @@ class GoogleDriveService
         }
 
         return $success;
+    }
+
+    /**
+     * Download a file's content from Google Drive.
+     */
+    public function downloadFile(Tenant $tenant, string $fileId): ?string
+    {
+        $accessToken = $this->getAccessToken($tenant);
+        if (!$accessToken) {
+            return null;
+        }
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->get("https://www.googleapis.com/drive/v3/files/{$fileId}", [
+                    'alt' => 'media',
+                ]);
+
+            if ($response->successful()) {
+                return $response->body();
+            }
+
+            Log::error("Failed to download file {$fileId} from Google Drive for tenant {$tenant->id}: " . $response->body());
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error("Exception downloading file {$fileId} from Google Drive for tenant {$tenant->id}: " . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Delete a file from Google Drive.
+     */
+    public function deleteFile(Tenant $tenant, string $fileId): bool
+    {
+        $accessToken = $this->getAccessToken($tenant);
+        if (!$accessToken) {
+            return false;
+        }
+
+        try {
+            $response = Http::withToken($accessToken)
+                ->delete("https://www.googleapis.com/drive/v3/files/{$fileId}");
+
+            if ($response->successful()) {
+                Log::info("Successfully deleted file '{$fileId}' from Google Drive for tenant {$tenant->id}");
+                return true;
+            }
+
+            Log::error("Failed to delete file {$fileId} from Google Drive for tenant {$tenant->id}: " . $response->body());
+            return false;
+
+        } catch (\Exception $e) {
+            Log::error("Exception deleting file {$fileId} from Google Drive for tenant {$tenant->id}: " . $e->getMessage());
+            return false;
+        }
     }
 }

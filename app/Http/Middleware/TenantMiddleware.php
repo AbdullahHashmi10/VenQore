@@ -195,6 +195,10 @@ class TenantMiddleware
                 'onboarding_step' => $tenant->onboarding_step,
                 'logo_url'        => $tenant->logo_url,
                 'logo_style'      => $tenant->logo_style,
+                'google_connected'      => (bool)$tenant->google_connected,
+                'google_backup_email'   => $tenant->google_backup_email,
+                'google_backup_enabled' => (bool)$tenant->google_backup_enabled,
+                'google_backup_retention' => (int)$tenant->google_backup_retention,
                 'features'        => array_merge($tenant->featuresArray(), [
                     'chat_support'     => $tenant->getLimit('chat_support') !== false,
                     'live_chat_widget' => $tenant->getLimit('live_chat_widget') !== false,
@@ -209,6 +213,17 @@ class TenantMiddleware
             'demo_reset_at'   => $tenant->is_demo ? $this->getNextResetTime() : null,
             'demo_live_users' => $tenant->is_demo ? \Illuminate\Support\Facades\Cache::get('demo_visit_live', 0) : null,
             'limit_grace_status' => [
+                'active'  => $tenant->limit_grace_ends_at && now()->lt($tenant->limit_grace_ends_at),
+                'ends_at' => $tenant->limit_grace_ends_at ? $tenant->limit_grace_ends_at->toIso8601String() : null,
+            ],
+            'onboarding_metrics' => [
+                'has_products' => \App\Models\Product::exists(),
+                'has_purchases' => \App\Models\Invoice::where('type', 'purchase')->exists(),
+                'has_sales' => \App\Models\Sale::exists() || \App\Models\Invoice::where('type', 'sale')->exists(),
+                'has_expenses' => \App\Models\Expense::exists(),
+                'has_drive_sync' => (bool)$tenant->google_backup_enabled,
+            ],
+            'limit_grace_status_legacy' => [
                 'is_over_limit'     => $limitStatus['is_over_limit'],
                 'exceeded_feature'  => $limitStatus['exceeded_feature'],
                 'current_count'     => $limitStatus['current_count'],

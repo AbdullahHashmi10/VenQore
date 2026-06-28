@@ -26,8 +26,16 @@ class DataManagementController extends Controller
 {
     public function index()
     {
+        $tenant = app('current.tenant');
+        $googleBackups = [];
+
+        if ($tenant && $tenant->google_connected) {
+            $googleBackups = app(\App\Services\GoogleDriveService::class)->listBackups($tenant);
+        }
+
         return Inertia::render('Admin/DataManagement', [
-            'mode' => 'admin'
+            'mode' => 'admin',
+            'googleBackups' => $googleBackups,
         ]);
     }
 
