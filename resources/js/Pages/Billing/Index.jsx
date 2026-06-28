@@ -184,9 +184,18 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
             </div>
 
             {isCurrent ? (
-                <div className="text-center py-3 text-xs font-black text-purple-400 uppercase tracking-widest bg-purple-500/5 border border-purple-500/10 rounded-2xl flex items-center justify-center gap-2">
-                    <CheckCircle2 size={14} /> Active Plan
-                </div>
+                tenant?.status === 'trial' ? (
+                    <button
+                        onClick={() => window.location.href = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey })}
+                        className="w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/10"
+                    >
+                        Activate Subscription <ArrowRight size={16} />
+                    </button>
+                ) : (
+                    <div className="text-center py-3 text-xs font-black text-purple-400 uppercase tracking-widest bg-purple-500/5 border border-purple-500/10 rounded-2xl flex items-center justify-center gap-2">
+                        <CheckCircle2 size={14} /> Active Plan
+                    </div>
+                )
             ) : isLtd ? (
                 <div className="text-center py-3 text-xs font-black text-slate-500 uppercase tracking-widest bg-white/5 rounded-2xl">
                     Lifetime Supporter
@@ -527,7 +536,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status }) {
                             </div>
                             <div className="flex items-center gap-3">
                                 <button 
-                                    onClick={() => handleSelectPlan('growth')}
+                                    onClick={() => window.location.href = route('store.billing.upgrade', { store_slug: storeSlug, plan: currentPlanKey })}
                                     className="px-6 py-3 bg-white text-orange-600 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-orange-50 transition-all shadow-md active:scale-95 whitespace-nowrap"
                                 >
                                     Subscribe Now
