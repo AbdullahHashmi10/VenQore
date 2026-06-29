@@ -66,8 +66,8 @@ class PrintService {
 
         let pageDeclaration;
         if (isThermal) {
-            pageDeclaration = `size: ${widthMm}mm;`;
-            console.log(`[PrintService] Thermal @page → ${widthMm}mm`);
+            pageDeclaration = `size: ${widthMm}mm 297mm;`;
+            console.log(`[PrintService] Thermal @page → ${widthMm}mm x 297mm`);
         } else {
             const orient = data.paper_orientation === 'Landscape' ? 'landscape' : 'portrait';
             pageDeclaration = `size: ${data.paper_size || 'A4'} ${orient};`;
