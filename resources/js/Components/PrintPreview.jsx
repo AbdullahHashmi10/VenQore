@@ -157,7 +157,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
 
         return (
             <div
-                className="bg-white text-black print-container overflow-hidden box-border mx-auto"
+                className="bg-white text-black print-container box-border mx-auto"
                 style={{
                     width: printWidth,
                     paddingTop: `${data.margin_top || 0}mm`,

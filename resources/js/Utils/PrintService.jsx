@@ -86,12 +86,29 @@ class PrintService {
   <style>
     ${allStyles}
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-    body { margin: 0; padding: 16px; background: white; display: flex; justify-content: center; }
+    body { margin: 0; padding: 0; background: white; }
     @page {
-      margin: ${data.margin_top || 0}mm ${data.margin_right || 0}mm ${data.margin_bottom || 0}mm ${data.margin_left || 0}mm;
+      margin: 0;
       ${isThermal ? `size: ${width / MM_TO_PX}mm auto;` : `size: ${data.paper_size || 'A4'} ${data.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
     }
-    @media print { body { padding: 0; } }
+    @media print {
+      html, body {
+        height: auto !important;
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+      .print-container {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+        height: auto !important;
+        overflow: visible !important;
+      }
+      .print-container tr,
+      .print-container .space-y-3 > div {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+    }
   </style>
 </head>
 <body>${previewHtml}</body>
@@ -164,6 +181,38 @@ class PrintService {
         // Helper to trigger print
         const triggerPrint = () => {
             if (iframe.contentWindow) {
+                if (isThermal) {
+                    try {
+                        const doc = iframe.contentWindow.document;
+                        const container = doc.querySelector('.print-container');
+                        if (container) {
+                            const heightPx = container.scrollHeight || container.offsetHeight;
+                            if (heightPx > 0) {
+                                // Use user-configured page height limit (defaults to 3276mm for continuous roll)
+                                const heightMm = settings.thermal_page_height || 3276;
+                                
+                                // Create dynamic style sheet inside print iframe document
+                                let styleEl = doc.getElementById('dynamic-page-size');
+                                if (!styleEl) {
+                                    styleEl = doc.createElement('style');
+                                    styleEl.id = 'dynamic-page-size';
+                                    doc.head.appendChild(styleEl);
+                                }
+                                
+                                const settings = this.getSettings();
+                                let pageWidthMm = 80;
+                                if (settings.thermal_page_size === '2inch') pageWidthMm = 58;
+                                else if (settings.thermal_page_size === '4inch') pageWidthMm = 100;
+                                
+                                styleEl.innerHTML = `@page { size: ${pageWidthMm}mm ${heightMm}mm !important; margin: 0 !important; }`;
+                                console.log(`[PrintService] Dynamic thermal size applied: ${pageWidthMm}mm x ${heightMm}mm`);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('[PrintService] Failed to calculate dynamic page size:', e);
+                    }
+                }
+
                 iframe.contentWindow.focus();
                 iframe.contentWindow.print();
                 
@@ -300,6 +349,7 @@ class PrintService {
             thermal_auto_cut: b(raw.thermal_auto_cut, true),
             thermal_open_drawer: b(raw.thermal_open_drawer, false),
             thermal_copies: n(raw.thermal_copies, 1),
+            thermal_page_height: n(raw.thermal_page_height, 3276),
 
             // Thermal column toggles
             thermal_show_headers: b(raw.thermal_show_headers, false),

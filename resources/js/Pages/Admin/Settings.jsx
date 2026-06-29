@@ -199,6 +199,7 @@ export default function AdminSettings({ settings = {} }) {
         thermal_open_drawer: settings.thermal_open_drawer === '1',
         thermal_extra_lines: parseInt(settings.thermal_extra_lines) || 3,
         thermal_copies: parseInt(settings.thermal_copies) || 1,
+        thermal_page_height: parseInt(settings.thermal_page_height) || 3276,
         thermal_font_size: parseInt(settings.thermal_font_size) || 12, // Font size in pt
 
         // Print - Column Toggles (Thermal)

@@ -140,6 +140,7 @@ const CreateInvoice = ({ sale }) => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
     const [editingParty, setEditingParty] = useState(null);
+    const [printingReceipt, setPrintingReceipt] = useState(false);
 
     // Data for Product Modal
     const [categories, setCategories] = useState([]);
@@ -2443,12 +2444,25 @@ const CreateInvoice = ({ sale }) => {
 
                     <div className="grid grid-cols-1 gap-3 w-full">
                         <button
-                            onClick={() => {
-                                window.open(route('store.sales.print', { store_slug: store?.slug, sale: lastSaleId }), '_blank');
+                            disabled={printingReceipt}
+                            onClick={async () => {
+                                setPrintingReceipt(true);
+                                try {
+                                    const response = await axios.get(route('store.sales.show', { store_slug: store?.slug, sale: lastSaleId }), {
+                                        headers: { Accept: 'application/json' }
+                                    });
+                                    if (response.data?.sale) {
+                                        PrintService.quickPrint(response.data.sale);
+                                    }
+                                } catch (err) {
+                                    console.error("Failed to print sale:", err);
+                                } finally {
+                                    setPrintingReceipt(false);
+                                }
                             }}
-                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20"
+                            className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black flex items-center justify-center gap-3 transition-all shadow-xl shadow-indigo-600/20 disabled:opacity-50"
                         >
-                            <Printer size={20} /> PRINT RECEIPT
+                            <Printer size={20} /> {printingReceipt ? 'PREPARING...' : 'PRINT RECEIPT'}
                         </button>
 
                         <button

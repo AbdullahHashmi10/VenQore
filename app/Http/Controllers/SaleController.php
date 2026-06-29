@@ -649,6 +649,13 @@ class SaleController extends Controller
             })
             ->get(['id', 'name', 'code']);
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'sale' => $sale,
+                'bankAccounts' => $bankAccounts,
+            ]);
+        }
+
         return Inertia::render('Sales/Show', [
             'sale' => $sale,
             'bankAccounts' => $bankAccounts,
