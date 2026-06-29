@@ -133,11 +133,11 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         };
     } else {
         // Fallback to sample data for settings preview
-        items = [
-            { sno: 1, name: 'Samsung Galaxy A54', hsn: '8517', qty: 1, rate: 85000, mrp: 90000, gst: 18, amount: 76500, discount_percent: 10, discount_amount: 8500, desc: '128GB Black', batch: 'BX-902', exp: '12/26' },
-            { sno: 2, name: 'Wireless Charger 15W', hsn: '8504', qty: 2, rate: 2500, mrp: 2999, gst: 12, amount: 5000, discount_percent: 0, discount_amount: 0, desc: 'Fast Charge', batch: 'BX-902', exp: '12/26' },
-            { sno: 3, name: 'Tempered Glass Screen', hsn: '7007', qty: 1, rate: 350, mrp: 499, gst: 5, amount: 315, discount_percent: 10, discount_amount: 35, desc: '9H Hardness', batch: 'BX-902', exp: '12/26' },
-        ];
+         items = [
+             { sno: 1, name: 'Samsung Galaxy A54', hsn: '8517', qty: 1, free_qty: 1, freeQuantity: 1, rate: 85000, mrp: 90000, gst: 18, amount: 76500, discount_percent: 10, discount_amount: 8500, desc: '128GB Black', batch: 'BX-902', exp: '12/26' },
+             { sno: 2, name: 'Wireless Charger 15W', hsn: '8504', qty: 2, free_qty: 0, freeQuantity: 0, rate: 2500, mrp: 2999, gst: 12, amount: 5000, discount_percent: 0, discount_amount: 0, desc: 'Fast Charge', batch: 'BX-902', exp: '12/26' },
+             { sno: 3, name: 'Tempered Glass Screen', hsn: '7007', qty: 1, free_qty: 0, freeQuantity: 0, rate: 350, mrp: 499, gst: 5, amount: 315, discount_percent: 10, discount_amount: 35, desc: '9H Hardness', batch: 'BX-902', exp: '12/26' },
+         ];
         calculations = {
             subtotal: 90350,
             qty: 4,

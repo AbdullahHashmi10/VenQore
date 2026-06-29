@@ -23,6 +23,19 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
 
+    // Persist printer sub-tab selection (thermal vs regular) across refreshes
+    useEffect(() => {
+        const storedTab = localStorage.getItem('active_printer_subtab');
+        if (storedTab && (storedTab === 'thermal' || storedTab === 'regular')) {
+            setData('_print_tab', storedTab);
+        }
+    }, []);
+
+    const handleSubtabChange = (tabName) => {
+        setData('_print_tab', tabName);
+        localStorage.setItem('active_printer_subtab', tabName);
+    };
+
     // Handle Full Screen Toggle - Adds flow-root to body to prevent scrolling background
     useEffect(() => {
         if (isFullScreen) {
@@ -152,83 +165,74 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
         }, isThermal ? 500 : 300);
     };
 
-    const containerClasses = isFullScreen
-        ? "fixed inset-0 z-[99999] bg-slate-100 dark:bg-slate-900 flex flex-col w-screen h-screen"
-        : "animate-in fade-in slide-in-from-bottom-2 duration-300 relative h-full flex flex-col";
-
     const content = (
-        <div className={containerClasses}>
-            {/* Top Toolbar */}
-            <div className={`flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 shrink-0 ${isFullScreen ? 'shadow-md' : 'rounded-t-2xl'}`}>
+        <div id="fullscreen-portal-root" className={`flex flex-col bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 ${isFullScreen ? 'fixed inset-0 z-[9999] rounded-none' : 'h-[calc(100vh-12rem)]'}`}>
+            {/* Header Toolbar */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10">
                 <div className="flex items-center gap-4">
-                    <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                        <Printer className="text-indigo-600" size={20} />
-                        Print Configuration
-                    </h2>
+                    <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
+                        <Printer size={18} className="text-indigo-500" />
+                        <span className="font-extrabold text-sm tracking-tight">ADVANCED DESIGN PANEL</span>
+                    </div>
 
-                    {/* Mode Switcher */}
-                    <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                    {/* Format Tabs (Thermal vs Regular) */}
+                    <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                         <button
                             type="button"
-                            onClick={() => setData('_print_tab', 'regular')}
+                            onClick={() => handleSubtabChange('regular')}
                             className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab !== 'thermal'
                                 ? 'bg-white dark:bg-slate-600 text-indigo-600 shadow-sm'
                                 : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
                         >
-                            A4 / Regular
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setData('_print_tab', 'thermal')}
-                            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-all ${data._print_tab === 'thermal'
-                                ? 'bg-white dark:bg-slate-600 text-emerald-600 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
-                        >
-                            Thermal / POS
-                        </button>
-                    </div>
+                            ? 'bg-white dark:bg-slate-600 text-emerald-600 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                    >
+                        Thermal / POS
+                    </button>
                 </div>
+            </div>
 
-                <div className="flex items-center gap-2">
-                    {/* Test Print Button */}
-                    <button
-                        type="button"
-                        onClick={() => handleTestPrint(data)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all active:scale-95 mr-2"
-                        title="Send a test print with current settings (no need to save first)"
-                    >
-                        <Play size={14} className="fill-current" />
-                        Test Print
-                    </button>
+            <div className="flex items-center gap-2">
+                {/* Test Print Button */}
+                <button
+                    type="button"
+                    onClick={() => handleTestPrint(data)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all active:scale-95 mr-2"
+                    title="Send a test print with current settings (no need to save first)"
+                >
+                    <Play size={14} className="fill-current" />
+                    Test Print
+                </button>
 
-                    {/* Save Changes Button (Print Settings specific with resistant warning) */}
-                    <button
-                        type="button"
-                        onClick={() => {
-                            if (saveSettings) {
-                                Swal.fire({
-                                    title: 'Save Printer Settings?',
-                                    text: 'Are you sure you want to save and apply the new printer configurations across the system?',
-                                    icon: 'question',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Yes, Save Settings',
-                                    cancelButtonText: 'Cancel',
-                                    background: '#1e293b',
-                                    color: '#fff',
-                                    confirmButtonColor: '#4f46e5',
-                                }).then((result) => {
-                                    if (result.isConfirmed) {
-                                        saveSettings();
-                                    }
-                                });
-                            }
-                        }}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all active:scale-95 mr-2"
-                        title="Save and apply current printer settings"
-                    >
-                        <Save size={14} />
-                        Save Printer Settings
-                    </button>
+                {/* Save Changes Button (Print Settings specific with resistant warning) */}
+                <button
+                    type="button"
+                    onClick={() => {
+                        if (saveSettings) {
+                            Swal.fire({
+                                title: 'Save Printer Settings?',
+                                text: 'Are you sure you want to save and apply the new printer configurations across the system?',
+                                icon: 'question',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, Save Settings',
+                                cancelButtonText: 'Cancel',
+                                background: '#1e293b',
+                                color: '#fff',
+                                confirmButtonColor: '#4f46e5',
+                                target: isFullScreen ? document.getElementById('fullscreen-portal-root') || 'body' : 'body'
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    saveSettings();
+                                }
+                            });
+                        }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all active:scale-95 mr-2"
+                    title="Save and apply current printer settings"
+                >
+                    <Save size={14} />
+                    Save Printer Settings
+                </button>
 
                     {/* Preview Mode Toggle */}
                     <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1 mr-2">

@@ -73,7 +73,18 @@ const SETTINGS_SECTIONS = [
 
 export default function AdminSettings({ settings = {} }) {
     const { store } = usePage().props;
-    const [activeSection, setActiveSection] = useState('business');
+    const [activeSection, setActiveSection] = useState(() => {
+        const hash = window.location.hash.replace('#', '');
+        return ['business', 'general', 'transaction', 'loyalty', 'print', 'ai', 'integrations', 'reset'].includes(hash)
+            ? hash
+            : (localStorage.getItem('active_settings_section') || 'business');
+    });
+
+    useEffect(() => {
+        localStorage.setItem('active_settings_section', activeSection);
+        window.location.hash = activeSection;
+    }, [activeSection]);
+
     const [saved, setSaved] = useState(false);
     const [isPasscodeModalOpen, setIsPasscodeModalOpen] = useState(false);
     const [configuringApp, setConfiguringApp] = useState(null);
