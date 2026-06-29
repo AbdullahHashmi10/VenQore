@@ -618,11 +618,12 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
             </div>
 
-            {/* Optional Column Headers */}
             {data.thermal_show_headers && (
                 <div className="flex justify-between text-[0.8em] font-black border-b-2 border-black pb-1 mb-2 uppercase tracking-tight">
                     <span className="flex-1">Item</span>
-                    <span className="text-right w-12">Qty</span>
+                    <span className="text-right w-20">
+                        {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'Qty+Free' : 'Qty'}
+                    </span>
                     <span className="text-right w-24">Amt</span>
                 </div>
             )}
