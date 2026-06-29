@@ -682,6 +682,15 @@ class SaleController extends Controller
                 ->value('balance') ?? 0;
 
             $sale->customer->current_balance = (float)$netAR - (float)$netAP;
+
+            // Calculate exact net balance (current balance) and previous balance (before this sale)
+            // Balance due of this invoice transaction:
+            $invoiceTotal = (float) $sale->total;
+            $amountPaid = (float) $sale->payments->sum('amount');
+            $balanceDue = max(0, $invoiceTotal - $amountPaid);
+
+            $sale->customer_net_balance = $sale->customer->current_balance;
+            $sale->customer_prev_balance = $sale->customer->current_balance - $balanceDue;
         }
 
         if (request()->wantsJson()) {

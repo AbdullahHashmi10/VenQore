@@ -139,20 +139,24 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         const totalSavings = discountAmount + totalItemDiscounts + freeItemsValue;
 
         const balanceDue = Math.max(0, grandTotal - amountPaid);
-        
+
         // Ledger Balances
-        const currentLedgerBalance = parseFloat(sale.customer?.current_balance || sale.party?.current_balance || 0);
-        
-        // Check if the sale has already been saved/posted to ledger
-        const isSaved = !!(sale.reference_number || sale.reference || (sale.id && !sale.id.includes('temp')));
         let prevLedgerBalance = 0;
         let netLedgerBalance = 0;
-        if (isSaved) {
-            netLedgerBalance = currentLedgerBalance;
-            prevLedgerBalance = currentLedgerBalance - balanceDue;
+
+        if (sale.customer_prev_balance !== undefined && sale.customer_prev_balance !== null) {
+            prevLedgerBalance = parseFloat(sale.customer_prev_balance);
+            netLedgerBalance = parseFloat(sale.customer_net_balance || 0);
         } else {
-            prevLedgerBalance = currentLedgerBalance;
-            netLedgerBalance = currentLedgerBalance + balanceDue;
+            const currentLedgerBalance = parseFloat(sale.customer?.current_balance || sale.party?.current_balance || 0);
+            const isSaved = !!(sale.reference_number || sale.reference || (sale.id && !sale.id.includes('temp')));
+            if (isSaved) {
+                netLedgerBalance = currentLedgerBalance;
+                prevLedgerBalance = currentLedgerBalance - balanceDue;
+            } else {
+                prevLedgerBalance = currentLedgerBalance;
+                netLedgerBalance = currentLedgerBalance + balanceDue;
+            }
         }
 
         calculations = {
