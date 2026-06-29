@@ -345,6 +345,10 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
 
                     <div className="flex justify-between text-sm text-slate-500"><span>Tax</span><span>{formatAmount(calculations.gst)}</span></div>
 
+                    {calculations.discount > 0 && (
+                        <div className="flex justify-between text-sm text-red-500 font-bold"><span>Discount</span><span>-{formatAmount(calculations.discount)}</span></div>
+                    )}
+
                     {data.print_you_saved && (
                         <div className="flex justify-between text-sm text-emerald-600 font-bold"><span>You Saved</span><span>{formatAmount(calculations.discount)}</span></div>
                     )}
@@ -687,6 +691,13 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
 
+                {calculations.discount > 0 && (
+                    <div className="flex justify-between text-[0.9em] mb-1 text-red-600 font-bold">
+                        <span>Discount</span>
+                        <span>-{formatAmount(calculations.discount)}</span>
+                    </div>
+                )}
+
                 <div className="flex justify-between font-black mt-2 pt-2 border-t border-black">
                     <span>TOTAL</span>
                     <span>{formatAmount(calculations.total)}</span>
@@ -883,6 +894,13 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     </div>
                 )}
 
+                {calculations.discount > 0 && (
+                    <div className="flex justify-between text-red-600 font-bold">
+                        <span>DISCOUNT</span>
+                        <span>-{formatAmount(calculations.discount)}</span>
+                    </div>
+                )}
+
                 <div className="flex justify-between font-bold text-sm mt-1 pt-1 border-t border-black border-dashed">
                     <span>NET TOTAL</span>
                     <span>{formatAmount(calculations.total)}</span>
@@ -1063,6 +1081,12 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                     <div className="flex justify-between text-xs">
                         <span>Tax Amount:</span>
                         <span>{formatAmount(calculations.gst)}</span>
+                    </div>
+                )}
+                {calculations.discount > 0 && (
+                    <div className="flex justify-between text-xs text-red-600 font-bold">
+                        <span>Discount:</span>
+                        <span>-{formatAmount(calculations.discount)}</span>
                     </div>
                 )}
             </div>
