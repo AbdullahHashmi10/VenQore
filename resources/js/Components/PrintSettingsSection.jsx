@@ -507,6 +507,7 @@ const ThermalSettings = ({ data, setData }) => (
                 <ToggleBtn label="Item Description" checked={data.thermal_show_description} onChange={v => setData('thermal_show_description', v)} color="emerald" />
                 <ToggleBtn label="MRP Prices" checked={data.thermal_show_mrp} onChange={v => setData('thermal_show_mrp', v)} color="emerald" />
                 <ToggleBtn label="Discounts (%)" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} color="emerald" />
+                <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} color="emerald" />
                 <ToggleBtn label="Tax Details" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} color="emerald" />
                 <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} color="emerald" />
             </div>

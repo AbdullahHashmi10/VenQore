@@ -79,6 +79,7 @@ const CreateInvoice = ({ sale }) => {
                     name: i.product?.name || i.name || 'Unknown Item',
                     quantity: parseFloat(i.quantity) || 1,
                     originalQuantity: parseFloat(i.quantity) || 0,
+                    freeQuantity: parseFloat(i.free_quantity || 0),
                     price: parseFloat(i.unit_price) || parseFloat(i.price) || parseFloat(i.product?.price) || 0,
                     cost: parseFloat(i.product?.cost || i.product?.cost_price || 0),
                     discount: parseFloat(i.discount_amount || i.discount || 0),
@@ -905,6 +906,7 @@ const CreateInvoice = ({ sale }) => {
                         product_id: item.product.id,
                         variant_id: item.variant?.id || null,
                         quantity: item.quantity,
+                        free_quantity: item.freeQuantity || 0,
                         price: item.price,
                         discount: disc,
                         discount_type: item.discountType || 'fixed'

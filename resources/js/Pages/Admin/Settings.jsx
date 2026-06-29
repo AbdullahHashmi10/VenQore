@@ -173,6 +173,7 @@ export default function AdminSettings({ settings = {} }) {
         print_show_description: settings.print_show_description !== '0',
         print_show_hsn: settings.print_show_hsn === '1',
         print_show_discount: settings.print_show_discount === '1' || settings.print_show_discount === true,
+        print_show_free_qty: settings.print_show_free_qty === '1' || settings.print_show_free_qty === true,
 
         // Print - Totals & Footer (Regular)
         print_total_quantity: settings.print_total_quantity !== '0',
