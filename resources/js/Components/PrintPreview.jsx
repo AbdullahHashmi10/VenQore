@@ -63,21 +63,39 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
     if (sale) {
         // Parse Real Data
         const saleItems = sale.items || sale.cart || [];
-        items = saleItems.map((item, idx) => ({
-            sno: idx + 1,
-            name: item.product?.name || item.name || 'Item',
-            hsn: item.product?.hsn || item.hsn || '',
-            qty: parseFloat(item.quantity || item.qty || 1),
-            rate: parseFloat(item.unit_price || item.price || 0),
-            mrp: parseFloat(item.mrp || item.product?.mrp || 0),
-            gst: parseFloat(item.tax_percent || item.tax_rate || 0),
-            amount: parseFloat(item.quantity || item.qty || 1) * parseFloat(item.unit_price || item.price || 0),
-            discount_percent: parseFloat(item.discount_percent || 0),
-            discount_amount: parseFloat(item.discount || 0),
-            desc: item.batch_no ? `Batch: ${item.batch_no}` : '',
-            batch: item.batch_no || '',
-            exp: item.expiry_date ? new Date(item.expiry_date).toLocaleDateString([], { month: '2-digit', year: '2-digit' }) : ''
-        }));
+        items = saleItems.map((item, idx) => {
+            const qty = parseFloat(item.quantity || item.qty || 1);
+            const rate = parseFloat(item.unit_price || item.price || 0);
+            const grossAmt = qty * rate;
+            
+            // Reconstruct discount amount and percentage
+            const discountAmt = parseFloat(item.discount_amount || (item.discount_type === 'fixed' ? item.discount : 0) || 0);
+            let discountPercent = parseFloat(item.discount_percent || 0);
+            if (discountPercent === 0) {
+                if (item.discount_type === 'percent') {
+                    discountPercent = parseFloat(item.discount || 0);
+                } else if (discountAmt > 0) {
+                    const gross = grossAmt + discountAmt;
+                    discountPercent = gross > 0 ? Math.round((discountAmt / gross) * 100) : 0;
+                }
+            }
+
+            return {
+                sno: idx + 1,
+                name: item.product?.name || item.name || 'Item',
+                hsn: item.product?.hsn || item.hsn || '',
+                qty: qty,
+                rate: rate,
+                mrp: parseFloat(item.mrp || item.product?.mrp || 0),
+                gst: parseFloat(item.tax_percent || item.tax_rate || 0),
+                amount: grossAmt,
+                discount_percent: discountPercent,
+                discount_amount: discountAmt,
+                desc: item.batch_no ? `Batch: ${item.batch_no}` : '',
+                batch: item.batch_no || '',
+                exp: item.expiry_date ? new Date(item.expiry_date).toLocaleDateString([], { month: '2-digit', year: '2-digit' }) : ''
+            };
+        });
 
         const itemsSubtotal = items.reduce((sum, i) => sum + i.amount, 0);
         const taxAmount = parseFloat(sale.tax || sale.tax_amount || 0);
@@ -614,9 +632,9 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                             )}
 
                             {/* Discount */}
-                            {data.print_show_discount && item.discount_percent > 0 && (
+                            {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
                                 <span className="font-bold">
-                                    (-{item.discount_percent}%)
+                                    (-{item.discount_percent > 0 ? `${item.discount_percent}%` : formatAmount(item.discount_amount)})
                                 </span>
                             )}
 
@@ -825,8 +843,8 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                                 <span>@{formatAmount(item.rate)}</span>
                             )}
 
-                            {data.print_show_discount && item.discount_percent > 0 && (
-                                <span>(Disc: -{item.discount_percent}%)</span>
+                            {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
+                                <span>(Disc: -{item.discount_percent > 0 ? `${item.discount_percent}%` : formatAmount(item.discount_amount)})</span>
                             )}
                         </div>
 
@@ -1014,8 +1032,8 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                             {data.thermal_show_mrp && item.mrp > 0 && (
                                 <span className="line-through">MRP: {formatAmount(item.mrp)}</span>
                             )}
-                            {data.print_show_discount && item.discount_percent > 0 && (
-                                <span>Disc: {item.discount_percent}%</span>
+                            {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
+                                <span>Disc: {item.discount_percent > 0 ? `${item.discount_percent}%` : formatAmount(item.discount_amount)}</span>
                             )}
                         </div>
 
