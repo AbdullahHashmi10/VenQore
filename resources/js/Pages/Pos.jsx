@@ -935,7 +935,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 variant_id: item.variant_id,
                 quantity: item.qty,
                 free_quantity: item.freeQuantity || 0,
-                price: item.price
+                price: item.original_price || item.price,
+                discount: item.discount || 0,
+                discount_type: item.discountType || 'fixed'
             })),
             customer_id: activeSale.customer?.id || null,
             payment_method: 'split',

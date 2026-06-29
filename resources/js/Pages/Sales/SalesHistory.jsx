@@ -1120,10 +1120,10 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                             <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
                                                             <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
                                                             <td className="p-3 text-right text-orange-600">
-                                                                {item.discount ? `-${formatCurrency(item.discount, store)}` : '-'}
+                                                                {(parseFloat(item.discount_amount || item.discount || 0)) > 0 ? `-${formatCurrency(parseFloat(item.discount_amount || item.discount || 0), store)}` : '-'}
                                                             </td>
                                                             <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                                {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0), store)}
+                                                                {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - parseFloat(item.discount_amount || item.discount || 0), store)}
                                                             </td>
                                                         </tr>
                                                     ))
@@ -1154,7 +1154,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                             </div>
                                                         </div>
                                                         <p className="text-xs font-bold text-slate-800 dark:text-white shrink-0">
-                                                            {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - (item.discount || 0), store)}
+                                                            {formatCurrency((item.quantity * (item.price || item.unit_price || 0)) - parseFloat(item.discount_amount || item.discount || 0), store)}
                                                         </p>
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-2 text-[10px] bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
@@ -1169,7 +1169,7 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                         <div>
                                                             <span className="text-slate-400 block uppercase">Discount</span>
                                                             <span className="font-semibold text-orange-600">
-                                                                {item.discount ? `-${formatCurrency(item.discount, store)}` : '-'}
+                                                                {(parseFloat(item.discount_amount || item.discount || 0)) > 0 ? `-${formatCurrency(parseFloat(item.discount_amount || item.discount || 0), store)}` : '-'}
                                                             </span>
                                                         </div>
                                                     </div>

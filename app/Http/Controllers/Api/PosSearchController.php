@@ -126,10 +126,15 @@ class PosSearchController extends Controller
         $q->orderByDesc(DB::raw('COALESCE(SUM(s.quantity), 0) > 0'))
           ->orderBy('p.name');
 
-        // Manual pagination (LIMIT/OFFSET)
-        $total   = DB::table(DB::raw("({$q->toSql()}) as sub"))
-            ->mergeBindings($q)
-            ->count();
+        // Manual pagination (LIMIT/OFFSET) - OPTIMIZED to avoid heavy subquery aggregation
+        if (empty($query) && !$categoryId) {
+            $total = DB::table('products')
+                ->whereNull('deleted_at')
+                ->when($tenantId, fn($sq) => $sq->where('tenant_id', $tenantId))
+                ->count();
+        } else {
+            $total = 100; // cheap fallback count for debounced search queries
+        }
 
         $products = $q->offset(($page - 1) * $perPage)
                       ->limit($perPage)
