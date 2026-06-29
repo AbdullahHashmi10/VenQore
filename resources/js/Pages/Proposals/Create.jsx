@@ -91,8 +91,8 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                     cost: parseFloat(
                         i.product?.cost || i.product?.cost_price || 0,
                     ),
-                    discount: 0,
-                    discountType: "fixed",
+                    discount: parseFloat(i.discount_amount || i.discount || 0),
+                    discountType: i.discount_type || 'fixed',
                 })),
                 date: sale.date || new Date().toISOString().split("T")[0],
                 notes: sale.notes || "",
@@ -983,12 +983,19 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                 status: "draft", // Default status for proposals
                 notes: currentInvoice.notes || "",
                 valid_until: currentInvoice.dueDate || null,
-                items: validItems.map((item) => ({
-                    product_id: item.product.id,
-                    quantity: item.quantity,
-                    unit_price: item.price, // Backend expects unit_price
-                    discount: item.discount || 0,
-                })),
+                items: validItems.map((item) => {
+                    const disc = item.discountType === 'percent'
+                        ? (item.quantity * item.price) * ((item.discount || 0) / 100)
+                        : (item.discount || 0);
+                    return {
+                        product_id: item.product.id,
+                        quantity: item.quantity,
+                        unit_price: item.price, // Backend expects unit_price
+                        discount: disc,
+                        discount_type: item.discountType || 'fixed',
+                    };
+                }),
+                discount: invoiceDiscount,
             };
 
             let response;

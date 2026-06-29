@@ -74,8 +74,8 @@ const CreatePreSale = ({ sale }) => {
                     originalQuantity: parseFloat(i.quantity) || 0, // Track original for stock validation
                     price: parseFloat(i.unit_price) || parseFloat(i.price) || parseFloat(i.product?.price) || 0,
                     cost: parseFloat(i.product?.cost || i.product?.cost_price || 0),
-                    discount: 0,
-                    discountType: 'fixed'
+                    discount: parseFloat(i.discount_amount || i.discount || 0),
+                    discountType: i.discount_type || 'fixed'
                 })),
                 date: sale.date || new Date().toISOString().split('T')[0],
                 notes: sale.notes || '',
@@ -723,15 +723,22 @@ const CreatePreSale = ({ sale }) => {
         try {
             const payload = {
                 customer_id: currentInvoice.customer.id,
-                items: validItems.map(item => ({
-                    product_id: item.product.id,
-                    variant_id: item.variant?.id || null,
-                    quantity: item.quantity,
-                    price: item.price
-                })),
+                items: validItems.map(item => {
+                    const disc = item.discountType === 'percent'
+                        ? (item.quantity * item.price) * ((item.discount || 0) / 100)
+                        : (item.discount || 0);
+                    return {
+                        product_id: item.product.id,
+                        variant_id: item.variant?.id || null,
+                        quantity: item.quantity,
+                        price: item.price,
+                        discount: disc,
+                        discount_type: item.discountType || 'fixed',
+                    };
+                }),
                 payment_method: currentInvoice.paymentMethod,
                 amount_paid: 0, // Pre-sales: No payment required
-                discount: itemDiscounts + invoiceDiscount,
+                discount: invoiceDiscount,
                 tax: taxAmount,
                 notes: currentInvoice.notes,
                 reference: currentInvoice.invoiceNumber,

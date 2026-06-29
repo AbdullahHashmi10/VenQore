@@ -87,8 +87,8 @@ const Create = ({ debitNote }) => {
                     name: i.product?.name || i.name || 'Item',
                     quantity: parseFloat(i.quantity) || 1,
                     price: parseFloat(i.unit_price) || 0, // Return Cost
-                    discount: 0,
-                    discountType: 'fixed',
+                    discount: parseFloat(i.discount_amount || i.discount || 0),
+                    discountType: i.discount_type || 'fixed',
                     originalQuantity: parseFloat(i.quantity) || 0
                 })),
                 date: debitNote.date,
@@ -872,16 +872,23 @@ const Create = ({ debitNote }) => {
         try {
             const payload = {
                 supplier_id: currentInvoice.customer.id, // Mapped from Customer state
-                items: validItems.map(item => ({
-                    product_id: item.product.id,
-                    variant_id: item.variant?.id || null,
-                    quantity: item.quantity,
-                    unit_price: item.price, // Return Price
-                    name: item.name
-                })),
+                items: validItems.map(item => {
+                    const disc = item.discountType === 'percent'
+                        ? (item.quantity * item.price) * ((item.discount || 0) / 100)
+                        : (item.discount || 0);
+                    return {
+                        product_id: item.product.id,
+                        variant_id: item.variant?.id || null,
+                        quantity: item.quantity,
+                        unit_price: item.price, // Return Price
+                        name: item.name,
+                        discount: disc,
+                        discount_type: item.discountType || 'fixed',
+                    };
+                }),
                 payment_method: currentInvoice.paymentMethod,
                 amount_paid: currentInvoice.amountPaid, // Refund Received
-                discount: itemDiscounts + invoiceDiscount,
+                discount: invoiceDiscount,
                 tax: taxAmount,
                 reason: currentInvoice.notes,
                 reference_number: currentInvoice.invoiceNumber, // Optional manual ref
