@@ -74,22 +74,22 @@ const CreateInvoice = ({ sale }) => {
                 invoiceNumber: sale.reference_number,
                 customer: sale.customer,
                 items: (sale.items || []).map(i => ({
-                    id: i.id, // Real Item ID
+                    id: i.id,
                     product: i.product,
                     name: i.product?.name || i.name || 'Unknown Item',
-                    quantity: parseFloat(i.quantity) || 1, // Default to 1 if unknown
-                    originalQuantity: parseFloat(i.quantity) || 0, // Track original for stock validation
+                    quantity: parseFloat(i.quantity) || 1,
+                    originalQuantity: parseFloat(i.quantity) || 0,
                     price: parseFloat(i.unit_price) || parseFloat(i.price) || parseFloat(i.product?.price) || 0,
                     cost: parseFloat(i.product?.cost || i.product?.cost_price || 0),
-                    discount: 0,
-                    discountType: 'fixed'
+                    discount: parseFloat(i.discount_amount || i.discount || 0),
+                    discountType: i.discount_type || 'fixed'
                 })),
                 date: sale.date || new Date().toISOString().split('T')[0],
                 notes: sale.notes || '',
                 amountPaid: (sale.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0),
                 originalPaidAmount: (sale.payments || []).reduce((s, p) => s + (parseFloat(p.amount) || 0), 0),
                 paymentMethod: sale.method || 'cash',
-                discount: parseFloat(sale.discount) || 0,
+                discount: parseFloat(sale.global_discount ?? sale.discount) || 0,
                 tax: parseFloat(sale.tax) || 0,
                 delivery_charge: parseFloat(sale.delivery_charge) || 0,
                 extra_charge_value: parseFloat(sale.extra_charge_value) || 0,
@@ -897,15 +897,22 @@ const CreateInvoice = ({ sale }) => {
         try {
             const payload = {
                 customer_id: currentInvoice.customer.id,
-                items: validItems.map(item => ({
-                    product_id: item.product.id,
-                    variant_id: item.variant?.id || null,
-                    quantity: item.quantity,
-                    price: item.price
-                })),
+                items: validItems.map(item => {
+                    const disc = item.discountType === 'percent'
+                        ? (item.quantity * item.price) * ((item.discount || 0) / 100)
+                        : (item.discount || 0);
+                    return {
+                        product_id: item.product.id,
+                        variant_id: item.variant?.id || null,
+                        quantity: item.quantity,
+                        price: item.price,
+                        discount: disc,
+                        discount_type: item.discountType || 'fixed'
+                    };
+                }),
                 payment_method: currentInvoice.paymentMethod,
                 amount_paid: currentInvoice.amountPaid,
-                discount: itemDiscounts + invoiceDiscount,
+                discount: invoiceDiscount,
                 tax: taxAmount,
                 notes: currentInvoice.notes,
                 reference: currentInvoice.invoiceNumber,
