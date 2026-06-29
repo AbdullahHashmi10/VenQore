@@ -1186,12 +1186,18 @@ export default function SalesIndex({ sales, filters, stats }) {
                                         <div className="flex flex-wrap justify-between sm:justify-end gap-4 sm:gap-8">
                                             <div className="text-right">
                                                 <p className="text-[10px] text-slate-400 uppercase">Subtotal</p>
-                                                <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal || quickViewSale.total, store)}</p>
+                                                <p className="font-bold text-slate-700 dark:text-slate-300">{formatCurrency(quickViewSale.subtotal_gross || quickViewSale.subtotal || quickViewSale.total, store)}</p>
                                             </div>
-                                            {quickViewSale.discount > 0 && (
+                                            {parseFloat(quickViewSale.total_item_discounts || 0) > 0 && (
                                                 <div className="text-right">
-                                                    <p className="text-[10px] text-slate-400 uppercase">Discount</p>
-                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.discount, store)}</p>
+                                                    <p className="text-[10px] text-slate-400 uppercase">Item Discounts</p>
+                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.total_item_discounts, store)}</p>
+                                                </div>
+                                            )}
+                                            {parseFloat(quickViewSale.global_discount || quickViewSale.discount || 0) > 0 && (
+                                                <div className="text-right">
+                                                    <p className="text-[10px] text-slate-400 uppercase">Invoice Discount</p>
+                                                    <p className="font-bold text-orange-600">-{formatCurrency(quickViewSale.global_discount || quickViewSale.discount, store)}</p>
                                                 </div>
                                             )}
                                             {quickViewSale.tax > 0 && (

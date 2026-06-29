@@ -98,19 +98,20 @@ class SaleController extends Controller
                 $totalItemDiscounts += $itemDiscount + $freeValue;
 
                 $lineItemsData[] = [
-                    'product'    => $product,
-                    'product_id' => $item['product_id'],
-                    'variant_id' => $item['variant_id'] ?? null,
-                    'qty'        => $qty,
-                    'free_qty'   => $freeQty,
-                    'unit_price' => $unitPrice,
-                    'gross'      => $gross + $freeValue,
-                    'discount'   => $itemDiscount + $freeValue,
+                    'product'       => $product,
+                    'product_id'    => $item['product_id'],
+                    'variant_id'    => $item['variant_id'] ?? null,
+                    'qty'           => $qty,
+                    'free_qty'      => $freeQty,
+                    'unit_price'    => $unitPrice,
+                    'gross'         => $gross + $freeValue,
+                    'discount'      => $itemDiscount + $freeValue,  // total discount incl. free items (for totals)
+                    'item_discount' => $itemDiscount,               // pure user-entered row discount (saved to DB)
                     'discount_type' => $item['discount_type'] ?? 'fixed',
-                    'net'        => $net,
-                    'tax_rate'   => $taxRate,
-                    'tax_amt'    => 0.0, // filled in pass 2 below
-                    'serials'    => $item['serials'] ?? [],
+                    'net'           => $net,
+                    'tax_rate'      => $taxRate,
+                    'tax_amt'       => 0.0, // filled in pass 2 below
+                    'serials'       => $item['serials'] ?? [],
                 ];
             }
 
@@ -284,9 +285,8 @@ class SaleController extends Controller
                     'free_quantity' => $ld['free_qty'],
                     'unit_price' => $ld['unit_price'],
                     'cost_price' => $product->cost_price ?? 0,
-                    'discount' => $ld['discount'],
-                    'discount_amount' => $ld['discount'],
-                    'discount_type' => $ld['discount_type'] ?? 'fixed',
+                    'gross_amount' => $ld['qty'] * $ld['unit_price'],
+                    'discount_amount' => $ld['item_discount'], // pure item-level discount, no freeValue mixed in
                     'net_amount' => $ld['net'],
                     'tax_amount' => $ld['tax_amt'],
                     'subtotal' => $ld['qty'] * $ld['unit_price'],
