@@ -96,11 +96,14 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 discountPercent = Math.round(ratio * 100);
             }
 
+            const freeQty = parseFloat(item.free_quantity || item.freeQuantity || item.free_qty || 0);
+
             return {
                 sno: idx + 1,
                 name: item.product?.name || item.name || 'Item',
                 hsn: item.product?.hsn || item.hsn || '',
                 qty: qty,
+                free_qty: freeQty,
                 rate: rate,
                 mrp: mrpVal,
                 gst: parseFloat(item.tax_percent || item.tax_rate || 0),
@@ -330,19 +333,26 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                             {data.print_show_description && <td className="p-3 text-slate-500 text-xs">{item.desc}</td>}
                             {data.print_show_mrp && <td className="p-3 text-right text-slate-400 line-through">{formatAmount(item.mrp || (item.rate * 1.2))}</td>}
 
-                            <td className="p-3 text-center text-slate-600 font-bold">{item.qty}</td>
+                            <td className="p-3 text-center text-slate-600 font-bold">
+                                {item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
+                            </td>
                             {data.print_show_units && <td className="p-3 text-center text-slate-500">{item.unit || 'pc'}</td>}
 
                             <td className="p-3 text-right text-slate-600">{formatAmount(item.rate)}</td>
 
                             {showDiscount && (
                                 <td className="p-3 text-right text-emerald-600 font-bold">
-                                    {item.discount_percent > 0 ? `${item.discount_percent}%` : '-'}
+                                    {item.discount_percent > 0
+                                        ? `${item.discount_percent}% (-${formatAmount(item.discount_amount)})`
+                                        : item.discount_amount > 0
+                                            ? `-${formatAmount(item.discount_amount)}`
+                                            : '-'
+                                    }
                                 </td>
                             )}
 
                             {data.print_tax_details && <td className="p-3 text-right text-slate-600">{formatAmount(item.tax || 0)}</td>}
-                            <td className="p-3 text-right font-bold">{formatAmount(item.amount)}</td>
+                            <td className="p-3 text-right font-bold">{formatAmount(item.amount - (item.discount_amount || 0))}</td>
                         </tr>
                     ))}
                 </tbody>
@@ -642,19 +652,24 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                         {/* Details Line */}
                         <div className="flex flex-wrap gap-x-3 text-[0.85em] mt-0.5">
 
-                            {/* Qty x Rate (Always show Qty in layout context) */}
+                            {/* Qty x Rate — show free qty as "1+1" if applicable */}
                             {!data.thermal_show_headers ? (
                                 <span>
-                                    {item.qty} {data.thermal_show_units ? 'pc' : ''} x {formatAmount(item.rate)}
+                                    {item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} {data.thermal_show_units ? 'pc' : ''} x {formatAmount(item.rate)}
                                 </span>
                             ) : (
-                                <span>@{formatAmount(item.rate)}</span>
+                                <span>
+                                    {item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} @{formatAmount(item.rate)}
+                                </span>
                             )}
 
-                            {/* Discount */}
+                            {/* Discount — show % AND amount when percent-based */}
                             {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
                                 <span className="font-bold">
-                                    (-{item.discount_percent > 0 ? `${item.discount_percent}%` : formatAmount(item.discount_amount)})
+                                    {item.discount_percent > 0
+                                        ? `(-${item.discount_percent}% = ${formatAmount(item.discount_amount)})`
+                                        : `(-${formatAmount(item.discount_amount)})`
+                                    }
                                 </span>
                             )}
 
@@ -865,13 +880,18 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                         {/* Details */}
                         <div className="flex flex-wrap gap-x-2 text-[0.9em]">
                             {!data.thermal_show_headers ? (
-                                <span>{item.qty} {data.thermal_show_units ? 'pc' : ''} x {formatAmount(item.rate)}</span>
+                                <span>{item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} {data.thermal_show_units ? 'pc' : ''} x {formatAmount(item.rate)}</span>
                             ) : (
-                                <span>@{formatAmount(item.rate)}</span>
+                                <span>{item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} @{formatAmount(item.rate)}</span>
                             )}
 
                             {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
-                                <span>(Disc: -{item.discount_percent > 0 ? `${item.discount_percent}%` : formatAmount(item.discount_amount)})</span>
+                                <span>
+                                    {item.discount_percent > 0
+                                        ? `(Disc: -${item.discount_percent}% = ${formatAmount(item.discount_amount)})`
+                                        : `(Disc: -${formatAmount(item.discount_amount)})`
+                                    }
+                                </span>
                             )}
                         </div>
 
@@ -1067,7 +1087,12 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                                 <span className="line-through">MRP: {formatAmount(item.mrp)}</span>
                             )}
                             {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
-                                <span>Disc: {item.discount_percent > 0 ? `${item.discount_percent}%` : formatAmount(item.discount_amount)}</span>
+                                <span>
+                                    {item.discount_percent > 0
+                                        ? `Disc: -${item.discount_percent}% (${formatAmount(item.discount_amount)})`
+                                        : `Disc: -${formatAmount(item.discount_amount)}`
+                                    }
+                                </span>
                             )}
                         </div>
 
