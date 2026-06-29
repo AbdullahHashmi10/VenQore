@@ -432,6 +432,12 @@ class PurchaseController extends Controller
     {
         $purchase = Invoice::with(['party', 'items.product'])->findOrFail($id);
 
+        // Stamp balance fields explicitly — Invoice model accessors exist but are not
+        // in $appends, so they won't serialize to JSON unless set here directly.
+        if ($purchase->party_id && $purchase->tenant_id) {
+            $purchase->append(['customer_net_balance', 'customer_prev_balance']);
+        }
+
         return Inertia::render('Purchases/Show', [
             'purchase' => $purchase
         ]);

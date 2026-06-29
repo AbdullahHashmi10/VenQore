@@ -667,6 +667,7 @@ class SaleController extends Controller
 
             $sale->customer_net_balance  = $netBalance;
             $sale->customer_prev_balance = $netBalance - $balanceDue;
+            $sale->append(['customer_net_balance', 'customer_prev_balance']);
         }
 
         if (request()->wantsJson()) {
@@ -687,8 +688,15 @@ class SaleController extends Controller
         $sale = Sale::with(['customer', 'user', 'items.product', 'items.productVariant', 'payments'])->findOrFail($id);
         $settings = \App\Models\Setting::all()->pluck('value', 'key');
 
+        if ($sale->party_id) {
+            $net        = LedgerService::partyNetBalance($sale->party_id, $sale->tenant_id);
+            $balanceDue = max(0, (float) $sale->total - (float) $sale->payments->sum('amount'));
+            $sale->customer_net_balance  = $net;
+            $sale->customer_prev_balance = $net - $balanceDue;
+        }
+
         $pdf = Pdf::loadView('pdf.receipt', [
-            'sale' => $sale,
+            'sale'     => $sale,
             'settings' => $settings,
         ]);
 

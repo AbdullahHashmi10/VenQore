@@ -28,6 +28,7 @@
 import React from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
+import axios from 'axios';
 import { formatNumber } from './format';
 import { AMDStation, isAMDStationAvailable } from './AMDStation';
 import PrintPreview from '@/Components/PrintPreview';
@@ -81,9 +82,46 @@ class PrintService {
      * Quick-print with auto-detected settings.
      * Pass liveSettings from React props to bypass stale window.amdSettings.
      */
-    static quickPrint(sale, type = null, liveSettings = null) {
+    static async quickPrint(sale, type = null, liveSettings = null) {
         const settings     = liveSettings ? this.normalizeSettings(liveSettings) : this.getSettings();
         const effectiveType = type || settings.default_print_type || 'regular';
+
+        if (sale && sale.id && !sale.id.toString().includes('temp') && sale.customer_prev_balance === undefined) {
+            try {
+                // URLs on this site look like: http://127.0.0.1:8000/s/test-store/sales/list
+                // pathParts[0] = "", pathParts[1] = "s", pathParts[2] = store_slug
+                const pathParts = window.location.pathname.split('/');
+                const storeSlug = pathParts[2];
+                if (storeSlug) {
+                    const isPurchase = sale.supplier_id !== undefined || (sale.invoice_type && sale.invoice_type === 'purchase') || sale.purchase_number !== undefined;
+                    const isReturn = sale.status === 'returned' || sale.return_number !== undefined;
+                    
+                    let routeName = 'store.sales.show';
+                    let routeParam = { store_slug: storeSlug, sale: sale.id };
+
+                    if (isPurchase) {
+                        routeName = 'store.purchases.show';
+                        routeParam = { store_slug: storeSlug, purchase: sale.id };
+                    } else if (isReturn) {
+                        routeName = 'store.returns.show';
+                        routeParam = { store_slug: storeSlug, return: sale.id };
+                    }
+
+                    const response = await axios.get(route(routeName, routeParam), {
+                        headers: { Accept: 'application/json' }
+                    });
+                    
+                    const fullSale = response.data?.sale || response.data?.purchase || response.data?.return || response.data;
+                    if (fullSale) {
+                        this.printInvoice(fullSale, settings, effectiveType);
+                        return;
+                    }
+                }
+            } catch (err) {
+                console.error("PrintService failed to fetch full sale data, printing fallback:", err);
+            }
+        }
+
         this.printInvoice(sale, settings, effectiveType);
     }
 

@@ -148,15 +148,10 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             prevLedgerBalance = parseFloat(sale.customer_prev_balance);
             netLedgerBalance = parseFloat(sale.customer_net_balance || 0);
         } else {
-            const currentLedgerBalance = parseFloat(sale.customer?.current_balance || sale.party?.current_balance || 0);
-            const isSaved = !!(sale.reference_number || sale.reference || (sale.id && !sale.id.includes('temp')));
-            if (isSaved) {
-                netLedgerBalance = currentLedgerBalance;
-                prevLedgerBalance = currentLedgerBalance - balanceDue;
-            } else {
-                prevLedgerBalance = currentLedgerBalance;
-                netLedgerBalance = currentLedgerBalance + balanceDue;
-            }
+            // Fields not provided by server — show 0/0 rather than reading the
+            // stale current_balance column which may be an outdated cached value.
+            prevLedgerBalance = 0;
+            netLedgerBalance  = 0;
         }
 
         calculations = {

@@ -16,12 +16,12 @@ class LedgerService
      * Uses double-entry journal_items only (no stale current_balance column).
      * Excludes reversed entries. Scoped to the given tenant.
      *
-     * @param  int         $partyId
-     * @param  int         $tenantId
+     * @param  int|string  $partyId    UUID or integer primary key
+     * @param  int|string  $tenantId   UUID or integer primary key
      * @param  string|null $partyType  'customer'|'supplier'|null (auto-detects from Party model if null)
      * @return float
      */
-    public static function partyNetBalance(int $partyId, int $tenantId, ?string $partyType = null): float
+    public static function partyNetBalance(int|string $partyId, int|string $tenantId, ?string $partyType = null): float
     {
         // Resolve party type if not supplied
         if ($partyType === null) {
@@ -71,7 +71,7 @@ class LedgerService
      */
     protected static array $accountCodeCache = [];
 
-    protected static function accountCodes(int $tenantId): array
+    protected static function accountCodes(int|string $tenantId): array
     {
         if (isset(static::$accountCodeCache[$tenantId])) {
             return static::$accountCodeCache[$tenantId];

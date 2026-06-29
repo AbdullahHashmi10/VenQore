@@ -261,6 +261,17 @@ class ProposalController extends Controller
     public function show(Proposal $proposal)
     {
         $proposal->load(['items.product', 'customer', 'user']);
+
+        if ($proposal->party_id ?? ($proposal->customer_id ?? null)) {
+            $partyId    = $proposal->party_id ?? $proposal->customer_id;
+            $tenantId   = $proposal->tenant_id ?? app('current.tenant')->id;
+            $net        = \App\Services\LedgerService::partyNetBalance($partyId, $tenantId);
+            $balanceDue = max(0, (float) ($proposal->total ?? 0) - (float) ($proposal->amount_paid ?? 0));
+            $proposal->customer_net_balance  = $net;
+            $proposal->customer_prev_balance = $net - $balanceDue;
+            $proposal->append(['customer_net_balance', 'customer_prev_balance']);
+        }
+
         return Inertia::render('Proposals/Show', [
             'proposal' => $proposal
         ]);

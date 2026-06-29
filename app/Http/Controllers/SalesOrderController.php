@@ -185,6 +185,16 @@ class SalesOrderController extends Controller
             );
         }
 
+        if ($order->party_id ?? ($order->customer_id ?? null)) {
+            $partyId    = $order->party_id ?? $order->customer_id;
+            $tenantId   = $order->tenant_id ?? app('current.tenant')->id;
+            $net        = LedgerService::partyNetBalance($partyId, $tenantId);
+            $balanceDue = max(0, (float) ($order->total ?? 0) - (float) ($order->amount_paid ?? 0));
+            $order->customer_net_balance  = $net;
+            $order->customer_prev_balance = $net - $balanceDue;
+            $order->append(['customer_net_balance', 'customer_prev_balance']);
+        }
+
         // Get total stock from 'stocks' table
         $stockTotals = DB::table('stocks')
             ->select('product_id', DB::raw('SUM(quantity) as total_on_hand'))

@@ -83,15 +83,16 @@ class ReturnController extends Controller
      */
     public function show($id)
     {
-        $return = Sale::with(['customer', 'user', 'items.product', 'items.variant'])
+        $return = Sale::with(['customer', 'user', 'items.product', 'items.variant', 'payments'])
             ->where('status', 'returned')
             ->findOrFail($id);
             
-        if ($return->customer) {
-            $return->customer->current_balance = LedgerService::partyNetBalance(
-                $return->customer->id,
-                $return->tenant_id ?? app('current.tenant')->id
-            );
+        if ($return->party_id) {
+            $net        = LedgerService::partyNetBalance($return->party_id, $return->tenant_id ?? app('current.tenant')->id);
+            $balanceDue = max(0, (float) abs($return->total) - (float) $return->payments->sum('amount'));
+            $return->customer_net_balance  = $net;
+            $return->customer_prev_balance = $net - $balanceDue;
+            $return->append(['customer_net_balance', 'customer_prev_balance']);
         }
 
         return Inertia::render('Returns/Show', [
