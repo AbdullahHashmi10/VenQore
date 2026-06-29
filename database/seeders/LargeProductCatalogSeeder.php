@@ -54,11 +54,12 @@ class LargeProductCatalogSeeder extends Seeder
         $tenantId = $tenant->id;
         $this->command->info("Seeding 3000 products into tenant: {$slug} ({$tenantId})");
 
-        // Clean up existing products, barcodes, and inventory batches to prevent unique key conflicts
+        // Clean up existing products, barcodes, inventory batches, and stocks to prevent unique key conflicts
         \Illuminate\Support\Facades\Schema::disableForeignKeyConstraints();
         try {
             DB::table('product_barcodes')->where('tenant_id', $tenantId)->delete();
             DB::table('inventory_batches')->where('tenant_id', $tenantId)->delete();
+            DB::table('stocks')->where('tenant_id', $tenantId)->delete();
             DB::table('products')->where('tenant_id', $tenantId)->delete();
         } finally {
             \Illuminate\Support\Facades\Schema::enableForeignKeyConstraints();
@@ -115,6 +116,7 @@ class LargeProductCatalogSeeder extends Seeder
         $batch   = [];
         $batchProductIds = [];
         $barcodesMap = [];
+        $quantitiesMap = [];
 
         for ($i = 1; $i <= self::PRODUCT_COUNT; $i++) {
             $brand     = $this->brands[array_rand($this->brands)];
@@ -145,6 +147,7 @@ class LargeProductCatalogSeeder extends Seeder
             ];
             $batchProductIds[] = $productId;
             $barcodesMap[$productId] = $barcodeVal;
+            $quantitiesMap[$productId] = $qty;
 
             // Insert in batches of 100
             if (count($batch) >= 100) {
@@ -152,8 +155,8 @@ class LargeProductCatalogSeeder extends Seeder
                 $bar->advance(count($batch));
 
                 // Seed FIFO batches for each
-                $fifoBatches = array_map(function($pId) use ($warehouseId, $tenantId) {
-                    $q = rand(5, 200);
+                $fifoBatches = array_map(function($pId) use ($warehouseId, $tenantId, $quantitiesMap) {
+                    $q = $quantitiesMap[$pId];
                     return [
                         'id'            => \Illuminate\Support\Str::uuid()->toString(),
                         'product_id'    => $pId,
@@ -173,6 +176,22 @@ class LargeProductCatalogSeeder extends Seeder
                     DB::table('inventory_batches')->insert($fifoBatches);
                 }
 
+                // Seed stocks
+                $stockBatches = array_map(function($pId) use ($warehouseId, $tenantId, $quantitiesMap) {
+                    return [
+                        'id'           => \Illuminate\Support\Str::uuid()->toString(),
+                        'tenant_id'    => $tenantId,
+                        'product_id'   => $pId,
+                        'warehouse_id' => $warehouseId,
+                        'quantity'     => $quantitiesMap[$pId],
+                        'status'       => 'active',
+                        'created_at'   => now(),
+                        'updated_at'   => now(),
+                    ];
+                }, $batchProductIds);
+
+                DB::table('stocks')->insert($stockBatches);
+
                 // Seed barcodes
                 $barcodeBatches = array_map(fn($pId) => [
                     'id'           => \Illuminate\Support\Str::uuid()->toString(),
@@ -191,6 +210,7 @@ class LargeProductCatalogSeeder extends Seeder
                 $batch = [];
                 $batchProductIds = [];
                 $barcodesMap = [];
+                $quantitiesMap = [];
             }
         }
 
@@ -198,6 +218,44 @@ class LargeProductCatalogSeeder extends Seeder
         if (!empty($batch)) {
             DB::table('products')->insert($batch);
             
+            // Seed remaining FIFO batches
+            $fifoBatches = array_map(function($pId) use ($warehouseId, $tenantId, $quantitiesMap) {
+                $q = $quantitiesMap[$pId];
+                return [
+                    'id'            => \Illuminate\Support\Str::uuid()->toString(),
+                    'product_id'    => $pId,
+                    'warehouse_id'  => $warehouseId,
+                    'initial_qty'   => $q,
+                    'original_qty'  => $q,
+                    'remaining_qty' => $q,
+                    'unit_cost'     => rand(200, 5000),
+                    'tenant_id'     => $tenantId,
+                    'notes'         => 'Perf test batch',
+                    'created_at'    => now()->subDays(rand(1, 30)),
+                    'updated_at'    => now(),
+                ];
+            }, $batchProductIds);
+
+            if (!empty($fifoBatches) && DB::getSchemaBuilder()->hasTable('inventory_batches')) {
+                DB::table('inventory_batches')->insert($fifoBatches);
+            }
+
+            // Seed remaining stocks
+            $stockBatches = array_map(function($pId) use ($warehouseId, $tenantId, $quantitiesMap) {
+                return [
+                    'id'           => \Illuminate\Support\Str::uuid()->toString(),
+                    'tenant_id'    => $tenantId,
+                    'product_id'   => $pId,
+                    'warehouse_id' => $warehouseId,
+                    'quantity'     => $quantitiesMap[$pId],
+                    'status'       => 'active',
+                    'created_at'   => now(),
+                    'updated_at'   => now(),
+                ];
+            }, $batchProductIds);
+
+            DB::table('stocks')->insert($stockBatches);
+
             // Seed remaining barcodes
             $barcodeBatches = array_map(fn($pId) => [
                 'id'           => \Illuminate\Support\Str::uuid()->toString(),
