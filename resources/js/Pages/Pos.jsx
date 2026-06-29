@@ -117,20 +117,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     // Handle Recalled Sale (from Edit button)
     useEffect(() => {
         if (recalledSale) {
-            const mappedCart = recalledSale.items.map(item => ({
-                cartItemId: `${item.product_id}-${item.product_variant_id || ''}`,
-                id: item.product_id,
-                variant_id: item.product_variant_id,
-                name: item.product.name + (item.product_variant ? ` (${item.product_variant.sku})` : ''),
-                price: parseFloat(item.unit_price),
-                original_price: parseFloat(item.unit_price), // Price might have changed, but recalling uses sold price
-                discount: 0, // Discount extraction depends on schema, assuming net price for now
-                qty: parseFloat(item.quantity),
-                freeQuantity: parseFloat(item.free_quantity || 0),
-                stock: 9999, // Warning: Stock might be inaccurate without fetch, but we let it pass for edits
-                image: item.product.image_path,
-                category: item.product.category?.name || 'General'
-            }));
+            const mappedCart = recalledSale.items.map(item => {
+                const itemDiscount = parseFloat(item.discount_amount || item.discount || 0);
+                const unitPrice = parseFloat(item.unit_price || 0);
+                return {
+                    cartItemId: `${item.product_id}-${item.product_variant_id || ''}`,
+                    id: item.product_id,
+                    variant_id: item.product_variant_id,
+                    name: item.product.name + (item.product_variant ? ` (${item.product_variant.sku})` : ''),
+                    price: unitPrice - itemDiscount, // Net price
+                    original_price: unitPrice, // Gross price
+                    discount: itemDiscount, // Row discount
+                    qty: parseFloat(item.quantity),
+                    freeQuantity: parseFloat(item.free_quantity || 0),
+                    stock: 9999,
+                    image: item.product.image_path,
+                    category: item.product.category?.name || 'General'
+                };
+            });
 
             const saleSession = {
                 id: `RECALL-${recalledSale.id}`,
@@ -143,6 +147,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     name: recalledSale.customer.name,
                     phone: recalledSale.customer.phone
                 } : null,
+                discountValue: parseFloat(recalledSale.global_discount || 0),
+                discountType: 'fixed',
                 is_recall: true, // Flag to indicate editing
                 original_sale_id: recalledSale.id
             };
