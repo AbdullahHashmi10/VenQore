@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
+use App\Services\LedgerService;
 
 class PurchaseController extends Controller
 {
@@ -441,27 +442,10 @@ class PurchaseController extends Controller
         $purchase = Invoice::with(['party', 'items.product', 'expenses'])->findOrFail($id);
         
         if ($purchase->party) {
-            $arAccount = \App\Models\Account::where('code', '1200')->value('id');
-            $apAccount = \App\Models\Account::where('code', '2000')->value('id');
-            
-            $netAR = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $purchase->party->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $netAP = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $purchase->party->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            // Suppliers: Positive balance = Liability (WE owe THEM)
-            $purchase->party->current_balance = (float)$netAP - (float)$netAR;
+            $purchase->party->current_balance = LedgerService::partyNetBalance(
+                $purchase->party->id,
+                $purchase->tenant_id ?? app('current.tenant')->id
+            );
         }
 
         $parties = Party::orderBy('name')->get();

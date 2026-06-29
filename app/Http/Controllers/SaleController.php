@@ -13,6 +13,7 @@ use App\Services\AutoManufacturingService;
 use App\Services\V3\AccountingService;
 use App\Services\V3\FifoService;
 use App\Services\FbrService;
+use App\Services\LedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -653,44 +654,19 @@ class SaleController extends Controller
             })
             ->get(['id', 'name', 'code']);
 
-        // Calculate and load customer current ledger balance
         if ($sale->customer) {
-            $tenantId = $sale->tenant_id;
-            $arAccount = \App\Models\Account::where('code', '1200')->where('tenant_id', $tenantId)->value('id') ?? 0;
-            $apAccount = \App\Models\Account::where('code', '2000')->where('tenant_id', $tenantId)->value('id') ?? 0;
+            $netBalance = LedgerService::partyNetBalance(
+                $sale->customer->id,
+                $sale->tenant_id
+            );
+            $sale->customer->current_balance = $netBalance;
 
-            $netAR = DB::table('journal_items')
-                ->join('journal_entries', function($join) use ($tenantId) {
-                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
-                        ->where('journal_entries.tenant_id', $tenantId);
-                })
-                ->where('journal_entries.party_id', $sale->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $netAP = DB::table('journal_items')
-                ->join('journal_entries', function($join) use ($tenantId) {
-                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
-                        ->where('journal_entries.tenant_id', $tenantId);
-                })
-                ->where('journal_entries.party_id', $sale->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $sale->customer->current_balance = (float)$netAR - (float)$netAP;
-
-            // Calculate exact net balance (current balance) and previous balance (before this sale)
-            // Balance due of this invoice transaction:
             $invoiceTotal = (float) $sale->total;
-            $amountPaid = (float) $sale->payments->sum('amount');
-            $balanceDue = max(0, $invoiceTotal - $amountPaid);
+            $amountPaid   = (float) $sale->payments->sum('amount');
+            $balanceDue   = max(0, $invoiceTotal - $amountPaid);
 
-            $sale->customer_net_balance = $sale->customer->current_balance;
-            $sale->customer_prev_balance = $sale->customer->current_balance - $balanceDue;
+            $sale->customer_net_balance  = $netBalance;
+            $sale->customer_prev_balance = $netBalance - $balanceDue;
         }
 
         if (request()->wantsJson()) {
@@ -1081,33 +1057,10 @@ class SaleController extends Controller
         $sale->load(['items.product', 'customer', 'payments']);
         
         if ($sale->customer) {
-            $arAccount = \App\Models\Account::where('code', '1200')->value('id');
-            $apAccount = \App\Models\Account::where('code', '2000')->value('id');
-            
-            $tenantId = app('current.tenant')->id;
-            $netAR = DB::table('journal_items')
-                ->join('journal_entries', function($join) use ($tenantId) {
-                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
-                        ->where('journal_entries.tenant_id', $tenantId);
-                })
-                ->where('journal_entries.party_id', $sale->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $netAP = DB::table('journal_items')
-                ->join('journal_entries', function($join) use ($tenantId) {
-                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
-                        ->where('journal_entries.tenant_id', $tenantId);
-                })
-                ->where('journal_entries.party_id', $sale->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $sale->customer->current_balance = (float)$netAR - (float)$netAP;
+            $sale->customer->current_balance = LedgerService::partyNetBalance(
+                $sale->customer->id,
+                app('current.tenant')->id
+            );
         }
 
         return Inertia::render('Sales/CreateInvoice', [

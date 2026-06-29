@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Sale;
 use App\Services\V3\FifoService;
+use App\Services\LedgerService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -87,26 +88,10 @@ class ReturnController extends Controller
             ->findOrFail($id);
             
         if ($return->customer) {
-            $arAccount = \App\Models\Account::where('code', '1200')->value('id');
-            $apAccount = \App\Models\Account::where('code', '2000')->value('id');
-            
-            $netAR = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $return->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $netAP = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $return->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $return->customer->current_balance = (float)$netAR - (float)$netAP;
+            $return->customer->current_balance = LedgerService::partyNetBalance(
+                $return->customer->id,
+                $return->tenant_id ?? app('current.tenant')->id
+            );
         }
 
         return Inertia::render('Returns/Show', [

@@ -11,6 +11,7 @@ use App\Models\SaleItem;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use App\Services\LedgerService;
 
 class ProposalController extends Controller
 {
@@ -99,26 +100,10 @@ class ProposalController extends Controller
         $proposal->load(['items.product', 'customer']);
         
         if ($proposal->customer) {
-            $arAccount = \App\Models\Account::where('code', '1200')->value('id');
-            $apAccount = \App\Models\Account::where('code', '2000')->value('id');
-            
-            $netAR = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $proposal->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $netAP = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $proposal->customer->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $proposal->customer->current_balance = (float)$netAR - (float)$netAP;
+            $proposal->customer->current_balance = LedgerService::partyNetBalance(
+                $proposal->customer->id,
+                $proposal->tenant_id ?? app('current.tenant')->id
+            );
         }
 
         return Inertia::render('Proposals/Create', [
