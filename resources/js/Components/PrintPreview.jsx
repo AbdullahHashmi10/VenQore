@@ -316,7 +316,9 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                         {data.print_show_hsn && <th className="p-3 text-left">HSN</th>}
                         {data.print_show_description && <th className="p-3 text-left">Desc</th>}
                         {data.print_show_mrp && <th className="p-3 text-right">MRP</th>}
-                        <th className="p-3 text-center">Qty</th>
+                        <th className="p-3 text-center">
+                            {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'Qty + Free' : 'Qty'}
+                        </th>
                         {data.print_show_units && <th className="p-3 text-center">Unit</th>}
                         <th className="p-3 text-right">Rate</th>
                         {showDiscount && <th className="p-3 text-right">Disc %</th>}
@@ -454,7 +456,9 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
             <thead className="bg-slate-100">
                 <tr>
                     <th className="border border-slate-800 p-2 text-left">DESCRIPTION</th>
-                    <th className="border border-slate-800 p-2 text-center">QTY</th>
+                    <th className="border border-slate-800 p-2 text-center">
+                        {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'QTY + FREE' : 'QTY'}
+                    </th>
                     <th className="border border-slate-800 p-2 text-right">UNIT PRICE</th>
                     <th className="border border-slate-800 p-2 text-right">AMOUNT</th>
                 </tr>
@@ -463,7 +467,9 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                 {items.map((item, i) => (
                     <tr key={i}>
                         <td className="border border-slate-800 p-2">{item.name}</td>
-                        <td className="border border-slate-800 p-2 text-center">{item.qty}</td>
+                        <td className="border border-slate-800 p-2 text-center">
+                            {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
+                        </td>
                         <td className="border border-slate-800 p-2 text-right">{formatAmount(item.rate)}</td>
                         <td className="border border-slate-800 p-2 text-right">{formatAmount(item.amount)}</td>
                     </tr>
@@ -851,7 +857,9 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
             {data.thermal_show_headers && (
                 <div className="flex justify-between font-bold border-b border-black border-dashed pb-1 mb-2">
                     <span className="flex-1">ITEM</span>
-                    <span className="text-right w-10">QTY</span>
+                    <span className="text-right w-16">
+                        {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'QTY+FREE' : 'QTY'}
+                    </span>
                     <span className="text-right w-20">AMT</span>
                 </div>
             )}
@@ -1051,7 +1059,9 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
             {data.thermal_show_headers && (
                 <div className="flex justify-between bg-black text-white p-1 mb-2 text-xs">
                     <span className="flex-1 pl-1">ITEM Description</span>
-                    <span className="text-center w-12">QTY</span>
+                    <span className="text-center w-16">
+                        {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'QTY+FREE' : 'QTY'}
+                    </span>
                     <span className="text-right w-24 pr-1">AMOUNT</span>
                 </div>
             )}
