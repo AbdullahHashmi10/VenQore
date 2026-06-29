@@ -1020,7 +1020,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             };
             // Use configured default print type (thermal or regular)
             const printType = settings?.default_print_type || 'thermal';
-            setTimeout(() => PrintService.quickPrint(saleForPrint, printType), 500);
+            setTimeout(() => PrintService.quickPrint(saleForPrint, printType, settings), 500);
         }
 
         // Show notifications
@@ -1133,7 +1133,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const printReceipt = (type = null) => {
         const printType = type || settings?.default_print_type || 'thermal';
         if (lastSale) {
-            PrintService.quickPrint(lastSale, printType);
+            PrintService.quickPrint(lastSale, printType, settings);
         } else {
             addToast('No recent sale to print!', 'warning');
         }

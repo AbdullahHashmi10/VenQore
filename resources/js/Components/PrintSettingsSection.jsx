@@ -92,7 +92,7 @@ export default function PrintSettingsSection({ data, setData }) {
     body { margin: 0; padding: 0; background: white; }
     @page {
       margin: 0;
-      ${isThermal ? `size: ${width / MM_TO_PX}mm auto;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
+      ${isThermal ? `size: ${width / MM_TO_PX}mm ${currentData.thermal_page_height || 297}mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
     }
     @media print {
       html, body {
@@ -143,8 +143,8 @@ export default function PrintSettingsSection({ data, setData }) {
                         if (container) {
                             const heightPx = container.scrollHeight || container.offsetHeight;
                             if (heightPx > 0) {
-                                // Use user-configured page height limit (defaults to 3276mm for continuous roll)
-                                const heightMm = currentData.thermal_page_height || 3276;
+                                // Use user-configured page height limit (defaults to 297mm for standard page)
+                                const heightMm = currentData.thermal_page_height || 297;
                                 
                                 // Create dynamic style sheet inside print iframe document
                                 let styleEl = doc.getElementById('dynamic-page-size');
