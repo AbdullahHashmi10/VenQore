@@ -521,9 +521,24 @@ export default function Pricing({ plans = [] }) {
                                             </div>
                                         </div>
 
-                                        {/* Selection indicator at bottom — no button, card itself is clickable */}
-                                        <div className="px-7 pb-6 pt-3">
-                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500 opacity-100' : 'bg-white/[0.04] opacity-60'}`} />
+                                        {/* Selection indicator at bottom */}
+                                        <div className="px-7 pb-6 pt-3 space-y-3">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handlePlanSelect(key);
+                                                    // Allow state update to register before continuing
+                                                    setTimeout(() => handleContinue(), 50);
+                                                }}
+                                                className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 ${
+                                                    isSelected
+                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                                                        : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
+                                                }`}
+                                            >
+                                                {isSelected ? 'Selected ✓' : 'Choose Plan'}
+                                            </button>
+                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
                                         </div>
                                     </div>
                                 </RevealOnScroll>
