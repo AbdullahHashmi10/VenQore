@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\LedgerService;
 
 class SyncController extends Controller
 {
@@ -84,32 +85,15 @@ class SyncController extends Controller
         $storeId = $this->getStoreId();
         if (!$storeId) return response()->json([]);
 
-        $arAccount = \App\Models\Account::where('tenant_id', $storeId)->where('code', '1200')->value('id');
-        $apAccount = \App\Models\Account::where('tenant_id', $storeId)->where('code', '2000')->value('id');
-
         $customers = \App\Models\Party::where('tenant_id', $storeId)
             ->where('type', 'customer')
             ->get()
-            ->map(function($party) use ($arAccount, $apAccount, $storeId) {
-                $netAR = DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $storeId)
-                    ->where('journal_entries.party_id', $party->id)
-                    ->where('journal_entries.is_reversed', 0)
-                    ->where('journal_items.account_id', $arAccount)
-                    ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                    ->value('balance') ?? 0;
-
-                $netAP = DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $storeId)
-                    ->where('journal_entries.party_id', $party->id)
-                    ->where('journal_entries.is_reversed', 0)
-                    ->where('journal_items.account_id', $apAccount)
-                    ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                    ->value('balance') ?? 0;
-
-                $party->current_balance = (float)$netAR - (float)$netAP;
+            ->map(function($party) use ($storeId) {
+                $party->current_balance = LedgerService::partyNetBalance(
+                    $party->id,
+                    $storeId,
+                    'customer'
+                );
                 return $party;
             });
 
@@ -124,32 +108,15 @@ class SyncController extends Controller
         $storeId = $this->getStoreId();
         if (!$storeId) return response()->json([]);
 
-        $arAccount = \App\Models\Account::where('tenant_id', $storeId)->where('code', '1200')->value('id');
-        $apAccount = \App\Models\Account::where('tenant_id', $storeId)->where('code', '2000')->value('id');
-
         $suppliers = \App\Models\Party::where('tenant_id', $storeId)
             ->where('type', 'supplier')
             ->get()
-            ->map(function($party) use ($arAccount, $apAccount, $storeId) {
-                $netAR = DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $storeId)
-                    ->where('journal_entries.party_id', $party->id)
-                    ->where('journal_entries.is_reversed', 0)
-                    ->where('journal_items.account_id', $arAccount)
-                    ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                    ->value('balance') ?? 0;
-
-                $netAP = DB::table('journal_items')
-                    ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                    ->where('journal_entries.tenant_id', $storeId)
-                    ->where('journal_entries.party_id', $party->id)
-                    ->where('journal_entries.is_reversed', 0)
-                    ->where('journal_items.account_id', $apAccount)
-                    ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                    ->value('balance') ?? 0;
-
-                $party->current_balance = (float)$netAP - (float)$netAR;
+            ->map(function($party) use ($storeId) {
+                $party->current_balance = LedgerService::partyNetBalance(
+                    $party->id,
+                    $storeId,
+                    'supplier'
+                );
                 return $party;
             });
 

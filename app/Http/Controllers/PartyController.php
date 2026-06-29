@@ -9,6 +9,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Services\LedgerService;
 
 class PartyController extends Controller
 {
@@ -39,34 +40,31 @@ class PartyController extends Controller
         $arAccount = \App\Models\Account::where('code', '1200')->value('id');
         $apAccount = \App\Models\Account::where('code', '2000')->value('id');
 
-        $parties = $parties->map(function ($party) use ($arAccount, $apAccount) {
-            $netAR = (float) DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $party->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
+        $parties = $parties->map(function ($party) {
+            $netBalance = LedgerService::partyNetBalance(
+                $party->id,
+                $party->tenant_id,
+                $party->type
+            );
 
-            $netAP = (float) DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $party->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-
-            $balance = $netAR - $netAP;
-
-            if (round(abs($balance), 2) < 0.01) {
+            if (round(abs($netBalance), 2) < 0.01) {
                 $direction = 'Settled';
-            } elseif ($party->type === 'customer') {
-                $direction = $balance > 0 ? 'To Receive' : 'To Pay';
             } else {
-                $direction = $balance > 0 ? 'To Receive' : 'To Pay';
+                // Direction label (For React logic): Positive = To Receive (Customer), To Pay (Supplier)
+                // However, LedgerService returns:
+                // For Customers: Positive = they owe us (+AR debit) -> To Receive
+                // For Suppliers: Positive = we owe them (+AP credit) -> To Receive (Assets/Dr-Cr is positive if we overpaid suppliers)
+                // Wait, let's keep the exact logic for direction:
+                // If customer: netBalance > 0 -> they owe us -> To Receive
+                // If supplier: netBalance > 0 -> we owe them -> To Pay
+                if ($party->type === 'customer') {
+                    $direction = $netBalance > 0 ? 'To Receive' : 'To Pay';
+                } else {
+                    $direction = $netBalance > 0 ? 'To Pay' : 'To Receive';
+                }
             }
 
-            $party->current_balance = (float)($party->type === 'customer' ? $balance : -$balance);
+            $party->current_balance = $netBalance;
             $party->balance_direction = $direction;
             return $party;
         });
@@ -156,47 +154,26 @@ class PartyController extends Controller
         $arAccount = \App\Models\Account::where('code', '1200')->value('id');
         $apAccount = \App\Models\Account::where('code', '2000')->value('id');
 
-        $parties->getCollection()->transform(function($party) use ($arAccount, $apAccount) {
-            // Net AR position (Asset: +Dr, -Cr)
-            $netAR = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $party->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $arAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
-                ->value('balance') ?? 0;
+        $parties->getCollection()->transform(function($party) {
+            $netBalance = LedgerService::partyNetBalance(
+                $party->id,
+                $party->tenant_id,
+                $party->type
+            );
 
-            // Net AP position (Liability: +Cr, -Dr)
-            $netAP = DB::table('journal_items')
-                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-                ->where('journal_entries.party_id', $party->id)
-                ->where('journal_entries.is_reversed', 0)
-                ->where('journal_items.account_id', $apAccount)
-                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
-                ->value('balance') ?? 0;
-            
-            // Final Asset Position (Positive means THEY owe US)
-            $party->balance = (float)$netAR - (float)$netAP;
+            $party->balance = $netBalance;
 
-            // Direction label (For React logic)
-            if (round(abs($party->balance), 2) < 0.01) {
+            if (round(abs($netBalance), 2) < 0.01) {
                 $party->balance_direction = 'Settled';
-            } elseif ($party->type === 'customer') {
-                $party->balance_direction = $party->balance > 0 ? 'To Receive' : 'To Pay';
             } else {
-                // For Suppliers: balance > 0 usually means we overpaid (Asset), 
-                // but the DB value we calculated is (AR - AP).
-                // If AR is 1000 and AP is 0 -> balance = 1000 -> we are To Receive.
-                // If AR is 0 and AP is 1000 -> balance = -1000 -> we are To Pay.
-                $party->balance_direction = $party->balance > 0 ? 'To Receive' : 'To Pay';
+                if ($party->type === 'customer') {
+                    $party->balance_direction = $netBalance > 0 ? 'To Receive' : 'To Pay';
+                } else {
+                    $party->balance_direction = $netBalance > 0 ? 'To Pay' : 'To Receive';
+                }
             }
 
-            // Sync with React expectations: 
-            // Customers: Positive balance = To Receive (Asset)
-            // Suppliers: Positive balance = To Pay (Liability) 
-            // Since we use the same formula (AR - AP) for both, we need to flip the sign for Suppliers
-            // so a "Payable" (negative Asset) becomes a positive Liability for React.
-            $party->current_balance = $party->type === 'customer' ? $party->balance : -$party->balance;
+            $party->current_balance = $netBalance;
             
             return $party;
         });
