@@ -186,6 +186,7 @@ class PrintService {
             print_balance_amount:  b(raw.print_balance_amount, true),
             print_tax_details:     b(raw.print_tax_details, true),
             print_you_saved:       b(raw.print_you_saved, false),
+            print_show_previous_balance: b(raw.print_show_previous_balance, false),
             print_amount_words:    s(raw.print_amount_words, '0'),
             print_terms:           s(raw.print_terms, ''),
             print_header_all_pages:b(raw.print_header_all_pages, true),

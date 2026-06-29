@@ -194,6 +194,7 @@ export default function AdminSettings({ settings = {} }) {
         print_party_balance: settings.print_party_balance === '1',
         print_tax_details: settings.print_tax_details !== '0',
         print_you_saved: settings.print_you_saved === '1',
+        print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
         print_amount_grouping: settings.print_amount_grouping !== '0',
         print_amount_words: settings.print_amount_words || '0',
         print_description: settings.print_description !== '0',

@@ -530,6 +530,7 @@ const ThermalSettings = ({ data, setData }) => (
                 <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} color="emerald" />
                 <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} color="emerald" />
                 <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} color="emerald" />
+                <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} color="emerald" />
             </div>
 
             <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}

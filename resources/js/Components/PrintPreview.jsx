@@ -118,18 +118,43 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
 
         const itemsSubtotal = items.reduce((sum, i) => sum + i.amount, 0);
         const taxAmount = parseFloat(sale.tax || sale.tax_amount || 0);
-        const discountAmount = parseFloat(sale.discount || 0);
+        const discountAmount = parseFloat(sale.discount || sale.global_discount || 0);
         const grandTotal = parseFloat(sale.total || sale.total_amount || (itemsSubtotal + taxAmount - discountAmount));
-        const amountPaid = parseFloat(sale.amount_paid || sale.paid_amount || sale.paid || sale.cash || grandTotal);
+        
+        // Fix 0 amountPaid fallback bug
+        let amountPaid = grandTotal;
+        if (sale.amount_paid !== undefined && sale.amount_paid !== null) {
+            amountPaid = parseFloat(sale.amount_paid);
+        } else if (sale.paid_amount !== undefined && sale.paid_amount !== null) {
+            amountPaid = parseFloat(sale.paid_amount);
+        } else if (sale.paid !== undefined && sale.paid !== null) {
+            amountPaid = parseFloat(sale.paid);
+        } else if (sale.cash !== undefined && sale.cash !== null) {
+            amountPaid = parseFloat(sale.cash);
+        }
+
+        // Total savings = invoice/global discount + row item discounts + free items valued at price
+        const totalItemDiscounts = items.reduce((sum, i) => sum + (parseFloat(i.discount_amount) || 0), 0);
+        const freeItemsValue = items.reduce((sum, i) => sum + ((parseFloat(i.free_qty) || 0) * (parseFloat(i.rate) || 0)), 0);
+        const totalSavings = discountAmount + totalItemDiscounts + freeItemsValue;
+
+        const balanceDue = Math.max(0, grandTotal - amountPaid);
+        
+        // Ledger Balances
+        const currentLedgerBalance = parseFloat(sale.customer?.current_balance || sale.party?.current_balance || 0);
+        const prevLedgerBalance = currentLedgerBalance - balanceDue;
 
         calculations = {
             subtotal: parseFloat(sale.subtotal || itemsSubtotal),
             qty: items.reduce((sum, i) => sum + i.qty, 0),
             gst: taxAmount,
-            discount: discountAmount,
+            discount: totalSavings, // "You Saved" will show total savings
+            invoiceDiscount: discountAmount, // for top-level discount line in bill
             total: grandTotal,
             paid: amountPaid,
-            balance: Math.max(0, grandTotal - amountPaid)
+            balance: balanceDue,
+            prev_balance: prevLedgerBalance,
+            net_balance: currentLedgerBalance
         };
     } else {
         // Fallback to sample data for settings preview
@@ -142,10 +167,13 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             subtotal: 90350,
             qty: 4,
             gst: 4518,
-            discount: 8535,
+            discount: 17035, // 8535 + 8500 (free item value)
+            invoiceDiscount: 8535,
             total: 81815,
-            paid: 90000,
-            balance: 8185
+            paid: 0,
+            balance: 81815,
+            prev_balance: 15000,
+            net_balance: 96815
         };
     }
 
@@ -373,11 +401,11 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
 
                     <div className="flex justify-between text-sm text-slate-500"><span>Tax</span><span>{formatAmount(calculations.gst)}</span></div>
 
-                    {calculations.discount > 0 && (
-                        <div className="flex justify-between text-sm text-red-500 font-bold"><span>Discount</span><span>-{formatAmount(calculations.discount)}</span></div>
+                    {calculations.invoiceDiscount > 0 && (
+                        <div className="flex justify-between text-sm text-red-500 font-bold"><span>Discount</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
                     )}
 
-                    {data.print_you_saved && (
+                    {data.print_you_saved && calculations.discount > 0 && (
                         <div className="flex justify-between text-sm text-emerald-600 font-bold"><span>You Saved</span><span>{formatAmount(calculations.discount)}</span></div>
                     )}
 
@@ -389,7 +417,16 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                         <div className="flex justify-between text-sm text-slate-600 mt-2"><span>Received</span><span>{formatAmount(calculations.paid)}</span></div>
                     )}
                     {data.print_balance_amount && (
-                        <div className="flex justify-between text-sm text-red-500 font-bold"><span>Balance</span><span>{formatAmount(calculations.balance)}</span></div>
+                        <div className="flex justify-between text-sm text-red-500 font-bold"><span>Balance Due</span><span>{formatAmount(calculations.balance)}</span></div>
+                    )}
+                    {data.print_show_previous_balance && (
+                        <>
+                            <div className="flex justify-between text-sm text-slate-500"><span>Prev Balance</span><span>{formatAmount(calculations.prev_balance)}</span></div>
+                            <div className="flex justify-between text-sm font-bold border-t pt-1" style={{ color: themeColor }}>
+                                <span>Net Balance</span>
+                                <span>{formatAmount(calculations.net_balance)}</span>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
@@ -729,10 +766,10 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
 
-                {calculations.discount > 0 && (
+                {calculations.invoiceDiscount > 0 && (
                     <div className="flex justify-between text-[0.9em] mb-1 text-red-600 font-bold">
                         <span>Discount</span>
-                        <span>-{formatAmount(calculations.discount)}</span>
+                        <span>-{formatAmount(calculations.invoiceDiscount)}</span>
                     </div>
                 )}
 
@@ -752,8 +789,20 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                         <span>{formatAmount(calculations.balance)}</span>
                     </div>
                 )}
+                {data.print_show_previous_balance && (
+                    <>
+                        <div className="flex justify-between text-[0.8em] text-slate-500">
+                            <span>Prev Balance</span>
+                            <span>{formatAmount(calculations.prev_balance)}</span>
+                        </div>
+                        <div className="flex justify-between text-[0.85em] font-black border-t border-dashed border-black pt-1">
+                            <span>Net Balance</span>
+                            <span>{formatAmount(calculations.net_balance)}</span>
+                        </div>
+                    </>
+                )}
 
-                {data.print_you_saved && (
+                {data.print_you_saved && calculations.discount > 0 && (
                     <div className="flex justify-between text-[1em] mt-2 pt-2 border-t border-dashed border-black font-black">
                         <span>You Saved</span>
                         <span>{formatAmount(calculations.discount)}</span>
@@ -939,10 +988,10 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     </div>
                 )}
 
-                {calculations.discount > 0 && (
+                {calculations.invoiceDiscount > 0 && (
                     <div className="flex justify-between text-red-600 font-bold">
                         <span>DISCOUNT</span>
-                        <span>-{formatAmount(calculations.discount)}</span>
+                        <span>-{formatAmount(calculations.invoiceDiscount)}</span>
                     </div>
                 )}
 
@@ -959,12 +1008,24 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                 )}
                 {data.print_balance_amount && (
                     <div className="flex justify-between font-bold">
-                        <span>BALANCE</span>
+                        <span>BALANCE DUE</span>
                         <span>{formatAmount(calculations.balance)}</span>
                     </div>
                 )}
+                {data.print_show_previous_balance && (
+                    <>
+                        <div className="flex justify-between text-slate-500">
+                            <span>PREV BALANCE</span>
+                            <span>{formatAmount(calculations.prev_balance)}</span>
+                        </div>
+                        <div className="flex justify-between font-bold border-t border-black border-dashed pt-1">
+                            <span>NET BALANCE</span>
+                            <span>{formatAmount(calculations.net_balance)}</span>
+                        </div>
+                    </>
+                )}
 
-                {data.print_you_saved && (
+                {data.print_you_saved && calculations.discount > 0 && (
                     <div className="flex justify-between mt-1 pt-1 border-t border-black border-dashed font-bold">
                         <span>YOU SAVED</span>
                         <span>{formatAmount(calculations.discount)}</span>
@@ -1135,10 +1196,10 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                         <span>{formatAmount(calculations.gst)}</span>
                     </div>
                 )}
-                {calculations.discount > 0 && (
+                {calculations.invoiceDiscount > 0 && (
                     <div className="flex justify-between text-xs text-red-600 font-bold">
                         <span>Discount:</span>
-                        <span>-{formatAmount(calculations.discount)}</span>
+                        <span>-{formatAmount(calculations.invoiceDiscount)}</span>
                     </div>
                 )}
             </div>
@@ -1148,14 +1209,20 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                 <span>{formatAmount(calculations.total)}</span>
             </div>
 
-            <div className="px-1 mt-2 text-right text-xs">
+            <div className="px-1 mt-2 text-right text-xs space-y-0.5">
                 {data.print_received_amount && (
                     <div>Received: {formatAmount(calculations.paid)}</div>
                 )}
                 {data.print_balance_amount && (
-                    <div>Balance: {formatAmount(calculations.balance)}</div>
+                    <div>Balance Due: {formatAmount(calculations.balance)}</div>
                 )}
-                {data.print_you_saved && (
+                {data.print_show_previous_balance && (
+                    <>
+                        <div>Prev Balance: {formatAmount(calculations.prev_balance)}</div>
+                        <div className="font-bold border-t border-black pt-1">Net Balance: {formatAmount(calculations.net_balance)}</div>
+                    </>
+                )}
+                {data.print_you_saved && calculations.discount > 0 && (
                     <div className="mt-1 font-black text-sm">
                         SAVINGS: {formatAmount(calculations.discount)}
                     </div>
