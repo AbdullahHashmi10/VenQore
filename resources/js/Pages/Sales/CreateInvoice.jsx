@@ -943,14 +943,35 @@ const CreateInvoice = ({ sale }) => {
                 if (isEditMode) {
                     showAlert({ title: 'Success', message: 'Sale updated successfully.', type: 'success' });
                     if (shouldPrint) {
-                        PrintService.quickPrint(currentInvoice);
+                        axios.get(route('store.sales.show', { store_slug: store?.slug, sale: currentInvoice.id }), {
+                            headers: { Accept: 'application/json' }
+                        }).then(res => {
+                            if (res.data?.sale) {
+                                PrintService.quickPrint(res.data.sale);
+                            } else {
+                                PrintService.quickPrint(currentInvoice);
+                            }
+                        }).catch(() => {
+                            PrintService.quickPrint(currentInvoice);
+                        });
                     }
                     if (!shouldPrint) router.visit(route('store.sales.index', { store_slug: store?.slug }));
                 } else {
                     // For new sales, mark as completed but don't remove immediately 
                     // This allows it to stay in background while modal is up, but clear on refresh
                     if (shouldPrint) {
-                        PrintService.quickPrint(currentInvoice);
+                        const targetSaleId = response.data.sale_id;
+                        axios.get(route('store.sales.show', { store_slug: store?.slug, sale: targetSaleId }), {
+                            headers: { Accept: 'application/json' }
+                        }).then(res => {
+                            if (res.data?.sale) {
+                                PrintService.quickPrint(res.data.sale);
+                            } else {
+                                PrintService.quickPrint(currentInvoice);
+                            }
+                        }).catch(() => {
+                            PrintService.quickPrint(currentInvoice);
+                        });
                     }
                     patchInvoice({ status: 'completed' });
                     if (store?.onboarding_step === 'invoice_tour') {

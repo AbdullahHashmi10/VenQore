@@ -69,7 +69,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             const grossAmt = qty * rate;
             
             // Reconstruct discount amount and percentage
-            const mrpVal = parseFloat(item.mrp || item.product?.mrp || 0);
+            const mrpVal = parseFloat(item.mrp || item.product?.mrp || rate || 0);
             let discountAmt = parseFloat(item.discount_amount || (item.discount_type === 'fixed' ? item.discount : 0) || 0);
             let discountPercent = parseFloat(item.discount_percent || 0);
             if (discountPercent === 0) {
@@ -107,22 +107,22 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 rate: rate,
                 mrp: mrpVal,
                 gst: parseFloat(item.tax_percent || item.tax_rate || 0),
-                amount: grossAmt,
+                amount: grossAmt - discountAmt, // item total should show amount after item-level discount
                 discount_percent: discountPercent,
                 discount_amount: discountAmt,
-                desc: item.batch_no ? `Batch: ${item.batch_no}` : '',
-                batch: item.batch_no || '',
-                exp: item.expiry_date ? new Date(item.expiry_date).toLocaleDateString([], { month: '2-digit', year: '2-digit' }) : ''
+                desc: item.desc || item.description || '',
+                batch: item.batch || '',
+                exp: item.exp || item.expiry || ''
             };
         });
 
         const itemsSubtotal = items.reduce((sum, i) => sum + i.amount, 0);
         const taxAmount = parseFloat(sale.tax || sale.tax_amount || 0);
         const discountAmount = parseFloat(sale.discount || sale.global_discount || 0);
-        const grandTotal = parseFloat(sale.total || sale.total_amount || (itemsSubtotal + taxAmount - discountAmount));
+        const grandTotal = parseFloat(sale.total || sale.invoice_total || sale.total_amount || 0);
         
         // Fix 0 amountPaid fallback bug
-        let amountPaid = grandTotal;
+        let amountPaid = 0;
         if (sale.amount_paid !== undefined && sale.amount_paid !== null) {
             amountPaid = parseFloat(sale.amount_paid);
         } else if (sale.paid_amount !== undefined && sale.paid_amount !== null) {
@@ -142,10 +142,21 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         
         // Ledger Balances
         const currentLedgerBalance = parseFloat(sale.customer?.current_balance || sale.party?.current_balance || 0);
-        const prevLedgerBalance = currentLedgerBalance - balanceDue;
+        
+        // Check if the sale has already been saved/posted to ledger
+        const isSaved = !!(sale.reference_number || sale.reference || (sale.id && !sale.id.includes('temp')));
+        let prevLedgerBalance = 0;
+        let netLedgerBalance = 0;
+        if (isSaved) {
+            netLedgerBalance = currentLedgerBalance;
+            prevLedgerBalance = currentLedgerBalance - balanceDue;
+        } else {
+            prevLedgerBalance = currentLedgerBalance;
+            netLedgerBalance = currentLedgerBalance + balanceDue;
+        }
 
         calculations = {
-            subtotal: parseFloat(sale.subtotal || itemsSubtotal),
+            subtotal: parseFloat(sale.subtotal || (itemsSubtotal + totalItemDiscounts)), // subtotal before item discounts
             qty: items.reduce((sum, i) => sum + i.qty, 0),
             gst: taxAmount,
             discount: totalSavings, // "You Saved" will show total savings
@@ -154,7 +165,7 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             paid: amountPaid,
             balance: balanceDue,
             prev_balance: prevLedgerBalance,
-            net_balance: currentLedgerBalance
+            net_balance: netLedgerBalance
         };
     } else {
         // Fallback to sample data for settings preview
