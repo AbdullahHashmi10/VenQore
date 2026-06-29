@@ -95,6 +95,12 @@ class ReturnController extends Controller
             $return->append(['customer_net_balance', 'customer_prev_balance']);
         }
 
+        if (request()->wantsJson()) {
+            return response()->json([
+                'return' => $return
+            ]);
+        }
+
         return Inertia::render('Returns/Show', [
             'return' => $return
         ]);
