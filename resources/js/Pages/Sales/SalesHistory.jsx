@@ -1100,7 +1100,9 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                 <tr>
                                                     <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">#</th>
                                                     <th className="text-left p-3 text-[10px] font-bold text-slate-400 uppercase">Item Name</th>
-                                                    <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">Qty</th>
+                                                    <th className="text-center p-3 text-[10px] font-bold text-slate-400 uppercase">
+                                                        {quickViewSale.items?.some(i => parseFloat(i.free_quantity || 0) > 0) ? 'Qty + Free' : 'Qty'}
+                                                    </th>
                                                     <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Rate</th>
                                                     <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Discount</th>
                                                     <th className="text-right p-3 text-[10px] font-bold text-slate-400 uppercase">Total</th>
@@ -1117,7 +1119,12 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                                     <p className="text-[10px] text-slate-400 font-mono">{item.product.sku}</p>
                                                                 )}
                                                             </td>
-                                                            <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
+                                                            <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">
+                                                                {parseFloat(item.free_quantity || 0) > 0 
+                                                                    ? `${parseFloat(item.quantity) || 0}+${parseFloat(item.free_quantity) || 0}`
+                                                                    : parseFloat(item.quantity) || 0
+                                                                }
+                                                            </td>
                                                             <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
                                                             <td className="p-3 text-right text-orange-600">
                                                                 {(parseFloat(item.discount_amount || item.discount || 0)) > 0 ? `-${formatCurrency(parseFloat(item.discount_amount || item.discount || 0), store)}` : '-'}
@@ -1159,8 +1166,15 @@ export default function SalesIndex({ sales, filters, stats }) {
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-2 text-[10px] bg-slate-50/50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800/50">
                                                         <div>
-                                                            <span className="text-slate-400 block uppercase">Qty</span>
-                                                            <span className="font-bold text-slate-700 dark:text-slate-300">{item.quantity}</span>
+                                                            <span className="text-slate-400 block uppercase">
+                                                                {parseFloat(item.free_quantity || 0) > 0 ? 'Qty + Free' : 'Qty'}
+                                                            </span>
+                                                            <span className="font-bold text-slate-700 dark:text-slate-300">
+                                                                {parseFloat(item.free_quantity || 0) > 0 
+                                                                    ? `${parseFloat(item.quantity) || 0}+${parseFloat(item.free_quantity) || 0}`
+                                                                    : parseFloat(item.quantity) || 0
+                                                                }
+                                                            </span>
                                                         </div>
                                                         <div>
                                                             <span className="text-slate-400 block uppercase">Rate</span>
