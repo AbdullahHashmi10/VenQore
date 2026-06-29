@@ -383,7 +383,7 @@ export default function Pricing({ plans = [] }) {
     };
 
     const handleContinue = () => {
-        setCurrentStep(2);
+        setCurrentStep(3);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -534,6 +534,7 @@ export default function Pricing({ plans = [] }) {
             </section>
 
             {/* ── AI Configuration Panel — always visible, updates when plan changes ── */}
+            {false && (
             <section ref={aiSectionRef} className="px-6 py-6">
                 <div className="max-w-5xl mx-auto">
                     <div className="transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] opacity-100 translate-y-0">
@@ -770,6 +771,7 @@ export default function Pricing({ plans = [] }) {
                     </div>
                 </div>
             </section>
+            )}
 
             {/* ── Comparison Table ─────────────────────────────────── */}
             <section className="px-6 py-16">
@@ -822,7 +824,7 @@ export default function Pricing({ plans = [] }) {
 
                                     {/* POS */}
                                     <tr className="bg-white/[0.02]"><td colSpan={4} className="py-2.5 pl-6 text-[9px] font-black text-slate-500 uppercase tracking-widest">POS & Checkout</td></tr>
-                                    <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />
+                                    {false && <TableRow label="Barcode Scanner" starter={true} growth={true} enterprise={true} />}
                                     <TableRow label="WebUSB Thermal Printing" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Multi-Tab Checkout" starter="3 tabs" growth="10 tabs" enterprise="50 tabs" />
                                     <TableRow label="Park & Recall (Hold Bill)" starter={true} growth={true} enterprise={true} />
@@ -1226,7 +1228,7 @@ export default function Pricing({ plans = [] }) {
                 {/* Nav */}
                 <div className="flex items-center justify-between pt-4 border-t border-white/[0.05]">
                     <button
-                        onClick={() => { setCurrentStep(2); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                        onClick={() => { setCurrentStep(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                         className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-white/[0.06] text-slate-400 hover:text-slate-200 text-xs font-bold uppercase tracking-widest transition-colors"
                     >
                         <ArrowLeft size={13} /> Back
@@ -1602,8 +1604,7 @@ export default function Pricing({ plans = [] }) {
     const renderStepBar = () => {
         if (currentStep === 1 || currentStep === 5) return null;
         const steps = [
-            { n: 1, label: 'Plan + AI' },
-            { n: 2, label: 'Sync' },
+            { n: 1, label: 'Plan' },
             { n: 3, label: 'Setup' },
             { n: 4, label: 'Checkout' },
         ];
