@@ -69,7 +69,8 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             const grossAmt = qty * rate;
             
             // Reconstruct discount amount and percentage
-            const discountAmt = parseFloat(item.discount_amount || (item.discount_type === 'fixed' ? item.discount : 0) || 0);
+            const mrpVal = parseFloat(item.mrp || item.product?.mrp || 0);
+            let discountAmt = parseFloat(item.discount_amount || (item.discount_type === 'fixed' ? item.discount : 0) || 0);
             let discountPercent = parseFloat(item.discount_percent || 0);
             if (discountPercent === 0) {
                 if (item.discount_type === 'percent') {
@@ -80,13 +81,28 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
                 }
             }
 
+            // Fallback 1: If MRP is greater than rate, calculate the discount based on MRP
+            if (discountAmt === 0 && mrpVal > rate) {
+                discountAmt = (mrpVal - rate) * qty;
+                discountPercent = Math.round(((mrpVal - rate) / mrpVal) * 100);
+            }
+
+            // Fallback 2: Pro-rate the global invoice discount across the items
+            const globalDiscount = parseFloat(sale.discount || sale.global_discount || 0);
+            const saleSubtotal = parseFloat(sale.subtotal || sale.subtotal_gross || 0);
+            if (discountAmt === 0 && globalDiscount > 0 && saleSubtotal > 0) {
+                const ratio = globalDiscount / saleSubtotal;
+                discountAmt = grossAmt * ratio;
+                discountPercent = Math.round(ratio * 100);
+            }
+
             return {
                 sno: idx + 1,
                 name: item.product?.name || item.name || 'Item',
                 hsn: item.product?.hsn || item.hsn || '',
                 qty: qty,
                 rate: rate,
-                mrp: parseFloat(item.mrp || item.product?.mrp || 0),
+                mrp: mrpVal,
                 gst: parseFloat(item.tax_percent || item.tax_rate || 0),
                 amount: grossAmt,
                 discount_percent: discountPercent,
