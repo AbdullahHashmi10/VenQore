@@ -653,6 +653,37 @@ class SaleController extends Controller
             })
             ->get(['id', 'name', 'code']);
 
+        // Calculate and load customer current ledger balance
+        if ($sale->customer) {
+            $tenantId = $sale->tenant_id;
+            $arAccount = \App\Models\Account::where('code', '1200')->where('tenant_id', $tenantId)->value('id') ?? 0;
+            $apAccount = \App\Models\Account::where('code', '2000')->where('tenant_id', $tenantId)->value('id') ?? 0;
+
+            $netAR = DB::table('journal_items')
+                ->join('journal_entries', function($join) use ($tenantId) {
+                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
+                        ->where('journal_entries.tenant_id', $tenantId);
+                })
+                ->where('journal_entries.party_id', $sale->customer->id)
+                ->where('journal_entries.is_reversed', 0)
+                ->where('journal_items.account_id', $arAccount)
+                ->selectRaw('SUM(COALESCE(journal_items.debit,0)) - SUM(COALESCE(journal_items.credit,0)) as balance')
+                ->value('balance') ?? 0;
+
+            $netAP = DB::table('journal_items')
+                ->join('journal_entries', function($join) use ($tenantId) {
+                    $join->on('journal_items.journal_entry_id', '=', 'journal_entries.id')
+                        ->where('journal_entries.tenant_id', $tenantId);
+                })
+                ->where('journal_entries.party_id', $sale->customer->id)
+                ->where('journal_entries.is_reversed', 0)
+                ->where('journal_items.account_id', $apAccount)
+                ->selectRaw('SUM(COALESCE(journal_items.credit,0)) - SUM(COALESCE(journal_items.debit,0)) as balance')
+                ->value('balance') ?? 0;
+
+            $sale->customer->current_balance = (float)$netAR - (float)$netAP;
+        }
+
         if (request()->wantsJson()) {
             return response()->json([
                 'sale' => $sale,
