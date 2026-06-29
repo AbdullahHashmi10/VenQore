@@ -92,7 +92,7 @@ export default function PrintSettingsSection({ data, setData }) {
     body { margin: 0; padding: 0; background: white; }
     @page {
       margin: 0;
-      ${isThermal ? `size: ${width / MM_TO_PX}mm ${currentData.thermal_page_height || 297}mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
+      ${isThermal ? `size: ${width / MM_TO_PX}mm;` : `size: ${currentData.paper_size || 'A4'} ${currentData.paper_orientation === 'Landscape' ? 'landscape' : 'portrait'};`}
     }
     @media print {
       html, body {
@@ -136,36 +136,7 @@ export default function PrintSettingsSection({ data, setData }) {
         // Delay slightly to let styles apply, then trigger print dialog
         setTimeout(() => {
             if (iframe.contentWindow) {
-                if (isThermal) {
-                    try {
-                        const doc = iframe.contentWindow.document;
-                        const container = doc.querySelector('.print-container');
-                        if (container) {
-                            const heightPx = container.scrollHeight || container.offsetHeight;
-                            if (heightPx > 0) {
-                                // Use user-configured page height limit (defaults to 297mm for standard page)
-                                const heightMm = currentData.thermal_page_height || 297;
-                                
-                                // Create dynamic style sheet inside print iframe document
-                                let styleEl = doc.getElementById('dynamic-page-size');
-                                if (!styleEl) {
-                                    styleEl = doc.createElement('style');
-                                    styleEl.id = 'dynamic-page-size';
-                                    doc.head.appendChild(styleEl);
-                                }
-                                
-                                let pageWidthMm = 80;
-                                if (currentData.thermal_page_size === '2inch') pageWidthMm = 58;
-                                else if (currentData.thermal_page_size === '4inch') pageWidthMm = 100;
-                                
-                                styleEl.innerHTML = `@page { size: ${pageWidthMm}mm ${heightMm}mm !important; margin: 0 !important; }`;
-                                console.log(`[PrintSettings] Dynamic thermal size applied: ${pageWidthMm}mm x ${heightMm}mm`);
-                            }
-                        }
-                    } catch (e) {
-                        console.error('Failed to calculate dynamic page size:', e);
-                    }
-                }
+
 
                 iframe.contentWindow.focus();
                 iframe.contentWindow.print();
@@ -536,10 +507,9 @@ const ThermalSettings = ({ data, setData }) => (
             <Toggle label="Auto Cut Paper" checked={data.thermal_auto_cut} onChange={v => setData('thermal_auto_cut', v)} color="emerald" />
             <Toggle label="Open Cash Drawer" checked={data.thermal_open_drawer} onChange={v => setData('thermal_open_drawer', v)} color="emerald" />
 
-            <div className="grid grid-cols-3 gap-3 mt-4">
+            <div className="grid grid-cols-2 gap-3 mt-4">
                 <NumberInput label="Extra Feed (Lines)" value={data.thermal_extra_lines} onChange={v => setData('thermal_extra_lines', v)} />
                 <NumberInput label="Copies to Print" value={data.thermal_copies} onChange={v => setData('thermal_copies', v)} />
-                <NumberInput label="Page Height (mm)" value={data.thermal_page_height || 3276} onChange={v => setData('thermal_page_height', v)} />
             </div>
         </Section>
     </>

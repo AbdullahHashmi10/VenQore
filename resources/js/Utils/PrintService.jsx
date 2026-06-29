@@ -66,9 +66,8 @@ class PrintService {
 
         let pageDeclaration;
         if (isThermal) {
-            const heightMm = data.thermal_page_height || 297;
-            pageDeclaration = `size: ${widthMm}mm ${heightMm}mm;`;
-            console.log(`[PrintService] Thermal @page → ${widthMm}mm x ${heightMm}mm`);
+            pageDeclaration = `size: ${widthMm}mm;`;
+            console.log(`[PrintService] Thermal @page → ${widthMm}mm`);
         } else {
             const orient = data.paper_orientation === 'Landscape' ? 'landscape' : 'portrait';
             pageDeclaration = `size: ${data.paper_size || 'A4'} ${orient};`;
@@ -199,7 +198,6 @@ class PrintService {
             thermal_auto_cut:       b(raw.thermal_auto_cut, true),
             thermal_open_drawer:    b(raw.thermal_open_drawer, false),
             thermal_copies:         n(raw.thermal_copies, 1),
-            thermal_page_height:    n(raw.thermal_page_height, 297),
             thermal_show_headers:   b(raw.thermal_show_headers, false),
             thermal_show_sno:       b(raw.thermal_show_sno, false),
             thermal_show_units:     b(raw.thermal_show_units, false),
