@@ -3,6 +3,7 @@ import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
 import PasscodeModal from '@/Components/PasscodeModal';
 import PrintPreview from '@/Components/PrintPreview';
+import Swal from 'sweetalert2';
 import PrintSettingsSection from '@/Components/PrintSettingsSection';
 import BusinessSettingsSection from '@/Components/BusinessSettingsSection';
 import GeneralSettingsSection from '@/Components/GeneralSettingsSection';
@@ -111,7 +112,7 @@ export default function AdminSettings({ settings = {} }) {
         }
     };
 
-    const { data, setData, post, processing } = useForm({
+    const { data, setData, post, processing, isDirty, reset } = useForm({
         // Business
         business_name: settings.business_name || 'VENQORE',
         business_email: settings.business_email || '',
@@ -292,6 +293,40 @@ export default function AdminSettings({ settings = {} }) {
         });
     };
 
+    const handleSectionChange = (sectionId) => {
+        if (isDirty) {
+            Swal.fire({
+                title: 'Unsaved Changes',
+                text: 'You have unsaved changes. Do you want to save them before switching sections?',
+                icon: 'warning',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: 'Save and Switch',
+                denyButtonText: 'Discard and Switch',
+                cancelButtonText: 'Cancel',
+                background: '#1e293b',
+                color: '#fff',
+                confirmButtonColor: '#6366f1',
+                denyButtonColor: '#ef4444',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    post(route('store.admin.settings.update', { store_slug: store?.slug }), {
+                        onSuccess: () => {
+                            setSaved(true);
+                            setTimeout(() => setSaved(false), 3000);
+                            setActiveSection(sectionId);
+                        }
+                    });
+                } else if (result.isDenied) {
+                    reset();
+                    setActiveSection(sectionId);
+                }
+            });
+        } else {
+            setActiveSection(sectionId);
+        }
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
         // Check if passcode is enabled AND we are not just disabling it
@@ -427,7 +462,7 @@ export default function AdminSettings({ settings = {} }) {
                 return <TransactionSettingsSection data={data} setData={setData} />;
 
             case 'print':
-                return <PrintSettingsSection data={data} setData={setData} />;
+                return <PrintSettingsSection data={data} setData={setData} saveSettings={saveSettings} />;
 
             case 'taxes':
                 return <TaxSettingsSection data={data} setData={setData} />;
@@ -781,7 +816,7 @@ export default function AdminSettings({ settings = {} }) {
                                                     <button
                                                         key={section.id}
                                                         type="button"
-                                                        onClick={() => setActiveSection(section.id)}
+                                                        onClick={() => handleSectionChange(section.id)}
                                                         title={sidebarCollapsed ? section.name : undefined}
                                                         className={`w-full flex items-center gap-3 ${sidebarCollapsed ? 'p-2 justify-center' : 'p-3'} rounded-xl text-left transition-all duration-200 group relative overflow-hidden border ${isActive
                                                             ? 'bg-white/10 backdrop-blur-xl border-white/20 text-white shadow-lg shadow-indigo-500/20'

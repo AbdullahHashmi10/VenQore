@@ -5,9 +5,10 @@ import {
     ChevronLeft, ChevronRight, Maximize2, Minimize2, Printer,
     Layout, Type, FileText, Image as ImageIcon, Settings,
     AlignLeft, AlignCenter, AlignRight, Check, X, Palette,
-    Monitor, Upload, Play
+    Monitor, Upload, Play, Save
 } from 'lucide-react';
 import PrintPreview from '@/Components/PrintPreview';
+import Swal from 'sweetalert2';
 
 /**
  * Advanced Print Settings Section
@@ -17,7 +18,7 @@ import { createPortal } from 'react-dom';
 
 // ... (imports remain the same, ensuring createPortal is added)
 
-export default function PrintSettingsSection({ data, setData }) {
+export default function PrintSettingsSection({ data, setData, saveSettings }) {
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [previewMode, setPreviewMode] = useState('light'); // 'light' | 'dark'
@@ -198,6 +199,35 @@ export default function PrintSettingsSection({ data, setData }) {
                     >
                         <Play size={14} className="fill-current" />
                         Test Print
+                    </button>
+
+                    {/* Save Changes Button (Print Settings specific with resistant warning) */}
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (saveSettings) {
+                                Swal.fire({
+                                    title: 'Save Printer Settings?',
+                                    text: 'Are you sure you want to save and apply the new printer configurations across the system?',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Yes, Save Settings',
+                                    cancelButtonText: 'Cancel',
+                                    background: '#1e293b',
+                                    color: '#fff',
+                                    confirmButtonColor: '#4f46e5',
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        saveSettings();
+                                    }
+                                });
+                            }
+                        }}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 transition-all active:scale-95 mr-2"
+                        title="Save and apply current printer settings"
+                    >
+                        <Save size={14} />
+                        Save Printer Settings
                     </button>
 
                     {/* Preview Mode Toggle */}
