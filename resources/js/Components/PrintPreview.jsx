@@ -397,7 +397,16 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                     {items.map((item, i) => (
                         <tr key={i} className="border-b border-slate-100 last:border-0">
                             {data.print_show_sno && <td className="p-3 text-slate-500">{item.sno}</td>}
-                            <td className="p-3 font-medium">{item.name}</td>
+                            <td className="p-3 font-medium">
+                                <div>{item.name}</div>
+                                {(data.thermal_show_batch || data.thermal_show_expiry) && (item.batch || item.exp) && (
+                                    <div className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                        {data.thermal_show_batch && item.batch && <span>Batch: {item.batch} </span>}
+                                        {data.thermal_show_batch && item.batch && data.thermal_show_expiry && item.exp && <span>| </span>}
+                                        {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
+                                    </div>
+                                )}
+                            </td>
                             {data.print_show_hsn && <td className="p-3 text-slate-500">{item.hsn}</td>}
                             {data.print_show_description && <td className="p-3 text-slate-500 text-xs">{item.desc}</td>}
                             {data.print_show_mrp && <td className="p-3 text-right text-slate-400 line-through">{formatAmount(item.mrp || (item.rate * 1.2))}</td>}
@@ -550,7 +559,16 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
             <tbody>
                 {items.map((item, i) => (
                     <tr key={i}>
-                        <td className="border border-slate-800 p-2">{item.name}</td>
+                        <td className="border border-slate-800 p-2">
+                            <div>{item.name}</div>
+                            {(data.thermal_show_batch || data.thermal_show_expiry) && (item.batch || item.exp) && (
+                                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                    {data.thermal_show_batch && item.batch && <span>Batch: {item.batch} </span>}
+                                    {data.thermal_show_batch && item.batch && data.thermal_show_expiry && item.exp && <span>| </span>}
+                                    {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
+                                </div>
+                            )}
+                        </td>
                         <td className="border border-slate-800 p-2 text-center">
                             {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
                         </td>
@@ -619,6 +637,13 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                     <tr key={i} className="border-b border-slate-100">
                         <td className="py-4">
                             <div className="font-bold">{item.name}</div>
+                            {(data.thermal_show_batch || data.thermal_show_expiry) && (item.batch || item.exp) && (
+                                <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                                    {data.thermal_show_batch && item.batch && <span>Batch: {item.batch} </span>}
+                                    {data.thermal_show_batch && item.batch && data.thermal_show_expiry && item.exp && <span>| </span>}
+                                    {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
+                                </div>
+                            )}
                             <div className="text-xs text-slate-500">{item.qty} x {formatAmount(item.rate)}</div>
                         </td>
                         <td className="py-4 text-right font-bold">{formatAmount(item.amount)}</td>

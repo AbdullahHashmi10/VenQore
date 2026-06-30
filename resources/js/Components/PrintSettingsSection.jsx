@@ -420,7 +420,11 @@ const RegularSettings = ({ data, setData }) => (
                 <ToggleBtn label="Units/Qty" checked={data.print_show_units} onChange={v => setData('print_show_units', v)} />
                 <ToggleBtn label="MRP Column" checked={data.print_show_mrp} onChange={v => setData('print_show_mrp', v)} />
                 <ToggleBtn label="Discount Column" checked={data.print_show_discount} onChange={v => setData('print_show_discount', v)} />
+                <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} />
+                <ToggleBtn label="Show Batch Codes" checked={data.thermal_show_batch} onChange={v => setData('thermal_show_batch', v)} />
+                <ToggleBtn label="Show Expiry Dates" checked={data.thermal_show_expiry} onChange={v => setData('thermal_show_expiry', v)} />
                 <ToggleBtn label="Tax Breakdown" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} />
+                <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} />
             </div>
         </Section>
 
@@ -431,13 +435,17 @@ const RegularSettings = ({ data, setData }) => (
                 <ToggleBtn label="Received Amt" checked={data.print_received_amount} onChange={v => setData('print_received_amount', v)} />
                 <ToggleBtn label="Balance Due" checked={data.print_balance_amount} onChange={v => setData('print_balance_amount', v)} />
                 <ToggleBtn label="Savings" checked={data.print_you_saved} onChange={v => setData('print_you_saved', v)} />
+                <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} />
+                <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} />
+                <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} />
             </div>
 
             <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
                 options={[{ v: '0', l: 'None' }, { v: '1', l: 'English' }, { v: '2', l: 'Indian Format' }]} />
 
-            <div className="space-y-2 mt-4">
-                <TextInput label="Terms & Conditions" value={data.print_terms} onChange={v => setData('print_terms', v)} placeholder="E.g. No returns..." />
+            <div className="space-y-4 mt-4">
+                <TextInput label="Terms & Conditions (Bottom)" value={data.print_terms} onChange={v => setData('print_terms', v)} placeholder="E.g. No returns..." />
+                <TextInput label="Custom Footer Message" value={data.thermal_custom_footer} onChange={v => setData('thermal_custom_footer', v)} placeholder="E.g. Follow us on Instagram!" />
                 <TextInput label="Signature Text" value={data.print_signature_text} onChange={v => setData('print_signature_text', v)} />
             </div>
         </Section>
