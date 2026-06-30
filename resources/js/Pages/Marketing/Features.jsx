@@ -1058,7 +1058,7 @@ export default function Features() {
         { e: 6, s: '', l: 'Live Demos' },
     ];
     return (
-        <MarketingLayout title="Features — VenQore" description="Explore every VenQore feature with live, interactive demos of the real product — Reports, POS, Smart Capture AI, VenSynQ, Growth Engine and Cookbook — plus a searchable catalog of all 226+ capabilities.">
+        <MarketingLayout title="Features - VenQore" description="Explore every VenQore feature with live, interactive demos of the real product - Reports, POS, Smart Capture AI, VenSynQ, Growth Engine and Cookbook - plus a searchable catalog of all 226+ capabilities.">
             {/* HERO */}
             <section className="relative pt-36 md:pt-44 pb-12 px-6">
                 <div className="max-w-5xl mx-auto text-center">
@@ -1150,7 +1150,7 @@ export default function Features() {
                             <p className="text-slate-400 text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
                         </div>
                     </RevealOnScroll>
-                    <RevealOnScroll delay={0.1}><FeatureExplorer /></RevealOnScroll>
+                    <FeatureExplorer />
                 </div>
             </section>
 
