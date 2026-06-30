@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import axios from 'axios';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { formatCurrency } from '@/Utils/format';
+import FormModal from '@/Components/FormModal';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import {
     Search,
@@ -28,15 +29,25 @@ import {
     XCircle,
     Clock,
     ShoppingBag,
-    ShoppingCart
+    ShoppingCart,
+    CheckCircle2
 } from 'lucide-react';
 import { useAlert } from '@/Contexts/AlertContext';
 import SellModuleTabs from '@/Components/SellModuleTabs';
 import SmartCombobox from '@/Components/SmartCombobox';
 
 export default function PreOrders({ orders, filters: rawFilters, stats }) {
-    const { store } = usePage().props;
+    const { store, flash } = usePage().props;
     const filters = (rawFilters && !Array.isArray(rawFilters)) ? rawFilters : {};
+    
+    // Conversion Success modal state
+    const [conversionSuccessModal, setConversionSuccessModal] = useState({ show: false, saleId: null });
+
+    useEffect(() => {
+        if (flash?.print_sale_id) {
+            setConversionSuccessModal({ show: true, saleId: flash.print_sale_id });
+        }
+    }, [flash]);
 
     // Infinite Scroll State
     const [allOrders, setAllOrders] = useState(orders.data || []);
@@ -518,9 +529,10 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                 confirmed: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400',
                                                                 pending: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400',
                                                                 cancelled: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400',
-                                                                converted: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                                                                converted: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
+                                                                completed: 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
                                                             };
-                                                            return <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${statusStyles[status] || 'bg-slate-100 text-slate-700'}`}>{status}</span>;
+                                                            return <span className={`px-2 py-1 rounded-md text-xs font-bold uppercase ${statusStyles[status] || 'bg-slate-100 text-slate-700'}`}>{status === 'completed' ? 'converted' : status}</span>;
                                                         case 'actions':
                                                             return (
                                                                 <div className="flex items-center justify-end gap-2 relative" onClick={(e) => e.stopPropagation()}>
@@ -534,7 +546,11 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                         {activeActionMenu === row.id && (
                                                                             <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 p-1 z-50 animate-in zoom-in-95">
                                                                                 <div className="py-1">
-                                                                                    <Link href={route('store.sales.orders.show', { store_slug: store?.slug, order: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300"><Edit size={14} /> View/Edit</Link>
+                                                                                    <Link href={route('store.sales.orders.show', { store_slug: store?.slug, order: row.id })} className="w-full text-left px-3 py-2 hover:bg-slate-50 rounded dark:hover:bg-slate-700 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                                                                        <Edit size={14} /> {row.status === 'completed' || row.status === 'converted' ? 'View Details' : 'View/Edit'}
+                                                                                    </Link>
+                                                                                    {row.status !== 'completed' && row.status !== 'converted' && (
+                                                                                        <>
                                                                                     <button onClick={async () => {
                                                                                         try {
                                                                                             const items = row.items || [];
@@ -582,6 +598,8 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                                                         });
                                                                                     }} className="w-full text-left px-3 py-2 hover:bg-red-50 rounded dark:hover:bg-red-900/20 flex items-center gap-2 text-sm text-red-600"><XCircle size={14} /> Cancel Order</button>
                                                                                     <button onClick={() => { showConfirm?.({ title: 'Delete Pre-Sale?', message: 'Are you sure you want to delete this order? It will be moved to the Recycle Bin.', type: 'error', confirmLabel: 'Delete', onConfirm: () => router.delete(route('store.pre-sales.destroy', { store_slug: store?.slug, order: row.id }), { onSuccess: () => setAllOrders(prev => prev.filter(o => o.id !== row.id)) }) }); }} className="w-full text-left px-3 py-2 hover:bg-red-100 rounded dark:hover:bg-red-900/30 flex items-center gap-2 text-sm text-red-700 dark:text-red-400 font-bold"><Trash2 size={14} /> Delete</button>
+                                                                                    </>
+                                                                                    )}
                                                                                 </div>
                                                                             </div>
                                                                         )}
@@ -825,7 +843,7 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                             </div>
 
                             {/* Action Buttons */}
-                            {quickViewItem.status !== 'converted' && quickViewItem.status !== 'cancelled' && (
+                            {quickViewItem.status !== 'completed' && quickViewItem.status !== 'converted' && quickViewItem.status !== 'cancelled' && (
                                 <div className="mt-4 flex justify-center gap-2">
                                     <button
                                         onClick={async () => {
@@ -881,6 +899,38 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Success Print Modal */}
+            {conversionSuccessModal.show && (
+                <FormModal
+                    title="Conversion Successful"
+                    onClose={() => setConversionSuccessModal({ show: false, saleId: null })}
+                >
+                    <div className="p-6 text-center">
+                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-950/30 rounded-full flex items-center justify-center mx-auto mb-4 text-emerald-500">
+                            <CheckCircle2 size={32} />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">Pre-Order Converted to Sale!</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">The Pre-Order has been successfully converted into a tax invoice.</p>
+                        <div className="flex gap-3 justify-center">
+                            <button
+                                onClick={() => setConversionSuccessModal({ show: false, saleId: null })}
+                                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-xl text-slate-700 dark:text-slate-300 font-bold transition-all"
+                            >
+                                Close
+                            </button>
+                            <a
+                                href={route("store.sales.print", { store_slug: store?.slug, sale: conversionSuccessModal.saleId })}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setConversionSuccessModal({ show: false, saleId: null })}
+                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 hover:scale-[1.02] active:scale-95 transition-all"
+                            >
+                                <Printer size={16} /> Print Invoice
+                            </a>
+                        </div>
+                    </div>
+                </FormModal>
             )}
         </OneGlanceLayout>
     );

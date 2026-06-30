@@ -250,4 +250,90 @@ class DocumentConversionTest extends VenQoreTestCase
             'unit_cost' => 120,
         ]);
     }
+
+    public function test_proposal_re_conversion_syncs_instead_of_duplicate(): void
+    {
+        $tenant = $this->createTenant();
+        $user = $this->createTenantUser($tenant, 'owner');
+        $this->bindTenantContext($tenant, $user);
+        $this->seedTenantDefaults($tenant);
+
+        $customer = Party::create([
+            'name' => 'Bob Smith',
+            'type' => 'customer',
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $product = Product::create([
+            'name' => 'Proposal Product',
+            'sku' => 'PROD-002',
+            'price' => 200,
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $proposal = Proposal::create([
+            'reference_number' => 'PROP-001',
+            'customer_id' => $customer->id,
+            'customer_name' => $customer->name,
+            'status' => 'sent',
+            'valid_until' => now()->addDays(7),
+            'total_amount' => 200,
+            'user_id' => $user->id,
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $item = ProposalItem::create([
+            'proposal_id' => $proposal->id,
+            'product_id' => $product->id,
+            'quantity' => 1,
+            'unit_price' => 200,
+            'total' => 200,
+            'tenant_id' => $tenant->id,
+        ]);
+
+        $this->actingAs($user);
+
+        // Convert the Proposal to Pre-Sale (First Time)
+        $response = $this->post(route('store.proposals.convert-to-presale', [
+            'store_slug' => $tenant->slug,
+            'proposal' => $proposal->id
+        ]));
+
+        $response->assertStatus(302);
+
+        // Verify Sales Order exists
+        $salesOrder = SalesOrder::where('notes', 'Converted from Proposal #PROP-001')->first();
+        $this->assertNotNull($salesOrder);
+        $this->assertEquals(200, $salesOrder->total_amount);
+
+        // Update Proposal Item amount and re-convert
+        $item->update(['unit_price' => 700, 'total' => 700]);
+        $proposal->update(['total_amount' => 700]);
+        
+        $response2 = $this->post(route('store.proposals.convert-to-presale', [
+            'store_slug' => $tenant->slug,
+            'proposal' => $proposal->id
+        ]));
+
+        $response2->assertStatus(302);
+
+        // Verify NO duplicate sales order created, and the existing one was updated
+        $salesOrdersCount = SalesOrder::where('notes', 'Converted from Proposal #PROP-001')->count();
+        $this->assertEquals(1, $salesOrdersCount);
+
+        $salesOrder->refresh();
+        $this->assertEquals(700, $salesOrder->total_amount);
+
+        // Finalize Sales Order to completed/sale
+        $salesOrder->update(['status' => 'completed']);
+
+        // Attempting to convert again should fail with session error
+        $response3 = $this->post(route('store.proposals.convert-to-presale', [
+            'store_slug' => $tenant->slug,
+            'proposal' => $proposal->id
+        ]));
+
+        $response3->assertStatus(302);
+        $response3->assertSessionHas('error', 'The converted Pre-Sale has already been finalized into a Sale and cannot be altered.');
+    }
 }

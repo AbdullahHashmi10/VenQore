@@ -99,6 +99,8 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
         }
     }, [purchaseOrder]);
 
+    const isReadOnly = isEditMode && (purchaseOrder?.status === 'received');
+
     const currentPurchase = isEditMode
         ? (editState || { items: [], supplier: null, amountPaid: 0 })
         : (activePurchases.find(p => p.id === currentPurchaseId) || activePurchases[0]);
@@ -938,7 +940,12 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
 
                 <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 lg:overflow-hidden overflow-y-auto text-scale-${textSize}`}>
                     {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
-                    <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
+                    <div className={`flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0 ${isReadOnly ? 'pointer-events-none opacity-85 select-none' : ''}`}>
+                        {isReadOnly && (
+                            <div className="bg-indigo-600 text-white font-bold text-xs px-4 py-2.5 text-center flex items-center justify-center gap-2 shrink-0">
+                                <Info size={14} /> This Purchase Order has been received and is read-only.
+                            </div>
+                        )}
                         {/* TABS BAR - Now inside left section (Desktop Only) */}
                         <div className="hidden lg:flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                             {activePurchases.map((purchase, idx) => (
@@ -2134,16 +2141,22 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                             <div className="space-y-2">
                                 <button
                                     onClick={() => initiateSave(false)}
-                                    disabled={saving}
+                                    disabled={saving || isReadOnly}
                                     className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
-                                    {saving ? 'SAVING...' : (isEditMode ? 'UPDATE ORDER' : 'COMPLETE ORDER')}
+                                    {saving ? 'SAVING...' : (isReadOnly ? 'ORDER RECEIVED' : (isEditMode ? 'UPDATE ORDER' : 'COMPLETE ORDER'))}
                                 </button>
 
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => initiateSave(true)}
+                                        onClick={() => {
+                                            if (isReadOnly) {
+                                                window.open(route("store.purchase-orders.print", [store.slug, currentPurchase.id]), '_blank');
+                                            } else {
+                                                initiateSave(true);
+                                            }
+                                        }}
                                         disabled={saving}
                                         className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
                                     >

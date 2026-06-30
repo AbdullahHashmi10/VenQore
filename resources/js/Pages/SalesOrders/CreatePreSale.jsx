@@ -97,6 +97,8 @@ const CreatePreSale = ({ sale }) => {
         }
     }, [sale]);
 
+    const isReadOnly = isEditMode && (sale?.status === 'completed' || sale?.status === 'converted');
+
     const currentInvoice = isEditMode
         ? (editState || {
             items: [],
@@ -1033,9 +1035,14 @@ const CreatePreSale = ({ sale }) => {
 
 
 
-                <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 lg:overflow-hidden overflow-y-auto text-scale-${textSize}`}>
+                <div className={`flex-1 flex flex-col lg:flex-row gap-2 min-h-0 px-2 pb-0 pt-2 lg:overflow-hidden overflow-y-auto text-scale-${textSize} ${isReadOnly ? 'pointer-events-none opacity-85 select-none' : ''}`}>
                     {/* LEFT SECTION - Main Workspace (Tabs + Items) */}
                     <div className="flex-1 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col overflow-hidden min-h-[400px] lg:min-h-0">
+                        {isReadOnly && (
+                            <div className="bg-indigo-600 text-white font-bold text-xs px-4 py-2.5 text-center flex items-center justify-center gap-2 shrink-0">
+                                <Info size={14} /> This Pre-Sale has been converted to a Sale and is read-only.
+                            </div>
+                        )}
                         {/* TABS BAR - Now inside left section (Desktop Only) */}
                         <div className="hidden lg:flex items-center gap-1 px-3 pt-2 pb-0 overflow-x-auto hide-scrollbar border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
                             {activeInvoices.map((inv, idx) => (
@@ -1967,11 +1974,11 @@ const CreatePreSale = ({ sale }) => {
                                 </button>
                                 <button
                                     onClick={() => initiateSave(false)}
-                                    disabled={saving}
+                                    disabled={saving || isReadOnly}
                                     className="w-3/4 py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/10 active:scale-95 disabled:opacity-50"
                                 >
                                     <CheckCircle2 size={16} />
-                                    {saving ? 'SAVING...' : `CONFIRM PRE-SALE (${formatCurrency(grandTotal, store)})`}
+                                    {saving ? 'SAVING...' : (isReadOnly ? 'PRE-SALE CONVERTED' : `CONFIRM PRE-SALE (${formatCurrency(grandTotal, store)})`)}
                                 </button>
                             </div>
                         </div>
@@ -2279,7 +2286,7 @@ const CreatePreSale = ({ sale }) => {
                                 {/* SAVE BUTTON - Just saves, stays on page */}
                                 <button
                                     onClick={() => initiateSave(false)}
-                                    disabled={saving}
+                                    disabled={saving || isReadOnly}
                                     className="py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
                                 >
                                     <Save size={16} />
@@ -2310,12 +2317,12 @@ const CreatePreSale = ({ sale }) => {
                                             showAlert({ title: 'Conversion Failed', message: error.response?.data?.message || 'Failed to convert pre-sale.', type: 'error' });
                                         }
                                     }}
-                                    disabled={saving || !isEditMode}
-                                    className={`py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 ${isEditMode
+                                    disabled={saving || !isEditMode || isReadOnly}
+                                    className={`py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95 ${isEditMode && !isReadOnly
                                         ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/20'
                                         : 'bg-slate-700 text-slate-500 cursor-not-allowed'
                                         }`}
-                                    title={!isEditMode ? 'Save the pre-sale first to convert' : 'Convert to actual sale'}
+                                    title={isReadOnly ? 'Pre-sale already converted' : (!isEditMode ? 'Save the pre-sale first to convert' : 'Convert to actual sale')}
                                 >
                                     <ArrowLeftRight size={16} />
                                     CONVERT
@@ -2323,7 +2330,14 @@ const CreatePreSale = ({ sale }) => {
 
                                 {/* PRINT BUTTON */}
                                 <button
-                                    onClick={() => initiateSave(true)}
+                                    onClick={() => {
+                                        if (isReadOnly) {
+                                            // Directly print the converted sale if possible, or print pre-sale
+                                            window.open(route("store.sales.print", [store.slug, currentInvoice.id]), '_blank');
+                                        } else {
+                                            initiateSave(true);
+                                        }
+                                    }}
                                     disabled={saving}
                                     className="py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 disabled:opacity-50"
                                 >

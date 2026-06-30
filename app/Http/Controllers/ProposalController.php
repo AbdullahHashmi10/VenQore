@@ -394,22 +394,40 @@ class ProposalController extends Controller
             $lock->block(5);
 
             $proposal->refresh();
-            if (in_array($proposal->status, ['accepted', 'completed'])) {
-                return redirect()->back()->with('error', 'Proposal has already been converted.');
+            $existingOrder = \App\Models\SalesOrder::withoutTenantScope()
+                ->where('tenant_id', $tenantId)
+                ->where('notes', 'Converted from Proposal #' . $proposal->reference_number)
+                ->first();
+
+            if ($existingOrder && in_array($existingOrder->status, ['completed', 'cancelled'])) {
+                return redirect()->back()->with('error', 'The converted Pre-Sale has already been finalized into a Sale and cannot be altered.');
             }
 
-            DB::transaction(function () use ($proposal, $tenantId) {
-                // Create Sales Order (Pre-Sale)
-                $salesOrder = \App\Models\SalesOrder::create([
-                    'order_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
-                    'customer_id' => $proposal->customer_id,
-                    'customer_name' => $proposal->customer_name,
-                    'status' => 'pending',
-                    'total_amount' => $proposal->total_amount,
-                    'user_id' => auth()->id(),
-                    'notes' => 'Converted from Proposal #' . $proposal->reference_number,
-                    'tenant_id' => $tenantId
-                ]);
+            DB::transaction(function () use ($proposal, $tenantId, $existingOrder) {
+                if ($existingOrder) {
+                    $salesOrder = $existingOrder;
+                    $salesOrder->update([
+                        'customer_id' => $proposal->customer_id,
+                        'customer_name' => $proposal->customer_name,
+                        'total_amount' => $proposal->total_amount,
+                        'status' => 'pending', // Reset status if cancelled/etc.
+                    ]);
+                    \App\Models\SalesOrderItem::withoutTenantScope()
+                        ->where('sales_order_id', $salesOrder->id)
+                        ->delete();
+                } else {
+                    // Create Sales Order (Pre-Sale)
+                    $salesOrder = \App\Models\SalesOrder::create([
+                        'order_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
+                        'customer_id' => $proposal->customer_id,
+                        'customer_name' => $proposal->customer_name,
+                        'status' => 'pending',
+                        'total_amount' => $proposal->total_amount,
+                        'user_id' => auth()->id(),
+                        'notes' => 'Converted from Proposal #' . $proposal->reference_number,
+                        'tenant_id' => $tenantId
+                    ]);
+                }
 
                 $totalAmount = 0;
                 foreach ($proposal->items as $item) {

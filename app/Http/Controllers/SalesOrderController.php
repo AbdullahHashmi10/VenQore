@@ -225,6 +225,10 @@ class SalesOrderController extends Controller
 
     public function update(Request $request, SalesOrder $order)
     {
+        if (in_array($order->status, ['completed', 'cancelled'])) {
+            return redirect()->back()->with('error', 'Completed/Converted Pre-Sale cannot be updated.');
+        }
+
         $validated = $request->validate([
             'customer_id' => 'nullable|exists:parties,id',
             'order_date' => 'required|date',
@@ -498,7 +502,9 @@ class SalesOrderController extends Controller
             });
 
             if (request()->header('X-Inertia')) {
-                return redirect()->back()->with('success', 'Sales Order converted to Invoice.');
+                return redirect()->back()
+                    ->with('success', 'Sales Order converted to Invoice.')
+                    ->with('print_sale_id', $sale->id);
             }
 
             return response()->json([
