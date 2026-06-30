@@ -319,6 +319,15 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
 
 const RegularSettings = ({ data, setData }) => (
     <>
+        <div className="p-4 bg-indigo-50 dark:bg-indigo-900/10 rounded-xl border border-indigo-100 dark:border-indigo-800/30 mb-6">
+            <Toggle
+                label="Set as Default Printer"
+                checked={data.default_print_type === 'regular' || !data.default_print_type}
+                onChange={v => setData('default_print_type', v ? 'regular' : 'thermal')}
+                color="indigo"
+            />
+        </div>
+
         <Section title="Page Layout" icon={Layout}>
             <ButtonGroup
                 label="Paper Size"
