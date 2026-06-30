@@ -141,15 +141,24 @@ function InnerGlobalLayout({ children, settings }) {
 
         const path = window.location.pathname;
 
-        // Explicitly blocked patterns — active creation/transaction/setup flows
-        const blockedPatterns = [
-            '/pos',
-            '/create',
-            '/edit',
-            '/new-store',
-            '/setup',
-        ];
-        if (blockedPatterns.some(p => path.includes(p))) return false;
+         // Explicitly blocked patterns — active creation/transaction/setup flows
+         const blockedPatterns = [
+             '/pos',
+             '/create',
+             '/edit',
+             '/new-store',
+             '/setup',
+             '/purchase-orders',
+             '/sales-orders',
+             '/proposals',
+             '/returns',
+             '/debit-notes',
+             '/presale',
+             '/pre-sales',
+             '/sales',
+             '/purchases',
+         ];
+         if (blockedPatterns.some(p => path.toLowerCase().includes(p.toLowerCase()))) return false;
 
         return true;
     })();

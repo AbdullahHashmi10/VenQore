@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { usePage } from '@inertiajs/react';
 import {
     Plus,
@@ -1066,7 +1066,7 @@ export const ExtraChargeInput = ({
                         className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                         placeholder="Extra"
                     />
-                    <span className="text-[10px] text-slate-700">✎</span>
+                    <span className="text-[10px] text-slate-700">{"\u270E"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>
@@ -1099,7 +1099,7 @@ export const ExtraChargeInput = ({
                             className="bg-transparent border-none p-0 text-xs text-slate-500 font-bold w-20 group-hover:text-slate-400 focus:ring-0"
                             placeholder={`Extra ${idx + 1}`}
                         />
-                        <span className="text-[10px] text-slate-700">✎</span>
+                        <span className="text-[10px] text-slate-700">{"\u270E"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-slate-600 text-[10px]">{getCurrencySymbol()}</span>

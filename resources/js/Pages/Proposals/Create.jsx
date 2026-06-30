@@ -2871,7 +2871,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                     placeholder="Extra"
                                                 />
                                                 <span className="text-[10px] text-slate-700">
-                                                    ✎
+                                                    {"\u270E"}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -2949,7 +2949,7 @@ const CreateProposal = ({ proposal, existingProposal }) => {
                                                             placeholder={`Extra ${idx + 1}`}
                                                         />
                                                         <span className="text-[10px] text-slate-700">
-                                                            ✎
+                                                            {"\u270E"}
                                                         </span>
                                                     </div>
                                                     <div className="flex items-center gap-2">

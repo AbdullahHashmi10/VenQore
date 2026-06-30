@@ -281,6 +281,7 @@ class SalesOrderController extends Controller
             $lock->block(5);
 
             $salesOrder->refresh();
+            $salesOrder->load('items');
             if (in_array($salesOrder->status, ['completed', 'cancelled'])) {
                 return response()->json([
                     'success' => false,
@@ -314,8 +315,11 @@ class SalesOrderController extends Controller
                     $totalTax += $taxAmount;
                 }
 
+                $deliveryCharge = (float)($order->delivery_charge ?? 0);
+                $extraCharge = (float)($order->extra_charge_value ?? 0);
+
                 $netSales = $subtotalGross - $totalDiscount;
-                $invoiceTotal = $netSales + $totalTax;
+                $invoiceTotal = $netSales + $totalTax + $deliveryCharge + $extraCharge;
 
                 $sale = Sale::create([
                     'reference_number' => $referenceNumber,
@@ -326,6 +330,9 @@ class SalesOrderController extends Controller
                     'subtotal' => $subtotalGross,
                     'tax' => $totalTax,
                     'discount' => $totalDiscount,
+                    'delivery_charge' => $deliveryCharge,
+                    'extra_charge_value' => $extraCharge,
+                    'extra_charge_label' => $order->extra_charge_label,
                     'total' => $invoiceTotal,
                     'subtotal_gross' => $subtotalGross,
                     'net_sales' => $netSales,
@@ -431,16 +438,32 @@ class SalesOrderController extends Controller
                 $journalItems = [];
                 
                 // DR: AR (1200)
-                $arAcc = $accounting->getAccountByCode('1200');
-                $journalItems[] = ['account_id' => $arAcc->id, 'debit' => $invoiceTotal, 'credit' => 0, 'description' => "AR from Conversion #{$sale->reference_number}"];
+                if ($invoiceTotal > 0) {
+                    $arAcc = $accounting->getAccountByCode('1200');
+                    $journalItems[] = ['account_id' => $arAcc->id, 'debit' => $invoiceTotal, 'credit' => 0, 'description' => "AR from Conversion #{$sale->reference_number}"];
+                }
                 
                 // CR: Revenue (4000)
-                $revAcc = $accounting->getAccountByCode('4000');
-                $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $netSales, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
+                if ($netSales > 0) {
+                    $revAcc = $accounting->getAccountByCode('4000');
+                    $journalItems[] = ['account_id' => $revAcc->id, 'debit' => 0, 'credit' => $netSales, 'description' => "Revenue from Conversion #{$sale->reference_number}"];
+                }
+
+                // CR: Delivery Charges (4100) if applicable
+                if ($deliveryCharge > 0) {
+                    $deliveryAcc = $accounting->getAccountByCode('4100', 'Other Income', 'income');
+                    $journalItems[] = ['account_id' => $deliveryAcc->id, 'debit' => 0, 'credit' => $deliveryCharge, 'description' => "Delivery charges from Conversion #{$sale->reference_number}"];
+                }
+
+                // CR: Extra Charges (4100) if applicable
+                if ($extraCharge > 0) {
+                    $extraAcc = $accounting->getAccountByCode('4100', 'Other Income', 'income');
+                    $journalItems[] = ['account_id' => $extraAcc->id, 'debit' => 0, 'credit' => $extraCharge, 'description' => "Extra charges from Conversion #{$sale->reference_number}"];
+                }
                 
                 // CR: Sales Tax Payable (2100) if applicable
                 if ($totalTax > 0) {
-                    $taxAcc = $accounting->getAccountByCode('2100'); // was '2200' (Loans Payable) — M1-06b fix
+                    $taxAcc = $accounting->getAccountByCode('2100');
                     $journalItems[] = ['account_id' => $taxAcc->id, 'debit' => 0, 'credit' => $totalTax, 'description' => "Sales Tax from Conversion #{$sale->reference_number}"];
                 }
 
