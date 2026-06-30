@@ -57,50 +57,52 @@ export default function WhatIsIncluded() {
             </div>
 
             {/* Nav */}
-            <nav className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5">
-                <Link href="/" className="flex items-center gap-3">
-                    <img src="/images/logo.png" alt="VenQore" className="h-9 object-contain" />
-                    <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
+            <nav className="relative z-10 flex items-center justify-between gap-3 px-4 sm:px-8 py-5 sm:py-6 border-b border-white/5">
+                <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <img src="/images/logo.png" alt="VenQore" className="h-8 sm:h-9 object-contain shrink-0" />
+                    <span className="font-black text-base sm:text-lg text-white truncate">VenQore<span className="text-indigo-400">.</span></span>
                 </Link>
-                <div className="flex items-center gap-4">
-                    <Link href={route('redeem')} className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm font-bold hover:bg-orange-500/20 transition-colors">
-                        <Tag size={14} /> Redeem AppSumo Code
+                <div className="flex items-center gap-4 shrink-0">
+                    <Link href={route('redeem')} className="flex items-center gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-xs sm:text-sm font-bold hover:bg-orange-500/20 transition-colors">
+                        <Tag size={14} className="shrink-0" /> <span className="hidden xs:inline">Redeem AppSumo Code</span><span className="xs:hidden">Redeem</span>
                     </Link>
                 </div>
             </nav>
 
-            <div className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+            <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
                 {/* Header */}
                 <div className="text-center mb-14">
                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-300 text-sm font-bold mb-6">
                         <Tag size={13} /> AppSumo Lifetime Deal
                     </div>
-                    <h1 className="text-5xl font-black tracking-tight text-white mb-4">
+                    <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight text-white mb-4">
                         What's Included
                     </h1>
-                    <p className="text-slate-400 text-xl max-w-2xl mx-auto">
+                    <p className="text-slate-400 text-base sm:text-xl max-w-2xl mx-auto">
                         One-time purchase. No hidden fees. Lifetime access to the software.
                         2 years of hosting on venqore.com FREE (then $9 to $30/mo after 2 years depending on plan tier).
                     </p>
                 </div>
 
-                {/* Plan header */}
+                {/* Plan comparison — scrolls horizontally on small screens so columns stay legible */}
                 <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden mb-6">
+                  <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+                   <div className="min-w-[640px]">
                     <div className="grid grid-cols-4 border-b border-white/10">
-                        <div className="p-6" />
-                        <div className="p-6 text-center border-l border-white/10">
+                        <div className="p-4 sm:p-6" />
+                        <div className="p-4 sm:p-6 text-center border-l border-white/10">
                             <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">1 Code</p>
                             <p className="font-bold text-white">Starter LTD</p>
                             <p className="text-2xl font-black text-white mt-1">$79</p>
                             <p className="text-xs text-slate-500 mt-1">one-time</p>
                         </div>
-                        <div className="p-6 text-center border-l border-indigo-500/30 bg-indigo-500/5">
+                        <div className="p-4 sm:p-6 text-center border-l border-indigo-500/30 bg-indigo-500/5">
                             <p className="text-xs text-indigo-400 uppercase tracking-widest mb-1">2 Codes Stacked</p>
                             <p className="font-bold text-indigo-300">Growth LTD</p>
                             <p className="text-2xl font-black text-white mt-1">$158</p>
                             <p className="text-xs text-slate-500 mt-1">one-time</p>
                         </div>
-                        <div className="p-6 text-center border-l border-amber-500/20 bg-amber-500/5">
+                        <div className="p-4 sm:p-6 text-center border-l border-amber-500/20 bg-amber-500/5">
                             <p className="text-xs text-amber-400 uppercase tracking-widest mb-1">3 Codes Stacked</p>
                             <p className="font-bold text-amber-300">Business LTD</p>
                             <p className="text-2xl font-black text-white mt-1">$237</p>
@@ -108,7 +110,7 @@ export default function WhatIsIncluded() {
                         </div>
                     </div>
 
-                    <div className="p-6">
+                    <div className="p-4 sm:p-6">
                         <table className="w-full">
                             <tbody>
                                 <Section title="Limits">
@@ -173,6 +175,8 @@ export default function WhatIsIncluded() {
                             </tbody>
                         </table>
                     </div>
+                   </div>
+                  </div>
                 </div>
 
                 {/* Reassurance cards */}

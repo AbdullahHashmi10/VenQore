@@ -32,24 +32,24 @@ export default function TermsOfService() {
             </div>
 
             {/* Nav */}
-            <nav className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5">
-                <Link href="/" className="flex items-center gap-3">
-                    <img src="/images/logo.png" alt="VenQore" className="h-9 object-contain" />
-                    <span className="font-black text-lg">VenQore<span className="text-indigo-400">.</span></span>
+            <nav className="relative z-10 flex items-center justify-between gap-3 px-4 sm:px-8 py-5 sm:py-6 border-b border-white/5">
+                <Link href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
+                    <img src="/images/logo.png" alt="VenQore" className="h-8 sm:h-9 object-contain shrink-0" />
+                    <span className="font-black text-base sm:text-lg truncate">VenQore<span className="text-indigo-400">.</span></span>
                 </Link>
-                <Link href="/" className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition-colors">
-                    <ArrowLeft size={14} /> Back to Home
+                <Link href="/" className="flex items-center gap-2 text-xs sm:text-sm text-slate-400 hover:text-white transition-colors shrink-0">
+                    <ArrowLeft size={14} className="shrink-0" /> <span className="hidden xs:inline">Back to Home</span><span className="xs:hidden">Home</span>
                 </Link>
             </nav>
 
-            <div className="relative z-10 max-w-3xl mx-auto px-6 py-14">
+            <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
                 {/* Header */}
-                <div className="flex items-center gap-4 mb-10">
-                    <div className="w-14 h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center">
+                <div className="flex items-center gap-3 sm:gap-4 mb-10">
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
                         <Scale size={26} className="text-indigo-400" />
                     </div>
-                    <div>
-                        <h1 className="text-4xl font-black tracking-tight">Terms of Service</h1>
+                    <div className="min-w-0">
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight">Terms of Service</h1>
                         <p className="text-slate-500 text-sm mt-1">Last updated: {lastUpdated}</p>
                     </div>
                 </div>

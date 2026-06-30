@@ -58,7 +58,7 @@ export default function DigitalProducts({ products, stats }) {
                             <Sparkles className="w-4 h-4 text-indigo-400" />
                             <span className="text-xs font-bold uppercase tracking-widest text-slate-300">VenQore Ecosystem</span>
                         </div>
-                        <h1 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase font-display text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-200 to-slate-500 drop-shadow-2xl">
+                        <h1 className="text-[2.75rem] xs:text-5xl md:text-8xl font-black tracking-tighter leading-[0.9] uppercase font-display text-transparent bg-clip-text bg-gradient-to-br from-white via-slate-200 to-slate-500 drop-shadow-2xl">
                             Digital <br/><span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-600">Registry</span>
                         </h1>
                         <p className="mt-8 text-slate-400 text-base md:text-lg leading-relaxed max-w-2xl mx-auto font-light">

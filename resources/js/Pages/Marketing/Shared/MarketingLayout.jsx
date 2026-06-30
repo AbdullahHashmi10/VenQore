@@ -263,10 +263,10 @@ export default function MarketingLayout({ children, title, description }) {
 
             {/* Navigation */}
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#04020c]/80 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'py-5'}`}>
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <img src={logo} alt={appName} className="h-9 w-auto group-hover:scale-105 transition-transform duration-300" />
-                        <span className="font-black text-white text-lg uppercase tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
+                    <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
+                        <img src={logo} alt={appName} className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
+                        <span className="font-black text-white text-base sm:text-lg uppercase tracking-tighter truncate" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
                     </Link>
                     <div className="hidden lg:flex items-center gap-1">
                         {navLinks.map(link => (
@@ -276,22 +276,28 @@ export default function MarketingLayout({ children, title, description }) {
                             </Link>
                         ))}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <Link href="/login" className="hidden sm:block px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/register" className="px-6 py-2.5 bg-white text-[#05030f] rounded-full text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
-                        <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 text-slate-300 hover:text-white transition-colors" aria-label="Menu">
+                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-[#05030f] rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">Start Free</Link>
+                        <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-slate-300 hover:text-white transition-colors" aria-label="Menu" aria-expanded={mobileMenu}>
                             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
                         </button>
                     </div>
                 </div>
-                <div className={`lg:hidden overflow-hidden transition-all duration-500 ${mobileMenu ? 'max-h-[420px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                    <div className="px-6 py-6 space-y-1 bg-[#04020c]/95 backdrop-blur-2xl border-t border-white/[0.06]">
+                <div className={`lg:hidden overflow-hidden transition-all duration-500 ${mobileMenu ? 'max-h-[560px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                    <div className="px-4 sm:px-6 py-6 space-y-1 bg-[#04020c]/95 backdrop-blur-2xl border-t border-white/[0.06]">
                         {navLinks.map(link => (
                             <Link key={link.href} href={link.href} onClick={() => setMobileMenu(false)}
                                 className={`block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest transition-colors ${currentPath === link.href ? 'text-white bg-white/5' : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'}`}>
                                 {link.label}
                             </Link>
                         ))}
+                        <div className="pt-3 mt-3 border-t border-white/[0.06] sm:hidden">
+                            <Link href="/login" onClick={() => setMobileMenu(false)}
+                                className="block px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-white hover:bg-white/[0.04] transition-colors">
+                                Sign In
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </nav>

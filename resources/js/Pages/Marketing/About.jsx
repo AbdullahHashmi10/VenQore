@@ -118,7 +118,7 @@ export default function About() {
                 <div className="max-w-5xl mx-auto text-center">
                     <RevealOnScroll><SectionLabel icon={BookOpen}>Our story</SectionLabel></RevealOnScroll>
                     <RevealOnScroll delay={0.08}>
-                        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.9] mb-8 font-display">
+                        <h1 className="text-[2.5rem] xs:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] sm:leading-[0.9] mb-8 font-display">
                             <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Most software guesses.</span><br />
                             <span className="vq-headline-grad vq-text-glow">We refused to.</span>
                         </h1>

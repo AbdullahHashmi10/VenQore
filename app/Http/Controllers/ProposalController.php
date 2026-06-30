@@ -401,11 +401,11 @@ class ProposalController extends Controller
             DB::transaction(function () use ($proposal, $tenantId) {
                 // Create Sales Order (Pre-Sale)
                 $salesOrder = \App\Models\SalesOrder::create([
-                    'reference_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
+                    'order_number' => \App\Services\SequenceService::generateTransactionNumber('SO'),
                     'customer_id' => $proposal->customer_id,
                     'customer_name' => $proposal->customer_name,
                     'status' => 'pending',
-                    'total' => $proposal->total_amount,
+                    'total_amount' => $proposal->total_amount,
                     'user_id' => auth()->id(),
                     'notes' => 'Converted from Proposal #' . $proposal->reference_number,
                     'tenant_id' => $tenantId

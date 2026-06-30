@@ -1085,10 +1085,10 @@ export default function LandingPage() {
 
             {/* ── NAV ─────────────────────────────────────────── */}
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#04020c]/80 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'py-5'}`}>
-                <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-                    <Link href="/" className="flex items-center gap-3 group">
-                        <img src={logo} alt={appName} className="h-9 w-auto group-hover:scale-105 transition-transform duration-300" />
-                        <span className="font-black text-white text-lg uppercase tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
+                    <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
+                        <img src={logo} alt={appName} className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
+                        <span className="font-black text-white text-base sm:text-lg uppercase tracking-tighter truncate" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
                     </Link>
                     <div className="hidden lg:flex items-center gap-1">
                         {navLinks.map(l => (
@@ -1097,12 +1097,12 @@ export default function LandingPage() {
                             </Link>
                         ))}
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <Link href="/login" className="hidden sm:block px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/pricing" className="px-6 py-2.5 bg-white text-[#05030f] rounded-full text-[11px] font-black uppercase tracking-[0.15em] transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
+                        <Link href="/pricing" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-[#05030f] rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
                             Start Free
                         </Link>
-                        <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 text-slate-300 hover:text-white" aria-label="Menu">
+                        <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-slate-300 hover:text-white" aria-label="Menu" aria-expanded={mobileMenu}>
                             {mobileMenu ? <X size={22} /> : <Menu size={22} />}
                         </button>
                     </div>
@@ -1132,10 +1132,10 @@ export default function LandingPage() {
                             </div>
 
                             <h1 className="mb-8 leading-[0.86]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
-                                <span className="block text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter text-white hero-rise">
+                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter text-white hero-rise">
                                     The Books Are
                                 </span>
-                                <span className="block text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
+                                <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
                                     <span className="vq-headline-grad vq-text-glow">Always Right.</span>
                                 </span>
                             </h1>

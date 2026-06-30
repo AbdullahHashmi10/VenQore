@@ -423,7 +423,7 @@ export default function Pricing({ plans = [] }) {
                         <SectionLabel icon={Sparkles}>14-Day Free Trial — No Card Required</SectionLabel>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.08}>
-                        <h1 className="text-5xl md:text-[68px] font-black tracking-tighter leading-[0.88] mb-5 font-display">
+                        <h1 className="text-[2.75rem] xs:text-5xl md:text-[68px] font-black tracking-tighter leading-[0.9] sm:leading-[0.88] mb-5 font-display">
                             <span className="bg-gradient-to-br from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
                                 Pick your plan.
                             </span>
