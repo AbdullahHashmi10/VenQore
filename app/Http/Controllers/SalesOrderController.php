@@ -497,6 +497,10 @@ class SalesOrderController extends Controller
                 return $sale;
             });
 
+            if (request()->header('X-Inertia')) {
+                return redirect()->back()->with('success', 'Sales Order converted to Invoice.');
+            }
+
             return response()->json([
                 'success' => true,
                 'message' => 'Sales Order converted to Invoice.',
@@ -505,6 +509,9 @@ class SalesOrderController extends Controller
 
         } catch (\Exception $e) {
             Log::error("Conversion Error: " . $e->getMessage());
+            if (request()->header('X-Inertia')) {
+                return redirect()->back()->with('error', $e->getMessage());
+            }
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         } finally {
             $lock->release();
