@@ -753,13 +753,9 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                         <div className="flex flex-wrap gap-x-3 text-[0.85em] mt-0.5">
 
                             {/* Qty x Rate — show free qty as "1+1" if applicable */}
-                            {!data.thermal_show_headers ? (
+                            {!data.thermal_show_headers && (
                                 <span>
                                     {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} {data.thermal_show_units ? 'pc' : ''} x {formatAmount(item.rate)}
-                                </span>
-                            ) : (
-                                <span>
-                                    {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} @{formatAmount(item.rate)}
                                 </span>
                             )}
 
@@ -1007,10 +1003,8 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
 
                         {/* Details */}
                         <div className="flex flex-wrap gap-x-2 text-[0.9em]">
-                            {!data.thermal_show_headers ? (
+                            {!data.thermal_show_headers && (
                                 <span>{data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} {data.thermal_show_units ? 'pc' : ''} x {formatAmount(item.rate)}</span>
-                            ) : (
-                                <span>{data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty} @{formatAmount(item.rate)}</span>
                             )}
 
                             {data.print_show_discount && (item.discount_percent > 0 || item.discount_amount > 0) && (
