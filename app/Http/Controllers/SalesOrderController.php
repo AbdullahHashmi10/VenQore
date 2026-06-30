@@ -300,7 +300,11 @@ class SalesOrderController extends Controller
                 $totalDiscount = 0;
                 $totalTax = 0;
 
-                foreach ($order->items as $item) {
+                $items = \App\Models\SalesOrderItem::withoutTenantScope()
+                    ->where('sales_order_id', $order->id)
+                    ->get();
+
+                foreach ($items as $item) {
                     $qty = (float)$item->quantity_requested;
                     $unitPrice = (float)$item->unit_price;
                     $itemDiscount = (float)($item->discount ?? 0);
@@ -346,7 +350,7 @@ class SalesOrderController extends Controller
                 $fifo = app(\App\Services\V3\FifoService::class);
                 $totalCogs = 0.0;
 
-                foreach ($order->items as $item) {
+                foreach ($items as $item) {
                     $totalQty = (float)$item->quantity_requested;
                     $product = Product::find($item->product_id);
 
@@ -486,7 +490,9 @@ class SalesOrderController extends Controller
 
                 // 3. Update Order Status and release inventory reservation
                 $order->update(['status' => 'completed']);
-                $order->items()->update(['quantity_reserved' => 0]);
+                \App\Models\SalesOrderItem::withoutTenantScope()
+                    ->where('sales_order_id', $order->id)
+                    ->update(['quantity_reserved' => 0]);
                 
                 return $sale;
             });
