@@ -1423,6 +1423,32 @@ class SaleController extends Controller
             'party_id'    => $sale->party_id
         ];
 
+        // CR: Delivery Charges
+        $deliveryCharge = (float)($sale->delivery_charge ?? 0);
+        if ($deliveryCharge > 0) {
+            $deliveryAcc = $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
+            $journalItems[] = [
+                'account_id'  => $deliveryAcc->id,
+                'debit'       => 0,
+                'credit'      => $deliveryCharge,
+                'description' => "Delivery charges from Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id
+            ];
+        }
+
+        // CR: Extra Charges
+        $extraCharge = (float)($sale->extra_charge_value ?? 0);
+        if ($extraCharge > 0) {
+            $extraAcc = $this->accounting->getAccountByCode('4100', 'Other Income', 'income');
+            $journalItems[] = [
+                'account_id'  => $extraAcc->id,
+                'debit'       => 0,
+                'credit'      => $extraCharge,
+                'description' => "Extra charges from Sale #{$sale->reference_number}",
+                'party_id'    => $sale->party_id
+            ];
+        }
+
         // CR: Tax
         if ($totalTax > 0) {
             $taxAcc = $this->accounting->getAccountByCode('2100', 'Sales Tax Payable', 'liability');
