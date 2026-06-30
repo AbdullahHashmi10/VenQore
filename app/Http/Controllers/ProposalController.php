@@ -450,7 +450,8 @@ class ProposalController extends Controller
                 $proposal->update(['status' => 'accepted']);
             });
 
-            return redirect()->route('pre-sales.index')->with('success', 'Proposal converted to Pre-Sale. Inventory has been reserved.');
+            $storeSlug = app('current.tenant')->slug;
+            return redirect()->route('store.pre-sales.index', ['store_slug' => $storeSlug])->with('success', 'Proposal converted to Pre-Sale. Inventory has been reserved.');
 
         } finally {
             $lock->release();
