@@ -202,7 +202,7 @@ export default function WhatIsIncluded() {
                     >
                         <Tag size={16} /> Redeem Your Code <ArrowRight size={16} />
                     </Link>
-                    <p className="text-slate-600 text-xs mt-4">
+                    <p className="text-slate-600 text-xs mt-4 px-4">
                         Already bought on AppSumo? Click above to activate your license.
                     </p>
                 </div>

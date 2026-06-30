@@ -155,6 +155,7 @@ class DocumentConversionTest extends VenQoreTestCase
             'product_id' => $product->id,
             'quantity' => 1,
             'unit_price' => 200,
+            'total' => 200,
             'tenant_id' => $tenant->id,
         ]);
 

@@ -34,7 +34,8 @@ import {
     Wallet,
     Edit,
     ArrowLeft,
-    ChevronDown
+    ChevronDown,
+    FileText
 } from 'lucide-react';
 import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
