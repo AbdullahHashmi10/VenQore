@@ -806,10 +806,10 @@ export default function PreOrders({ orders, filters: rawFilters, stats }) {
                                                         <td className="p-3">
                                                             <p className="font-semibold text-slate-800 dark:text-white">{item.product?.name || item.name || 'Unknown Item'}</p>
                                                         </td>
-                                                        <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity}</td>
+                                                        <td className="p-3 text-center font-bold text-slate-700 dark:text-slate-300">{item.quantity || item.quantity_requested}</td>
                                                         <td className="p-3 text-right text-slate-600 dark:text-slate-400">{formatCurrency(item.price || item.unit_price || 0, store)}</td>
                                                         <td className="p-3 text-right font-bold text-slate-800 dark:text-white">
-                                                            {formatCurrency(item.quantity * (item.price || item.unit_price || 0), store)}
+                                                            {formatCurrency((item.quantity || item.quantity_requested) * (item.price || item.unit_price || 0), store)}
                                                         </td>
                                                     </tr>
                                                 ))

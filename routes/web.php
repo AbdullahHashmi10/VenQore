@@ -1102,7 +1102,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/sales/pre-sales/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware('permission:data.export')->name('pre-sales.export');
     Route::get('/sales/orders/{order}', [\App\Http\Controllers\SalesOrderController::class, 'show'])->name('sales.orders.show');
     Route::put('/sales/orders/{order}', [\App\Http\Controllers\SalesOrderController::class, 'update'])->name('sales.orders.update');
-    Route::post('/sales/pre-sales/{order}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('pre-sales.convert');
+    Route::post('/sales/pre-sales/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('pre-sales.convert');
     Route::delete('/sales/pre-sales/{order}', [\App\Http\Controllers\SalesOrderController::class, 'destroy'])->name('pre-sales.destroy');
 
 

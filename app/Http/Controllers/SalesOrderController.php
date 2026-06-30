@@ -278,22 +278,22 @@ class SalesOrderController extends Controller
 
     public function convertToSale(SalesOrder $salesOrder)
     {
-        $tenantId = $salesOrder->tenant_id ?? app('current.tenant')->id;
-        $lock = \Illuminate\Support\Facades\Cache::lock("sales_order_convert_lock_{$salesOrder->id}", 10);
+        $order = $salesOrder;
+        $tenantId = $order->tenant_id ?? app('current.tenant')->id;
+        $lock = \Illuminate\Support\Facades\Cache::lock("sales_order_convert_lock_{$order->id}", 10);
 
         try {
             $lock->block(5);
 
-            $salesOrder->refresh();
-            $salesOrder->load('items');
-            if (in_array($salesOrder->status, ['completed', 'cancelled'])) {
+            $order->refresh();
+            $order->load('items');
+            if (in_array($order->status, ['completed', 'cancelled'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Sales Order has already been converted or cancelled.'
                 ], 422);
             }
 
-            $order = $salesOrder;
             $sale = DB::transaction(function () use ($order, $tenantId) {
                 $referenceNumber = \App\Services\SequenceService::generateTransactionNumber('SAL');
 
