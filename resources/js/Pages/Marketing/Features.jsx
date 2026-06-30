@@ -863,7 +863,7 @@ const FEATURE_CATS = [
         ],
     },
     {
-        key: 'reports', label: 'Reports (40+)', icon: BarChart3, color: 'pink',
+        key: 'reports', label: 'Reports', icon: BarChart3, color: 'pink',
         items: [
             { n: 'Profit & Loss Statement', d: 'Net revenue, COGS, gross margin and operating expenses with category drill-down.' },
             { n: 'Balance Sheet', d: 'Real-time snapshot of total assets, liabilities and equity.' },
@@ -896,6 +896,16 @@ const FEATURE_CATS = [
             { n: 'Category Profit & Loss', d: 'Tracks profit and loss performance for individual product departments.' },
             { n: 'Tax Rate Breakdown', d: 'Traces output taxes collected, organized by tax-rate bracket.' },
             { n: 'Sales Order Items', d: 'Line-item breakdown of every pending and fulfilled sales order.' },
+            { n: 'Daily Sales Trend', d: 'Daily records of tax collected, discounts applied and transaction volume.' },
+            { n: 'Stock Summary by Category', d: 'Inventory levels and capital values grouped by product category.' },
+            { n: 'Stock Aging Analysis', d: 'Identifies slow-moving inventory by how long stock has sat in each godown.' },
+            { n: 'Sales & Purchases by Party', d: 'Evaluates trade volume and balances with each individual business partner.' },
+            { n: 'Item Report by Party', d: 'Lists every product ever purchased by a selected customer.' },
+            { n: 'Party Report by Item', d: 'Identifies all customers who have purchased a specific product.' },
+            { n: 'Item-Wise Discount Report', d: 'Breaks down the discount given on each individual product line.' },
+            { n: 'Owner Daily Pulse', d: 'A one-screen morning briefing of sales, cash and alerts for the owner.' },
+            { n: 'Sale Orders Report', d: 'Tracks open and fulfilled sales orders with delivery status.' },
+            { n: 'Purchase Returns Report', d: 'Summarizes goods returned to suppliers and the credits claimed.' },
         ],
     },
     {
@@ -1031,13 +1041,14 @@ const JumpPill = ({ href, icon: Ic, children }) => (
 );
 
 /* ── Demo section wrapper ────────────────────────────────────────────────── */
-const DemoSection = ({ id, eyebrow, icon: Ic, title, accent, lead, hero, children }) => (
+const DemoSection = ({ id, eyebrow, icon: Ic, title, accent, lead, hero, soon, children }) => (
     <section id={id} className="vqf-anchor py-16 md:py-24 px-6">
         <div className="max-w-6xl mx-auto">
             <RevealOnScroll>
                 <div className="text-center mb-10 max-w-3xl mx-auto">
                     <SectionLabel icon={Ic}>{eyebrow}</SectionLabel>
                     {hero && <div className="inline-block ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-400/20 text-amber-300 text-[10px] font-black tracking-widest uppercase align-middle">★ Hero feature</div>}
+                    {soon && <div className="inline-flex items-center gap-1.5 ml-2 mb-8 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-[10px] font-black tracking-widest uppercase align-middle"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 vqf-blink" /> Coming very soon</div>}
                     <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-[0.95] font-display">{title}</h2>
                     <p className="text-slate-400 text-base md:text-lg mt-5">{lead}</p>
                 </div>
@@ -1113,14 +1124,14 @@ export default function Features() {
             </DemoSection>
 
             {/* DEMO 3 · SMART CAPTURE */}
-            <DemoSection id="capture" eyebrow="Smart Capture · AI" icon={ScanBarcode} accent="violet" hero
+            <DemoSection id="capture" eyebrow="Smart Capture · AI" icon={ScanBarcode} accent="violet" soon
                 title={<>Snap it. Say it. <span className="text-violet-400">Booked.</span></>}
                 lead="Photograph a supplier bill or speak a sale out loud. Your own AI key reads it, figures out the transaction type, and matches every line to your catalog.">
                 <SmartCaptureDemo />
             </DemoSection>
 
             {/* DEMO 4 · VENSYNQ */}
-            <DemoSection id="vensynq" eyebrow="VenSynQ · Multi-Channel" icon={Globe} accent="blue" hero
+            <DemoSection id="vensynq" eyebrow="VenSynQ · Multi-Channel" icon={Globe} accent="blue" soon
                 title={<>Every marketplace, <span className="text-blue-400">one truth.</span></>}
                 lead="Amazon, eBay, TikTok, Etsy and WooCommerce in a single command center — real net margin after fees, live inventory status, and which channel actually makes you money.">
                 <VenSynQDemo />

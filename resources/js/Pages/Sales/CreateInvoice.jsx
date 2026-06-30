@@ -953,12 +953,12 @@ const CreateInvoice = ({ sale }) => {
                             headers: { Accept: 'application/json' }
                         }).then(res => {
                             if (res.data?.sale) {
-                                PrintService.quickPrint(res.data.sale);
+                                PrintService.quickPrint(res.data.sale, null, settings);
                             } else {
-                                PrintService.quickPrint(currentInvoice);
+                                PrintService.quickPrint(currentInvoice, null, settings);
                             }
                         }).catch(() => {
-                            PrintService.quickPrint(currentInvoice);
+                            PrintService.quickPrint(currentInvoice, null, settings);
                         });
                     }
                     if (!shouldPrint) router.visit(route('store.sales.index', { store_slug: store?.slug }));
@@ -971,12 +971,12 @@ const CreateInvoice = ({ sale }) => {
                             headers: { Accept: 'application/json' }
                         }).then(res => {
                             if (res.data?.sale) {
-                                PrintService.quickPrint(res.data.sale);
+                                PrintService.quickPrint(res.data.sale, null, settings);
                             } else {
-                                PrintService.quickPrint(currentInvoice);
+                                PrintService.quickPrint(currentInvoice, null, settings);
                             }
                         }).catch(() => {
-                            PrintService.quickPrint(currentInvoice);
+                            PrintService.quickPrint(currentInvoice, null, settings);
                         });
                     }
                     patchInvoice({ status: 'completed' });
@@ -2449,13 +2449,13 @@ const CreateInvoice = ({ sale }) => {
                                                     });
                                                     if (res.data?.sale) {
                                                         console.log("PRINT SALE DATA:", res.data.sale);
-                                                        PrintService.quickPrint(res.data.sale);
+                                                        PrintService.quickPrint(res.data.sale, null, settings);
                                                     } else {
-                                                        PrintService.quickPrint(currentInvoice);
+                                                        PrintService.quickPrint(currentInvoice, null, settings);
                                                     }
                                                 } catch (err) {
                                                     console.error("Failed to print sale:", err);
-                                                    PrintService.quickPrint(currentInvoice);
+                                                    PrintService.quickPrint(currentInvoice, null, settings);
                                                 }
                                             }}
                                             className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-500/20 active:scale-95"
@@ -2574,7 +2574,7 @@ const CreateInvoice = ({ sale }) => {
                                         headers: { Accept: 'application/json' }
                                     });
                                     if (response.data?.sale) {
-                                        PrintService.quickPrint(response.data.sale);
+                                        PrintService.quickPrint(response.data.sale, null, settings);
                                     }
                                 } catch (err) {
                                     console.error("Failed to print sale:", err);
