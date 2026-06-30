@@ -69,6 +69,17 @@ class GoogleAuthController extends Controller
             $membershipsCount = $memberships->count();
             
             if ($membershipsCount === 0) {
+                // Honor a plan the visitor picked on the pricing page before
+                // choosing "Continue with Google" on the register page.
+                $plan     = strtolower((string) session('signup_plan', ''));
+                $interval = strtolower((string) session('signup_interval', 'monthly'));
+                session()->forget(['signup_plan', 'signup_interval']);
+
+                if (in_array($plan, ['starter', 'growth', 'business'], true)) {
+                    $interval = in_array($interval, ['monthly', 'annual'], true) ? $interval : 'monthly';
+                    return redirect()->route('store.create', ['plan' => $plan, 'interval' => $interval]);
+                }
+
                 return redirect()->route('store.create-or-join');
             }
             

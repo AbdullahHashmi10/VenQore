@@ -1,56 +1,22 @@
-import React, { useState } from 'react';
-import { usePage, Head, Link, useForm } from '@inertiajs/react';
+import React from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
 import {
-    Store, Globe, Clock, ArrowRight, ArrowLeft, Loader2,
-    Check, ChevronDown, Sparkles, MapPin
+    Store, ArrowRight, ArrowLeft, Loader2, Check, Sparkles,
+    Clock, CreditCard, Pencil
 } from 'lucide-react';
 
 /**
- * Store/Create.jsx — Definitive Plan
+ * Store/Create.jsx — Plan-gated store creation, Step 2
  *
- * New store creation form.
- * URL: /new-store
+ * URL: /new-store?plan=<slug>&interval=<monthly|annual>
  *
- * Collected: name, currency_code, timezone, industry (optional)
- * Creates store → redirects to /s/{id}/setup (onboarding wizard)
+ * Reached only after a plan has been chosen on Step 1 (Store/SelectPlan), or
+ * directly when the user holds a pre-paid/AppSumo license (plan predetermined).
+ *
+ * Collects the store name and starts the trial on the selected plan. The plan
+ * + interval ride along with the submission so the server can record what to
+ * charge once the trial ends.
  */
-
-const CURRENCIES = [
-    { code: 'PKR', symbol: 'Rs.',  label: 'Pakistani Rupee'   },
-    { code: 'USD', symbol: '$',    label: 'US Dollar'          },
-    { code: 'EUR', symbol: '€',    label: 'Euro'               },
-    { code: 'GBP', symbol: '£',    label: 'British Pound'      },
-    { code: 'AED', symbol: 'AED',  label: 'UAE Dirham'         },
-    { code: 'SAR', symbol: 'SAR',  label: 'Saudi Riyal'        },
-    { code: 'INR', symbol: '₹',    label: 'Indian Rupee'       },
-    { code: 'CAD', symbol: 'CA$',  label: 'Canadian Dollar'    },
-    { code: 'AUD', symbol: 'A$',   label: 'Australian Dollar'  },
-    { code: 'SGD', symbol: 'S$',   label: 'Singapore Dollar'   },
-    { code: 'CNY', symbol: '¥',    label: 'Chinese Yuan'       },
-    { code: 'JPY', symbol: '¥',    label: 'Japanese Yen'       },
-];
-
-const INDUSTRIES = [
-    { key: 'retail',       label: 'Retail / General Store',  emoji: '🏪' },
-    { key: 'grocery',      label: 'Grocery / Supermarket',   emoji: '🛒' },
-    { key: 'fashion',      label: 'Fashion / Clothing',      emoji: '👗' },
-    { key: 'electronics',  label: 'Electronics',             emoji: '📱' },
-    { key: 'pharmacy',     label: 'Pharmacy / Medical',      emoji: '💊' },
-    { key: 'restaurant',   label: 'Restaurant / Food',       emoji: '🍽️' },
-    { key: 'manufacturing',label: 'Manufacturing / Factory',  emoji: '🏭' },
-    { key: 'services',     label: 'Services / Consulting',   emoji: '💼' },
-    { key: 'other',        label: 'Other',                   emoji: '✨' },
-];
-
-// Common timezones — user can type to filter in a real implementation
-const TIMEZONES = [
-    'Asia/Karachi', 'Asia/Kolkata', 'Asia/Dubai', 'Asia/Riyadh',
-    'Asia/Singapore', 'Asia/Tokyo', 'Asia/Shanghai',
-    'Europe/London', 'Europe/Paris', 'Europe/Berlin',
-    'America/New_York', 'America/Chicago', 'America/Los_Angeles',
-    'America/Toronto', 'Australia/Sydney', 'Pacific/Auckland',
-    'UTC',
-];
 
 function FieldLabel({ children, required }) {
     return (
@@ -69,7 +35,7 @@ function InputBase({ className = '', hasError, ...props }) {
     return (
         <input
             {...props}
-            className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-500 
+            className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white placeholder-slate-500
                 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors
                 ${hasError ? 'border-red-500 bg-red-500/5' : 'border-white/10 hover:border-white/20'}
                 ${className}`}
@@ -77,30 +43,11 @@ function InputBase({ className = '', hasError, ...props }) {
     );
 }
 
-function SelectBase({ className = '', hasError, children, ...props }) {
-    return (
-        <div className="relative">
-            <select
-                {...props}
-                className={`w-full px-4 py-3 rounded-xl bg-white/5 border text-white
-                    focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-colors
-                    appearance-none cursor-pointer
-                    ${hasError ? 'border-red-500' : 'border-white/10 hover:border-white/20'}
-                    ${className}`}
-            >
-                {children}
-            </select>
-            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-        </div>
-    );
-}
-
-export default function CreateStore({ available_license }) {
+export default function CreateStore({ available_license = null, selected_plan = null, trial_days = 14 }) {
     const { data, setData, post, processing, errors } = useForm({
-        name:          '',
-        currency_code: 'PKR',
-        timezone:      Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Karachi',
-        industry:      '',
+        name:     '',
+        plan:     selected_plan?.slug || '',
+        interval: selected_plan?.interval || 'monthly',
     });
 
     const handleSubmit = (e) => {
@@ -108,7 +55,16 @@ export default function CreateStore({ available_license }) {
         post(route('store.store'));
     };
 
-    const selectedCurrency = CURRENCIES.find(c => c.code === data.currency_code) ?? CURRENCIES[0];
+    const fmtCharge = () => {
+        if (!selected_plan) return null;
+        const sym = selected_plan.symbol || '$';
+        const amt = Number(selected_plan.amount || 0);
+        const rounded = Number.isInteger(amt) ? amt : Math.round(amt);
+        const money = sym === 'Rs' ? `Rs ${rounded.toLocaleString()}` : `${sym}${rounded.toLocaleString()}`;
+        return `${money}/${selected_plan.cadence === 'year' ? 'yr' : 'mo'}`;
+    };
+
+    const backHref = available_license ? route('store.create-or-join') : route('store.create');
 
     return (
         <div className="min-h-screen bg-[#02000f] text-white font-sans">
@@ -127,10 +83,10 @@ export default function CreateStore({ available_license }) {
                     <span className="font-black text-lg text-white">VenQore<span className="text-indigo-400">.</span></span>
                 </div>
                 <Link
-                    href={route('store.create-or-join')}
+                    href={backHref}
                     className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-white transition-colors"
                 >
-                    <ArrowLeft size={14} /> Back
+                    <ArrowLeft size={14} /> {available_license ? 'Back' : 'Change plan'}
                 </Link>
             </header>
 
@@ -138,21 +94,50 @@ export default function CreateStore({ available_license }) {
                 <div className="w-full max-w-xl">
 
                     {/* Header */}
-                    <div className="text-center mb-10">
+                    <div className="text-center mb-8">
                         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-indigo-500/15 border border-indigo-500/30 mb-5">
                             <Store size={24} className="text-indigo-400" />
                         </div>
                         <h1 className="text-3xl font-black tracking-tight text-white mb-2">
-                            Create your store
+                            Name your store
                         </h1>
                         <p className="text-slate-400 text-sm">
                             {available_license
-                                ? `You have a ${available_license.plan} license ready to activate.`
-                                : 'Free 14-day trial · No credit card needed'}
+                                ? `Your ${available_license.plan} license will be activated for this store.`
+                                : `Last step — your ${trial_days}-day free trial starts as soon as your store is created.`}
                         </p>
                     </div>
 
-                    {/* License badge */}
+                    {/* Plan summary (self-serve trial) */}
+                    {selected_plan && (
+                        <div className="rounded-2xl border border-indigo-500/20 bg-indigo-500/[0.06] p-4 mb-6">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center">
+                                        <Sparkles size={16} className="text-indigo-300" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-white">
+                                            {selected_plan.name} plan
+                                            <span className="text-slate-400 font-medium"> · {selected_plan.interval === 'annual' ? 'Annual' : 'Monthly'}</span>
+                                        </p>
+                                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                            <Clock size={11} className="text-emerald-400" />
+                                            Free for {trial_days} days, then {fmtCharge()}
+                                        </p>
+                                    </div>
+                                </div>
+                                <Link
+                                    href={route('store.create')}
+                                    className="flex items-center gap-1 text-xs font-semibold text-indigo-300 hover:text-indigo-200 transition-colors"
+                                >
+                                    <Pencil size={11} /> Change
+                                </Link>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* License badge (pre-paid) */}
                     {available_license && (
                         <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/8 border border-emerald-500/20 mb-6">
                             <Sparkles size={16} className="text-emerald-400 shrink-0" />
@@ -179,6 +164,7 @@ export default function CreateStore({ available_license }) {
                                 maxLength={100}
                             />
                             <FieldError message={errors.name} />
+                            <FieldError message={errors.plan} />
                         </div>
 
                         {/* Quick preview */}
@@ -196,22 +182,24 @@ export default function CreateStore({ available_license }) {
                             id="create-store-submit"
                             type="submit"
                             disabled={processing || !data.name}
-                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl 
-                                bg-gradient-to-r from-indigo-500 to-purple-600 
-                                hover:from-indigo-400 hover:to-purple-500 
-                                text-white font-bold text-base transition-all 
+                            className="w-full flex items-center justify-center gap-3 py-4 rounded-xl
+                                bg-gradient-to-r from-indigo-500 to-purple-600
+                                hover:from-indigo-400 hover:to-purple-500
+                                text-white font-bold text-base transition-all
                                 hover:scale-[1.02] hover:shadow-xl hover:shadow-indigo-500/25
                                 disabled:opacity-50 disabled:scale-100 disabled:cursor-not-allowed mt-2"
                         >
                             {processing ? (
                                 <><Loader2 size={18} className="animate-spin" /> Creating store…</>
                             ) : (
-                                <><Store size={18} /> Create Store <ArrowRight size={16} /></>
+                                <><Store size={18} /> {available_license ? 'Create Store' : 'Start my free trial'} <ArrowRight size={16} /></>
                             )}
                         </button>
 
-                        <p className="text-center text-xs text-slate-500">
-                            You can rename your store and change settings at any time.
+                        <p className="text-center text-xs text-slate-500 flex items-center justify-center gap-1.5">
+                            {available_license
+                                ? 'You can rename your store and change settings at any time.'
+                                : <><CreditCard size={11} /> No card charged today. You can cancel anytime before your trial ends.</>}
                         </p>
                     </form>
 

@@ -15,12 +15,33 @@ use Inertia\Response;
 
 class RegisteredUserController extends Controller
 {
+    /** Subscription plans a visitor can start a trial of. */
+    private const TRIAL_PLAN_SLUGS = ['starter', 'growth', 'business'];
+
     /**
      * Display the registration view.
+     *
+     * If the visitor arrived from the pricing page with a chosen plan
+     * (?plan=growth&interval=monthly), remember it for after sign-up so the
+     * trial is created on that plan — surviving the round-trip even through
+     * Google OAuth, which posts to a different controller.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
-        return Inertia::render('Auth/Register');
+        $plan     = strtolower((string) $request->query('plan', ''));
+        $interval = strtolower((string) $request->query('interval', 'monthly'));
+
+        $plan     = in_array($plan, self::TRIAL_PLAN_SLUGS, true) ? $plan : null;
+        $interval = in_array($interval, ['monthly', 'annual'], true) ? $interval : 'monthly';
+
+        if ($plan) {
+            session(['signup_plan' => $plan, 'signup_interval' => $interval]);
+        }
+
+        return Inertia::render('Auth/Register', [
+            'intended_plan'     => $plan,
+            'intended_interval' => $interval,
+        ]);
     }
 
     /**
@@ -50,6 +71,19 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         Auth::login($user);
+
+        // Resolve the plan the visitor selected on the pricing page — from the
+        // submitted hidden fields, falling back to the session stash.
+        $plan     = strtolower((string) ($request->input('plan')     ?: session('signup_plan', '')));
+        $interval = strtolower((string) ($request->input('interval') ?: session('signup_interval', 'monthly')));
+        session()->forget(['signup_plan', 'signup_interval']);
+
+        // If they picked a plan, take them straight into store creation on it
+        // (name the store → trial starts). Otherwise, the Hub as before.
+        if (in_array($plan, self::TRIAL_PLAN_SLUGS, true)) {
+            $interval = in_array($interval, ['monthly', 'annual'], true) ? $interval : 'monthly';
+            return redirect()->route('store.create', ['plan' => $plan, 'interval' => $interval]);
+        }
 
         // After registering, you go to the Hub to create or join your first store
         return redirect()->intended(route('hub', absolute: false));

@@ -119,6 +119,9 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         const itemsSubtotal = items.reduce((sum, i) => sum + i.amount, 0);
         const taxAmount = parseFloat(sale.tax || sale.tax_amount || 0);
         const discountAmount = parseFloat(sale.discount || sale.global_discount || 0);
+        const deliveryCharge = parseFloat(sale.delivery_charge || sale.shipping_charges || 0);
+        const extraCharge = parseFloat(sale.extra_charge_value || 0);
+        const extraChargeLabel = sale.extra_charge_label || 'Extra';
         const grandTotal = parseFloat(sale.total || sale.invoice_total || sale.total_amount || 0);
         
         // Fix 0 amountPaid fallback bug
@@ -160,6 +163,9 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             gst: taxAmount,
             discount: totalSavings, // "You Saved" will show total savings
             invoiceDiscount: discountAmount, // for top-level discount line in bill
+            delivery_charge: deliveryCharge,
+            extra_charge_value: extraCharge,
+            extra_charge_label: extraChargeLabel,
             total: grandTotal,
             paid: amountPaid,
             balance: balanceDue,
@@ -179,11 +185,14 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
             gst: 4518,
             discount: 17035, // 8535 + 8500 (free item value)
             invoiceDiscount: 8535,
-            total: 81815,
+            delivery_charge: 100,
+            extra_charge_value: 50,
+            extra_charge_label: 'Extra Charge',
+            total: 81815 + 100 + 50,
             paid: 0,
-            balance: 81815,
+            balance: 81815 + 100 + 50,
             prev_balance: 15000,
-            net_balance: 96815
+            net_balance: 96815 + 100 + 50
         };
     }
 
@@ -415,6 +424,14 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                         <div className="flex justify-between text-sm text-red-500 font-bold"><span>Discount</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
                     )}
 
+                    {calculations.delivery_charge > 0 && (
+                        <div className="flex justify-between text-sm text-slate-500"><span>Delivery Charges</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
+                    )}
+
+                    {calculations.extra_charge_value > 0 && (
+                        <div className="flex justify-between text-sm text-slate-500"><span>{calculations.extra_charge_label || 'Extra'}</span><span>{formatAmount(calculations.extra_charge_value)}</span></div>
+                    )}
+
                     {data.print_you_saved && calculations.discount > 0 && (
                         <div className="flex justify-between text-sm text-emerald-600 font-bold"><span>You Saved</span><span>{formatAmount(calculations.discount)}</span></div>
                     )}
@@ -526,7 +543,16 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
 
         <div className="ml-auto w-1/2">
             <div className="flex justify-between border-b border-slate-800 py-1"><span>SUBTOTAL:</span><span>{formatAmount(calculations.subtotal)}</span></div>
+            {calculations.invoiceDiscount > 0 && (
+                <div className="flex justify-between border-b border-slate-800 py-1 text-red-600 font-bold"><span>DISCOUNT:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
+            )}
             <div className="flex justify-between border-b border-slate-800 py-1"><span>TAX:</span><span>{formatAmount(calculations.gst)}</span></div>
+            {calculations.delivery_charge > 0 && (
+                <div className="flex justify-between border-b border-slate-800 py-1"><span>DELIVERY:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
+            )}
+            {calculations.extra_charge_value > 0 && (
+                <div className="flex justify-between border-b border-slate-800 py-1"><span>{String(calculations.extra_charge_label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(calculations.extra_charge_value)}</span></div>
+            )}
             <div className="flex justify-between font-bold text-xl py-2"><span>TOTAL:</span><span>{formatAmount(calculations.total)}</span></div>
         </div>
     </div>
@@ -783,6 +809,20 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
 
+                {calculations.delivery_charge > 0 && (
+                    <div className="flex justify-between text-[0.9em] mb-1">
+                        <span>Delivery Charges</span>
+                        <span>{formatAmount(calculations.delivery_charge)}</span>
+                    </div>
+                )}
+
+                {calculations.extra_charge_value > 0 && (
+                    <div className="flex justify-between text-[0.9em] mb-1">
+                        <span>{calculations.extra_charge_label || 'Extra'}</span>
+                        <span>{formatAmount(calculations.extra_charge_value)}</span>
+                    </div>
+                )}
+
                 <div className="flex justify-between font-black mt-2 pt-2 border-t border-black">
                     <span>TOTAL</span>
                     <span>{formatAmount(calculations.total)}</span>
@@ -1005,6 +1045,20 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     </div>
                 )}
 
+                {calculations.delivery_charge > 0 && (
+                    <div className="flex justify-between">
+                        <span>DELIVERY</span>
+                        <span>{formatAmount(calculations.delivery_charge)}</span>
+                    </div>
+                )}
+
+                {calculations.extra_charge_value > 0 && (
+                    <div className="flex justify-between">
+                        <span>{String(calculations.extra_charge_label || 'EXTRA').toUpperCase()}</span>
+                        <span>{formatAmount(calculations.extra_charge_value)}</span>
+                    </div>
+                )}
+
                 <div className="flex justify-between font-bold text-sm mt-1 pt-1 border-t border-black border-dashed">
                     <span>NET TOTAL</span>
                     <span>{formatAmount(calculations.total)}</span>
@@ -1210,6 +1264,18 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                     <div className="flex justify-between text-xs text-red-600 font-bold">
                         <span>Discount:</span>
                         <span>-{formatAmount(calculations.invoiceDiscount)}</span>
+                    </div>
+                )}
+                {calculations.delivery_charge > 0 && (
+                    <div className="flex justify-between text-xs">
+                        <span>Delivery:</span>
+                        <span>{formatAmount(calculations.delivery_charge)}</span>
+                    </div>
+                )}
+                {calculations.extra_charge_value > 0 && (
+                    <div className="flex justify-between text-xs">
+                        <span>{calculations.extra_charge_label || 'Extra'}:</span>
+                        <span>{formatAmount(calculations.extra_charge_value)}</span>
                     </div>
                 )}
             </div>

@@ -54,6 +54,9 @@ class SaleController extends Controller
             'amount_paid'           => 'required|numeric|min:0',
             'discount'              => 'nullable|numeric|min:0',
             'tax'                   => 'nullable|numeric|min:0',
+            'delivery_charge'       => 'nullable|numeric|min:0',
+            'extra_charge_value'    => 'nullable|numeric|min:0',
+            'extra_charge_label'    => 'nullable|string',
             'add_to_ledger'         => 'nullable|boolean',
             'payment_account_id'    => 'nullable',
         ]);
@@ -142,9 +145,12 @@ class SaleController extends Controller
             }
             unset($ld); // release reference
 
-            $netSales     = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-            $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax, 2));
-            $roundOff     = $invoiceTotal - ($netSales + $totalTax);
+            $netSales       = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
+            $deliveryCharge = (float)($request->delivery_charge ?? 0);
+            $extraCharge    = (float)($request->extra_charge_value ?? 0);
+            
+            $invoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $deliveryCharge + $extraCharge, 2));
+            $roundOff     = $invoiceTotal - ($netSales + $totalTax + $deliveryCharge + $extraCharge);
 
             // ── Credit Limit Check ──
             if ($request->customer_id) {
@@ -226,7 +232,6 @@ class SaleController extends Controller
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
 
-            // 3. STORAGE: Create Sale Header
             $sale = Sale::create([
                 'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
                 'reference_number'     => \App\Services\SequenceService::generateTransactionNumber('SAL'),
@@ -243,6 +248,10 @@ class SaleController extends Controller
                 'global_discount'      => $globalDiscount,
                 'net_sales'            => $netSales,
                 'total_tax'            => $totalTax,
+                'delivery_charge'      => $deliveryCharge,
+                'shipping_charges'     => $deliveryCharge,
+                'extra_charge_value'   => $extraCharge,
+                'extra_charge_label'   => $request->extra_charge_label,
                 'invoice_total'        => $invoiceTotal,
                 'tendered_amount'      => $tendered,
                 'change_return'        => $changeReturn,
@@ -1158,14 +1167,21 @@ class SaleController extends Controller
             }
 
             $netSales            = max(0, $subtotalGross - $totalItemDiscounts - $globalDiscount);
-            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax, 2));
-            $roundOff            = $roundedInvoiceTotal - ($netSales + $totalTax);
+            $deliveryCharge      = (float) ($request->delivery_charge ?? 0);
+            $extraCharge         = (float) ($request->extra_charge_value ?? 0);
+
+            $roundedInvoiceTotal = \App\Helpers\SettingsHelper::roundTotal(round($netSales + $totalTax + $deliveryCharge + $extraCharge, 2));
+            $roundOff            = $roundedInvoiceTotal - ($netSales + $totalTax + $deliveryCharge + $extraCharge);
 
             // 3. Update Sale Header with Phase 1.1 Columns
             $sale->update([
                 'party_id'             => $request->input('customer_id') ?: $sale->party_id,
                 'net_sales'            => $netSales,
                 'total_tax'            => $totalTax,
+                'delivery_charge'      => $deliveryCharge,
+                'shipping_charges'     => $deliveryCharge,
+                'extra_charge_value'   => $extraCharge,
+                'extra_charge_label'   => $request->extra_charge_label,
                 'invoice_total'        => $roundedInvoiceTotal,
                 'total'                => $roundedInvoiceTotal, // Legacy sync
                 'subtotal'             => $netSales,            // Legacy sync

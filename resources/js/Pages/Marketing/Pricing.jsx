@@ -92,7 +92,7 @@ const BillingToggle = ({ value, onChange }) => (
 
 // ── Main Component ─────────────────────────────────────────────────────
 export default function Pricing({ plans = [] }) {
-    const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
+    const { geo = { country: 'US', currency: 'USD', symbol: '$' }, auth } = usePage().props;
     const isPK = geo.currency === 'PKR';
 
     const [billingType, setBillingType] = useState('subscription_annual');
@@ -380,6 +380,21 @@ export default function Pricing({ plans = [] }) {
 
     const handlePlanSelect = (planKey) => {
         setSelectedPlan(planKey);
+    };
+
+    // Map pricing-card keys to backend subscription slugs.
+    const PLAN_SLUG_MAP = { starter: 'starter', growth: 'growth', enterprise: 'business' };
+
+    // Selecting a plan starts the trial. Guests sign up first (carrying the
+    // chosen plan); logged-in users jump straight to store creation. Either way
+    // the plan + billing interval ride along so the trial is created on it.
+    const goToTrial = (planKey) => {
+        const slug = PLAN_SLUG_MAP[planKey] || 'growth';
+        const interval = billingType === 'subscription_annual' ? 'annual' : 'monthly';
+        const target = auth?.user
+            ? route('store.create', { plan: slug, interval })
+            : route('register', { plan: slug, interval });
+        router.visit(target);
     };
 
     const handleContinue = () => {
