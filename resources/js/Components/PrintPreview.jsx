@@ -2,6 +2,26 @@ import React from 'react';
 import { Scissors } from 'lucide-react';
 import { formatCurrency, formatNumber, numberToWords } from '@/Utils/format';
 
+const getExtraChargesList = (calculations) => {
+    try {
+        if (calculations.extra_charge_label && typeof calculations.extra_charge_label === 'string' && calculations.extra_charge_label.startsWith('[')) {
+            const list = JSON.parse(calculations.extra_charge_label);
+            if (Array.isArray(list)) {
+                return list.filter(f => parseFloat(f.value) > 0);
+            }
+        }
+    } catch (_) {}
+    
+    if (calculations.extra_charge_value > 0) {
+        return [{
+            id: 1,
+            label: calculations.extra_charge_label || 'Extra',
+            value: calculations.extra_charge_value
+        }];
+    }
+    return [];
+};
+
 /**
  * Advanced Print Preview Engine
  * Supports: Custom Dimensions, Variable Margins, 20+ Themes, Dark Mode Container
@@ -424,13 +444,13 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                         <div className="flex justify-between text-sm text-red-500 font-bold"><span>Discount</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
                     )}
 
-                    {calculations.delivery_charge > 0 && (
+                    {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
                         <div className="flex justify-between text-sm text-slate-500"><span>Delivery Charges</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
                     )}
 
-                    {calculations.extra_charge_value > 0 && (
-                        <div className="flex justify-between text-sm text-slate-500"><span>{calculations.extra_charge_label || 'Extra'}</span><span>{formatAmount(calculations.extra_charge_value)}</span></div>
-                    )}
+                    {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                        <div key={idx} className="flex justify-between text-sm text-slate-500"><span>{item.label}</span><span>{formatAmount(item.value)}</span></div>
+                    ))}
 
                     {data.print_you_saved && calculations.discount > 0 && (
                         <div className="flex justify-between text-sm text-emerald-600 font-bold"><span>You Saved</span><span>{formatAmount(calculations.discount)}</span></div>
@@ -547,12 +567,12 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                 <div className="flex justify-between border-b border-slate-800 py-1 text-red-600 font-bold"><span>DISCOUNT:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
             )}
             <div className="flex justify-between border-b border-slate-800 py-1"><span>TAX:</span><span>{formatAmount(calculations.gst)}</span></div>
-            {calculations.delivery_charge > 0 && (
+            {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
                 <div className="flex justify-between border-b border-slate-800 py-1"><span>DELIVERY:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
             )}
-            {calculations.extra_charge_value > 0 && (
-                <div className="flex justify-between border-b border-slate-800 py-1"><span>{String(calculations.extra_charge_label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(calculations.extra_charge_value)}</span></div>
-            )}
+            {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                <div key={idx} className="flex justify-between border-b border-slate-800 py-1"><span>{String(item.label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(item.value)}</span></div>
+            ))}
             <div className="flex justify-between font-bold text-xl py-2"><span>TOTAL:</span><span>{formatAmount(calculations.total)}</span></div>
         </div>
     </div>
@@ -809,19 +829,19 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
 
-                {calculations.delivery_charge > 0 && (
+                {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
                     <div className="flex justify-between text-[0.9em] mb-1">
                         <span>Delivery Charges</span>
                         <span>{formatAmount(calculations.delivery_charge)}</span>
                     </div>
                 )}
 
-                {calculations.extra_charge_value > 0 && (
-                    <div className="flex justify-between text-[0.9em] mb-1">
-                        <span>{calculations.extra_charge_label || 'Extra'}</span>
-                        <span>{formatAmount(calculations.extra_charge_value)}</span>
+                {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                    <div key={idx} className="flex justify-between text-[0.9em] mb-1">
+                        <span>{item.label}</span>
+                        <span>{formatAmount(item.value)}</span>
                     </div>
-                )}
+                ))}
 
                 <div className="flex justify-between font-black mt-2 pt-2 border-t border-black">
                     <span>TOTAL</span>
@@ -1045,19 +1065,19 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                     </div>
                 )}
 
-                {calculations.delivery_charge > 0 && (
+                {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
                     <div className="flex justify-between">
                         <span>DELIVERY</span>
                         <span>{formatAmount(calculations.delivery_charge)}</span>
                     </div>
                 )}
 
-                {calculations.extra_charge_value > 0 && (
-                    <div className="flex justify-between">
-                        <span>{String(calculations.extra_charge_label || 'EXTRA').toUpperCase()}</span>
-                        <span>{formatAmount(calculations.extra_charge_value)}</span>
+                {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                    <div key={idx} className="flex justify-between">
+                        <span>{String(item.label || 'EXTRA').toUpperCase()}</span>
+                        <span>{formatAmount(item.value)}</span>
                     </div>
-                )}
+                ))}
 
                 <div className="flex justify-between font-bold text-sm mt-1 pt-1 border-t border-black border-dashed">
                     <span>NET TOTAL</span>
@@ -1266,18 +1286,18 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                         <span>-{formatAmount(calculations.invoiceDiscount)}</span>
                     </div>
                 )}
-                {calculations.delivery_charge > 0 && (
+                {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
                     <div className="flex justify-between text-xs">
                         <span>Delivery:</span>
                         <span>{formatAmount(calculations.delivery_charge)}</span>
                     </div>
                 )}
-                {calculations.extra_charge_value > 0 && (
-                    <div className="flex justify-between text-xs">
-                        <span>{calculations.extra_charge_label || 'Extra'}:</span>
-                        <span>{formatAmount(calculations.extra_charge_value)}</span>
+                {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                    <div key={idx} className="flex justify-between text-xs">
+                        <span>{item.label}:</span>
+                        <span>{formatAmount(item.value)}</span>
                     </div>
-                )}
+                ))}
             </div>
 
             <div className="bg-black text-white p-2 mt-2 flex justify-between items-center text-lg">

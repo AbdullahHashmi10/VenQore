@@ -775,7 +775,13 @@ const CreateInvoice = ({ sale }) => {
     const taxAmount = afterDiscount * ((parseFloat(currentInvoice?.tax) || 0) / 100);
 
     const deliveryCharge = parseFloat(currentInvoice?.delivery_charge) || 0;
-    const extraCharge = parseFloat(currentInvoice?.extra_charge_value) || 0;
+    
+    let extraCharge = 0;
+    if (enableMultipleExtras && currentInvoice?.extraFields) {
+        extraCharge = currentInvoice.extraFields.reduce((sum, f) => sum + (parseFloat(f.value) || 0), 0);
+    } else {
+        extraCharge = parseFloat(currentInvoice?.extra_charge_value) || 0;
+    }
 
     const rawGrandTotal = afterDiscount + taxAmount + deliveryCharge + extraCharge;
     const grandTotal = settings?.round_off_total === '1' ? Math.round(rawGrandTotal) : rawGrandTotal;
@@ -920,8 +926,12 @@ const CreateInvoice = ({ sale }) => {
                 discount: invoiceDiscount,
                 tax: taxAmount,
                 delivery_charge: currentInvoice.delivery_charge || 0,
-                extra_charge_value: currentInvoice.extra_charge_value || 0,
-                extra_charge_label: currentInvoice.extra_charge_label || '',
+                extra_charge_value: enableMultipleExtras
+                    ? (currentInvoice.extraFields || []).reduce((sum, f) => sum + (parseFloat(f.value) || 0), 0)
+                    : (currentInvoice.extra_charge_value || 0),
+                extra_charge_label: enableMultipleExtras
+                    ? JSON.stringify(currentInvoice.extraFields || [])
+                    : (currentInvoice.extra_charge_label || ''),
                 notes: currentInvoice.notes,
                 reference: currentInvoice.invoiceNumber,
                 date: currentInvoice.date,

@@ -216,6 +216,8 @@ class PrintService {
             print_show_hsn:         b(raw.print_show_hsn, false),
             print_show_discount:    b(raw.print_show_discount, false),
             print_show_free_qty:    b(raw.print_show_free_qty, false),
+            print_show_delivery_charge: b(raw.print_show_delivery_charge, true),
+            print_show_extra_charge:    b(raw.print_show_extra_charge, true),
 
             // Regular totals/footer
             print_total_quantity:  b(raw.print_total_quantity, true),
