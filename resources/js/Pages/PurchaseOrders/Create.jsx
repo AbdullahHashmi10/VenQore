@@ -1016,7 +1016,7 @@ const CreatePurchaseOrder = ({ purchaseOrder }) => {
                                 >
                                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0"></span>
                                     <span className="truncate">
-                                        {currentPurchase.supplier?.name || `PO #${activeInvoices.findIndex(inv => inv.id === currentPurchase.id) + 1}`}
+                                        {currentPurchase.supplier?.name || `PO #${activePurchases.findIndex(inv => inv.id === currentPurchase.id) + 1}`}
                                     </span>
                                 </button>
 

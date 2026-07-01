@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class SaleController extends Controller
 {
@@ -35,9 +36,12 @@ class SaleController extends Controller
     }
     public function store(Request $request)
     {
+        $date = Carbon::parse($request->input('sale_date', Carbon::now()->toDateString()));
+        $start = $date->copy()->startOfMonth();
+        $end = $date->copy()->endOfMonth();
+
         $monthlyCount = \App\Models\Sale::where('status', 'posted')
-            ->whereYear('created_at', now()->year)
-            ->whereMonth('created_at', now()->month)
+            ->whereBetween('created_at', [$start, $end])
             ->count();
         \App\Services\PlanGate::enforce('transactions_per_month', $monthlyCount);
 
@@ -569,13 +573,14 @@ class SaleController extends Controller
         }
 
         // Apply Date Filters
+        $tz = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        $tzNow = \Carbon\Carbon::now($tz);
         if ($request->filter === 'today') {
-            $query->whereDate('created_at', today());
+            $query->whereBetween('created_at', [$tzNow->copy()->startOfDay(), $tzNow->copy()->endOfDay()]);
         } elseif ($request->filter === 'month') {
-            $query->whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year);
+            $query->whereBetween('created_at', [$tzNow->copy()->startOfMonth(), $tzNow->copy()->endOfMonth()]);
         } elseif ($request->filter === 'year') {
-            $query->whereYear('created_at', now()->year);
+            $query->whereBetween('created_at', [$tzNow->copy()->startOfYear(), $tzNow->copy()->endOfYear()]);
         }
 
         // Apply Date Range
@@ -1302,22 +1307,24 @@ class SaleController extends Controller
                     $pMethod = strtolower($p['method'] ?? 'cash');
                     if ($pAmt > 0) {
                         Payment::create([
-                            'sale_id' => $sale->id,
-                            'amount'  => $pAmt,
-                            'method'  => $pMethod,
-                            'type'    => 'in',
-                            'date'    => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
+                            'sale_id'         => $sale->id,
+                            'amount'          => $pAmt,
+                            'method'          => $pMethod,
+                            'type'            => 'in',
+                            'bank_account_id' => $p['account_id'] ?? $p['bank_account_id'] ?? null,
+                            'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
                         ]);
                     }
                 }
             } else {
                 $pmMethod = strtolower($request->payment_method);
                 Payment::create([
-                    'sale_id' => $sale->id,
-                    'amount'  => $recordedAmount,
-                    'method'  => $pmMethod,
-                    'type'    => 'in',
-                    'date'    => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
+                    'sale_id'         => $sale->id,
+                    'amount'          => $recordedAmount,
+                    'method'          => $pmMethod,
+                    'type'            => 'in',
+                    'bank_account_id' => $request->bank_account_id ?? null,
+                    'date'            => $sale->posted_at ? $sale->posted_at->toDateString() : today()->toDateString(),
                 ]);
             }
         }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { ShieldAlert, CheckCircle, Bug, Filter, ArrowLeft, Terminal, MonitorSmartphone, Sparkles } from 'lucide-react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 
 export default function Errors({ errors, filters }) {
     const [selected, setSelected] = useState(null);

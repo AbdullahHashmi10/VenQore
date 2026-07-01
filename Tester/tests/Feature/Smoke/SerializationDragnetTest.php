@@ -141,6 +141,7 @@ test('[DRAGNET] admin dashboard paymentMethods returns empty array (not exceptio
 // ──────────────────────────────────────────────────────────────────────────────
 
 test('[DRAGNET] tenant dashboard serializes performance props correctly when sales exist', function () {
+    \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-15 12:00:00', 'UTC'));
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
@@ -174,6 +175,7 @@ test('[DRAGNET] tenant dashboard serializes performance props correctly when sal
 
     // Assert the seeded sale is reflected in Month stats
     $this->assertGreaterThanOrEqual(500.0, (float) $props['performance']['Month']['sales']);
+    \Carbon\Carbon::setTestNow();
 })->group('dragnet', 'serialization');
 
 // ──────────────────────────────────────────────────────────────────────────────

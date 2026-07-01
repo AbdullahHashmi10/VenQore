@@ -25,7 +25,8 @@ class DashboardController extends Controller
         // products on every request — a critical data-corruption risk. They must be
         // re-implemented as one-shot Artisan commands and run only under explicit control.
 
-        $now  = Carbon::now();
+        $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        $now = Carbon::now($tz);
         $user = auth()->user();
 
         // ── Role Router (V1 Tier 2 — per Master Plan) ─────────────────────────

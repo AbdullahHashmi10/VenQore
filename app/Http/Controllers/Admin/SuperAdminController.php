@@ -33,19 +33,17 @@ class SuperAdminController extends Controller
         };
 
         $tenants = Tenant::withTrashed()->get();
-        $realTenants = $tenants->where('is_demo', false);
+        // Billable = excludes demo AND internal/owner/test stores (the $52k fix).
+        $realTenants = $tenants->where('is_demo', false)->where('is_internal', false);
 
-        // MRR
-        $planPrices = ['starter' => 19, 'growth' => 39, 'business' => 79, 'ltd' => 0];
-        $mrr = $realTenants->where('status', 'active')->sum(fn($t) => $planPrices[$t->plan] ?? 0);
+        // ── Money is computed server-side, from one source of truth ──────────
+        // Revenue (paid subscriptions only) and GMV (merchant volume) come from
+        // PlatformRevenueService — never hard-coded prices, never browser math.
+        $revenueService = app(\App\Services\Platform\PlatformRevenueService::class);
+        $revenue        = $revenueService->summary($period);
 
-        // Volume (Real-only)
-        $volQuery = DB::table('sales')
-            ->join('tenants', 'sales.tenant_id', '=', 'tenants.id')
-            ->where('tenants.is_demo', false)
-            ->whereNull('sales.deleted_at');
-        if ($dateLimit) $volQuery->where('sales.created_at', '>=', $dateLimit);
-        $totalVolume = (float)$volQuery->sum('sales.total');
+        $mrr         = $revenue['mrr'];          // real paid MRR (USD)
+        $totalVolume = $revenue['gmv'];          // merchant GMV — NOT platform revenue
 
         // Dynamic Trend Calculation
         $storeTrend = collect();
@@ -72,13 +70,20 @@ class SuperAdminController extends Controller
             });
         }
 
-        // Plan Distribution
-        $planDist = collect(['trial', 'starter', 'growth', 'business', 'ltd'])->map(function ($plan) use ($realTenants, $planPrices) {
+        // Plan Distribution — counts per plan; MRR priced from the plans table
+        // via the single price source (PlanPricingService), not hard-coded.
+        $pricing = app(\App\Services\Platform\PlanPricingService::class);
+        $planSlugs = \App\Models\Plan::orderBy('sort_order')->pluck('slug')->all();
+        if (empty($planSlugs)) {
+            $planSlugs = ['trial', 'starter', 'growth', 'business', 'ltd'];
+        }
+        $planDist = collect($planSlugs)->map(function ($plan) use ($realTenants, $pricing) {
             $group = $realTenants->where('plan', $plan);
+            $activePaid = $group->where('status', 'active')->count();
             return [
                 'plan'  => $plan,
                 'count' => $group->count(),
-                'mrr'   => $group->where('status', 'active')->sum(fn($t) => $planPrices[$plan] ?? 0),
+                'mrr'   => round($activePaid * $pricing->monthly((string) $plan, 'USD'), 2),
             ];
         })->values();
 
@@ -116,7 +121,9 @@ class SuperAdminController extends Controller
             'new_today'         => $realTenants->filter(fn($t) => $t->created_at?->isToday())->count(),
             'new_this_month'    => $realTenants->filter(fn($t) => $t->created_at?->isCurrentMonth())->count(),
             'mrr'               => $mrr,
-            'arr'               => $mrr * 12,
+            'arr'               => $revenue['arr'],
+            'net_revenue'       => $revenue['net_revenue'],
+            'paid_subscribers'  => $revenue['paid_count'],
             'total_volume'      => $totalVolume,
             'period'            => $period,
             'total_users'       => User::where('is_platform_admin', false)->where('email', 'not like', '%@venqore-demo.internal')->count(),
@@ -147,6 +154,7 @@ class SuperAdminController extends Controller
 
         return Inertia::render('SuperAdmin/Dashboard', [
             'stats'             => $stats,
+            'revenue'           => $revenue,
             'store_trend'       => $storeTrend->values(),
             'plan_distribution' => $planDist,
             'recent_stores'     => $recentStores,
@@ -242,6 +250,7 @@ class SuperAdminController extends Controller
                 'staff_count'  => $t->memberships()->count(),
                 'trial_ends'   => $t->trial_ends_at?->toDateString(),
                 'setup_done'   => (bool) $t->setup_completed,
+                'is_internal'  => (bool) $t->is_internal,
                 'created_at'   => $t->created_at->toDateString(),
                 'deleted_at'   => $t->deleted_at?->toDateTimeString(),
                 'is_trashed'   => $t->trashed(),
@@ -386,13 +395,33 @@ class SuperAdminController extends Controller
     public function extendTrial(Request $request, Tenant $tenant)
     {
         $days = $request->integer('days', 7);
-        $tenant->update([
-            'status'        => 'trial',
+
+        $payload = [
             'trial_ends_at' => $tenant->trial_ends_at
                 ? $tenant->trial_ends_at->addDays($days)
                 : now()->addDays($days),
-        ]);
+        ];
+
+        // Never demote a paying/active store to "trial" (Roadmap T3.5 / bug #6).
+        // Only (re)set trial status if the store is currently in a trial state.
+        if ($tenant->status === 'trial') {
+            $payload['status'] = 'trial';
+        }
+
+        $tenant->update($payload);
+
         return back()->with('success', "Trial extended by {$days} days for '{$tenant->name}'.");
+    }
+
+    /**
+     * Toggle a store's "internal / non-billable" flag (Roadmap T1.2).
+     * Internal stores are excluded from all revenue & KPI counts.
+     */
+    public function toggleInternal(Tenant $tenant)
+    {
+        $tenant->update(['is_internal' => ! $tenant->is_internal]);
+        $state = $tenant->is_internal ? 'marked internal (non-billable)' : 'marked billable';
+        return back()->with('success', "'{$tenant->name}' {$state}.");
     }
 
     public function appsumoCodes(Request $request)

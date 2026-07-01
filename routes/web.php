@@ -355,18 +355,16 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::get('/api/platform/vena/autonomy-stats', [\App\Http\Controllers\VenaAssistController::class, 'autonomyStats'])->name('chatbot.autonomy-stats');
         Route::post('/api/platform/vena/autonomy-stats/promote', [\App\Http\Controllers\VenaAssistController::class, 'promoteCategory'])->name('chatbot.autonomy-stats.promote');
 
-
-        Route::get('/run-migrations', function () {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            return 'Migrations ran successfully! Output: ' . nl2br(e(\Illuminate\Support\Facades\Artisan::output()));
-        });
+        // NOTE: The GET /run-migrations browser route was removed (Roadmap T1.7).
+        // Migrations run only via the Updater flow / CLI, never from a URL.
 
         Route::get('/stores',             [\App\Http\Controllers\Admin\SuperAdminController::class, 'stores'])->name('stores');
         Route::get('/users',              [\App\Http\Controllers\Admin\SuperAdminController::class, 'users'])->name('users');
         Route::post('/stores/{tenant}/suspend',      [\App\Http\Controllers\Admin\SuperAdminController::class, 'suspend'])->name('store.suspend');
         Route::post('/stores/{tenant}/activate',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'activate'])->name('store.activate');
         Route::post('/stores/{tenant}/extend-trial', [\App\Http\Controllers\Admin\SuperAdminController::class, 'extendTrial'])->name('store.extend-trial');
-        
+        Route::post('/stores/{tenant}/toggle-internal', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleInternal'])->name('store.toggle-internal');
+
         // Trash Management
         Route::delete('/stores/{tenant}/destroy',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'destroyStore'])->name('store.destroy');
         Route::post('/stores/bulk-destroy',          [\App\Http\Controllers\Admin\SuperAdminController::class, 'bulkDestroyStores'])->name('stores.bulk-destroy');
@@ -558,11 +556,8 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
                 'new_inventory_valuation' => number_format($totalValue, 2)
             ]);
         });
-        
-        Route::get('/run-migrations', function () {
-            \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            return 'Migrations ran successfully! Output: ' . nl2br(e(\Illuminate\Support\Facades\Artisan::output()));
-        });
+
+        // NOTE: Second duplicate GET /run-migrations browser route removed (Roadmap T1.7 / bug #14).
 
         Route::prefix('demo-store')->name('demo-store.')->group(function () {
             Route::get('/status',               [\App\Http\Controllers\Admin\DemoStoreController::class, 'status'])->name('status');
@@ -819,11 +814,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
     Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');
 
-    Route::get('/pos', function () {
-        return Inertia::render('Pos', [
-            'settings' => \App\Models\Setting::all()->pluck('value', 'key'),
-        ]);
-    })->middleware('permission:pos.checkout')->name('pos');
+    Route::get('/pos', [\App\Http\Controllers\PosController::class, 'index'])->middleware('permission:pos.checkout')->name('pos');
 
     // Inventory
     Route::get('/inventory', [InventoryController::class, 'dashboard'])->middleware('permission:inventory.view')->name('inventory.dashboard');

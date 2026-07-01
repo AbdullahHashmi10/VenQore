@@ -43,6 +43,7 @@ class OneCoreReconciliationGateTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-15 12:00:00', 'UTC'));
         $this->tenant      = $this->createTenant('reconcile-gate', 'ltd_3');
         $this->actingAsOwner($this->tenant);
         $this->seedTenantDefaults($this->tenant);
@@ -52,6 +53,12 @@ class OneCoreReconciliationGateTest extends VenQoreTestCase
         $this->today = now()->toDateString();
         app()->instance('current.tenant', $this->tenant);
         $this->frs = app(FinancialReportingService::class);
+    }
+
+    protected function tearDown(): void
+    {
+        \Carbon\Carbon::setTestNow();
+        parent::tearDown();
     }
 
     // ─────────────────────────────────────────────────────────────────────────

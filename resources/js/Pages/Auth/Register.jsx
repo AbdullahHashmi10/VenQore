@@ -35,20 +35,15 @@ const AuthInput = ({ icon: Icon, label, error, children, ...props }) => {
     );
 };
 
-export default function Register({ intended_plan = null, intended_interval = 'monthly' }) {
+export default function Register() {
     const [agreedToTerms, setAgreedToTerms] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-
-    const PLAN_LABELS = { starter: 'Starter', growth: 'Growth', business: 'Enterprise' };
-    const planLabel = PLAN_LABELS[intended_plan] || null;
 
     const { data, setData, post, processing, errors, setError, reset } = useForm({
         name: '',
         email: '',
         password: '',
         password_confirmation: '',
-        plan: intended_plan || '',
-        interval: intended_interval || 'monthly',
     });
 
     const submit = (e) => {
@@ -134,11 +129,6 @@ export default function Register({ intended_plan = null, intended_interval = 'mo
                             Create your account
                         </h2>
                         <p className="text-slate-400 text-sm">Start your 14-day free trial today.</p>
-                        {planLabel && (
-                            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold">
-                                <Check size={12} /> Starting your {planLabel} trial · {intended_interval === 'annual' ? 'billed annually' : 'billed monthly'}
-                            </div>
-                        )}
                     </div>
 
                     {/* Google OAuth */}

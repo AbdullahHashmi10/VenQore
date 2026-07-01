@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, useForm, router } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { Plus, Edit2, Database, Shield, Layout, Save, X } from 'lucide-react';
 
 export default function PlatformIndex({ platforms }) {

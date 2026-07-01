@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import {
     ArrowLeft, Zap, RotateCcw, Clock, CheckCircle, Edit2, X,
     Save, Info, User, Mail, Building2, Calendar, Globe, DollarSign,

@@ -385,16 +385,18 @@ export default function Pricing({ plans = [] }) {
     // Map pricing-card keys to backend subscription slugs.
     const PLAN_SLUG_MAP = { starter: 'starter', growth: 'growth', enterprise: 'business' };
 
-    // Selecting a plan starts the trial. Guests sign up first (carrying the
-    // chosen plan); logged-in users jump straight to store creation. Either way
-    // the plan + billing interval ride along so the trial is created on it.
+    // Selecting a plan starts the trial. Logged-in users jump straight to
+    // creating a store on the chosen plan. Guests simply sign up first — we do
+    // NOT force a plan through account creation; the plan is chosen later at the
+    // Hub when they actually create a store.
     const goToTrial = (planKey) => {
-        const slug = PLAN_SLUG_MAP[planKey] || 'growth';
-        const interval = billingType === 'subscription_annual' ? 'annual' : 'monthly';
-        const target = auth?.user
-            ? route('store.create', { plan: slug, interval })
-            : route('register', { plan: slug, interval });
-        router.visit(target);
+        if (auth?.user) {
+            const slug = PLAN_SLUG_MAP[planKey] || 'growth';
+            const interval = billingType === 'subscription_annual' ? 'annual' : 'monthly';
+            router.visit(route('store.create', { plan: slug, interval }));
+        } else {
+            router.visit(route('register'));
+        }
     };
 
     const handleContinue = () => {

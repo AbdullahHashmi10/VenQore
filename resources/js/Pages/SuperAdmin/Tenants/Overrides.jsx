@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, router, useForm } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 
 // ── Override Apply Drawer ─────────────────────────────────────────────────────
 

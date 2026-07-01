@@ -1099,7 +1099,7 @@ export default function LandingPage() {
                     </div>
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <Link href="/login" className="hidden sm:block px-5 py-2.5 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-white transition-colors">Sign In</Link>
-                        <Link href="/pricing" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-[#05030f] rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
+                        <Link href="/register" className="px-4 sm:px-6 py-2 sm:py-2.5 bg-white text-[#05030f] rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-[0.1em] sm:tracking-[0.15em] whitespace-nowrap transition-all hover:scale-105 hover:shadow-[0_0_40px_-6px_rgba(255,255,255,0.5)]">
                             Start Free
                         </Link>
                         <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 -mr-1 text-slate-300 hover:text-white" aria-label="Menu" aria-expanded={mobileMenu}>
@@ -1146,7 +1146,7 @@ export default function LandingPage() {
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-5 hero-fade-2">
-                                <MagBtn href="/pricing" variant="primary">
+                                <MagBtn href="/register" variant="primary">
                                     Start Free Trial <ArrowRight size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                                 </MagBtn>
                                 <MagBtn href="/demo" variant="ghost">
@@ -1438,7 +1438,7 @@ export default function LandingPage() {
                                     </h2>
                                     <p className="text-slate-400 text-lg max-w-xl mx-auto mb-9">Full access. No credit card. Launch a pre-populated demo store in one click, or start your own and be live in 15 minutes.</p>
                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
-                                        <MagBtn href="/pricing" variant="primary">Start Free Trial <ArrowRight size={18} /></MagBtn>
+                                        <MagBtn href="/register" variant="primary">Start Free Trial <ArrowRight size={18} /></MagBtn>
                                         <MagBtn href="/pricing" variant="ghost">See pricing</MagBtn>
                                     </div>
                                     <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-3 text-[12px] font-bold text-slate-500">
@@ -1523,7 +1523,7 @@ export default function LandingPage() {
                                 The only question is whether you fix it this year — or keep guessing. 14-day free trial, full access, no credit card.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
-                                <MagBtn href="/pricing" variant="primary">Start Your Free Trial <ArrowRight size={18} /></MagBtn>
+                                <MagBtn href="/register" variant="primary">Start Your Free Trial <ArrowRight size={18} /></MagBtn>
                                 <MagBtn href="/contact" variant="ghost">Talk to Sales</MagBtn>
                             </div>
                         </Reveal>

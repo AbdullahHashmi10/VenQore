@@ -24,9 +24,10 @@ class DashboardController extends Controller
             'Unauthorized'
         );
 
-        $today     = Carbon::today();
-        $monthStart = $today->copy()->startOfMonth();
-
+        $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
+        $now = Carbon::now($tz);
+        $today = $now->copy()->startOfDay();
+        $monthStart = $now->copy()->startOfMonth();
         $pl = $this->frs->getProfitAndLoss($monthStart->toDateString(), $today->toDateString());
 
         return response()->json([

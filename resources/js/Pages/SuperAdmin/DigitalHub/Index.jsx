@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { Head } from '@inertiajs/react';
 import { 
     MessageSquare, Settings, RefreshCw, Send, CheckCircle, 

@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VenQore — Platform Owner Command Center · Audit &amp; Redesign Blueprint</title>
+<style>
+  :root{
+    --bg:#06080f; --bg2:#0b0f1a; --card:rgba(17,24,39,.66); --card2:rgba(30,41,59,.5);
+    --bd:rgba(148,163,184,.14); --bd2:rgba(148,163,184,.28);
+    --ink:#f1f5f9; --sub:#cbd5e1; --mut:#7c8aa3;
+    --ind:#6366f1; --ind2:#818cf8; --vio:#8b5cf6;
+    --ok:#10b981; --warn:#f59e0b; --bad:#ef4444; --miss:#64748b; --redu:#ec4899; --info:#38bdf8;
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:
+      radial-gradient(ellipse at 12% -8%,rgba(99,102,241,.14),transparent 45%),
+      radial-gradient(ellipse at 100% 0%,rgba(139,92,246,.10),transparent 40%),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.62;font-size:15.5px;-webkit-font-smoothing:antialiased}
+  a{color:var(--ind2);text-decoration:none}
+  a:hover{text-decoration:underline}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+  /* top bar */
+  header.top{position:sticky;top:0;z-index:50;backdrop-filter:blur(16px);
+    background:rgba(6,8,15,.82);border-bottom:1px solid var(--bd)}
+  .top .wrap{display:flex;align-items:center;gap:18px;height:60px}
+  .badge{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:-.02em}
+  .badge .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--ind),var(--vio));
+    display:grid;place-items:center;color:#fff;font-size:15px;box-shadow:0 6px 18px rgba(99,102,241,.4)}
+  nav.toc{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+  nav.toc a{font-size:12px;color:var(--mut);padding:6px 9px;border-radius:8px;font-weight:600}
+  nav.toc a:hover{background:var(--card2);color:var(--ink);text-decoration:none}
+
+  /* hero */
+  .hero{padding:54px 0 26px}
+  .kicker{font-family:var(--mono);font-size:12px;color:var(--ind2);text-transform:uppercase;letter-spacing:.22em;font-weight:700}
+  h1{font-size:clamp(30px,4.4vw,50px);line-height:1.04;margin:14px 0 10px;letter-spacing:-.025em;font-weight:900}
+  h1 .grad{background:linear-gradient(120deg,#a5b4fc,#c4b5fd 60%,#f0abfc);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .lede{font-size:18px;color:var(--sub);max-width:880px}
+  .meta{display:flex;gap:22px;flex-wrap:wrap;margin-top:18px;color:var(--mut);font-size:13px;font-family:var(--mono)}
+  .meta b{color:var(--sub);font-weight:600}
+
+  /* verdict band */
+  .verdict{margin:24px 0 6px;padding:20px 22px;border-radius:16px;border:1px solid var(--bd2);
+    background:linear-gradient(135deg,rgba(99,102,241,.12),rgba(139,92,246,.05))}
+  .verdict h3{margin:0 0 6px;font-size:15px;letter-spacing:.02em}
+  .verdict p{margin:0;color:var(--sub);font-size:14.5px}
+
+  /* scorecard */
+  .grid{display:grid;gap:14px}
+  .sc{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:26px 0}
+  .stat{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px 16px 14px}
+  .stat .n{font-size:30px;font-weight:900;letter-spacing:-.03em}
+  .stat .l{font-size:11.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.08em;font-weight:700;margin-top:2px}
+
+  /* sections */
+  section{padding:40px 0;border-top:1px solid var(--bd)}
+  .sechead{display:flex;align-items:flex-start;gap:14px;margin-bottom:8px}
+  .secno{font-family:var(--mono);font-size:13px;color:#0b0f1a;background:linear-gradient(135deg,var(--ind2),var(--vio));
+    font-weight:800;padding:3px 10px;border-radius:999px;white-space:nowrap;margin-top:6px}
+  h2{font-size:clamp(22px,3vw,32px);margin:0;letter-spacing:-.02em;font-weight:850}
+  h3.blk{font-size:18px;margin:26px 0 10px;letter-spacing:-.01em}
+  h4{font-size:14.5px;margin:18px 0 8px;color:var(--ind2);text-transform:uppercase;letter-spacing:.06em}
+  p{margin:10px 0}
+  .muted{color:var(--mut)}
+  .sub{color:var(--sub)}
+
+  /* pills / statuses */
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:999px;
+    text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;border:1px solid transparent}
+  .p-ok{background:rgba(16,185,129,.14);color:#5eead4;border-color:rgba(16,185,129,.35)}
+  .p-warn{background:rgba(245,158,11,.14);color:#fcd34d;border-color:rgba(245,158,11,.35)}
+  .p-bad{background:rgba(239,68,68,.15);color:#fca5a5;border-color:rgba(239,68,68,.4)}
+  .p-miss{background:rgba(100,116,139,.18);color:#cbd5e1;border-color:rgba(100,116,139,.4)}
+  .p-redu{background:rgba(236,72,153,.14);color:#f9a8d4;border-color:rgba(236,72,153,.35)}
+  .p-info{background:rgba(56,189,248,.14);color:#7dd3fc;border-color:rgba(56,189,248,.35)}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+  /* legend */
+  .legend{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0 4px}
+  .legend .pill{cursor:default}
+
+  /* tables */
+  .tbl-wrap{overflow-x:auto;border:1px solid var(--bd);border-radius:14px;margin:14px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:720px}
+  thead th{background:rgba(99,102,241,.1);color:#c7d2fe;text-align:left;padding:11px 13px;font-weight:700;
+    position:sticky;top:60px;font-size:12px;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--bd2)}
+  tbody td{padding:10px 13px;border-bottom:1px solid var(--bd);vertical-align:top;color:var(--sub)}
+  tbody tr:hover{background:rgba(99,102,241,.05)}
+  tbody tr:last-child td{border-bottom:none}
+  td b,td strong{color:var(--ink)}
+  code{font-family:var(--mono);font-size:12.5px;background:rgba(148,163,184,.12);padding:1.5px 6px;border-radius:6px;color:#e9d5ff}
+  td code{font-size:11.5px}
+
+  /* cards */
+  .cards{grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px}
+  .card h5{margin:0 0 8px;font-size:14px;display:flex;align-items:center;gap:8px}
+  .card ul{margin:6px 0 0;padding-left:18px}
+  .card li{margin:5px 0;color:var(--sub);font-size:13.5px}
+  .card.ok{border-color:rgba(16,185,129,.3)} .card.bad{border-color:rgba(239,68,68,.32)}
+  .card.warn{border-color:rgba(245,158,11,.3)} .card.info{border-color:rgba(56,189,248,.3)}
+
+  /* code evidence block */
+  .ev{background:#080b14;border:1px solid var(--bd2);border-left:3px solid var(--ind);border-radius:10px;
+    margin:14px 0;overflow:hidden}
+  .ev .hd{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 13px;
+    background:rgba(99,102,241,.08);border-bottom:1px solid var(--bd);font-family:var(--mono);font-size:11.5px;color:var(--mut)}
+  .ev .hd b{color:var(--ind2)}
+  .ev pre{margin:0;padding:13px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.6;color:#dbe4f0}
+  .ev pre .c{color:#5b6b86}.ev pre .k{color:#c4b5fd}.ev pre .s{color:#86efac}.ev pre .r{color:#fca5a5;font-weight:700}
+  .ev.bad{border-left-color:var(--bad)} .ev.ok{border-left-color:var(--ok)}
+
+  .callout{border-radius:12px;padding:14px 16px;margin:14px 0;border:1px solid var(--bd2);background:var(--card2);font-size:14px}
+  .callout.bad{border-color:rgba(239,68,68,.4);background:rgba(239,68,68,.07)}
+  .callout.ok{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.07)}
+  .callout.warn{border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.07)}
+  .callout b{color:var(--ink)}
+
+  /* trees */
+  .tree{font-family:var(--mono);font-size:13px;background:#080b14;border:1px solid var(--bd);border-radius:12px;
+    padding:18px 20px;overflow-x:auto;line-height:1.85;color:var(--sub)}
+  .tree .root{color:var(--ind2);font-weight:800}
+  .tree .grp{color:#f0abfc;font-weight:700}
+  .tree .leaf{color:var(--sub)}
+  .tree .n{color:var(--mut)}
+  .tree .t-ok{color:#5eead4}.tree .t-new{color:#fcd34d}.tree .t-mv{color:#7dd3fc}
+
+  /* flow */
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:16px 0;font-size:13px}
+  .node{background:var(--card);border:1px solid var(--bd2);border-radius:10px;padding:9px 13px;font-weight:600}
+  .node.src{border-color:rgba(56,189,248,.4)} .node.core{border-color:rgba(139,92,246,.5);background:rgba(139,92,246,.1)}
+  .node.bad{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.07)}
+  .node.ok{border-color:rgba(16,185,129,.45);background:rgba(16,185,129,.07)}
+  .arr{color:var(--mut);font-weight:800}
+  .arr.bad{color:var(--bad)}
+
+  ul.clean{list-style:none;padding-left:0}
+  ul.clean li{padding-left:24px;position:relative;margin:9px 0;color:var(--sub)}
+  ul.clean li:before{content:"▸";position:absolute;left:4px;color:var(--ind2)}
+  ul.chk li:before{content:"✓";color:var(--ok)}
+  ul.x li:before{content:"✕";color:var(--bad)}
+
+  .two{grid-template-columns:1fr 1fr}
+  @media(max-width:760px){.two{grid-template-columns:1fr}thead th{position:static}}
+  .sev{font-family:var(--mono);font-weight:800;font-size:11px;padding:2px 7px;border-radius:6px}
+  .s-p0{background:rgba(239,68,68,.2);color:#fca5a5}
+  .s-p1{background:rgba(245,158,11,.2);color:#fcd34d}
+  .s-p2{background:rgba(56,189,248,.16);color:#7dd3fc}
+  footer{padding:40px 0 70px;color:var(--mut);font-size:13px;border-top:1px solid var(--bd)}
+  .anchor{scroll-margin-top:76px}
+  hr.soft{border:none;border-top:1px dashed var(--bd2);margin:26px 0}
+  .tag{font-family:var(--mono);font-size:11px;color:var(--mut)}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="badge"><span class="mark">◆</span> VenQore<span class="muted" style="font-weight:600">· Platform HQ Audit</span></div>
+    <nav class="toc">
+      <a href="#summary">Summary</a>
+      <a href="#d1">Inventory</a>
+      <a href="#d2">Review</a>
+      <a href="#d4">Revenue</a>
+      <a href="#d5">Plans</a>
+      <a href="#d8">Core</a>
+      <a href="#d11">UX Bugs</a>
+      <a href="#d3">New IA</a>
+      <a href="#d12">Blueprint</a>
+      <a href="#launch">Launch List</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <div class="hero anchor" id="top">
+    <div class="kicker">Pre-Launch Architecture &amp; Governance Audit</div>
+    <h1>Platform Owner <span class="grad">Command Center</span><br>Audit &amp; Redesign Blueprint</h1>
+    <p class="lede">A complete, evidence-backed teardown of the VenQore Platform Owner (Super Admin) experience — what works, what is broken, what is missing — and a master plan to rebuild it into a true SaaS mission-control center. Every finding below cites real files, routes, controllers, or components.</p>
+    <div class="meta">
+      <span><b>Stack:</b> Laravel 12 · React 18 · Inertia · MySQL</span>
+      <span><b>Scope:</b> /VenQore · /VenQore-login · Admin + SuperAdmin</span>
+      <span><b>Mode:</b> Audit only — no code changed</span>
+      <span><b>Prepared for:</b> Abdullah Hashmi</span>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h3>⚖️ One-line verdict</h3>
+    <p>The Platform Owner area is <b>visually impressive but structurally fragmented</b>: two competing navigation shells, a 3,100-line dashboard that calculates money <b>in the browser</b>, and a headline "revenue" number that is actually merchant sales volume — <b>including your own store</b>. The good news: most backends (plans, coupons, overrides, demo, tests) genuinely work. This is a <b>consolidation &amp; correctness</b> project, not a rewrite.</p>
+  </div>
+
+  <div class="grid sc" id="summary">
+    <div class="stat anchor"><div class="n" style="color:var(--ok)">~70%</div><div class="l">Backends that work</div></div>
+    <div class="stat"><div class="n" style="color:var(--bad)">1</div><div class="l">Critical money bug</div></div>
+    <div class="stat"><div class="n" style="color:var(--warn)">2</div><div class="l">Competing nav shells</div></div>
+    <div class="stat"><div class="n" style="color:var(--ind2)">3,117</div><div class="l">Lines in Dashboard.jsx</div></div>
+    <div class="stat"><div class="n" style="color:var(--redu)">2×</div><div class="l">Stores &amp; Users duplicated</div></div>
+    <div class="stat"><div class="n" style="color:var(--info)">12</div><div class="l">Deliverables answered</div></div>
+  </div>
+
+  <div class="legend">
+    <span class="pill p-ok"><span class="dot" style="background:var(--ok)"></span>Works</span>
+    <span class="pill p-warn"><span class="dot" style="background:var(--warn)"></span>Partial / Flawed</span>
+    <span class="pill p-bad"><span class="dot" style="background:var(--bad)"></span>Broken / Wrong</span>
+    <span class="pill p-miss"><span class="dot" style="background:var(--miss)"></span>Missing</span>
+    <span class="pill p-redu"><span class="dot" style="background:var(--redu)"></span>Redundant</span>
+    <span class="pill p-info"><span class="dot" style="background:var(--info)"></span>Misplaced</span>
+  </div>
+<!-- ════════════════ D1 ════════════════ -->
+<section class="anchor" id="d1">
+  <div class="sechead"><span class="secno">D1</span><h2>Complete Feature Inventory</h2></div>
+  <p class="sub">Every module in the Platform Owner surface, mapped to <b>where it actually lives</b>, whether the backend/frontend/logic are wired, and a status. The single most important column is <b>“Where”</b> — it exposes the core problem: the area is split across <b>two navigation systems</b> plus several orphan pages.</p>
+
+  <div class="callout warn"><b>The two-shell problem (root cause of “everything is scattered”).</b> The main dashboard <code>resources/js/Pages/SuperAdmin/Dashboard.jsx</code> (3,117 lines) wraps itself in <code>OneGlanceLayout</code> — the <i>store</i> layout — and renders <b>9 internal tabs</b>. But Plans, Platforms, Coupons, Overrides, Stores, Users, Digital, Newsletter render as separate Inertia pages wrapped in a <b>different</b> shell, <code>resources/js/Layouts/SuperAdminLayout.jsx</code>, with its own <b>9 sidebar links</b>. So the owner must remember which of two menus holds each feature, and <b>Stores</b> &amp; <b>Users</b> appear in <i>both</i>.</p></div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Module</th><th>Where it lives</th><th>Backend</th><th>Frontend</th><th>Logic OK?</th><th>Status</th><th>Evidence / Notes</th></tr></thead>
+    <tbody>
+      <tr><td><b>Overview</b></td><td>Dashboard tab <span class="tag">(OneGlanceLayout)</span></td><td>✓</td><td>✓ polished</td><td>⚠</td><td><span class="pill p-warn">Partial</span></td><td>KPI hero + charts. “Platform Volume” card is wrong (see D4). <code>Dashboard.jsx:3019</code></td></tr>
+      <tr><td><b>System Health</b></td><td>Routes <code>platform.health.*</code> → <code>SuperAdmin/Health/*</code> <span class="tag">(not in sidebar)</span></td><td>✓</td><td>✓</td><td>⚠</td><td><span class="pill p-info">Misplaced</span></td><td>Error logs + contacts. Reachable only by URL; no nav entry. <code>SuperAdminController@errorLogs</code></td></tr>
+      <tr><td><b>Plans &amp; Limits</b></td><td>Sidebar → <code>SuperAdmin/Plans/Index</code></td><td>✓ full CRUD</td><td>✓ drawer form</td><td>⚠</td><td><span class="pill p-ok">Works</span></td><td>Create/edit/duplicate/delete all wired. Caveats in D5. <code>PlanController.php</code></td></tr>
+      <tr><td><b>Platforms</b></td><td>Sidebar → <code>SuperAdmin/Platforms</code></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-ok">Works</span></td><td>“Platform” = a product line that owns plans. Hidden dependency for plan creation. <code>PlatformController</code></td></tr>
+      <tr><td><b>Coupons</b></td><td>Sidebar → <code>SuperAdmin/Coupons/Index</code></td><td>✓ create/update + validate</td><td>✓ form</td><td>⚠</td><td><span class="pill p-ok">Works</span></td><td>You <b>can</b> create coupons. No delete; update only toggles a few fields. <code>CouponController.php</code></td></tr>
+      <tr><td><b>Tenant Overrides</b></td><td>Sidebar → <code>SuperAdmin/Tenants</code></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-ok">Works</span></td><td>Per-tenant limit overrides w/ expiry, cached via <code>PlanRepository</code>. Good design.</td></tr>
+      <tr><td><b>Stores</b> (Manage)</td><td>Sidebar → <code>SuperAdmin/Stores</code> <b>AND</b> Dashboard “Stores” tab</td><td>✓</td><td>✓</td><td>⚠</td><td><span class="pill p-redu">Redundant</span></td><td>Two separate UIs for the same thing. Trash/restore/purge live on the page; suspend/activate on the tab.</td></tr>
+      <tr><td><b>Platform Users</b></td><td>Sidebar → <code>SuperAdmin/Users</code> <b>AND</b> Dashboard “Users” tab</td><td>✓</td><td>✓</td><td>⚠</td><td><span class="pill p-redu">Redundant</span></td><td>Same duplication as Stores. <code>SuperAdminController@users</code></td></tr>
+      <tr><td><b>Revenue</b></td><td>Dashboard tab only</td><td>⚠ partial</td><td>✓ elaborate</td><td>✕</td><td><span class="pill p-bad">Broken</span></td><td>Financial math runs <b>in the browser</b>; partner equity stored in <code>localStorage</code>. See D4/D8. <code>Dashboard.jsx:995–1184,1578</code></td></tr>
+      <tr><td><b>Support</b></td><td>Dashboard tab + <code>platform.tickets.*</code> + <code>platform.vena.tickets</code></td><td>✓</td><td>⚠ split</td><td>⚠</td><td><span class="pill p-warn">Partial</span></td><td>Three support surfaces: V1 tickets, Vena chat tickets, Digital-Hub chats. Fragmented.</td></tr>
+      <tr><td><b>Activity Feed</b></td><td>Dashboard tab</td><td>⚠</td><td>✓</td><td>⚠</td><td><span class="pill p-warn">Partial</span></td><td>Feed is hand-built from 2 queries (new + suspended stores) only. Not a real audit log. <code>buildActivityFeed()</code></td></tr>
+      <tr><td><b>Demo Store</b></td><td>Dashboard tab + <code>platform.demo-store.reset</code></td><td>✓</td><td>✓</td><td>⚠</td><td><span class="pill p-warn">Partial</span></td><td>Status analytics + quick reset. No snapshot/restore protecting it across deploys (see D6). <code>DemoStoreController</code></td></tr>
+      <tr><td><b>Agent Inbox</b></td><td>Route <code>platform.chatbot.inbox</code> → <code>Admin/AgentInbox</code> <span class="tag">(not in sidebar)</span></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-info">Misplaced</span></td><td>Live-chat agent console. Rich backend (claim/reply/handoff). No nav entry.</td></tr>
+      <tr><td><b>Chatbot Settings</b></td><td>Route <code>platform.chatbot.settings</code> <span class="tag">(not in sidebar)</span></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-info">Misplaced</span></td><td>Vena AI config. Orphaned from navigation.</td></tr>
+      <tr><td><b>Settings</b></td><td>Dashboard tab</td><td>⚠</td><td>✓</td><td>⚠</td><td><span class="pill p-warn">Partial</span></td><td>Holds PKR/USD conversion rate used only by client-side viz. Not a real platform-settings store. <code>SettingsTab() :2520</code></td></tr>
+      <tr><td><b>System Update</b></td><td>Standalone <code>/updater</code> (UpdaterLock) <span class="tag">(outside platform area)</span></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-info">Misplaced</span></td><td>Incremental migrate (safe). Completely disconnected from Platform HQ nav. <code>UpdaterController</code></td></tr>
+      <tr><td><b>Digital Products</b></td><td>Sidebar → <code>SuperAdmin/DigitalHub</code></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-ok">Works</span></td><td>Etsy partner chats + product registry CRUD. Niche — questionable as a top-level item.</td></tr>
+      <tr><td><b>Newsletter Hub</b></td><td>Sidebar → <code>SuperAdmin/NewsletterHub</code></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-ok">Works</span></td><td>Newsletters + subscriber lists.</td></tr>
+      <tr><td><b>VenSynQ</b></td><td>Dashboard tab + <code>platform.vensynq.toggle</code></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-ok">Works</span></td><td>Global on/off for multichannel sync, persisted to <code>settings</code> (survives deploy). Good pattern.</td></tr>
+      <tr><td><b>AppSumo</b></td><td>Routes hard-disabled</td><td>✓ (code exists)</td><td>✓ (page exists)</td><td>—</td><td><span class="pill p-miss">Disabled</span></td><td>All routes <code>abort(404)</code> behind <code>if(true){…}</code>. Dead-but-present. <code>web.php:382–394</code></td></tr>
+      <tr><td><b>Testing / Smoke</b></td><td><code>platform.smoke-tests.*</code> + <code>SmokeTestRunner.jsx</code></td><td>✓</td><td>✓</td><td>✓</td><td><span class="pill p-warn">Partial</span></td><td>Runs one Pest “Smoke” suite. Foundation for a Testing Center (D7).</td></tr>
+      <tr><td><b>Auth — PIN Login</b></td><td><code>/VenQore-login</code> → <code>PlatformOwner/Login</code></td><td>✓</td><td>⚠</td><td>✕</td><td><span class="pill p-bad">Bug</span></td><td>Physical keyboard dead in PIN mode (D11). <code>Login.jsx:261–271,420–457</code></td></tr>
+      <tr><td>Profile / Security passcodes</td><td><code>platform.set-passcode</code>, <code>set-action-passcode</code></td><td>✓</td><td>⚠</td><td>✓</td><td><span class="pill p-warn">Partial</span></td><td>Backend solid; no dedicated profile page in the platform shell.</td></tr>
+      <tr><td>Global Search</td><td>Header</td><td>—</td><td>per-tab only</td><td>—</td><td><span class="pill p-miss">Missing</span></td><td>No global search. Only in-table “Search stores…”. No cross-module search.</td></tr>
+      <tr><td>Command Palette (⌘K)</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="pill p-miss">Missing</span></td><td>Does not exist. Big opportunity for a power-user cockpit.</td></tr>
+      <tr><td>Notifications center</td><td>Header bell</td><td>⚠</td><td>⚠</td><td>—</td><td><span class="pill p-warn">Partial</span></td><td>Bell pulses on open errors/contacts but isn’t a real notification feed. <code>Dashboard.jsx:393</code></td></tr>
+      <tr><td>Quick Actions</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="pill p-miss">Missing</span></td><td>No global “create plan / extend trial / impersonate” launcher.</td></tr>
+      <tr><td>Theme switching</td><td>Global <code>ThemeContext</code></td><td>—</td><td>⚠</td><td>⚠</td><td><span class="pill p-warn">Partial</span></td><td>Dashboard reads global theme; <code>SuperAdminLayout</code> is hard-coded dark → inconsistent.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="muted" style="font-size:13px">Legend for compact cells: ✓ present/working · ⚠ partial/flawed · ✕ incorrect · — n/a.</p>
+</section>
+
+<!-- ════════════════ D2 ════════════════ -->
+<section class="anchor" id="d2">
+  <div class="sechead"><span class="secno">D2</span><h2>Honest Platform Review</h2></div>
+  <p class="sub">Written as if I were buying this business and reading the codebase before wiring the money. No sugar-coating.</p>
+
+  <div class="grid two cards">
+    <div class="card ok">
+      <h5>✅ What is genuinely excellent</h5>
+      <ul>
+        <li><b>The plan/limit engine.</b> <code>PlanRepository</code> with cache + tenant-override priority is real, well-thought infrastructure.</li>
+        <li><b>Tenant Overrides</b> with expiry dates — proper per-customer flexibility.</li>
+        <li><b>VenSynQ global toggle</b> persists to the <code>settings</code> table, not <code>.env</code> — survives deploys. Correct instinct.</li>
+        <li><b>The visual craft.</b> The login screen and dashboard look like a premium product.</li>
+        <li><b>Updater</b> runs <i>incremental</i> migrations, never <code>migrate:fresh</code> — safe by design.</li>
+      </ul>
+    </div>
+    <div class="card bad">
+      <h5>🛑 What feels unfinished or wrong</h5>
+      <ul>
+        <li><b>Money is computed in the browser.</b> The Revenue tab does MRR/ARR/margin math client-side and stores partner equity in <code>localStorage</code>. Not auditable, not trustworthy.</li>
+        <li><b>“Revenue” is mislabeled volume</b> and includes your own store — the $52k you saw.</li>
+        <li><b>Hard-coded prices</b> in the dashboard ignore the prices you set in Plans.</li>
+        <li><b>Dead code shipped:</b> AppSumo routes <code>abort(404)</code>; an open <code>/VenQore/run-migrations</code> GET that runs migrations from a browser.</li>
+      </ul>
+    </div>
+    <div class="card warn">
+      <h5>🧭 What feels confusing</h5>
+      <ul>
+        <li><b>Two navigation systems.</b> Tabs vs sidebar; you can’t form a mental map.</li>
+        <li><b>Stores &amp; Users exist twice</b> with different actions in each copy.</li>
+        <li><b>Orphan pages</b> (Health, Agent Inbox, Chatbot Settings, Updater) reachable only by URL.</li>
+        <li><b>Three support inboxes</b> (V1 tickets, Vena tickets, Digital-Hub chats).</li>
+      </ul>
+    </div>
+    <div class="card info">
+      <h5>🔧 What I’d merge / split / delete</h5>
+      <ul>
+        <li><b>Merge</b> the dashboard tabs and sidebar into one shell.</li>
+        <li><b>Merge</b> the 3 support surfaces into one Inbox.</li>
+        <li><b>Split</b> the 3,117-line <code>Dashboard.jsx</code> into per-route pages.</li>
+        <li><b>Delete</b> AppSumo dead routes &amp; the browser migration endpoints, or gate them properly.</li>
+        <li><b>Promote</b> Health, Testing, Updater, Demo into a real <b>Operations</b> group.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout"><b>Performance smell.</b> The dashboard does <code>Tenant::withTrashed()->get()</code> and then filters/sums in PHP collections (<code>SuperAdminController@dashboard:35–48</code>). At a few hundred tenants it’s fine; at scale it loads every tenant into memory on each page view. Move aggregates to SQL.</div>
+</section>
+
+<!-- ════════════════ D4 ════════════════ -->
+<section class="anchor" id="d4">
+  <div class="sechead"><span class="secno">D4</span><h2>Revenue Audit — the $52k Problem</h2></div>
+  <p class="sub">You were right. Two separate defects combine: (1) the headline number is <b>merchant sales volume, not platform revenue</b>, and (2) <b>nothing excludes your own / internal stores</b>. Here is the exact chain.</p>
+
+  <div class="flow">
+    <span class="node src">sales table (all merchants)</span>
+    <span class="arr bad">──▶</span>
+    <span class="node bad">SUM(sales.total) where is_demo=false</span>
+    <span class="arr bad">──▶</span>
+    <span class="node bad">stats.total_volume</span>
+    <span class="arr bad">──▶</span>
+    <span class="node bad">“Platform Volume” $52k</span>
+  </div>
+
+  <h4>Defect 1 — “Revenue/Volume” is the sum of merchants’ own sales</h4>
+  <p>The big money card on the Overview is <code>total_volume</code>, which sums every sale row across all non-demo tenants. That is <b>GMV</b> (what your customers sell to <i>their</i> customers) — money that never reaches VenQore. Your personal store is a normal <code>is_demo=false</code> tenant, so its sales are counted too.</p>
+  <div class="ev bad">
+    <div class="hd"><span>app/Http/Controllers/Admin/<b>SuperAdminController.php</b></span><span>lines 43–48</span></div>
+<pre><span class="c">// Volume (Real-only)</span>
+$volQuery = DB::table(<span class="s">'sales'</span>)
+    ->join(<span class="s">'tenants'</span>, <span class="s">'sales.tenant_id'</span>, <span class="s">'='</span>, <span class="s">'tenants.id'</span>)
+    ->where(<span class="s">'tenants.is_demo'</span>, <span class="k">false</span>)        <span class="r">// ← only filter is is_demo</span>
+    ->whereNull(<span class="s">'sales.deleted_at'</span>);
+$totalVolume = (<span class="k">float</span>)$volQuery->sum(<span class="s">'sales.total'</span>);  <span class="r">// ← GMV, includes YOUR store</span></pre>
+  </div>
+  <div class="ev bad">
+    <div class="hd"><span>resources/js/Pages/SuperAdmin/<b>Dashboard.jsx</b> — the card</span><span>lines 3019–3021</span></div>
+<pre>&lt;p&gt;<span class="s">Platform Volume</span>&lt;/p&gt;
+{formatCurrency(safeStats.<span class="r">total_volume</span>)}   <span class="r">// the ~$52,000 you saw</span></pre>
+  </div>
+
+  <h4>Defect 2 — MRR uses hard-coded prices &amp; counts any “active” store</h4>
+  <p>Real platform revenue should be subscription income. Instead MRR is a hard-coded lookup, disconnected from the Plans you configure, and it counts <b>every</b> store whose status is <code>active</code> — including your own and any you flipped to active by hand — with no proof a payment was received.</p>
+  <div class="ev bad">
+    <div class="hd"><span>SuperAdminController.php</span><span>lines 39–40</span></div>
+<pre>$planPrices = [<span class="s">'starter'</span>=&gt;19, <span class="s">'growth'</span>=&gt;39, <span class="s">'business'</span>=&gt;79, <span class="s">'ltd'</span>=&gt;0];  <span class="r">// hard-coded</span>
+$mrr = $realTenants-&gt;where(<span class="s">'status'</span>,<span class="s">'active'</span>)-&gt;sum(fn($t)=&gt;$planPrices[$t-&gt;plan] ?? 0);</pre>
+  </div>
+  <div class="callout bad"><b>Three sources of truth for one price.</b> The <code>plans</code> table (with <code>price_monthly</code>, <code>price_monthly_pkr</code>…), <code>config/plans.php</code> (a fallback in <code>PlanRepository</code>), and this hard-coded array all disagree. Editing a price in the Plans UI changes <i>none</i> of the dashboard numbers — which is exactly why plan editing “feels” like it does nothing.</div>
+
+  <h4>Defect 3 — Financial truth lives in the browser (and in localStorage)</h4>
+  <p>The Revenue tab recomputes gross/net MRR, fees, expenses, ARR and margins on the client, then models <b>partner equity drawings in <code>localStorage</code></b>. This is not a system of record — clearing browser storage erases it, and no two people see the same numbers.</p>
+  <div class="ev bad">
+    <div class="hd"><span>Dashboard.jsx — RevenueTab</span><span>lines 1121–1184, 1578</span></div>
+<pre><span class="c">// client-side P&amp;L math</span>
+const netMrrPkr = afterFeesGrandPkr - totalVarExpensesPkr - fixedPkrTotal;
+const marginPercent = totalGrossPkr &gt; 0 ? (netMrrPkr/totalGrossPkr)*100 : 0;
+<span class="c">// “Private client-side ledger … drawings reside strictly in localStorage.”  ← line 1578</span></pre>
+  </div>
+
+  <h4>Defect 4 — There is no concept of an “internal” store to exclude</h4>
+  <p>The only exclusion anywhere is <code>is_demo</code>. The <code>Tenant</code> model (<code>fillable</code>, lines 39–87) has <b>no</b> <code>is_internal</code> / <code>is_sandbox</code> / owner flag. Interestingly, the <i>user</i> count already excludes internal demo emails (<code>where email not like '%@venqore-demo.internal'</code>, line 122) — but revenue/volume never got the same treatment.</p>
+
+  <h3 class="blk">What “real revenue” should mean</h3>
+  <div class="grid two">
+    <div class="card ok"><h5>✓ Count as revenue</h5><ul class="clean chk">
+      <li>Actual subscription <b>payments received</b> (LemonSqueezy / gateway records), net of refunds &amp; coupon discounts</li>
+      <li>Lifetime (LTD) deals actually paid, recognized appropriately</li>
+      <li>Priced from the <code>plans</code> table (USD <i>and</i> PKR), via one server service</li>
+    </ul></div>
+    <div class="card bad"><h5>✕ Exclude always</h5><ul class="clean x">
+      <li>Platform-owner &amp; internal stores (needs a new <code>is_internal</code> flag)</li>
+      <li>Demo / golden-master / sandbox tenants</li>
+      <li>Test / comp / manually-activated subscriptions with no payment</li>
+      <li>Merchant GMV (show it, but label it “Platform GMV”, never “Revenue”)</li>
+    </ul></div>
+  </div>
+  <div class="callout ok"><b>Fix in one sentence:</b> add an <code>is_internal</code> tenant flag, move all money math into a server-side <code>PlatformRevenueService</code> that reads the <code>plans</code> table and real payment records, and split the UI into two clearly-labelled numbers — <b>“MRR / Revenue (paid)”</b> and <b>“Platform GMV (merchant volume)”</b>.</div>
+</section>
+
+<!-- ════════════════ D5 ════════════════ -->
+<section class="anchor" id="d5">
+  <div class="sechead"><span class="secno">D5</span><h2>Subscription &amp; Plan Management Audit</h2></div>
+  <p class="sub">Good news up front: <b>plan and coupon CRUD genuinely work</b> — contrary to the feeling that they don’t. The “it doesn’t work” perception comes from a hidden dependency (a <b>Platform</b> must exist first) and from the dashboard ignoring the prices you set. Here is the exact capability matrix.</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Capability</th><th>State</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>Create plans</td><td><span class="pill p-ok">Works*</span></td><td><code>PlanController@store</code> + drawer <code>Plans/Index.jsx:693</code>. *Requires a Platform to exist (<code>platform_id</code> is required).</td></tr>
+      <tr><td>Edit plans</td><td><span class="pill p-ok">Works</span></td><td><code>@update</code> + <code>Index.jsx:691</code>. Limits upserted live; cache invalidated.</td></tr>
+      <tr><td>Delete plans</td><td><span class="pill p-warn">Guarded</span></td><td><code>@destroy</code> blocks delete if any tenant is on the plan (good safety).</td></tr>
+      <tr><td>Duplicate plans</td><td><span class="pill p-ok">Works</span></td><td><code>@duplicate</code> clones limits+features, starts inactive.</td></tr>
+      <tr><td>Archive plans</td><td><span class="pill p-warn">No true archive</span></td><td>Only <code>is_active</code>/<code>is_visible</code> toggles. No archived state/soft-delete.</td></tr>
+      <tr><td>Lifetime (LTD) plans</td><td><span class="pill p-warn">Partial</span></td><td><code>price_lifetime</code> + type <code>ltd</code> exist, but <code>store/update</code> never set the <code>is_ltd</code> flag → LTD plans aren’t counted as LTD on the dashboard.</td></tr>
+      <tr><td>Trial period config</td><td><span class="pill p-bad">Gap</span></td><td><code>trial_days</code> is in the model but <b>not</b> in <code>store/update</code> validation → not editable from the form.</td></tr>
+      <tr><td>Grace period</td><td><span class="pill p-warn">Backend only</span></td><td>Tenant has <code>grace_ends_at</code>/<code>limit_grace_ends_at</code>; no platform UI to configure policy.</td></tr>
+      <tr><td>Billing intervals</td><td><span class="pill p-ok">Works</span></td><td>Monthly / annual / lifetime price fields all present.</td></tr>
+      <tr><td>Currencies / regional (PKR)</td><td><span class="pill p-ok">Schema ✓</span></td><td><code>price_*_pkr</code> + <code>checkout_url_pkr</code> on every plan. Region resolved by <code>GeoPricingService</code>.</td></tr>
+      <tr><td>Regional <i>verification</i></td><td><span class="pill p-bad">Abusable</span></td><td>PKR pricing is granted purely by IP/Cloudflare header, with a <code>geo_country_override</code> session switch — trivially gamed by VPN. See proposal below + D12.</td></tr>
+      <tr><td>Feature access / limits</td><td><span class="pill p-ok">Works</span></td><td>Per-plan limits + features, plus a bulk feature-matrix editor (<code>@bulkUpdate</code>).</td></tr>
+      <tr><td>Storage / users / stores / txns limits</td><td><span class="pill p-ok">Works</span></td><td>Generic key/value limits via <code>plan_limits</code> (reset period supported).</td></tr>
+      <tr><td>Coupons / promotions / discounts</td><td><span class="pill p-ok">Works</span></td><td><code>CouponController@store</code>: %/fixed, scope, plan restrictions, usage caps, validity window. No delete; <code>@update</code> edits only a few fields.</td></tr>
+      <tr><td>AppSumo plans</td><td><span class="pill p-miss">Disabled</span></td><td>Generator/import/export coded but routes <code>abort(404)</code>.</td></tr>
+      <tr><td>Marketplace (future) plans</td><td><span class="pill p-info">Modelled</span></td><td>The “Platform” concept already supports multiple product lines — a good base.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="callout warn"><b>Why “I can’t create plans” feels true even though the code works:</b> ① The drawer defaults <code>platform_id</code> to <code>platforms[0]</code>; if you have <b>no Platform</b>, creation 422s silently. ② Validation errors aren’t surfaced prominently. ③ Even after you save a price, the dashboard shows hard-coded numbers (D4), so it looks like nothing happened.</div>
+
+  <h3 class="blk">🇵🇰 Proposal: verified Pakistan pricing (one account per ID card)</h3>
+  <p>Today, anyone abroad can claim PKR pricing by switching region. To gate the discount safely, add a verification step when a Pakistani customer selects the PKR plan — designed, not yet built:</p>
+  <div class="tree">
+<span class="root">PKR Plan Selected</span>
+│
+├─ <span class="grp">Step 1 · Identity capture</span>
+│   ├─ <span class="leaf">CNIC number (13-digit, checksum-validated)</span>
+│   ├─ <span class="leaf">Phone (+92, OTP-verified via SMS)</span>
+│   └─ <span class="leaf">Upload: front + back of CNIC (image)</span>
+│
+├─ <span class="grp">Step 2 · Uniqueness rule</span>
+│   └─ <span class="leaf">1 CNIC → 1 account  (unique index on cnic_hash)</span>
+│
+├─ <span class="grp">Step 3 · Review queue</span>  <span class="n">(Platform → Operations → Verifications)</span>
+│   ├─ <span class="t-new">pending</span> → owner/admin approves or rejects
+│   └─ optional auto-OCR pre-check on the card image
+│
+└─ <span class="grp">Step 4 · Entitlement</span>
+    └─ <span class="t-ok">verified=true → PKR checkout unlocked; else USD only</span>
+</pre>
+  </div>
+  <p class="muted" style="font-size:13px">Storage: a <code>pk_verifications</code> table (tenant_id, cnic_hash, phone, image paths, status, reviewed_by). Show clear copy: “One account may be created per CNIC.” Keep raw images in private storage; store only a hash of the CNIC for the uniqueness check. Full placement in D12.</p>
+</section>
+
+<!-- ════════════════ D8 ════════════════ -->
+<section class="anchor" id="d8">
+  <div class="sechead"><span class="secno">D8</span><h2>Core Architecture Validation</h2></div>
+  <p class="sub">Your stated principle: <i>every business event flows through the Core, and reports read back from the Core.</i> On the store side this largely holds (Services + double-entry <code>JournalEntry</code>). On the <b>Platform Owner</b> side it is routinely bypassed.</p>
+
+  <h4>Current reality — the dashboard goes around the Core</h4>
+  <div class="flow">
+    <span class="node bad">Dashboard</span><span class="arr bad">──▶</span>
+    <span class="node src">raw <code>sales</code> table</span>
+    <span class="arr">＋</span>
+    <span class="node bad">hard-coded price array</span>
+    <span class="arr">＋</span>
+    <span class="node bad">browser math + localStorage</span>
+    <span class="arr bad">──▶</span><span class="node bad">numbers nobody can reconcile</span>
+  </div>
+
+  <h4>Target — one Core, many read-only consumers</h4>
+  <div class="flow">
+    <span class="node src">Events (sales, subs, payments)</span>
+    <span class="arr ">──▶</span>
+    <span class="node core">THE CORE<br><span class="tag">Services · Ledger · PlanRepository · RevenueService</span></span>
+    <span class="arr ">──▶</span>
+    <span class="node ok">Store reports</span>
+    <span class="node ok">Platform dashboard</span>
+    <span class="node ok">Exports / API</span>
+  </div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Bypass found</th><th>Where</th><th>Should instead…</th></tr></thead>
+    <tbody>
+      <tr><td>MRR from hard-coded prices</td><td><code>SuperAdminController:39–40</code></td><td>Read <code>plans</code> via a <code>PlanPricing</code>/<code>RevenueService</code></td></tr>
+      <tr><td>Volume by direct <code>SUM(sales.total)</code></td><td><code>SuperAdminController:43–48</code></td><td>Go through a metrics service that knows internal-store exclusions</td></tr>
+      <tr><td>Client-side P&amp;L &amp; equity</td><td><code>Dashboard.jsx:1121–1184,1578</code></td><td>Compute server-side; persist equity in a table, not <code>localStorage</code></td></tr>
+      <tr><td>Limit source duplicated</td><td><code>PlanRepository</code> + <code>config/plans.php</code> fallback</td><td>One canonical source (DB); config only for first-boot seed</td></tr>
+      <tr><td>Plan price vs dashboard price mismatch</td><td>Plans UI vs <code>planPrices[]</code></td><td>Single price resolver used by both</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="callout ok"><b>Consolidation play:</b> introduce <code>App\Services\Platform\PlatformMetricsService</code> + <code>PlatformRevenueService</code> as the only place that produces owner KPIs (MRR, ARR, GMV, churn, plan distribution). Controllers and the dashboard become thin consumers. This is the same pattern your store side already uses with <code>LedgerService</code>/<code>FinancialReportingService</code> — just apply it to the platform layer.</div>
+</section>
+
+<!-- ════════════════ D6 ════════════════ -->
+<section class="anchor" id="d6">
+  <div class="sechead"><span class="secno">D6</span><h2>Platform Operations Center (design)</h2></div>
+  <p class="sub">Everything operational is currently scattered across tabs, orphan routes, and a standalone updater. Consolidate into one <b>Operations</b> group with sub-sections. Below: where each piece lives today → where it should go.</p>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Capability</th><th>Today</th><th>Status</th><th>New home: <b>Operations →</b></th></tr></thead>
+    <tbody>
+      <tr><td>Demo store status + reset</td><td>Dashboard “Demo” tab</td><td><span class="pill p-ok">Works</span></td><td>Demo &amp; Sandbox</td></tr>
+      <tr><td>Demo persistence across deploys</td><td>—</td><td><span class="pill p-miss">Missing</span></td><td>Demo &amp; Sandbox → snapshot/restore</td></tr>
+      <tr><td>Live chat / Agent inbox</td><td>Orphan route</td><td><span class="pill p-info">Misplaced</span></td><td>Support &amp; Comms</td></tr>
+      <tr><td>AI agent (Vena) settings</td><td>Orphan route</td><td><span class="pill p-info">Misplaced</span></td><td>Support &amp; Comms</td></tr>
+      <tr><td>Support tickets (V1 + Vena)</td><td>Tab + routes</td><td><span class="pill p-warn">Split×3</span></td><td>Support &amp; Comms → unified Inbox</td></tr>
+      <tr><td>Feature flags (per store)</td><td><code>store.feature-flag</code> route</td><td><span class="pill p-warn">No UI hub</span></td><td>Control → Feature Flags</td></tr>
+      <tr><td>Broadcast / email campaigns / newsletter</td><td>Sidebar “Newsletter”</td><td><span class="pill p-ok">Works</span></td><td>Support &amp; Comms → Broadcasts</td></tr>
+      <tr><td>Queues / workers / scheduled jobs</td><td>Horizon (separate)</td><td><span class="pill p-warn">Outside</span></td><td>System → Jobs &amp; Queues</td></tr>
+      <tr><td>Webhooks log</td><td><code>platform.webhooks</code></td><td><span class="pill p-ok">Works</span></td><td>System → Integrations</td></tr>
+      <tr><td>Health / error logs / contacts</td><td>Orphan routes</td><td><span class="pill p-info">Misplaced</span></td><td>System → Health</td></tr>
+      <tr><td>Storage usage</td><td>—</td><td><span class="pill p-miss">Missing</span></td><td>System → Storage</td></tr>
+      <tr><td>Deployment / version / update</td><td>Standalone <code>/updater</code></td><td><span class="pill p-info">Disconnected</span></td><td>System → Updates &amp; Version</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ════════════════ D7 ════════════════ -->
+<section class="anchor" id="d7">
+  <div class="sechead"><span class="secno">D7</span><h2>Automated Testing Center (design)</h2></div>
+  <p class="sub">A real foundation already exists: <code>SmokeTestController</code> spawns Pest’s <b>Smoke</b> suite and streams output to <code>SmokeTestRunner.jsx</code>. The job is to grow it from one suite into a <b>one-click platform health board</b> with categories.</p>
+  <div class="grid two">
+    <div class="card ok"><h5>✓ Already there</h5><ul class="clean chk">
+      <li>Background runner + live polling (no SSE needed)</li>
+      <li>Cross-OS PHP binary resolution</li>
+      <li>Read-only smoke tests against <code>venqore_pos</code> (never <code>RefreshDatabase</code>)</li>
+    </ul></div>
+    <div class="card warn"><h5>＋ To add (grouped suites)</h5><ul class="clean">
+      <li>Financial integrity · ledger balances · FIFO</li>
+      <li>Multi-tenant isolation (no cross-tenant leakage)</li>
+      <li>Subscription / billing / coupon redemption</li>
+      <li>Permissions · auth · PIN login</li>
+      <li>Queues · email · notifications · webhooks</li>
+      <li>Backup/restore · performance · security scan</li>
+    </ul></div>
+  </div>
+  <div class="tree">
+<span class="root">Testing Center</span>  <span class="n">— one button: “Run full health check”</span>
+├─ <span class="grp">Financial Integrity</span>     <span class="t-ok">●</span> ledger, FIFO, journal balance
+├─ <span class="grp">Tenant Isolation</span>       <span class="t-new">○</span> to build
+├─ <span class="grp">Billing &amp; Coupons</span>      <span class="t-new">○</span> to build
+├─ <span class="grp">Auth &amp; Permissions</span>     <span class="t-new">○</span> to build
+├─ <span class="grp">Infra (queue/mail/webhook)</span> <span class="t-new">○</span> to build
+└─ <span class="grp">Smoke (live, read-only)</span>  <span class="t-ok">●</span> exists today
+</pre>
+  <p class="muted" style="font-size:13px">Each category = a Pest test-suite tag; the board shows pass/fail per category with the streamed log, and a single aggregate “healthy / not healthy” banner.</p>
+</section>
+
+<!-- ════════════════ D10 ════════════════ -->
+<section class="anchor" id="d10">
+  <div class="sechead"><span class="secno">D10</span><h2>Bug &amp; Logic Audit</h2></div>
+  <p class="sub">Beyond obvious bugs: mathematical, workflow, validation, and dead-code issues. Severity: <span class="sev s-p0">P0</span> launch-blocker · <span class="sev s-p1">P1</span> fix soon · <span class="sev s-p2">P2</span> polish.</p>
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Issue</th><th>Sev</th><th>Location / evidence</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>“Platform Volume / Revenue” counts merchant GMV incl. owner’s own store</td><td><span class="sev s-p0">P0</span></td><td><code>SuperAdminController:43–48</code> · <code>Dashboard.jsx:3019</code></td></tr>
+      <tr><td>2</td><td>MRR from hard-coded prices, ignores Plans table &amp; PKR</td><td><span class="sev s-p0">P0</span></td><td><code>SuperAdminController:39–40</code></td></tr>
+      <tr><td>3</td><td>Financial P&amp;L computed client-side; partner equity in <code>localStorage</code></td><td><span class="sev s-p0">P0</span></td><td><code>Dashboard.jsx:1121–1184,1578</code></td></tr>
+      <tr><td>4</td><td>No <code>is_internal</code> flag → impossible to exclude internal/test stores</td><td><span class="sev s-p0">P0</span></td><td><code>Tenant.php fillable :39–87</code></td></tr>
+      <tr><td>5</td><td>Open browser route runs DB migrations on GET</td><td><span class="sev s-p1">P1</span></td><td><code>web.php:359–362</code> <code>/VenQore/run-migrations</code></td></tr>
+      <tr><td>6</td><td><code>extendTrial</code> forces <code>status='trial'</code> — can downgrade an active paid store</td><td><span class="sev s-p1">P1</span></td><td><code>SuperAdminController:386–396</code></td></tr>
+      <tr><td>7</td><td>Plan <code>store/update</code> never persist <code>is_ltd</code> / <code>trial_days</code></td><td><span class="sev s-p1">P1</span></td><td><code>PlanController:34–137</code></td></tr>
+      <tr><td>8</td><td><code>total_stores</code> built from <code>withTrashed()</code> set → counts deleted stores</td><td><span class="sev s-p2">P2</span></td><td><code>SuperAdminController:35–36,110</code></td></tr>
+      <tr><td>9</td><td>Error “auto-fix” detection by file mtime &gt; last_seen — false resolutions</td><td><span class="sev s-p2">P2</span></td><td><code>SuperAdminController@detectFixes:544–574</code></td></tr>
+      <tr><td>10</td><td>Coupon <code>update</code> can’t change code/type/value (only toggle &amp; dates)</td><td><span class="sev s-p2">P2</span></td><td><code>CouponController:56–68</code></td></tr>
+      <tr><td>11</td><td>AppSumo: full feature shipped but every route <code>abort(404)</code></td><td><span class="sev s-p2">P2</span></td><td><code>web.php:382–394</code></td></tr>
+      <tr><td>12</td><td>Activity Feed is 2 hand-built queries, not a real audit trail</td><td><span class="sev s-p2">P2</span></td><td><code>buildActivityFeed:161–188</code></td></tr>
+      <tr><td>13</td><td>Permanent delete relies on catching FK error code 23000 (fragile)</td><td><span class="sev s-p2">P2</span></td><td><code>purgeStore/purgeUser</code></td></tr>
+      <tr><td>14</td><td>Browser migration route declared <b>twice</b> — duplicate <code>/run-migrations</code> definitions (route-table smell + double exposure)</td><td><span class="sev s-p1">P1</span></td><td><code>web.php:359</code> &amp; <code>:562</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ════════════════ D11 ════════════════ -->
+<section class="anchor" id="d11">
+  <div class="sechead"><span class="secno">D11</span><h2>Small-but-Premium UX Issues</h2></div>
+  <p class="sub">You flagged the PIN keyboard — confirmed exactly, plus the sibling issues that separate “premium” from “prototype”.</p>
+
+  <div class="callout bad"><b>★ Your example, verified — <code>/VenQore-login</code> PIN keyboard is dead.</b> When a PIN is set the page opens in PIN mode (<code>Login.jsx:219</code>). In PIN mode digits come only from on-screen buttons calling <code>handlePinKey()</code> (<code>:261</code>); there is <b>no keydown listener and no input field</b>, so physical number keys, Backspace and Enter do nothing. The same product already solves this elsewhere — <code>PasscodeModal.jsx:21–51</code> and <code>SecurityPinModal.jsx:32–51</code> attach <code>window.addEventListener('keydown', …)</code>. Port that handler to the login PIN (digits → <code>handlePinKey</code>, Backspace → <code>'del'</code>, Enter → <code>submitPin</code>) + autofocus.</div>
+
+  <div class="tbl-wrap">
+  <table>
+    <thead><tr><th>Issue</th><th>Status</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Keyboard PIN entry on platform login</td><td><span class="pill p-bad">Broken</span></td><td><code>PlatformOwner/Login.jsx</code> (PIN mode)</td></tr>
+      <tr><td>Enter-to-submit on PIN</td><td><span class="pill p-bad">Missing</span></td><td>Same — comment at <code>:268</code> implies it should exist</td></tr>
+      <tr><td>Autofocus on PIN field</td><td><span class="pill p-bad">Missing</span></td><td>Only email autofocuses (<code>:234,240</code>)</td></tr>
+      <tr><td>Keyboard works in the <i>other</i> PIN dialogs</td><td><span class="pill p-ok">Good</span></td><td>Pattern to copy: <code>PasscodeModal</code>, <code>SecurityPinModal</code></td></tr>
+      <tr><td>Global search</td><td><span class="pill p-miss">Missing</span></td><td>Only per-table search exists</td></tr>
+      <tr><td>Command palette (⌘K)</td><td><span class="pill p-miss">Missing</span></td><td>—</td></tr>
+      <tr><td>Quick actions launcher</td><td><span class="pill p-miss">Missing</span></td><td>—</td></tr>
+      <tr><td>Notifications = real feed</td><td><span class="pill p-warn">Partial</span></td><td>Bell only pulses on counts (<code>Dashboard.jsx:393</code>)</td></tr>
+      <tr><td>Theme consistency</td><td><span class="pill p-warn">Inconsistent</span></td><td><code>SuperAdminLayout</code> hard-dark vs global <code>ThemeContext</code></td></tr>
+      <tr><td>Destructive confirms use native <code>confirm()</code></td><td><span class="pill p-warn">Cheap</span></td><td>e.g. impersonate (<code>Dashboard.jsx</code> handler)</td></tr>
+      <tr><td>Validation errors not surfaced on create drawers</td><td><span class="pill p-warn">Weak</span></td><td>Plans/Coupons forms 422 silently if deps missing</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<!-- ════════════════ D9 ════════════════ -->
+<section class="anchor" id="d9">
+  <div class="sechead"><span class="secno">D9</span><h2>UI / UX Redesign Direction</h2></div>
+  <p class="sub">The visual language is already strong; the problem is structure and consistency. Targets:</p>
+  <div class="grid two cards">
+    <div class="card"><h5>🧱 Shell &amp; navigation</h5><ul class="clean">
+      <li>One shell for the whole area (kill the tab-vs-sidebar split)</li>
+      <li>Collapsible grouped sidebar (Overview · Customers · Monetization · Operations · System)</li>
+      <li>Global header: search + ⌘K palette + real notifications + theme toggle</li>
+    </ul></div>
+    <div class="card"><h5>📊 Data &amp; KPIs</h5><ul class="clean">
+      <li>Two distinct money tiles: <b>Revenue (paid)</b> vs <b>GMV (merchant)</b></li>
+      <li>Every KPI shows period + trend + “excludes internal” footnote</li>
+      <li>Charts read from the metrics service, not client math</li>
+    </ul></div>
+    <div class="card"><h5>🧩 Components</h5><ul class="clean">
+      <li>One reusable DataTable (filters, search, pagination, bulk, empty/loading)</li>
+      <li>Consistent drawer pattern for create/edit with visible validation</li>
+      <li>Skeleton loaders; branded empty states with a primary action</li>
+    </ul></div>
+    <div class="card"><h5>♿ Polish &amp; a11y</h5><ul class="clean">
+      <li>Keyboard everywhere (PIN, Enter-submit, Esc-close, tab order, autofocus)</li>
+      <li>Custom confirm modals for destructive actions</li>
+      <li>Focus rings, ARIA labels, 4.5:1 contrast, responsive ≤ tablet</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ════════════════ D3 ════════════════ -->
+<section class="anchor" id="d3">
+  <div class="sechead"><span class="secno">D3</span><h2>New Information Architecture</h2></div>
+  <p class="sub">One shell, five intent-based groups. Each leaf marked <span class="t-ok">●existing</span> · <span class="t-mv">▸moved/merged</span> · <span class="t-new">＋new</span>. This is the menu you’d actually run the company from.</p>
+  <div class="tree">
+<span class="root">VENQORE · Command Center</span>
+│
+├─ ◎ <span class="grp">Overview</span>                         <span class="t-ok">●</span> KPIs (Revenue vs GMV), trends, alerts, quick actions
+│
+├─ 👥 <span class="grp">Customers</span>
+│   ├─ Stores                            <span class="t-mv">▸</span> merge the 2 duplicate store screens
+│   ├─ Platform Users                    <span class="t-mv">▸</span> merge the 2 duplicate user screens
+│   ├─ Tenant Overrides                  <span class="t-ok">●</span>
+│   ├─ Impersonation                     <span class="t-ok">●</span> + an audit log
+│   └─ 🇵🇰 PK Verifications               <span class="t-new">＋</span> CNIC review queue
+│
+├─ 💳 <span class="grp">Monetization</span>
+│   ├─ Platforms (product lines)         <span class="t-ok">●</span>
+│   ├─ Plans &amp; Limits                    <span class="t-ok">●</span> + trial_days, is_ltd, archive
+│   ├─ Coupons &amp; Promotions             <span class="t-ok">●</span> + full edit + delete
+│   ├─ Revenue (paid)                    <span class="t-mv">▸</span> server-side, internal excluded
+│   ├─ GMV / Merchant Volume             <span class="t-new">＋</span> clearly separated from revenue
+│   └─ AppSumo / LTD codes               <span class="t-mv">▸</span> re-enable or remove the dead routes
+│
+├─ 🛠 <span class="grp">Operations</span>
+│   ├─ Support Inbox                     <span class="t-mv">▸</span> merge V1 + Vena + Digital-Hub chats
+│   ├─ Live Chat / Agent Inbox           <span class="t-mv">▸</span> from orphan route
+│   ├─ Chatbot (Vena) Settings          <span class="t-mv">▸</span> from orphan route
+│   ├─ Demo &amp; Sandbox                    <span class="t-ok">●</span> + snapshot/restore
+│   ├─ Broadcasts / Newsletter          <span class="t-ok">●</span>
+│   └─ Digital Products                  <span class="t-ok">●</span>
+│
+├─ ⚙ <span class="grp">System</span>
+│   ├─ Health &amp; Errors                   <span class="t-mv">▸</span> from orphan route
+│   ├─ Testing Center                    <span class="t-mv">▸</span> grow smoke runner into categories
+│   ├─ Jobs &amp; Queues (Horizon)          <span class="t-mv">▸</span> embed
+│   ├─ Webhooks &amp; Integrations          <span class="t-ok">●</span>
+│   ├─ Storage                           <span class="t-new">＋</span>
+│   ├─ Feature Flags                     <span class="t-mv">▸</span> give the existing route a hub
+│   ├─ Updates &amp; Version                <span class="t-mv">▸</span> bring /updater inside
+│   └─ Platform Settings                 <span class="t-mv">▸</span> real settings store
+│
+└─ 🔐 <span class="grp">Profile &amp; Security</span>             <span class="t-ok">●</span> password, login PIN, action passcode
+</pre>
+  <div class="grid two">
+    <div class="card"><h5>🧭 Navigation flow</h5><ul class="clean">
+      <li><b>Find anything in ≤2 clicks:</b> group → item. ⌘K palette jumps anywhere instantly.</li>
+      <li><b>Cross-links:</b> a Store detail links to its Overrides, Revenue, Tickets, Impersonate.</li>
+      <li><b>One shell:</b> no more “is it a tab or a sidebar page?”.</li>
+    </ul></div>
+    <div class="card"><h5>🚶 Key journeys</h5><ul class="clean">
+      <li><b>Launch a price change:</b> Monetization → Plans → edit → reflected in Revenue instantly.</li>
+      <li><b>Help a customer:</b> Customers → Store → Override/Impersonate/Reply, all in context.</li>
+      <li><b>Pre-deploy check:</b> System → Testing → “Run full health check” → green = ship.</li>
+    </ul></div>
+  </div>
+</section>
+
+<!-- ════════════════ D12 ════════════════ -->
+<section class="anchor" id="d12">
+  <div class="sechead"><span class="secno">D12</span><h2>Master Blueprint</h2></div>
+  <p class="sub">The layered target architecture. Everything the owner touches reads from one Core; the UI is one shell over intent groups.</p>
+
+  <h4>Architecture stack</h4>
+  <div class="tree">
+<span class="grp">PRESENTATION</span>   One shell · grouped sidebar · ⌘K · global search · real notifications · theme
+      │  (thin pages — no business math in the browser)
+      ▼
+<span class="grp">SERVICES / THE CORE</span>
+      PlatformMetricsService · PlatformRevenueService · PlanRepository
+      LedgerService · FinancialReportingService · SubscriptionService
+      │  (single source of truth; internal-store rules live here)
+      ▼
+<span class="grp">DATA</span>          plans · plan_limits · tenant_plan_overrides · payments/subscriptions
+      tenants(+ <span class="t-new">is_internal</span>) · sales(GMV) · pk_verifications(<span class="t-new">new</span>) · settings
+</pre>
+
+  <div class="grid two">
+    <div class="card"><h5>🏛 Governance model</h5>
+      <p class="muted" style="font-size:13px;margin:0 0 6px">Today: a single <code>is_platform_admin</code> boolean (+ unused <code>platform_role</code>). Recommend tiers:</p>
+      <div class="tree" style="font-size:12px;padding:12px 14px">
+<span class="grp">Owner</span>       full: money, plans, delete, settings, equity
+<span class="grp">Admin</span>       stores, users, support, overrides (no money/settings)
+<span class="grp">Support</span>     inbox, impersonate (audited), read-only KPIs
+</pre>
+    </div>
+    <div class="card"><h5>💰 Revenue architecture</h5><ul class="clean">
+      <li>Revenue = paid subscriptions/LTD from payment records</li>
+      <li>Priced from <code>plans</code> (USD+PKR), computed server-side</li>
+      <li>Excludes internal/demo/test via <code>is_internal</code>+<code>is_demo</code></li>
+      <li>GMV shown separately, never as “revenue”</li>
+    </ul></div>
+    <div class="card"><h5>🔁 Subscription architecture</h5><ul class="clean">
+      <li>Platform → Plans → Limits/Features → Overrides → Coupons</li>
+      <li>Trial/grace as first-class plan settings</li>
+      <li>Region pricing gated by PK verification, not IP alone</li>
+    </ul></div>
+    <div class="card"><h5>🔐 Security architecture</h5><ul class="clean">
+      <li>Keyboard-enabled PIN + rate-limited login (already throttled)</li>
+      <li>Remove browser-triggered migration route; lock admin actions behind action passcode</li>
+      <li>CNIC images in private storage; store only hashes</li>
+      <li>Audit log for impersonation &amp; destructive actions</li>
+    </ul></div>
+  </div>
+
+  <h4>From → To (the consolidation at a glance)</h4>
+  <div class="flow">
+    <span class="node bad">2 shells · 9 tabs + 9 links</span><span class="arr">──▶</span>
+    <span class="node ok">1 shell · 5 groups</span>
+    <span class="arr">·</span>
+    <span class="node bad">browser money math</span><span class="arr">──▶</span>
+    <span class="node ok">Core services</span>
+    <span class="arr">·</span>
+    <span class="node bad">GMV mislabeled revenue</span><span class="arr">──▶</span>
+    <span class="node ok">Revenue + GMV split</span>
+  </div>
+</section>
+
+<!-- ════════════════ LAUNCH ════════════════ -->
+<section class="anchor" id="launch">
+  <div class="sechead"><span class="secno">▶</span><h2>Pre-Launch Priority Roadmap</h2></div>
+  <p class="sub">What to fix before you sell tomorrow vs what can wait.</p>
+  <div class="grid two cards">
+    <div class="card bad"><h5>🔴 P0 — before launch</h5><ul class="clean">
+      <li>Fix revenue: add <code>is_internal</code>, exclude own/internal/demo, split Revenue vs GMV</li>
+      <li>Move MRR/P&amp;L to a server <code>PlatformRevenueService</code>; read Plans prices</li>
+      <li>Remove client-side equity/<code>localStorage</code> ledger (or persist server-side)</li>
+      <li>Remove/secure <code>/VenQore/run-migrations</code> browser route</li>
+      <li>Fix <code>/VenQore-login</code> PIN keyboard + Enter + autofocus</li>
+    </ul></div>
+    <div class="card warn"><h5>🟡 P1 — first weeks</h5><ul class="clean">
+      <li>Unify the two shells; merge duplicate Stores/Users</li>
+      <li>Surface plan-create validation; persist <code>is_ltd</code>/<code>trial_days</code></li>
+      <li>Fix <code>extendTrial</code> downgrade; merge the 3 support inboxes</li>
+      <li>Bring Health/Agent/Chatbot/Updater into the nav</li>
+      <li>Demo snapshot/restore so deploys never wipe it</li>
+    </ul></div>
+    <div class="card info"><h5>🔵 P2 — after launch</h5><ul class="clean">
+      <li>Build PK CNIC verification flow + review queue</li>
+      <li>Grow Testing Center into categories; one-click health</li>
+      <li>⌘K palette, global search, real notifications, theme unify</li>
+      <li>Coupon full-edit/delete; real activity/audit log</li>
+      <li>Role tiers (Owner/Admin/Support); remove AppSumo dead code or re-enable</li>
+    </ul></div>
+  </div>
+  <div class="callout ok"><b>Bottom line:</b> you’re closer than it feels. The engines (plans, limits, overrides, coupons, demo, tests, updater) work. The launch-blocking work is almost entirely about <b>where money is calculated</b> and <b>one keyboard handler</b> — both small, well-scoped fixes. The rest is consolidation that makes it feel world-class.</div>
+</section>
+
+<footer>
+  <div><b>VenQore — Platform Owner Command Center · Audit &amp; Redesign Blueprint.</b></div>
+  <div class="muted" style="margin-top:6px">Audit only — no application code was modified. All findings cite files/lines verified in the repository at review time. Line numbers reference the current working tree and may shift as code changes.</div>
+</footer>
+
+<script>
+(function(){
+  var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+  var map = {};
+  links.forEach(function(a){ var id=a.getAttribute('href').slice(1); var el=document.getElementById(id); if(el) map[id]=a; });
+  var ids = Object.keys(map);
+  function clear(){ links.forEach(function(a){ a.style.background=''; a.style.color=''; }); }
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){ clear();
+        var a = map[e.target.id];
+        if(a){ a.style.background='rgba(99,102,241,.18)'; a.style.color='#c7d2fe'; }
+      }
+    });
+  }, { rootMargin: '-55px 0px -75% 0px', threshold: 0 });
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) obs.observe(el); });
+})();
+</script>
+</div>
+</body>
+</html>

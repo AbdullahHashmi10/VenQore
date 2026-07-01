@@ -806,6 +806,7 @@ const CreateRecurringInvoice = ({ customers = [], warehouses: initialWarehouses 
     const [showOverpaymentModal, setShowOverpaymentModal] = useState(false);
     const [overpaymentDetails, setOverpaymentDetails] = useState({ amount: 0, customerName: '' });
     const [printPreviewOpen, setPrintPreviewOpen] = useState(false); // For "Print Sale"
+    const [tempPrintIntent, setTempPrintIntent] = useState(false);
 
     const validateInputs = () => {
         let isValid = true;

@@ -4,7 +4,7 @@ import {
     Search, Building2, Trash2, RotateCcw, ShieldAlert,
     ChevronLeft, Filter, Download, MoreHorizontal
 } from 'lucide-react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { useTheme } from '@/Contexts/ThemeContext';
 import Dropdown from '@/Components/Dropdown';
 

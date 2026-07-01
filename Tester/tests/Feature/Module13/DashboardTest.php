@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
  * revenue figure equals the sum of net_sales, not the gross sum.
  */
 test('todays_revenue_widget_returns_net_sales_not_gross', function () {
+    \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-15 12:00:00', 'UTC'));
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
@@ -76,6 +77,7 @@ test('todays_revenue_widget_returns_net_sales_not_gross', function () {
     // If the controller read a gross_amount column instead it would differ.
     $this->assertGreaterThan(0, $revenue, 'revenue_mtd must be positive after injecting income journal entries');
     $this->assertEquals(500.0, (float) $revenue, 'revenue_mtd must equal sum of income credits (200+300=500), driven by journal, not gross column');
+    \Carbon\Carbon::setTestNow();
 });
 
 test('attributes revenue and COGS to posted_at date range instead of created_at date range', function () {
@@ -115,7 +117,7 @@ test('attributes revenue and COGS to posted_at date range instead of created_at 
     $this->actingAsOwner($tenant2);
     $this->seedTenantDefaults($tenant2);
 
-    \Carbon\Carbon::setTestNow('2026-05-31 20:00:00');
+    \Carbon\Carbon::setTestNow('2026-06-15 12:00:00');
     $response = $this->getJson("/s/{$tenant2->slug}/dashboard");
     $response->assertOk();
     $props = $response->original->getData()['page']['props'];
@@ -125,6 +127,7 @@ test('attributes revenue and COGS to posted_at date range instead of created_at 
 });
 
 test('computes dashboard net profit and P&L summary using accrual journal entry credits/debits, not cash movement', function () {
+    \Carbon\Carbon::setTestNow(\Carbon\Carbon::parse('2026-06-15 12:00:00', 'UTC'));
     $tenant = $this->createTenant();
     $this->actingAsOwner($tenant);
     $this->seedTenantDefaults($tenant);
@@ -154,6 +157,7 @@ test('computes dashboard net profit and P&L summary using accrual journal entry 
     // Under correct Accrual P&L logic, netProfit.Month.value = 1000.
     expect((float) $props['netProfit']['Month']['value'])->toBe(1000.0);
     expect((float) $props['plSummary']['Month']['income'])->toBe(1000.0);
+    \Carbon\Carbon::setTestNow();
 });
 
 test('scopes all cashier dashboard widgets and session stats strictly to the current tenant', function () {

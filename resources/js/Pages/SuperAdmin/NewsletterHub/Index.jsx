@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { Head } from '@inertiajs/react';
 import { Mail, Search, RefreshCw, User, CheckCircle, Database, Layout } from 'lucide-react';
 import axios from 'axios';

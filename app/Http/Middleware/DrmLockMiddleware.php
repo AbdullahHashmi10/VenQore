@@ -10,6 +10,13 @@ use Carbon\Carbon;
 
 class DrmLockMiddleware
 {
+    /**
+     * Tolerance for "future" timestamps before treating them as clock tampering.
+     * Absorbs timezone offsets (~14h max) and minor clock skew so honest users
+     * are never locked out, while a real backwards clock roll of days is caught.
+     */
+    private const CLOCK_TOLERANCE_HOURS = 24;
+
     public function handle(Request $request, Closure $next): Response
     {
         $licenseKey = $request->header('X-DRM-License-Key') ?: $request->input('license_key');
@@ -85,8 +92,8 @@ class DrmLockMiddleware
             }
         }
 
-        // Clock tampering check
-        if ($license->last_validated_at && now()->lt(Carbon::parse($license->last_validated_at))) {
+        // Clock tampering check (with timezone/skew tolerance)
+        if ($license->last_validated_at && now()->addHours(self::CLOCK_TOLERANCE_HOURS)->lt(Carbon::parse($license->last_validated_at))) {
             return response()->json([
                 'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
             ], 403);
@@ -99,7 +106,7 @@ class DrmLockMiddleware
                 ->where('status', 'posted')
                 ->max('posted_at');
             
-            if ($maxPostedAt && now()->lt(Carbon::parse($maxPostedAt))) {
+            if ($maxPostedAt && now()->addHours(self::CLOCK_TOLERANCE_HOURS)->lt(Carbon::parse($maxPostedAt))) {
                 return response()->json([
                     'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
                 ], 403);

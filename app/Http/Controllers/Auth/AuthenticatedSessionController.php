@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\TenantUser;
+use App\Support\InviteRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,6 +34,9 @@ class AuthenticatedSessionController extends Controller
         if (!\Illuminate\Support\Facades\Schema::hasTable('settings') && !request()->is('installer*')) {
             return redirect()->to('/installer');
         }
+
+        // Preserve an invite token if the user was sent here from an invite link.
+        InviteRedirect::captureFromIntended();
 
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
@@ -64,6 +68,13 @@ class AuthenticatedSessionController extends Controller
 
             return redirect()->route('platform.login')
                 ->withErrors(['email' => 'Platform admins must use the secure HQ portal to log in.']);
+        }
+
+        // ── Invited user: finish accepting the invite before any store routing ──
+        // (An invited user has 0 stores of their own and must NOT be pushed into
+        // the create-store / plan-selection flow.)
+        if ($redirect = InviteRedirect::pending()) {
+            return $redirect;
         }
 
         // Load all active memberships with their tenant statuses

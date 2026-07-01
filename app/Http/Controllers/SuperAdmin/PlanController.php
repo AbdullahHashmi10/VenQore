@@ -49,12 +49,19 @@ class PlanController extends Controller
             'is_featured'    => 'boolean',
             'is_active'      => 'boolean',
             'is_visible'     => 'boolean',
+            'is_ltd'         => 'boolean',
+            'trial_days'     => 'nullable|integer|min:0|max:365',
             'sort_order'     => 'integer|min:0',
             'limits'         => 'array',
             'limits.*.key'   => 'required|string|max:100',
             'limits.*.value' => 'nullable|string|max:255',
             'limits.*.reset_period' => 'in:never,monthly,annually',
         ]);
+
+        // LTD plans are always flagged as lifetime regardless of the checkbox (T3.2).
+        if (($validated['type'] ?? null) === 'ltd') {
+            $validated['is_ltd'] = true;
+        }
 
         $plan = Plan::create($validated);
 
@@ -63,6 +70,7 @@ class PlanController extends Controller
         }
 
         PlanRepository::invalidatePlanCache($plan->slug);
+        \App\Services\Platform\PlanPricingService::flush();
 
         return back()->with('success', "Plan \"{$plan->name}\" created. It is live immediately.");
     }
@@ -113,6 +121,8 @@ class PlanController extends Controller
             'is_featured'    => 'boolean',
             'is_active'      => 'boolean',
             'is_visible'     => 'boolean',
+            'is_ltd'         => 'boolean',
+            'trial_days'     => 'nullable|integer|min:0|max:365',
             'sort_order'     => 'integer|min:0',
             'internal_notes' => 'nullable|string',
             'limits'         => 'array',
@@ -132,6 +142,7 @@ class PlanController extends Controller
         }
 
         PlanRepository::invalidatePlanCache($plan->slug);
+        \App\Services\Platform\PlanPricingService::flush();
 
         return back()->with('success', "Plan updated. All tenants on \"{$plan->slug}\" see the new limits immediately.");
     }
@@ -167,6 +178,7 @@ class PlanController extends Controller
 
         $plan->delete(); // Cascades to plan_limits and plan_features
         PlanRepository::invalidatePlanCache($plan->slug);
+        \App\Services\Platform\PlanPricingService::flush();
 
         return back()->with('success', "Plan deleted.");
     }

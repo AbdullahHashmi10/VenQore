@@ -154,12 +154,24 @@ class StoreController extends Controller
         // A store can only be created against an available license OR a plan the
         // user explicitly selected on the pricing step. This prevents the old
         // "skip straight to a store" behaviour.
+        // Note: AppSumo LTD users with consumed licenses also qualify — their
+        // store-count limit is enforced separately below.
         $hasLicense = StoreLicense::withoutTenantScope()
             ->where('user_id', $user->id)
-            ->where('status', 'available')
+            ->where(function ($q) {
+                $q->where('status', 'available')
+                  // Consumed AppSumo LTD licenses still grant the right to create
+                  // stores (up to the plan's store-count ceiling).
+                  ->orWhere(function ($q2) {
+                      $q2->where('status', 'consumed')
+                         ->where('source', 'appsumo');
+                  });
+            })
             ->exists();
 
         $chosenPlan = strtolower((string) $request->input('plan', ''));
+
+
 
         if (!$hasLicense && !in_array($chosenPlan, self::TRIAL_PLAN_SLUGS, true)) {
             return redirect()->route('store.create')

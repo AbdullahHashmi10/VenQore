@@ -18,6 +18,14 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class DrmOfflineLockMiddleware
 {
+    /**
+     * Tolerance for "future" timestamps before we treat them as clock tampering.
+     * Absorbs timezone offsets (max real-world ~14h) and minor clock skew so
+     * honest users are never locked out, while a genuine backwards clock roll
+     * of days/weeks is still caught.
+     */
+    private const CLOCK_TOLERANCE_HOURS = 24;
+
     public function handle(Request $request, Closure $next): Response
     {
         if (app()->bound('current.tenant')) {
@@ -35,8 +43,8 @@ class DrmOfflineLockMiddleware
             if ($lastOnlineRaw !== null) {
                 $lastOnline = \Carbon\Carbon::parse($lastOnlineRaw);
 
-                // Clock tampering check: now < last_online
-                if (\Carbon\Carbon::now()->lt($lastOnline)) {
+                // Clock tampering check: now (plus tolerance) < last_online
+                if (\Carbon\Carbon::now()->addHours(self::CLOCK_TOLERANCE_HOURS)->lt($lastOnline)) {
                     if ($request->expectsJson()) {
                         return response()->json([
                             'error' => 'Clock tampering detected. Please set your system clock to the correct time.',
@@ -62,7 +70,7 @@ class DrmOfflineLockMiddleware
                 ->where('status', 'posted')
                 ->max('posted_at');
             
-            if ($maxPostedAt && \Carbon\Carbon::now()->lt(\Carbon\Carbon::parse($maxPostedAt))) {
+            if ($maxPostedAt && \Carbon\Carbon::now()->addHours(self::CLOCK_TOLERANCE_HOURS)->lt(\Carbon\Carbon::parse($maxPostedAt))) {
                 if ($request->expectsJson()) {
                     return response()->json([
                         'error' => 'Clock tampering detected. Please set your system clock to the correct time.',

@@ -83,7 +83,7 @@ class UpdaterController extends Controller
             'pending_list'       => $pendingMigrations,
             'storage_writable'   => is_writable(storage_path()),
             'base_writable'      => is_writable(base_path()),
-            'zip_extension'      => extension_loaded('zip'),
+            'zip_extension'      => (extension_loaded('zip') || class_exists('PclZip') || file_exists(base_path('vendor/pclzip/pclzip/pclzip.lib.php'))),
             'disk_free_mb'       => round(disk_free_space(base_path()) / 1024 / 1024),
             'update_in_progress' => File::exists($this->lockPath()),
             'max_zip_mb'         => $effectiveMaxMB,
@@ -307,16 +307,32 @@ class UpdaterController extends Controller
         }
 
         // ── Open and validate ZIP structure BEFORE maintenance mode ──
-        $zip = new ZipArchive();
-        if ($zip->open($zipPath) !== true) {
-            throw new Exception('Failed to open the saved update package. It may have been corrupted during transfer.');
+        $useZipArchive = class_exists('ZipArchive');
+        $fileCount = 0;
+        $zipList = [];
+
+        if ($useZipArchive) {
+            $zip = new ZipArchive();
+            if ($zip->open($zipPath) !== true) {
+                throw new Exception('Failed to open the saved update package. It may have been corrupted during transfer.');
+            }
+            $fileCount = $zip->numFiles;
+        } else {
+            if (!class_exists('PclZip')) {
+                require_once base_path('vendor/pclzip/pclzip/pclzip.lib.php');
+            }
+            $zip = new \PclZip($zipPath);
+            $zipList = $zip->listContent();
+            if ($zipList === 0 || !is_array($zipList)) {
+                throw new Exception('Failed to open the saved update package (PclZip error). It may have been corrupted during transfer.');
+            }
+            $fileCount = count($zipList);
         }
 
-        $fileCount   = $zip->numFiles;
         $hasArtisan  = false;
         $hasComposer = false;
         for ($i = 0; $i < $fileCount; $i++) {
-            $name     = $zip->getNameIndex($i);
+            $name     = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
             $basename = basename($name);
             $depth    = substr_count($name, '/');
 
@@ -332,7 +348,9 @@ class UpdaterController extends Controller
         }
 
         if (!$hasArtisan || !$hasComposer) {
-            $zip->close();
+            if ($useZipArchive) {
+                $zip->close();
+            }
             throw new Exception(
                 'This does not look like a valid VenQore POS update package. ' .
                 'Expected files (artisan, composer.json) were not found at the root level. ' .
@@ -387,8 +405,9 @@ class UpdaterController extends Controller
 
         // ── Detect if ZIP is wrapped in a single root folder ──────────
         $rootFolder = '';
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = str_replace('\\', '/', $zip->getNameIndex($i));
+        for ($i = 0; $i < $fileCount; $i++) {
+            $name = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
+            $name = str_replace('\\', '/', $name);
             if (basename($name) === 'artisan') {
                 $dir = dirname($name);
                 if ($dir !== '.' && $dir !== '') {
@@ -398,8 +417,8 @@ class UpdaterController extends Controller
             }
         }
 
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $entryName = $zip->getNameIndex($i);
+        for ($i = 0; $i < $fileCount; $i++) {
+            $entryName = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
 
             // Skip directory entries
             if (substr($entryName, -1) === '/') {
@@ -456,7 +475,17 @@ class UpdaterController extends Controller
                     File::makeDirectory($targetDir, 0755, true);
                 }
 
-                $content = $zip->getFromIndex($i);
+                if ($useZipArchive) {
+                    $content = $zip->getFromIndex($i);
+                } else {
+                    $extracted = $zip->extract(PCLZIP_OPT_BY_INDEX, array($i), PCLZIP_OPT_EXTRACT_AS_STRING);
+                    if (is_array($extracted) && isset($extracted[0]['content'])) {
+                        $content = $extracted[0]['content'];
+                    } else {
+                        $content = false;
+                    }
+                }
+
                 if ($content !== false) {
                     File::put($realTarget, $content);
                     $updated++;

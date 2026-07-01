@@ -125,6 +125,7 @@ const CreatePreSale = ({ sale }) => {
     const [productModalMode, setProductModalMode] = useState('create');
     const [editingProduct, setEditingProduct] = useState(null);
     const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
+    const [editingParty, setEditingParty] = useState(null);
 
     // Data for Product Modal
     const [categories, setCategories] = useState([]);
@@ -2889,12 +2890,14 @@ const CreatePreSale = ({ sale }) => {
             {/* QUICK ADD MODALS */}
             <QuickPartyModal
                 isOpen={isPartyModalOpen}
-                onClose={() => setIsPartyModalOpen(false)}
+                onClose={() => { setIsPartyModalOpen(false); setEditingParty(null); }}
                 type="all"
                 initialName={customerSearch}
+                editingParty={editingParty}
                 onSuccess={(newParty) => {
                     patchInvoice({ customer: newParty });
                     setCustomerSearch('');
+                    setEditingParty(null);
                 }}
             />
             <ProductModal

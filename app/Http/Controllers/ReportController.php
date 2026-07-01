@@ -1167,14 +1167,16 @@ class ReportController extends Controller
         $query = \App\Models\SalesOrder::with(['customer', 'user'])->orderByDesc('created_at');
 
         if ($range === 'today') {
-            $query->whereDate('created_at', Carbon::today());
+            $query->whereBetween('created_at', [Carbon::today()->startOfDay()->utc(), Carbon::today()->endOfDay()->utc()]);
         } elseif ($range === 'this_month') {
-            $query->whereMonth('created_at', Carbon::now()->month)
-                  ->whereYear('created_at', Carbon::now()->year);
+            $query->whereBetween('created_at', [Carbon::now()->startOfMonth()->utc(), Carbon::now()->endOfMonth()->utc()]);
         } elseif ($range === 'this_year') {
-             $query->whereYear('created_at', Carbon::now()->year);
+            $query->whereBetween('created_at', [Carbon::now()->startOfYear()->utc(), Carbon::now()->endOfYear()->utc()]);
         } elseif ($range === 'custom' && $startDate && $endDate) {
-             $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            $query->whereBetween('created_at', [
+                Carbon::parse($startDate)->startOfDay()->utc(),
+                Carbon::parse($endDate)->endOfDay()->utc()
+            ]);
         }
 
         $orders = $query->get()->map(function ($order) {
@@ -1504,14 +1506,16 @@ class ReportController extends Controller
             ->where('sales_orders.tenant_id', $tenantId);
 
         if ($range === 'today') {
-            $query->whereDate('sales_orders.created_at', Carbon::today());
+            $query->whereBetween('sales_orders.created_at', [Carbon::today()->startOfDay()->utc(), Carbon::today()->endOfDay()->utc()]);
         } elseif ($range === 'this_month') {
-            $query->whereMonth('sales_orders.created_at', Carbon::now()->month)
-                  ->whereYear('sales_orders.created_at', Carbon::now()->year);
+            $query->whereBetween('sales_orders.created_at', [Carbon::now()->startOfMonth()->utc(), Carbon::now()->endOfMonth()->utc()]);
         } elseif ($range === 'this_year') {
-             $query->whereYear('sales_orders.created_at', Carbon::now()->year);
+            $query->whereBetween('sales_orders.created_at', [Carbon::now()->startOfYear()->utc(), Carbon::now()->endOfYear()->utc()]);
         } elseif ($range === 'custom' && $startDate && $endDate) {
-             $query->whereBetween('sales_orders.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+            $query->whereBetween('sales_orders.created_at', [
+                Carbon::parse($startDate)->startOfDay()->utc(),
+                Carbon::parse($endDate)->endOfDay()->utc()
+            ]);
         }
 
         // Fetch data

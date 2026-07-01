@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { 
     Ticket, Plus, Download, Upload, Trash2, Search, Filter, 
     CheckCircle, AlertCircle, RefreshCcw, ExternalLink

@@ -55,6 +55,7 @@ class Tenant extends Model
         'setup_completed',
         'industry',
         'is_demo',
+        'is_internal',
         'is_golden_master',
         'demo_expires_at',
         'demo_session_token',
@@ -90,6 +91,7 @@ class Tenant extends Model
         'plan_limits'           => 'array',
         'setup_completed'       => 'boolean',
         'is_demo'               => 'boolean',
+        'is_internal'           => 'boolean',
         'is_golden_master'      => 'boolean',
         'trial_ends_at'         => 'datetime',
         'subscription_ends_at'  => 'datetime',
@@ -129,6 +131,23 @@ class Tenant extends Model
         }
         return !empty($this->google_refresh_token);
     }
+
+    // ──────────────────────────────────────────────────────────────────
+    // Query Scopes
+    // ──────────────────────────────────────────────────────────────────
+
+    /**
+     * Billable tenants only: excludes demo and internal/owner/test stores.
+     * The single place that decides "is this a real, money-generating store".
+     * (Roadmap T1.1 — the root fix for the $52k revenue bug.)
+     */
+    public function scopeBillable($query)
+    {
+        return $query->where('is_demo', false)
+                     ->where('is_internal', false);
+    }
+
+
 
     // ──────────────────────────────────────────────────────────────────
     // Relationships

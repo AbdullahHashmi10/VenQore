@@ -221,6 +221,9 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
     const [focused, setFocused] = useState(null);
     const [mounted, setMounted] = useState(false);
     const emailRef = useRef(null);
+    const pinInputRef = useRef(null);
+    const submitPinRef = useRef(null);
+    const pinValueRef = useRef('');
 
     // Password login form
     const pwForm = useForm({ email: '', password: '', remember: true });
@@ -241,6 +244,35 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
         }
     }, [mode]);
 
+    // ── Physical-keyboard support for PIN mode (Roadmap T1.8) ───────────────
+    // PIN mode previously only accepted on-screen button taps. Mirror the
+    // working pattern from PasscodeModal / SecurityPinModal: digits fill the
+    // PIN, Backspace deletes, Enter submits. Also autofocus the hidden input.
+    useEffect(() => {
+        if (mode !== 'pin') return;
+
+        // Focus the hidden numeric input (helps mobile bring up the keypad).
+        setTimeout(() => pinInputRef.current?.focus(), 150);
+
+        const onKeyDown = (e) => {
+            const current = pinValueRef.current;
+            if (e.key >= '0' && e.key <= '9') {
+                e.preventDefault();
+                if (current.length < 8) pinForm.setData('pin', current + e.key);
+            } else if (e.key === 'Backspace') {
+                e.preventDefault();
+                pinForm.setData('pin', current.slice(0, -1));
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                submitPinRef.current?.();
+            }
+        };
+
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [mode]);
+
     const submitPassword = (e) => {
         e.preventDefault();
         pwForm.post('/VenQore-login', {
@@ -258,15 +290,19 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
         });
     };
 
+    // Keep stable refs to the latest submitPin + pin value so the keydown
+    // listener (registered once per mode) always sees current state.
+    useEffect(() => {
+        submitPinRef.current = submitPin;
+        pinValueRef.current = pinForm.data.pin;
+    });
+
     const handlePinKey = (key) => {
         if (key === 'del') {
             pinForm.setData('pin', pinForm.data.pin.slice(0, -1));
         } else if (pinForm.data.pin.length < 8) {
             const next = pinForm.data.pin + key;
             pinForm.setData('pin', next);
-            if (next.length >= 4) {
-                // Auto-submit if user presses ⏎ or manually presses more than needed
-            }
         }
     };
 
@@ -424,6 +460,26 @@ export default function PlatformOwnerLogin({ status, has_pin_enabled = false, fl
                                     Enter your PIN
                                 </p>
                                 <PinDots value={pinForm.data.pin} hasError={!!pinForm.errors.pin} />
+                                {/* Visually-hidden numeric input: brings up the mobile keypad
+                                    and gives the PIN area a real focus target. Desktop typing is
+                                    handled by the window keydown listener above. */}
+                                <input
+                                    ref={pinInputRef}
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="one-time-code"
+                                    aria-label="Enter your PIN"
+                                    value={pinForm.data.pin}
+                                    onChange={(e) => {
+                                        const digits = e.target.value.replace(/\D/g, '').slice(0, 8);
+                                        pinForm.setData('pin', digits);
+                                    }}
+                                    style={{
+                                        position: 'absolute', width: 1, height: 1, padding: 0,
+                                        margin: -1, overflow: 'hidden', clip: 'rect(0,0,0,0)',
+                                        border: 0, opacity: 0,
+                                    }}
+                                />
                             </div>
 
                             {/* Number Grid */}

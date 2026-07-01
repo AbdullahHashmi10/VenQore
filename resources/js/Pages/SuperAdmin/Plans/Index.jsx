@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { router, useForm, Head, usePage } from '@inertiajs/react';
-import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 import { FEATURE_GROUPS, TOTAL_FEATURES, getFeatureDefault } from './featureGroups';
 import {
     Layers, Zap, Database, Ticket, ShoppingBag,

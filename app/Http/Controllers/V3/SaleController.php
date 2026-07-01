@@ -7,6 +7,7 @@ use App\Http\Requests\V3\StoreSaleRequest;
 use App\Services\V3\SaleService;
 use App\Services\PlanGate;
 use App\Models\Sale;
+use Carbon\Carbon;
 
 class SaleController extends Controller
 {
@@ -22,13 +23,12 @@ class SaleController extends Controller
         try {
             $lock->block(5); // Wait up to 5 seconds to acquire the lock
 
-            // ── Plan Guard: Monthly transaction limit ─────────────────────────
-            // Count posted sales for this tenant in the current calendar month.
-            // Uses indexed columns (tenant_id + status + created_at) — runs in < 1ms.
-            // No Redis needed at this scale; a simple COUNT query is sufficient.
+            $date = Carbon::parse($request->input('sale_date', Carbon::now()->toDateString()));
+            $start = $date->copy()->startOfMonth();
+            $end = $date->copy()->endOfMonth();
+
             $monthlyCount = Sale::where('status', 'posted')
-                ->whereYear('created_at', now()->year)
-                ->whereMonth('created_at', now()->month)
+                ->whereBetween('created_at', [$start, $end])
                 ->count();
 
             PlanGate::enforce('transactions_per_month', $monthlyCount);

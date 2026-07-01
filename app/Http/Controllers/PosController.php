@@ -46,12 +46,7 @@ class PosController extends Controller
         }
 
         // Bank accounts: small, stable, OK to load server-side
-        $bankAccounts = \App\Models\Account::where('type', 'asset')
-            ->where(function ($q) {
-                $q->where('name', 'like', '%bank%')
-                  ->orWhere('code', 'like', '101%');
-            })
-            ->get(['id', 'name', 'code']);
+        $bankAccounts = \App\Models\BankAccount::get(['id', 'name', 'account_number as code', 'account_number']);
 
         return Inertia::render('Pos', [
             // ⬇ No more products prop — React fetches on mount
@@ -59,6 +54,7 @@ class PosController extends Controller
             'bankAccounts' => $bankAccounts,
             'warehouses'   => \App\Models\Warehouse::all(['id', 'name', 'is_default']),
             'ecommerceChannels' => \App\Models\EcommerceChannel::where('tenant_id', app('current.tenant')->id)->get(['id', 'name', 'platform', 'default_fulfillment_type']),
+            'settings'     => \App\Models\Setting::all()->pluck('value', 'key'),
         ]);
     }
 

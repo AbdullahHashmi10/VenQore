@@ -17,7 +17,9 @@ class PlanRepository
      */
     public static function getLimits(string $planSlug): array
     {
-        return Cache::remember("plan_limits:{$planSlug}", 3600, function () use ($planSlug) {
+        $ttl = 3600;
+
+        return Cache::remember("plan_limits:{$planSlug}", $ttl, function () use ($planSlug) {
             /** @var \App\Models\Plan|null $plan */
             $plan = Plan::with('limits')->where('slug', $planSlug)->first();
 
@@ -41,8 +43,9 @@ class PlanRepository
     {
         // 1. Check for an active, non-expired tenant-level override
         $cacheKey = "tenant_override:{$tenantId}:{$key}";
+        $ttl      = 300;
 
-        $override = Cache::remember($cacheKey, 300, function () use ($tenantId, $key) {
+        $override = Cache::remember($cacheKey, $ttl, function () use ($tenantId, $key) {
             $row = TenantPlanOverride::where('tenant_id', $tenantId)
                 ->where('override_key', $key)
                 ->where(function ($q) {
