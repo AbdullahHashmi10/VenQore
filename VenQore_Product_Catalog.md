@@ -351,16 +351,35 @@ VenQore has been put through an extensive, multi-layered audit process to ensure
 202. **Multi-Currency Configuration:** Sets exchange rates, currency symbols, and formatting for SAR, AED, USD, PKR, GBP, and more.
 203. **Module Toggle Controls:** SuperAdmins can enable or disable operational modules (AI Assistant, WooCommerce, Manufacturing) per tenant dynamically.
 204. **Hard-Lock Negative Stock Setting:** Permanently prevents checkout completion when inventory batches are empty.
+205. **Device-Adaptive Checkout UI:** Responsive layout optimizations for cashiers working on desktop monitors, tablets, and smartphones.
+206. **Payment Reminders Scheduler:** Automatically drafts and queues payment/debt reminders for past-due customer invoices on a recurring schedule.
+207. **Google Drive Cloud Sync Backups:** Direct synchronization and database backup exports to Google Drive.
 
 ---
 
-## Section 4: Development Roadmap
+## Section 4: Pricing & AppSumo Lifetime Deals (LTD)
+
+VenQore offers both flexible monthly subscriptions and lifetime access options for platform operators.
+
+### Subscription Plans
+*   **Starter Plan:** 2,000 transactions/month, 1 location, 1,000 SKUs, 3 staff members, and basic reports.
+*   **Growth Plan:** 10,000 transactions/month, 3 locations, unlimited SKUs, 10 staff members, advanced reports, Growth Engine AI, multi-branch, and bill of materials.
+*   **Business Plan:** Unlimited transactions, locations, SKUs, and staff members, with public API access.
+
+### AppSumo Lifetime Deals (Stackable Tiers)
+Stack AppSumo codes to unlock permanent, lifetime licenses with no recurring fees. All LTD codes include 2 years of free cloud hosting (stays active afterward for a flat $9/month hosting fee).
+*   **1 Code Stack (LTD Tier 1):** 500 transactions/month, 1 location, 1,000 SKUs, 3 staff members, basic reports.
+*   **2 Codes Stack (LTD Tier 2):** 2,000 transactions/month, 3 locations, unlimited SKUs, 10 staff members, advanced reports, Growth Engine AI, multi-branch, and bill of materials.
+*   **3 Codes Stack (LTD Tier 3):** 6,000 transactions/month, unlimited locations, unlimited SKUs, unlimited staff members, public API access, advanced reports, and all platform features.
+
+---
+
+## Section 5: Development Roadmap
 
 VenQore is under active development. The following outlines what's being built now and what's planned next, so customers always know what's coming.
 
 ### Active Development — Releasing Soon
 
-- **Device-Adaptive Responsive Layouts** — Optimizing the checkout interface across ultra-wide monitors, legacy sales tablets, and small cashier smartphones.
 - **Barcode Label Printing Factory** — A full canvas design utility to format label sizes, include brand logos, and embed barcode data for any product.
 - **VenSynQ Multi-Channel Sync** — Expanding dropshipping automation to Amazon, WooCommerce, TikTok Shop, and eBay, with automatic tracking sync and commission isolation.
 - **Dropshipping Order Automator & JIT Purchase Orders** — Instantly drafts supplier purchase orders the moment a dropship sale is recorded, locking your margin on the spot.
@@ -369,7 +388,7 @@ VenQore is under active development. The following outlines what's being built n
 
 - **Custom SMTP Mail Gateway** — Connect your own business email domain to send invoices and statements from a branded company address.
 - **SMS & Messaging Gateway Integration** — Connect leading SMS providers for automated customer text alerts.
-- **WhatsApp & SMS Debt Reminders** — One-click overdue payment alerts sent directly from customer ledger pages.
+- **WhatsApp & SMS Debt Reminders Delivery** — Integration with messaging gateways to dispatch scheduled reminders with one click.
 - **Customer Anniversary & Birthday Tracker** — Automated milestone greetings combined with targeted discount vouchers.
 - **Digital Gift Cards & Store Wallet Credit** — Issue promotional gift cards and handle refunds as store credit to keep cash flow within your business.
 

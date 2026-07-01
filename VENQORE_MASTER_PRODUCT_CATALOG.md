@@ -325,16 +325,35 @@ VenQore has passed all 5 categories of accounting audit to ensure complete trust
 224. **Multi-Currency Format Configurations:** Sets exchange rates, symbols, and formatting for SAR, AED, USD, PKR, and GBP.
 225. **Glass Door Module Toggles:** Allows SuperAdmins to enable or lock operational modules (e.g. AI Assistant, WooCommerce, Manufacturing) dynamically.
 226. **Hard-Lock Negative Stock Settings:** Prevents cashiers from checkout if physical inventory batches are empty.
+227. **Device-Adaptive Checkout UI:** Responsive layout optimizations for cashiers working on desktop monitors, tablets, and smartphones.
+228. **Payment Reminders Scheduler:** Automatically drafts and queues payment/debt reminders for past-due customer invoices on a recurring schedule.
+229. **Google Drive Cloud Sync Backups:** Direct synchronization and database backup exports to Google Drive.
 
 ---
 
-## 🛠️ SECTION 4: THE DEVELOPMENT ROADMAP & FUTURE HORIZONS
+## 💳 SECTION 4: THE PRICING & LIFETIME STACKING TIERS (LTD)
+
+VenQore provides flexible subscription plans alongside stackable AppSumo Lifetime Deals (LTD) for perpetual platform operations.
+
+### Monthly Subscriptions
+*   **Starter:** 2,000 transactions/month, 1 location/warehouse, 1,000 SKUs, 3 staff members, basic reports.
+*   **Growth:** 10,000 transactions/month, 3 locations, unlimited SKUs, 10 staff, advanced reports, Growth Engine AI, multi-branch, and bill of materials.
+*   **Business:** Unlimited transactions, locations, staff, and SKUs, with public API access.
+
+### AppSumo Lifetime Tiers (Stackable Codes)
+Redeem and stack AppSumo codes to eliminate recurring SaaS bills forever. Every stacked code level includes 2 years of hosted cloud access (stays hosted afterward for a flat $9/month fee).
+*   **1 Code (LTD Tier 1):** 500 transactions/month, 1 location, 1,000 SKUs, 3 staff members, basic reports.
+*   **2 Codes (LTD Tier 2):** 2,000 transactions/month, 3 locations, unlimited SKUs, 10 staff members, advanced reports, Growth Engine AI, multi-branch, and bill of materials.
+*   **3 Codes (LTD Tier 3):** 6,000 transactions/month, unlimited locations, unlimited SKUs, unlimited staff members, public API access, advanced reports, and all advanced platform features.
+
+---
+
+## 🛠️ SECTION 5: THE DEVELOPMENT ROADMAP & FUTURE HORIZONS
 
 To keep our platform operators updated on what our engineers are building next, we partition our roadmap into two transparent categories: **In Production / Active Development** and **Coming Soon**.
 
 ### ⚡ Category A: In Production / Active Development (Releasing Soon)
 These high-priority upgrades are actively being built and stabilized by the engineering team:
-*   **Device-Adaptive Responsive Refinements:** Maximizing checkout layout usability across ultra-wide monitors, legacy sales tablets, and small cashier smartphones.
 *   **Barcode Label Printing Factory:** A custom canvas design utility allowing you to format sticker sizes, include brand logos, and embed scanner-friendly SKU parameters directly.
 *   **VenSynQ Multi-Channel Sync Command:** Expanding dropshipping automation for Amazon, WooCommerce, TikTok Shop, and eBay. Pushes tracking details and isolates commissions automatically.
 *   **Dropshipping Order Automator & JIT POs:** Instant supplier purchase orders drafted the moment a dropship sale is recorded, locking margins on the spot.
@@ -343,7 +362,7 @@ These high-priority upgrades are actively being built and stabilized by the engi
 These features are scheduled in our upcoming design cycles:
 *   **Custom SMTP Mail Server Gateway:** Use your own custom business email servers and domains to dispatch customer tax invoices and statements.
 *   **SMS & Messaging Gateways:** Integration with leading SMS providers for automated alerts.
-*   **Dynamic WhatsApp & SMS Debt Reminders:** One-click pre-filled ledger reminders to notify past-due accounts instantly via messaging services.
+*   **WhatsApp & SMS Debt Reminders Delivery:** One-click gateway integrations to dispatch scheduled payment alerts automatically.
 *   **Customer Milestones & Anniversary Tracker:** Automatic anniversary and birthday greetings combined with targeted discount vouchers.
 *   **Digital Gift Cards & Store Wallet Credit:** Free cash flow generator letting clients buy digital gift vouchers and return items in exchange for ledger-locked store credit.
 
