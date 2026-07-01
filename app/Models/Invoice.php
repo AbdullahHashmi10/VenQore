@@ -22,11 +22,10 @@ class Invoice extends Model
 
     public function getPaidAmountAttribute()
     {
-        // Simple manual query or relationship check to avoid deep recursion
-        return (float) \Illuminate\Support\Facades\DB::table('payments')
-            ->join('payment_allocations', 'payments.id', '=', 'payment_allocations.payment_id')
-            ->where('payment_allocations.invoice_id', $this->id)
-            ->sum('payments.amount');
+        if ($this->relationLoaded('payments')) {
+            return (float) $this->payments->sum('amount');
+        }
+        return (float) $this->payments()->sum('amount');
     }
 
     public function getCustomerNetBalanceAttribute(): ?float
@@ -69,7 +68,7 @@ class Invoice extends Model
 
     public function payments()
     {
-        return $this->hasManyThrough(Payment::class, PaymentAllocation::class, 'invoice_id', 'id', 'id', 'payment_id');
+        return $this->hasMany(Payment::class, 'reference', 'invoice_number');
     }
 
     public function user()
