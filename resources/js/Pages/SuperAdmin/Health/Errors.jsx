@@ -75,14 +75,22 @@ export default function Errors({ errors, filters }) {
 
                     {statusFilter === 'open' && errors.data.length > 0 && (
                         <div className="flex items-center gap-2">
-                            <button 
-                                onClick={detectFixes}
-                                className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-indigo-500/25 flex items-center gap-2"
-                                title="Auto-detect fixed bugs based on code updates."
-                            >
-                                <Sparkles size={16} />
-                                Scan for Fixes
-                            </button>
+                            <div className="relative group/hint">
+                                <button 
+                                    onClick={() => {
+                                        if (!confirm('⚠️ HEURISTIC SCAN\n\nThis uses file modification times to guess which errors may be fixed. It does NOT confirm errors are actually resolved.\n\nAuto-resolved items will be labelled "[HEURISTIC]" — please verify each one manually.\n\nProceed?')) return;
+                                        detectFixes();
+                                    }}
+                                    className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-amber-500/25 flex items-center gap-2"
+                                    title="Heuristic only — estimates fixes by file modification times. Verify manually."
+                                >
+                                    <Sparkles size={16} />
+                                    Scan (Heuristic)
+                                </button>
+                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover/hint:block z-50 w-64 bg-amber-900/95 text-amber-100 text-xs rounded-xl p-3 border border-amber-600/30 shadow-xl pointer-events-none">
+                                    ⚠️ <strong>Heuristic only.</strong> Marks errors as likely-fixed if the source file was modified after the error was last seen. Always verify manually — not a guaranteed fix.
+                                </div>
+                            </div>
                             <button 
                                 onClick={resolveAll}
                                 className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2"

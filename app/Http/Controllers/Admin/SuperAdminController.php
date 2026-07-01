@@ -45,6 +45,9 @@ class SuperAdminController extends Controller
         $mrr         = $revenue['mrr'];          // real paid MRR (USD)
         $totalVolume = $revenue['gmv'];          // merchant GMV — NOT platform revenue
 
+        $months      = (int) $request->get('months', 1);
+        $payoutPool  = $revenueService->payoutPoolSummary($months);
+
         // Dynamic Trend Calculation
         $storeTrend = collect();
         $trendQuery = Tenant::query()->where('is_demo', false);
@@ -149,19 +152,68 @@ class SuperAdminController extends Controller
                     $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })->count(),
                 'expired_overrides' => \App\Models\TenantPlanOverride::where('expires_at', '<=', now())->count(),
+                'pk_verifications' => [
+                    'pending' => \App\Models\PkVerification::where('status', 'pending')->count(),
+                    'approved' => \App\Models\PkVerification::where('status', 'approved')->count(),
+                    'rejected' => \App\Models\PkVerification::where('status', 'rejected')->count(),
+                ],
             ],
         ];
+
+        $pkVerificationsList = \App\Models\PkVerification::with(['tenant', 'user'])
+            ->latest()
+            ->get()
+            ->map(fn($v) => [
+                'id'           => $v->id,
+                'tenant_name'  => $v->tenant?->name ?? '—',
+                'tenant_slug'  => $v->tenant?->slug ?? '—',
+                'user_name'    => $v->user?->name ?? '—',
+                'user_email'   => $v->user?->email ?? '—',
+                'phone'        => $v->phone,
+                'status'       => $v->status,
+                'created_at'   => $v->created_at->toDateString(),
+                'rejection'    => $v->rejection_reason,
+            ])->toArray();
+
+        $settings = \App\Models\Setting::withoutGlobalScopes()
+            ->whereNull('tenant_id')
+            ->pluck('value', 'key')
+            ->toArray();
+
+        $ticketStatus = $request->get('ticket_status', 'open');
+        $ticketSource = $request->get('ticket_source', 'all');
+
+        $ticketsQuery = \App\Models\SupportTicket::with(['tenant:id,name,slug', 'submittedBy:id,name,email'])
+            ->withoutGlobalScopes()
+            ->latest();
+
+        if ($ticketStatus !== 'all') {
+            $ticketsQuery->where('status', $ticketStatus);
+        }
+
+        if ($ticketSource !== 'all') {
+            $ticketsQuery->where('source', $ticketSource);
+        }
+
+        $tickets = $ticketsQuery->paginate(25, ['*'], 'tickets_page')->withQueryString();
 
         return Inertia::render('SuperAdmin/Dashboard', [
             'stats'             => $stats,
             'revenue'           => $revenue,
+            'payout_pool'       => $payoutPool,
+            'pk_verifications'  => $pkVerificationsList,
+            'settings'          => $settings,
             'store_trend'       => $storeTrend->values(),
             'plan_distribution' => $planDist,
             'recent_stores'     => $recentStores,
             'expiring_stores'   => $expiringStores,
             'activity_feed'     => $this->buildActivityFeed(),
             'platform_users'    => $this->buildPlatformUsers(),
-            'tickets'           => \App\Models\SupportTicket::whereIn('status', ['open', 'in_progress'])->take(10)->get(),
+            'tickets'           => $tickets,
+            'ticket_filters'    => [
+                'status' => $ticketStatus,
+                'source' => $ticketSource,
+            ],
         ]);
     }
 
@@ -188,7 +240,44 @@ class SuperAdminController extends Controller
             'color'   => 'amber',
         ]);
 
-        return collect($newStores)->merge($suspended)
+        // Audit Logs (T7.3)
+        $auditLogs = \App\Models\PlatformAuditLog::with('user:id,name')
+            ->latest()
+            ->take(15)
+            ->get()
+            ->map(function ($log) {
+                $userName = $log->user?->name ?? 'System';
+                $message = "🛡️ Action [{$log->action}] performed";
+                
+                switch ($log->action) {
+                    case 'partner.created':
+                        $message = "🤝 Partner Added: " . ($log->payload['name'] ?? 'Unknown');
+                        break;
+                    case 'partner.removed':
+                        $message = "🤝 Partner Removed: " . ($log->payload['name'] ?? 'Unknown');
+                        break;
+                    case 'partner.drawing':
+                        $message = "💸 Partner Drawing logged: " . ($log->payload['partner'] ?? 'Unknown') . " (PKR " . number_format($log->payload['amount'] ?? 0) . ")";
+                        break;
+                    case 'settings.updated':
+                        $message = "⚙️ Platform Settings updated";
+                        break;
+                    case 'system.updated':
+                        $message = "🚀 System updated to version " . ($log->payload['version'] ?? 'unknown');
+                        break;
+                }
+
+                return [
+                    'type'    => 'audit_log',
+                    'icon'    => 'shield',
+                    'message' => $message,
+                    'sub'     => "By {$userName} · " . $log->created_at->diffForHumans(),
+                    'time'    => $log->created_at->timestamp,
+                    'color'   => 'emerald',
+                ];
+            });
+
+        return collect($newStores)->merge($suspended)->merge($auditLogs)
             ->sortByDesc('time')
             ->take(15)
             ->values()
@@ -335,8 +424,11 @@ class SuperAdminController extends Controller
         return back()->with('success', "Store '{$tenant->name}' has been restored.");
     }
 
-    public function purgeStore($id)
+    public function purgeStore($id, Request $request)
     {
+        $this->gateSuperAdmin();
+        $this->verifyActionPasscode($request);
+
         $tenant = Tenant::onlyTrashed()->findOrFail($id);
         $name = $tenant->name;
         
@@ -358,8 +450,11 @@ class SuperAdminController extends Controller
         return back()->with('success', "User '{$user->name}' has been restored.");
     }
 
-    public function purgeUser($id)
+    public function purgeUser($id, Request $request)
     {
+        $this->gateSuperAdmin();
+        $this->verifyActionPasscode($request);
+
         $user = User::onlyTrashed()->findOrFail($id);
         $name = $user->name;
         
@@ -382,18 +477,21 @@ class SuperAdminController extends Controller
 
     public function suspend(Tenant $tenant)
     {
+        $this->gateSuperAdmin();
         $tenant->update(['status' => 'suspended']);
         return back()->with('success', "Store '{$tenant->name}' has been suspended.");
     }
 
     public function activate(Tenant $tenant)
     {
+        $this->gateSuperAdmin();
         $tenant->update(['status' => 'active']);
         return back()->with('success', "Store '{$tenant->name}' has been activated.");
     }
 
     public function extendTrial(Request $request, Tenant $tenant)
     {
+        $this->gateSuperAdmin();
         $days = $request->integer('days', 7);
 
         $payload = [
@@ -419,6 +517,7 @@ class SuperAdminController extends Controller
      */
     public function toggleInternal(Tenant $tenant)
     {
+        $this->gateOwner();
         $tenant->update(['is_internal' => ! $tenant->is_internal]);
         $state = $tenant->is_internal ? 'marked internal (non-billable)' : 'marked billable';
         return back()->with('success', "'{$tenant->name}' {$state}.");
@@ -426,6 +525,7 @@ class SuperAdminController extends Controller
 
     public function appsumoCodes(Request $request)
     {
+        $this->checkAppSumo();
         $query = AppSumoCode::query();
 
         if ($request->get('search')) {
@@ -457,6 +557,7 @@ class SuperAdminController extends Controller
 
     public function generateAppSumoCodes(Request $request)
     {
+        $this->checkAppSumo();
         $request->validate([
             'count' => 'required|integer|min:1|max:1000',
             'tier'  => 'required|string'
@@ -472,6 +573,7 @@ class SuperAdminController extends Controller
 
     public function importAppSumoCodes(Request $request)
     {
+        $this->checkAppSumo();
         $request->validate([
             'codes' => 'required|string', // Expecting raw text/csv
             'tier'  => 'required|string'
@@ -498,6 +600,7 @@ class SuperAdminController extends Controller
 
     public function exportAppSumoCodes(Request $request)
     {
+        $this->checkAppSumo();
         $codes = AppSumoCode::all(['code', 'plan_tier', 'is_redeemed', 'redeemed_at', 'redeemed_by_email']);
         
         $csvHeader = ['Code', 'Tier', 'Status', 'Redeemed At', 'Redeemed By'];
@@ -524,6 +627,7 @@ class SuperAdminController extends Controller
 
     public function purgeAppSumoCodes()
     {
+        $this->checkAppSumo();
         AppSumoCode::where('is_redeemed', false)->delete();
         return back()->with('success', 'All unredeemed codes have been cleared.');
     }
@@ -570,6 +674,13 @@ class SuperAdminController extends Controller
         return back()->with('success', 'All open errors marked as resolved.');
     }
 
+    /**
+     * Detect likely-fixed errors by comparing file modification times to last_seen_at.
+     *
+     * IMPORTANT — This is a HEURISTIC only. A file being modified after an error was last
+     * seen does NOT guarantee the error is fixed. Always manually verify before closing
+     * tickets in production. Errors auto-resolved here are marked with a clear note.
+     */
     public function detectFixes()
     {
         $openErrors = \App\Models\ErrorLog::where('is_resolved', false)
@@ -579,27 +690,24 @@ class SuperAdminController extends Controller
         $resolvedCount = 0;
         /** @var \App\Models\ErrorLog $error */
         foreach ($openErrors as $error) {
-            // Adjust paths: If the error has an absolute path we use it. 
-            // Often frontend errors just have filenames, so we may need to skip or map them.
-            // But backend errors usually have full paths.
             $filePath = $error->file;
 
             if (file_exists($filePath)) {
                 $lastModified = filemtime($filePath);
                 $lastSeen     = $error->last_seen_at->timestamp;
 
-                // If file was modified AFTER the error was last seen, it's a fixed candidate.
+                // Heuristic: file was touched AFTER the error was last seen → possible fix.
                 if ($lastModified > $lastSeen) {
                     $error->update([
                         'is_resolved'     => true,
-                        'resolution_note' => 'Automatically resolved: File modification detected after last occurrence.'
+                        'resolution_note' => '[HEURISTIC] File was modified after the last occurrence — please verify manually before treating as confirmed-fixed.',
                     ]);
                     $resolvedCount++;
                 }
             }
         }
 
-        return back()->with('success', "Scanning complete. {$resolvedCount} errors were auto-detected as fixed based on recent code changes.");
+        return back()->with('success', "Heuristic scan complete: {$resolvedCount} error(s) marked as likely-fixed based on file modification times. Please verify each one before closing.");
     }
 
     public function contactSubmissions(Request $request)
@@ -633,6 +741,7 @@ class SuperAdminController extends Controller
      */
     public function toggleVenSynQ(Request $request)
     {
+        $this->gateOwner();
         $enabled = $request->boolean('enabled');
 
         \App\Models\Setting::withoutGlobalScopes()
@@ -648,6 +757,147 @@ class SuperAdminController extends Controller
 
         $status = $enabled ? 'enabled' : 'disabled';
         return back()->with('success', "VenSynQ has been {$status} platform-wide.");
+    }
+
+    public function addPartner(Request $request)
+    {
+        $this->gateOwner();
+        $validated = $request->validate([
+            'name'       => 'required|string|max:255',
+            'role'       => 'required|string|max:255',
+            'equity_pct' => 'required|numeric|min:0|max:100',
+        ]);
+
+        $partner = \App\Models\PlatformPartner::create($validated);
+        \App\Models\PlatformAuditLog::logAction('partner.created', ['name' => $partner->name]);
+
+        return back()->with('success', 'Partner added successfully.');
+    }
+
+    public function removePartner($id)
+    {
+        $this->gateOwner();
+        $partner = \App\Models\PlatformPartner::findOrFail($id);
+        \App\Models\PlatformAuditLog::logAction('partner.removed', ['name' => $partner->name]);
+        $partner->delete();
+
+        return back()->with('success', 'Partner removed successfully.');
+    }
+
+    public function logDrawing(Request $request)
+    {
+        $this->gateOwner();
+        $validated = $request->validate([
+            'partner_id'  => 'required|exists:platform_partners,id',
+            'amount'      => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:255',
+        ]);
+
+        $validated['date'] = now();
+
+        $drawing = \App\Models\PlatformEquityDrawing::create($validated);
+        $partner = \App\Models\PlatformPartner::find($validated['partner_id']);
+        $partnerName = $partner?->name ?? 'Unknown';
+        \App\Models\PlatformAuditLog::logAction('partner.drawing', ['partner' => $partnerName, 'amount' => $drawing->amount]);
+
+        return back()->with('success', 'Drawing logged successfully.');
+    }
+
+    public function clearAllDrawings(Request $request)
+    {
+        $this->gateOwner();
+        $this->verifyActionPasscode($request);
+
+        \App\Models\PlatformEquityDrawing::truncate();
+
+        return back()->with('success', 'All drawings history cleared.');
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'usd_pkr_rate'              => 'nullable|numeric|min:0',
+            'gateway_fee_pct'           => 'nullable|numeric|min:0|max:100',
+            'default_grace_days'        => 'nullable|integer|min:0',
+            'public_signups_enabled'    => 'nullable|boolean',
+            'maintenance_mode_enabled'  => 'nullable|boolean',
+            'appsumo_enabled'           => 'nullable|boolean',
+        ]);
+
+        foreach ($validated as $key => $val) {
+            $strVal = $val === null ? '' : (string) $val;
+            // For booleans, convert to '1' or '0'
+            if (is_bool($val)) {
+                $strVal = $val ? '1' : '0';
+            }
+            \App\Models\Setting::withoutGlobalScopes()
+                ->updateOrCreate(
+                    ['key' => $key, 'tenant_id' => null],
+                    ['value' => $strVal]
+                );
+        }
+
+        \App\Models\PlatformAuditLog::logAction('settings.updated', $validated);
+
+        // Flush global settings cache
+        \Illuminate\Support\Facades\Cache::forget('settings:global');
+        \Illuminate\Support\Facades\Cache::forget('vensynq_enabled_flag');
+        \Illuminate\Support\Facades\Cache::forget('schema_db_ready');
+
+        return back()->with('success', 'Platform settings updated successfully.');
+    }
+
+    private function checkAppSumo()
+    {
+        $enabled = \App\Models\Setting::withoutGlobalScopes()
+            ->where('key', 'appsumo_enabled')
+            ->whereNull('tenant_id')
+            ->value('value');
+
+        if ($enabled !== '1') {
+            abort(404, 'AppSumo module is disabled.');
+        }
+    }
+
+    private function gateOwner()
+    {
+        if (!auth()->user()->isPlatformOwner()) {
+            abort(403, 'Unauthorized. Platform Owner role required.');
+        }
+    }
+
+    private function gateSuperAdmin()
+    {
+        if (!auth()->user()->isPlatformSuperAdmin()) {
+            abort(403, 'Unauthorized. Platform Admin or Owner role required.');
+        }
+    }
+
+    private function gateSupport()
+    {
+        if (!auth()->user()->isPlatformSupport()) {
+            abort(403, 'Unauthorized. Platform Support role required.');
+        }
+    }
+
+    private function verifyActionPasscode(Request $request)
+    {
+        $request->validate([
+            'passcode' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+        $membership = \App\Models\TenantUser::where('user_id', $user->id)
+            ->where('tenant_id', $user->last_store_id ?: 1)
+            ->first();
+
+        if (!$membership || !$membership->security_pin) {
+            abort(403, 'Action passcode is not set. Please set it in your account security settings first.');
+        }
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+            abort(403, 'Invalid action passcode.');
+        }
     }
 }
 

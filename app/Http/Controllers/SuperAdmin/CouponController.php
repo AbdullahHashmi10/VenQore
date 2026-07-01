@@ -17,7 +17,7 @@ class CouponController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $plans = Plan::where('is_active', true)->with('platform')->get();
+        $plans = Plan::whereNull('archived_at')->where('is_active', true)->with('platform')->get();
 
         return Inertia::render('SuperAdmin/Coupons/Index', [
             'coupons' => $coupons,

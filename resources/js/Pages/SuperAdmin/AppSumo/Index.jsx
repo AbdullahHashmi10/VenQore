@@ -37,8 +37,11 @@ export default function AppSumoIndex({ codes, filters, stats }) {
     };
 
     const handlePurge = () => {
-        if (confirm('Are you sure you want to clear all unredeemed codes?')) {
-            destroy(route('platform.appsumo.purge'));
+        const passcode = prompt('Enter your action passcode to confirm purging unredeemed codes:');
+        if (passcode) {
+            destroy(route('platform.appsumo.purge'), {
+                data: { passcode }
+            });
         }
     };
 

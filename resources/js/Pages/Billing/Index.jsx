@@ -6,7 +6,8 @@ import {
     Zap, Crown, Shield, CheckCircle2, XCircle, AlertTriangle,
     ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
     Cpu, GitBranch, ExternalLink, Sparkles, Lock, Infinity,
-    Receipt, Download, Info, HelpCircle, MessageSquare, Monitor
+    Receipt, Download, Info, HelpCircle, MessageSquare, Monitor,
+    BadgeCheck, ScanFace
 } from 'lucide-react';
 
 // --- Plan metadata (display-only) -------------------------------------------
@@ -217,10 +218,10 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 }
 
 // --- Main Page Component ---
-export default function BillingIndex({ tenant, plans, usage, feature_status }) {
-    const { store, geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
+export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification }) {
+    const { store } = usePage().props;
     const storeSlug = store?.slug;
-    const isPK = geo.currency === 'PKR';
+    const isPK = country === 'PK' && pk_verification?.status === 'approved';
     const fmt = (n) => isPK ? `Rs ${n.toLocaleString()}` : `$${n}`;
 
     const [activeTab, setActiveTab] = useState('subscription');
@@ -635,6 +636,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status }) {
                 {/* TAB CONTENT 1: SUBSCRIPTION & USAGE */}
                 {activeTab === 'subscription' && (
                     <div className="space-y-8 animate-fadeIn">
+                        {country === 'PK' && (
+                            <PkVerificationPanel
+                                tenant={tenant}
+                                pk_verification={pk_verification}
+                                storeSlug={storeSlug}
+                            />
+                        )}
+
                         {/* Usage meters */}
                         <div>
                             <div className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
@@ -1200,5 +1209,152 @@ export default function BillingIndex({ tenant, plans, usage, feature_status }) {
                 </div>
             </Modal>
         </OneGlanceLayout>
+    );
+}
+
+function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
+    const [cnic, setCnic] = useState('');
+    const [phone, setPhone] = useState('');
+    const [imageFront, setImageFront] = useState(null);
+    const [imageBack, setImageBack] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [msg, setMsg] = useState(null);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setMsg(null);
+
+        const formData = new FormData();
+        formData.append('tenant_id', tenant.id);
+        formData.append('cnic', cnic);
+        formData.append('phone', phone);
+        formData.append('image_front', imageFront);
+        formData.append('image_back', imageBack);
+
+        router.post(route('pk-verifications.submit'), formData, {
+            onSuccess: () => {
+                setLoading(false);
+                setMsg({ type: 'success', text: 'Verification submitted successfully! Under review.' });
+            },
+            onError: (errs) => {
+                setLoading(false);
+                const firstErr = Object.values(errs)[0] || 'Verification submission failed.';
+                setMsg({ type: 'error', text: firstErr });
+            }
+        });
+    };
+
+    if (pk_verification?.status === 'approved') {
+        return (
+            <div className="p-6 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-8">
+                <div className="flex gap-3 items-start">
+                    <CheckCircle2 className="shrink-0 mt-0.5 animate-pulse" size={18} />
+                    <div>
+                        <h4 className="font-black text-sm uppercase tracking-wide">Regional Pricing Unlocked</h4>
+                        <p className="text-xs text-emerald-300/80 mt-1">
+                            Your CNIC verification has been approved. Regional Pakistani Rupees (PKR) pricing is fully unlocked for checkout.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (pk_verification?.status === 'pending') {
+        return (
+            <div className="p-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 mb-8">
+                <div className="flex gap-3 items-start">
+                    <ScanFace className="shrink-0 mt-0.5 animate-pulse" size={18} />
+                    <div>
+                        <h4 className="font-black text-sm uppercase tracking-wide">Verification Request Pending</h4>
+                        <p className="text-xs text-amber-300/80 mt-1">
+                            Your CNIC front/back documents are currently being reviewed by our compliance team. Regional PKR pricing checkouts will unlock as soon as your identity is verified.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-6 rounded-3xl bg-slate-900 border border-white/[0.04] mb-8">
+            <div className="flex gap-3 items-start mb-4">
+                <BadgeCheck className="text-purple-400 shrink-0 mt-0.5" size={20} />
+                <div>
+                    <h4 className="font-black text-sm text-white uppercase tracking-wide">Verify Identity for Regional Pricing</h4>
+                    <p className="text-xs text-slate-400 mt-1">
+                        Pakistani stores qualify for special regional pricing (in PKR). Submit your CNIC and contact details below to unlock PKR checkouts. Limit of 1 store per CNIC.
+                    </p>
+                </div>
+            </div>
+
+            {pk_verification?.status === 'rejected' && (
+                <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-4 text-xs">
+                    <strong>Rejection Reason:</strong> {pk_verification.rejection_reason}
+                </div>
+            )}
+
+            {msg && (
+                <div className={`p-4 rounded-xl mb-4 text-xs ${msg.type === 'success' ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border border-red-500/20 text-red-400'}`}>
+                    {msg.text}
+                </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Number (13 Digits)</label>
+                    <input
+                        type="text"
+                        pattern="^[0-9]{5}-?[0-9]{7}-?[0-9]{1}$"
+                        value={cnic}
+                        onChange={e => setCnic(e.target.value)}
+                        placeholder="e.g. 42101-1234567-1"
+                        required
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
+                    <input
+                        type="text"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        placeholder="e.g. +92 300 1234567"
+                        required
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/[0.08] text-white text-xs outline-none focus:border-purple-500 transition-colors"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Front Side Image</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setImageFront(e.target.files[0])}
+                        required
+                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[11px] file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                    />
+                </div>
+                <div>
+                    <label className="block text-[11px] font-black text-slate-400 uppercase tracking-wider mb-2">CNIC Back Side Image</label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => setImageBack(e.target.files[0])}
+                        required
+                        className="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-[11px] file:font-black file:uppercase file:bg-white/[0.04] file:text-white file:cursor-pointer hover:file:bg-white/[0.08]"
+                    />
+                </div>
+                <div className="md:col-span-2 mt-2">
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                    >
+                        {loading ? 'Submitting...' : 'Submit Documents'}
+                    </button>
+                </div>
+            </form>
+        </div>
     );
 }

@@ -24,6 +24,14 @@ class ImpersonationController extends Controller
 {
     public function start(Request $request, User $user): RedirectResponse
     {
+        // Enforce role check (Owner, Admin, or Support can impersonate)
+        if (!auth()->user()->isPlatformSupport()) {
+            abort(403, 'Unauthorized. Platform role check failed.');
+        }
+
+        // Enforce action passcode check
+        $this->verifyActionPasscode($request);
+
         // Cannot impersonate yourself or another platform admin
         if ($user->id === auth()->id()) {
             return back()->withErrors(['impersonate' => 'You cannot impersonate yourself.']);
@@ -99,5 +107,25 @@ class ImpersonationController extends Controller
 
         return redirect()->route('platform.dashboard')
             ->with('success', 'Impersonation ended. You are back as Platform Owner.');
+    }
+
+    private function verifyActionPasscode(Request $request)
+    {
+        $request->validate([
+            'passcode' => 'required|string',
+        ]);
+
+        $user = auth()->user();
+        $membership = \App\Models\TenantUser::where('user_id', $user->id)
+            ->where('tenant_id', $user->last_store_id ?: 1)
+            ->first();
+
+        if (!$membership || !$membership->security_pin) {
+            abort(403, 'Action passcode is not set. Please set it in your account security settings first.');
+        }
+
+        if (!\Illuminate\Support\Facades\Hash::check($request->passcode, $membership->security_pin)) {
+            abort(403, 'Invalid action passcode.');
+        }
     }
 }

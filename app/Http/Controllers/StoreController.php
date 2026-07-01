@@ -446,6 +446,7 @@ class StoreController extends Controller
         ];
 
         $plans = Plan::whereIn('slug', self::TRIAL_PLAN_SLUGS)
+            ->whereNull('archived_at')
             ->where('is_active', true)
             ->get()
             ->keyBy('slug');
@@ -482,11 +483,12 @@ class StoreController extends Controller
         $fallbackMonthly = ['starter' => 19, 'growth' => 39, 'business' => 79];
         $base = $fallbackMonthly[$slug] ?? 19;
         $isPK = $country === 'PK';
+        $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
 
         if ($isPK) {
             $monthly = $plan?->price_monthly_pkr
                 ? (float) $plan->price_monthly_pkr
-                : ($plan?->price_monthly ? round($plan->price_monthly * 280) : $base * 280);
+                : ($plan?->price_monthly ? round($plan->price_monthly * $rate) : $base * $rate);
         } else {
             $monthly = $plan?->price_monthly ? (float) $plan->price_monthly : (float) $base;
         }
@@ -496,7 +498,7 @@ class StoreController extends Controller
         if ($isPK) {
             $annualTotal = $plan?->price_annual_pkr
                 ? (float) $plan->price_annual_pkr
-                : ($plan?->price_annual ? round($plan->price_annual * 280) : round($monthly * 12 * 0.8));
+                : ($plan?->price_annual ? round($plan->price_annual * $rate) : round($monthly * 12 * 0.8));
         } else {
             $annualTotal = $plan?->price_annual ? (float) $plan->price_annual : round($monthly * 12 * 0.8);
         }

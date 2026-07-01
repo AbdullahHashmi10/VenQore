@@ -71,8 +71,11 @@ export default function Stores({ tenants, filters }) {
     };
 
     const onPurge = (id) => {
-        if (confirm('PERMANENTLY DELETE this store? This cannot be undone.')) {
-            router.delete(route('platform.store.purge', id));
+        const passcode = prompt('Enter your action passcode to confirm permanently deleting this store:');
+        if (passcode) {
+            router.delete(route('platform.store.purge', id), {
+                data: { passcode }
+            });
         }
     };
 

@@ -120,7 +120,7 @@ function LineRow({ item, index }) {
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export default function SmokeTestRunner() {
+export default function SmokeTestRunner({ category = 'all', onComplete }) {
     const [status,  setStatus]  = useState(STATUS.IDLE);
     const [lines,   setLines]   = useState([]);
     const [elapsed, setElapsed] = useState(0);
@@ -175,6 +175,7 @@ export default function SmokeTestRunner() {
             if (data.done) {
                 stopAll();
                 setStatus(data.passed ? STATUS.PASSED : STATUS.FAILED);
+                onComplete?.(data.passed);
 
                 // Auto-cleanup the server log file after 60s
                 setTimeout(() => {
@@ -185,8 +186,9 @@ export default function SmokeTestRunner() {
             stopAll();
             setStatus(STATUS.FAILED);
             setLines(prev => [...prev, { type: 'error', text: 'Lost connection to test runner.' }]);
+            onComplete?.(false);
         }
-    }, []);
+    }, [onComplete]);
 
     // ── Actions ───────────────────────────────────────────────────────────────
 
@@ -197,7 +199,7 @@ export default function SmokeTestRunner() {
         startElapsedTimer();
 
         try {
-            const { data } = await axios.post('/VenQore/smoke-tests/run');
+            const { data } = await axios.post('/VenQore/smoke-tests/run', { category });
             jobRef.current = data.job_id;
             pollRef.current = setInterval(() => poll(data.job_id), POLL_INTERVAL_MS);
         } catch (e) {

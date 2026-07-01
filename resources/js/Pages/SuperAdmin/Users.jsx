@@ -73,8 +73,11 @@ export default function Users({ users, filters }) {
     };
 
     const onPurge = (id) => {
-        if (confirm('PERMANENTLY DELETE this user? Their account will be gone forever.')) {
-            router.delete(route('platform.user.purge', id));
+        const passcode = prompt('Enter your action passcode to confirm permanently deleting this user:');
+        if (passcode) {
+            router.delete(route('platform.user.purge', id), {
+                data: { passcode }
+            });
         }
     };
 

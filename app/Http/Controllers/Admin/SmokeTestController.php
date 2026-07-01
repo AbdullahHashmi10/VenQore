@@ -52,7 +52,7 @@ class SmokeTestController extends Controller
     /**
      * Spawn the smoke test process and return a polling job_id.
      */
-    public function run(): JsonResponse
+    public function run(\Illuminate\Http\Request $request): JsonResponse
     {
         $jobId   = Str::uuid()->toString();
         $outFile = storage_path("logs/smoke-{$jobId}.log");
@@ -60,14 +60,38 @@ class SmokeTestController extends Controller
         // Write sentinel immediately so the poller knows the job exists
         file_put_contents($outFile, "STARTED\n");
 
+        $category = $request->input('category', 'all');
         $cmd = [
             $this->phpBin,
             $this->vendorBin,
             '--configuration=' . $this->config,
-            '--testsuite=Smoke',
             '--colors=never',       // strip ANSI codes — not needed in terminal widget
             '--no-coverage',
         ];
+
+        switch ($category) {
+            case 'financial':
+                $cmd[] = 'tests/Feature/V3';
+                break;
+            case 'isolation':
+                $cmd[] = 'tests/Feature/Smoke/SerializationDragnetTest.php';
+                break;
+            case 'billing':
+                $cmd[] = 'tests/Feature/Module11';
+                break;
+            case 'auth':
+                $cmd[] = 'tests/Feature/Module01';
+                break;
+            case 'infra':
+                $cmd[] = 'tests/Feature/OwnersDailyPulseTest.php';
+                break;
+            case 'smoke':
+                $cmd[] = '--testsuite=Smoke';
+                break;
+            default:
+                $cmd[] = '--testsuite=Smoke';
+                break;
+        }
 
         $process = new Process($cmd, $this->rootPath);
         $process->setTimeout(180); // 3 min max

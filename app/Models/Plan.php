@@ -16,6 +16,7 @@ class Plan extends Model
         'checkout_url_usd', 'checkout_url_pkr',
         'display_name', 'description', 'is_featured', 'sort_order',
         'is_active', 'is_visible', 'is_ltd', 'trial_days', 'internal_notes',
+        'archived_at',
     ];
 
     protected $casts = [
@@ -29,6 +30,7 @@ class Plan extends Model
         'price_monthly_pkr'  => 'decimal:4',
         'price_annual_pkr'   => 'decimal:4',
         'price_lifetime_pkr' => 'decimal:4',
+        'archived_at'        => 'datetime',
     ];
 
     public function platform(): BelongsTo

@@ -70,7 +70,7 @@ export const NAV_GROUPS = [
             { key: 'coupons', label: 'Coupons', icon: Ticket, route: 'platform.coupons.index', match: 'platform.coupons.*', desc: 'Discounts & promotions' },
             { key: 'revenue', label: 'Revenue', icon: DollarSign, page: 'revenue', desc: 'Paid subscription income (server-side)' },
             { key: 'gmv', label: 'Merchant GMV', icon: TrendingUp, page: 'gmv', desc: 'Merchant sales volume — not revenue' },
-            { key: 'appsumo', label: 'AppSumo / LTD', icon: Tag, page: 'appsumo', badge: 'soon', desc: 'Lifetime deal codes' },
+            { key: 'appsumo', label: 'AppSumo / LTD', icon: Tag, page: 'appsumo', desc: 'Lifetime deal codes' },
         ],
     },
     {
@@ -91,7 +91,7 @@ export const NAV_GROUPS = [
         items: [
             { key: 'health', label: 'Health & Errors', icon: HeartPulse, route: 'platform.health.errors', match: 'platform.health.*', desc: 'Error logs & contact submissions' },
             { key: 'testing', label: 'Testing Center', icon: ShieldCheck, page: 'testing', desc: 'One-click categorized health check' },
-            { key: 'jobs', label: 'Jobs & Queues', icon: Server, page: 'jobs', badge: 'soon', desc: 'Horizon queue depth & failed jobs' },
+            { key: 'jobs', label: 'Jobs & Queues', icon: Server, page: 'jobs', desc: 'Horizon queue depth & failed jobs' },
             { key: 'webhooks', label: 'Webhooks', icon: Webhook, route: 'platform.webhooks', desc: 'Integration delivery log' },
             { key: 'storage', label: 'Storage', icon: HardDrive, page: 'storage', badge: 'soon', desc: 'Per-tenant & total storage' },
             { key: 'flags', label: 'Feature Flags', icon: ToggleRight, page: 'flags', badge: 'soon', desc: 'Per-store capability switches' },

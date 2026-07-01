@@ -376,20 +376,12 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::post('/users/{id}/restore',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'restoreUser'])->name('user.restore');
         Route::delete('/users/{id}/purge',           [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeUser'])->name('user.purge');
 
-        // Toggle $hideAppSumo to true to hide AppSumo management panel
-        if (true) {
-            Route::get('/appsumo',            fn() => abort(404))->name('appsumo.index');
-            Route::post('/appsumo/generate',  fn() => abort(404))->name('appsumo.generate');
-            Route::post('/appsumo/import',    fn() => abort(404))->name('appsumo.import');
-            Route::get('/appsumo/export',     fn() => abort(404))->name('appsumo.export');
-            Route::delete('/appsumo/purge',   fn() => abort(404))->name('appsumo.purge');
-        } else {
-            Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
-            Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
-            Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
-            Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
-            Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
-        }
+        // AppSumo routes gated dynamically via database setting in controller (T3.8)
+        Route::get('/appsumo',            [\App\Http\Controllers\Admin\SuperAdminController::class, 'appsumoCodes'])->name('appsumo.index');
+        Route::post('/appsumo/generate',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'generateAppSumoCodes'])->name('appsumo.generate');
+        Route::post('/appsumo/import',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'importAppSumoCodes'])->name('appsumo.import');
+        Route::get('/appsumo/export',     [\App\Http\Controllers\Admin\SuperAdminController::class, 'exportAppSumoCodes'])->name('appsumo.export');
+        Route::delete('/appsumo/purge',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'purgeAppSumoCodes'])->name('appsumo.purge');
 
         // ── V1 Support Inbox ──────────────────────────────────────────────
         Route::get('/tickets',                              [\App\Http\Controllers\Admin\SupportController::class, 'tickets'])->name('tickets');
@@ -417,6 +409,12 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         Route::get('/health/contacts',                       [\App\Http\Controllers\Admin\SuperAdminController::class, 'contactSubmissions'])->name('health.contacts');
         Route::post('/health/contacts/{contact}/read',       [\App\Http\Controllers\Admin\SuperAdminController::class, 'readContact'])->name('health.contacts.read');
 
+        // ── Jobs & Queues (T4.4) ──────────────────────────────────────────────
+        Route::get('/jobs/metrics',          [\App\Http\Controllers\Admin\JobsController::class, 'metrics'])->name('jobs.metrics');
+        Route::post('/jobs/failed/{id}/retry', [\App\Http\Controllers\Admin\JobsController::class, 'retryFailed'])->name('jobs.retry');
+        Route::delete('/jobs/failed/{id}',   [\App\Http\Controllers\Admin\JobsController::class, 'deleteFailed'])->name('jobs.delete-failed');
+        Route::post('/jobs/failed/flush',    [\App\Http\Controllers\Admin\JobsController::class, 'flushFailed'])->name('jobs.flush-failed');
+
 
         // ── Impersonation ─────────────────────────────────────────────────
         Route::post('/impersonate/{user}',                  [\App\Http\Controllers\Admin\ImpersonationController::class, 'start'])->name('impersonate.start');
@@ -431,6 +429,13 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
 
         // ── VenSynQ Module Control ─────────────────────────────────────────
         Route::post('/vensynq/toggle', [\App\Http\Controllers\Admin\SuperAdminController::class, 'toggleVenSynQ'])->name('vensynq.toggle');
+        Route::post('/settings/save',   [\App\Http\Controllers\Admin\SuperAdminController::class, 'saveSettings'])->name('settings.save');
+
+        // ── Partners & Equity Drawings (T1.6) ──────────────────────────────
+        Route::post('/partners',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'addPartner'])->name('partners.store');
+        Route::delete('/partners/{partner}',    [\App\Http\Controllers\Admin\SuperAdminController::class, 'removePartner'])->name('partners.destroy');
+        Route::post('/drawings',                [\App\Http\Controllers\Admin\SuperAdminController::class, 'logDrawing'])->name('drawings.store');
+        Route::post('/drawings/clear-history',  [\App\Http\Controllers\Admin\SuperAdminController::class, 'clearAllDrawings'])->name('drawings.clear-history');
 
         // ── Monetization — Plans & Platforms ──────────────────────────────
         Route::prefix('plans')->name('plans.')->group(function () {
@@ -440,6 +445,8 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
             Route::put('/{plan}',            [\App\Http\Controllers\SuperAdmin\PlanController::class, 'update'])->name('update');
             Route::post('/{plan}/duplicate', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'duplicate'])->name('duplicate');
             Route::delete('/{plan}',         [\App\Http\Controllers\SuperAdmin\PlanController::class, 'destroy'])->name('destroy');
+            Route::post('/{plan}/archive',   [\App\Http\Controllers\SuperAdmin\PlanController::class, 'archive'])->name('archive');
+            Route::post('/{plan}/unarchive', [\App\Http\Controllers\SuperAdmin\PlanController::class, 'unarchive'])->name('unarchive');
         });
 
         Route::prefix('platforms')->name('platforms.')->group(function () {
@@ -462,6 +469,12 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
             Route::post('/{tenant}',     [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'apply'])->name('overrides.apply');
             Route::delete('/{tenant}/{override}', [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'remove'])->name('overrides.remove');
         });
+
+        // ── PK Verifications (T3.7) ────────────────────────────────────────
+        Route::post('/pk-verifications/submit',                         [\App\Http\Controllers\Admin\PkVerificationController::class, 'submit'])->name('pk-verifications.submit');
+        Route::post('/pk-verifications/{verification}/approve',        [\App\Http\Controllers\Admin\PkVerificationController::class, 'approve'])->name('pk-verifications.approve');
+        Route::post('/pk-verifications/{verification}/reject',         [\App\Http\Controllers\Admin\PkVerificationController::class, 'reject'])->name('pk-verifications.reject');
+        Route::get('/pk-verifications/{verification}/download/{side}',  [\App\Http\Controllers\Admin\PkVerificationController::class, 'downloadImage'])->name('pk-verifications.download');
 
         // Added Category D Platform Admin Routes
         Route::post('/admin/migration/analyze', fn() => \abort(501, 'Not yet implemented'))->name('admin.migration.analyze');

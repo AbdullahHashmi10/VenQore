@@ -3,6 +3,8 @@
 namespace App\Services\Platform;
 
 use App\Models\Tenant;
+use App\Models\PlatformPartner;
+use App\Models\PlatformEquityDrawing;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -77,7 +79,8 @@ class PlatformRevenueService
      */
     public function netRevenue(string $currency = 'USD'): float
     {
-        $feeRate = (float) $this->setting('platform_fee_rate', 0.05); // 5% default
+        $feePct  = (float) $this->setting('gateway_fee_pct', 5); // 5% default
+        $feeRate = $feePct / 100;
         $gross   = $this->mrr($currency);
         return round($gross * (1 - $feeRate), 2);
     }
@@ -122,6 +125,54 @@ class PlatformRevenueService
             'plan_mrr'       => $this->planDistribution('USD'),
             'excludes'       => 'Excludes internal & demo stores',
             'period'         => $period,
+        ];
+    }
+
+    public function payoutPoolSummary(int $months = 1): array
+    {
+        $netMrrPkr = $this->netRevenue('PKR');
+        $netMrrUsd = $this->netRevenue('USD');
+        $cumulativePkr = $netMrrPkr * $months;
+
+        $partners = PlatformPartner::all();
+        $totalEquityAllocated = $partners->sum('equity_pct');
+
+        $profiles = $partners->map(function ($p) use ($cumulativePkr) {
+            $totalShare = $cumulativePkr * ($p->equity_pct / 100);
+            $totalDrawn = (float) PlatformEquityDrawing::where('partner_id', $p->id)->sum('amount');
+            $remaining = $totalShare - $totalDrawn;
+
+            return [
+                'id' => $p->id,
+                'name' => $p->name,
+                'role' => $p->role,
+                'equity_pct' => $p->equity_pct,
+                'total_share' => round($totalShare, 2),
+                'total_drawn' => round($totalDrawn, 2),
+                'remaining' => round($remaining, 2),
+            ];
+        })->toArray();
+
+        $drawings = PlatformEquityDrawing::with('partner')
+            ->latest('date')
+            ->get()
+            ->map(fn($d) => [
+                'id' => $d->id,
+                'date' => $d->date->toDateString(),
+                'partner_id' => $d->partner_id,
+                'partner_name' => $d->partner?->name ?? 'Deleted Partner',
+                'amount' => (float) $d->amount,
+                'description' => $d->description ?? '',
+            ])->toArray();
+
+        return [
+            'net_mrr_pkr' => $netMrrPkr,
+            'net_mrr_usd' => $netMrrUsd,
+            'months' => $months,
+            'cumulative_payout_pot' => round($cumulativePkr, 2),
+            'total_equity_allocated' => $totalEquityAllocated,
+            'profiles' => $profiles,
+            'drawings' => $drawings,
         ];
     }
 

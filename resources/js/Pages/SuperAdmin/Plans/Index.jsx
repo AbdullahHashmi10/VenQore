@@ -7,7 +7,7 @@ import {
     UserCog, CheckCircle, XCircle, Star, Edit3,
     Copy, Trash2, ArrowUpRight, Shield, Activity,
     Info, Award, Server, LayoutGrid, Table2, Grid3x3,
-    ChevronDown, ChevronRight, RefreshCw, Save
+    ChevronDown, ChevronRight, RefreshCw, Save, Archive
 } from 'lucide-react';
 
 // ── Existing limit keys (for the Plan Drawer) ────────────────────────────────
@@ -917,6 +917,18 @@ export default function PlansIndex({ plans, platforms }) {
         }
     };
 
+    const archive = (plan) => {
+        if (confirm(`Archive subscription plan "${plan.name}"? This will disable it and hide it from signup lists.`)) {
+            router.post(route('platform.plans.archive', { plan: plan.id }));
+        }
+    };
+
+    const unarchive = (plan) => {
+        if (confirm(`Unarchive subscription plan "${plan.name}"?`)) {
+            router.post(route('platform.plans.unarchive', { plan: plan.id }));
+        }
+    };
+
     const toggleActive = (plan) => {
         router.put(route('platform.plans.update', { plan: plan.id }), { is_active: !plan.is_active });
     };
@@ -1108,25 +1120,38 @@ export default function PlansIndex({ plans, platforms }) {
                                                     </div>
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
-                                                    <button
-                                                        onClick={() => toggleActive(plan)}
-                                                        style={{
-                                                            background: plan.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
-                                                            color: plan.is_active ? '#10b981' : '#64748b',
-                                                            border: `1px solid ${plan.is_active ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)'}`,
-                                                            padding: '4px 14px', borderRadius: 8,
-                                                            fontSize: 11, fontWeight: 800, cursor: 'pointer',
-                                                            textTransform: 'uppercase', letterSpacing: '0.05em',
-                                                            transition: 'all 0.15s ease'
-                                                        }}
-                                                    >
-                                                        {plan.is_active ? 'Visible' : 'Hidden'}
-                                                    </button>
+                                                    {plan.archived_at ? (
+                                                        <span style={{ color: '#ef4444', background: 'rgba(239,68,68,0.1)', padding: '4px 10px', borderRadius: 8, fontSize: 11, fontWeight: 800, border: '1px solid rgba(239,68,68,0.2)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Archived</span>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => toggleActive(plan)}
+                                                            style={{
+                                                                background: plan.is_active ? 'rgba(16,185,129,0.12)' : 'rgba(255,255,255,0.03)',
+                                                                color: plan.is_active ? '#10b981' : '#64748b',
+                                                                border: `1px solid ${plan.is_active ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)'}`,
+                                                                padding: '4px 14px', borderRadius: 8,
+                                                                fontSize: 11, fontWeight: 800, cursor: 'pointer',
+                                                                textTransform: 'uppercase', letterSpacing: '0.05em',
+                                                                transition: 'all 0.15s ease'
+                                                            }}
+                                                        >
+                                                            {plan.is_active ? 'Visible' : 'Hidden'}
+                                                        </button>
+                                                    )}
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
                                                     <div style={{ display: 'flex', gap: 8 }}>
                                                         <button onClick={() => openEdit(plan)} style={btnSmall}><Edit3 size={11} /> Edit</button>
                                                         <button onClick={() => duplicate(plan)} style={btnSmall}><Copy size={11} /> Clone</button>
+                                                        {plan.archived_at ? (
+                                                            <button onClick={() => unarchive(plan)} style={{ ...btnSmall, color: '#10b981', background: 'rgba(16,185,129,0.05)', border: '1px solid rgba(16,185,129,0.15)' }} title="Restore Plan">
+                                                                Restore
+                                                            </button>
+                                                        ) : (
+                                                            <button onClick={() => archive(plan)} style={{ ...btnSmall, color: '#f59e0b', background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)' }} title="Archive Plan">
+                                                                Archive
+                                                            </button>
+                                                        )}
                                                         <button
                                                             onClick={() => destroy(plan)}
                                                             disabled={plan.active_tenant_count > 0}

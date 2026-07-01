@@ -173,15 +173,27 @@ class User extends Authenticatable
      * It reads the `is_platform_admin` column (boolean, set manually in DB).
      * This is NEVER set during store creation or user registration.
      */
-    public function isPlatformOwner(): bool
-    {
-        // Legacy alias — use isPlatformAdmin() instead
-        return $this->is_platform_admin === true;
-    }
-
     public function isPlatformAdmin(): bool
     {
         return (bool) $this->is_platform_admin;
+    }
+
+    public function isPlatformOwner(): bool
+    {
+        return $this->isPlatformAdmin() && $this->platform_role === 'platform_owner';
+    }
+
+    public function isPlatformSuperAdmin(): bool
+    {
+        return $this->isPlatformAdmin() && in_array($this->platform_role, ['platform_owner', 'platform_manager', 'product_manager']);
+    }
+
+    public function isPlatformSupport(): bool
+    {
+        return $this->isPlatformAdmin() && in_array($this->platform_role, [
+            'platform_owner', 'platform_manager', 'product_manager',
+            'support_director', 'support_dept_manager', 'support_agent', 'support_qa', 'tech_escalation'
+        ]);
     }
 
     public function isPlatformStaff(): bool

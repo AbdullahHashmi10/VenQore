@@ -52,17 +52,19 @@ class BillingController extends Controller
 
         // Load available subscription plans from DB (visible, active, subscription type only)
         // Grouped by platform for the upgrade carousel in the UI
+        $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
         $availablePlans = Plan::with(['limits', 'features', 'platform'])
+            ->whereNull('archived_at')
             ->where('is_active', true)
             ->where('is_visible', true)
             ->whereIn('type', ['subscription', 'trial'])
             ->orderBy('sort_order')
             ->get()
-            ->map(function (Plan $plan) use ($country) {
+            ->map(function (Plan $plan) use ($country, $rate) {
                 // Resolve dynamic prices based on geolocation and DB overrides
                 if ($country === 'PK') {
-                    $priceMonthly = $plan->price_monthly_pkr ?? ($plan->price_monthly ? round($plan->price_monthly * 280) : null);
-                    $priceAnnual = $plan->price_annual_pkr ?? ($plan->price_annual ? round($plan->price_annual * 280) : null);
+                    $priceMonthly = $plan->price_monthly_pkr ?? ($plan->price_monthly ? round($plan->price_monthly * $rate) : null);
+                    $priceAnnual = $plan->price_annual_pkr ?? ($plan->price_annual ? round($plan->price_annual * $rate) : null);
                 } else {
                     $priceMonthly = $plan->price_monthly;
                     $priceAnnual = $plan->price_annual;
@@ -223,8 +225,11 @@ class BillingController extends Controller
             ],
         ];
 
+        $pkVerification = \App\Models\PkVerification::where('tenant_id', $tenant->id)->first();
+
         return Inertia::render('Billing/Index', [
             'tenant' => [
+                'id'                   => $tenant->id,
                 'name'                 => $tenant->name,
                 'plan'                 => $tenant->plan,
                 'status'               => $tenant->status,
@@ -248,6 +253,12 @@ class BillingController extends Controller
                 'transactions'   => $tenant->getLimit('transactions_per_month'),
             ],
             'feature_status' => $featureStatus,
+            'country'         => $country,
+            'pk_verification' => $pkVerification ? [
+                'id'               => $pkVerification->id,
+                'status'           => $pkVerification->status,
+                'rejection_reason' => $pkVerification->rejection_reason,
+            ] : null,
             'mode' => 'admin'
         ]);
     }
@@ -281,7 +292,11 @@ class BillingController extends Controller
 
         $planModel = Plan::where('slug', $targetPlan)->first();
 
-        if ($country === 'PK') {
+        $isVerified = \App\Models\PkVerification::where('tenant_id', $tenant->id)
+            ->where('status', 'approved')
+            ->exists();
+
+        if ($country === 'PK' && $isVerified) {
             $url = ($planModel && $planModel->checkout_url_pkr)
                 ? $planModel->checkout_url_pkr
                 : match ($targetPlan) {
@@ -486,10 +501,11 @@ class BillingController extends Controller
             'business' => 99.00,
         ];
 
+        $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
         if ($targetPlanModel && $currentPlanModel) {
             if ($country === 'PK') {
-                $targetPrice = $targetPlanModel->price_monthly_pkr ?? ($targetPlanModel->price_monthly ? round($targetPlanModel->price_monthly * 280) : $fallbackPrices[$targetPlan]);
-                $currentPrice = $currentPlanModel->price_monthly_pkr ?? ($currentPlanModel->price_monthly ? round($currentPlanModel->price_monthly * 280) : $fallbackPrices[$currentPlan]);
+                $targetPrice = $targetPlanModel->price_monthly_pkr ?? ($targetPlanModel->price_monthly ? round($targetPlanModel->price_monthly * $rate) : $fallbackPrices[$targetPlan]);
+                $currentPrice = $currentPlanModel->price_monthly_pkr ?? ($currentPlanModel->price_monthly ? round($currentPlanModel->price_monthly * $rate) : $fallbackPrices[$currentPlan]);
             } else {
                 $targetPrice = $targetPlanModel->price_monthly ?? $fallbackPrices[$targetPlan];
                 $currentPrice = $currentPlanModel->price_monthly ?? $fallbackPrices[$currentPlan];
@@ -759,9 +775,10 @@ class BillingController extends Controller
         $totalCost = $products * $pricePerProduct;
 
         if ($currency === 'PKR') {
-            // Convert PKR to USD using an exchange rate of 280 for Lemon Squeezy custom_price
+            $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);
+            // Convert PKR to USD using an exchange rate of $rate for Lemon Squeezy custom_price
             // Explicitly round the result after scaling to integer cents to prevent IEEE 754 floating point drift
-            $amountInCents = (int) round(($totalCost * 100) / 280.0);
+            $amountInCents = (int) round(($totalCost * 100) / $rate);
         } else {
             $amountInCents = (int) round($totalCost * 100);
         }

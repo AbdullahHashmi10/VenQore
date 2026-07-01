@@ -38,8 +38,20 @@ class UpdaterController extends Controller
 
         $currentVersion = $this->getCurrentVersion();
 
+        $history = \App\Models\PlatformAuditLog::with('user')
+            ->where('action', 'system.updated')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn($log) => [
+                'version'    => $log->payload['version'] ?? 'unknown',
+                'updated_at' => $log->created_at->toIso8601String(),
+                'by'         => $log->user?->name ?? 'System',
+            ])
+            ->toArray();
+
         return inertia('Updater/Index', [
             'currentVersion' => $currentVersion,
+            'versionHistory' => $history,
         ]);
     }
 
@@ -643,6 +655,17 @@ class UpdaterController extends Controller
             );
         }
 
+        // Auto-restore demo tenant if missing or empty (T4.1)
+        try {
+            $demoTenantExists = \App\Models\Tenant::where('is_demo', true)->exists();
+            if (!$demoTenantExists) {
+                Log::info("Updater: Demo store missing, running demo:restore...");
+                Artisan::call('demo:restore', ['--force' => true]);
+            }
+        } catch (Exception $e) {
+            Log::warning('Updater: failed to restore demo store: ' . $e->getMessage());
+        }
+
         Log::info("Updater: Migrations completed. {$pendingCount} migration(s) applied.");
 
         return response()->json([
@@ -745,6 +768,9 @@ class UpdaterController extends Controller
                 ['key' => 'app_version'],
                 ['value' => $newVersion]
             );
+            if ($newVersion !== 'unknown') {
+                \App\Models\PlatformAuditLog::logAction('system.updated', ['version' => $newVersion]);
+            }
         } catch (Exception $e) {
             Log::warning('Could not save version to settings table: ' . $e->getMessage());
         }

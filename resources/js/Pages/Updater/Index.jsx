@@ -105,7 +105,7 @@ const StatusIcon = ({ status }) => {
 // ─────────────────────────────────────────────────────────────
 // MAIN COMPONENT
 // ─────────────────────────────────────────────────────────────
-export default function Updater({ currentVersion }) {
+export default function Updater({ currentVersion, versionHistory = [] }) {
 
     // ── Phase control ──────────────────────────────────────────
     // phases: 'select' | 'confirm' | 'updating' | 'done' | 'error'
@@ -481,43 +481,67 @@ export default function Updater({ currentVersion }) {
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
 
-                                        {/* ── System Info Card ── */}
-                                        <div className="md:col-span-1 bg-black/30 rounded-xl border border-white/5 p-5 space-y-3">
-                                            <div className="flex items-center gap-2 text-xs font-mono text-slate-500 uppercase tracking-widest mb-4">
-                                                <Server size={13} /> System Info
-                                            </div>
-                                            {infoLoading ? (
-                                                <div className="flex items-center gap-2 text-slate-500">
-                                                    <RefreshCw size={14} className="spin-slow" />
-                                                    <span className="text-xs">Scanning...</span>
+                                        {/* ── System Info Column ── */}
+                                        <div className="md:col-span-1 space-y-6">
+                                            <div className="bg-black/30 rounded-xl border border-white/5 p-5 space-y-3">
+                                                <div className="flex items-center gap-2 text-xs font-mono text-slate-500 uppercase tracking-widest mb-4">
+                                                    <Server size={13} /> System Info
                                                 </div>
-                                            ) : sysInfo ? (
-                                                <>
-                                                    {[
-                                                        { label: 'PHP', value: sysInfo.php_version },
-                                                        { label: 'Free Disk', value: `${sysInfo.disk_free_mb} MB` },
-                                                        {
-                                                            label: 'Upload Limit',
-                                                            value: `${sysInfo.max_zip_mb} MB`,
-                                                            ok: sysInfo.max_zip_mb >= 200,
-                                                            action: sysInfo.max_zip_mb < 200 ? () => setShowLimitHelp(true) : null,
-                                                        },
-                                                        { label: 'Pending DB', value: sysInfo.pending_migrations > 0 ? `${sysInfo.pending_migrations} migration(s)` : 'None', ok: sysInfo.pending_migrations === 0 },
-                                                        { label: 'ZIP Extension', value: sysInfo.zip_extension ? 'Available' : 'Missing', ok: sysInfo.zip_extension },
-                                                        { label: 'Storage', value: sysInfo.storage_writable ? 'Writable' : 'Read Only', ok: sysInfo.storage_writable },
-                                                        { label: 'Base Dir', value: sysInfo.base_writable ? 'Writable' : 'Read Only', ok: sysInfo.base_writable },
-                                                    ].map(({ label, value, ok, action }) => (
-                                                        <div key={label} className={`flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 ${action ? 'cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors' : ''}`} onClick={action || undefined}>
-                                                            <span className="text-xs text-slate-500">{label}</span>
-                                                            <span className={`text-xs font-mono ${ok === false ? 'text-rose-400' : ok === true ? 'text-emerald-400' : 'text-slate-300'}`}>
-                                                                {value}{action && ' ⚠'}
-                                                            </span>
-                                                        </div>
-                                                    ))}
-                                                </>
-                                            ) : (
-                                                <p className="text-xs text-slate-500">Could not load system info.</p>
-                                            )}
+                                                {infoLoading ? (
+                                                    <div className="flex items-center gap-2 text-slate-500">
+                                                        <RefreshCw size={14} className="spin-slow" />
+                                                        <span className="text-xs">Scanning...</span>
+                                                    </div>
+                                                ) : sysInfo ? (
+                                                    <>
+                                                        {[
+                                                            { label: 'PHP', value: sysInfo.php_version },
+                                                            { label: 'Free Disk', value: `${sysInfo.disk_free_mb} MB` },
+                                                            {
+                                                                label: 'Upload Limit',
+                                                                value: `${sysInfo.max_zip_mb} MB`,
+                                                                ok: sysInfo.max_zip_mb >= 200,
+                                                                action: sysInfo.max_zip_mb < 200 ? () => setShowLimitHelp(true) : null,
+                                                            },
+                                                            { label: 'Pending DB', value: sysInfo.pending_migrations > 0 ? `${sysInfo.pending_migrations} migration(s)` : 'None', ok: sysInfo.pending_migrations === 0 },
+                                                            { label: 'ZIP Extension', value: sysInfo.zip_extension ? 'Available' : 'Missing', ok: sysInfo.zip_extension },
+                                                            { label: 'Storage', value: sysInfo.storage_writable ? 'Writable' : 'Read Only', ok: sysInfo.storage_writable },
+                                                            { label: 'Base Dir', value: sysInfo.base_writable ? 'Writable' : 'Read Only', ok: sysInfo.base_writable },
+                                                        ].map(({ label, value, ok, action }) => (
+                                                            <div key={label} className={`flex items-center justify-between py-1.5 border-b border-white/5 last:border-0 ${action ? 'cursor-pointer hover:bg-white/5 rounded px-1 -mx-1 transition-colors' : ''}`} onClick={action || undefined}>
+                                                                <span className="text-xs text-slate-500">{label}</span>
+                                                                <span className={`text-xs font-mono ${ok === false ? 'text-rose-400' : ok === true ? 'text-emerald-400' : 'text-slate-300'}`}>
+                                                                    {value}{action && ' ⚠'}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                ) : (
+                                                    <p className="text-xs text-slate-500">Could not load system info.</p>
+                                                )}
+                                            </div>
+
+                                            {/* ── Version History Card ── */}
+                                            <div className="bg-black/30 rounded-xl border border-white/5 p-5 space-y-3">
+                                                <div className="flex items-center gap-2 text-xs font-mono text-slate-500 uppercase tracking-widest mb-3">
+                                                    <RotateCcw size={13} /> Update History
+                                                </div>
+                                                {versionHistory.length === 0 ? (
+                                                    <p className="text-xs text-slate-500 italic">No update logs recorded yet.</p>
+                                                ) : (
+                                                    <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                                                        {versionHistory.map((h, i) => (
+                                                            <div key={i} className="flex flex-col py-1.5 border-b border-white/5 last:border-0">
+                                                                <div className="flex items-center justify-between">
+                                                                    <span className="text-xs font-bold text-white">v{h.version}</span>
+                                                                    <span className="text-[10px] text-slate-500">{new Date(h.updated_at).toLocaleDateString()}</span>
+                                                                </div>
+                                                                <span className="text-[10px] text-slate-400 mt-0.5">By {h.by}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
 
                                         {/* ── Upload Zone ── */}

@@ -12,6 +12,18 @@ use Inertia\Inertia;
 
 class PlanController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if ($request->route()->getActionMethod() !== 'index') {
+                if (!auth()->user()->isPlatformOwner()) {
+                    abort(403, 'Unauthorized. Platform Owner role required.');
+                }
+            }
+            return $next($request);
+        });
+    }
+
     public function index()
     {
         $plans = Plan::with(['platform', 'limits', 'features'])
@@ -181,5 +193,23 @@ class PlanController extends Controller
         \App\Services\Platform\PlanPricingService::flush();
 
         return back()->with('success', "Plan deleted.");
+    }
+
+    public function archive(Plan $plan)
+    {
+        $plan->update(['archived_at' => now(), 'is_active' => false]);
+        PlanRepository::invalidatePlanCache($plan->slug);
+        \App\Services\Platform\PlanPricingService::flush();
+
+        return back()->with('success', "Plan \"{$plan->name}\" archived.");
+    }
+
+    public function unarchive(Plan $plan)
+    {
+        $plan->update(['archived_at' => null]);
+        PlanRepository::invalidatePlanCache($plan->slug);
+        \App\Services\Platform\PlanPricingService::flush();
+
+        return back()->with('success', "Plan \"{$plan->name}\" unarchived.");
     }
 }
