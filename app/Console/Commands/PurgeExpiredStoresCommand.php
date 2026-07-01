@@ -52,6 +52,7 @@ class PurgeExpiredStoresCommand extends Command
             Log::info("Purging expired store: {$tenant->name} (ID: {$tenant->id})");
 
             try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
                 DB::transaction(function () use ($tenant) {
                     // Clean up all related tables containing tenant_id to bypass constraint issues
                     $tables = [
@@ -85,6 +86,8 @@ class PurgeExpiredStoresCommand extends Command
             } catch (\Throwable $e) {
                 $this->error("Failed to purge store ID {$tenant->id}: " . $e->getMessage());
                 Log::error("Failed to purge store ID {$tenant->id}: " . $e->getMessage());
+            } finally {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             }
         }
 

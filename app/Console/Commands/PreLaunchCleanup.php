@@ -138,6 +138,8 @@ class PreLaunchCleanup extends Command
 
             DB::beginTransaction();
             try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
                 foreach (self::TENANT_TABLES as $table) {
                     if (DB::getSchemaBuilder()->hasTable($table)) {
                         $count = DB::table($table)->where('tenant_id', $tenant->id)->delete();
@@ -156,6 +158,8 @@ class PreLaunchCleanup extends Command
             } catch (\Throwable $e) {
                 DB::rollBack();
                 $this->error("  ❌ Failed to delete {$tenant->subdomain}: " . $e->getMessage());
+            } finally {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             }
         }
 

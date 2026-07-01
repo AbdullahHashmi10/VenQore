@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
-import { ShieldAlert, CheckCircle, Bug, Filter, ArrowLeft, Terminal, MonitorSmartphone, Sparkles } from 'lucide-react';
+import { ShieldAlert, CheckCircle, Bug, Filter, ArrowLeft, Terminal, MonitorSmartphone, Sparkles, Copy } from 'lucide-react';
 import OneGlanceLayout from '@/Layouts/PlatformShell'; // routed through unified Command Center shell
 
 export default function Errors({ errors, filters }) {
@@ -38,6 +38,23 @@ export default function Errors({ errors, filters }) {
         });
     }
 
+    const copyToClipboard = (err) => {
+        const text = `Error: ${err.message}\nFile: ${err.file || 'N/A'}:${err.line || 'N/A'}\nURL: ${err.url || 'N/A'}\nStore: ${err.tenant?.name || 'N/A'}\nUser: ${err.user?.name || 'N/A'}\nOccurrences: ${err.occurrence_count}x\nLast Seen: ${new Date(err.last_seen_at).toLocaleString()}\n\nStack Trace:\n${err.stack_trace || 'N/A'}`;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Error details copied to clipboard!');
+        });
+    };
+
+    const copyAllErrors = () => {
+        if (errors.data.length === 0) return;
+        const text = errors.data.map((err, idx) => {
+            return `--- ERROR #${idx + 1} ---\nError: ${err.message}\nFile: ${err.file || 'N/A'}:${err.line || 'N/A'}\nURL: ${err.url || 'N/A'}\nStore: ${err.tenant?.name || 'N/A'}\nUser: ${err.user?.name || 'N/A'}\nOccurrences: ${err.occurrence_count}x\nLast Seen: ${new Date(err.last_seen_at).toLocaleString()}`;
+        }).join('\n\n========================================\n\n');
+        navigator.clipboard.writeText(text).then(() => {
+            alert('All error summaries copied to clipboard!');
+        });
+    };
+
     return (
         <OneGlanceLayout title="System Health" mode="admin">
             <Head title="Error Logs - System Health" />
@@ -73,30 +90,42 @@ export default function Errors({ errors, filters }) {
                         </button>
                     </div>
 
-                    {statusFilter === 'open' && errors.data.length > 0 && (
+                    {errors.data.length > 0 && (
                         <div className="flex items-center gap-2">
-                            <div className="relative group/hint">
-                                <button 
-                                    onClick={() => {
-                                        if (!confirm('⚠️ HEURISTIC SCAN\n\nThis uses file modification times to guess which errors may be fixed. It does NOT confirm errors are actually resolved.\n\nAuto-resolved items will be labelled "[HEURISTIC]" — please verify each one manually.\n\nProceed?')) return;
-                                        detectFixes();
-                                    }}
-                                    className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-amber-500/25 flex items-center gap-2"
-                                    title="Heuristic only — estimates fixes by file modification times. Verify manually."
-                                >
-                                    <Sparkles size={16} />
-                                    Scan (Heuristic)
-                                </button>
-                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover/hint:block z-50 w-64 bg-amber-900/95 text-amber-100 text-xs rounded-xl p-3 border border-amber-600/30 shadow-xl pointer-events-none">
-                                    ⚠️ <strong>Heuristic only.</strong> Marks errors as likely-fixed if the source file was modified after the error was last seen. Always verify manually — not a guaranteed fix.
-                                </div>
-                            </div>
+                            {statusFilter === 'open' && (
+                                <>
+                                    <div className="relative group/hint">
+                                        <button 
+                                            onClick={() => {
+                                                if (!confirm('⚠️ HEURISTIC SCAN\n\nThis uses file modification times to guess which errors may be fixed. It does NOT confirm errors are actually resolved.\n\nAuto-resolved items will be labelled "[HEURISTIC]" — please verify each one manually.\n\nProceed?')) return;
+                                                detectFixes();
+                                            }}
+                                            className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-amber-500/25 flex items-center gap-2"
+                                            title="Heuristic only — estimates fixes by file modification times. Verify manually."
+                                        >
+                                            <Sparkles size={16} />
+                                            Scan (Heuristic)
+                                        </button>
+                                        <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 hidden group-hover/hint:block z-50 w-64 bg-amber-900/95 text-amber-100 text-xs rounded-xl p-3 border border-amber-600/30 shadow-xl pointer-events-none">
+                                            ⚠️ <strong>Heuristic only.</strong> Marks errors as likely-fixed if the source file was modified after the error was last seen. Always verify manually — not a guaranteed fix.
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={resolveAll}
+                                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2"
+                                    >
+                                        <CheckCircle size={16} />
+                                        Resolve All
+                                    </button>
+                                </>
+                            )}
                             <button 
-                                onClick={resolveAll}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-emerald-500/25 flex items-center gap-2"
+                                onClick={copyAllErrors}
+                                className="bg-slate-600 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl text-sm font-bold transition-all shadow-lg hover:shadow-slate-500/25 flex items-center gap-2"
+                                title="Copy all currently listed errors to clipboard"
                             >
-                                <CheckCircle size={16} />
-                                Resolve All
+                                <Copy size={16} />
+                                Copy All
                             </button>
                         </div>
                     )}
@@ -135,6 +164,13 @@ export default function Errors({ errors, filters }) {
                                                 <CheckCircle size={16} />
                                             </button>
                                         )}
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); copyToClipboard(err); }}
+                                            className={`absolute top-4 ${!err.is_resolved ? 'right-14' : 'right-4'} p-2 rounded-xl bg-slate-500 hover:bg-slate-600 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg shadow-slate-500/20 hover:scale-105 active:scale-95 z-10`}
+                                            title="Copy Error Details"
+                                        >
+                                            <Copy size={16} />
+                                        </button>
 
                                         <div className="flex justify-between items-start mb-3">
                                             <div className="flex items-center gap-3">
@@ -165,9 +201,18 @@ export default function Errors({ errors, filters }) {
                     {/* Details Panel */}
                     {selected && (
                         <div className="w-96 flex-shrink-0 bg-white dark:bg-[#1e293b] rounded-3xl border border-slate-200 dark:border-slate-700 p-6 shadow-xl sticky top-0 h-fit flex flex-col max-h-[calc(100vh-140px)]">
-                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
-                                <Bug className="text-red-500" />
-                                Error Details
+                            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center justify-between">
+                                <span className="flex items-center gap-2">
+                                    <Bug className="text-red-500" />
+                                    Error Details
+                                </span>
+                                <button
+                                    onClick={() => copyToClipboard(selected)}
+                                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 transition-all hover:scale-105"
+                                    title="Copy Details"
+                                >
+                                    <Copy size={16} />
+                                </button>
                             </h3>
                             
                             <div className="flex-1 overflow-y-auto hide-scrollbar space-y-6">

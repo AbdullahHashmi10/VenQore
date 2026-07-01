@@ -517,7 +517,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                             <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Expiry Date</label>
                             <input
                                 type="date"
-                                value={data.expiry_date}
+                                value={data.expiry_date ? String(data.expiry_date).substring(0, 10) : ''}
                                 onChange={e => setData('expiry_date', e.target.value)}
                                 disabled={!isEditable}
                                 className="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white font-medium focus:ring-2 ring-indigo-500/20 outline-none transition-all disabled:opacity-60"
@@ -1470,7 +1470,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">Start Date</label>
                                         <input
                                             type="date"
-                                            value={dateRange.start}
+                                            value={dateRange.start ? String(dateRange.start).substring(0, 10) : ''}
                                             onChange={e => setDateRange({ ...dateRange, start: e.target.value })}
                                             className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 ring-indigo-500/20 outline-none"
                                         />
@@ -1479,7 +1479,7 @@ export default function ProductModal({ product, onClose, isOpen, mode = 'view', 
                                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5">End Date</label>
                                         <input
                                             type="date"
-                                            value={dateRange.end}
+                                            value={dateRange.end ? String(dateRange.end).substring(0, 10) : ''}
                                             onChange={e => setDateRange({ ...dateRange, end: e.target.value })}
                                             className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-medium focus:ring-2 ring-indigo-500/20 outline-none"
                                         />

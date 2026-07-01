@@ -104,7 +104,7 @@ class PurchaseController extends Controller
                         return [
                             'id' => $item->id,
                             'product' => $item->product,
-                            'name' => $item->product?->name ?? $item->description,
+                            'name' => $item->product?->name ?? ($item->getAttributes()['description'] ?? 'Unknown Product'),
                             'quantity' => $item->quantity,
                             'price' => $item->unit_price,
                             'subtotal' => $item->quantity * $item->unit_price,

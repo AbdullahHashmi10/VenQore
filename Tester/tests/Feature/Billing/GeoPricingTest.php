@@ -75,6 +75,14 @@ test('checkout redirection is securely enforced on backend', function () {
     $responseUs->assertRedirectContains('starter-usd');
 
     // 2. Simulate a Pakistan checkout
+    \App\Models\PkVerification::create([
+        'tenant_id' => $this->tenant->id,
+        'user_id' => $this->owner->id,
+        'status' => 'approved',
+        'cnic' => '12345-6789012-3',
+        'phone' => '03001234567',
+    ]);
+
     $responsePk = $this->withHeaders([
         'CF-IPCountry' => 'PK',
     ])->get(route('store.billing.upgrade', [
@@ -110,6 +118,14 @@ test('checkout redirection prefers database dynamic URLs', function () {
     $responseUs->assertRedirectContains('db-starter-usd');
 
     // 2. Simulate a Pakistan checkout and assert it redirects to the database-managed PKR URL
+    \App\Models\PkVerification::create([
+        'tenant_id' => $this->tenant->id,
+        'user_id' => $this->owner->id,
+        'status' => 'approved',
+        'cnic' => '12345-6789012-3',
+        'phone' => '03001234567',
+    ]);
+
     $responsePk = $this->withHeaders([
         'CF-IPCountry' => 'PK',
     ])->get(route('store.billing.upgrade', [

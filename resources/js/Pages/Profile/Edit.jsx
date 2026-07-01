@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Head, Link, useForm, usePage, router } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
+import PlatformLayout from '@/Layouts/PlatformLayout';
 import {
     User,
     Mail,
@@ -81,7 +82,11 @@ export default function Edit({ mustVerifyEmail, status }) {
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route('store.profile.update', { store_slug: store.slug }));
+        if (store) {
+            patch(route('store.profile.update', { store_slug: store.slug }));
+        } else {
+            patch(route('account.update'));
+        }
     };
 
     const submitPassword = (e) => {
@@ -107,8 +112,11 @@ export default function Edit({ mustVerifyEmail, status }) {
         }
 
         setPasscodeSaving(true);
+        const url = store
+            ? route('store.profile.passcode', { store_slug: store.slug })
+            : route('account.passcode');
         try {
-            await router.post(route('store.profile.passcode', { store_slug: store.slug }), {
+            await router.post(url, {
                 passcode: passcodeData.enable_passcode ? passcodeData.passcode : null,
             }, {
                 preserveScroll: true,
@@ -142,8 +150,11 @@ export default function Edit({ mustVerifyEmail, status }) {
         }
 
         setSecurityPinSaving(true);
+        const url = store
+            ? route('store.profile.security-pin', { store_slug: store.slug })
+            : route('account.security-pin');
         try {
-            await router.post(route('store.profile.security-pin', { store_slug: store.slug }), {
+            await router.post(url, {
                 security_pin: securityPinData.enable_security_pin ? securityPinData.security_pin : null,
             }, {
                 preserveScroll: true,
@@ -163,7 +174,10 @@ export default function Edit({ mustVerifyEmail, status }) {
 
     const deleteAccount = (e) => {
         e.preventDefault();
-        destroy(route('store.profile.destroy', { store_slug: store.slug }), {
+        const url = store
+            ? route('store.profile.destroy', { store_slug: store.slug })
+            : route('account.destroy');
+        destroy(url, {
             data: { password: deletePassword },
         });
     };
@@ -182,22 +196,26 @@ export default function Edit({ mustVerifyEmail, status }) {
     const toggleSeniorMode = () => {
         const newValue = !preferences.senior_mode;
         setPreferences(prev => ({ ...prev, senior_mode: newValue }));
-        router.post(route("store.settings.update", {
-            store_slug: store.slug
-        }), {
-            settings: { ...settings, senior_mode: newValue ? '1' : '0' }
-        }, { preserveScroll: true });
+        if (store) {
+            router.post(route("store.settings.update", {
+                store_slug: store.slug
+            }), {
+                settings: { ...settings, senior_mode: newValue ? '1' : '0' }
+            }, { preserveScroll: true });
+        }
     };
 
+    const Layout = store ? OneGlanceLayout : PlatformLayout;
+
     return (
-        <OneGlanceLayout title="Profile Settings" activeMenu="System">
+        <Layout {...(store ? { title: "Profile Settings", activeMenu: "System" } : { title: "Profile Settings" })}>
             <Head title="Profile Settings" />
             {/* Main scrollable container */}
             <div className="h-full overflow-y-auto">
                 <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8 space-y-8 pb-24">
                     {/* Back Link */}
                     <Link
-                        href={route('store.home', { store_slug: store.slug })}
+                        href={store ? route('store.home', { store_slug: store.slug }) : '/VenQore'}
                         className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-indigo-600 transition-colors"
                     >
                         <ArrowLeft size={16} />
@@ -298,58 +316,60 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </div>
 
                     {/* Onboarding Progress Card */}
-                    <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                            <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <CheckCircle className="text-indigo-500" />
-                                Onboarding Setup Progress
-                            </h2>
-                            <p className="text-sm text-slate-500 mt-1">Track the setup steps required to unlock your dashboard analytics.</p>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            {/* Checklist of steps */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {[
-                                    { key: 'inventory', label: 'Catalog First Product', isDone: usePage().props.onboarding_metrics?.has_products, desc: 'Add at least one product to your store inventory.', route: 'store.inventory.index' },
-                                    { key: 'purchase', label: 'Record First Purchase', isDone: usePage().props.onboarding_metrics?.has_purchases, desc: 'Add stock to your inventory by recording a purchase.', route: 'store.purchases.create' },
-                                    { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: usePage().props.onboarding_metrics?.has_sales, desc: 'Make a POS sale or generate a customer invoice.', route: 'store.sales.invoice.create' },
-                                    { key: 'expense', label: 'Record Store Expense', isDone: usePage().props.onboarding_metrics?.has_expenses, desc: 'Keep track of daily business costs by adding an expense.', route: 'store.expenses.index' },
-                                    { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: usePage().props.onboarding_metrics?.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected, desc: 'Link your Google Drive for automated database backups.', route: 'store.admin.data', tab: 'drive_sync' }
-                                ].map((item, idx) => (
-                                    <div key={idx} className={`p-4 rounded-2xl border transition-all ${item.isDone ? 'bg-emerald-500/5 border-emerald-100 dark:border-emerald-950/50' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800'}`}>
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div className="flex items-start gap-3">
-                                                <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
-                                                    {item.isDone ? <CheckCircle size={12} className="fill-emerald-500/10" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />}
+                    {store && (
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+                            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                                <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                    <CheckCircle className="text-indigo-500" />
+                                    Onboarding Setup Progress
+                                </h2>
+                                <p className="text-sm text-slate-500 mt-1">Track the setup steps required to unlock your dashboard analytics.</p>
+                            </div>
+                            <div className="p-6 space-y-4">
+                                {/* Checklist of steps */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {[
+                                        { key: 'inventory', label: 'Catalog First Product', isDone: usePage().props.onboarding_metrics?.has_products, desc: 'Add at least one product to your store inventory.', route: 'store.inventory.index' },
+                                        { key: 'purchase', label: 'Record First Purchase', isDone: usePage().props.onboarding_metrics?.has_purchases, desc: 'Add stock to your inventory by recording a purchase.', route: 'store.purchases.create' },
+                                        { key: 'sale', label: 'Record First Sale (POS/Invoice)', isDone: usePage().props.onboarding_metrics?.has_sales, desc: 'Make a POS sale or generate a customer invoice.', route: 'store.sales.invoice.create' },
+                                        { key: 'expense', label: 'Record Store Expense', isDone: usePage().props.onboarding_metrics?.has_expenses, desc: 'Keep track of daily business costs by adding an expense.', route: 'store.expenses.index' },
+                                        { key: 'drive_sync', label: 'Secure Database (Google Drive)', isDone: usePage().props.onboarding_metrics?.has_drive_sync || !!store?.google_backup_enabled || !!store?.google_connected, desc: 'Link your Google Drive for automated database backups.', route: 'store.admin.data', tab: 'drive_sync' }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className={`p-4 rounded-2xl border transition-all ${item.isDone ? 'bg-emerald-500/5 border-emerald-100 dark:border-emerald-950/50' : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800'}`}>
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex items-start gap-3">
+                                                    <div className={`mt-0.5 w-5 h-5 rounded-full flex items-center justify-center ${item.isDone ? 'bg-emerald-500/15 text-emerald-500' : 'bg-slate-200 dark:bg-slate-700 text-slate-400'}`}>
+                                                        {item.isDone ? <CheckCircle size={12} className="fill-emerald-500/10" /> : <div className="w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500" />}
+                                                    </div>
+                                                    <div>
+                                                        <p className={`font-bold text-sm ${item.isDone ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
+                                                            {item.label}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
+                                                            {item.desc}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <p className={`font-bold text-sm ${item.isDone ? 'text-slate-500 dark:text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}`}>
-                                                        {item.label}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                                                        {item.desc}
-                                                    </p>
-                                                </div>
+                                                <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
+                                                    {item.isDone ? 'Done' : 'Pending'}
+                                                </span>
                                             </div>
-                                            <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${item.isDone ? 'bg-emerald-500/10 text-emerald-500' : 'bg-indigo-500/10 text-indigo-500'}`}>
-                                                {item.isDone ? 'Done' : 'Pending'}
-                                            </span>
+                                            {!item.isDone && (
+                                                <div className="mt-3 flex justify-end">
+                                                    <Link
+                                                        href={route(item.route, { store_slug: store.slug, ...(item.tab ? { tab: item.tab } : {}) })}
+                                                        className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
+                                                    >
+                                                        Start Task &rarr;
+                                                    </Link>
+                                                </div>
+                                            )}
                                         </div>
-                                        {!item.isDone && (
-                                            <div className="mt-3 flex justify-end">
-                                                <Link
-                                                    href={route(item.route, { store_slug: store.slug, ...(item.tab ? { tab: item.tab } : {}) })}
-                                                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"
-                                                >
-                                                    Start Task &rarr;
-                                                </Link>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Personal Preferences Card */}
                     <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
@@ -768,6 +788,6 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </div>
                 </div>
             )}
-        </OneGlanceLayout>
+        </Layout>
     );
 }

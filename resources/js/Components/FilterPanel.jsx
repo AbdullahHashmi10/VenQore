@@ -58,6 +58,7 @@ export default function FilterPanel({
                 );
 
             case 'date':
+                const dateValue = values[filter.key] ? String(values[filter.key]).substring(0, 10) : '';
                 return (
                     <div key={filter.key} className="flex-1 min-w-[150px]">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
@@ -66,7 +67,7 @@ export default function FilterPanel({
                         <div className="relative">
                             <input
                                 type="date"
-                                value={values[filter.key] || ''}
+                                value={dateValue}
                                 onChange={(e) => handleChange(filter.key, e.target.value)}
                                 className={`${inputBaseClass} pl-3`} // Browser native date picker usually needs less horizontal padding management than custom icons unless we have an icon overlay
                             />
@@ -75,6 +76,8 @@ export default function FilterPanel({
                 );
 
             case 'dateRange':
+                const fromValue = values[`${filter.key}_from`] ? String(values[`${filter.key}_from`]).substring(0, 10) : '';
+                const toValue = values[`${filter.key}_to`] ? String(values[`${filter.key}_to`]).substring(0, 10) : '';
                 return (
                     <div key={filter.key} className="flex-1 min-w-[300px]">
                         <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">
@@ -84,7 +87,7 @@ export default function FilterPanel({
                             <div className="relative flex-1">
                                 <input
                                     type="date"
-                                    value={values[`${filter.key}_from`] || ''}
+                                    value={fromValue}
                                     onChange={(e) => handleChange(`${filter.key}_from`, e.target.value)}
                                     className={inputBaseClass}
                                 />
@@ -93,7 +96,7 @@ export default function FilterPanel({
                             <div className="relative flex-1">
                                 <input
                                     type="date"
-                                    value={values[`${filter.key}_to`] || ''}
+                                    value={toValue}
                                     onChange={(e) => handleChange(`${filter.key}_to`, e.target.value)}
                                     className={inputBaseClass}
                                 />

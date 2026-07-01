@@ -10,18 +10,20 @@ use App\Services\PlanRepository;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-class PlanController extends Controller
+class PlanController extends Controller implements \Illuminate\Routing\Controllers\HasMiddleware
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware(function ($request, $next) {
-            if ($request->route()->getActionMethod() !== 'index') {
-                if (!auth()->user()->isPlatformOwner()) {
-                    abort(403, 'Unauthorized. Platform Owner role required.');
+        return [
+            new \Illuminate\Routing\Controllers\Middleware(function ($request, $next) {
+                if ($request->route()->getActionMethod() !== 'index') {
+                    if (!auth()->user()->isPlatformOwner()) {
+                        abort(403, 'Unauthorized. Platform Owner role required.');
+                    }
                 }
-            }
-            return $next($request);
-        });
+                return $next($request);
+            }),
+        ];
     }
 
     public function index()

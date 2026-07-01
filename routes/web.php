@@ -155,6 +155,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Global account settings (not store-specific)
     Route::get('/account',   [ProfileController::class, 'edit'])->name('account.edit');
     Route::patch('/account', [ProfileController::class, 'update'])->name('account.update');
+    Route::post('/account/passcode', [ProfileController::class, 'updatePasscode'])->name('account.passcode');
+    Route::post('/account/security-pin', [\App\Http\Controllers\ProfileSecurityController::class, 'updateSecurityPin'])->name('account.security-pin');
+    Route::delete('/account', [ProfileController::class, 'destroy'])->name('account.destroy');
 });
 
 // ── Store Context Routes ─────────────────────────────────────────────────

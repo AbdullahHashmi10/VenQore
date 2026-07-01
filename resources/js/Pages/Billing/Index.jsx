@@ -1232,7 +1232,7 @@ function PkVerificationPanel({ tenant, pk_verification, storeSlug }) {
         formData.append('image_front', imageFront);
         formData.append('image_back', imageBack);
 
-        router.post(route('pk-verifications.submit'), formData, {
+        router.post(route('platform.pk-verifications.submit'), formData, {
             onSuccess: () => {
                 setLoading(false);
                 setMsg({ type: 'success', text: 'Verification submitted successfully! Under review.' });

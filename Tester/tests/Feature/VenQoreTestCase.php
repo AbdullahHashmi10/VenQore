@@ -162,6 +162,7 @@ abstract class VenQoreTestCase extends TestCase
         $admin = User::factory()->create([
             'email'             => 'superadmin@venqore-platform.internal',
             'is_platform_admin' => true,
+            'platform_role'     => 'platform_owner',
             'last_store_id'     => null,
         ]);
 

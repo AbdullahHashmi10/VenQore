@@ -303,8 +303,8 @@ test('blocks access if client clock is tampered to be before last_validated_at o
         'updated_at'           => \Carbon\Carbon::parse('2026-06-06 12:00:00'),
     ]);
 
-    // Set the system clock backward (e.g. to 2026-06-05) - before last_validated_at
-    \Carbon\Carbon::setTestNow('2026-06-05 12:00:00');
+    // Set the system clock backward (e.g. to 2026-06-01) - before last_validated_at
+    \Carbon\Carbon::setTestNow('2026-06-01 12:00:00');
 
     $response = $this->withHeaders([
         'X-DRM-License-Key'          => $licenseKey,

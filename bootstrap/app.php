@@ -100,11 +100,10 @@ return Application::configure(basePath: dirname(__DIR__))
         });
 
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
-            // Skip: validation errors, auth redirects, 404s, and custom HTTP responses
+            // Skip: validation errors, auth redirects, and custom HTTP responses
             // This ensures standard Laravel/Inertia forms display validation errors gracefully
             if ($e instanceof \Illuminate\Validation\ValidationException) return null;
             if ($e instanceof \Illuminate\Auth\AuthenticationException) return null;
-            if ($e instanceof \Symfony\Component\HttpKernel\Exception\NotFoundHttpException) return null;
             if ($e instanceof \Illuminate\Http\Exceptions\HttpResponseException) return null;
 
             // CSRF Token Mismatch - cleanly reload the page and display error message

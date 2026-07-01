@@ -8,7 +8,7 @@ use App\Models\Tenant;
 
 class ResetDemoStore extends Command
 {
-    protected $signature = 'demo:reset';
+    protected $signature = 'demo:reset {--force : Legacy compatibility flag}';
     protected $description = 'Reset the demo store to its original state';
 
     public function handle()

@@ -103,7 +103,7 @@ export const NAV_GROUPS = [
         key: 'account',
         label: 'Account',
         items: [
-            { key: 'profile', label: 'Profile & Security', icon: KeyRound, page: 'security', desc: 'Password, login PIN, action passcode' },
+            { key: 'profile', label: 'Profile & Security', icon: KeyRound, href: '/account', desc: 'Password, login PIN, action passcode' },
         ],
     },
 ];

@@ -27,6 +27,8 @@ class CleanExpiredDemoSessions extends Command
             
             DB::beginTransaction();
             try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
                 // Since this is a single DB model, we must delete rows. 
                 // Relying on Eloquent Cascade is risky for performance. We can manually bulk delete rows if no DB cascades.
                 
@@ -47,6 +49,8 @@ class CleanExpiredDemoSessions extends Command
             } catch (\Exception $e) {
                 DB::rollBack();
                 $this->error("Failed to clean {$tenant->slug}: " . $e->getMessage());
+            } finally {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             }
         }
     }
