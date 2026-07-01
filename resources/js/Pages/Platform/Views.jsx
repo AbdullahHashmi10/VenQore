@@ -845,6 +845,9 @@ export function SupportView({ tickets = {}, ticket_filters = {} }) {
                     </div>
                 </Drawer>
             )}
+        </div>
+    );
+}
 
 /* ════════════════ IMPERSONATION LOG ════════════════ */
 export function ImpersonationView() {
