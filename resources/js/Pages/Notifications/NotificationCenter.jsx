@@ -131,8 +131,7 @@ export default function NotificationsIndex({ notifications }) {
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${link.active
                                         ? 'bg-indigo-600 text-white'
                                         : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'} ${!link.url && 'opacity-50 cursor-not-allowed'}`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                />
+                                >{(link.label || '').replace(/<[^>]*>/g, '').replace(/&laquo;/g, '\u00ab').replace(/&raquo;/g, '\u00bb').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')}</Link>
                             ))}
                         </div>
                     </div>

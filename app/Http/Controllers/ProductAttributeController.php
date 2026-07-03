@@ -17,26 +17,27 @@ class ProductAttributeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        // Mass-assignment hardening (2026-07-03): persist only validated fields.
+        $validated = $request->validate([
             'name' => 'required|string|unique:product_attributes,name',
             'type' => 'required|string',
             'options' => 'nullable|array',
         ]);
 
-        ProductAttribute::create($request->all());
+        ProductAttribute::create($validated);
 
         return back()->with('success', 'Attribute created successfully.');
     }
 
     public function update(Request $request, ProductAttribute $attribute)
     {
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|unique:product_attributes,name,' . $attribute->id,
             'type' => 'required|string',
             'options' => 'nullable|array',
         ]);
 
-        $attribute->update($request->all());
+        $attribute->update($validated);
 
         return back()->with('success', 'Attribute updated successfully.');
     }

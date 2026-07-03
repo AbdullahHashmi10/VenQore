@@ -18,13 +18,14 @@ class SystemResetController extends Controller
      * Priority order:
      *   1. Password  — any user who has set a password must supply it.
      *   2. Admin passcode — store-level passcode set in Settings.
-     *   3. Email address (Google-only fallback) — a Google user who has
-     *      never set a password can confirm by typing their own email.
-     *      This is safe because the endpoint is already protected by
-     *      auth + tenant middleware; the attacker would have to be
-     *      already logged in as that user.
+     *      SEC-1 (2026-07-03): the stored passcode is now a bcrypt hash
+     *      (hashed on save in SettingsController + backfill migration).
+     *      A legacy plaintext value still verifies once and is upgraded
+     *      to a hash on the spot, so no store gets locked out mid-migration.
+     *
+     * Every failed attempt is logged with user, tenant and IP.
      */
-    private function verifyCredential($input)
+    private function verifyCredential($input, Request $request)
     {
         $user = auth()->user();
 
@@ -33,17 +34,68 @@ class SystemResetController extends Controller
             return true;
         }
 
-        // 2. Check Admin Passcode (if enabled/set)
-        $passcode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
-        if ($passcode && $input === $passcode) {
-            return true;
+        // 2. Check Admin Passcode (if enabled/set) — hashed compare (SEC-1)
+        $stored = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+        if ($stored) {
+            $isHash = str_starts_with($stored, '$2y$') || str_starts_with($stored, '$argon2');
+            if ($isHash && Hash::check($input, $stored)) {
+                return true;
+            }
+            // Legacy plaintext value: verify once, then self-upgrade to a hash.
+            if (!$isHash && hash_equals($stored, (string) $input)) {
+                \App\Models\Setting::where('key', 'admin_passcode')
+                    ->update(['value' => Hash::make($input)]);
+                Log::info('SEC-1: legacy plaintext admin_passcode auto-upgraded to hash.', [
+                    'tenant_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
+                ]);
+                return true;
+            }
         }
+
+        Log::warning('Dangerous-operation credential check FAILED.', [
+            'user_id'   => $user?->id,
+            'tenant_id' => app()->bound('current.tenant') ? app('current.tenant')->id : null,
+            'ip'        => $request->ip(),
+            'route'     => $request->path(),
+        ]);
 
         return false;
     }
 
     /**
-     * Delete All Data (Factory Reset)
+     * Delete rows from a table for the CURRENT TENANT ONLY.
+     *
+     * CRITICAL FIX (2026-07-03): this controller previously ran
+     * DB::table($table)->delete() with FOREIGN_KEY_CHECKS=0 and NO tenant
+     * scope — a store-level "factory reset" would have wiped every tenant
+     * on the platform. All destructive statements are now scoped to the
+     * current tenant, and tables without a tenant_id column are skipped
+     * (never mass-deleted) and reported in the log.
+     *
+     * @return bool true if the table was wiped, false if skipped
+     */
+    private function wipeTenantTable(string $table, int $tenantId, ?callable $extraWhere = null): bool
+    {
+        if (!Schema::hasTable($table)) {
+            return false;
+        }
+
+        if (!Schema::hasColumn($table, 'tenant_id')) {
+            Log::info("SystemReset: skipped table without tenant_id column: {$table}");
+            return false;
+        }
+
+        $query = DB::table($table)->where('tenant_id', $tenantId);
+        if ($extraWhere) {
+            $extraWhere($query);
+        }
+        $query->delete();
+
+        return true;
+    }
+
+    /**
+     * Delete All Data (Factory Reset) — for the current store (tenant) only.
      * Keeps Users, Settings, Permissions.
      */
     public function factoryReset(Request $request)
@@ -56,25 +108,30 @@ class SystemResetController extends Controller
 
         $user = auth()->user();
         if (!$user->password) {
-            $passcode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
-            if (!$passcode || $request->password !== $passcode) {
+            $stored = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+            if (!$stored) {
                 return response()->json([
                     'message' => 'For security, please set a password in your Profile settings first, then return to confirm this action.'
                 ], 403);
             }
         }
 
-        if (!$this->verifyCredential($request->password)) {
+        if (!$this->verifyCredential($request->password, $request)) {
             return response()->json(['message' => 'Invalid password or admin passcode.'], 403);
+        }
+
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')?->id : null;
+        if (!$tenantId) {
+            return response()->json(['message' => 'No active store context — reset aborted.'], 422);
         }
 
         try {
             DB::beginTransaction();
 
-            // Disable foreign key checks
+            // Disable foreign key checks (session-level) so deletion order doesn't matter
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-            // List of tables to delete (NOT TRUNCATE)
+            // List of tables to delete (NOT TRUNCATE) — tenant-scoped
             $tables = [
                 // Sales & Transactions
                 'sales',
@@ -83,7 +140,7 @@ class SystemResetController extends Controller
                 'payments',
                 'expenses',
                 'expense_categories',
-                
+
                 // Inventory
                 'products',
                 'product_variants',
@@ -97,7 +154,7 @@ class SystemResetController extends Controller
                 'categories',
                 'brands',
                 'warranties',
-                
+
                 // CRITICAL: Accounting Data
                 'journal_entries',
                 'journal_items',
@@ -134,7 +191,7 @@ class SystemResetController extends Controller
                 'production_runs',
                 'production_run_items',
                 'manufacturing_rules',
-                
+
                 // Logs
                 'audit_logs',
                 'activity_log',
@@ -145,35 +202,32 @@ class SystemResetController extends Controller
             ];
 
             foreach ($tables as $table) {
-                if (Schema::hasTable($table)) {
-                    DB::table($table)->delete();
-                }
+                $this->wipeTenantTable($table, $tenantId);
             }
 
-            // Reset Account Balances (Keep Chart of Accounts)
-            if (Schema::hasTable('accounts')) {
-                DB::table('accounts')->update(['balance' => 0]);
+            // Reset Account Balances (Keep Chart of Accounts) — this tenant only
+            if (Schema::hasTable('accounts') && Schema::hasColumn('accounts', 'tenant_id')) {
+                DB::table('accounts')->where('tenant_id', $tenantId)->update(['balance' => 0]);
             }
-
-
 
             // Re-enable foreign key checks
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
             DB::commit();
-            Log::info('Factory Reset performed by User ID: ' . auth()->id());
+            Log::info("Factory Reset performed for tenant {$tenantId} by User ID: " . auth()->id());
 
-            return response()->json(['message' => 'System successfully reset to factory settings.']);
+            return response()->json(['message' => 'Store data successfully reset to factory settings.']);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             Log::error('Factory Reset Failed: ' . $e->getMessage());
             return response()->json(['message' => 'Factory Reset Failed: ' . $e->getMessage()], 500);
         }
     }
 
     /**
-     * Selective Delete
+     * Selective Delete — for the current store (tenant) only.
      */
     public function deleteEntity(Request $request, $entity)
     {
@@ -184,16 +238,21 @@ class SystemResetController extends Controller
 
         $user = auth()->user();
         if (!$user->password) {
-            $passcode = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
-            if (!$passcode || $request->password !== $passcode) {
+            $stored = \App\Models\Setting::where('key', 'admin_passcode')->value('value');
+            if (!$stored) {
                 return response()->json([
                     'message' => 'For security, please set a password in your Profile settings first, then return to confirm this action.'
                 ], 403);
             }
         }
 
-        if (!$this->verifyCredential($request->password)) {
+        if (!$this->verifyCredential($request->password, $request)) {
             return response()->json(['message' => 'Invalid password or admin passcode.'], 403);
+        }
+
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')?->id : null;
+        if (!$tenantId) {
+            return response()->json(['message' => 'No active store context — operation aborted.'], 422);
         }
 
         try {
@@ -204,97 +263,95 @@ class SystemResetController extends Controller
                 case 'products':
                     // Delete Products & Logic
                     $tables = [
-                        'products', 'product_variants', 'stocks', 
+                        'products', 'product_variants', 'stocks',
                         'stock_movements', 'stock_transfers', 'stock_takes',
                         'manufacturing_rules', 'production_runs', 'production_run_items'
                     ];
                     foreach ($tables as $table) {
-                        if (Schema::hasTable($table)) DB::table($table)->delete();
+                        $this->wipeTenantTable($table, $tenantId);
                     }
-                    
-                    // Clear Product Logs
-                    if (Schema::hasTable('activity_log')) {
-                        DB::table('activity_log')->where('subject_type', 'like', '%Product%')->delete();
-                    }
-                    if (Schema::hasTable('activities')) {
-                         DB::table('activities')->where('reference_type', 'like', '%Product%')->delete();
-                    }
+
+                    // Clear Product Logs (tenant-scoped; skipped if no tenant_id column)
+                    $this->wipeTenantTable('activity_log', $tenantId, function ($q) {
+                        $q->where('subject_type', 'like', '%Product%');
+                    });
+                    $this->wipeTenantTable('activities', $tenantId, function ($q) {
+                        $q->where('reference_type', 'like', '%Product%');
+                    });
                     break;
 
                 case 'sales':
                     // Delete Sales, Invoices, & Financials related to Revenue
                     $tables = [
-                        'sales', 'sale_items', 
-                        'proposals', 'proposal_items', 
-                        'sales_orders', 'sales_order_items', 
-                        'parked_sales', 
+                        'sales', 'sale_items',
+                        'proposals', 'proposal_items',
+                        'sales_orders', 'sales_order_items',
+                        'parked_sales',
                         'invoices', 'invoice_items',
                         'recurring_invoices',
                         'returns', 'return_items',
                         'payment_allocations'
                     ];
-                    
+
                     foreach ($tables as $table) {
-                        if (Schema::hasTable($table)) DB::table($table)->delete();
+                        $this->wipeTenantTable($table, $tenantId);
                     }
 
                     // 1. Transactions (Income/Sales)
-                    if (Schema::hasTable('transactions')) {
-                        DB::table('transactions')->whereIn('type', ['sale', 'payment_in', 'invoice', 'credit'])->delete();
-                    }
-                    
+                    $this->wipeTenantTable('transactions', $tenantId, function ($q) {
+                        $q->whereIn('type', ['sale', 'payment_in', 'invoice', 'credit']);
+                    });
+
                     // 2. Payments (Received)
-                    if (Schema::hasTable('payments')) {
-                        DB::table('payments')->delete(); // Safer to clear logic if selective
-                    }
+                    $this->wipeTenantTable('payments', $tenantId);
 
                     // 3. Activities (Sales/Payments)
-                    if (Schema::hasTable('activities')) {
-                        DB::table('activities')->whereIn('type', ['sale', 'payment_in', 'invoice', 'return'])->delete();
-                    }
-                    if (Schema::hasTable('activity_log')) {
-                        DB::table('activity_log')->where('subject_type', 'like', '%Sale%')->orWhere('subject_type', 'like', '%Invoice%')->delete();
-                    }
-                    
-                    // 4. Journals (Sales) - Hard to isolate, but we can try removing linked entries
-                    // Ideally we should iterate and find entries, but for bulk delete:
-                    // Deleting all journal entries is too aggressive for 'sales' only?
-                    // For now, leave journals if selective, as they are linked to accounts. Or wipe journals if user wants full clean.
+                    $this->wipeTenantTable('activities', $tenantId, function ($q) {
+                        $q->whereIn('type', ['sale', 'payment_in', 'invoice', 'return']);
+                    });
+                    $this->wipeTenantTable('activity_log', $tenantId, function ($q) {
+                        $q->where(function ($qq) {
+                            $qq->where('subject_type', 'like', '%Sale%')
+                               ->orWhere('subject_type', 'like', '%Invoice%');
+                        });
+                    });
                     break;
 
                 case 'stock':
-                    // Reset Stock Counts to 0
-                    if (Schema::hasTable('stocks')) {
-                         DB::table('stocks')->update(['quantity' => 0]);
+                    // Reset Stock Counts to 0 — this tenant only
+                    if (Schema::hasTable('stocks') && Schema::hasColumn('stocks', 'tenant_id')) {
+                        DB::table('stocks')->where('tenant_id', $tenantId)->update(['quantity' => 0]);
                     }
-                    if (Schema::hasTable('products')) {
-                        DB::table('products')->update(['stock_quantity' => 0]);
+                    if (Schema::hasTable('products') && Schema::hasColumn('products', 'tenant_id')) {
+                        DB::table('products')->where('tenant_id', $tenantId)->update(['stock_quantity' => 0]);
                     }
-                    if (Schema::hasTable('product_variants')) {
-                        DB::table('product_variants')->update(['stock_quantity' => 0]);
+                    if (Schema::hasTable('product_variants') && Schema::hasColumn('product_variants', 'tenant_id')) {
+                        DB::table('product_variants')->where('tenant_id', $tenantId)->update(['stock_quantity' => 0]);
                     }
 
                     // Clear History
                     $historyTables = ['stock_movements', 'stock_transfers', 'stock_takes', 'production_runs'];
                     foreach ($historyTables as $table) {
-                        if (Schema::hasTable($table)) DB::table($table)->delete();
+                        $this->wipeTenantTable($table, $tenantId);
                     }
 
                     // Clear Stock-related Logs
-                    if (Schema::hasTable('activities')) {
-                        DB::table('activities')->whereIn('type', ['adjustment', 'transfer', 'stock_take'])->delete();
+                    $this->wipeTenantTable('activities', $tenantId, function ($q) {
+                        $q->whereIn('type', ['adjustment', 'transfer', 'stock_take']);
+                    });
+                    break;
+
+                case 'transactions':
+                    // Delete all financial transactions — this tenant only
+                    $tables = ['transactions', 'payments', 'expenses', 'bank_reconciliations', 'debit_notes', 'invoice_reminders', 'journal_entries', 'journal_items'];
+                    foreach ($tables as $table) {
+                        $this->wipeTenantTable($table, $tenantId);
+                    }
+                    // Reset Accounts — this tenant only
+                    if (Schema::hasTable('accounts') && Schema::hasColumn('accounts', 'tenant_id')) {
+                        DB::table('accounts')->where('tenant_id', $tenantId)->update(['balance' => 0]);
                     }
                     break;
-                
-                case 'transactions':
-                     // Delete all financial transactions
-                     $tables = ['transactions', 'payments', 'expenses', 'bank_reconciliations', 'debit_notes', 'invoice_reminders', 'journal_entries', 'journal_items'];
-                     foreach ($tables as $table) {
-                        if (Schema::hasTable($table)) DB::table($table)->delete();
-                     }
-                     // Reset Accounts
-                     if (Schema::hasTable('accounts')) DB::table('accounts')->update(['balance' => 0]);
-                     break;
 
                 default:
                     throw new \Exception("Invalid entity type: $entity");
@@ -302,12 +359,13 @@ class SystemResetController extends Controller
 
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             DB::commit();
-            Log::info("Selective Delete ($entity) performed by User ID: " . auth()->id());
+            Log::info("Selective Delete ($entity) performed for tenant {$tenantId} by User ID: " . auth()->id());
 
             return response()->json(['message' => ucfirst($entity) . ' data successfully deleted.']);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             return response()->json(['message' => 'Operation Failed: ' . $e->getMessage()], 500);
         }
     }

@@ -359,9 +359,8 @@ export default function VenaTickets({ tickets, context, filters, open_count }) {
                                                 ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-indigo-200'
                                                 : 'bg-slate-50 dark:bg-slate-900 text-slate-300 dark:text-slate-600 border-slate-100 dark:border-slate-800 cursor-not-allowed'
                                     }`}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
                                     preserveState
-                                />
+                                >{(link.label || '').replace(/<[^>]*>/g, '').replace(/&laquo;/g, '\u00ab').replace(/&raquo;/g, '\u00bb').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')}</Link>
                             ))}
                         </div>
                     </div>

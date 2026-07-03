@@ -52,6 +52,15 @@ class SettingsController extends Controller
             if (is_bool($value)) {
                 $value = $value ? '1' : '0';
             }
+
+            // SEC-1 (2026-07-03): admin passcode is stored as a bcrypt hash, never plaintext.
+            // An empty submission means "keep the current passcode".
+            if ($key === 'admin_passcode') {
+                if ($value === null || $value === '') {
+                    continue;
+                }
+                $value = \Illuminate\Support\Facades\Hash::make($value);
+            }
             Setting::updateOrCreate(
                 ['key' => $key],
                 ['value' => is_array($value) ? json_encode($value) : (string) $value]

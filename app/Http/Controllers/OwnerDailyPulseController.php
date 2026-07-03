@@ -129,8 +129,13 @@ class OwnerDailyPulseController extends Controller
         // 1. Check against global store admin passcode
         if (!$unlocked) {
             $adminPasscode = SettingsHelper::get('admin_passcode');
-            if ($adminPasscode && $passcode === $adminPasscode) {
-                $unlocked = true;
+            if ($adminPasscode) {
+                // SEC-1 (2026-07-03): stored value is a bcrypt hash (legacy plaintext tolerated during migration)
+                $isHash = str_starts_with($adminPasscode, '$2y$') || str_starts_with($adminPasscode, '$argon2');
+                if (($isHash && \Illuminate\Support\Facades\Hash::check($passcode, $adminPasscode))
+                    || (!$isHash && hash_equals($adminPasscode, (string) $passcode))) {
+                    $unlocked = true;
+                }
             }
         }
 

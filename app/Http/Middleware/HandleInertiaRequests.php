@@ -110,7 +110,10 @@ class HandleInertiaRequests extends Middleware
                 if (!$dbReady || !$this->hasTable('settings')) return [];
                 
                 if (app()->bound('current.tenant')) {
-                    return \App\Helpers\SettingsHelper::all();
+                    // SEC-1 (2026-07-03): the admin passcode (bcrypt hash) is server-side only.
+                    $all = \App\Helpers\SettingsHelper::all();
+                    unset($all['admin_passcode']);
+                    return $all;
                 }
                 
                 return \Illuminate\Support\Facades\Cache::remember('settings:global', 300, function () {

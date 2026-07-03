@@ -116,8 +116,7 @@ export default function Show({ staffMember, attendanceHistory }) {
                                         key={i}
                                         href={link.url}
                                         className={`px-3 py-1 rounded-lg text-sm font-bold ${link.active ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} ${!link.url && 'opacity-50 pointer-events-none'}`}
-                                        dangerouslySetInnerHTML={{ __html: link.label }}
-                                    />
+                                    >{(link.label || '').replace(/<[^>]*>/g, '').replace(/&laquo;/g, '\u00ab').replace(/&raquo;/g, '\u00bb').replace(/&amp;/g, '&').replace(/&nbsp;/g, ' ')}</Link>
                                 ))}
                             </div>
                         </div>

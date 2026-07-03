@@ -70,7 +70,7 @@ export default function GeneralSettingsSection({ data, setData }) {
                                     value={data.admin_passcode || ''}
                                     onChange={(e) => setData('admin_passcode', e.target.value.replace(/\D/g, ''))}
                                     className="w-full pl-4 pr-10 py-3 bg-white dark:bg-slate-900 border-none rounded-xl text-xl font-black tracking-[0.5em] focus:ring-2 focus:ring-red-500/50 text-slate-800 dark:text-white shadow-sm"
-                                    placeholder="••••"
+                                    placeholder="•••• — leave blank to keep current"
                                 />
                                 <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-red-400" size={18} />
                             </div>
