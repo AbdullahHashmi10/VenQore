@@ -47,7 +47,14 @@ export function useEnhancedCapability() {
         let cancelled = false;
         const check = () => {
             try {
+                /* QA escape hatch: ?vq3d=force enables the scene regardless of
+                   device heuristics (still requires WebGL + motion allowed). */
+                const forced = /[?&#]vq3d/.test(window.location.search + window.location.hash);
                 const nav = window.navigator || {};
+                if (forced) {
+                    const fc = document.createElement('canvas');
+                    return !!(fc.getContext('webgl2') || fc.getContext('webgl'));
+                }
                 const conn = nav.connection || {};
                 if (conn.saveData) return false;
                 if (/^(slow-2g|2g|3g)$/.test(conn.effectiveType || '')) return false;

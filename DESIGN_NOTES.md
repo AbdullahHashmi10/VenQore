@@ -147,5 +147,27 @@ VenQore was an empty body two sessions ago. Never again.
 curl -s http://127.0.0.1:8000/ | grep -i "<h1>"        # must show the real headline
 ```
 
-plus `npm run build` green, reduced-motion audit, and keyboard-only nav
-pass. See CHANGELOG entry on this branch for results.
+Verified this session (2026-07-03, sandbox — no PHP available, so the blade
+layer was verified statically and the rest in headless Chromium):
+
+- `npm run build` green, including the Ziggy route guard.
+- Server-rendered `<h1>` present for all six routes in `MarketingSeo`
+  static HTML (welcome, features, pricing, demo, vensynq, smartcapture) and
+  the blade injection wiring is committed on this branch. Run the curl
+  check above against `php artisan serve` before merging — expected output:
+  `<h1>VenQore — The Books Are Always Right.</h1>`.
+- three.js is NOT in the main bundle: `LedgerEngineScene` builds as its own
+  lazy chunk (~809 KB raw / ~215 KB gzip) requested only after idle + the
+  capability gate.
+- Reduced-motion emulation: no canvas is ever created (the preference wins
+  even over the `#vq3d` QA flag), the SVG fallback renders, and all content
+  is fully visible with reveals disabled.
+- Screenshots (desktop 1440px, mobile 390px, and the live 3D scene) are in
+  the review previews folder; interactive previews in `previews/` open with
+  a double-click, no server needed (`#vq3d` in the URL force-enables the 3D
+  on any machine).
+
+Known follow-ups deliberately left for a later session: Pricing and
+Features got a faithful brand reskin (teal + Fraunces), not the full paper
+"journal entry" treatment; the founder-note copy and name should be
+confirmed by the founder before merge.

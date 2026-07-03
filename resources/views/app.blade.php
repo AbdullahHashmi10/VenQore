@@ -48,4 +48,41 @@
                     for (const registration of registrations) {
                         const url = registration.active?.scriptURL || '';
                         if (url && !url.endsWith('/sw.js')) {
-                            console.log('[SW] Unregistering legacy conflicting service wo
+                            console.log('[SW] Unregistering legacy conflicting service worker:', url);
+                            registration.unregister();
+                        }
+                    }
+                });
+
+                // 2. Register the unified sw.js only in production/staging environment
+                const isDev = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+                if (!isDev) {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(reg => console.log('[SW] Unified service worker registered:', reg.scope))
+                        .catch(err => console.error('[SW] Registration failed:', err));
+                } else {
+                    // In local development, ensure all service workers are fully unregistered
+                    navigator.serviceWorker.getRegistrations().then(registrations => {
+                        for (const registration of registrations) {
+                            registration.unregister();
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</head>
+
+<body class="font-sans antialiased">
+    @if($seo && !empty($seo['static_html']))
+        {{-- Crawler-visible fallback content inside the Inertia root. React's
+             createRoot() replaces it on mount, so users see the full app while
+             non-JS crawlers (GPTBot, ClaudeBot, PerplexityBot…) read real HTML.
+             This is the same content users see pre-hydration — not cloaking. --}}
+        <div id="app" data-page="{{ json_encode($page) }}">{!! $seo['static_html'] !!}</div>
+    @else
+        @inertia
+    @endif
+</body>
+
+</html>

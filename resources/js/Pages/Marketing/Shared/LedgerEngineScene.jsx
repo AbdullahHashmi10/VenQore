@@ -27,8 +27,8 @@ const TEAL = new THREE.Color('#1E7E82');
 const BRASS = new THREE.Color('#C4A468');
 
 /* Composition */
-const SPAWN = new THREE.Vector3(8.6, 3.1, -1.6);   // transactions arrive from the right (the till)
-const CORE = new THREE.Vector3(2.3, 1.75, 0);      // the Qore
+const SPAWN = new THREE.Vector3(7.6, 3.3, -1.4);   // transactions arrive from the right (the till)
+const CORE = new THREE.Vector3(1.85, 1.95, 0);      // the Qore
 const DEBIT_X = -3.55;                              // left column (Dr)
 const CREDIT_X = -1.75;                             // right column (Cr)
 const STACK_TOP_Y = 3.15;                           // new pairs land here, then sink
@@ -191,12 +191,10 @@ function Beam() {
             <mesh ref={ref} position={[cx, STACK_TOP_Y + 0.75, STACK_Z]} material={mat}>
                 <boxGeometry args={[Math.abs(DEBIT_X - CREDIT_X) + 1.5, 0.075, 0.075]} />
             </mesh>
-            {/* column base plates */}
-            {[DEBIT_X, CREDIT_X].map((x) => (
-                <mesh key={x} position={[x, STACK_TOP_Y - ROWS * UNIT - 0.05, STACK_Z]} material={mat}>
-                    <boxGeometry args={[0.95, 0.06, 0.95]} />
-                </mesh>
-            ))}
+            {/* one slim plinth under both columns — mirrors the beam */}
+            <mesh position={[cx, STACK_TOP_Y - ROWS * UNIT - 0.18, STACK_Z]} material={mat}>
+                <boxGeometry args={[Math.abs(DEBIT_X - CREDIT_X) + 1.5, 0.075, 0.55]} />
+            </mesh>
         </group>
     );
 }
@@ -221,7 +219,7 @@ export default function LedgerEngineScene({ active = true }) {
             frameloop={active ? 'always' : 'never'}
             dpr={typeof window !== 'undefined' ? Math.min(window.devicePixelRatio || 1, 1.75) : 1}
             gl={{ antialias: true, alpha: true, powerPreference: 'low-power' }}
-            camera={{ position: [0, 2.3, 9.6], fov: 38 }}
+            camera={{ position: [0, 2.3, 10.2], fov: 42 }}
             style={{ width: '100%', height: '100%' }}
             aria-hidden="true"
         >
@@ -229,7 +227,7 @@ export default function LedgerEngineScene({ active = true }) {
             <ambientLight intensity={0.55} color="#bfe9df" />
             <directionalLight position={[6, 9, 6]} intensity={0.9} color="#eafff7" />
             <pointLight position={[2.3, 2.6, 2.2]} intensity={14} color="#7FE9CE" distance={9} decay={2} />
-            <pointLight position={[-2.6, 4.4, 2.5]} intensity={8} color="#C4A468" distance={8} decay={2} />
+            <pointLight position={[-2.6, 4.4, 2.5]} intensity={6} color="#C4A468" distance={8} decay={2} />
             <TransactionCubes />
             <Qore />
             <Beam />
