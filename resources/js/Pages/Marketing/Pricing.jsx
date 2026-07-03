@@ -875,7 +875,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="Double-Entry Ledger" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Customer Khata (Credit)" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="WhatsApp Debt Alerts" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Bank Reconciliation" starter={true} growth={true} enterprise={true} />
+                                    <TableRow label="Bank Reconciliation" starter={false} growth={true} enterprise={true} />
                                     <TableRow label="Loyalty & Gift Cards" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Reports */}
@@ -883,7 +883,7 @@ export default function Pricing({ plans = [] }) {
                                     <TableRow label="Sales & Purchase Reports" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Profit & Loss Statement" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="Balance Sheet" starter={false} growth={true} enterprise={true} />
-                                    <TableRow label="Cash Flow Statement" starter={false} growth={true} enterprise={true} />
+                                    <TableRow label="Cash Flow Statement" starter={true} growth={true} enterprise={true} />
                                     <TableRow label="40-Report Full Suite" starter={false} growth={false} enterprise={true} highlight />
 
                                     {/* Support */}

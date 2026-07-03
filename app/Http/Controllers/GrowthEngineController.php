@@ -247,6 +247,9 @@ class GrowthEngineController extends Controller
      */
     public function customerLoyalty($partyId)
     {
+        if (!\App\Services\PlanGate::check('loyalty_points')) {
+            return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
+        }
         $party = Party::findOrFail($partyId);
 
         $balance = LoyaltyBalance::where('party_id', $party->id)->first();
@@ -265,6 +268,9 @@ class GrowthEngineController extends Controller
      */
     public function awardPoints(Request $request)
     {
+        if (!\App\Services\PlanGate::check('loyalty_points')) {
+            return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
+        }
         $validated = $request->validate([
             'party_id' => 'required|string',
             'points' => 'required|integer|min:1',
@@ -296,6 +302,9 @@ class GrowthEngineController extends Controller
      */
     public function redeemPoints(Request $request)
     {
+        if (!\App\Services\PlanGate::check('loyalty_points')) {
+            return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
+        }
         $validated = $request->validate([
             'party_id' => 'required|string',
             'points' => 'required|integer|min:1',
@@ -346,6 +355,9 @@ class GrowthEngineController extends Controller
      */
     public function createGiftCard(Request $request)
     {
+        if (!\App\Services\PlanGate::check('digital_gift_cards')) {
+            return response()->json(['error' => 'Digital gift cards are available on the Enterprise plan.'], 403);
+        }
         $validated = $request->validate([
             'value' => 'required|numeric|min:100',
             'purchased_by' => 'nullable|string',
@@ -381,6 +393,9 @@ class GrowthEngineController extends Controller
      */
     public function checkGiftCard($code)
     {
+        if (!\App\Services\PlanGate::check('digital_gift_cards')) {
+            return response()->json(['error' => 'Digital gift cards are available on the Enterprise plan.'], 403);
+        }
         $card = GiftCard::where('code', $code)->first();
 
         if (!$card) {
@@ -401,6 +416,9 @@ class GrowthEngineController extends Controller
      */
     public function useGiftCard(Request $request)
     {
+        if (!\App\Services\PlanGate::check('digital_gift_cards')) {
+            return response()->json(['error' => 'Digital gift cards are available on the Enterprise plan.'], 403);
+        }
         $validated = $request->validate([
             'code' => 'required|string',
             'amount' => 'required|numeric|min:0.01',

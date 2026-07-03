@@ -257,7 +257,9 @@ class Tenant extends Model
      * 1. tenant_plan_overrides table (set from SuperAdmin override panel)
      * 2. plan_limits table (set from SuperAdmin plan editor)
      * 3. plan_limits JSON column on this tenant (legacy AppSumo stacking — still supported)
-     * 4. config/plans.php (final fallback during transition period)
+     * 4. config/plans.php — ONLY via PlanRepository's fallback when a plan slug
+     *    has never been seeded into the plans/plan_limits tables. The seeder
+     *    (PlanFeatureMatrixSeeder) is the runtime source of truth.
      */
     public function getLimit(string $key): mixed
     {
@@ -288,6 +290,21 @@ class Tenant extends Model
         return $value;                             // string variant e.g. 'basic', 'advanced'
     }
 
+    /**
+     * FAIL-CLOSED (2026-07-03): a plan-gated feature is ON only when its key
+     * explicitly resolves to enabled ('1'/true). Previously `!== false` meant
+     * any NEW key missing from the seeder defaulted to UNLOCKED for everyone
+     * (audit finding D3/VNQ-003). Unknown/unseeded keys are now locked.
+     *
+     * `recurring_invoices` and `fund_management` also gate on their OWN seeded
+     * keys now, instead of silently borrowing `invoice_reminders` /
+     * `bank_reconciliation` (the key-mismatch class behind M1-06b/B10).
+     */
+    private function featureOn(string $key): bool
+    {
+        return $this->getLimit($key) === true;
+    }
+
     public function featuresArray(): array
     {
         return [
@@ -295,17 +312,17 @@ class Tenant extends Model
             'serials'             => (bool)$this->feature_serials,
             'batches'             => (bool)$this->feature_batches,
             'manufacturing'       => (bool)$this->feature_manufacturing,
-            'production'          => $this->getLimit('production') !== false,
-            'bill_of_materials'   => $this->getLimit('bill_of_materials') !== false,
-            'e_invoicing'         => $this->getLimit('e_invoicing') !== false,
-            'invoice_reminders'   => $this->getLimit('invoice_reminders') !== false,
-            'recurring_invoices'  => $this->getLimit('invoice_reminders') !== false,
-            'bank_reconciliation' => $this->getLimit('bank_reconciliation') !== false,
-            'fund_management'     => $this->getLimit('bank_reconciliation') !== false,
-            'email_marketing'     => $this->getLimit('marketing_campaigns') !== false,
-            'sms_marketing'       => $this->getLimit('marketing_campaigns') !== false,
-            'campaigns'           => $this->getLimit('marketing_campaigns') !== false,
-            'growth_engine'       => $this->getLimit('growth_engine') !== false,
+            'production'          => $this->featureOn('production'),
+            'bill_of_materials'   => $this->featureOn('bill_of_materials'),
+            'e_invoicing'         => $this->featureOn('e_invoicing'),
+            'invoice_reminders'   => $this->featureOn('invoice_reminders'),
+            'recurring_invoices'  => $this->featureOn('recurring_invoices'),
+            'bank_reconciliation' => $this->featureOn('bank_reconciliation'),
+            'fund_management'     => $this->featureOn('fund_management'),
+            'email_marketing'     => $this->featureOn('marketing_campaigns'),
+            'sms_marketing'       => $this->featureOn('marketing_campaigns'),
+            'campaigns'           => $this->featureOn('marketing_campaigns'),
+            'growth_engine'       => $this->featureOn('growth_engine'),
         ];
     }
 
@@ -329,7 +346,17 @@ class Tenant extends Model
     {
         if (is_string($value) && str_starts_with($value, 'ltd_')) {
             $this->attributes['plan'] = 'ltd';
-            $this->plan_limits = config("plans.{$value}");
+            // 2026-07-03: limits snapshot now comes from the plan_limits table
+            // (PlanFeatureMatrixSeeder = the single source of truth), no longer
+            // from config/plans.php. PlanRepository falls back to config only
+            // if the LTD plan has never been seeded — and logs nothing silently.
+            $limits = \App\Services\PlanRepository::getLimits($value);
+            if (empty($limits)) {
+                \Illuminate\Support\Facades\Log::warning(
+                    "setPlanAttribute: no seeded limits found for '{$value}' — tenant JSON left empty (fail-closed). Run PlanFeatureMatrixSeeder."
+                );
+            }
+            $this->plan_limits = $limits ?: [];
         } else {
             $this->attributes['plan'] = $value;
         }

@@ -644,22 +644,25 @@ Route::get('/welcome-splash', function () {
 
 // ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
 // Public routes — no auth required (buyers arrive from AppSumo email)
-$hideAppSumoPublic = !app()->runningUnitTests(); // Toggle this to false to unhide public AppSumo routes
+// Launch toggle (2026-07-03): set APPSUMO_PUBLIC=true in .env to open /redeem publicly — config change, not a deploy.
+// (This routes file uses closures and is never route:cached, so env() is safe here.)
+$hideAppSumoPublic = !env('APPSUMO_PUBLIC', false) && !app()->runningUnitTests();
 if ($hideAppSumoPublic) {
     Route::get('/redeem',  fn() => abort(404))->name('redeem');
     Route::post('/redeem', fn() => abort(404))->name('redeem.submit');
     Route::get('/what-is-included', fn() => abort(404))->name('what-is-included');
-    Route::get('/refund-policy', fn() => abort(404))->name('refund-policy');
 } else {
     Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
     Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('redeem.submit');
     Route::get('/what-is-included', function () {
         return Inertia::render('WhatIsIncluded');
     })->name('what-is-included');
-    Route::get('/refund-policy', function () {
-        return Inertia::render('RefundPolicy');
-    })->name('refund-policy');
 }
+
+// Refund policy is a public trust page regardless of AppSumo launch state (2026-07-03)
+Route::get('/refund-policy', function () {
+    return Inertia::render('RefundPolicy');
+})->name('refund-policy');
 
 Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
 Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
@@ -1464,8 +1467,8 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/e-invoicing/waybill', [\App\Http\Controllers\EInvoicingController::class, 'generateWaybill'])->name('e-invoicing.waybill');
 
     // System Reset (Admin Only)
-    Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->name('system.reset');
-    Route::post('/api/system/reset/{entity}', [\App\Http\Controllers\Admin\SystemResetController::class, 'deleteEntity'])->name('system.delete-entity');
+    Route::post('/api/system/reset', [\App\Http\Controllers\Admin\SystemResetController::class, 'factoryReset'])->middleware('throttle:5,1')->name('system.reset');
+    Route::post('/api/system/reset/{entity}', [\App\Http\Controllers\Admin\SystemResetController::class, 'deleteEntity'])->middleware('throttle:5,1')->name('system.delete-entity');
 
     // Added Category D Store Routes
     Route::get('/finance/accounts', fn() => \abort(501, 'Implement finance.accounts'))->name('finance.accounts');

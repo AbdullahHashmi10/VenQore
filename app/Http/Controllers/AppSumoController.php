@@ -143,7 +143,7 @@ class AppSumoController extends Controller
                     Tenant::where('id', $existingLicense->tenant_id)
                           ->update([
                               'plan'        => 'ltd',
-                              'plan_limits' => json_encode(config("plans.{$plan}")), // Explicitly write limits for PlanGate
+                              'plan_limits' => json_encode(\App\Services\PlanRepository::getLimits($plan)), // Limits from plan_limits table (seeder = source of truth)
                           ]);
                 }
             }
