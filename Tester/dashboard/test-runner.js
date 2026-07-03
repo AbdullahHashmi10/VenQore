@@ -208,6 +208,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/AppSumo',
     'Tester/tests/Feature/V3',
     'Tester/tests/Feature/Auth',
+    'Tester/tests/Feature/DocumentConversionTest.php',
     'Tester/tests/Feature/ProfileTest.php',
     'Tester/tests/Feature/ImportMappingTest.php',
     'Tester/tests/Feature/StoreUniqueNameTest.php',
@@ -230,6 +231,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/LegacyAdminPasscodeTest.php',
     'Tester/tests/Feature/RegressionFixesTest.php',
     'Tester/tests/Feature/PosFeaturesTest.php',
+    'Tester/tests/Performance',
     'Tester/tests/Unit'
   ];
 
@@ -261,6 +263,7 @@ function runTests(projectPath, ws) {
     'AppSumo',
     'V3',
     'Auth',
+    'DocumentConversionTest',
     'ProfileTest',
     'ImportMappingTest',
     'StoreUniqueNameTest',
@@ -319,6 +322,7 @@ function runTests(projectPath, ws) {
     'woocommerce integration is gated by plan',
     'report tier gating restricts access',
     'new features plan gating',
+    'SnapshotPerformanceTest',
     'ExampleTest',
     'Unit'
   ];
@@ -392,7 +396,7 @@ function runTests(projectPath, ws) {
 
 function parseLine(line, results, ws) {
   // Detect module
-  const moduleMatch = line.match(/(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const moduleMatch = line.match(/(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit|Performance)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (moduleMatch) {
     const key = moduleMatch[1] === 'Unit' ? 'Unit' : moduleMatch[2];
     if (results.modules[key]) {
@@ -411,7 +415,7 @@ function parseLine(line, results, ws) {
   }
 
   // Detect PASS/FAIL suite
-  const passMatch = line.match(/PASS\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const passMatch = line.match(/PASS\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit|Performance)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (passMatch) {
     const key = passMatch[1] === 'Unit' ? 'Unit' : passMatch[2];
     if (results.modules[key]) {
@@ -428,7 +432,7 @@ function parseLine(line, results, ws) {
     }
   }
 
-  const failMatch = line.match(/FAIL\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const failMatch = line.match(/FAIL\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit|Performance)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (failMatch) {
     const key = failMatch[1] === 'Unit' ? 'Unit' : failMatch[2];
     if (results.modules[key]) {
@@ -446,7 +450,7 @@ function parseLine(line, results, ws) {
   }
 
   // Detect TODO-only suite
-  const todoMatch = line.match(/TODO\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
+  const todoMatch = line.match(/TODO\s+(?:Tests|Tester[\/\\]tests)[\/\\](Feature|Unit|Performance)[\/\\]([^/\\]+?)(?:[\/\\]|\.php|$)/);
   if (todoMatch) {
     const key = todoMatch[1] === 'Unit' ? 'Unit' : todoMatch[2];
     if (results.modules[key]) {
