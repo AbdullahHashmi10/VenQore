@@ -74,7 +74,7 @@ const DETAILS = [
 const TONE = {
     rose: { c: 'text-rose-400', b: 'bg-rose-500/[0.06] border-rose-500/15' },
     amber: { c: 'text-amber-400', b: 'bg-amber-500/[0.06] border-amber-500/15' },
-    indigo: { c: 'text-indigo-400', b: 'bg-indigo-500/[0.06] border-indigo-500/15' },
+    indigo: { c: 'text-teal-400', b: 'bg-teal-500/[0.06] border-teal-500/15' },
 };
 const TIMELINE = [
     { k: 'The frustration', d: 'Owners ringing up a thousand sales a day still could not answer one question: did I actually make money this month?' },
@@ -98,8 +98,8 @@ const TimelineItem = ({ item, i, last }) => {
     const [ref, v] = useInView(0.5);
     return (
         <div ref={ref} className="relative pl-14 pb-10">
-            {!last && <span className="absolute left-[18px] top-9 bottom-0 w-px bg-gradient-to-b from-indigo-500/40 to-transparent" />}
-            <span className={`absolute left-0 top-1 w-9 h-9 rounded-full border flex items-center justify-center text-[12px] font-black transition-all duration-700 ${v ? 'bg-indigo-500/15 border-indigo-400/40 text-indigo-200 scale-100' : 'bg-white/[0.02] border-white/10 text-slate-600 scale-90'}`}
+            {!last && <span className="absolute left-[18px] top-9 bottom-0 w-px bg-gradient-to-b from-teal-500/40 to-transparent" />}
+            <span className={`absolute left-0 top-1 w-9 h-9 rounded-full border flex items-center justify-center text-[12px] font-black transition-all duration-700 ${v ? 'bg-teal-500/15 border-teal-400/40 text-teal-200 scale-100' : 'bg-white/[0.02] border-white/10 text-slate-600 scale-90'}`}
                 style={{ transitionDelay: `${i * 0.05}s` }}>{i + 1}</span>
             <div style={{ opacity: v ? 1 : 0, transform: v ? 'none' : 'translateY(16px)', transition: 'opacity .7s cubic-bezier(0.22,1,0.36,1), transform .7s cubic-bezier(0.22,1,0.36,1)' }}>
                 <h3 className="text-xl md:text-2xl font-black text-white tracking-tight font-display mb-2">{item.k}</h3>
@@ -184,15 +184,15 @@ export default function About() {
                     <RevealOnScroll>
                         <div className="text-center mb-14 max-w-3xl mx-auto">
                             <SectionLabel icon={Sparkles}>Attention to detail</SectionLabel>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] font-display">We sweat the small stuff —<br /><span className="text-indigo-400">because you live in it.</span></h2>
+                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] font-display">We sweat the small stuff —<br /><span className="text-teal-400">because you live in it.</span></h2>
                             <p className="text-slate-400 text-base md:text-lg mt-5">A real business day is a thousand tiny frictions. Most software ignores them. We treat each one as a feature worth building. Here are a few we obsess over.</p>
                         </div>
                     </RevealOnScroll>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {DETAILS.map((d, i) => (
                             <RevealOnScroll key={i} delay={(i % 3) * 0.07}>
-                                <div className="group h-full p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all duration-500 hover:-translate-y-1">
-                                    <div className="w-11 h-11 rounded-xl bg-indigo-500/12 text-indigo-300 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"><d.ic size={20} /></div>
+                                <div className="group h-full p-6 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-teal-400/25 transition-all duration-500 hover:-translate-y-1">
+                                    <div className="w-11 h-11 rounded-xl bg-teal-500/12 text-teal-300 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500"><d.ic size={20} /></div>
                                     <h4 className="text-white font-bold text-[15px] tracking-tight mb-1.5 font-display">{d.t}</h4>
                                     <p className="text-slate-500 text-[13px] leading-relaxed">{d.d}</p>
                                 </div>
@@ -230,11 +230,11 @@ export default function About() {
                         <div className="grid grid-cols-2 gap-4">
                             {[
                                 { e: 635, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
-                                { e: 3970, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-indigo-300' },
+                                { e: 3970, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-teal-300' },
                                 { e: 13, s: '', l: 'E2E Scenarios', ic: Activity, c: 'text-cyan-300' },
-                                { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-violet-300' },
+                                { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-teal-300' },
                             ].map((x, i) => (
-                                <div key={i} className="p-6 rounded-3xl border border-white/[0.07] bg-white/[0.02] hover:border-indigo-400/20 transition-colors duration-500">
+                                <div key={i} className="p-6 rounded-3xl border border-white/[0.07] bg-white/[0.02] hover:border-teal-400/20 transition-colors duration-500">
                                     <x.ic size={22} className={`${x.c} mb-4`} />
                                     <div className="text-2xl md:text-3xl font-black text-white tracking-tighter font-display mb-1">{x.disp ? <span className="text-lg md:text-xl">{x.disp}</span> : <Num end={x.e} suffix={x.s} />}</div>
                                     <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.2em]">{x.l}</div>
@@ -251,7 +251,7 @@ export default function About() {
                     <RevealOnScroll>
                         <div className="text-center mb-14">
                             <SectionLabel icon={TrendingUp}>The journey</SectionLabel>
-                            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter font-display leading-[0.95]">From frustration<br /><span className="text-indigo-400">to financial truth.</span></h2>
+                            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter font-display leading-[0.95]">From frustration<br /><span className="text-teal-400">to financial truth.</span></h2>
                         </div>
                     </RevealOnScroll>
                     <div>
@@ -266,14 +266,14 @@ export default function About() {
                     <RevealOnScroll>
                         <div className="text-center mb-14 max-w-3xl mx-auto">
                             <SectionLabel icon={Crosshair}>What we believe</SectionLabel>
-                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] font-display">Six principles we<br /><span className="text-indigo-400">refuse to bend.</span></h2>
+                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.92] font-display">Six principles we<br /><span className="text-teal-400">refuse to bend.</span></h2>
                         </div>
                     </RevealOnScroll>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {PRINCIPLES.map((p, i) => (
                             <RevealOnScroll key={i} delay={(i % 3) * 0.07}>
                                 <GlassCard className="h-full" padding="p-7">
-                                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/12 text-indigo-300 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500"><p.ic size={22} /></div>
+                                    <div className="w-12 h-12 rounded-2xl bg-teal-500/12 text-teal-300 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500"><p.ic size={22} /></div>
                                     <h3 className="text-lg font-black text-white tracking-tight mb-2 font-display">{p.t}</h3>
                                     <p className="text-slate-500 text-sm leading-relaxed">{p.d}</p>
                                 </GlassCard>
@@ -289,7 +289,7 @@ export default function About() {
                     <RevealOnScroll>
                         <GlassCard hover={false} padding="p-10 md:p-16" className="text-center overflow-hidden">
                             <div className="absolute inset-0 vq-dot-pattern opacity-30 pointer-events-none" />
-                            <Quote size={36} className="text-indigo-400/50 mx-auto mb-6 relative z-10" />
+                            <Quote size={36} className="text-teal-400/50 mx-auto mb-6 relative z-10" />
                             <p className="relative z-10 text-2xl md:text-4xl font-black text-white tracking-tight leading-[1.15] font-display">
                                 “We are not trying to be the biggest POS. We are trying to be the one whose numbers you never have to question.”
                             </p>
@@ -304,12 +304,12 @@ export default function About() {
                 <div className="max-w-5xl mx-auto text-center">
                     <RevealOnScroll>
                         <SectionLabel icon={Building2}>Built for real businesses</SectionLabel>
-                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter font-display mb-10 leading-[0.95]">If you sell something,<br /><span className="text-indigo-400">we built this for you.</span></h2>
+                        <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter font-display mb-10 leading-[0.95]">If you sell something,<br /><span className="text-teal-400">we built this for you.</span></h2>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.1}>
                         <div className="flex flex-wrap justify-center gap-3">
                             {INDUSTRIES.map((x) => (
-                                <span key={x} className="px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.025] text-sm font-bold text-slate-300 hover:border-indigo-400/30 hover:text-white transition-colors">{x}</span>
+                                <span key={x} className="px-5 py-2.5 rounded-full border border-white/[0.08] bg-white/[0.025] text-sm font-bold text-slate-300 hover:border-teal-400/30 hover:text-white transition-colors">{x}</span>
                             ))}
                         </div>
                     </RevealOnScroll>
@@ -319,7 +319,7 @@ export default function About() {
             {/* ── CTA ──────────────────────────────────────────── */}
             <section className="py-28 md:py-36 px-6 text-center">
                 <div className="max-w-4xl mx-auto relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
                         <h2 className="text-4xl md:text-7xl font-black text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Run your business on<br /><span className="vq-headline-grad">numbers you trust.</span></h2>
                         <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>

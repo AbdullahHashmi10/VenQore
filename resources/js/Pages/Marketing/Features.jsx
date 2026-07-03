@@ -65,12 +65,12 @@ const Num = ({ end, prefix = '', suffix = '', d = 0, dur = 1600 }) => {
 
 /* ── App-window frame that wraps each simulated product screen ────────────── */
 const ACCENTS = {
-    indigo: 'text-indigo-300', emerald: 'text-emerald-300', violet: 'text-violet-300',
+    indigo: 'text-teal-300', emerald: 'text-emerald-300', violet: 'text-teal-300',
     blue: 'text-blue-300', amber: 'text-amber-300', cyan: 'text-cyan-300',
 };
 function DemoFrame({ title, url, badge = 'LIVE DEMO', accent = 'indigo', children }) {
     return (
-        <div className="relative rounded-[1.5rem] border border-white/[0.08] bg-[#0a0820]/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden">
+        <div className="relative rounded-[1.5rem] border border-white/[0.08] bg-[#0a1f1c]/85 backdrop-blur-2xl shadow-[0_40px_140px_-50px_rgba(99,102,241,0.55)] overflow-hidden">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
                 <div className="flex items-center gap-1.5">
@@ -97,7 +97,7 @@ const PillTabs = ({ tabs, value, onChange, size = 'sm' }) => (
     <div className="inline-flex bg-white/[0.04] p-0.5 rounded-lg">
         {tabs.map(t => (
             <button key={t} onClick={() => onChange(t)}
-                className={`${size === 'sm' ? 'px-2.5 py-0.5 text-[10px]' : 'px-3 py-1 text-[11px]'} font-bold rounded-md transition-all ${value === t ? 'bg-white/10 text-indigo-300' : 'text-slate-500 hover:text-slate-300'}`}>
+                className={`${size === 'sm' ? 'px-2.5 py-0.5 text-[10px]' : 'px-3 py-1 text-[11px]'} font-bold rounded-md transition-all ${value === t ? 'bg-white/10 text-teal-300' : 'text-slate-500 hover:text-slate-300'}`}>
                 {t}
             </button>
         ))}
@@ -144,7 +144,7 @@ const ProfitLossDemo = () => {
     const analyze = () => { setPhase('analyzing'); setTimeout(() => setPhase('done'), 1700); };
     useEffect(() => { setPhase('idle'); }, [range]);
     const kpis = [
-        { l: 'Revenue', v: s.rev, c: 'text-white', ic: TrendingUp, tone: 'text-indigo-300 bg-indigo-500/15' },
+        { l: 'Revenue', v: s.rev, c: 'text-white', ic: TrendingUp, tone: 'text-teal-300 bg-teal-500/15' },
         { l: 'COGS (FIFO)', v: s.cogs, c: 'text-amber-300', ic: Package, tone: 'text-amber-300 bg-amber-500/15' },
         { l: 'Expenses', v: s.exp, c: 'text-rose-300', ic: Receipt, tone: 'text-rose-300 bg-rose-500/15' },
         { l: 'Net Profit', v: net, c: 'text-emerald-300', ic: Wallet, tone: 'text-emerald-300 bg-emerald-500/15' },
@@ -191,15 +191,15 @@ const ProfitLossDemo = () => {
 
                 <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4">
                     <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-violet-300" /><span className="text-[13px] font-bold text-white">AI Analysis</span></div>
+                        <div className="flex items-center gap-2"><Sparkles size={14} className="text-teal-300" /><span className="text-[13px] font-bold text-white">AI Analysis</span></div>
                         {phase !== 'done' && (
                             <button onClick={analyze} disabled={phase === 'analyzing'}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-500/15 border border-violet-400/30 text-violet-200 text-[11px] font-bold hover:bg-violet-500/25 transition-colors disabled:opacity-60">
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/15 border border-teal-400/30 text-teal-200 text-[11px] font-bold hover:bg-teal-500/25 transition-colors disabled:opacity-60">
                                 {phase === 'analyzing' ? <><Loader2 size={12} className="animate-spin" /> Analyzing…</> : <><Brain size={12} /> Analyze with AI</>}
                             </button>
                         )}
                     </div>
-                    {phase === 'idle' && <p className="text-slate-500 text-[12px] leading-relaxed">Click <span className="text-violet-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
+                    {phase === 'idle' && <p className="text-slate-500 text-[12px] leading-relaxed">Click <span className="text-teal-300 font-semibold">Analyze with AI</span> — VenQore reads this statement and returns plain-English insights and a health score.</p>}
                     {phase === 'analyzing' && (
                         <div className="space-y-2 animate-pulse">
                             <div className="h-3 w-3/4 bg-white/5 rounded" /><div className="h-3 w-2/3 bg-white/5 rounded" /><div className="h-3 w-1/2 bg-white/5 rounded" />
@@ -214,7 +214,7 @@ const ProfitLossDemo = () => {
                             {[
                                 { ic: CheckCircle2, c: 'text-emerald-400', t: 'Strong gross margin', d: `At ${gm}%, your product pricing leaves healthy room for overheads.` },
                                 { ic: AlertTriangle, c: 'text-amber-400', t: 'Watch overheads', d: `Expenses are ${((s.exp / s.rev) * 100).toFixed(0)}% of revenue — trim toward the 30% benchmark.` },
-                                { ic: TrendingUp, c: 'text-indigo-400', t: 'Reinvest to grow', d: 'You are profitable — consider routing 20% of net profit into marketing.' },
+                                { ic: TrendingUp, c: 'text-teal-400', t: 'Reinvest to grow', d: 'You are profitable — consider routing 20% of net profit into marketing.' },
                             ].map((x, i) => (
                                 <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-white/[0.02] border border-white/5">
                                     <x.ic size={15} className={`${x.c} mt-0.5 shrink-0`} />
@@ -262,16 +262,16 @@ const PosInvoiceDemo = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                         {POS_PRODUCTS.map(p => (
                             <button key={p.id} onClick={() => add(p)}
-                                className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left hover:border-indigo-400/40 hover:bg-indigo-500/10 transition-all active:scale-95">
+                                className="group rounded-xl border border-white/[0.06] bg-white/[0.02] p-3 text-left hover:border-teal-400/40 hover:bg-teal-500/10 transition-all active:scale-95">
                                 <div className="text-xl mb-1.5 group-hover:scale-110 transition-transform">{p.e}</div>
                                 <div className="text-[11px] font-bold text-slate-200 truncate">{p.n}</div>
-                                <div className="text-[11px] font-black text-indigo-300">Rs {p.p}</div>
+                                <div className="text-[11px] font-black text-teal-300">Rs {p.p}</div>
                             </button>
                         ))}
                     </div>
                 </div>
                 {/* cart */}
-                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0b0a1c] p-3 flex flex-col">
+                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0a1f1c] p-3 flex flex-col">
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">Cart</span>
                         <span className="text-[10px] text-slate-500">{cart.reduce((s, x) => s + x.q, 0)} items</span>
@@ -282,7 +282,7 @@ const PosInvoiceDemo = () => {
                             <div className="text-white font-black">Sale completed</div>
                             <div className="text-[11px] text-slate-500 mb-1">Journal posted · stock deducted (FIFO)</div>
                             <div className="text-[11px] text-emerald-400 font-mono">Rs {group(total)} · {pay}</div>
-                            <button onClick={() => { setDone(false); setCart([{ ...POS_PRODUCTS[0], q: 2 }]); }} className="mt-4 text-[11px] font-bold text-indigo-300 hover:underline">New sale</button>
+                            <button onClick={() => { setDone(false); setCart([{ ...POS_PRODUCTS[0], q: 2 }]); }} className="mt-4 text-[11px] font-bold text-teal-300 hover:underline">New sale</button>
                         </div>
                     ) : (
                         <>
@@ -308,7 +308,7 @@ const PosInvoiceDemo = () => {
                             </div>
                             <div className="grid grid-cols-3 gap-1.5 mt-2.5">
                                 {['Cash', 'Card', 'Split'].map(m => (
-                                    <button key={m} onClick={() => setPay(m)} className={`py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide border transition-all ${pay === m ? 'bg-indigo-500/20 border-indigo-400/50 text-indigo-200' : 'bg-white/[0.03] border-white/10 text-slate-500'}`}>{m}</button>
+                                    <button key={m} onClick={() => setPay(m)} className={`py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wide border transition-all ${pay === m ? 'bg-teal-500/20 border-teal-400/50 text-teal-200' : 'bg-white/[0.03] border-white/10 text-slate-500'}`}>{m}</button>
                                 ))}
                             </div>
                             <button onClick={() => cart.length && setDone(true)} className="mt-2 w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-[#05130c] font-black text-[12px] uppercase tracking-wide transition-colors flex items-center justify-center gap-2 disabled:opacity-50" disabled={!cart.length}>
@@ -345,7 +345,7 @@ const SC_AUDIO = {
 const Waveform = ({ active }) => (
     <div className="flex items-end gap-1 h-10">
         {Array.from({ length: 28 }).map((_, i) => (
-            <span key={i} className={`w-1 rounded-full ${active ? 'bg-violet-400 vqf-wave' : 'bg-white/15'}`}
+            <span key={i} className={`w-1 rounded-full ${active ? 'bg-teal-400 vqf-wave' : 'bg-white/15'}`}
                 style={{ height: active ? undefined : '20%', animationDelay: `${(i % 7) * 0.09}s` }} />
         ))}
     </div>
@@ -367,7 +367,7 @@ const SmartCaptureDemo = () => {
         <DemoFrame title="Smart Capture" url="app.venqore.com/capture" badge="AI · BYOK" accent="violet">
             <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-5 rounded-full bg-violet-500" />
+                    <span className="w-1.5 h-5 rounded-full bg-teal-500" />
                     <div>
                         <div className="text-[15px] font-black text-white tracking-tight">Smart Capture</div>
                         <div className="text-[10px] text-slate-500">Snap a bill or speak — AI turns it into a transaction</div>
@@ -387,13 +387,13 @@ const SmartCaptureDemo = () => {
                                     {Array.from({ length: 6 }).map((_, i) => <div key={i} className="h-1 bg-slate-300 rounded mb-1" style={{ width: `${90 - i * 9}%` }} />)}
                                     <div className="h-1.5 w-12 bg-emerald-500 rounded mt-1.5 ml-auto" />
                                 </div>
-                                {phase === 'working' && !reduced && <div className="absolute left-0 right-0 h-0.5 bg-violet-400 shadow-[0_0_14px_2px_rgba(167,139,250,0.9)] vqf-scan" />}
+                                {phase === 'working' && !reduced && <div className="absolute left-0 right-0 h-0.5 bg-teal-400 shadow-[0_0_14px_2px_rgba(167,139,250,0.9)] vqf-scan" />}
                                 <div className="mt-3 text-[10px] text-slate-500">Sample supplier invoice</div>
                             </>
                         ) : (
                             <>
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${phase === 'working' ? 'bg-violet-500/20 vqf-pulse' : 'bg-white/[0.04]'}`}>
-                                    <Mic size={26} className={phase === 'working' ? 'text-violet-300' : 'text-slate-400'} />
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 ${phase === 'working' ? 'bg-teal-500/20 vqf-pulse' : 'bg-white/[0.04]'}`}>
+                                    <Mic size={26} className={phase === 'working' ? 'text-teal-300' : 'text-slate-400'} />
                                 </div>
                                 <Waveform active={phase === 'working'} />
                                 <div className="mt-2 text-[11px] font-mono text-slate-500">{phase === 'working' ? `00:0${t}` : '00:00'}</div>
@@ -401,7 +401,7 @@ const SmartCaptureDemo = () => {
                         )}
                     </div>
                     {phase === 'idle' && (
-                        <button onClick={run} className="mt-3 w-full py-2.5 rounded-xl bg-violet-500/15 border border-violet-400/30 text-violet-200 font-bold text-[12px] hover:bg-violet-500/25 transition-colors flex items-center justify-center gap-2">
+                        <button onClick={run} className="mt-3 w-full py-2.5 rounded-xl bg-teal-500/15 border border-teal-400/30 text-teal-200 font-bold text-[12px] hover:bg-teal-500/25 transition-colors flex items-center justify-center gap-2">
                             {tab === 'Image' ? <><Upload size={14} /> Scan sample invoice</> : <><Mic size={14} /> Record sample voice note</>}
                         </button>
                     )}
@@ -416,7 +416,7 @@ const SmartCaptureDemo = () => {
                 <div className="lg:col-span-3 rounded-xl border border-white/[0.06] bg-white/[0.015] p-4 min-h-[208px]">
                     {phase === 'idle' || phase === 'working' ? (
                         <div className="h-full flex flex-col items-center justify-center text-center">
-                            <Sparkles size={22} className="text-violet-300 mb-2" />
+                            <Sparkles size={22} className="text-teal-300 mb-2" />
                             <div className="text-[13px] font-bold text-white mb-1">AI extraction</div>
                             <p className="text-[11px] text-slate-500 max-w-xs">Your own AI key reads the {tab === 'Image' ? 'photo' : 'audio'}, detects whether it’s a sale, purchase or expense, and matches every line to a product in your catalog.</p>
                         </div>
@@ -430,7 +430,7 @@ const SmartCaptureDemo = () => {
                                 </div>
                                 {phase === 'confirmed' && <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-300"><Check size={12} /> Draft created</span>}
                             </div>
-                            {data.transcript && <div className="mb-2 text-[11px] italic text-violet-200/80">{data.transcript}</div>}
+                            {data.transcript && <div className="mb-2 text-[11px] italic text-teal-200/80">{data.transcript}</div>}
                             <div className="space-y-1.5 mb-3">
                                 {data.items.map((it, i) => (
                                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-white/[0.02] border border-white/5 vqf-in" style={{ animationDelay: `${i * 0.1}s` }}>
@@ -446,7 +446,7 @@ const SmartCaptureDemo = () => {
                                 <div className="flex items-center gap-3">
                                     <span className="text-[13px] font-black text-white tabular-nums">Rs {group(total)}</span>
                                     {phase === 'extracted' && <button onClick={() => setPhase('confirmed')} className="px-3 py-1.5 rounded-lg bg-emerald-500 text-[#05130c] text-[11px] font-black hover:bg-emerald-400 transition-colors flex items-center gap-1.5"><Check size={12} /> Confirm &amp; Record</button>}
-                                    {phase === 'confirmed' && <button onClick={() => setPhase('idle')} className="text-[11px] font-bold text-indigo-300 hover:underline">Try again</button>}
+                                    {phase === 'confirmed' && <button onClick={() => setPhase('idle')} className="text-[11px] font-bold text-teal-300 hover:underline">Try again</button>}
                                 </div>
                             </div>
                         </div>
@@ -538,7 +538,7 @@ const GrowthEngineDemo = () => {
     return (
         <DemoFrame title="Growth Engine" url="app.venqore.com/growth" badge="AI ENGINE" accent="violet">
             <div className="flex items-center gap-2 mb-4">
-                <span className="w-1.5 h-5 rounded-full bg-violet-500" />
+                <span className="w-1.5 h-5 rounded-full bg-teal-500" />
                 <div>
                     <div className="text-[15px] font-black text-white tracking-tight">Growth Engine</div>
                     <div className="text-[10px] text-slate-500">Three models watching your business so you act before problems do</div>
@@ -567,13 +567,13 @@ const GrowthEngineDemo = () => {
                 })}
             </div>
             {/* ask in plain English */}
-            <div className="rounded-xl border border-white/[0.06] bg-[#0b0a1c] p-3.5">
+            <div className="rounded-xl border border-white/[0.06] bg-[#0a1f1c] p-3.5">
                 <div className="flex items-center gap-2 mb-3">
-                    <div className="w-7 h-7 rounded-lg bg-violet-500/20 flex items-center justify-center"><Bot size={15} className="text-violet-300" /></div>
+                    <div className="w-7 h-7 rounded-lg bg-teal-500/20 flex items-center justify-center"><Bot size={15} className="text-teal-300" /></div>
                     <span className="text-[12px] font-bold text-white">Ask in plain English</span>
                 </div>
-                <button onClick={() => setAsked(true)} className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-[12px] text-slate-300 hover:border-violet-400/40 transition-colors mb-2">
-                    “Which 5 products made me the most profit this month?” <span className="text-violet-300 font-bold">↵</span>
+                <button onClick={() => setAsked(true)} className="w-full text-left px-3 py-2 rounded-lg bg-white/[0.04] border border-white/10 text-[12px] text-slate-300 hover:border-teal-400/40 transition-colors mb-2">
+                    “Which 5 products made me the most profit this month?” <span className="text-teal-300 font-bold">↵</span>
                 </button>
                 {asked && (
                     <div className="vqf-in p-3 rounded-lg bg-white/[0.03] border border-white/5">
@@ -641,7 +641,7 @@ const CookbookDemo = () => {
                     </div>
                 </div>
                 {/* produce */}
-                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0b0a1c] p-4 flex flex-col">
+                <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-[#0a1f1c] p-4 flex flex-col">
                     <div className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-2">Output</div>
                     <div className="flex items-center gap-2.5 mb-4">
                         <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-lg">🧂</div>
@@ -950,12 +950,12 @@ const FEATURE_CATS = [
 ];
 const TOTAL_FEATURES = FEATURE_CATS.reduce((s, c) => s + c.items.length, 0);
 const CAT_COLOR = {
-    indigo: 'text-indigo-300 bg-indigo-500/12 border-indigo-400/20',
+    indigo: 'text-teal-300 bg-teal-500/12 border-teal-400/20',
     amber: 'text-amber-300 bg-amber-500/12 border-amber-400/20',
     emerald: 'text-emerald-300 bg-emerald-500/12 border-emerald-400/20',
     cyan: 'text-cyan-300 bg-cyan-500/12 border-cyan-400/20',
     blue: 'text-blue-300 bg-blue-500/12 border-blue-400/20',
-    violet: 'text-violet-300 bg-violet-500/12 border-violet-400/20',
+    violet: 'text-teal-300 bg-teal-500/12 border-teal-400/20',
     pink: 'text-pink-300 bg-pink-500/12 border-pink-400/20',
 };
 
@@ -979,10 +979,10 @@ const FeatureExplorer = () => {
                 <div className="relative max-w-md mx-auto w-full">
                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                     <input value={q} onChange={e => setQ(e.target.value)} placeholder={`Search all ${TOTAL_FEATURES} features…`}
-                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-indigo-500/50 text-white text-sm outline-none transition-colors" />
+                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] focus:border-teal-500/50 text-white text-sm outline-none transition-colors" />
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
-                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold border transition-all ${cat === 'all' ? 'bg-white text-[#05030f] border-white' : 'bg-white/[0.03] text-slate-400 border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
+                    <button onClick={() => setCat('all')} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold border transition-all ${cat === 'all' ? 'bg-white text-[#071614] border-white' : 'bg-white/[0.03] text-slate-400 border-white/10 hover:text-white'}`}>All <span className="opacity-60">{TOTAL_FEATURES}</span></button>
                     {FEATURE_CATS.map(c => (
                         <button key={c.key} onClick={() => setCat(c.key)} className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold border transition-all inline-flex items-center gap-1.5 ${cat === c.key ? CAT_COLOR[c.color] + ' brightness-125' : 'bg-white/[0.03] text-slate-400 border-white/10 hover:text-white'}`}>
                             <c.icon size={12} /> {c.label} <span className="opacity-60">{c.items.length}</span>
@@ -995,11 +995,11 @@ const FeatureExplorer = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 {filtered.map((it, i) => (
                     <button key={it.cat + it.n} onClick={() => setSel(it)}
-                        className="group text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-indigo-400/25 transition-all hover:-translate-y-0.5">
+                        className="group text-left p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-teal-400/25 transition-all hover:-translate-y-0.5">
                         <div className="flex items-center gap-2 mb-2">
                             <span className={`w-7 h-7 rounded-lg flex items-center justify-center border ${CAT_COLOR[it.color]}`}><it.icon size={13} /></span>
                             <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">{it.cat}</span>
-                            <ChevronRight size={13} className="ml-auto text-slate-700 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
+                            <ChevronRight size={13} className="ml-auto text-slate-700 group-hover:text-teal-400 group-hover:translate-x-0.5 transition-all" />
                         </div>
                         <div className="text-[13px] font-bold text-white tracking-tight mb-1">{it.n}</div>
                         <div className="text-[11px] text-slate-500 leading-snug line-clamp-2">{it.d}</div>
@@ -1011,7 +1011,7 @@ const FeatureExplorer = () => {
             {/* detail modal */}
             {sel && (
                 <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm vqf-in" onClick={() => setSel(null)}>
-                    <div className="relative max-w-lg w-full rounded-3xl border border-white/10 bg-[#0b0a1c] p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
+                    <div className="relative max-w-lg w-full rounded-3xl border border-white/10 bg-[#0a1f1c] p-7 shadow-2xl" onClick={e => e.stopPropagation()}>
                         <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent rounded-t-3xl" />
                         <button onClick={() => setSel(null)} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400"><X size={16} /></button>
                         <div className="flex items-center gap-3 mb-4">
@@ -1035,8 +1035,8 @@ const FeatureExplorer = () => {
 
 /* ── anchor nav pill ─────────────────────────────────────────────────────── */
 const JumpPill = ({ href, icon: Ic, children }) => (
-    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[11px] font-bold text-slate-300 hover:text-white hover:border-indigo-400/40 hover:bg-white/[0.06] transition-all">
-        <Ic size={13} className="text-indigo-300" /> {children}
+    <a href={href} className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full bg-white/[0.03] border border-white/10 text-[11px] font-bold text-slate-300 hover:text-white hover:border-teal-400/40 hover:bg-white/[0.06] transition-all">
+        <Ic size={13} className="text-teal-300" /> {children}
     </a>
 );
 
@@ -1077,7 +1077,7 @@ export default function Features() {
                     <RevealOnScroll delay={0.08}>
                         <h1 className="text-[2.5rem] xs:text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[0.95] sm:leading-[0.9] mb-8 font-display">
                             <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Don’t take our word.</span><br />
-                            <span className="bg-gradient-to-r from-indigo-400 via-violet-400 to-cyan-300 bg-clip-text text-transparent vq-text-glow">See it run.</span>
+                            <span className="bg-gradient-to-r from-teal-400 via-teal-400 to-cyan-300 bg-clip-text text-transparent vq-text-glow">See it run.</span>
                         </h1>
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.16}>
@@ -1118,14 +1118,14 @@ export default function Features() {
 
             {/* DEMO 2 · POS */}
             <DemoSection id="pos" eyebrow="Point of Sale" icon={ShoppingCart} accent="indigo" hero
-                title={<>Ring up a sale <span className="text-indigo-400">right now.</span></>}
+                title={<>Ring up a sale <span className="text-teal-400">right now.</span></>}
                 lead="This is the real POS. Add products, change quantities, pick a payment method and complete the sale — nothing is saved, it’s yours to play with.">
                 <PosInvoiceDemo />
             </DemoSection>
 
             {/* DEMO 3 · SMART CAPTURE */}
             <DemoSection id="capture" eyebrow="Smart Capture · AI" icon={ScanBarcode} accent="violet" soon
-                title={<>Snap it. Say it. <span className="text-violet-400">Booked.</span></>}
+                title={<>Snap it. Say it. <span className="text-teal-400">Booked.</span></>}
                 lead="Photograph a supplier bill or speak a sale out loud. Your own AI key reads it, figures out the transaction type, and matches every line to your catalog.">
                 <SmartCaptureDemo />
             </DemoSection>
@@ -1139,7 +1139,7 @@ export default function Features() {
 
             {/* DEMO 5 · GROWTH ENGINE */}
             <DemoSection id="growth" eyebrow="AI Growth Engine" icon={Cpu} accent="violet" hero
-                title={<>It watches, <span className="text-violet-400">so you can act.</span></>}
+                title={<>It watches, <span className="text-teal-400">so you can act.</span></>}
                 lead="Three models run continuously — predicting stockouts, flagging churn and timing customer returns — then hand you the next action.">
                 <GrowthEngineDemo />
             </DemoSection>
@@ -1157,7 +1157,7 @@ export default function Features() {
                     <RevealOnScroll>
                         <div className="text-center mb-12 max-w-3xl mx-auto">
                             <SectionLabel icon={Layers}>The complete catalog</SectionLabel>
-                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-indigo-400">Every one explained.</span></h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter leading-[0.95] font-display">All {TOTAL_FEATURES}+ features.<br /><span className="text-teal-400">Every one explained.</span></h2>
                             <p className="text-slate-400 text-base md:text-lg mt-5">Search, filter by area, and click any feature to read exactly what it does.</p>
                         </div>
                     </RevealOnScroll>
@@ -1168,9 +1168,9 @@ export default function Features() {
             {/* CTA */}
             <section className="py-28 md:py-36 px-6 text-center">
                 <div className="max-w-4xl mx-auto relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-600/10 rounded-full blur-[120px] pointer-events-none" />
                     <RevealOnScroll>
-                        <h2 className="text-4xl md:text-7xl font-black text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-indigo-400">your numbers.</span></h2>
+                        <h2 className="text-4xl md:text-7xl font-black text-white mb-8 tracking-tighter leading-[0.95] relative z-10 font-display">Now run it on <span className="text-teal-400">your numbers.</span></h2>
                         <p className="text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed relative z-10">14-day free trial · full access · no credit card · live in 15 minutes.</p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10">
                             <MagneticButton href="/register" variant="primary">Start Free Trial <ArrowRight size={16} /></MagneticButton>

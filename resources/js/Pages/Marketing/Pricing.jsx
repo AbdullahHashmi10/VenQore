@@ -29,7 +29,7 @@ const FaqItem = ({ question, answer, id }) => {
                 </span>
                 <ChevronDown
                     size={16}
-                    className={`flex-shrink-0 mt-0.5 transition-all duration-400 ${open ? 'rotate-180 text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`}
+                    className={`flex-shrink-0 mt-0.5 transition-all duration-400 ${open ? 'rotate-180 text-teal-400' : 'text-slate-500 group-hover:text-slate-300'}`}
                 />
             </button>
             <div className={`overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${open ? 'max-h-80 pb-6' : 'max-h-0'}`}>
@@ -45,17 +45,17 @@ const TableRow = ({ label, starter, growth, enterprise, highlight }) => (
         <td className="py-3.5 pl-6 pr-4 text-xs text-slate-400 font-medium">{label}</td>
         <td className="py-3.5 px-4 text-center text-xs">
             {typeof starter === 'boolean'
-                ? (starter ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
+                ? (starter ? <Check size={14} className="mx-auto text-teal-400" /> : <X size={14} className="mx-auto text-slate-500" />)
                 : <span className="text-slate-300 font-semibold">{starter}</span>}
         </td>
-        <td className="py-3.5 px-4 text-center text-xs bg-indigo-950/20">
+        <td className="py-3.5 px-4 text-center text-xs bg-teal-950/20">
             {typeof growth === 'boolean'
-                ? (growth ? <Check size={14} className="mx-auto text-indigo-400" /> : <X size={14} className="mx-auto text-slate-500" />)
+                ? (growth ? <Check size={14} className="mx-auto text-teal-400" /> : <X size={14} className="mx-auto text-slate-500" />)
                 : <span className="text-slate-300 font-semibold">{growth}</span>}
         </td>
         <td className="py-3.5 pr-6 pl-4 text-center text-xs">
             {typeof enterprise === 'boolean'
-                ? (enterprise ? <Check size={14} className="mx-auto text-purple-400" /> : <X size={14} className="mx-auto text-slate-500" />)
+                ? (enterprise ? <Check size={14} className="mx-auto text-teal-400" /> : <X size={14} className="mx-auto text-slate-500" />)
                 : <span className="text-slate-300 font-semibold">{enterprise}</span>}
         </td>
     </tr>
@@ -76,7 +76,7 @@ const BillingToggle = ({ value, onChange }) => (
                     ${value === opt.key
                         ? opt.key === 'ltd'
                             ? 'bg-amber-600/80 text-white shadow-md'
-                            : 'bg-indigo-600 text-white shadow-md'
+                            : 'bg-teal-600 text-white shadow-md'
                         : 'text-slate-400 hover:text-slate-300'}`}
             >
                 {opt.label}
@@ -335,11 +335,11 @@ export default function Pricing({ plans = [] }) {
             tagline: 'Expanding outlets that need multi-location stock routing.',
             icon: TrendingUp,
             color: 'indigo',
-            accentFrom: 'from-indigo-500/[0.10]',
-            accentBorder: 'border-indigo-500/40',
-            accentGlow: 'shadow-indigo-900/30',
-            iconBg: 'bg-indigo-500/10 text-indigo-400',
-            badgeBg: 'bg-indigo-500/10 border-indigo-500/20 text-indigo-300',
+            accentFrom: 'from-teal-500/[0.10]',
+            accentBorder: 'border-teal-500/40',
+            accentGlow: 'shadow-teal-900/30',
+            iconBg: 'bg-teal-500/10 text-teal-400',
+            badgeBg: 'bg-teal-500/10 border-teal-500/20 text-teal-300',
             popular: true,
             inheritLabel: 'Everything in Starter Engine, plus:',
             includes: getPlanIncludes('growth'),
@@ -350,11 +350,11 @@ export default function Pricing({ plans = [] }) {
             tagline: 'Multi-channel operators demanding full-scale operations.',
             icon: Crown,
             color: 'purple',
-            accentFrom: 'from-purple-500/[0.08]',
-            accentBorder: 'border-purple-500/30',
-            accentGlow: 'shadow-purple-900/20',
-            iconBg: 'bg-purple-500/10 text-purple-400',
-            badgeBg: 'bg-purple-500/10 border-purple-500/20 text-purple-300',
+            accentFrom: 'from-teal-500/[0.08]',
+            accentBorder: 'border-teal-500/30',
+            accentGlow: 'shadow-teal-900/20',
+            iconBg: 'bg-teal-500/10 text-teal-400',
+            badgeBg: 'bg-teal-500/10 border-teal-500/20 text-teal-300',
             inheritLabel: 'Everything in Growth Engine, plus:',
             includes: getPlanIncludes('enterprise'),
             excludes: getPlanExcludes('enterprise'),
@@ -430,7 +430,7 @@ export default function Pricing({ plans = [] }) {
                                 Pick your plan.
                             </span>
                             <br />
-                            <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-violet-300 bg-clip-text text-transparent vq-text-glow">
+                            <span className="bg-gradient-to-r from-teal-400 via-teal-400 to-teal-300 bg-clip-text text-transparent vq-text-glow">
                                 Power it with AI.
                             </span>
                         </h1>
@@ -472,11 +472,11 @@ export default function Pricing({ plans = [] }) {
                                     >
                                         {/* Popular badge */}
                                         {plan.popular && (
-                                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500" />
+                                            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-teal-500 via-teal-400 to-teal-500" />
                                         )}
                                         {plan.popular && (
                                             <div className="absolute top-3 right-4">
-                                                <span className="px-2.5 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/25 text-indigo-300 text-[9px] font-black tracking-widest uppercase">
+                                                <span className="px-2.5 py-1 rounded-full bg-teal-500/15 border border-teal-500/25 text-teal-300 text-[9px] font-black tracking-widest uppercase">
                                                     Most Popular
                                                 </span>
                                             </div>
@@ -516,8 +516,8 @@ export default function Pricing({ plans = [] }) {
                                             {/* Inherit banner for Growth & Enterprise */}
                                             {plan.inheritLabel && (
                                                 <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-xl ${isSelected ? 'bg-white/[0.04]' : 'bg-white/[0.02]'} border border-white/[0.05]`}>
-                                                    <Layers size={11} className="text-indigo-400 flex-shrink-0" />
-                                                    <span className="text-[10px] font-black text-indigo-300 uppercase tracking-wider">{plan.inheritLabel}</span>
+                                                    <Layers size={11} className="text-teal-400 flex-shrink-0" />
+                                                    <span className="text-[10px] font-black text-teal-300 uppercase tracking-wider">{plan.inheritLabel}</span>
                                                 </div>
                                             )}
 
@@ -549,13 +549,13 @@ export default function Pricing({ plans = [] }) {
                                                 }}
                                                 className={`w-full py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 duration-200 ${
                                                     isSelected
-                                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/20'
+                                                        ? 'bg-gradient-to-r from-teal-500 to-teal-600 text-white shadow-lg shadow-teal-500/20'
                                                         : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08] border border-white/[0.05]'
                                                 }`}
                                             >
                                                 {isSelected ? 'Selected ✓' : 'Choose Plan'}
                                             </button>
-                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-indigo-500 via-purple-400 to-indigo-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
+                                            <div className={`h-[2px] rounded-full transition-all duration-500 ${isSelected ? 'bg-gradient-to-r from-teal-500 via-teal-400 to-teal-500 opacity-100' : 'bg-white/[0.04] opacity-30'}`} />
                                         </div>
                                     </div>
                                 </RevealOnScroll>
@@ -575,7 +575,7 @@ export default function Pricing({ plans = [] }) {
                             <div className="rounded-[2rem] border border-white/[0.07] bg-gradient-to-b from-[#0b081e] to-[#060214] overflow-hidden relative">
 
                                 {/* Top gradient line */}
-                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent" />
+                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-teal-500/40 to-transparent" />
 
                                 <div className="p-8 md:p-10">
 
@@ -583,10 +583,10 @@ export default function Pricing({ plans = [] }) {
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                                         <div>
                                             <div className="flex items-center gap-2 mb-2">
-                                                <span className="w-6 h-6 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center">
+                                                <span className="w-6 h-6 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center">
                                                     <Cpu size={12} />
                                                 </span>
-                                                <span className="text-[10px] font-black tracking-widest text-purple-400 uppercase">
+                                                <span className="text-[10px] font-black tracking-widest text-teal-400 uppercase">
                                                     AI Engine — {PLAN_DATA[selectedPlan]?.name}
                                                 </span>
                                             </div>
@@ -617,7 +617,7 @@ export default function Pricing({ plans = [] }) {
                                                     onClick={() => setSelectedAI(isChosen ? 'none' : optKey)}
                                                     className={`relative text-left p-6 rounded-2xl border transition-all duration-300 flex flex-col gap-3
                                                         ${isChosen
-                                                            ? 'bg-purple-600/10 border-purple-500/60 shadow-[0_0_30px_rgba(168,85,247,0.12)]'
+                                                            ? 'bg-teal-600/10 border-teal-500/60 shadow-[0_0_30px_rgba(168,85,247,0.12)]'
                                                             : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10 hover:bg-white/[0.04]'
                                                         }`}
                                                 >
@@ -629,22 +629,22 @@ export default function Pricing({ plans = [] }) {
                                                                 <div className="flex items-center gap-2 flex-wrap">
                                                                     <span className="text-white font-black text-base">{opt.name}</span>
                                                                     {idx === 1 && (
-                                                                        <span className="px-2 py-0.5 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[8px] font-black tracking-wider whitespace-nowrap">MORE POWER</span>
+                                                                        <span className="px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 text-[8px] font-black tracking-wider whitespace-nowrap">MORE POWER</span>
                                                                     )}
                                                                 </div>
                                                                 <div className="text-slate-500 text-xs mt-0.5">{opt.tagline}</div>
                                                             </div>
                                                         </div>
-                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${isChosen ? 'border-purple-400 bg-purple-400' : 'border-slate-600'}`}>
+                                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all ${isChosen ? 'border-teal-400 bg-teal-400' : 'border-slate-600'}`}>
                                                             {isChosen && <Check size={10} className="text-white" strokeWidth={3} />}
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center justify-between flex-wrap gap-2">
                                                         <div className="flex gap-2 flex-wrap">
-                                                            <span className="text-[10px] text-purple-400 bg-purple-500/[0.08] border border-purple-500/10 px-2 py-1 rounded-lg font-mono">
+                                                            <span className="text-[10px] text-teal-400 bg-teal-500/[0.08] border border-teal-500/10 px-2 py-1 rounded-lg font-mono">
                                                                 {opt.queries} Queries/mo
                                                             </span>
-                                                            <span className="text-[10px] text-indigo-400 bg-indigo-500/[0.08] border border-indigo-500/10 px-2 py-1 rounded-lg font-mono">
+                                                            <span className="text-[10px] text-teal-400 bg-teal-500/[0.08] border border-teal-500/10 px-2 py-1 rounded-lg font-mono">
                                                                 {opt.scans} Scans/mo
                                                             </span>
                                                         </div>
@@ -723,16 +723,16 @@ export default function Pricing({ plans = [] }) {
 
                                     {/* Card requirement notice or No-AI Warning Nudge */}
                                     {selectedAI === 'none' ? (
-                                        <div className="flex items-start gap-4 p-5 rounded-2xl border border-purple-500/20 bg-purple-500/[0.04] transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.05)]">
-                                            <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center flex-shrink-0">
-                                                <Sparkles size={16} className="text-purple-400 animate-pulse" />
+                                        <div className="flex items-start gap-4 p-5 rounded-2xl border border-teal-500/20 bg-teal-500/[0.04] transition-all duration-300 shadow-[0_0_30px_rgba(168,85,247,0.05)]">
+                                            <div className="w-10 h-10 rounded-xl bg-teal-500/10 flex items-center justify-center flex-shrink-0">
+                                                <Sparkles size={16} className="text-teal-400 animate-pulse" />
                                             </div>
                                             <div>
-                                                <div className="text-xs font-black text-purple-300 tracking-wide uppercase flex items-center gap-1.5">
+                                                <div className="text-xs font-black text-teal-300 tracking-wide uppercase flex items-center gap-1.5">
                                                     Unlock the full experience
                                                 </div>
                                                 <div className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                                                    You haven't added any AI add-ons. Without an AI plan, <span className="text-slate-200 font-semibold">you won't be able to experience any of the AI-powered features</span> like smart catalog intelligence and automated scanning. In order to enjoy complete features, we highly recommend adding one of the premium AI options above — <span className="text-purple-300 font-bold">you don't have to pay anything today!</span> Just add your card to unlock all capabilities, and you can cancel anytime.
+                                                    You haven't added any AI add-ons. Without an AI plan, <span className="text-slate-200 font-semibold">you won't be able to experience any of the AI-powered features</span> like smart catalog intelligence and automated scanning. In order to enjoy complete features, we highly recommend adding one of the premium AI options above — <span className="text-teal-300 font-bold">you don't have to pay anything today!</span> Just add your card to unlock all capabilities, and you can cancel anytime.
                                                 </div>
                                             </div>
                                         </div>
@@ -763,13 +763,13 @@ export default function Pricing({ plans = [] }) {
                                         {/* Summary pill */}
                                         <div className="flex items-center gap-2.5 flex-wrap">
                                             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-                                                <Check size={11} className="text-indigo-400" />
+                                                <Check size={11} className="text-teal-400" />
                                                 <span className="text-[11px] text-slate-300 font-semibold">{PLAN_DATA[selectedPlan]?.name}</span>
                                             </div>
                                             {selectedAIData && (
-                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/[0.08] border border-purple-500/[0.15]">
+                                                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-500/[0.08] border border-teal-500/[0.15]">
                                                     <span className="text-sm">{selectedAIData.emoji}</span>
-                                                    <span className="text-[11px] text-purple-300 font-semibold">{selectedAIData.name}</span>
+                                                    <span className="text-[11px] text-teal-300 font-semibold">{selectedAIData.name}</span>
                                                 </div>
                                             )}
                                             {selectedAI === 'byok' && (
@@ -829,18 +829,18 @@ export default function Pricing({ plans = [] }) {
                                                 <span className="text-[10px] text-blue-400 font-bold">{planPriceStr('starter')}</span>
                                             </div>
                                         </th>
-                                        <th className="py-5 px-4 text-center bg-indigo-950/20">
+                                        <th className="py-5 px-4 text-center bg-teal-950/20">
                                             <div className="flex flex-col items-center gap-1">
-                                                <TrendingUp size={14} className="text-indigo-400" />
+                                                <TrendingUp size={14} className="text-teal-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Growth</span>
-                                                <span className="text-[10px] text-indigo-400 font-bold">{planPriceStr('growth')}</span>
+                                                <span className="text-[10px] text-teal-400 font-bold">{planPriceStr('growth')}</span>
                                             </div>
                                         </th>
                                         <th className="py-5 pr-6 pl-4 text-center">
                                             <div className="flex flex-col items-center gap-1">
-                                                <Crown size={14} className="text-purple-400" />
+                                                <Crown size={14} className="text-teal-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Enterprise</span>
-                                                <span className="text-[10px] text-purple-400 font-bold">{planPriceStr('enterprise')}</span>
+                                                <span className="text-[10px] text-teal-400 font-bold">{planPriceStr('enterprise')}</span>
                                             </div>
                                         </th>
                                     </tr>
@@ -962,7 +962,7 @@ export default function Pricing({ plans = [] }) {
             <div className="max-w-3xl mx-auto space-y-8">
                 <RevealOnScroll>
                     <div className="text-center">
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-400 text-[10px] font-black tracking-widest uppercase mb-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/15 text-teal-400 text-[10px] font-black tracking-widest uppercase mb-4">
                             Step 2 of 3
                         </div>
                         <h2 className="text-4xl font-black text-white tracking-tight font-display mb-3">
@@ -991,14 +991,14 @@ export default function Pricing({ plans = [] }) {
                                         : [...selectedSyncs, ch.key])}
                                     className={`w-full text-left p-5 rounded-2xl border transition-all duration-300
                                         ${isAdded
-                                            ? 'bg-indigo-600/8 border-indigo-500/40 shadow-md shadow-indigo-950/10'
+                                            ? 'bg-teal-600/8 border-teal-500/40 shadow-md shadow-teal-950/10'
                                             : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-start gap-3">
-                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isAdded ? 'bg-indigo-500/15' : 'bg-white/[0.04]'}`}>
-                                                <SyncIcon size={16} className={isAdded ? 'text-indigo-400' : 'text-slate-500'} />
+                                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${isAdded ? 'bg-teal-500/15' : 'bg-white/[0.04]'}`}>
+                                                <SyncIcon size={16} className={isAdded ? 'text-teal-400' : 'text-slate-500'} />
                                             </div>
                                             <div>
                                                 <div className="text-white text-sm font-bold">{ch.name}</div>
@@ -1006,7 +1006,7 @@ export default function Pricing({ plans = [] }) {
                                             </div>
                                         </div>
                                         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
-                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAdded ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
+                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${isAdded ? 'border-teal-400 bg-teal-500' : 'border-slate-700'}`}>
                                                 {isAdded && <Check size={9} className="text-white" strokeWidth={3} />}
                                             </div>
                                             <span className="text-xs text-white font-bold whitespace-nowrap">
@@ -1021,8 +1021,8 @@ export default function Pricing({ plans = [] }) {
                 </div>
 
                 {selectedSyncs.length > 0 && (
-                    <div className="p-4 rounded-xl bg-indigo-500/[0.06] border border-indigo-500/15 flex items-center gap-3">
-                        <Globe size={14} className="text-indigo-400 flex-shrink-0" />
+                    <div className="p-4 rounded-xl bg-teal-500/[0.06] border border-teal-500/15 flex items-center gap-3">
+                        <Globe size={14} className="text-teal-400 flex-shrink-0" />
                         <p className="text-xs text-slate-400">
                             The moment a barcode transaction completes inside your POS, stock updates across all connected platforms in under 3 seconds. No overselling. Ever.
                         </p>
@@ -1060,7 +1060,7 @@ export default function Pricing({ plans = [] }) {
 
                 {/* Header */}
                 <div className="text-center">
-                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/15 text-indigo-400 text-[10px] font-black tracking-widest uppercase mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-teal-500/10 border border-teal-500/15 text-teal-400 text-[10px] font-black tracking-widest uppercase mb-4">
                         Step 3 of 3
                     </div>
                     <h2 className="text-4xl font-black text-white tracking-tight font-display mb-3">
@@ -1083,20 +1083,20 @@ export default function Pricing({ plans = [] }) {
                                 onClick={() => setSelectedService(isChosen ? null : tier.key)}
                                 className={`w-full text-left p-5 rounded-2xl border transition-all duration-300
                                     ${isChosen
-                                        ? 'bg-indigo-600/[0.08] border-indigo-500/40'
+                                        ? 'bg-teal-600/[0.08] border-teal-500/40'
                                         : 'bg-white/[0.02] border-white/[0.06] hover:border-white/10'
                                     }`}
                             >
                                 <div className="flex items-start justify-between gap-4">
                                     <div className="flex items-start gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 transition-all ${isChosen ? 'border-indigo-400 bg-indigo-500' : 'border-slate-700'}`}>
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 transition-all ${isChosen ? 'border-teal-400 bg-teal-500' : 'border-slate-700'}`}>
                                             {isChosen && <Check size={9} className="text-white" strokeWidth={3} />}
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="text-lg">{tier.emoji}</span>
                                                 <span className="text-white font-bold text-sm">{tier.name}</span>
-                                                {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-[8px] font-black tracking-widest uppercase">Most Popular</span>}
+                                                {idx === 1 && <span className="px-2 py-0.5 rounded-full bg-teal-500/10 border border-teal-500/20 text-teal-300 text-[8px] font-black tracking-widest uppercase">Most Popular</span>}
                                             </div>
                                             <p className="text-slate-500 text-xs mt-1 leading-relaxed">{tier.desc}</p>
                                             <p className="text-slate-500 text-[10px] mt-1.5 font-semibold">⏱ Turnaround: {tier.sla}</p>
@@ -1105,7 +1105,7 @@ export default function Pricing({ plans = [] }) {
                                     <div className="text-right flex-shrink-0">
                                         <div className="text-white font-black text-lg">{isPK ? `Rs ${tierPrice}` : `$${tierPrice.toFixed(2)}`}</div>
                                         <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">per product</div>
-                                        <div className="text-[9px] text-indigo-400 font-semibold mt-0.5">+{isPK ? 'Rs 50' : '$0.50'} / extra 5 variants</div>
+                                        <div className="text-[9px] text-teal-400 font-semibold mt-0.5">+{isPK ? 'Rs 50' : '$0.50'} / extra 5 variants</div>
                                     </div>
                                 </div>
                             </button>
@@ -1115,8 +1115,8 @@ export default function Pricing({ plans = [] }) {
 
                 {/* Variant explanation */}
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Layers size={11} className="text-indigo-400" />
+                    <div className="w-6 h-6 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Layers size={11} className="text-teal-400" />
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
                         <span className="text-white font-semibold">Variant pricing:</span> The first 5 variants per product are included in the base price.
@@ -1127,9 +1127,9 @@ export default function Pricing({ plans = [] }) {
 
                 {/* ── Interactive Calculator ── */}
                 {selectedTier && (
-                    <div className="rounded-2xl border border-indigo-500/20 bg-gradient-to-b from-indigo-950/30 to-transparent overflow-hidden">
+                    <div className="rounded-2xl border border-teal-500/20 bg-gradient-to-b from-teal-950/30 to-transparent overflow-hidden">
                         <div className="px-6 py-4 border-b border-white/[0.05] flex items-center gap-2">
-                            <BarChart3 size={14} className="text-indigo-400" />
+                            <BarChart3 size={14} className="text-teal-400" />
                             <span className="text-xs font-black text-white uppercase tracking-widest">Cost Estimator</span>
                             <span className="text-[10px] text-slate-500 ml-1">— see your price before committing</span>
                         </div>
@@ -1146,7 +1146,7 @@ export default function Pricing({ plans = [] }) {
                                         type="number" min="1" placeholder="e.g. 50"
                                         value={calcProducts}
                                         onChange={e => setCalcProducts(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
+                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
                                 </div>
                                 <div>
@@ -1158,7 +1158,7 @@ export default function Pricing({ plans = [] }) {
                                         type="number" min="1" placeholder="e.g. 3 (default: 1)"
                                         value={calcVariants}
                                         onChange={e => setCalcVariants(e.target.value)}
-                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
+                                        className="w-full bg-black/30 border border-white/[0.07] focus:border-teal-500/50 focus:ring-1 focus:ring-teal-500/20 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all font-mono"
                                     />
                                     <p className="text-[10px] text-slate-500 mt-1.5">Leave blank if products have no variants or ≤5</p>
                                 </div>
@@ -1186,7 +1186,7 @@ export default function Pricing({ plans = [] }) {
                                     )}
                                     <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] mt-1">
                                         <span className="text-white font-black text-sm">Your estimated total</span>
-                                        <span className="text-2xl font-black text-indigo-300 font-display">{fmtCost(serviceCostNum)}</span>
+                                        <span className="text-2xl font-black text-teal-300 font-display">{fmtCost(serviceCostNum)}</span>
                                     </div>
                                     <p className="text-[10px] text-slate-500 leading-relaxed">
                                         This is an estimate. Final invoice is generated when you initiate the service from your admin panel — after reviewing and confirming.
@@ -1217,11 +1217,11 @@ export default function Pricing({ plans = [] }) {
                         </div>
                     </div>
                     <div className="flex items-start gap-3">
-                        <div className="w-6 h-6 rounded-lg bg-indigo-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <Rocket size={12} className="text-indigo-400" />
+                        <div className="w-6 h-6 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <Rocket size={12} className="text-teal-400" />
                         </div>
                         <div>
-                            <div className="text-indigo-300 text-xs font-bold mb-1">Trial paused while we work</div>
+                            <div className="text-teal-300 text-xs font-bold mb-1">Trial paused while we work</div>
                             <p className="text-slate-400 text-xs leading-relaxed">
                                 Your 14-day trial is <strong className="text-slate-300">held while we load your catalog</strong>. Every one of your trial days starts on a store that's already live and stocked.
                             </p>
@@ -1244,7 +1244,7 @@ export default function Pricing({ plans = [] }) {
                                     onClick={() => setTrialMode(opt.key)}
                                     className={`text-left p-4 rounded-xl border transition-all duration-300
                                         ${trialMode === opt.key
-                                            ? 'bg-indigo-600/8 border-indigo-500/40'
+                                            ? 'bg-teal-600/8 border-teal-500/40'
                                             : 'bg-white/[0.02] border-white/[0.06] hover:border-white/8'
                                         }`}
                                 >
@@ -1387,10 +1387,10 @@ export default function Pricing({ plans = [] }) {
                                         </p>
                                     </div>
                                     <div className="relative">
-                                        <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-indigo-500" />
+                                        <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-teal-500" />
                                         <div className="flex items-center justify-between mb-0.5">
                                             <span className="text-white text-xs font-bold">{trialEndStr}</span>
-                                            <span className="text-indigo-400 text-xs font-black">{fmt(totalMonthlyCost)}/mo</span>
+                                            <span className="text-teal-400 text-xs font-black">{fmt(totalMonthlyCost)}/mo</span>
                                         </div>
                                         <p className="text-slate-500 text-[10px]">
                                             First subscription charge — only if you choose to continue. Cancel anytime before this date.
@@ -1412,7 +1412,7 @@ export default function Pricing({ plans = [] }) {
                             </div>
 
                             {/* Totals */}
-                            <div className="p-5 rounded-2xl bg-indigo-600/8 border border-indigo-500/20 flex items-center justify-between">
+                            <div className="p-5 rounded-2xl bg-teal-600/8 border border-teal-500/20 flex items-center justify-between">
                                 <div>
                                     <div className="text-white font-bold text-sm">Due today</div>
                                     <div className="text-slate-400 text-[10px]">{totalDueToday > 0 ? 'BYOK activation' : 'Nothing. Trial is free.'}</div>
@@ -1427,7 +1427,7 @@ export default function Pricing({ plans = [] }) {
                         <div className="w-full lg:w-[380px] bg-white/[0.01] border border-white/[0.06] rounded-[1.75rem] p-7">
                             <form onSubmit={handleFormSubmit} className="space-y-5">
                                 <div className="flex items-center gap-2 mb-2">
-                                    <Lock size={13} className="text-indigo-400" />
+                                    <Lock size={13} className="text-teal-400" />
                                     <span className="text-xs font-black text-white uppercase tracking-widest">Secure Activation</span>
                                 </div>
 
@@ -1437,7 +1437,7 @@ export default function Pricing({ plans = [] }) {
                                         type="email" required placeholder="name@business.com"
                                         value={checkoutDetails.email}
                                         onChange={e => setCheckoutDetails({ ...checkoutDetails, email: e.target.value })}
-                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                     />
                                 </div>
                                 <div>
@@ -1446,7 +1446,7 @@ export default function Pricing({ plans = [] }) {
                                         type="tel" required placeholder="+1 (555) 000-0000"
                                         value={checkoutDetails.phone}
                                         onChange={e => setCheckoutDetails({ ...checkoutDetails, phone: e.target.value })}
-                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                                        className="w-full bg-black/30 border border-white/[0.06] focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                     />
                                 </div>
 
@@ -1462,7 +1462,7 @@ export default function Pricing({ plans = [] }) {
                                                 type="text" required placeholder="Jane Doe"
                                                 value={checkoutDetails.cardholder}
                                                 onChange={e => setCheckoutDetails({ ...checkoutDetails, cardholder: e.target.value })}
-                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
+                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 outline-none transition-all"
                                             />
                                         </div>
                                         <div>
@@ -1471,7 +1471,7 @@ export default function Pricing({ plans = [] }) {
                                                 type="text" required placeholder="•••• •••• •••• ••••" maxLength="19"
                                                 value={checkoutDetails.cardNumber}
                                                 onChange={e => setCheckoutDetails({ ...checkoutDetails, cardNumber: e.target.value })}
-                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono outline-none transition-all"
+                                                className="w-full bg-black/30 border border-white/[0.06] focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono outline-none transition-all"
                                             />
                                         </div>
                                         <div className="grid grid-cols-2 gap-3">
@@ -1481,7 +1481,7 @@ export default function Pricing({ plans = [] }) {
                                                     type="text" required placeholder="MM/YY" maxLength="5"
                                                     value={checkoutDetails.expiry}
                                                     onChange={e => setCheckoutDetails({ ...checkoutDetails, expiry: e.target.value })}
-                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
+                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
                                                 />
                                             </div>
                                             <div>
@@ -1490,7 +1490,7 @@ export default function Pricing({ plans = [] }) {
                                                     type="password" required placeholder="•••" maxLength="4"
                                                     value={checkoutDetails.cvc}
                                                     onChange={e => setCheckoutDetails({ ...checkoutDetails, cvc: e.target.value })}
-                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
+                                                    className="w-full bg-black/30 border border-white/[0.06] focus:border-teal-500/60 focus:ring-1 focus:ring-teal-500/30 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 font-mono text-center outline-none transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -1551,7 +1551,7 @@ export default function Pricing({ plans = [] }) {
                 <div className="max-w-2xl w-full">
                     <div className="rounded-[2.5rem] border border-emerald-500/20 bg-gradient-to-b from-[#0a1a14] to-[#040212] p-10 md:p-12 text-center relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
-                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-500/5 rounded-full blur-[100px] pointer-events-none" />
 
                         <div className="relative z-10">
                             {/* Success mark */}
@@ -1595,8 +1595,8 @@ export default function Pricing({ plans = [] }) {
 
                                 {[
                                     { dot: 'bg-emerald-400', title: 'Right now', desc: `Your 14-day trial has started. Log in and explore everything.${totalDueToday > 0 ? ` BYOK activation fee of ${fmt(totalDueToday)} has been processed.` : ' No charge today.'}` },
-                                    ...(selectedServiceData ? [{ dot: 'bg-indigo-400', title: 'Within 2 business hours', desc: `Our team will contact you on ${checkoutDetails.phone || 'the number you provided'} to confirm your catalog details and begin loading ${calcProductsNum} products. Turnaround: ${selectedTier?.sla}.` }] : []),
-                                    { dot: 'bg-purple-400', title: trialEndStr, desc: `Trial ends. Subscription begins at ${fmt(totalMonthlyCost)}/mo — only if you choose to stay. Cancel from your dashboard anytime before this date.` },
+                                    ...(selectedServiceData ? [{ dot: 'bg-teal-400', title: 'Within 2 business hours', desc: `Our team will contact you on ${checkoutDetails.phone || 'the number you provided'} to confirm your catalog details and begin loading ${calcProductsNum} products. Turnaround: ${selectedTier?.sla}.` }] : []),
+                                    { dot: 'bg-teal-400', title: trialEndStr, desc: `Trial ends. Subscription begins at ${fmt(totalMonthlyCost)}/mo — only if you choose to stay. Cancel from your dashboard anytime before this date.` },
                                 ].map((step, i) => (
                                     <div key={i} className="flex gap-3">
                                         <div className="flex flex-col items-center gap-1">
@@ -1613,8 +1613,8 @@ export default function Pricing({ plans = [] }) {
 
                             {/* Human contact */}
                             <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-center gap-3 mb-6 text-sm text-slate-400">
-                                <MessageSquare size={14} className="text-indigo-400 flex-shrink-0" />
-                                <span>Questions? WhatsApp us at <a href="https://wa.me/923091999489" className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors">+92 309 1999489</a> — we reply within a few hours.</span>
+                                <MessageSquare size={14} className="text-teal-400 flex-shrink-0" />
+                                <span>Questions? WhatsApp us at <a href="https://wa.me/923091999489" className="text-teal-400 font-semibold hover:text-teal-300 transition-colors">+92 309 1999489</a> — we reply within a few hours.</span>
                             </div>
 
                             <MagneticButton
@@ -1641,14 +1641,14 @@ export default function Pricing({ plans = [] }) {
             { n: 4, label: 'Checkout' },
         ];
         return (
-            <div className="sticky top-[64px] z-40 bg-[#020010]/90 backdrop-blur-xl border-b border-white/[0.05] py-3 px-6">
+            <div className="sticky top-[64px] z-40 bg-[#071614]/90 backdrop-blur-xl border-b border-white/[0.05] py-3 px-6">
                 <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
                     {steps.map((s) => {
                         const done = currentStep > s.n;
                         const active = currentStep === s.n;
                         return (
                             <div key={s.n} className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider transition-colors ${active ? 'text-white' : done ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] transition-all ${active ? 'bg-indigo-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-500'}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] transition-all ${active ? 'bg-teal-600 text-white' : done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/[0.04] text-slate-500'}`}>
                                     {done ? '✓' : s.n}
                                 </div>
                                 <span className="hidden sm:block">{s.label}</span>

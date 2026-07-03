@@ -158,8 +158,8 @@ export default function PartnerSupport() {
         >
             <section className="relative pt-40 pb-24 px-6 min-h-screen flex items-center justify-center">
                 {/* Background lighting */}
-                <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
-                <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+                <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
+                <div className="absolute bottom-1/4 right-1/3 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl" />
 
                 <div className="max-w-4xl w-full mx-auto relative z-10">
                     <RevealOnScroll>
@@ -167,7 +167,7 @@ export default function PartnerSupport() {
                             <SectionLabel icon={MessageSquare}>VIP Partner Desk</SectionLabel>
                             <h1 className="text-4xl md:text-5xl font-black tracking-tighter leading-tight mt-4 mb-4 font-display">
                                 <span className="bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Partner & Owner</span>{' '}
-                                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-indigo-300 bg-clip-text text-transparent vq-text-glow">Support Desk.</span>
+                                <span className="bg-gradient-to-r from-teal-400 via-teal-400 to-teal-300 bg-clip-text text-transparent vq-text-glow">Support Desk.</span>
                             </h1>
                             <p className="text-slate-400 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
                                 Submit your digital product purchase details below. We manually verify details on our backend and credit your cloud store dashboard automatically.
@@ -177,7 +177,7 @@ export default function PartnerSupport() {
 
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-20">
-                            <Loader2 className="animate-spin text-indigo-500 mb-4" size={40} />
+                            <Loader2 className="animate-spin text-teal-500 mb-4" size={40} />
                             <p className="text-slate-400 text-sm">Uploading details and securing communication link...</p>
                         </div>
                     ) : showSuccessScreen ? (
@@ -194,8 +194,8 @@ export default function PartnerSupport() {
                                     </p>
                                 </div>
 
-                                <div className="p-6 rounded-2xl bg-indigo-950/20 border border-indigo-500/10 text-left max-w-xl mx-auto space-y-3">
-                                    <span className="block text-xs font-black uppercase tracking-wider text-indigo-400">Next Action Required:</span>
+                                <div className="p-6 rounded-2xl bg-teal-950/20 border border-teal-500/10 text-left max-w-xl mx-auto space-y-3">
+                                    <span className="block text-xs font-black uppercase tracking-wider text-teal-400">Next Action Required:</span>
                                     <p className="text-slate-300 text-xs leading-relaxed">
                                         Please make sure you register your store on the cloud website using the <strong>EXACT SAME EMAIL</strong> address ({ticket?.requester_email}) you provided in this form. 
                                         Once verified, we will automatically credit the bonus trial days to your dashboard.
@@ -204,7 +204,7 @@ export default function PartnerSupport() {
                                         <a
                                             href="/register"
                                             target="_blank"
-                                            className="inline-flex items-center gap-2 text-xs font-black text-indigo-400 hover:text-indigo-300 transition-colors"
+                                            className="inline-flex items-center gap-2 text-xs font-black text-teal-400 hover:text-teal-300 transition-colors"
                                         >
                                             Create / Register Your New Store <ExternalLink size={12} />
                                         </a>
@@ -214,7 +214,7 @@ export default function PartnerSupport() {
                                 <div className="pt-4 flex justify-center gap-4">
                                     <button
                                         onClick={() => setShowSuccessScreen(false)}
-                                        className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-colors"
+                                        className="px-6 py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold transition-colors"
                                     >
                                         Go to Active Chat Thread
                                     </button>
@@ -233,7 +233,7 @@ export default function PartnerSupport() {
                             <GlassCard className="p-8 border border-white/[0.06] bg-slate-900/40 backdrop-blur-xl rounded-[2rem] shadow-2xl relative">
                                 <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center">
+                                        <div className="w-10 h-10 bg-teal-500/10 border border-teal-500/20 text-teal-400 rounded-xl flex items-center justify-center">
                                             <User size={18} />
                                         </div>
                                         <div>
@@ -256,11 +256,11 @@ export default function PartnerSupport() {
                                             <div className={`max-w-[80%] rounded-2xl p-4 text-xs leading-relaxed border ${
                                                 reply.is_platform_owner
                                                     ? 'bg-slate-800 border-slate-700/50 text-slate-200 rounded-tl-none'
-                                                    : 'bg-indigo-600/10 border-indigo-500/20 text-indigo-200 rounded-tr-none'
+                                                    : 'bg-teal-600/10 border-teal-500/20 text-teal-200 rounded-tr-none'
                                             }`}>
                                                 <div className="flex items-center gap-2 mb-1.5 text-[9px] font-bold uppercase tracking-wider">
                                                     {reply.is_platform_owner ? (
-                                                        <span className="text-indigo-400">Engineering Team (Owner)</span>
+                                                        <span className="text-teal-400">Engineering Team (Owner)</span>
                                                     ) : (
                                                         <span className="text-slate-400">You (Partner)</span>
                                                     )}
@@ -279,12 +279,12 @@ export default function PartnerSupport() {
                                         value={replyBody}
                                         onChange={e => setReplyBody(e.target.value)}
                                         placeholder="Type support reply message..."
-                                        className="flex-1 px-5 py-4 bg-white/[0.03] border border-white/[0.06] focus:border-indigo-500/40 rounded-2xl text-white text-sm outline-none transition-all duration-300"
+                                        className="flex-1 px-5 py-4 bg-white/[0.03] border border-white/[0.06] focus:border-teal-500/40 rounded-2xl text-white text-sm outline-none transition-all duration-300"
                                     />
                                     <button
                                         type="submit"
                                         disabled={replying || !replyBody.trim()}
-                                        className="w-14 h-14 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl flex items-center justify-center transition-colors disabled:opacity-40"
+                                        className="w-14 h-14 bg-teal-600 hover:bg-teal-500 text-white rounded-2xl flex items-center justify-center transition-colors disabled:opacity-40"
                                     >
                                         {replying ? (
                                             <Loader2 size={18} className="animate-spin" />
@@ -309,7 +309,7 @@ export default function PartnerSupport() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* Purchase Name */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-teal-400 transition-colors">
                                                 Purchase Roster Name
                                             </label>
                                             <input
@@ -318,13 +318,13 @@ export default function PartnerSupport() {
                                                 value={name}
                                                 onChange={e => setName(e.target.value)}
                                                 placeholder="Exact name used during check-out"
-                                                className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500"
+                                                className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-teal-500/40 focus:bg-teal-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500"
                                             />
                                         </div>
 
                                         {/* Purchase Email */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-teal-400 transition-colors">
                                                 Purchase Email Address
                                             </label>
                                             <input
@@ -333,7 +333,7 @@ export default function PartnerSupport() {
                                                 value={email}
                                                 onChange={e => setEmail(e.target.value)}
                                                 placeholder="Email used during check-out"
-                                                className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500"
+                                                className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-teal-500/40 focus:bg-teal-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500"
                                             />
                                         </div>
                                     </div>
@@ -341,7 +341,7 @@ export default function PartnerSupport() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                         {/* Purchase Source Platform */}
                                         <div className="relative group">
-                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                            <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-teal-400 transition-colors">
                                                 Purchased From (Platform)
                                             </label>
                                             <input
@@ -350,7 +350,7 @@ export default function PartnerSupport() {
                                                 value={purchaseSource}
                                                 onChange={e => setPurchaseSource(e.target.value)}
                                                 placeholder="e.g. Etsy, VIP Partner Marketplace"
-                                                className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500"
+                                                className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-teal-500/40 focus:bg-teal-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500"
                                             />
                                         </div>
 
@@ -386,11 +386,11 @@ export default function PartnerSupport() {
                                                 onClick={() => setTrialStatus('started')}
                                                 className={`w-full p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col gap-1 ${
                                                     trialStatus === 'started'
-                                                        ? 'bg-indigo-500/10 border-indigo-500/40 text-white shadow-lg'
+                                                        ? 'bg-teal-500/10 border-teal-500/40 text-white shadow-lg'
                                                         : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:border-white/10 hover:bg-white/[0.04]'
                                                 }`}
                                             >
-                                                <span className={`text-xs font-black uppercase tracking-wider ${trialStatus === 'started' ? 'text-indigo-400' : 'text-slate-200'}`}>
+                                                <span className={`text-xs font-black uppercase tracking-wider ${trialStatus === 'started' ? 'text-teal-400' : 'text-slate-200'}`}>
                                                     Started 14-day trial
                                                 </span>
                                                 <span className="text-[11px] leading-relaxed opacity-85">Get extra 30 days added onto your existing account.</span>
@@ -401,11 +401,11 @@ export default function PartnerSupport() {
                                                 onClick={() => setTrialStatus('not_started')}
                                                 className={`w-full p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col gap-1 ${
                                                     trialStatus === 'not_started'
-                                                        ? 'bg-indigo-500/10 border-indigo-500/40 text-white shadow-lg'
+                                                        ? 'bg-teal-500/10 border-teal-500/40 text-white shadow-lg'
                                                         : 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:border-white/10 hover:bg-white/[0.04]'
                                                 }`}
                                             >
-                                                <span className={`text-xs font-black uppercase tracking-wider ${trialStatus === 'not_started' ? 'text-indigo-400' : 'text-slate-200'}`}>
+                                                <span className={`text-xs font-black uppercase tracking-wider ${trialStatus === 'not_started' ? 'text-teal-400' : 'text-slate-200'}`}>
                                                     I haven't started trial yet
                                                 </span>
                                                 <span className="text-[11px] leading-relaxed opacity-85">Get a brand new store loaded with 45 full days of access.</span>
@@ -423,7 +423,7 @@ export default function PartnerSupport() {
 
                                     {/* Optional message */}
                                     <div className="relative group">
-                                        <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-indigo-400 transition-colors">
+                                        <label className="block text-[10px] font-black uppercase tracking-[0.25em] mb-3 text-slate-500 group-focus-within:text-teal-400 transition-colors">
                                             Additional Comments (Optional)
                                         </label>
                                         <textarea
@@ -431,7 +431,7 @@ export default function PartnerSupport() {
                                             value={message}
                                             onChange={e => setMessage(e.target.value)}
                                             placeholder="Any comments, requests or license numbers you want to include..."
-                                            className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-indigo-500/40 focus:bg-indigo-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500 resize-none"
+                                            className="w-full px-5 py-4 bg-white/[0.03] border border-white/[0.06] hover:border-white/10 focus:border-teal-500/40 focus:bg-teal-500/[0.03] rounded-2xl text-white text-sm outline-none transition-all duration-500 resize-none"
                                         />
                                     </div>
 
@@ -439,7 +439,7 @@ export default function PartnerSupport() {
                                         type="submit"
                                         disabled={loading}
                                         variant="indigo"
-                                        className="w-full h-14 rounded-2xl font-black text-sm tracking-[0.15em] uppercase flex items-center justify-center gap-3 transition-colors shadow-lg shadow-indigo-600/20 disabled:opacity-50 group"
+                                        className="w-full h-14 rounded-2xl font-black text-sm tracking-[0.15em] uppercase flex items-center justify-center gap-3 transition-colors shadow-lg shadow-teal-600/20 disabled:opacity-50 group"
                                     >
                                         Submit License Details
                                     </MagneticButton>
