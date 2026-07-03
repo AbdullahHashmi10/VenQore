@@ -25,6 +25,12 @@ class SitemapController extends Controller
             ['loc' => route('blog.index'), 'lastmod' => $now, 'changefreq' => 'daily', 'priority' => '0.7'],
             ['loc' => route('terms'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'],
             ['loc' => route('privacy'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'],
+            // Added 2026-07-03 — demo, refund policy, newsletter, coming-soon product lines
+            ['loc' => route('demo.landing'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.9'],
+            ['loc' => route('refund-policy'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.3'],
+            ['loc' => route('marketing.newsletter'), 'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => '0.4'],
+            ['loc' => route('marketing.vensynq'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'],
+            ['loc' => route('marketing.smartcapture'), 'lastmod' => $now, 'changefreq' => 'weekly', 'priority' => '0.8'],
         ];
 
         // Retrieve dynamic blog posts

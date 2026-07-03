@@ -63,6 +63,10 @@ Route::get('/about',    fn() => Inertia::render('Marketing/About'))->name('marke
 Route::get('/contact',  fn() => Inertia::render('Marketing/Contact'))->name('marketing.contact');
 Route::post('/contact', [\App\Http\Controllers\Marketing\ContactController::class, 'store'])->name('marketing.contact.submit');
 
+// Coming-soon product lines — SEO/GEO landing pages with newsletter capture (2026-07-03)
+Route::get('/vensynq', fn() => Inertia::render('Marketing/VenSynQ'))->name('marketing.vensynq');
+Route::get('/smartcapture', fn() => Inertia::render('Marketing/SmartCapture'))->name('marketing.smartcapture');
+
 // Newsletter subscription
 Route::get('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'index'])->name('marketing.newsletter');
 Route::post('/subscribe', [\App\Http\Controllers\Marketing\NewsletterController::class, 'store'])->name('marketing.newsletter.submit');
