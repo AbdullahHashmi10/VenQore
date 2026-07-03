@@ -43,3 +43,9 @@ zip_contents.txt
 
 /public/build
 
+
+# Session-2 hygiene (2026-07-03): never ship editor/backup artifacts
+*.bak
+*.bak.*
+*.backup-*
+resources/js/Pages/**/*.backup*.jsx
