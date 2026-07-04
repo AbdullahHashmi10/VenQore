@@ -342,9 +342,11 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
                 <div>
                     <h1 className="font-extrabold text-left" style={{ color: themeColor, fontSize: `${itemsHeadingSize(data.print_company_text_size)}rem` }}>{data.business_name || 'Business Name'}</h1>
-                    <div className="text-xs text-slate-600 space-y-0.5 mt-2 text-left">
+                    <div className="text-xs text-slate-600 space-y-0.5 mt-2 text-left font-sans">
                         <p>{data.business_address || '123 Business St, City, Country'}</p>
                         <p>{data.business_phone || '+1 234 567 890'}</p>
+                        {data.business_email && <p>Email: {data.business_email}</p>}
+                        {data.tax_number && <p>Tax/NTN: {data.tax_number}</p>}
                     </div>
                 </div>
             </div>
@@ -616,6 +618,7 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
         <div className="text-center mb-8 border-b-4 double border-slate-800 pb-4">
             <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.business_name}</h1>
             <p className="text-sm italic">{data.business_address}</p>
+            <p className="text-xs">{data.business_phone}{data.business_email && ` | Email: ${data.business_email}`}{data.tax_number && ` | Tax/NTN: ${data.tax_number}`}</p>
         </div>
     );
 
@@ -812,6 +815,8 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
             <div className="text-right opacity-80 text-sm">
                 <p>{data.business_phone}</p>
                 <p>{data.business_address}</p>
+                {data.business_email && <p>{data.business_email}</p>}
+                {data.tax_number && <p>Tax/NTN: {data.tax_number}</p>}
             </div>
         </div>
     );
@@ -1041,6 +1046,16 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 {data.business_phone && (
                     <div className="text-[0.85em]">
                         Tel: {data.business_phone}
+                    </div>
+                )}
+                {data.business_email && (
+                    <div className="text-[0.85em]">
+                        Email: {data.business_email}
+                    </div>
+                )}
+                {data.tax_number && (
+                    <div className="text-[0.85em]">
+                        Tax/NTN: {data.tax_number}
                     </div>
                 )}
             </div>
@@ -1346,6 +1361,8 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                 <div className="font-bold text-lg uppercase">{data.business_name}</div>
                 <div className="whitespace-pre-wrap">{data.business_address}</div>
                 {data.business_phone && <div>Tel: {data.business_phone}</div>}
+                {data.business_email && <div>Email: {data.business_email}</div>}
+                {data.tax_number && <div>Tax/NTN: {data.tax_number}</div>}
             </div>
 
             {/* Meta Info */}
@@ -1622,6 +1639,8 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                 <div className="text-xl uppercase tracking-wider">{data.business_name}</div>
                 <div className="text-xs font-normal opacity-90">{data.business_address}</div>
                 {data.business_phone && <div className="text-xs font-normal opacity-90">{data.business_phone}</div>}
+                {data.business_email && <div className="text-xs font-normal opacity-90">{data.business_email}</div>}
+                {data.tax_number && <div className="text-xs font-normal opacity-90">Tax/NTN: {data.tax_number}</div>}
             </div>
 
             {/* Meta */}

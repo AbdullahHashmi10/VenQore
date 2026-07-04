@@ -1721,13 +1721,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         return `${hours}h ${minutes}m`;
     };
 
-    // Auto-Fill Cash Logic (Admin Setting)
-    // Auto-Fill Cash Logic (Always Active)
+    // Auto-Fill Cash Logic — respects pos_auto_fill_cash setting and only fills when payment method is 'cash'
     useEffect(() => {
-        if (activeSale.cart.length > 0) {
+        const isEnabled = settings?.pos_auto_fill_cash === '1' || settings?.pos_auto_fill_cash === true || settings?.pos_auto_fill_cash === 1;
+        if (isEnabled && paymentMethod === 'cash' && activeSale.cart.length > 0) {
             updateActiveSale({ cashReceived: cartTotal });
         }
-    }, [cartTotal]);
+    }, [cartTotal, paymentMethod, settings?.pos_auto_fill_cash]);
 
     return (
         <>

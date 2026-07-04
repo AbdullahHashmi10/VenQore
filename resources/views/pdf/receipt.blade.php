@@ -159,6 +159,9 @@
         <p>
             {{ $settings['business_address'] ?? '' }}<br>
             Phone: {{ $settings['business_phone'] ?? '' }}
+            @if(!empty($settings['business_email']))
+                <br>Email: {{ $settings['business_email'] }}
+            @endif
             @if(!empty($settings['tax_number']))
                 <br>NTN: {{ $settings['tax_number'] }}
             @endif
