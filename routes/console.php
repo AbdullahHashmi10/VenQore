@@ -84,5 +84,19 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// ── Daily Low Stock Alerts Mailing ───────────────────────────────────────
+\Illuminate\Support\Facades\Schedule::command('inventory:send-low-stock-alerts')
+    ->dailyAt('09:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+// ── Weekly Business Summary Mailing ──────────────────────────────────────
+\Illuminate\Support\Facades\Schedule::command('sales:send-weekly-summary')
+    ->weeklyOn(1, '08:00')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+
+
 
 
