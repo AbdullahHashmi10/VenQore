@@ -65,6 +65,30 @@ class SettingsHelper
     }
 
     /**
+     * Get the default start date for financial/report scopes based on fiscal_year_start setting.
+     */
+    public static function getFiscalYearStart(): string
+    {
+        $setting = self::get('fiscal_year_start', '2025-01-01');
+        try {
+            $carbonSetting = \Carbon\Carbon::parse($setting);
+            $month = $carbonSetting->month;
+            $day = $carbonSetting->day;
+            
+            $now = \Carbon\Carbon::now();
+            $currentYearStart = \Carbon\Carbon::create($now->year, $month, $day, 0, 0, 0);
+            
+            if ($now->greaterThanOrEqualTo($currentYearStart)) {
+                return $currentYearStart->toDateString();
+            } else {
+                return $currentYearStart->subYear()->toDateString();
+            }
+        } catch (\Exception $e) {
+            return '2025-01-01';
+        }
+    }
+
+    /**
      * Clear the settings cache for the CURRENT tenant only.
      * Clearing one tenant's cache does NOT affect any other tenant.
      */
@@ -88,7 +112,12 @@ class SettingsHelper
     public static function formatNumber($number, ?int $decimalOverride = null): string
     {
         $decimals = $decimalOverride ?? (int) self::get('decimal_places', 2);
-        return number_format((float) $number, $decimals);
+        $useGrouping = self::get('print_amount_grouping', '1') !== '0';
+        if ($useGrouping) {
+            return number_format((float) $number, $decimals);
+        } else {
+            return number_format((float) $number, $decimals, '.', '');
+        }
     }
 
     /**
@@ -123,7 +152,12 @@ class SettingsHelper
     public static function formatCurrency($amount, bool $includeSymbol = true): string
     {
         $decimals = (int) self::get('decimal_places', 2);
-        $formatted = number_format((float) $amount, $decimals);
+        $useGrouping = self::get('print_amount_grouping', '1') !== '0';
+        if ($useGrouping) {
+            $formatted = number_format((float) $amount, $decimals);
+        } else {
+            $formatted = number_format((float) $amount, $decimals, '.', '');
+        }
 
         if (!$includeSymbol) {
             return $formatted;

@@ -78,4 +78,11 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// ── Daily Sales Summary Mailing ──────────────────────────────────────────
+\Illuminate\Support\Facades\Schedule::command('sales:send-daily-summary')
+    ->dailyAt('00:10')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+
 

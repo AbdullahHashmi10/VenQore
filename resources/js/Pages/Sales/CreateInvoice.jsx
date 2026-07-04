@@ -116,6 +116,17 @@ const CreateInvoice = ({ sale }) => {
 
     const isPosted = isEditMode && currentInvoice?.status === 'posted';
 
+    const parsedTaxRates = (() => {
+        try {
+            return settings?.tax_rates ? (typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates) : [
+                { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
+                { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
+            ];
+        } catch (e) {
+            return [];
+        }
+    })();
+
     // Ensure we have a valid invoice if visiting Create page
     useEffect(() => {
         if (!isEditMode && !currentInvoice) {
@@ -2293,15 +2304,24 @@ const CreateInvoice = ({ sale }) => {
                             <div className="flex items-center justify-between bg-slate-800/30 rounded-xl p-3 border border-slate-700/50">
                                 <span className="text-xs text-slate-400 font-bold">Tax</span>
                                 <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
+                                    <select
                                         value={currentInvoice.tax ?? 0}
                                         onChange={(e) => patchInvoice({ tax: parseFloat(e.target.value) || 0 })}
                                         disabled={isPosted}
-                                        className="w-16 bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm text-right focus:ring-2 ring-indigo-500/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-                                        placeholder="0"
-                                    />
-                                    <span className="text-slate-500 text-xs">%</span>
+                                        className="bg-slate-700/50 border border-slate-600/50 rounded-lg px-2 py-1.5 text-white font-bold text-sm focus:ring-2 ring-indigo-500/20 transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+                                    >
+                                        <option value="0">None (0%)</option>
+                                        {parsedTaxRates.map((tax) => (
+                                            <option key={tax.id} value={tax.rate}>
+                                                {tax.name} ({tax.rate}%)
+                                            </option>
+                                        ))}
+                                        {currentInvoice.tax !== undefined && currentInvoice.tax !== null && currentInvoice.tax !== 0 && !parsedTaxRates.some(t => t.rate === currentInvoice.tax) && (
+                                            <option value={currentInvoice.tax}>
+                                                Custom ({currentInvoice.tax}%)
+                                            </option>
+                                        )}
+                                    </select>
                                 </div>
                             </div>
 

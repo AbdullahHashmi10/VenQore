@@ -58,6 +58,7 @@ class SaleController extends Controller
             'amount_paid'           => 'required|numeric|min:0',
             'discount'              => 'nullable|numeric|min:0',
             'tax'                   => 'nullable|numeric|min:0',
+            'tax_rate'              => 'nullable|numeric|min:0',
             'delivery_charge'       => 'nullable|numeric|min:0',
             'extra_charge_value'    => 'nullable|numeric|min:0',
             'extra_charge_label'    => 'nullable|string',
@@ -100,7 +101,7 @@ class SaleController extends Controller
                 // net = line revenue after item-level discount (before global discount)
                 $net = max(0, $gross - $itemDiscount);
 
-                $taxRate = ($product->tax_rate !== null) ? (float)$product->tax_rate : \App\Helpers\SettingsHelper::getDefaultTaxRate();
+                $taxRate = ($product->tax_rate !== null) ? (float)$product->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate());
 
                 $subtotalGross += $gross + $freeValue;
                 $totalItemDiscounts += $itemDiscount + $freeValue;
@@ -1148,7 +1149,7 @@ class SaleController extends Controller
                 $netAmount    = max(0, $grossAmount - $itemDiscount);
 
                 $productRecord = Product::find($item['product_id']);
-                $lineTaxRate   = ($productRecord->tax_rate !== null) ? (float)$productRecord->tax_rate : \App\Helpers\SettingsHelper::getDefaultTaxRate();
+                $lineTaxRate   = ($productRecord->tax_rate !== null) ? (float)$productRecord->tax_rate : (float)$request->input('tax_rate', \App\Helpers\SettingsHelper::getDefaultTaxRate());
                 $lineTaxAmount = round($netAmount * ($lineTaxRate / 100), 4);
 
                 $subtotalGross      += $grossAmount;

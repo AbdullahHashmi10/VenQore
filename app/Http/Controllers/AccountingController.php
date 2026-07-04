@@ -67,7 +67,7 @@ class AccountingController extends Controller
      */
     public function profitAndLoss(Request $request)
     {
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $pnl = (new FinancialReportingService())->getProfitAndLoss($startDate, $endDate);

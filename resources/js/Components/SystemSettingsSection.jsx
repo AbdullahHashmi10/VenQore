@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 import { usePage } from '@inertiajs/react';
 
 export default function SystemSettingsSection({ data, setData, activeSubSection = 'system' }) {
-    const { woocommerce_enabled } = usePage().props;
+    const { woocommerce_enabled, store } = usePage().props;
     const fileInputRef = useRef(null);
     const [restoring, setRestoring] = useState(false);
     const [downloading, setDownloading] = useState(false);
@@ -303,7 +303,7 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Toggle enabled={data.two_factor_auth} onChange={v => setData('two_factor_auth', v)} label="Two-Factor Authentication" description="Require code verification on login" />
+                                <Toggle enabled={false} onChange={() => {}} label="Two-Factor Authentication" description="Require code verification on login" comingSoon={true} />
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Auto-Logout Timer (Minutes)</label>
                                     <input
@@ -332,7 +332,17 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                             </div>
 
                             <div className="space-y-4">
-                                <Toggle enabled={data.auto_backup} onChange={v => setData('auto_backup', v)} label="Automatic Daily Backups" description="Backup database to local storage every night" />
+                                <Toggle enabled={false} onChange={() => {}} label="Automatic Daily Backups" description="Backup database to local storage every night" comingSoon={true} />
+                                
+                                <div className="mt-3 p-4 bg-sky-500/10 rounded-2xl border border-sky-500/20 text-sky-700 dark:text-sky-400 text-xs">
+                                    <p className="font-semibold mb-2">💡 Automatic local database backups are coming soon. Use Google Drive Automated Backups to secure your data in the cloud.</p>
+                                    <a
+                                        href={route('store.admin.data', { store_slug: store?.slug })}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-[11px] transition-all shadow-md shadow-sky-600/10 cursor-pointer"
+                                    >
+                                        Configure Google Drive Backup
+                                    </a>
+                                </div>
 
                                 <div className="pt-4 flex flex-col sm:flex-row gap-4">
                                     <button
@@ -403,62 +413,6 @@ export default function SystemSettingsSection({ data, setData, activeSubSection 
                         </div>
 
                         <div className="space-y-6">
-                            {/* WooCommerce */}
-                            {woocommerce_enabled && (
-                                <div className={`p-8 bg-white dark:bg-slate-800 border-2 rounded-[2.5rem] transition-all duration-300 ${data.woocommerce_enabled ? 'border-indigo-500 shadow-2xl shadow-indigo-500/10' : 'border-transparent shadow-lg'}`}>
-                                    <div className="flex items-center gap-5 mb-6">
-                                        <div className="w-14 h-14 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-xl flex-shrink-0">
-                                            <Wifi size={28} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <h5 className="text-lg font-black text-slate-900 dark:text-white leading-tight">WooCommerce</h5>
-                                            <p className="text-xs text-slate-500 font-medium">Sync online orders</p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => setData('woocommerce_enabled', !data.woocommerce_enabled)}
-                                            className={`relative w-12 h-6 rounded-full transition-all duration-200 ${data.woocommerce_enabled ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}`}
-                                        >
-                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200 ${data.woocommerce_enabled ? 'left-7' : 'left-1'}`} />
-                                        </button>
-                                    </div>
-
-                                    {data.woocommerce_enabled && (
-                                        <div className="space-y-4 animate-in slide-in-from-top-4 duration-300 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Store URL</label>
-                                                <input
-                                                    type="text"
-                                                    value={data.woocommerce_url}
-                                                    onChange={e => setData('woocommerce_url', e.target.value)}
-                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                                                    placeholder="https://yourstore.com"
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Consumer Key</label>
-                                                <input
-                                                    type="text"
-                                                    value={data.woocommerce_consumer_key}
-                                                    onChange={e => setData('woocommerce_consumer_key', e.target.value)}
-                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
-                                                    placeholder="ck_..."
-                                                />
-                                            </div>
-                                            <div className="space-y-1.5">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">Consumer Secret</label>
-                                                <input
-                                                    type="password"
-                                                    value={data.woocommerce_consumer_secret}
-                                                    onChange={e => setData('woocommerce_consumer_secret', e.target.value)}
-                                                    className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
-                                                    placeholder="cs_..."
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
 
                             {/* Stripe (Upcoming) */}
                             <div className="p-8 bg-white dark:bg-slate-800 border-2 rounded-[2.5rem] opacity-60">

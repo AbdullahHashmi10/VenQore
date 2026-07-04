@@ -29,7 +29,7 @@ class ReportController extends Controller
 {
     private function resolveDateRange(Request $request)
     {
-        $range = $request->input('range', 'this_month');
+        $range = $request->input('range', 'this_year');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
@@ -51,7 +51,7 @@ class ReportController extends Controller
                 $endDate = Carbon::now()->subWeek()->endOfWeek()->toDateString();
                 break;
             case 'this_month':
-                $startDate = Carbon::now()->startOfMonth()->toDateString();
+                $startDate = \App\Helpers\SettingsHelper::getFiscalYearStart();
                 $endDate = Carbon::now()->endOfMonth()->toDateString();
                 break;
             case 'last_month':
@@ -59,23 +59,23 @@ class ReportController extends Controller
                 $endDate = Carbon::now()->subMonth()->endOfMonth()->toDateString();
                 break;
             case 'this_year':
-                $startDate = Carbon::now()->startOfYear()->toDateString();
-                $endDate = Carbon::now()->endOfYear()->toDateString();
+                $startDate = \App\Helpers\SettingsHelper::getFiscalYearStart();
+                $endDate = Carbon::parse($startDate)->addYear()->subDay()->toDateString();
                 break;
             case 'last_year':
-                $startDate = Carbon::now()->subYear()->startOfYear()->toDateString();
-                $endDate = Carbon::now()->subYear()->endOfYear()->toDateString();
+                $startDate = Carbon::parse(\App\Helpers\SettingsHelper::getFiscalYearStart())->subYear()->toDateString();
+                $endDate = Carbon::parse($startDate)->addYear()->subDay()->toDateString();
                 break;
             case 'custom':
                 if (!$startDate) {
-                    $startDate = Carbon::now()->startOfMonth()->toDateString();
+                    $startDate = \App\Helpers\SettingsHelper::getFiscalYearStart();
                 }
                 if (!$endDate) {
                     $endDate = Carbon::now()->endOfMonth()->toDateString();
                 }
                 break;
             default:
-                $startDate = Carbon::now()->startOfMonth()->toDateString();
+                $startDate = \App\Helpers\SettingsHelper::getFiscalYearStart();
                 $endDate = Carbon::now()->endOfMonth()->toDateString();
                 break;
         }
@@ -367,7 +367,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.account-ledger');
         $accountId = $request->input('account_id');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         $account = $accountId ? Account::find($accountId) : null;
@@ -433,7 +433,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.party-statement');
         $partyId   = $request->input('party_id');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $transactions   = collect();
@@ -540,7 +540,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.transactions');
         $tenantId = app('current.tenant')->id;
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $transactions = DB::table('journal_entries')
@@ -664,7 +664,7 @@ class ReportController extends Controller
         ReportTierGate::enforce('reports.movement-history');
         $productId = $request->input('product_id');
         $warehouseId = $request->input('warehouse_id');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         $query = \App\Models\StockMovement::with(['product', 'warehouse', 'user'])
@@ -697,7 +697,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.expenses');
         $category = $request->input('category_id'); // Actually category name string
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         $query = Expense::whereBetween('date', [$startDate, $endDate]);
@@ -740,7 +740,7 @@ class ReportController extends Controller
     public function tax(Request $request)
     {
         ReportTierGate::enforce('reports.tax');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $summary = (new FinancialReportingService())->getTaxSummary($startDate, $endDate);
@@ -777,7 +777,7 @@ class ReportController extends Controller
     public function bankStatement(Request $request)
     {
         ReportTierGate::enforce('reports.bank-statement');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
         $bankAccountId = $request->input('bank_account_id');
 
@@ -1073,7 +1073,7 @@ class ReportController extends Controller
     public function cashFlow(Request $request)
     {
         ReportTierGate::enforce('reports.cash-flow');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $report = (new FinancialReportingService())->getCashFlowReport($startDate, $endDate);
@@ -1197,7 +1197,7 @@ class ReportController extends Controller
     public function billWiseProfit(Request $request)
     {
         ReportTierGate::enforce('reports.bill-wise-profit');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         // Phase 2.2 — Delegates to FinancialReportingService.
@@ -1219,7 +1219,7 @@ class ReportController extends Controller
     public function expenseByCategory(Request $request)
     {
         ReportTierGate::enforce('reports.expense-by-category');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         $data = Expense::selectRaw('category, COUNT(id) as count, SUM(amount) as total')
@@ -1250,7 +1250,7 @@ class ReportController extends Controller
     public function expenseByItem(Request $request)
     {
         ReportTierGate::enforce('reports.expense-by-item');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         $data = Expense::whereBetween('date', [$startDate, $endDate])
@@ -1324,7 +1324,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.sale-purchase-by-party');
         $tenantId = app('current.tenant')->id;
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         // Sales — use posted_at, not created_at (Revenue Recognition)
@@ -1387,7 +1387,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.sale-purchase-by-item-category');
         $tenantId = app('current.tenant')->id;
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
         $data = DB::table('categories')
@@ -1434,7 +1434,7 @@ class ReportController extends Controller
     public function itemCategoryWiseProfitLoss(Request $request)
     {
         ReportTierGate::enforce('reports.item-category-wise-profit-loss');
-         $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+         $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
          $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
  
          $data = (new FinancialReportingService())->getGrossProfitByCategory($startDate, $endDate);
@@ -1462,7 +1462,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.item-wise-discount');
         $tenantId = app('current.tenant')->id;
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $data = DB::table('sale_items')
@@ -1589,7 +1589,7 @@ class ReportController extends Controller
     {
         ReportTierGate::enforce('reports.sale-purchase-by-party-group');
         $tenantId = app('current.tenant')->id;
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
         
         $data = DB::table('parties')
@@ -1643,7 +1643,7 @@ class ReportController extends Controller
     public function itemReportByParty(Request $request)
     {
         ReportTierGate::enforce('reports.item-report-by-party');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $tenantId = app('current.tenant')->id;
@@ -1680,7 +1680,7 @@ class ReportController extends Controller
     public function partyReportByItem(Request $request)
     {
         ReportTierGate::enforce('reports.party-report-by-item');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         $tenantId = app('current.tenant')->id;
@@ -1717,7 +1717,7 @@ class ReportController extends Controller
     public function taxRateReport(Request $request)
     {
         ReportTierGate::enforce('reports.tax-rate');
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
+        $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
 
         // Phase 5.5 — Tax analysis from sale_items using the waterfall columns.

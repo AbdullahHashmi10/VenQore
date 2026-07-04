@@ -455,8 +455,8 @@ class AdminController extends Controller
                 $syncNeeded = true;
             }
 
-            if (isset($settingsData['store_name'])) {
-                $tenant->name = $settingsData['store_name'];
+            if (isset($settingsData['store_name']) || isset($settingsData['business_name'])) {
+                $tenant->name = $settingsData['store_name'] ?? $settingsData['business_name'];
                 $syncNeeded = true;
             }
 

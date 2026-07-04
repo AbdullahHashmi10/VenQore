@@ -231,6 +231,14 @@ class PrintService {
             print_terms:           s(raw.print_terms, ''),
             print_header_all_pages:b(raw.print_header_all_pages, true),
             print_payment_mode:    b(raw.print_payment_mode, true),
+            print_party_balance:   b(raw.print_party_balance, false),
+            print_amount_grouping: b(raw.print_amount_grouping, true),
+            print_received_by:     b(raw.print_received_by, false),
+            print_delivered_by:    b(raw.print_delivered_by, false),
+            print_acknowledgement: b(raw.print_acknowledgement, false),
+            print_extra_space_top: n(raw.print_extra_space_top, 0),
+            print_min_item_rows:   n(raw.print_min_item_rows, 5),
+            print_description:     b(raw.print_description, true),
 
             // Thermal
             default_print_type:     s(raw.default_print_type, 'regular'),
@@ -249,6 +257,12 @@ class PrintService {
             thermal_show_expiry:    b(raw.thermal_show_expiry, false),
             thermal_show_barcode:   b(raw.thermal_show_barcode, true),
             thermal_custom_footer:  s(raw.thermal_custom_footer, ''),
+            thermal_custom_chars:   n(raw.thermal_custom_chars, 48),
+            thermal_show_mfg_date:  b(raw.thermal_show_mfg_date, false),
+            thermal_show_size:      b(raw.thermal_show_size, false),
+            thermal_show_model:     b(raw.thermal_show_model, false),
+            thermal_show_serial:    b(raw.thermal_show_serial, false),
+            thermal_extra_lines:    n(raw.thermal_extra_lines, 3),
 
             print_feed_lines: n(raw.print_feed_lines, 0),
         };

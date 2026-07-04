@@ -95,6 +95,12 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
             })
             .join('\n');
 
+        const copies = parseInt(isThermal ? currentData.thermal_copies : currentData.print_copies) || 1;
+        let repeatedHtml = '';
+        for (let c = 0; c < copies; c++) {
+            repeatedHtml += `<div class="print-copy-wrapper" style="${c > 0 ? (isThermal ? 'border-t-2 border-dashed border-black pt-4 mt-4;' : 'page-break-before: always;') : ''}">${previewHtml}</div>`;
+        }
+
         const printDoc = `<!DOCTYPE html>
 <html>
 <head>
@@ -129,7 +135,7 @@ export default function PrintSettingsSection({ data, setData, saveSettings }) {
   </style>
 </head>
 <body>
-  ${previewHtml}
+  ${repeatedHtml}
 </body>
 </html>`;
 
@@ -370,6 +376,11 @@ const RegularSettings = ({ data, setData }) => (
                     <NumberInput label="Right" value={data.margin_right} onChange={v => setData('margin_right', v)} />
                 </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+                <NumberInput label="Min Item Rows" value={data.print_min_item_rows} onChange={v => setData('print_min_item_rows', v)} />
+                <NumberInput label="Extra Top Space (mm)" value={data.print_extra_space_top} onChange={v => setData('print_extra_space_top', v)} />
+            </div>
         </Section>
 
         <Section title="Visual Style" icon={Palette}>
@@ -438,6 +449,12 @@ const RegularSettings = ({ data, setData }) => (
                 <ToggleBtn label="Prev Balance" checked={data.print_show_previous_balance} onChange={v => setData('print_show_previous_balance', v)} />
                 <ToggleBtn label="Delivery Charges" checked={data.print_show_delivery_charge !== false} onChange={v => setData('print_show_delivery_charge', v)} />
                 <ToggleBtn label="Extra Charges" checked={data.print_show_extra_charge !== false} onChange={v => setData('print_show_extra_charge', v)} />
+                <ToggleBtn label="Party Balance" checked={data.print_party_balance} onChange={v => setData('print_party_balance', v)} />
+                <ToggleBtn label="Amount Grouping" checked={data.print_amount_grouping} onChange={v => setData('print_amount_grouping', v)} />
+                <ToggleBtn label="Received By" checked={data.print_received_by} onChange={v => setData('print_received_by', v)} />
+                <ToggleBtn label="Delivered By" checked={data.print_delivered_by} onChange={v => setData('print_delivered_by', v)} />
+                <ToggleBtn label="Acknowledgement" checked={data.print_acknowledgement} onChange={v => setData('print_acknowledgement', v)} />
+                <ToggleBtn label="Print Description" checked={data.print_description} onChange={v => setData('print_description', v)} />
             </div>
 
             <SelectInput label="Amount in Words" value={data.print_amount_words} onChange={v => setData('print_amount_words', v)}
@@ -476,11 +493,14 @@ const ThermalSettings = ({ data, setData }) => (
                 color="emerald"
             />
 
+            <div className="grid grid-cols-2 gap-3 mt-4">
+                <NumberInput label="Margins Top/Bottom" value={data.margin_top} onChange={v => setData('margin_top', v)} />
+                <NumberInput label="Custom Chars (line length)" value={data.thermal_custom_chars} onChange={v => setData('thermal_custom_chars', v)} />
+            </div>
+
             <div className="mt-4">
                 <Label>Margins (mm)</Label>
                 <div className="grid grid-cols-2 gap-2 mt-1">
-                    <NumberInput label="Top" value={data.margin_top} onChange={v => setData('margin_top', v)} />
-                    <NumberInput label="Bottom" value={data.margin_bottom} onChange={v => setData('margin_bottom', v)} />
                     <NumberInput label="Left" value={data.margin_left} onChange={v => setData('margin_left', v)} />
                     <NumberInput label="Right" value={data.margin_right} onChange={v => setData('margin_right', v)} />
                 </div>
@@ -537,6 +557,10 @@ const ThermalSettings = ({ data, setData }) => (
                 <ToggleBtn label="Free Qty (1+1)" checked={data.print_show_free_qty} onChange={v => setData('print_show_free_qty', v)} color="emerald" />
                 <ToggleBtn label="Tax Details" checked={data.print_tax_details} onChange={v => setData('print_tax_details', v)} color="emerald" />
                 <ToggleBtn label="Show Barcode" checked={data.thermal_show_barcode !== false} onChange={v => setData('thermal_show_barcode', v)} color="emerald" />
+                <ToggleBtn label="Show MFG Date" checked={data.thermal_show_mfg_date} onChange={v => setData('thermal_show_mfg_date', v)} color="emerald" />
+                <ToggleBtn label="Show Size" checked={data.thermal_show_size} onChange={v => setData('thermal_show_size', v)} color="emerald" />
+                <ToggleBtn label="Show Model" checked={data.thermal_show_model} onChange={v => setData('thermal_show_model', v)} color="emerald" />
+                <ToggleBtn label="Show Serial (product)" checked={data.thermal_show_serial} onChange={v => setData('thermal_show_serial', v)} color="emerald" />
             </div>
         </Section>
 

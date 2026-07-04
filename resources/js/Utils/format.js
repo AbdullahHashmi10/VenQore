@@ -25,10 +25,12 @@ export const formatCurrency = (amount, settings = null) => {
     const config = settings || window.amdSettings || {};
     const symbol = getCurrencySymbol(config);
     const decimals = parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
+    const useGrouping = config.print_amount_grouping !== '0' && config.print_amount_grouping !== false && config.print_amount_grouping !== 0;
 
     const formattedNumber = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: decimals,
         maximumFractionDigits: decimals,
+        useGrouping: useGrouping,
     }).format(amount || 0);
 
     // If symbol has no trailing space, add one. If it already has one, don't add.
@@ -40,10 +42,12 @@ export const formatNumber = (number, decimals = null, settings = null) => {
     const config = settings || window.amdSettings || {};
     // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 2.
     const d = decimals !== null ? decimals : parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
+    const useGrouping = config.print_amount_grouping !== '0' && config.print_amount_grouping !== false && config.print_amount_grouping !== 0;
 
     return new Intl.NumberFormat('en-US', {
         minimumFractionDigits: d,
         maximumFractionDigits: d,
+        useGrouping: useGrouping,
     }).format(number || 0);
 };
 

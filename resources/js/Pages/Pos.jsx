@@ -863,8 +863,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     };
 
     // Calculations
-    // Calculations
-    const taxRate = parseFloat(settings?.default_tax_rate || 0);
+    const parsedTaxRates = (() => {
+        try {
+            return settings?.tax_rates ? (typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates) : [
+                { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
+                { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
+            ];
+        } catch (e) {
+            return [];
+        }
+    })();
+
+    const taxRate = activeSale.taxRate !== undefined ? activeSale.taxRate : parseFloat(settings?.default_tax_rate || 0);
 
     // Subtotal includes free items (gross sales value)
     const subtotal = activeSale.cart.reduce((acc, item) => acc + ((item.key_price || item.price) * (item.qty + (item.freeQuantity || 0))), 0);
@@ -951,6 +961,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             payments: paymentData.payments,
             amount_paid: paymentData.totalPaid,
             tax: taxAmount,
+            tax_rate: taxRate,
             discount: globalDiscount,
             notes: paymentData.notes,
             add_to_ledger: addToLedger, // PASSED FLAG
@@ -2349,9 +2360,23 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
                                 </div>
                             )}
-                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
-                                <span>Tax ({taxRate}%)</span>
-                                <span className="text-slate-900 dark:text-white">{formatCurrency(taxAmount, store || settings)}</span>
+                            <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs">
+                                <span>Tax</span>
+                                <div className="flex items-center gap-1">
+                                    <select
+                                        value={taxRate}
+                                        onChange={(e) => updateActiveSale({ taxRate: parseFloat(e.target.value) || 0 })}
+                                        className="bg-transparent text-slate-900 dark:text-white border-none py-0 pl-1 pr-6 font-bold text-xs focus:ring-0 cursor-pointer"
+                                    >
+                                        <option value="0" className="dark:bg-slate-800">None (0%)</option>
+                                        {parsedTaxRates.map((tax) => (
+                                            <option key={tax.id} value={tax.rate} className="dark:bg-slate-800">
+                                                {tax.name} ({tax.rate}%)
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <span className="text-slate-900 dark:text-white font-bold">{formatCurrency(taxAmount, store || settings)}</span>
+                                </div>
                             </div>
                             <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
                             <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">

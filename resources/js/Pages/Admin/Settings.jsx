@@ -209,18 +209,18 @@ export default function AdminSettings({ settings = {} }) {
         print_amount_decimal: settings.print_amount_decimal !== '0',
         print_received_amount: settings.print_received_amount !== '0',
         print_balance_amount: settings.print_balance_amount !== '0',
-        print_party_balance: settings.print_party_balance === '1',
+        print_party_balance: settings.print_party_balance === '1' || settings.print_party_balance === true,
         print_tax_details: settings.print_tax_details !== '0',
-        print_you_saved: settings.print_you_saved === '1',
+        print_you_saved: settings.print_you_saved === '1' || settings.print_you_saved === true,
         print_show_previous_balance: settings.print_show_previous_balance === '1' || settings.print_show_previous_balance === true,
         print_amount_grouping: settings.print_amount_grouping !== '0',
         print_amount_words: settings.print_amount_words || '0',
         print_description: settings.print_description !== '0',
         print_terms: settings.print_terms || '',
-        print_received_by: settings.print_received_by === '1',
-        print_delivered_by: settings.print_delivered_by === '1',
+        print_received_by: settings.print_received_by === '1' || settings.print_received_by === true,
+        print_delivered_by: settings.print_delivered_by === '1' || settings.print_delivered_by === true,
         print_payment_mode: settings.print_payment_mode !== '0',
-        print_acknowledgement: settings.print_acknowledgement === '1',
+        print_acknowledgement: settings.print_acknowledgement === '1' || settings.print_acknowledgement === true,
 
         // Print - Thermal Printer Settings
         default_print_type: settings.default_print_type || 'regular', // 'regular' or 'thermal'
@@ -228,23 +228,23 @@ export default function AdminSettings({ settings = {} }) {
         thermal_custom_chars: parseInt(settings.thermal_custom_chars) || 48,
         thermal_use_bold: settings.thermal_use_bold !== '0',
         thermal_auto_cut: settings.thermal_auto_cut !== '0',
-        thermal_open_drawer: settings.thermal_open_drawer === '1',
+        thermal_open_drawer: settings.thermal_open_drawer === '1' || settings.thermal_open_drawer === true,
         thermal_extra_lines: parseInt(settings.thermal_extra_lines) || 3,
         thermal_copies: parseInt(settings.thermal_copies) || 1,
         thermal_font_size: parseInt(settings.thermal_font_size) || 12, // Font size in pt
 
         // Print - Column Toggles (Thermal)
-        thermal_show_headers: settings.thermal_show_headers === '1',
-        thermal_show_sno: settings.thermal_show_sno === '1',
-        thermal_show_units: settings.thermal_show_units === '1',
-        thermal_show_mrp: settings.thermal_show_mrp === '1',
-        thermal_show_description: settings.thermal_show_description === '1',
-        thermal_show_batch: settings.thermal_show_batch === '1',
-        thermal_show_expiry: settings.thermal_show_expiry === '1',
-        thermal_show_mfg_date: settings.thermal_show_mfg_date === '1',
-        thermal_show_size: settings.thermal_show_size === '1',
-        thermal_show_model: settings.thermal_show_model === '1',
-        thermal_show_serial: settings.thermal_show_serial === '1',
+        thermal_show_headers: settings.thermal_show_headers === '1' || settings.thermal_show_headers === true,
+        thermal_show_sno: settings.thermal_show_sno === '1' || settings.thermal_show_sno === true,
+        thermal_show_units: settings.thermal_show_units === '1' || settings.thermal_show_units === true,
+        thermal_show_mrp: settings.thermal_show_mrp === '1' || settings.thermal_show_mrp === true,
+        thermal_show_description: settings.thermal_show_description === '1' || settings.thermal_show_description === true,
+        thermal_show_batch: settings.thermal_show_batch === '1' || settings.thermal_show_batch === true,
+        thermal_show_expiry: settings.thermal_show_expiry === '1' || settings.thermal_show_expiry === true,
+        thermal_show_mfg_date: settings.thermal_show_mfg_date === '1' || settings.thermal_show_mfg_date === true,
+        thermal_show_size: settings.thermal_show_size === '1' || settings.thermal_show_size === true,
+        thermal_show_model: settings.thermal_show_model === '1' || settings.thermal_show_model === true,
+        thermal_show_serial: settings.thermal_show_serial === '1' || settings.thermal_show_serial === true,
         thermal_show_barcode: settings.thermal_show_barcode !== '0', // Default On
         thermal_custom_footer: settings.thermal_custom_footer || '',
 
@@ -276,6 +276,7 @@ export default function AdminSettings({ settings = {} }) {
         dark_mode_default: settings.dark_mode_default === '1' || settings.dark_mode_default === true,
         low_stock_alerts: settings.low_stock_alerts !== '0',
         daily_sales_summary: settings.daily_sales_summary === '1',
+        fiscal_year_start: settings.fiscal_year_start || '2025-01-01',
 
         // POS Specific (from general settings)
         pos_auto_fill_cash: settings.pos_auto_fill_cash === '1' || settings.pos_auto_fill_cash === true,
@@ -716,7 +717,6 @@ export default function AdminSettings({ settings = {} }) {
                                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Fiscal Year Start</label>
                                     <input type="date" value={data.fiscal_year_start || '2025-01-01'} onChange={e => setData('fiscal_year_start', e.target.value)} className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
                                 </div>
-                                <Toggle enabled={data.enable_double_entry} onChange={v => setData('enable_double_entry', v)} label="Double Entry System" description="Enable advanced journal entries and ledgers" />
                             </div>
                         </div>
                     </div>

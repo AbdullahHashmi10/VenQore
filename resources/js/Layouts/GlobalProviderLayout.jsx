@@ -18,7 +18,7 @@ export default function GlobalProviderLayout({ children }) {
     const settings = props.settings || {};
     
     return (
-        <ThemeProvider>
+        <ThemeProvider settings={settings}>
             <InnerGlobalLayout settings={settings}>
                 {children}
             </InnerGlobalLayout>

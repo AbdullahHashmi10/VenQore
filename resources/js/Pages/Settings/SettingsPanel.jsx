@@ -165,15 +165,38 @@ export default function SettingsPanel({ settings }) {
                             <div className="space-y-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">Default Tax Rate (%)</label>
                                 <div className="relative">
-                                    <input
-                                        type="number"
-                                        step="0.01"
+                                    <select
                                         value={data.default_tax_rate}
                                         onChange={(e) => setData('default_tax_rate', e.target.value)}
-                                        className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                                        placeholder="0.00"
-                                    />
-                                    <Percent className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                        className="w-full pl-4 pr-10 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none cursor-pointer font-bold text-slate-800 dark:text-white"
+                                    >
+                                        <option value="0">None (0%)</option>
+                                        {(() => {
+                                            try {
+                                                const parsedTaxRates = settings?.tax_rates ? (typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates) : [
+                                                    { id: 1, name: 'GST 18%', rate: 18, type: 'percentage' },
+                                                    { id: 2, name: 'VAT 5%', rate: 5, type: 'percentage' }
+                                                ];
+                                                return parsedTaxRates.map((tax) => (
+                                                    <option key={tax.id} value={tax.rate}>
+                                                        {tax.name} ({tax.rate}%)
+                                                    </option>
+                                                ));
+                                            } catch (e) {
+                                                return null;
+                                            }
+                                        })()}
+                                        {data.default_tax_rate && data.default_tax_rate !== '0' && !(() => {
+                                            try {
+                                                const rates = settings?.tax_rates ? (typeof settings.tax_rates === 'string' ? JSON.parse(settings.tax_rates) : settings.tax_rates) : [];
+                                                return rates.some(t => String(t.rate) === String(data.default_tax_rate));
+                                            } catch(e) { return false; }
+                                        })() && (
+                                            <option value={data.default_tax_rate}>
+                                                Custom ({data.default_tax_rate}%)
+                                            </option>
+                                        )}
+                                    </select>
                                 </div>
                             </div>
                             <div className="space-y-2">
