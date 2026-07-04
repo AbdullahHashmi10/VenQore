@@ -125,8 +125,8 @@ export default function GeneralSettingsSection({ data, setData }) {
                                         100.{'0'.repeat(data.decimal_places)}
                                     </span>
                                 </div>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {[0, 1, 2, 3].map((num) => (
+                                <div className="grid grid-cols-5 gap-2">
+                                    {[0, 1, 2, 3, 4].map((num) => (
                                         <button
                                             key={num}
                                             type="button"

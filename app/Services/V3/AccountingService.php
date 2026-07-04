@@ -63,6 +63,21 @@ class AccountingService
             return $line;
         }, $lines);
 
+        // Filter out zero-value lines only if there is at least one non-zero line
+        $hasNonZeroLine = false;
+        foreach ($normalizedLines as $line) {
+            if ($line['debit'] > 0 || $line['credit'] > 0) {
+                $hasNonZeroLine = true;
+                break;
+            }
+        }
+
+        if ($hasNonZeroLine) {
+            $normalizedLines = array_filter($normalizedLines, function($line) {
+                return $line['debit'] > 0 || $line['credit'] > 0;
+            });
+        }
+
         $totalDebit  = array_sum(array_column($normalizedLines, 'debit'));
         $totalCredit = array_sum(array_column($normalizedLines, 'credit'));
 

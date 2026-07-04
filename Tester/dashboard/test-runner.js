@@ -231,6 +231,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/LegacyAdminPasscodeTest.php',
     'Tester/tests/Feature/RegressionFixesTest.php',
     'Tester/tests/Feature/PosFeaturesTest.php',
+    'Tester/tests/Feature/LedgerAccountingIntegrationTest.php',
     'Tester/tests/Performance',
     'Tester/tests/Unit'
   ];
@@ -323,6 +324,7 @@ function runTests(projectPath, ws) {
     'report tier gating restricts access',
     'new features plan gating',
     'SnapshotPerformanceTest',
+    'LedgerAccountingIntegrationTest',
     'ExampleTest',
     'Unit'
   ];

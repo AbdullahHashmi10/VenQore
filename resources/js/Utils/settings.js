@@ -80,8 +80,19 @@ export function formatDate(date, settings) {
  * @returns {number} Rounded or original total
  */
 export function roundTotal(total, settings) {
-    const shouldRound = settings?.round_off_total === '1' || settings?.round_off_total === true;
-    return shouldRound ? Math.round(parseFloat(total || 0)) : parseFloat(total || 0);
+    const val = settings?.round_off_total;
+    if (val === undefined || val === null || val === '' || val === 'none') {
+        return parseFloat(total || 0);
+    }
+    if (val === '1' || val === '0' || val === true) {
+        return Math.round(parseFloat(total || 0));
+    }
+    const decimals = parseInt(val);
+    if (isNaN(decimals)) {
+        return parseFloat(total || 0);
+    }
+    const factor = Math.pow(10, decimals);
+    return Math.round(parseFloat(total || 0) * factor) / factor;
 }
 
 /**

@@ -204,7 +204,8 @@ class SettingsHelper
      */
     public static function shouldRoundOff(): bool
     {
-        return self::isEnabled('round_off_total');
+        $val = self::get('round_off_total');
+        return $val !== null && $val !== '' && $val !== 'none';
     }
 
     /**
@@ -212,8 +213,14 @@ class SettingsHelper
      */
     public static function roundTotal($total): float
     {
-        if (self::shouldRoundOff()) {
-            return round((float) $total);
+        $val = self::get('round_off_total');
+        if ($val !== null && $val !== '' && $val !== 'none') {
+            // '1' or true behaves as 0 decimals (legacy nearest whole integer rounding)
+            if ($val === '1' || $val === '0' || $val === true) {
+                return round((float) $total);
+            }
+            $decimals = (int) $val;
+            return round((float) $total, $decimals);
         }
         return (float) $total;
     }

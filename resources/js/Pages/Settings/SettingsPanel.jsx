@@ -66,7 +66,7 @@ export default function SettingsPanel({ settings }) {
         fbr_integration: settings.fbr_integration === '1',
         show_margin_percentage: settings.show_margin_percentage === '1',
         stop_sale_negative_stock: settings.stop_sale_negative_stock === '1',
-        round_off_total: settings.round_off_total === '1',
+        round_off_total: settings.round_off_total || 'none',
         default_tax_rate: settings.default_tax_rate || '0',
         pos_return_mode: settings.pos_return_mode || 'reference',
         pos_return_window: settings.pos_return_window || '',
@@ -97,7 +97,7 @@ export default function SettingsPanel({ settings }) {
             fbr_integration: data.fbr_integration ? '1' : '0',
             show_margin_percentage: data.show_margin_percentage ? '1' : '0',
             stop_sale_negative_stock: data.stop_sale_negative_stock ? '1' : '0',
-            round_off_total: data.round_off_total ? '1' : '0',
+            round_off_total: data.round_off_total,
             enable_passcode: data.enable_passcode ? '1' : '0',
             store_name: data.store_name,
             store_address: data.store_address,
@@ -223,12 +223,38 @@ export default function SettingsPanel({ settings }) {
                                     label="Show Margin Percentage"
                                     description="Display profit margin in sales overview"
                                 />
-                                <Toggle
-                                    enabled={data.round_off_total}
-                                    onChange={v => setData('round_off_total', v)}
-                                    label="Round-off Invoice Totals"
-                                    description="Automatically round invoice totals to the nearest whole integer (e.g. 56.83 becomes 57, 56.33 becomes 56)"
-                                />
+                                <div className="p-5 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Round Off Invoice Totals</label>
+                                        <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
+                                        <div className="grid grid-cols-6 gap-1 mt-2">
+                                            {[
+                                                { value: 'none', label: 'None' },
+                                                { value: '0', label: 'Whole' },
+                                                { value: '1', label: '.0' },
+                                                { value: '2', label: '.00' },
+                                                { value: '3', label: '.000' },
+                                                { value: '4', label: '.0000' }
+                                            ].map((opt) => {
+                                                const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
+                                                const isActive = currentVal === opt.value;
+                                                return (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => setData('round_off_total', opt.value)}
+                                                        className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
+                                                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                                                            : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
+                                                            }`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </div>
                                     <Toggle
                                         enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
                                         onChange={v => setData('stop_sale_negative_stock', !v)}

@@ -20,62 +20,8 @@ export default function TransactionSettingsSection({ data, setData }) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* Prefix & Numbering */}
-                <div className="space-y-6">
-                    <div className="p-6 bg-white dark:bg-slate-800/40 rounded-[2rem] border border-slate-100 dark:border-slate-700 h-full">
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-2">
-                            <span className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg text-indigo-600"><Info size={18} /></span>
-                            Prefixes & Numbering
-                        </h3>
-
-                        <div className="space-y-4">
-                            <div className="space-y-2 group">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Sale Invoice Prefix</label>
-                                <div className="relative">
-                                    <input
-                                        type="text"
-                                        value={data.sale_prefix}
-                                        onChange={(e) => setData('sale_prefix', e.target.value)}
-                                        className="w-full pl-4 pr-12 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700/50 rounded-xl text-base font-bold focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all placeholder:text-slate-300 uppercase"
-                                        placeholder="INV-"
-                                    />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded">AUTO</span>
-                                </div>
-                            </div>
-
-                            <hr className="border-slate-100 dark:border-slate-800" />
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold uppercase tracking-wider text-slate-400 ml-1">Billing Experience</label>
-                                <div className="grid grid-cols-2 gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-                                    <button
-                                        type="button"
-                                        onClick={() => setData('billing_type', 'lite')}
-                                        className={`py-3 rounded-lg text-sm font-bold transition-all ${data.billing_type === 'lite' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                    >
-                                        ⚡ Lite POS
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setData('billing_type', 'full')}
-                                        className={`py-3 rounded-lg text-sm font-bold transition-all ${data.billing_type === 'full' ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
-                                    >
-                                        🛠️ Full Invoice
-                                    </button>
-                                </div>
-                                <p className="text-[10px] text-slate-400 px-2">
-                                    {data.billing_type === 'lite' ? 'Fast checkout for retail. Minimal fields.' : 'Detailed entry with taxes, discounts per item.'}
-                                </p>
-                            </div>
-
-                        </div>
-                    </div>
-                </div>
-
-                {/* Toggles Grid */}
-                <div className="grid grid-cols-1 gap-4 content-start">
+            <div className="bg-white dark:bg-slate-800/40 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Toggle
                         enabled={data.invoice_number_enabled === '1' || data.invoice_number_enabled === true}
                         onChange={v => setData('invoice_number_enabled', v)}
@@ -89,12 +35,6 @@ export default function TransactionSettingsSection({ data, setData }) {
                         description="Pre-select Cash as payment mode"
                     />
                     <Toggle
-                        enabled={data.round_off_total === '1' || data.round_off_total === true}
-                        onChange={v => setData('round_off_total', v)}
-                        label="Round Off Totals"
-                        description="Auto-round 10.55 to 11.00"
-                    />
-                    <Toggle
                         enabled={data.pos_auto_fill_cash === '1' || data.pos_auto_fill_cash === true}
                         onChange={v => setData('pos_auto_fill_cash', v)}
                         label="Auto-Fill Cash Received"
@@ -106,8 +46,39 @@ export default function TransactionSettingsSection({ data, setData }) {
                         label="Show Profit Margin %"
                         description="Visible only to admins during sale"
                     />
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 md:col-span-2">
+                        <div className="flex flex-col gap-2">
+                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Round Off Invoice Totals</label>
+                            <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
+                            <div className="grid grid-cols-6 gap-1 mt-2">
+                                {[
+                                    { value: 'none', label: 'None' },
+                                    { value: '0', label: 'Whole' },
+                                    { value: '1', label: '.0' },
+                                    { value: '2', label: '.00' },
+                                    { value: '3', label: '.000' },
+                                    { value: '4', label: '.0000' }
+                                ].map((opt) => {
+                                    const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
+                                    const isActive = currentVal === opt.value;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            onClick={() => setData('round_off_total', opt.value)}
+                                            className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
+                                                ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                                                : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
+                                                }`}
+                                        >
+                                            {opt.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
             </div>
         </div>
     );

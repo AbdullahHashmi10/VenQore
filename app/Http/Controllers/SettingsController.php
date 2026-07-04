@@ -37,7 +37,7 @@ class SettingsController extends Controller
             'settings.fbr_integration'              => 'nullable|string|in:0,1',
             'settings.show_margin_percentage'       => 'nullable|string|in:0,1',
             'settings.stop_sale_negative_stock'     => 'nullable|string|in:0,1',
-            'settings.round_off_total'              => 'nullable|string|in:0,1',
+            'settings.round_off_total'              => 'nullable|string|in:none,0,1,2,3,4',
             'settings.charity_enabled'              => 'nullable|string|in:0,1',
             // Numeric
             'settings.default_tax_rate'             => 'nullable|numeric|min:0|max:100',

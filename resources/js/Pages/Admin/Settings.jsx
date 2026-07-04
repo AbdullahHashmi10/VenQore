@@ -150,7 +150,7 @@ export default function AdminSettings({ settings = {} }) {
         // Transaction
         invoice_number_enabled: settings.invoice_number_enabled !== '0',
         cash_sale_default: settings.cash_sale_default === '1' || settings.cash_sale_default === true,
-        round_off_total: settings.round_off_total === '1' || settings.round_off_total === true,
+        round_off_total: settings.round_off_total || 'none',
         billing_type: settings.billing_type || 'full',
         sale_prefix: settings.sale_prefix || 'INV-',
         purchase_prefix: settings.purchase_prefix || 'PUR-',
@@ -387,7 +387,38 @@ export default function AdminSettings({ settings = {} }) {
                                 <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
                                 <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description="Automatically report sales to FBR and print QR codes" />
                                 <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
-                                <Toggle enabled={data.round_off_total} onChange={v => setData('round_off_total', v)} label="Round-off Invoice Totals" description="Automatically round invoice totals to the nearest whole integer" />
+                                <div className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                    <div>
+                                        <h4 className="text-sm font-bold text-slate-800 dark:text-white">Round Off Invoice Totals</h4>
+                                        <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
+                                    </div>
+                                    <div className="grid grid-cols-6 gap-1 max-w-sm w-full">
+                                        {[
+                                            { value: 'none', label: 'None' },
+                                            { value: '0', label: 'Whole' },
+                                            { value: '1', label: '.0' },
+                                            { value: '2', label: '.00' },
+                                            { value: '3', label: '.000' },
+                                            { value: '4', label: '.0000' }
+                                        ].map((opt) => {
+                                            const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
+                                            const isActive = currentVal === opt.value;
+                                            return (
+                                                <button
+                                                    key={opt.value}
+                                                    type="button"
+                                                    onClick={() => setData('round_off_total', opt.value)}
+                                                    className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
+                                                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                                                        : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
+                                                        }`}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                                 <Toggle
                                     enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
                                     onChange={v => setData('stop_sale_negative_stock', !v)}

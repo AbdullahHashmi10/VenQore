@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
-import { shouldStopNegativeStock } from '@/Utils/settings';
+import { shouldStopNegativeStock, roundTotal } from '@/Utils/settings';
 import { formatCurrency, getCurrencySymbol } from '@/Utils/format';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import SellModuleTabs from '@/Components/SellModuleTabs';
@@ -777,7 +777,7 @@ const CreateRecurringInvoice = ({ customers = [], warehouses: initialWarehouses 
     const extraCharge = parseFloat(currentInvoice?.extra_charge_value) || 0;
 
     const rawGrandTotal = afterDiscount + taxAmount + deliveryCharge + extraCharge;
-    const grandTotal = settings?.round_off_total === '1' ? Math.round(rawGrandTotal) : rawGrandTotal;
+    const grandTotal = roundTotal(rawGrandTotal, settings);
 
     // Auto-Fill Amount Paid (POS Mode)
     useEffect(() => {

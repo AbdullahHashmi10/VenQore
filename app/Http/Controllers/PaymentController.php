@@ -98,7 +98,7 @@ class PaymentController extends Controller
         $validated = $request->validate([
             'date'            => 'required|date',
             'type'            => 'required|in:in,out,received,sent',
-            'party_id'        => 'nullable|exists:parties,id',
+            'party_id'        => 'required|exists:parties,id',
             'amount'          => 'required|numeric|min:0.01',
             'payment_method'  => 'required|in:cash,bank,card,upi',
             'bank_account_id' => 'nullable|exists:bank_accounts,id',
@@ -165,30 +165,54 @@ class PaymentController extends Controller
 
                 $party = $partyId ? Party::find($partyId) : null;
 
-                if ($type === 'in') {
-                    if ($party) {
+                if ($party) {
+                    if ($party->type === 'supplier') {
+                        $counterAccount = $accounting->getAccountByCode('2000', 'Accounts Payable', 'liability');
+                        $description    = $type === 'in' ? "Refund received from supplier {$party->name}" : "Payment sent to {$party->name}";
+                        
+                        if ($type === 'in') {
+                            $lines = [
+                                ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
+                                ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount, 'party_id' => $partyId],
+                            ];
+                        } else {
+                            $lines = [
+                                ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0, 'party_id' => $partyId],
+                                ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
+                            ];
+                        }
+                    } else { // customer
                         $counterAccount = $accounting->getAccountByCode('1200', 'Accounts Receivable', 'asset');
-                        $description    = "Payment received from {$party->name}";
-                    } else {
+                        $description    = $type === 'in' ? "Payment received from {$party->name}" : "Refund paid to customer {$party->name}";
+                        
+                        if ($type === 'in') {
+                            $lines = [
+                                ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
+                                ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount, 'party_id' => $partyId],
+                            ];
+                        } else {
+                            $lines = [
+                                ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0, 'party_id' => $partyId],
+                                ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
+                            ];
+                        }
+                    }
+                } else {
+                    if ($type === 'in') {
                         $counterAccount = $accounting->getAccountByCode('4100', 'Service Income', 'income');
                         $description    = 'Payment In — ' . ($validated['description'] ?? $validated['reference'] ?? 'Cash receipt');
-                    }
-                    $lines = [
-                        ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
-                        ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount],
-                    ];
-                } else { // out
-                    if ($party) {
-                        $counterAccount = $accounting->getAccountByCode('2000', 'Accounts Payable', 'liability');
-                        $description    = "Payment sent to {$party->name}";
+                        $lines = [
+                            ['account_id' => $cashBankAccount->id, 'debit' => $amount, 'credit' => 0],
+                            ['account_id' => $counterAccount->id,  'debit' => 0,       'credit' => $amount],
+                        ];
                     } else {
                         $counterAccount = $accounting->getAccountByCode('5100', 'Rent Expense', 'expense');
                         $description    = 'Payment Out — ' . ($validated['description'] ?? $validated['reference'] ?? 'Cash disbursement');
+                        $lines = [
+                            ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0],
+                            ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
+                        ];
                     }
-                    $lines = [
-                        ['account_id' => $counterAccount->id,  'debit' => $amount, 'credit' => 0],
-                        ['account_id' => $cashBankAccount->id, 'debit' => 0,       'credit' => $amount],
-                    ];
                 }
 
                 // ── 4. Post to V3 Journal ──────────────────────────────────────────
