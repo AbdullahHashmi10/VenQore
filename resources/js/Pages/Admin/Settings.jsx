@@ -258,6 +258,7 @@ export default function AdminSettings({ settings = {} }) {
         loyalty_enabled: settings.loyalty_enabled === '1' || settings.loyalty_enabled === true,
         enable_credit_limit: settings.enable_credit_limit !== '0', // Default On
         payment_reminder_days: settings.payment_reminder_days || 7,
+        payment_reminders: settings.payment_reminders === '1' || settings.payment_reminders === true,
 
         // Item
         stock_maintenance: settings.stock_maintenance !== '0',
@@ -664,8 +665,9 @@ export default function AdminSettings({ settings = {} }) {
                             <div className="p-6 bg-indigo-50 dark:bg-indigo-500/10 rounded-3xl border border-indigo-100 dark:border-indigo-500/20">
                                 <h4 className="font-bold text-indigo-900 dark:text-indigo-400 flex items-center gap-2 mb-4"><Clock size={18} /> Payment Reminders</h4>
                                 <div className="space-y-4">
+                                    <Toggle enabled={data.payment_reminders} onChange={v => setData('payment_reminders', v)} label="Enable Payment Reminders" description="Automatically email customers with outstanding invoices" />
                                     <div className="space-y-2">
-                                        <label className="text-sm text-indigo-700 dark:text-indigo-300/80">Remind me for payment due in (days)</label>
+                                        <label className="text-sm text-indigo-700 dark:text-indigo-300/80">Send reminder after (days) past invoice date</label>
                                         <input type="number" value={data.payment_reminder_days} onChange={e => setData('payment_reminder_days', e.target.value)} className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-indigo-500/30 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
                                     </div>
                                 </div>
@@ -764,10 +766,19 @@ export default function AdminSettings({ settings = {} }) {
                                     <input type="text" placeholder="Search services for reminder..." className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-sm outline-none" />
                                 </div>
                                 <button
-                                    disabled
-                                    className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-400 rounded-lg text-xs font-bold flex items-center gap-2 cursor-not-allowed"
+                                    type="button"
+                                    onClick={() => {
+                                        const newReminder = {
+                                            id: Date.now(),
+                                            name: 'New Service',
+                                            interval: 30,
+                                            unit: 'days',
+                                        };
+                                        setData('service_reminders', [...data.service_reminders, newReminder]);
+                                    }}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold flex items-center gap-2 transition-colors"
                                 >
-                                    <Lock size={14} /> Upcoming Feature
+                                    <Plus size={14} /> Add New Reminder
                                 </button>
                             </div>
                             <div className="flex-1 divide-y divide-slate-100 dark:divide-slate-700">
@@ -828,13 +839,10 @@ export default function AdminSettings({ settings = {} }) {
                                         </button>
                                     </div>
                                 )) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-                                        <Lock size={48} className="mb-4 opacity-20" />
-                                        <div className="mb-2">
-                                            <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest rounded border border-amber-200 dark:border-amber-500/30 shadow-sm">Upcoming Version</span>
-                                        </div>
-                                        <p className="font-bold text-sm tracking-tight">Service Reminders Module</p>
-                                        <p className="text-xs">Automatic maintenance alerts will be available in the next update.</p>
+                                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-12">
+                                        <Clock size={48} className="mb-4 opacity-20" />
+                                        <p className="font-bold text-sm tracking-tight mb-1">No Service Reminders Yet</p>
+                                        <p className="text-xs text-center max-w-xs">Click "Add New Reminder" above to schedule automatic recurring service notifications.</p>
                                     </div>
                                 )}
                             </div>

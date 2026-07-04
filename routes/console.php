@@ -96,7 +96,19 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// ── Payment Reminder Mailing — Daily ─────────────────────────────────────
+// Sends payment reminder emails to customers with outstanding invoices
+// older than the payment_reminder_days setting (default: 7 days).
+\Illuminate\Support\Facades\Schedule::command('invoices:send-payment-reminders')
+    ->dailyAt('10:00')
+    ->withoutOverlapping()
+    ->onOneServer();
 
-
-
+// ── Service Reminders — Daily ─────────────────────────────────────────────
+// Checks each tenant's service_reminders list and fires email for any
+// reminder whose interval has elapsed since it was last sent.
+\Illuminate\Support\Facades\Schedule::command('services:send-reminders')
+    ->dailyAt('08:30')
+    ->withoutOverlapping()
+    ->onOneServer();
 
