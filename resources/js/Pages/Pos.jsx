@@ -33,7 +33,7 @@ import axios from 'axios';
 import { useWorkspace } from '@/Contexts/WorkspaceContext';
 import { useOfflineSync } from '@/Hooks/useOfflineSync';
 import PrintService from '@/Utils/PrintService';
-import { getProductPrice, shouldStopNegativeStock } from '@/Utils/settings';
+import { getProductPrice, shouldStopNegativeStock, roundTotal } from '@/Utils/settings';
 import { db } from '@/Utils/db';
 
 import Toast from '@/Components/Toast';
@@ -895,7 +895,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     const taxableAmount = Math.max(0, subtotal - totalDiscounts);
     const taxAmount = (taxableAmount * taxRate) / 100;
-    const cartTotal = taxableAmount + taxAmount;
+    const rawCartTotal = taxableAmount + taxAmount;
+    const cartTotal = roundTotal(rawCartTotal, settings);
 
     const changeDue = activeSale.cashReceived ? parseFloat(activeSale.cashReceived) - cartTotal : 0;
 
@@ -2313,6 +2314,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                         <span className="font-black text-slate-900 dark:text-white text-sm block leading-none">
                                             {formatCurrency(item.price * item.qty, store || settings)}
                                         </span>
+                                        {(settings?.show_margin_percentage === '1' || settings?.show_margin_percentage === true) && item.cost_price > 0 && (
+                                            <span className="text-[8px] font-bold text-emerald-600 dark:text-emerald-400 block leading-none mt-0.5">
+                                                Margin: {Math.round(((item.price - item.cost_price) / item.price) * 100)}%
+                                            </span>
+                                        )}
                                     </div>
                                     <button
                                         onClick={() => removeFromCart(item.cartItemId)}

@@ -45,6 +45,14 @@ export default function PrintPreview({ data, sale = null, type = 'regular', mode
         else if (data.thermal_page_size === '4inch') width = 100 * MM_TO_PX; // ~300px
         else width = 80 * MM_TO_PX; // ~240px (Default 3inch)
 
+        // thermal_custom_chars overrides width: standard 3" = 48 chars @ 80mm
+        // scale proportionally: px_per_char ≈ (80 * MM_TO_PX) / 48
+        const customChars = parseInt(data.thermal_custom_chars) || 0;
+        if (customChars > 0 && customChars !== 48) {
+            const pxPerChar = (80 * MM_TO_PX) / 48;
+            width = Math.round(customChars * pxPerChar);
+        }
+
         minHeight = 100 * MM_TO_PX; // Dynamic height
     } else {
         // Regular Paper
@@ -1328,8 +1336,8 @@ const ThemeThermalModern = ({ data, items, calculations, themeColor, sale, entit
                 )}
 
                 {/* Extra Feed Lines */}
-                {(parseInt(data.thermal_extra_lines || data.print_feed_lines) > 0) && (
-                    <div style={{ height: (parseInt(data.thermal_extra_lines || data.print_feed_lines) * 12) + 'px' }}></div>
+                {(parseInt(data.thermal_extra_lines ?? data.print_feed_lines) > 0) && (
+                    <div style={{ height: (parseInt(data.thermal_extra_lines ?? data.print_feed_lines) * 12) + 'px' }}></div>
                 )}
             </div>
         </div>
@@ -1606,8 +1614,8 @@ const ThemeThermalClassic = ({ data, items, calculations, themeColor, sale, enti
                 )}
 
                 {/* Extra Feed Lines */}
-                {(parseInt(data.thermal_extra_lines || data.print_feed_lines) > 0) && (
-                    <div style={{ height: (parseInt(data.thermal_extra_lines || data.print_feed_lines) * 12) + 'px' }}></div>
+                {(parseInt(data.thermal_extra_lines ?? data.print_feed_lines) > 0) && (
+                    <div style={{ height: (parseInt(data.thermal_extra_lines ?? data.print_feed_lines) * 12) + 'px' }}></div>
                 )}
             </div>
         </div>
@@ -1857,8 +1865,8 @@ const ThemeThermalBold = ({ data, items, calculations, themeColor, sale, entityL
                 )}
 
                 {/* Extra Feed Lines */}
-                {(parseInt(data.thermal_extra_lines || data.print_feed_lines) > 0) && (
-                    <div style={{ height: (parseInt(data.thermal_extra_lines || data.print_feed_lines) * 12) + 'px' }}></div>
+                {(parseInt(data.thermal_extra_lines ?? data.print_feed_lines) > 0) && (
+                    <div style={{ height: (parseInt(data.thermal_extra_lines ?? data.print_feed_lines) * 12) + 'px' }}></div>
                 )}
             </div>
         </div>
