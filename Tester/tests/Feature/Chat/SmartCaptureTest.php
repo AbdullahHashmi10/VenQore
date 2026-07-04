@@ -23,6 +23,19 @@ beforeEach(function () {
     $this->seedTenantDefaults($this->tenant);
     $this->fifo = app(\App\Services\V3\FifoService::class);
 
+    // Smart Capture is an AI add-on (Pricing.jsx: managed AI tiers or $5 BYOK
+    // unlock), included in NO base plan — seeder default is '0' everywhere.
+    // Entitle this tenant the way a real add-on purchase would: a per-tenant
+    // override row. These tests cover extraction/confirmation logic, not gating.
+    DB::table('tenant_plan_overrides')->insert([
+        'tenant_id' => $this->tenant->id,
+        'override_key' => 'smart_capture',
+        'override_value' => '1',
+        'applied_by' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     // Save key in database settings for Gemini Extraction Service
     Setting::updateOrCreate([
         'tenant_id' => $this->tenant->id,

@@ -412,7 +412,20 @@ test('woocommerce webhook isolation regression', function () {
 
 test('woocommerce webhook requires a valid signature', function () {
     $tenant = $this->createTenant('woo-webhook-sec', 'growth');
-    
+
+    // WooCommerce is included in NO plan (2026-07-04 decision) — entitle this
+    // tenant explicitly via a per-tenant override, the same way a real sold
+    // add-on would be granted. This test is about signature verification, not
+    // plan gating (that's covered by 'woocommerce webhook isolation regression').
+    \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->insert([
+        'tenant_id' => $tenant->id,
+        'override_key' => 'woocommerce',
+        'override_value' => '1',
+        'applied_by' => 1,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     // Create a WooConnection with the webhook secret
     $connection = \App\Models\WooConnection::create([
         'tenant_id' => $tenant->id,

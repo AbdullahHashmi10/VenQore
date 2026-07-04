@@ -189,6 +189,23 @@ class ProvisionTenantJob implements ShouldQueue
                             }
                         }
                         $tenant->update(['sync_channels' => $channels]);
+
+                        // 2026-07-04: WooCommerce is included in NO plan (seeder = '0'
+                        // everywhere) — a purchased sync add-on must ALSO grant the
+                        // per-tenant override, because PlanGate reads plan limits +
+                        // tenant_plan_overrides, never sync_channels. Without this row,
+                        // a paying add-on customer would still 403 on every Woo route.
+                        if (in_array('woocommerce', $addonSyncs)) {
+                            \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                                ['tenant_id' => $tenant->id, 'override_key' => 'woocommerce'],
+                                [
+                                    'override_value' => '1',
+                                    'reason'         => 'Purchased WooCommerce sync add-on (Lemon Squeezy)',
+                                    'updated_at'     => now(),
+                                    'created_at'     => now(),
+                                ]
+                            );
+                        }
                     }
                     if ($aiStatus !== null) {
                         $tenant->update([
@@ -196,7 +213,25 @@ class ProvisionTenantJob implements ShouldQueue
                             'ai_queries_limit' => $aiQueries,
                             'ai_scans_limit'   => $aiScans,
                         ]);
+
+                        // 2026-07-04: Smart Capture ships as part of the AI add-on
+                        // (managed tiers or $5 BYOK unlock — Pricing.jsx), included in
+                        // NO base plan. Grant the gate key the same way, or paying AI
+                        // customers hit PlanGate 403 on SmartCaptureController.
+                        \Illuminate\Support\Facades\DB::table('tenant_plan_overrides')->updateOrInsert(
+                            ['tenant_id' => $tenant->id, 'override_key' => 'smart_capture'],
+                            [
+                                'override_value' => '1',
+                                'reason'         => "Purchased AI add-on ({$aiStatus}) via Lemon Squeezy",
+                                'updated_at'     => now(),
+                                'created_at'     => now(),
+                            ]
+                        );
                     }
+
+                    // Overrides are cached for 5 minutes — flush so the entitlement
+                    // is live immediately after purchase.
+                    \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
                     Log::info("ProvisionTenantJob: Provisioned add-on for tenant {$tenant->id}");
                 }
             }
