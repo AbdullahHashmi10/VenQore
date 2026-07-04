@@ -247,10 +247,16 @@ class GrowthEngineController extends Controller
      */
     public function customerLoyalty($partyId)
     {
+        // Tenant-scoped existence check BEFORE the plan gate (Session-3 fix):
+        // a party that doesn't belong to the current tenant must 404 regardless
+        // of plan tier, matching this codebase's existing "no existence oracle"
+        // pattern (see SuperAdminMiddleware). Checking the plan gate first leaked
+        // a distinguishable 403 for cross-tenant requests on non-entitled plans.
+        $party = Party::findOrFail($partyId);
+
         if (!\App\Services\PlanGate::check('loyalty_points')) {
             return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
         }
-        $party = Party::findOrFail($partyId);
 
         $balance = LoyaltyBalance::where('party_id', $party->id)->first();
         $storeCredit = StoreCreditBalance::where('party_id', $party->id)->first();
@@ -268,9 +274,6 @@ class GrowthEngineController extends Controller
      */
     public function awardPoints(Request $request)
     {
-        if (!\App\Services\PlanGate::check('loyalty_points')) {
-            return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
-        }
         $validated = $request->validate([
             'party_id' => 'required|string',
             'points' => 'required|integer|min:1',
@@ -278,10 +281,19 @@ class GrowthEngineController extends Controller
             'invoice_id' => 'nullable|string',
         ]);
 
+        // Tenant-scoped existence check BEFORE the plan gate (Session-3 fix) —
+        // see customerLoyalty() above for why the order matters.
         $party = Party::findOrFail($validated['party_id']);
 
         if (!empty($validated['invoice_id'])) {
             Invoice::findOrFail($validated['invoice_id']);
+        }
+
+        // Awarding NEW points is the Enterprise-tier feature being sold on the
+        // pricing page — this gate stays. (Spending points a customer already
+        // has is a different question; see redeemPoints() below.)
+        if (!\App\Services\PlanGate::check('loyalty_points')) {
+            return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
         }
 
         $balance = LoyaltyBalance::awardPoints(
@@ -302,21 +314,30 @@ class GrowthEngineController extends Controller
      */
     public function redeemPoints(Request $request)
     {
-        if (!\App\Services\PlanGate::check('loyalty_points')) {
-            return response()->json(['error' => 'Loyalty points are available on the Enterprise plan.'], 403);
-        }
         $validated = $request->validate([
             'party_id' => 'required|string',
             'points' => 'required|integer|min:1',
             'invoice_id' => 'nullable|string',
         ]);
 
+        // Tenant-scoped existence check first (Session-3 fix) — see
+        // customerLoyalty() above for why the order matters.
         $party = Party::findOrFail($validated['party_id']);
 
         $invoice = null;
         if (!empty($validated['invoice_id'])) {
             $invoice = Invoice::findOrFail($validated['invoice_id']);
         }
+
+        // No PlanGate check here (Session-3 fix, deliberate): earning NEW
+        // points is the gated Enterprise feature (see awardPoints()), but a
+        // balance that already exists — awarded before a downgrade, or by a
+        // platform admin — is money the store already owes this customer.
+        // Blocking its redemption doesn't recover anything for the business;
+        // it just traps the customer's existing balance. This mirrors the
+        // store-credit endpoints below, which have never gated useStoreCredit()
+        // by plan for the same reason. The invoice-total cap directly below
+        // is the real safety control for this endpoint, regardless of plan.
 
         try {
             // Calculate value (default: 10 points = 1 PKR)

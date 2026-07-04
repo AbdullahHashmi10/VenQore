@@ -55,7 +55,7 @@ return new class extends Migration
                     default => 'ltd_1',
                 };
 
-                $limits = \App\Services\PlanRepository::getLimits($slug);
+                $limits = \App\Services\PlanRepository::getLtdSnapshot($slug);
                 if (!empty($limits)) {
                     DB::table('tenants')->where('id', $tenant->id)
                         ->update(['plan_limits' => json_encode($limits)]);

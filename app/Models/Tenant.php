@@ -350,7 +350,7 @@ class Tenant extends Model
             // (PlanFeatureMatrixSeeder = the single source of truth), no longer
             // from config/plans.php. PlanRepository falls back to config only
             // if the LTD plan has never been seeded — and logs nothing silently.
-            $limits = \App\Services\PlanRepository::getLimits($value);
+            $limits = \App\Services\PlanRepository::getLtdSnapshot($value);
             if (empty($limits)) {
                 \Illuminate\Support\Facades\Log::warning(
                     "setPlanAttribute: no seeded limits found for '{$value}' — tenant JSON left empty (fail-closed). Run PlanFeatureMatrixSeeder."

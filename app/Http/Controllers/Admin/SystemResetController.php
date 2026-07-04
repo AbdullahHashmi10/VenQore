@@ -216,7 +216,7 @@ class SystemResetController extends Controller
             DB::commit();
             Log::info("Factory Reset performed for tenant {$tenantId} by User ID: " . auth()->id());
 
-            return response()->json(['message' => 'Store data successfully reset to factory settings.']);
+            return response()->json(['message' => 'System successfully reset to factory settings.']);
 
         } catch (\Exception $e) {
             DB::rollBack();

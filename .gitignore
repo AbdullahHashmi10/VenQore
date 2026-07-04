@@ -49,3 +49,12 @@ zip_contents.txt
 *.bak.*
 *.backup-*
 resources/js/Pages/**/*.backup*.jsx
+
+# AI agent / IDE artifacts (session 3+4, 2026-07-04)
+.claude/
+3D/
+Tester/dashboard/last-results.json
+
+# Planning docs — tracked separately, not in repo
+VenQore_Bootstrap_Master_Plan.md
+VenQore_Launch_Readiness_Plan.docx

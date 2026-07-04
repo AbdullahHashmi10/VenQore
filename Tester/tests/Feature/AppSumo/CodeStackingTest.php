@@ -198,9 +198,14 @@ class CodeStackingTest extends VenQoreTestCase
             $tenant->getLimit('locations'),
             'locations limit does not match ltd_2 config after upgrade.'
         );
-        $this->assertTrue(
+        // Session-3 correction: growth_engine is the AI add-on flag, seeded
+        // '0' for every plan including every LTD tier (PlanFeatureMatrixSeeder
+        // Group 10) and false in config/plans.ltd_2 — CHANGELOG_SESSION2.md
+        // point 10 explicitly rejected gating loyalty on this key for exactly
+        // this reason. Stacking to ltd_2 must NOT turn it on by itself.
+        $this->assertFalse(
             (bool) $tenant->getLimit('growth_engine'),
-            'growth_engine should be enabled on ltd_2.'
+            'growth_engine is a separate AI add-on purchase — off by default on every plan, ltd_2 included.'
         );
     }
 
@@ -228,13 +233,18 @@ class CodeStackingTest extends VenQoreTestCase
         $tenant->refresh();
         $this->assertEquals('ltd', $tenant->plan, 'Tenant plan was not upgraded to ltd.');
 
-        // ltd_3 has null (unlimited) for staff_limit, sku_limit, locations, transactions_per_month
+        // Session-3 correction: ltd_3 mirrors the 'business' tier, which caps
+        // staff/SKU at 50/50000 rather than leaving them unlimited — a
+        // deliberate decision recorded in both config/plans.ltd_3 and
+        // VENQORE_MASTER_AUDIT_AND_LAUNCH_PLAN.md finding #4. Only the
+        // transaction count is uncapped-relative-to-tier (6000/mo, the
+        // ceiling itself); staff_limit/sku_limit are not unlimited.
         $this->assertEquals(6000, $tenant->getLimit('transactions_per_month'),
             'ltd_3 should allow 6000 transactions/month.');
-        $this->assertNull($tenant->getLimit('staff_limit'),
-            'ltd_3 staff_limit should be null (unlimited).');
-        $this->assertNull($tenant->getLimit('sku_limit'),
-            'ltd_3 sku_limit should be null (unlimited).');
+        $this->assertEquals(50, $tenant->getLimit('staff_limit'),
+            'ltd_3 staff_limit is the business-tier cap (50), not unlimited.');
+        $this->assertEquals(50000, $tenant->getLimit('sku_limit'),
+            'ltd_3 sku_limit is the business-tier cap (50000), not unlimited.');
         $this->assertTrue((bool) $tenant->getLimit('api_access'),
             'API access should be enabled on ltd_3.');
     }

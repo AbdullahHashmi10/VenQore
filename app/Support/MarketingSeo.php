@@ -34,7 +34,9 @@ class MarketingSeo
             return null;
         }
 
-        $def['canonical'] = url()->current();
+        // Force the canonical URL to HTTPS, venqore.com host, and remove trailing slashes (except for home page)
+        $path = $route->uri() === '/' ? '' : '/' . rtrim($route->uri(), '/');
+        $def['canonical'] = 'https://venqore.com' . $path;
         $def['og_image']  = $def['og_image'] ?? url('/images/logo.png');
 
         return $def;

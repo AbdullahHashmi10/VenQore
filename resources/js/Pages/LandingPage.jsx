@@ -1087,7 +1087,7 @@ export default function LandingPage() {
             <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#04020c]/80 backdrop-blur-2xl border-b border-white/[0.06] py-3' : 'py-5'}`}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-2">
                     <Link href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
-                        <img src={logo} alt={appName} className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
+                        <img src={logo} alt={appName} width="144" height="36" className="h-8 sm:h-9 w-auto shrink-0 group-hover:scale-105 transition-transform duration-300" />
                         <span className="font-black text-white text-base sm:text-lg uppercase tracking-tighter truncate" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
                     </Link>
                     <div className="hidden lg:flex items-center gap-1">
@@ -1200,8 +1200,8 @@ export default function LandingPage() {
                                             <Reveal key={i} delay={0.1 + i * 0.1}>
                                                 <div className={`h-full p-7 rounded-3xl border ${c.cls} transition-all duration-500 hover:-translate-y-1`}>
                                                     <c.ic className={`${c.ico} mb-5`} size={26} />
-                                                    <h4 className="text-white font-bold mb-2.5 tracking-tight text-lg" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{c.t}</h4>
-                                                    <p className="text-slate-500 text-sm leading-relaxed">{c.b}</p>
+                                                    <h3 className="text-white font-bold mb-2.5 tracking-tight text-lg" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{c.t}</h3>
+                                                    <p className="text-slate-400 text-sm leading-relaxed">{c.b}</p>
                                                 </div>
                                             </Reveal>
                                         ))}
@@ -1281,8 +1281,8 @@ export default function LandingPage() {
                                                 <b.ic size={18} />
                                             </div>
                                             <div>
-                                                <h4 className="text-white font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h4>
-                                                <p className="text-slate-500 text-sm leading-snug">{b.d}</p>
+                                                <h3 className="text-white font-bold tracking-tight" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{b.t}</h3>
+                                                <p className="text-slate-400 text-sm leading-snug">{b.d}</p>
                                             </div>
                                         </div>
                                     </Reveal>
@@ -1343,8 +1343,8 @@ export default function LandingPage() {
                                 <Reveal key={i} delay={0.06 * i}>
                                     <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] text-center hover:border-indigo-400/25 hover:bg-white/[0.04] transition-all duration-500">
                                         <c.ic size={20} className="text-indigo-300 mb-2 mx-auto" />
-                                        <div className="text-white font-bold text-[13px] tracking-tight mb-1">{c.t}</div>
-                                        <div className="text-slate-500 text-[11px] leading-snug">{c.d}</div>
+                                        <h3 className="text-white font-bold text-[13px] tracking-tight mb-1">{c.t}</h3>
+                                        <p className="text-slate-400 text-[11px] leading-snug">{c.d}</p>
                                     </div>
                                 </Reveal>
                             ))}
@@ -1536,31 +1536,31 @@ export default function LandingPage() {
                 <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
                     <div className="md:col-span-5">
                         <Link href="/" className="flex items-center gap-3 mb-7">
-                            <img src={logo} alt={appName} className="h-10 w-auto" />
+                            <img src={logo} alt={appName} width="160" height="40" className="h-10 w-auto" />
                             <span className="font-black text-white text-xl uppercase tracking-tighter" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>{appName}</span>
                         </Link>
-                        <p className="text-slate-500 max-w-sm leading-relaxed text-sm">
+                        <p className="text-slate-400 max-w-sm leading-relaxed text-sm">
                             The all-in-one POS &amp; ERP built on financial truth. Every sale, purchase and transfer writes a correct journal entry — automatically.
                         </p>
                     </div>
                     <div className="md:col-span-2">
-                        <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Platform</h4>
+                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Platform</h3>
                         <ul className="space-y-3">
                             {[{ l: 'Features', h: '/features' }, { l: 'Pricing', h: '/pricing' }, { l: 'Blog', h: '/blog' }, { l: 'About', h: '/about' }].map(i => (
-                                <li key={i.h}><Link href={i.h} className="text-sm text-slate-500 hover:text-white transition-colors font-medium">{i.l}</Link></li>
+                                <li key={i.h}><Link href={i.h} className="text-sm text-slate-400 hover:text-white transition-colors font-medium">{i.l}</Link></li>
                             ))}
                         </ul>
                     </div>
                     <div className="md:col-span-2">
-                        <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Resources</h4>
+                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Resources</h3>
                         <ul className="space-y-3">
                             {[{ l: 'Contact', h: '/contact' }, { l: 'Live Demo', h: '/demo' }, { l: 'Terms', h: '/terms' }, { l: 'Privacy', h: '/privacy' }].map(i => (
-                                <li key={i.h}><Link href={i.h} className="text-sm text-slate-500 hover:text-white transition-colors font-medium">{i.l}</Link></li>
+                                <li key={i.h}><Link href={i.h} className="text-sm text-slate-400 hover:text-white transition-colors font-medium">{i.l}</Link></li>
                             ))}
                         </ul>
                     </div>
                     <div className="md:col-span-3">
-                        <h4 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Connect</h4>
+                        <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-[0.3em] mb-6">Connect</h3>
                         <div className="space-y-3">
                             <a href="https://wa.me/923091999489" className="flex items-center gap-3 p-4 rounded-2xl bg-emerald-600/[0.06] border border-emerald-500/10 text-emerald-400 hover:bg-emerald-600/[0.1] transition-all duration-300">
                                 <MessageCircle size={20} />
@@ -1580,8 +1580,8 @@ export default function LandingPage() {
                     </div>
                 </div>
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/[0.06]">
-                    <span className="text-slate-600 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 {appName}. All rights reserved. The Books Are Always Right.</span>
-                    <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-600">
+                    <span className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">© 2026 {appName}. All rights reserved. The Books Are Always Right.</span>
+                    <div className="flex gap-8 text-[10px] font-bold uppercase tracking-[0.15em] text-slate-400">
                         <Link href="/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
                         <Link href="/privacy" className="hover:text-slate-300 transition-colors">Privacy</Link>
                     </div>
