@@ -91,7 +91,7 @@ class PlanFeatureMatrixSeeder extends Seeder
             'customer_ltv_score'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'customer_wallet'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'loyalty_points'             => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
-            'digital_gift_cards'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
+            'digital_gift_cards'         => ['trial' => '1', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'wholesale_pricing'          => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'b2b_proposal_builder'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'quotation_conversion'       => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
@@ -170,6 +170,9 @@ class PlanFeatureMatrixSeeder extends Seeder
             'jit_procurement'            => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'bulk_tracking_sync'         => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'multichannel_expense_alloc' => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
+            // 2026-07-04 decision (owner): WooCommerce is NOT included in any plan —
+            // it stays off until sold separately. Entitlement, when granted, goes
+            // through tenant_plan_overrides (per-tenant), never a plan default.
             'woocommerce'                => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'woocommerce_customer_reg'   => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'woocommerce_stock_sync'     => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
@@ -265,6 +268,11 @@ class PlanFeatureMatrixSeeder extends Seeder
 
             // Group 10 — AI & Automation Extras
             'hypersearch_byok'           => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
+            // 2026-07-04 decision (owner, per Pricing.jsx): Smart Capture is part of
+            // the AI add-on (managed AI Core/Lite/Pro/Ultimate, or $5 one-time BYOK
+            // unlock) — purchasable with ANY base plan, included in NONE. Plan default
+            // is therefore '0' everywhere; the add-on purchase / BYOK activation must
+            // write a tenant_plan_overrides row (smart_capture='1') for that tenant.
             'smart_capture'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
             'smart_capture_limit'        => ['trial' => null, 'starter' => null, 'growth' => null, 'business' => null],
             'growth_engine'              => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '0'],
@@ -315,6 +323,8 @@ class PlanFeatureMatrixSeeder extends Seeder
                     if ($slug === 'ltd_1' && $key === 'transactions_per_month') $val = '500';
                     if ($slug === 'ltd_2' && $key === 'transactions_per_month') $val = '2000';
                     if ($slug === 'ltd_3' && $key === 'transactions_per_month') $val = '6000';
+                    if ($slug === 'ltd_2' && str_starts_with($key, 'woocommerce')) $val = '0';
+                    if ($slug === 'ltd_3' && str_starts_with($key, 'woocommerce')) $val = '0';
 
                     // Write/Update using updateOrInsert to prevent duplicate constraints
                     DB::table('plan_limits')->updateOrInsert(

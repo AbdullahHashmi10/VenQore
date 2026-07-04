@@ -33,6 +33,49 @@ class PlanRepository
     }
 
     /**
+     * Build the tenant-level plan_limits JSON snapshot for an LTD tier
+     * (e.g. 'ltd_1', 'ltd_2', 'ltd_3').
+     *
+     * Session-3 fix (VNQ-011 follow-up): setPlanAttribute() and
+     * AppSumoController::redeem() used to snapshot getLimits($tier)
+     * verbatim. That table now holds the FULL ~150-key feature matrix
+     * (PlanFeatureMatrixSeeder) — richer than config/plans.php's ~23-key
+     * LTD sections, which is correct for `Tenant::getLimit()` reads that
+     * go through the plan_limits table directly. But two things the table
+     * was never meant to track live only in config: `ltd` (a license
+     * marker, not a plan feature) and `hosted_until` (a relative hosting
+     * offset). A verbatim table snapshot silently drops both.
+     *
+     * The fix: use config's key list as the snapshot's SHAPE (which keys
+     * matter enough to need a tenant-level snapshot at all), but prefer
+     * the seeded table's VALUE for every key the table actually tracks —
+     * falling back to config's own value only for the license-bookkeeping
+     * keys the table doesn't track. The table remains the value source of
+     * truth for every real plan-feature key; config keeps exactly one job
+     * left (per its own header comment): defining that key list.
+     */
+    public static function getLtdSnapshot(string $planSlug): array
+    {
+        $shape  = config("plans.{$planSlug}", []);
+        $seeded = self::getLimits($planSlug);
+
+        $snapshot = [];
+        foreach ($shape as $key => $configValue) {
+            $value = array_key_exists($key, $seeded) ? $seeded[$key] : $configValue;
+            
+            if (is_bool($configValue)) {
+                $value = ($value !== '0' && $value !== 0 && $value !== false && $value !== 'false');
+            } elseif (is_int($configValue) && $value !== null) {
+                $value = (int) $value;
+            }
+            
+            $snapshot[$key] = $value;
+        }
+
+        return $snapshot;
+    }
+
+    /**
      * Get effective limit for a specific tenant and key.
      * Priority: tenant override > plan default > null (unlimited fallback)
      *

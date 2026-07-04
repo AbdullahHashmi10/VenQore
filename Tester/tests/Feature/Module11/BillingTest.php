@@ -74,19 +74,20 @@ test('duplicate_appsumo_code_rejected', function () {
 
 test('two_codes_stacked_upgrades_to_ltd2', function () {
     $tenant = $this->createTenant();
-    $this->actingAsOwner($tenant);
-    $user = \App\Models\User::first();
+    $user   = $this->createTenantUser($tenant, 'owner');
+    $this->actingAsTenantUserModel($user, $tenant);
 
     // Create a first license attached to the tenant
     StoreLicense::create([
-        'user_id' => $user->id,
-        'tenant_id' => $tenant->id,
-        'type' => 'ltd',
-        'status' => 'available',
-        'plan' => 'ltd_1',
-        'source' => 'appsumo',
+        'user_id'          => $user->id,
+        'tenant_id'        => $tenant->id,   // attached store → controller will upgrade it
+        'type'             => 'ltd',
+        'status'           => 'available',
+        'plan'             => 'ltd_1',
+        'source'           => 'appsumo',
         'source_reference' => 'OLD-CODE',
     ]);
+
 
     // Create the first code as redeemed
     AppSumoCode::create([
