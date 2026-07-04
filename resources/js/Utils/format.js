@@ -24,7 +24,10 @@ export const getCurrencySymbol = (settings = null) => {
 export const formatCurrency = (amount, settings = null) => {
     const config = settings || window.amdSettings || {};
     const symbol = getCurrencySymbol(config);
-    const decimals = parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
+    let decimals = parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
+    if (config.print_amount_decimal === '0' || config.print_amount_decimal === false || config.print_amount_decimal === 0) {
+        decimals = 0;
+    }
     const useGrouping = config.print_amount_grouping !== '0' && config.print_amount_grouping !== false && config.print_amount_grouping !== 0;
 
     const formattedNumber = new Intl.NumberFormat('en-US', {
@@ -41,7 +44,10 @@ export const formatCurrency = (amount, settings = null) => {
 export const formatNumber = (number, decimals = null, settings = null) => {
     const config = settings || window.amdSettings || {};
     // If decimals is explicitly passed, use it. Otherwise fall back to settings, then 2.
-    const d = decimals !== null ? decimals : parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
+    let d = decimals !== null ? decimals : parseInt(config.decimal_places !== undefined && config.decimal_places !== null && config.decimal_places !== '' ? config.decimal_places : 2);
+    if (decimals === null && (config.print_amount_decimal === '0' || config.print_amount_decimal === false || config.print_amount_decimal === 0)) {
+        d = 0;
+    }
     const useGrouping = config.print_amount_grouping !== '0' && config.print_amount_grouping !== false && config.print_amount_grouping !== 0;
 
     return new Intl.NumberFormat('en-US', {

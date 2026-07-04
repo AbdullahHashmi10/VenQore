@@ -325,53 +325,54 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
     const showDiscount = data.print_show_discount && items.some(i => i.discount_percent > 0 || i.discount_amount > 0);
     const formatAmount = (amount) => formatCurrency(amount, data);
     const formatNum = (num) => formatNumber(num, null, data);
-    return (
-        <div className="font-sans h-full flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-start border-b-2 pb-6 mb-6" style={{ borderColor: themeColor }}>
-                <div className="flex gap-4">
-                    {data.print_logo && (
-                        data.print_logo_path ? (
-                            <img
-                                src={data.print_logo_path}
-                                alt="Logo"
-                                className="w-24 h-24 object-contain mr-4"
-                            />
-                        ) : (
-                            <div className="w-20 h-20 bg-slate-100 rounded-lg flex items-center justify-center text-xs text-slate-400 font-bold">LOGO</div>
-                        )
-                    )}
-                    <div>
-                        <h1 className="font-extrabold" style={{ color: themeColor, fontSize: `${itemsHeadingSize(data.print_company_text_size)}rem` }}>{data.business_name || 'Business Name'}</h1>
-                        <div className="text-xs text-slate-600 space-y-0.5 mt-2">
-                            <p>{data.business_address || '123 Business St, City, Country'}</p>
-                            <p>{data.business_phone || '+1 234 567 890'}</p>
-                        </div>
+
+    const headerContent = (
+        <div className="flex justify-between items-start border-b-2 pb-6 mb-6" style={{ borderColor: themeColor }}>
+            <div className="flex gap-4">
+                {data.print_logo && (
+                    data.print_logo_path ? (
+                        <img
+                            src={data.print_logo_path}
+                            alt="Logo"
+                            className="w-24 h-24 object-contain mr-4"
+                        />
+                    ) : (
+                        <div className="w-20 h-20 bg-slate-100 rounded-lg flex items-center justify-center text-xs text-slate-400 font-bold">LOGO</div>
+                    )
+                )}
+                <div>
+                    <h1 className="font-extrabold text-left" style={{ color: themeColor, fontSize: `${itemsHeadingSize(data.print_company_text_size)}rem` }}>{data.business_name || 'Business Name'}</h1>
+                    <div className="text-xs text-slate-600 space-y-0.5 mt-2 text-left">
+                        <p>{data.business_address || '123 Business St, City, Country'}</p>
+                        <p>{data.business_phone || '+1 234 567 890'}</p>
                     </div>
-                </div>
-                <div className="text-right">
-                    <div className="font-black text-slate-100 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Invoice</div>
-                    <div className="text-sm font-bold text-slate-600 mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
-                    {data.print_original_copy && <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Original Copy</div>}
-                    <div className="text-xs text-slate-500 mt-1">Date: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
                 </div>
             </div>
+            <div className="text-right">
+                <div className="font-black text-slate-100 uppercase tracking-tighter" style={{ fontSize: '2.5rem' }}>Invoice</div>
+                <div className="text-sm font-bold text-slate-600 mt-1"># {sale ? (sale.invoice_no || sale.invoice_number || sale.reference_number || sale.id) : `${data.sale_prefix}1001`}</div>
+                {data.print_original_copy && <div className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-1">Original Copy</div>}
+                <div className="text-xs text-slate-500 mt-1">Date: {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</div>
+            </div>
+        </div>
+    );
 
-            {/* Bill To */}
-            {showEntity ? (
-                <div className="flex justify-between mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                    <div>
-                        <div className="text-xs font-bold text-slate-400 uppercase mb-1">{entityLabel}</div>
-                        <div className="font-bold text-slate-800">{entityName}</div>
-                        {sale?.contact?.address && <div className="text-xs text-slate-500">{sale.contact.address}</div>}
-                    </div>
-                    <div className="text-right">
-                        <div className="text-xs font-bold text-slate-400 uppercase mb-1">Payment Status</div>
-                        <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">PAID</div>
-                    </div>
-                </div>
-            ) : null}
+    const billToContent = showEntity ? (
+        <div className="flex justify-between mb-8 bg-slate-50 p-4 rounded-xl border border-slate-100 text-left">
+            <div>
+                <div className="text-xs font-bold text-slate-400 uppercase mb-1">{entityLabel}</div>
+                <div className="font-bold text-slate-800">{entityName}</div>
+                {sale?.contact?.address && <div className="text-xs text-slate-500">{sale.contact.address}</div>}
+            </div>
+            <div className="text-right">
+                <div className="text-xs font-bold text-slate-400 uppercase mb-1">Payment Status</div>
+                <div className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">PAID</div>
+            </div>
+        </div>
+    ) : null;
 
+    const mainContent = (
+        <>
             {/* Table */}
             <table className="w-full mb-auto text-sm">
                 <thead className="bg-slate-800 text-white rounded-t-lg">
@@ -395,7 +396,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                     {items.map((item, i) => (
                         <tr key={i} className="border-b border-slate-100 last:border-0">
                             {data.print_show_sno && <td className="p-3 text-slate-500">{item.sno}</td>}
-                            <td className="p-3 font-medium">
+                            <td className="p-3 font-medium text-left">
                                 <div>{item.name}</div>
                                 {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
                                     <div className="text-[10px] text-slate-400 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
@@ -408,8 +409,8 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                                     </div>
                                 )}
                             </td>
-                            {data.print_show_hsn && <td className="p-3 text-slate-500">{item.hsn}</td>}
-                            {data.print_show_description && <td className="p-3 text-slate-500 text-xs">{item.desc}</td>}
+                            {data.print_show_hsn && <td className="p-3 text-slate-500 text-left">{item.hsn}</td>}
+                            {data.print_show_description && <td className="p-3 text-slate-500 text-xs text-left">{item.desc}</td>}
                             {data.print_show_mrp && <td className="p-3 text-right text-slate-400 line-through">{formatAmount(item.mrp || (item.rate * 1.2))}</td>}
 
                             <td className="p-3 text-center text-slate-600 font-bold">
@@ -455,8 +456,6 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
             {/* Totals */}
             <div className="flex justify-end mt-6 border-t pt-6">
                 <div className="w-64 space-y-2">
-                    <div className="flex justify-between text-sm"><span>Subtotal</span><span>{calculations.subtotal.toLocaleString()}</span></div>
-
                     <div className="flex justify-between text-sm text-slate-500"><span>Sub Total</span><span>{formatAmount(calculations.subtotal)}</span></div>
 
                     {data.print_total_quantity && (
@@ -532,7 +531,7 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                                 <span className="font-bold text-slate-800">{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
                             </div>
                         )}
-                        <div className="flex gap-6 ml-auto">
+                        <div className="flex gap-6 ml-auto font-bold">
                             {data.print_received_by && (
                                 <div className="text-center">
                                     <div className="w-28 border-b border-slate-300 h-6"></div>
@@ -565,6 +564,36 @@ const ThemeRegularModern = ({ data, items, calculations, themeColor, sale, entit
                     </div>
                 )}
             </div>
+        </>
+    );
+
+    if (data.print_header_all_pages) {
+        return (
+            <table className="w-full h-full font-sans print-layout-master-table" style={{ borderCollapse: 'collapse', border: 'none' }}>
+                <thead>
+                    <tr>
+                        <td style={{ border: 'none', padding: 0 }}>
+                            {headerContent}
+                            {billToContent}
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style={{ border: 'none', padding: 0, verticalAlign: 'top' }}>
+                            {mainContent}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        );
+    }
+
+    return (
+        <div className="font-sans h-full flex flex-col">
+            {headerContent}
+            {billToContent}
+            {mainContent}
         </div>
     );
 };
@@ -582,14 +611,16 @@ const itemsBodySize = (val) => {
 // --- Theme 2: Classic/Official ---
 const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, entityLabel, entityName, showEntity }) => {
     const formatAmount = (amount) => formatCurrency(amount, data);
-    return (
-    <div className="font-serif h-full flex flex-col text-slate-900">
+
+    const headerContent = (
         <div className="text-center mb-8 border-b-4 double border-slate-800 pb-4">
             <h1 className="text-3xl font-bold uppercase tracking-widest mb-2">{data.business_name}</h1>
             <p className="text-sm italic">{data.business_address}</p>
         </div>
+    );
 
-        <div className="flex justify-between mb-6 border p-4">
+    const billToContent = (
+        <div className="flex justify-between mb-6 border p-4 text-left">
             <div>
                 <strong>{entityLabel.toUpperCase()}:</strong>
                 <p>{entityName}</p>
@@ -600,147 +631,180 @@ const ThemeRegularClassic = ({ data, items, calculations, themeColor, sale, enti
                 <p><strong>DATE:</strong> {sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</p>
             </div>
         </div>
+    );
 
-        <table className="w-full border-collapse border border-slate-800 mb-6">
-            <thead className="bg-slate-100">
-                <tr>
-                    <th className="border border-slate-800 p-2 text-left">DESCRIPTION</th>
-                    <th className="border border-slate-800 p-2 text-center">
-                        {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'QTY + FREE' : 'QTY'}
-                    </th>
-                    <th className="border border-slate-800 p-2 text-right">UNIT PRICE</th>
-                    <th className="border border-slate-800 p-2 text-right">AMOUNT</th>
-                </tr>
-            </thead>
-            <tbody>
-                {items.map((item, i) => (
-                    <tr key={i}>
-                        <td className="border border-slate-800 p-2">
-                            <div>{item.name}</div>
-                            {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                <div className="text-[10px] text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
-                                    {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
-                                    {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
-                                    {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
-                                    {data.thermal_show_size && item.size && <span>Size: {item.size}</span>}
-                                    {data.thermal_show_model && item.model && <span>Model: {item.model}</span>}
-                                    {data.thermal_show_serial && item.serial && <span>S/N: {item.serial}</span>}
-                                </div>
-                            )}
-                        </td>
-                        <td className="border border-slate-800 p-2 text-center">
-                            {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
-                        </td>
-                        <td className="border border-slate-800 p-2 text-right">{formatAmount(item.rate)}</td>
-                        <td className="border border-slate-800 p-2 text-right">{formatAmount(item.amount)}</td>
+    const mainContent = (
+        <>
+            <table className="w-full border-collapse border border-slate-800 mb-6">
+                <thead className="bg-slate-100">
+                    <tr>
+                        <th className="border border-slate-800 p-2 text-left">DESCRIPTION</th>
+                        <th className="border border-slate-800 p-2 text-center">
+                            {data.print_show_free_qty && items.some(i => i.free_qty > 0) ? 'QTY + FREE' : 'QTY'}
+                        </th>
+                        <th className="border border-slate-800 p-2 text-right">UNIT PRICE</th>
+                        <th className="border border-slate-800 p-2 text-right">AMOUNT</th>
                     </tr>
-                ))}
-                {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
-                    <tr key={`empty-${idx}`}>
-                        <td className="border border-slate-800 p-2 h-8"></td>
-                        <td className="border border-slate-800 p-2 text-center h-8"></td>
-                        <td className="border border-slate-800 p-2 text-right h-8"></td>
-                        <td className="border border-slate-800 p-2 text-right h-8"></td>
-                    </tr>
-                ))}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    {items.map((item, i) => (
+                        <tr key={i}>
+                            <td className="border border-slate-800 p-2 text-left">
+                                <div>{item.name}</div>
+                                {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
+                                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                        {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
+                                        {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
+                                        {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
+                                        {data.thermal_show_size && item.size && <span>Size: {item.size}</span>}
+                                        {data.thermal_show_model && item.model && <span>Model: {item.model}</span>}
+                                        {data.thermal_show_serial && item.serial && <span>S/N: {item.serial}</span>}
+                                    </div>
+                                )}
+                            </td>
+                            <td className="border border-slate-800 p-2 text-center">
+                                {data.print_show_free_qty && item.free_qty > 0 ? `${item.qty}+${item.free_qty}` : item.qty}
+                            </td>
+                            <td className="border border-slate-800 p-2 text-right">{formatAmount(item.rate)}</td>
+                            <td className="border border-slate-800 p-2 text-right">{formatAmount(item.amount)}</td>
+                        </tr>
+                    ))}
+                    {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
+                        <tr key={`empty-${idx}`}>
+                            <td className="border border-slate-800 p-2 h-8"></td>
+                            <td className="border border-slate-800 p-2 text-center h-8"></td>
+                            <td className="border border-slate-800 p-2 text-right h-8"></td>
+                            <td className="border border-slate-800 p-2 text-right h-8"></td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
 
-        <div className="flex justify-between items-start mt-6">
-            <div className="w-1/2 text-left space-y-2">
-                {data.print_amount_words !== '0' && (
-                    <div className="text-xs italic font-bold">
-                        "{numberToWords(calculations.total, data.print_amount_words)}"
-                    </div>
-                )}
-                {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
-                    <div className="text-xs italic whitespace-pre-wrap">
-                        {data.print_terms || 'Thank you for your business!'}
-                    </div>
-                )}
+            <div className="flex justify-between items-start mt-6">
+                <div className="w-1/2 text-left space-y-2">
+                    {data.print_amount_words !== '0' && (
+                        <div className="text-xs italic font-bold">
+                            "{numberToWords(calculations.total, data.print_amount_words)}"
+                        </div>
+                    )}
+                    {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
+                        <div className="text-xs italic whitespace-pre-wrap">
+                            {data.print_terms || 'Thank you for your business!'}
+                        </div>
+                    )}
+                </div>
+                <div className="w-1/2 ml-auto">
+                    <div className="flex justify-between border-b border-slate-800 py-1"><span>SUBTOTAL:</span><span>{formatAmount(calculations.subtotal)}</span></div>
+                    {calculations.invoiceDiscount > 0 && (
+                        <div className="flex justify-between border-b border-slate-800 py-1 text-red-600 font-bold"><span>DISCOUNT:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
+                    )}
+                    <div className="flex justify-between border-b border-slate-800 py-1"><span>TAX:</span><span>{formatAmount(calculations.gst)}</span></div>
+                    {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
+                        <div className="flex justify-between border-b border-slate-800 py-1"><span>DELIVERY:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
+                    )}
+                    {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                        <div key={idx} className="flex justify-between border-b border-slate-800 py-1"><span>{String(item.label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(item.value)}</span></div>
+                    ))}
+                    <div className="flex justify-between font-bold text-xl py-2"><span>TOTAL:</span><span>{formatAmount(calculations.total)}</span></div>
+                    {data.print_received_amount && (
+                        <div className="flex justify-between border-b border-slate-800 py-1"><span>RECEIVED:</span><span>{formatAmount(calculations.paid)}</span></div>
+                    )}
+                    {data.print_balance_amount && (
+                        <div className="flex justify-between border-b border-slate-800 py-1 font-bold"><span>BALANCE DUE:</span><span>{formatAmount(calculations.balance)}</span></div>
+                    )}
+                    {data.print_show_previous_balance && (
+                        <>
+                            <div className="flex justify-between border-b border-slate-800 py-1"><span>PREV BALANCE:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
+                            <div className="flex justify-between font-bold py-1"><span>NET BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
+                        </>
+                    )}
+                    {(data.print_party_balance && !data.print_show_previous_balance) && (
+                        <div className="flex justify-between border-b border-slate-800 py-1"><span>PARTY BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
+                    )}
+                </div>
             </div>
-            <div className="w-1/2 ml-auto">
-                <div className="flex justify-between border-b border-slate-800 py-1"><span>SUBTOTAL:</span><span>{formatAmount(calculations.subtotal)}</span></div>
-                {calculations.invoiceDiscount > 0 && (
-                    <div className="flex justify-between border-b border-slate-800 py-1 text-red-600 font-bold"><span>DISCOUNT:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
-                )}
-                <div className="flex justify-between border-b border-slate-800 py-1"><span>TAX:</span><span>{formatAmount(calculations.gst)}</span></div>
-                {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
-                    <div className="flex justify-between border-b border-slate-800 py-1"><span>DELIVERY:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
-                )}
-                {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
-                    <div key={idx} className="flex justify-between border-b border-slate-800 py-1"><span>{String(item.label || 'EXTRA').toUpperCase()}:</span><span>{formatAmount(item.value)}</span></div>
-                ))}
-                <div className="flex justify-between font-bold text-xl py-2"><span>TOTAL:</span><span>{formatAmount(calculations.total)}</span></div>
-                {data.print_received_amount && (
-                    <div className="flex justify-between border-b border-slate-800 py-1"><span>RECEIVED:</span><span>{formatAmount(calculations.paid)}</span></div>
-                )}
-                {data.print_balance_amount && (
-                    <div className="flex justify-between border-b border-slate-800 py-1 font-bold"><span>BALANCE DUE:</span><span>{formatAmount(calculations.balance)}</span></div>
-                )}
-                {data.print_show_previous_balance && (
-                    <>
-                        <div className="flex justify-between border-b border-slate-800 py-1"><span>PREV BALANCE:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
-                        <div className="flex justify-between font-bold py-1"><span>NET BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
-                    </>
-                )}
-                {(data.print_party_balance && !data.print_show_previous_balance) && (
-                    <div className="flex justify-between border-b border-slate-800 py-1"><span>PARTY BALANCE:</span><span>{formatAmount(calculations.net_balance)}</span></div>
-                )}
-            </div>
+
+            {/* Received / Delivered / Acknowledgement / Payment Mode */}
+            {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
+                <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t border-dashed border-slate-800">
+                    {data.print_payment_mode && (
+                        <div className="text-left font-bold">
+                            <span>Payment Mode: </span>
+                            <span>{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
+                        </div>
+                    )}
+                    <div className="flex gap-6 ml-auto font-bold">
+                        {data.print_received_by && (
+                            <div className="text-center">
+                                <div className="w-28 border-b border-slate-800 h-6"></div>
+                                <div className="text-[10px] mt-1">Received By</div>
+                            </div>
+                        )}
+                        {data.print_delivered_by && (
+                            <div className="text-center">
+                                <div className="w-28 border-b border-slate-800 h-6"></div>
+                                <div className="text-[10px] mt-1">Delivered By</div>
+                            </div>
+                        )}
+                        {data.print_acknowledgement && (
+                            <div className="text-center">
+                                <div className="w-36 border-b border-slate-800 h-6"></div>
+                                <div className="text-[10px] mt-1">Customer Acknowledgement</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {data.print_signature_text && (
+                <div className="flex justify-end mt-8">
+                    <div className="text-center font-bold">
+                        <div className="h-10"></div>
+                        <div className="border-t border-slate-800 w-32"></div>
+                        <div className="text-[10px] mt-1">{data.print_signature_text}</div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+
+    if (data.print_header_all_pages) {
+        return (
+            <table className="w-full h-full font-serif print-layout-master-table" style={{ borderCollapse: 'collapse', border: 'none' }}>
+                <thead>
+                    <tr>
+                        <td style={{ border: 'none', padding: 0 }}>
+                            {headerContent}
+                            {billToContent}
+                        </td>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style={{ border: 'none', padding: 0, verticalAlign: 'top' }}>
+                            {mainContent}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        );
+    }
+
+    return (
+        <div className="font-serif h-full flex flex-col text-slate-900">
+            {headerContent}
+            {billToContent}
+            {mainContent}
         </div>
-
-        {/* Received / Delivered / Acknowledgement / Payment Mode */}
-        {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
-            <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t border-dashed border-slate-800">
-                {data.print_payment_mode && (
-                    <div className="text-left font-bold">
-                        <span>Payment Mode: </span>
-                        <span>{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
-                    </div>
-                )}
-                <div className="flex gap-6 ml-auto font-bold">
-                    {data.print_received_by && (
-                        <div className="text-center">
-                            <div className="w-28 border-b border-slate-800 h-6"></div>
-                            <div className="text-[10px] mt-1">Received By</div>
-                        </div>
-                    )}
-                    {data.print_delivered_by && (
-                        <div className="text-center">
-                            <div className="w-28 border-b border-slate-800 h-6"></div>
-                            <div className="text-[10px] mt-1">Delivered By</div>
-                        </div>
-                    )}
-                    {data.print_acknowledgement && (
-                        <div className="text-center">
-                            <div className="w-36 border-b border-slate-800 h-6"></div>
-                            <div className="text-[10px] mt-1">Customer Acknowledgement</div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        )}
-
-        {data.print_signature_text && (
-            <div className="flex justify-end mt-8">
-                <div className="text-center font-bold">
-                    <div className="h-10"></div>
-                    <div className="border-t border-slate-800 w-32"></div>
-                    <div className="text-[10px] mt-1">{data.print_signature_text}</div>
-                </div>
-            </div>
-        )}
-    </div>
     );
 };
 
 // --- Theme 3: Bold Header ---
 const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityLabel, entityName, showEntity }) => {
     const formatAmount = (amount) => formatCurrency(amount, data);
-    return (
-    <div className="font-sans h-full flex flex-col">
-        <div className="bg-slate-900 text-white p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center" style={{ backgroundColor: themeColor }}>
+
+    const headerContent = (
+        <div className="bg-slate-900 text-white p-8 -mx-8 -mt-8 mb-8 flex justify-between items-center text-left" style={{ backgroundColor: themeColor }}>
             <div>
                 <h1 className="text-4xl font-black">{data.business_name}</h1>
                 <p className="opacity-80 mt-1">INVOICE</p>
@@ -750,8 +814,10 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                 <p>{data.business_address}</p>
             </div>
         </div>
+    );
 
-        <div className="grid grid-cols-2 gap-8 mb-10">
+    const billToContent = (
+        <div className="grid grid-cols-2 gap-8 mb-10 text-left">
             <div>
                 <h3 className="font-bold text-slate-400 uppercase text-xs mb-2">{entityLabel}</h3>
                 <div className="text-xl font-bold text-slate-800">{entityName}</div>
@@ -762,129 +828,162 @@ const ThemeRegularBold = ({ data, items, calculations, themeColor, sale, entityL
                 <p className="font-mono text-slate-500">{sale ? (new Date(sale.created_at || sale.date).toLocaleDateString()) : new Date().toLocaleDateString()}</p>
             </div>
         </div>
+    );
 
-        <table className="w-full mb-8">
-            <thead>
-                <tr className="border-b-2 border-slate-900">
-                    <th className="text-left py-3 font-black text-slate-900 uppercase text-xs">Item Description</th>
-                    <th className="text-right py-3 font-black text-slate-900 uppercase text-xs">Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {items.map((item, i) => (
-                    <tr key={i} className="border-b border-slate-100">
-                        <td className="py-4">
-                            <div className="font-bold">{item.name}</div>
-                            {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
-                                <div className="text-[10px] text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
-                                    {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
-                                    {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
-                                    {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
-                                    {data.thermal_show_size && item.size && <span>Size: {item.size}</span>}
-                                    {data.thermal_show_model && item.model && <span>Model: {item.model}</span>}
-                                    {data.thermal_show_serial && item.serial && <span>S/N: {item.serial}</span>}
-                                </div>
-                            )}
-                            <div className="text-xs text-slate-500">{item.qty} x {formatAmount(item.rate)}</div>
+    const mainContent = (
+        <>
+            <table className="w-full mb-8">
+                <thead>
+                    <tr className="border-b-2 border-slate-900">
+                        <th className="text-left py-3 font-black text-slate-900 uppercase text-xs">Item Description</th>
+                        <th className="text-right py-3 font-black text-slate-900 uppercase text-xs">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {items.map((item, i) => (
+                        <tr key={i} className="border-b border-slate-100">
+                            <td className="py-4 text-left">
+                                <div className="font-bold">{item.name}</div>
+                                {(data.thermal_show_batch || data.thermal_show_expiry || data.thermal_show_mfg_date || data.thermal_show_size || data.thermal_show_model || data.thermal_show_serial) && (item.batch || item.exp || item.mfg_date || item.size || item.model || item.serial) && (
+                                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 flex flex-wrap gap-x-2 gap-y-0.5">
+                                        {data.thermal_show_batch && item.batch && <span>Batch: {item.batch}</span>}
+                                        {data.thermal_show_expiry && item.exp && <span>Exp: {item.exp}</span>}
+                                        {data.thermal_show_mfg_date && item.mfg_date && <span>Mfg: {item.mfg_date}</span>}
+                                        {data.thermal_show_size && item.size && <span>Size: {item.size}</span>}
+                                        {data.thermal_show_model && item.model && <span>Model: {item.model}</span>}
+                                        {data.thermal_show_serial && item.serial && <span>S/N: {item.serial}</span>}
+                                    </div>
+                                )}
+                                <div className="text-xs text-slate-500">{item.qty} x {formatAmount(item.rate)}</div>
+                            </td>
+                            <td className="py-4 text-right font-bold">{formatAmount(item.amount)}</td>
+                        </tr>
+                    ))}
+                    {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
+                        <tr key={`empty-${idx}`} className="border-b border-slate-100 h-12">
+                            <td className="py-4"></td>
+                            <td className="py-4 text-right"></td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            <div className="flex justify-between items-start mt-6">
+                <div className="w-1/2 text-left space-y-2">
+                    {data.print_amount_words !== '0' && (
+                        <div className="text-xs italic font-bold">
+                            "{numberToWords(calculations.total, data.print_amount_words)}"
+                        </div>
+                    )}
+                    {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
+                        <div className="text-xs text-slate-400">
+                            {data.print_terms || 'Thank you for your business!'}
+                        </div>
+                    )}
+                </div>
+                <div className="w-1/2 ml-auto text-sm space-y-1">
+                    <div className="flex justify-between"><span>Subtotal:</span><span>{formatAmount(calculations.subtotal)}</span></div>
+                    {calculations.invoiceDiscount > 0 && (
+                        <div className="flex justify-between text-red-600 font-bold"><span>Discount:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
+                    )}
+                    <div className="flex justify-between"><span>Tax Amount:</span><span>{formatAmount(calculations.gst)}</span></div>
+                    {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
+                        <div className="flex justify-between"><span>Delivery:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
+                    )}
+                    {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
+                        <div key={idx} className="flex justify-between"><span>{item.label}:</span><span>{formatAmount(item.value)}</span></div>
+                    ))}
+                    <div className="flex justify-between font-bold text-base border-t border-slate-900 pt-1"><span>TOTAL DUE:</span><span>{formatAmount(calculations.total)}</span></div>
+                    {data.print_received_amount && (
+                        <div className="flex justify-between"><span>Received:</span><span>{formatAmount(calculations.paid)}</span></div>
+                    )}
+                    {data.print_balance_amount && (
+                        <div className="flex justify-between font-bold"><span>Balance Due:</span><span>{formatAmount(calculations.balance)}</span></div>
+                    )}
+                    {data.print_show_previous_balance && (
+                        <>
+                            <div className="flex justify-between"><span>Prev Balance:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
+                            <div className="flex justify-between font-bold border-t border-slate-900 pt-1"><span>Net Balance:</span><span>{formatAmount(calculations.net_balance)}</span></div>
+                        </>
+                    )}
+                    {(data.print_party_balance && !data.print_show_previous_balance) && (
+                        <div className="flex justify-between font-bold"><span>Party Balance:</span><span>{formatAmount(calculations.net_balance)}</span></div>
+                    )}
+                </div>
+            </div>
+
+            {/* Received / Delivered / Acknowledgement / Payment Mode */}
+            {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
+                <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t-2 border-slate-900">
+                    {data.print_payment_mode && (
+                        <div className="text-left font-bold">
+                            <span>Payment Mode: </span>
+                            <span>{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
+                        </div>
+                    )}
+                    <div className="flex gap-6 ml-auto font-bold">
+                        {data.print_received_by && (
+                            <div className="text-center">
+                                <div className="w-28 border-b-2 border-slate-900 h-6"></div>
+                                <div className="text-[10px] mt-1">Received By</div>
+                            </div>
+                        )}
+                        {data.print_delivered_by && (
+                            <div className="text-center">
+                                <div className="w-28 border-b-2 border-slate-900 h-6"></div>
+                                <div className="text-[10px] mt-1">Delivered By</div>
+                            </div>
+                        )}
+                        {data.print_acknowledgement && (
+                            <div className="text-center">
+                                <div className="w-36 border-b-2 border-slate-900 h-6"></div>
+                                <div className="text-[10px] mt-1">Customer Acknowledgement</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {data.print_signature_text && (
+                <div className="flex justify-end mt-8">
+                    <div className="text-center font-bold">
+                        <div className="h-10"></div>
+                        <div className="border-t-2 border-slate-900 w-32"></div>
+                        <div className="text-[10px] mt-1">{data.print_signature_text}</div>
+                    </div>
+                </div>
+            )}
+        </>
+    );
+
+    if (data.print_header_all_pages) {
+        return (
+            <table className="w-full h-full font-sans print-layout-master-table" style={{ borderCollapse: 'collapse', border: 'none' }}>
+                <thead>
+                    <tr>
+                        <td style={{ border: 'none', padding: 0 }}>
+                            {headerContent}
+                            {billToContent}
                         </td>
-                        <td className="py-4 text-right font-bold">{formatAmount(item.amount)}</td>
                     </tr>
-                ))}
-                {Array.from({ length: Math.max(0, (parseInt(data.print_min_item_rows) || 0) - items.length) }).map((_, idx) => (
-                    <tr key={`empty-${idx}`} className="border-b border-slate-100 h-12">
-                        <td className="py-4"></td>
-                        <td className="py-4 text-right"></td>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style={{ border: 'none', padding: 0, verticalAlign: 'top' }}>
+                            {mainContent}
+                        </td>
                     </tr>
-                ))}
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        );
+    }
 
-        <div className="flex justify-between items-start mt-6">
-            <div className="w-1/2 text-left space-y-2">
-                {data.print_amount_words !== '0' && (
-                    <div className="text-xs italic font-bold">
-                        "{numberToWords(calculations.total, data.print_amount_words)}"
-                    </div>
-                )}
-                {(data.print_description !== false && data.print_description !== '0' && data.print_description !== 0) && (
-                    <div className="text-xs text-slate-400">
-                        {data.print_terms || 'Thank you for your business!'}
-                    </div>
-                )}
-            </div>
-            <div className="w-1/2 ml-auto text-sm space-y-1">
-                <div className="flex justify-between"><span>Subtotal:</span><span>{formatAmount(calculations.subtotal)}</span></div>
-                {calculations.invoiceDiscount > 0 && (
-                    <div className="flex justify-between text-red-600 font-bold"><span>Discount:</span><span>-{formatAmount(calculations.invoiceDiscount)}</span></div>
-                )}
-                <div className="flex justify-between"><span>Tax Amount:</span><span>{formatAmount(calculations.gst)}</span></div>
-                {data.print_show_delivery_charge !== false && calculations.delivery_charge > 0 && (
-                    <div className="flex justify-between"><span>Delivery:</span><span>{formatAmount(calculations.delivery_charge)}</span></div>
-                )}
-                {data.print_show_extra_charge !== false && getExtraChargesList(calculations).map((item, idx) => (
-                    <div key={idx} className="flex justify-between"><span>{item.label}:</span><span>{formatAmount(item.value)}</span></div>
-                ))}
-                <div className="flex justify-between font-bold text-base border-t border-slate-900 pt-1"><span>TOTAL DUE:</span><span>{formatAmount(calculations.total)}</span></div>
-                {data.print_received_amount && (
-                    <div className="flex justify-between"><span>Received:</span><span>{formatAmount(calculations.paid)}</span></div>
-                )}
-                {data.print_balance_amount && (
-                    <div className="flex justify-between font-bold"><span>Balance Due:</span><span>{formatAmount(calculations.balance)}</span></div>
-                )}
-                {data.print_show_previous_balance && (
-                    <>
-                        <div className="flex justify-between"><span>Prev Balance:</span><span>{formatAmount(calculations.prev_balance)}</span></div>
-                        <div className="flex justify-between font-bold border-t border-slate-900 pt-1"><span>Net Balance:</span><span>{formatAmount(calculations.net_balance)}</span></div>
-                    </>
-                )}
-                {(data.print_party_balance && !data.print_show_previous_balance) && (
-                    <div className="flex justify-between font-bold"><span>Party Balance:</span><span>{formatAmount(calculations.net_balance)}</span></div>
-                )}
-            </div>
+    return (
+        <div className="font-sans h-full flex flex-col">
+            {headerContent}
+            {billToContent}
+            {mainContent}
         </div>
-
-        {/* Received / Delivered / Acknowledgement / Payment Mode */}
-        {(data.print_received_by || data.print_delivered_by || data.print_acknowledgement || data.print_payment_mode) && (
-            <div className="flex justify-between items-end text-xs mt-8 pt-4 border-t-2 border-slate-900">
-                {data.print_payment_mode && (
-                    <div className="text-left font-bold">
-                        <span>Payment Mode: </span>
-                        <span>{sale ? (sale.payment_method || 'Cash').toUpperCase() : 'CASH'}</span>
-                    </div>
-                )}
-                <div className="flex gap-6 ml-auto font-bold">
-                    {data.print_received_by && (
-                        <div className="text-center">
-                            <div className="w-28 border-b-2 border-slate-900 h-6"></div>
-                            <div className="text-[10px] mt-1">Received By</div>
-                        </div>
-                    )}
-                    {data.print_delivered_by && (
-                        <div className="text-center">
-                            <div className="w-28 border-b-2 border-slate-900 h-6"></div>
-                            <div className="text-[10px] mt-1">Delivered By</div>
-                        </div>
-                    )}
-                    {data.print_acknowledgement && (
-                        <div className="text-center">
-                            <div className="w-36 border-b-2 border-slate-900 h-6"></div>
-                            <div className="text-[10px] mt-1">Customer Acknowledgement</div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        )}
-
-        {data.print_signature_text && (
-            <div className="flex justify-end mt-8">
-                <div className="text-center font-bold">
-                    <div className="h-10"></div>
-                    <div className="border-t-2 border-slate-900 w-32"></div>
-                    <div className="text-[10px] mt-1">{data.print_signature_text}</div>
-                </div>
-            </div>
-        )}
-    </div>
     );
 };
 
