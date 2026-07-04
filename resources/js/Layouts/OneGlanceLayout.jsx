@@ -620,8 +620,8 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
           route: store ? 'store.admin.settings' : null,  
           routeParams: store ? { store_slug: store.slug } : {} },
           
-        { name: 'Data Management',     icon: HardDrive,       subs: [], 
-          route: store ? 'store.admin.data' : null,  
+        { name: 'Data & Backup',       icon: HardDrive,       subs: [],
+          route: store ? 'store.admin.data' : null,
           routeParams: store ? { store_slug: store.slug } : {} },
 
           

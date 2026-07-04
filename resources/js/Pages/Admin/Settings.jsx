@@ -23,24 +23,40 @@ import {
 import Toggle from '@/Components/Toggle';
 import SectionHeader from '@/Components/SectionHeader';
 
+// ── Settings IA (restructured) ──────────────────────────────────────────
+// This used to be 18 flat sections (several of them rendered by the exact
+// same shared component split across two unrelated categories, plus a
+// duplicated set of "POS & Sales" / "Transaction" fields, plus a "Messages"
+// section that was fully built but never included in any category so it
+// could never appear in the sidebar). Consolidated to 14 sections:
+//   - System / Notifications / Security / Backup / Integrations all used to
+//     render <SystemSettingsSection activeSubSection="..."/> from two
+//     different categories — System+Notifications now share one
+//     "Preferences" tab, AI+Integrations share one tab, and Backup & Data
+//     is replaced by a link-out to the "Data & Backup" hub (see
+//     Pages/Admin/DataManagement.jsx) instead of a 4th place to manage backups.
+//   - "POS & Sales" and "Transaction" are merged into "Sales & Invoicing"
+//     with two subsections, since they previously duplicated the same
+//     pos_auto_fill_cash / round_off_total / show_margin_percentage fields.
+//   - "Messages" (WhatsApp/SMS) is now actually reachable.
 const SETTINGS_CATEGORIES = [
     {
         id: 'org',
         name: 'Organization',
         icon: Building2,
-        sections: ['business', 'general', 'system', 'notifications']
+        sections: ['business', 'preferences']
     },
     {
         id: 'ops',
         name: 'Operations',
         icon: ShoppingCart,
-        sections: ['pos', 'transaction', 'print', 'taxes', 'item', 'party', 'reminders', 'accounting']
+        sections: ['sales', 'taxes', 'print', 'messages', 'item', 'party', 'reminders', 'accounting']
     },
     {
         id: 'adv',
         name: 'Advanced',
         icon: Sparkles,
-        sections: ['ai', 'security', 'backup', 'integrations']
+        sections: ['security', 'ai_integrations', 'backup']
     },
     {
         id: 'zone',
@@ -52,32 +68,34 @@ const SETTINGS_CATEGORIES = [
 
 const SETTINGS_SECTIONS = [
     { id: 'business', name: 'Business Info', icon: Building2, description: 'Company details and branding' },
-    { id: 'general', name: 'General', icon: Settings, description: 'Passcode, Multi-firm & UI scaling' },
-    { id: 'ai', name: 'AI Intelligence', icon: Sparkles, description: 'Gemini, OpenAI & Smart Search' },
-    { id: 'pos', name: 'POS & Sales', icon: ShoppingCart, description: 'Sales configuration & charity' },
-    { id: 'transaction', name: 'Transaction', icon: FileText, description: 'Invoice headers, prefixes & billing' },
-    { id: 'print', name: 'Print', icon: Printer, description: 'Regular & Thermal printer layouts' },
+    { id: 'preferences', name: 'Preferences', icon: Settings, description: 'Passcode, multi-firm, language & alerts' },
+    { id: 'sales', name: 'Sales & Invoicing', icon: ShoppingCart, description: 'Checkout behavior and invoice fields' },
     { id: 'taxes', name: 'Taxes', icon: Percent, description: 'Tax rates and groups' },
+    { id: 'print', name: 'Print', icon: Printer, description: 'Regular & Thermal printer layouts' },
     { id: 'messages', name: 'Messages', icon: MessageSquare, description: 'WhatsApp & SMS notifications' },
     { id: 'party', name: 'Party', icon: Users, description: 'Customer & Supplier preferences' },
     { id: 'item', name: 'Item', icon: Package, description: 'Inventory, MRP & batch tracking' },
     { id: 'reminders', name: 'Reminders', icon: Clock, description: 'Service and payment alerts' },
     { id: 'accounting', name: 'Accounting', icon: BookOpen, description: 'Ledgers, depreciation & fiscal year' },
-    { id: 'system', name: 'System', icon: Layout, description: 'Language and display settings' },
-    { id: 'notifications', name: 'Notifications', icon: Bell, description: 'Internal system alerts' },
     { id: 'security', name: 'Security', icon: Shield, description: 'Access control & 2FA' },
-    { id: 'backup', name: 'Backup & Data', icon: Database, description: 'Database safety & history' },
-    { id: 'integrations', name: 'Integrations', icon: Wifi, description: 'External API connections' },
+    { id: 'ai_integrations', name: 'AI & Integrations', icon: Sparkles, description: 'Gemini, OpenAI, FBR & Stripe' },
+    { id: 'backup', name: 'Backup & Data', icon: Database, description: 'Now lives in the Data & Backup hub' },
     { id: 'reset', name: 'Factory Reset', icon: Trash2, description: 'Erase data & start fresh' },
 ];
 
 export default function AdminSettings({ settings = {} }) {
     const { store } = usePage().props;
     const [activeSection, setActiveSection] = useState(() => {
+        // NOTE: this used to check against a hardcoded array of section ids
+        // ('loyalty' isn't even a real section id, and most real ids like
+        // 'party'/'item'/'security'/'backup' were missing) — any bookmark or
+        // reload landing on a non-whitelisted-but-real tab silently bounced
+        // back to 'business'. Now it validates against the real, current list.
+        const validIds = SETTINGS_SECTIONS.map(s => s.id);
         const hash = window.location.hash.replace('#', '');
-        return ['business', 'general', 'transaction', 'loyalty', 'print', 'ai', 'integrations', 'reset'].includes(hash)
-            ? hash
-            : (localStorage.getItem('active_settings_section') || 'business');
+        if (validIds.includes(hash)) return hash;
+        const stored = localStorage.getItem('active_settings_section');
+        return validIds.includes(stored) ? stored : 'business';
     });
 
     useEffect(() => {
@@ -363,147 +381,184 @@ export default function AdminSettings({ settings = {} }) {
             case 'business':
                 return <BusinessSettingsSection data={data} setData={setData} />;
 
-            case 'general':
-                return <GeneralSettingsSection data={data} setData={setData} />;
-
-            case 'ai':
+            case 'preferences':
+                // Merges the old "General", "System" and "Notifications" tabs.
+                // All three used to live in different categories even though
+                // "System" and "Notifications" already rendered the exact same
+                // <SystemSettingsSection/> component as "Security"/"Backup"/
+                // "Integrations" — just a different activeSubSection prop.
                 return (
-                    <AiSettingsSection
-                        data={data}
-                        setData={setData}
-                        handleVerifyKey={handleVerifyKey}
-                        verifyingKey={verifyingKey}
-                        verificationResult={verificationResult}
-                    />
-                );
-
-            case 'pos':
-                return (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                            <SectionHeader title="Sales Configuration" description="Customize your point of sale experience" />
-                            <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                                <Toggle enabled={data.pos_auto_fill_cash} onChange={v => setData('pos_auto_fill_cash', v)} label="Auto-Fill Cash Received" description="Automatically populate the 'Cash Received' field with the total amount" />
-                                <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
-                                <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description="Automatically report sales to FBR and print QR codes" />
-                                <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
-                                <div className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-800 dark:text-white">Round Off Invoice Totals</h4>
-                                        <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
-                                    </div>
-                                    <div className="grid grid-cols-6 gap-1 max-w-sm w-full">
-                                        {[
-                                            { value: 'none', label: 'None' },
-                                            { value: '0', label: 'Whole' },
-                                            { value: '1', label: '.0' },
-                                            { value: '2', label: '.00' },
-                                            { value: '3', label: '.000' },
-                                            { value: '4', label: '.0000' }
-                                        ].map((opt) => {
-                                            const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
-                                            const isActive = currentVal === opt.value;
-                                            return (
-                                                <button
-                                                    key={opt.value}
-                                                    type="button"
-                                                    onClick={() => setData('round_off_total', opt.value)}
-                                                    className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
-                                                        ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
-                                                        : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
-                                                        }`}
-                                                >
-                                                    {opt.label}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                                <Toggle
-                                    enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
-                                    onChange={v => setData('stop_sale_negative_stock', !v)}
-                                    label="Allow Negative Stock (Overselling)"
-                                    description="Warning: Allows selling items even if inventory is 0"
-                                    variant="danger"
-                                />
-                            </div>
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div>
+                            <GeneralSettingsSection data={data} setData={setData} />
                         </div>
-
-                        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
-                            <SectionHeader title="Return Mode" description="Configure return authorization requirements" />
-                            <div className="space-y-4">
-                                <div className="flex justify-between items-center py-2">
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">POS Return Mode</label>
-                                        <span className="block text-xs text-slate-500">Configure return authorization requirements</span>
-                                    </div>
-                                    <select
-                                        value={data.pos_return_mode}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            setData('pos_return_mode', val);
-                                            if (val !== 'open') setAcknowledgeOpenReturn(false);
-                                        }}
-                                        className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                                    >
-                                        <option value="reference">Reference Number Required</option>
-                                        <option value="customer_or_reference">Customer or Reference</option>
-                                        <option value="open">Open Return — No Reference Needed</option>
-                                    </select>
-                                </div>
-                                {data.pos_return_mode === 'open' && (
-                                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3">
-                                        <div className="flex items-start gap-3">
-                                            <span className="text-amber-500 text-lg">⚠️</span>
-                                            <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
-                                                Warning: Open returns cannot be linked to original sales. You are responsible for verifying returned items were genuinely purchased.
-                                            </p>
-                                        </div>
-                                        <label className="flex items-center gap-2 cursor-pointer select-none">
-                                            <input type="checkbox" checked={acknowledgeOpenReturn} onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" />
-                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">I understand and acknowledge this risk</span>
-                                        </label>
-                                    </div>
-                                )}
-                                {data.pos_return_mode === 'open' && (
-                                    <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                        <div className="flex justify-between items-center py-2">
-                                            <div>
-                                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Return Window (days)</label>
-                                                <span className="block text-xs text-slate-500">Max days since purchase for returns (leave empty to disable)</span>
-                                            </div>
-                                            <input type="number" min="1" value={data.pos_return_window} onChange={(e) => setData('pos_return_window', e.target.value)} placeholder="e.g. 7, 14, 30" className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
-                                        </div>
-                                        {data.pos_return_window && (
-                                            <div className="flex justify-between items-center py-2">
-                                                <div>
-                                                    <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Window Behavior</span>
-                                                    <span className="block text-xs text-slate-500">Action when return window has expired</span>
-                                                </div>
-                                                <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
-                                                    <button type="button" onClick={() => setData('pos_return_window_behavior', 'warn')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Soft Warning</button>
-                                                    <button type="button" onClick={() => setData('pos_return_window_behavior', 'block')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Hard Block</button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between py-4 border-t border-slate-100 dark:border-slate-700">
-                                    <div>
-                                        <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Enable Charity Donations</span>
-                                        <span className="block text-xs text-slate-500">Show the Charity button on the POS for quick donation recording</span>
-                                    </div>
-                                    <button type="button" onClick={() => setData('charity_enabled', !data.charity_enabled)} className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
-                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.charity_enabled ? 'right-1' : 'left-1'}`}></div>
-                                    </button>
-                                </div>
-                            </div>
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <SectionHeader title="Localization & Appearance" description="Language, date format and display" />
+                            <SystemSettingsSection data={data} setData={setData} activeSubSection="system" />
+                        </div>
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <SystemSettingsSection data={data} setData={setData} activeSubSection="notifications" />
                         </div>
                     </div>
                 );
 
-            case 'transaction':
-                return <TransactionSettingsSection data={data} setData={setData} />;
+            case 'ai_integrations':
+                // Merges the old "AI Intelligence" and "Integrations" tabs —
+                // both are just cards for connecting a 3rd-party service.
+                return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div>
+                            <SectionHeader title="AI Intelligence" description="Gemini, OpenAI & Smart Search" />
+                            <AiSettingsSection
+                                data={data}
+                                setData={setData}
+                                handleVerifyKey={handleVerifyKey}
+                                verifyingKey={verifyingKey}
+                                verificationResult={verificationResult}
+                            />
+                        </div>
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <SectionHeader title="Integrations" description="External API connections" />
+                            <SystemSettingsSection data={data} setData={setData} activeSubSection="integrations" />
+                        </div>
+                    </div>
+                );
+
+            case 'sales':
+                // Merges the old "POS & Sales" and "Transaction" tabs. They used
+                // to duplicate the exact same pos_auto_fill_cash / round_off_total /
+                // show_margin_percentage fields in two different places — those
+                // now live only in "At the register" below, and TransactionSettingsSection
+                // was trimmed down to just its two unique fields ("On the invoice").
+                return (
+                    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div>
+                            <SectionHeader title="At the Register" description="Customize your point of sale experience" />
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6">
+                                <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                                    <Toggle enabled={data.pos_auto_fill_cash} onChange={v => setData('pos_auto_fill_cash', v)} label="Auto-Fill Cash Received" description="Automatically populate the 'Cash Received' field with the total amount" />
+                                    <Toggle enabled={data.senior_mode} onChange={v => setData('senior_mode', v)} label="Senior Mode (Accessibility)" description="Enable larger fonts and high-contrast UI for easier reading" />
+                                    <Toggle enabled={data.fbr_integration} onChange={v => setData('fbr_integration', v)} label="FBR Integration" description="Automatically report sales to FBR and print QR codes" />
+                                    <Toggle enabled={data.show_margin_percentage} onChange={v => setData('show_margin_percentage', v)} label="Show Margin Percentage" description="Display profit margin in sales overview" />
+                                    <div className="py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                        <div>
+                                            <h4 className="text-sm font-bold text-slate-800 dark:text-white">Round Off Invoice Totals</h4>
+                                            <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
+                                        </div>
+                                        <div className="grid grid-cols-6 gap-1 max-w-sm w-full">
+                                            {[
+                                                { value: 'none', label: 'None' },
+                                                { value: '0', label: 'Whole' },
+                                                { value: '1', label: '.0' },
+                                                { value: '2', label: '.00' },
+                                                { value: '3', label: '.000' },
+                                                { value: '4', label: '.0000' }
+                                            ].map((opt) => {
+                                                const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
+                                                const isActive = currentVal === opt.value;
+                                                return (
+                                                    <button
+                                                        key={opt.value}
+                                                        type="button"
+                                                        onClick={() => setData('round_off_total', opt.value)}
+                                                        className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
+                                                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
+                                                            : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
+                                                            }`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                    <Toggle
+                                        enabled={data.stop_sale_negative_stock === '0' || data.stop_sale_negative_stock === false || data.stop_sale_negative_stock === 0}
+                                        onChange={v => setData('stop_sale_negative_stock', !v)}
+                                        label="Allow Negative Stock (Overselling)"
+                                        description="Warning: Allows selling items even if inventory is 0"
+                                        variant="danger"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 mt-6">
+                                <SectionHeader title="Return Mode" description="Configure return authorization requirements" />
+                                <div className="space-y-4">
+                                    <div className="flex justify-between items-center py-2">
+                                        <div>
+                                            <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">POS Return Mode</label>
+                                            <span className="block text-xs text-slate-500">Configure return authorization requirements</span>
+                                        </div>
+                                        <select
+                                            value={data.pos_return_mode}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setData('pos_return_mode', val);
+                                                if (val !== 'open') setAcknowledgeOpenReturn(false);
+                                            }}
+                                            className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                                        >
+                                            <option value="reference">Reference Number Required</option>
+                                            <option value="customer_or_reference">Customer or Reference</option>
+                                            <option value="open">Open Return — No Reference Needed</option>
+                                        </select>
+                                    </div>
+                                    {data.pos_return_mode === 'open' && (
+                                        <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl space-y-3">
+                                            <div className="flex items-start gap-3">
+                                                <span className="text-amber-500 text-lg">⚠️</span>
+                                                <p className="text-xs text-amber-800 dark:text-amber-400 font-medium leading-relaxed">
+                                                    Warning: Open returns cannot be linked to original sales. You are responsible for verifying returned items were genuinely purchased.
+                                                </p>
+                                            </div>
+                                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                                <input type="checkbox" checked={acknowledgeOpenReturn} onChange={(e) => setAcknowledgeOpenReturn(e.target.checked)} className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" />
+                                                <span className="text-xs font-bold text-slate-700 dark:text-slate-300">I understand and acknowledge this risk</span>
+                                            </label>
+                                        </div>
+                                    )}
+                                    {data.pos_return_mode === 'open' && (
+                                        <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                            <div className="flex justify-between items-center py-2">
+                                                <div>
+                                                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Return Window (days)</label>
+                                                    <span className="block text-xs text-slate-500">Max days since purchase for returns (leave empty to disable)</span>
+                                                </div>
+                                                <input type="number" min="1" value={data.pos_return_window} onChange={(e) => setData('pos_return_window', e.target.value)} placeholder="e.g. 7, 14, 30" className="w-64 px-4 py-2.5 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none" />
+                                            </div>
+                                            {data.pos_return_window && (
+                                                <div className="flex justify-between items-center py-2">
+                                                    <div>
+                                                        <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Window Behavior</span>
+                                                        <span className="block text-xs text-slate-500">Action when return window has expired</span>
+                                                    </div>
+                                                    <div className="flex bg-slate-100 dark:bg-slate-700 p-1 rounded-xl">
+                                                        <button type="button" onClick={() => setData('pos_return_window_behavior', 'warn')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'warn' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Soft Warning</button>
+                                                        <button type="button" onClick={() => setData('pos_return_window_behavior', 'block')} className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${data.pos_return_window_behavior === 'block' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'}`}>Hard Block</button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between py-4 border-t border-slate-100 dark:border-slate-700">
+                                        <div>
+                                            <span className="block text-sm font-bold text-slate-700 dark:text-slate-300">Enable Charity Donations</span>
+                                            <span className="block text-xs text-slate-500">Show the Charity button on the POS for quick donation recording</span>
+                                        </div>
+                                        <button type="button" onClick={() => setData('charity_enabled', !data.charity_enabled)} className={`relative w-12 h-6 rounded-full transition-colors ${data.charity_enabled ? 'bg-rose-500' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${data.charity_enabled ? 'right-1' : 'left-1'}`}></div>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
+                            <TransactionSettingsSection data={data} setData={setData} />
+                        </div>
+                    </div>
+                );
 
             case 'print':
                 return <PrintSettingsSection data={data} setData={setData} saveSettings={saveSettings} />;
@@ -512,13 +567,9 @@ export default function AdminSettings({ settings = {} }) {
                 return <TaxSettingsSection data={data} setData={setData} />;
 
             case 'messages':
-                // For now, keep messages inline or basic as it has custom content logic
-                // Actually, let's keep it inline for this iteration or it will be too many files change
-                // But the user asked to make ALL work.
-                // I'll keep the existing MESSAGE implementation but cleaned up if possible.
-                // Wait, I can't leave it inline if I'm replacing the whole block.
-                // I'll re-insert the message code here but ideally I should have extracted it.
-                // For speed, I'll copy the message code back in.
+                // Fully built (WhatsApp + SMS), but until now this id was never
+                // added to any category's `sections` list above, so it could
+                // never actually appear in the sidebar. Now it's reachable.
                 return (
                     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 rounded-2xl p-6 flex items-center justify-between">
@@ -671,20 +722,34 @@ export default function AdminSettings({ settings = {} }) {
                     </div>
                 );
 
-            case 'system':
-                return <SystemSettingsSection data={data} setData={setData} activeSubSection="system" />;
-
-            case 'notifications':
-                return <SystemSettingsSection data={data} setData={setData} activeSubSection="notifications" />;
-
             case 'security':
                 return <SystemSettingsSection data={data} setData={setData} activeSubSection="security" />;
 
             case 'backup':
-                return <SystemSettingsSection data={data} setData={setData} activeSubSection="backup" />;
-
-            case 'integrations':
-                return <SystemSettingsSection data={data} setData={setData} activeSubSection="integrations" />;
+                // Automatic backups, manual snapshots, cloud sync and restore all
+                // moved to the "Data & Backup" hub (Pages/Admin/DataManagement.jsx) —
+                // this used to duplicate that page's "Full System" tab almost exactly.
+                return (
+                    <div className="flex flex-col items-center text-center gap-4 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-200 dark:border-slate-700 p-12 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                        <div className="w-16 h-16 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                            <Database size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">Backups now live in Data &amp; Backup</h3>
+                            <p className="text-sm text-slate-500 max-w-md">
+                                Automatic daily backups, manual snapshots, cloud sync and restore are all in one
+                                place now, instead of split between Settings and Data Management.
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => router.visit(route('store.admin.data', { store_slug: store?.slug, tab: 'backups' }))}
+                            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 flex items-center gap-2 transition-all active:scale-95"
+                        >
+                            Go to Data &amp; Backup <ChevronRight size={18} />
+                        </button>
+                    </div>
+                );
 
             case 'reset':
                 return <DangerSettingsSection data={data} setData={setData} />;

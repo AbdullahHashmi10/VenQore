@@ -1,7 +1,13 @@
 import React from 'react';
-import { FileText, Percent, Info, Calendar } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import Toggle from '@/Components/Toggle';
 
+// NOTE: This section used to also contain "Auto-Fill Cash Received", "Show Profit
+// Margin %" and "Round Off Invoice Totals" — those were byte-for-byte duplicates of
+// controls in the "Sales & Invoicing" > "At the register" subsection (same
+// pos_auto_fill_cash / show_margin_percentage / round_off_total state keys, editable
+// from two different tabs). They were removed from here so each setting has exactly
+// one home; see Pages/Admin/Settings.jsx's merged 'sales' case.
 export default function TransactionSettingsSection({ data, setData }) {
 
     return (
@@ -14,7 +20,7 @@ export default function TransactionSettingsSection({ data, setData }) {
                         <FileText size={32} />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-2">Invoice Configuration</h2>
+                        <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight mb-2">On the Invoice</h2>
                         <p className="text-slate-500 font-medium">Control how your bills look and behave.</p>
                     </div>
                 </div>
@@ -34,50 +40,6 @@ export default function TransactionSettingsSection({ data, setData }) {
                         label="Default to 'Cash Sale'"
                         description="Pre-select Cash as payment mode"
                     />
-                    <Toggle
-                        enabled={data.pos_auto_fill_cash === '1' || data.pos_auto_fill_cash === true}
-                        onChange={v => setData('pos_auto_fill_cash', v)}
-                        label="Auto-Fill Cash Received"
-                        description="Assume exact change if field is empty"
-                    />
-                    <Toggle
-                        enabled={data.show_margin_percentage === '1' || data.show_margin_percentage === true}
-                        onChange={v => setData('show_margin_percentage', v)}
-                        label="Show Profit Margin %"
-                        description="Visible only to admins during sale"
-                    />
-                    <div className="p-4 bg-slate-50 dark:bg-slate-800/30 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 md:col-span-2">
-                        <div className="flex flex-col gap-2">
-                            <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Round Off Invoice Totals</label>
-                            <p className="text-xs text-slate-500">Choose rounding precision for sales and purchases</p>
-                            <div className="grid grid-cols-6 gap-1 mt-2">
-                                {[
-                                    { value: 'none', label: 'None' },
-                                    { value: '0', label: 'Whole' },
-                                    { value: '1', label: '.0' },
-                                    { value: '2', label: '.00' },
-                                    { value: '3', label: '.000' },
-                                    { value: '4', label: '.0000' }
-                                ].map((opt) => {
-                                    const currentVal = data.round_off_total === true || data.round_off_total === '1' ? '0' : (data.round_off_total || 'none');
-                                    const isActive = currentVal === opt.value;
-                                    return (
-                                        <button
-                                            key={opt.value}
-                                            type="button"
-                                            onClick={() => setData('round_off_total', opt.value)}
-                                            className={`py-2 px-1 text-center font-bold text-[11px] rounded-lg border transition-all ${isActive
-                                                ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-300'
-                                                : 'border-transparent bg-slate-100 dark:bg-slate-700/50 text-slate-500 hover:bg-slate-200/50'
-                                                }`}
-                                        >
-                                            {opt.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

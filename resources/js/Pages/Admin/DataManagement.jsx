@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import { Head, useForm, usePage, router } from '@inertiajs/react';
+import axios from 'axios';
 import {
     Database,
     Download,
@@ -24,14 +25,30 @@ import {
     Settings,
     Link2,
     Unlink,
-    ExternalLink
+    ExternalLink,
+    Trash2,
+    Mail,
+    Plus,
+    HardDrive,
+    AlertTriangle,
+    Loader2
 } from 'lucide-react';
 import MidnightNebula from '@/Components/MidnightNebula';
 import PremiumSelect from '@/Components/PremiumSelect';
 import { useAlert } from '@/Contexts/AlertContext';
 
+// NOTE: This page absorbed three things that used to live elsewhere:
+//  - The "Backups" tab below replaces the old Settings > "Backup & Data" tab
+//    AND the standalone Admin/Backups.jsx page AND Admin/Database.jsx's own
+//    backup list — those were three separate places to download/restore/delete
+//    the same SQL backups. This is now the one place.
+//  - The "Migrate from Another System" tab replaces the standalone
+//    Admin/Migration.jsx page, which worked fine but had no link pointing to
+//    it anywhere in the app.
+// Both still call the exact same backend routes/controllers as before
+// (BackupController / MigrationController) — only the frontend moved.
 export default function DataManagement() {
-    const { store, googleBackups = [] } = usePage().props;
+    const { store, googleBackups = [], backups: initialBackupsList = [], autoBackupEnabled = true } = usePage().props;
     const { showConfirm, showAlert } = useAlert();
     const csrfToken = typeof document !== 'undefined' ? document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') : '';
     const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
@@ -243,6 +260,140 @@ export default function DataManagement() {
         window.location.href = route('store.admin.data.template', { store_slug: store?.slug, type: importType, format: 'xlsx' });
     };
 
+    // ── Backups tab (SQL snapshots — merged in from Backups.jsx / Settings) ──
+    const [backupsList, setBackupsList] = useState(initialBackupsList);
+    const [creatingBackup, setCreatingBackup] = useState(false);
+    const [restoringBackup, setRestoringBackup] = useState(false);
+    const [deletingBackup, setDeletingBackup] = useState(null);
+    const [mailingBackup, setMailingBackup] = useState(null);
+    const autoBackupForm = useForm({ auto_backup: !!autoBackupEnabled });
+
+    const createBackupNow = () => {
+        setCreatingBackup(true);
+        router.post(route('store.backups.store', { store_slug: store?.slug }), {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showAlert({ title: 'Success', message: 'Backup created successfully.', type: 'success' });
+            },
+            onFinish: () => setCreatingBackup(false)
+        });
+    };
+
+    const deleteBackupFile = (filename) => {
+        showConfirm({
+            title: 'Delete this backup?',
+            text: `"${filename}" will be permanently deleted. This cannot be undone.`,
+            icon: 'warning',
+            onConfirm: () => {
+                setDeletingBackup(filename);
+                router.delete(route('store.backups.delete', { store_slug: store?.slug, filename }), {
+                    preserveScroll: true,
+                    onFinish: () => setDeletingBackup(null)
+                });
+            }
+        });
+    };
+
+    const emailBackupFile = (filename) => {
+        setMailingBackup(filename);
+        router.post(route('store.backups.email', { store_slug: store?.slug, filename }), {}, {
+            preserveScroll: true,
+            onFinish: () => setMailingBackup(null)
+        });
+    };
+
+    const handleBackupRestoreFile = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        showConfirm({
+            title: 'Restore database from this file?',
+            message: 'WARNING: All current data will be OVERWRITTEN by this backup. This cannot be undone. Are you sure you want to proceed?',
+            type: 'warning',
+            confirmLabel: 'Yes, Restore',
+            cancelLabel: 'Cancel',
+            onConfirm: () => {
+                setRestoringBackup(true);
+                const formData = new FormData();
+                formData.append('backup_file', file);
+                router.post(route('store.backups.restore', { store_slug: store?.slug }), formData, {
+                    forceFormData: true,
+                    onSuccess: () => {
+                        showAlert({ title: 'Success', message: 'Database restored successfully! Reloading...', type: 'success' });
+                        setTimeout(() => window.location.reload(), 1500);
+                    },
+                    onFinish: () => setRestoringBackup(false)
+                });
+            }
+        });
+        e.target.value = null;
+    };
+
+    const toggleAutoBackup = (enabled) => {
+        autoBackupForm.setData('auto_backup', enabled);
+        router.post(route('store.admin.settings.update', { store_slug: store?.slug }), { auto_backup: enabled ? '1' : '0' }, { preserveScroll: true });
+    };
+
+    // ── Migrate from Another System tab (merged in from Migration.jsx) ──────
+    const [migrationFile, setMigrationFile] = useState(null);
+    const [migrationStep, setMigrationStep] = useState('upload'); // upload, analyzing, review, importing, results
+    const [migrationAnalysis, setMigrationAnalysis] = useState(null);
+    const [migrationError, setMigrationError] = useState(null);
+    const [migrationLog, setMigrationLog] = useState([]);
+
+    const handleMigrationFileChange = (e) => {
+        if (e.target.files[0]) {
+            setMigrationFile(e.target.files[0]);
+            setMigrationError(null);
+        }
+    };
+
+    const handleMigrationAnalyze = () => {
+        if (!migrationFile) return;
+        setMigrationStep('analyzing');
+        const formData = new FormData();
+        formData.append('file', migrationFile);
+
+        axios.post(route('store.legacy.admin.migration.analyze', { store_slug: store?.slug }), formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+            .then(res => {
+                if (res.data.success) {
+                    setMigrationAnalysis(res.data);
+                    setMigrationStep('review');
+                } else {
+                    setMigrationError(res.data.message);
+                    setMigrationStep('upload');
+                }
+            })
+            .catch(err => {
+                setMigrationError(err.response?.data?.message || 'Failed to analyze file.');
+                setMigrationStep('upload');
+            });
+    };
+
+    const handleMigrationExecute = () => {
+        if (!migrationAnalysis) return;
+        setMigrationStep('importing');
+
+        axios.post(route('store.legacy.admin.migration.execute', { store_slug: store?.slug }), {
+            path: migrationAnalysis.path,
+        })
+            .then(res => {
+                if (res.data.success) {
+                    setMigrationLog(res.data.log);
+                    setMigrationStep('results');
+                } else {
+                    setMigrationError(res.data.message);
+                    setMigrationStep('review');
+                }
+            })
+            .catch(err => {
+                setMigrationError(err.response?.data?.message || 'Import failed.');
+                setMigrationStep('review');
+            });
+    };
+
     return (
         <OneGlanceLayout title="System Data Center" activeMenu="Data Management" mode="admin">
             <Head title="Data Management" />
@@ -261,10 +412,12 @@ export default function DataManagement() {
 
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1">
                         {[
-                            { id: 'drive_sync', label: 'Drive Sync', icon: Cloud },
+                            { id: 'backups', label: 'Backups', icon: HardDrive },
+                            { id: 'drive_sync', label: 'Cloud Sync', icon: Cloud },
                             { id: 'export', label: 'Export Data', icon: Download },
                             { id: 'import', label: 'Import Data', icon: Upload },
-                            { id: 'backup', label: 'Full System', icon: ShieldCheck }
+                            { id: 'backup', label: 'Full System', icon: ShieldCheck },
+                            { id: 'migrate', label: 'Migrate', icon: RefreshCw }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -746,6 +899,254 @@ export default function DataManagement() {
                             </div>
 
 
+                        </div>
+                    )}
+
+                    {activeTab === 'backups' && (
+                        <div className="h-full flex flex-col gap-6 animate-in fade-in duration-300">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 flex items-center justify-between shadow-sm">
+                                    <div>
+                                        <h3 className="font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                            <HardDrive className="text-indigo-500" size={20} /> Daily Auto-Backup
+                                        </h3>
+                                        <p className="text-xs text-slate-500 mt-1">Back up the database to local storage every night</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => toggleAutoBackup(!autoBackupForm.data.auto_backup)}
+                                        className={`relative w-12 h-6 rounded-full transition-colors shrink-0 ml-4 ${autoBackupForm.data.auto_backup ? 'bg-indigo-600' : 'bg-slate-300 dark:bg-slate-600'}`}
+                                    >
+                                        <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${autoBackupForm.data.auto_backup ? 'left-7' : 'left-1'}`} />
+                                    </button>
+                                </div>
+                                <button
+                                    onClick={createBackupNow}
+                                    disabled={creatingBackup}
+                                    className="bg-slate-900 rounded-3xl p-6 flex items-center justify-center gap-2 text-white font-bold shadow-xl hover:scale-[1.01] transition-transform active:scale-95 disabled:opacity-60"
+                                >
+                                    {creatingBackup ? <RefreshCw size={18} className="animate-spin" /> : <Plus size={18} />}
+                                    {creatingBackup ? 'Creating Snapshot...' : 'Create Snapshot Now'}
+                                </button>
+                                <label className="cursor-pointer bg-white dark:bg-slate-900 border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 rounded-3xl p-6 flex items-center justify-center gap-2 font-bold text-slate-600 dark:text-slate-300 transition-all text-center">
+                                    <input type="file" className="hidden" accept=".sql" onChange={handleBackupRestoreFile} disabled={restoringBackup} />
+                                    {restoringBackup ? <RefreshCw size={18} className="animate-spin text-indigo-500" /> : <Upload size={18} className="text-indigo-500" />}
+                                    {restoringBackup ? 'Restoring...' : 'Restore from .sql File'}
+                                </label>
+                            </div>
+
+                            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+                                <div className="px-8 py-6 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between shrink-0">
+                                    <h3 className="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                        <Database className="text-slate-400" size={20} /> Snapshot History
+                                    </h3>
+                                    <span className="px-3 py-1 bg-slate-200 dark:bg-slate-700 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">
+                                        {backupsList.length} Files Found
+                                    </span>
+                                </div>
+                                <div className="overflow-auto flex-1">
+                                    <table className="w-full">
+                                        <thead>
+                                            <tr className="text-left border-b border-slate-100 dark:border-slate-800">
+                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Snapshot</th>
+                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Created</th>
+                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400">Size</th>
+                                                <th className="px-8 py-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50 dark:divide-slate-800/50">
+                                            {backupsList.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="4" className="px-8 py-16 text-center">
+                                                        <div className="flex flex-col items-center justify-center text-slate-400">
+                                                            <HardDrive size={40} className="mb-3 opacity-20" />
+                                                            <p className="font-bold text-slate-600 dark:text-slate-400">No snapshots yet</p>
+                                                            <p className="text-xs">Create your first database backup to protect your data.</p>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : backupsList.map((backup) => (
+                                                <tr key={backup.name} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+                                                    <td className="px-8 py-4">
+                                                        <div className="flex items-center gap-3">
+                                                            <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400">
+                                                                <FileText size={18} />
+                                                            </div>
+                                                            <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate max-w-xs">{backup.name}</p>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-8 py-4 text-sm text-slate-500 dark:text-slate-400">{backup.date}</td>
+                                                    <td className="px-8 py-4">
+                                                        <span className="px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300">{backup.size}</span>
+                                                    </td>
+                                                    <td className="px-8 py-4">
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            <a href={route('store.backups.download', { store_slug: store?.slug, filename: backup.name })} className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-indigo-500 hover:border-indigo-500 transition-all" title="Download">
+                                                                <Download size={16} />
+                                                            </a>
+                                                            <button onClick={() => emailBackupFile(backup.name)} disabled={mailingBackup === backup.name} className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-emerald-500 hover:border-emerald-500 transition-all disabled:opacity-50" title="Email">
+                                                                {mailingBackup === backup.name ? <RefreshCw size={16} className="animate-spin" /> : <Mail size={16} />}
+                                                            </button>
+                                                            <button onClick={() => deleteBackupFile(backup.name)} disabled={deletingBackup === backup.name} className="p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-500 transition-all disabled:opacity-50" title="Delete">
+                                                                {deletingBackup === backup.name ? <RefreshCw size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'migrate' && (
+                        <div className="h-full flex flex-col items-center overflow-y-auto py-4 animate-in fade-in duration-300">
+                            <div className="w-full max-w-3xl">
+                                <div className="mb-8 text-center">
+                                    <div className="inline-flex items-center justify-center p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-2xl mb-4">
+                                        <Database size={32} />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Migrate from Another System</h2>
+                                    <p className="text-slate-500 dark:text-slate-400 max-w-lg mx-auto text-sm">
+                                        Seamlessly import your data from Vyapar backups (.vyp). We'll analyze your file and map Customers, Items, and Stock automatically.
+                                    </p>
+                                </div>
+
+                                <div className="flex items-center justify-center mb-10">
+                                    <div className={`flex flex-col items-center z-10 ${migrationStep === 'upload' ? 'opacity-100' : 'opacity-50'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 ${migrationStep === 'upload' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>1</div>
+                                        <span className="text-xs font-bold uppercase">Upload</span>
+                                    </div>
+                                    <div className="w-16 h-0.5 bg-slate-200 mx-2"></div>
+                                    <div className={`flex flex-col items-center z-10 ${['analyzing', 'review', 'importing', 'results'].includes(migrationStep) ? 'opacity-100' : 'opacity-50'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 ${['review', 'importing', 'results'].includes(migrationStep) ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>2</div>
+                                        <span className="text-xs font-bold uppercase">Review</span>
+                                    </div>
+                                    <div className="w-16 h-0.5 bg-slate-200 mx-2"></div>
+                                    <div className={`flex flex-col items-center z-10 ${migrationStep === 'results' ? 'opacity-100' : 'opacity-50'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold mb-2 ${migrationStep === 'results' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-500'}`}>3</div>
+                                        <span className="text-xs font-bold uppercase">Done</span>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden min-h-[380px] relative">
+                                    {migrationError && (
+                                        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white px-6 py-3 text-sm font-bold flex items-center justify-center z-10">
+                                            <AlertTriangle size={18} className="mr-2" /> {migrationError}
+                                        </div>
+                                    )}
+
+                                    {migrationStep === 'upload' && (
+                                        <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+                                            <div className="w-full max-w-md p-8 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl hover:border-indigo-500 transition-colors bg-slate-50 dark:bg-slate-800/50">
+                                                <Upload size={40} className="mx-auto text-slate-400 mb-4" />
+                                                <h3 className="font-bold text-lg mb-2">Drop your .vyp file here</h3>
+                                                <p className="text-xs text-slate-500 mb-6">Found in AppData/Roaming/Vyaparapp/DBUpdateBackup</p>
+                                                <input
+                                                    type="file"
+                                                    accept=".vyp,.db,.sqlite"
+                                                    onChange={handleMigrationFileChange}
+                                                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 mb-4"
+                                                />
+                                                {migrationFile && (
+                                                    <div className="bg-indigo-50 text-indigo-700 px-4 py-2 rounded-lg font-mono text-sm inline-block">
+                                                        {migrationFile.name} ({(migrationFile.size / 1024 / 1024).toFixed(2)} MB)
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button
+                                                disabled={!migrationFile}
+                                                onClick={handleMigrationAnalyze}
+                                                className="mt-8 px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/30 hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2"
+                                            >
+                                                Analyze File <ArrowRight size={18} />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {migrationStep === 'analyzing' && (
+                                        <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+                                            <Loader2 size={40} className="animate-spin text-indigo-600 mb-4" />
+                                            <h3 className="font-bold text-lg">Scanning Database...</h3>
+                                            <p className="text-slate-500 text-sm">Identifying Parties, Items, and transaction history.</p>
+                                        </div>
+                                    )}
+
+                                    {migrationStep === 'review' && migrationAnalysis && (
+                                        <div className="p-8 h-full flex flex-col">
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                                                <div className="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-2xl border border-indigo-100 dark:border-indigo-800">
+                                                    <h3 className="font-bold text-sm text-indigo-700 dark:text-indigo-400 mb-1">Parties</h3>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{migrationAnalysis.analysis.potential_parties}</p>
+                                                </div>
+                                                <div className="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-800">
+                                                    <h3 className="font-bold text-sm text-emerald-700 dark:text-emerald-400 mb-1">Items</h3>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{migrationAnalysis.analysis.potential_items}</p>
+                                                </div>
+                                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-100 dark:border-blue-800">
+                                                    <h3 className="font-bold text-sm text-blue-700 dark:text-blue-400 mb-1">Sales</h3>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{migrationAnalysis.analysis.potential_sales}</p>
+                                                </div>
+                                                <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-2xl border border-purple-100 dark:border-purple-800">
+                                                    <h3 className="font-bold text-sm text-purple-700 dark:text-purple-400 mb-1">Purchases</h3>
+                                                    <p className="text-2xl font-black text-slate-900 dark:text-white">{migrationAnalysis.analysis.potential_purchases}</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl mb-8 flex-1 overflow-y-auto">
+                                                <h4 className="font-bold text-xs uppercase tracking-wider text-slate-500 mb-3">Raw Table Data Detected</h4>
+                                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                    {Object.entries(migrationAnalysis.tables).map(([name, count]) => (
+                                                        <div key={name} className="flex justify-between items-center text-xs p-2 bg-white dark:bg-slate-700 rounded border border-slate-100 dark:border-slate-600">
+                                                            <span className="font-mono text-slate-600 dark:text-slate-300 truncate max-w-[120px]" title={name}>{name}</span>
+                                                            <span className="font-bold bg-slate-100 dark:bg-slate-600 px-1.5 rounded">{count}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="text-center mt-auto">
+                                                <button onClick={handleMigrationExecute} className="w-full px-8 py-4 bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/30 hover:scale-[1.02] transition-transform flex items-center justify-center gap-3">
+                                                    <RefreshCw size={20} /> Start Migration Process
+                                                </button>
+                                                <p className="text-xs text-slate-400 mt-3">This action will merge data into your existing system. No existing data will be overwritten.</p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {migrationStep === 'importing' && (
+                                        <div className="h-full flex flex-col items-center justify-center p-12 text-center">
+                                            <div className="mb-6 relative">
+                                                <div className="absolute inset-0 bg-indigo-500 rounded-full opacity-20 animate-ping"></div>
+                                                <RefreshCw size={56} className="animate-spin text-indigo-600 relative z-10" />
+                                            </div>
+                                            <h3 className="font-bold text-2xl mb-2">Importing Data...</h3>
+                                            <p className="text-slate-500 max-w-sm text-sm">Please wait while we transfer your accounts and inventory. Do not close this window.</p>
+                                        </div>
+                                    )}
+
+                                    {migrationStep === 'results' && (
+                                        <div className="p-12 h-full flex flex-col items-center justify-center text-center">
+                                            <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
+                                                <Check size={32} strokeWidth={4} />
+                                            </div>
+                                            <h3 className="font-bold text-2xl mb-4 text-slate-900 dark:text-white">Migration Successful!</h3>
+                                            <p className="text-slate-500 mb-8 max-w-md text-sm">Your external data has been successfully imported. You can now view your new customers and products in the system.</p>
+                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl w-full max-w-lg mb-8 text-left max-h-40 overflow-y-auto">
+                                                {migrationLog.map((log, i) => (
+                                                    <div key={i} className="text-xs font-mono text-slate-600 dark:text-slate-300 py-1 border-b border-slate-100 dark:border-slate-700 last:border-0 flex items-center gap-2">
+                                                        <Check size={12} className="text-green-500" /> {log}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <button onClick={() => router.visit(route('store.parties.index', { store_slug: store?.slug }))} className="px-6 py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl font-bold transition-colors">View Parties</button>
+                                                <button onClick={() => router.visit(route('store.inventory.index', { store_slug: store?.slug }))} className="px-6 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-colors">View Products</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

@@ -33,10 +33,37 @@ class DataManagementController extends Controller
             $googleBackups = app(\App\Services\GoogleDriveService::class)->listBackups($tenant);
         }
 
+        // Backups list + auto-backup toggle — merged in from BackupController::index()
+        // and AdminController::settings() so the "Backups" tab here has everything it
+        // needs without re-fetching from three different places.
+        $files = \Illuminate\Support\Facades\Storage::disk('local')->files('backups');
+        $backups = [];
+        foreach ($files as $file) {
+            $backups[] = [
+                'name' => basename($file),
+                'size' => $this->formatBackupSize(\Illuminate\Support\Facades\Storage::disk('local')->size($file)),
+                'date' => date('Y-m-d H:i:s', \Illuminate\Support\Facades\Storage::disk('local')->lastModified($file)),
+            ];
+        }
+        usort($backups, function ($a, $b) {
+            return strtotime($b['date']) - strtotime($a['date']);
+        });
+
+        $autoBackupSetting = \App\Models\Setting::where('key', 'auto_backup')->value('value');
+
         return Inertia::render('Admin/DataManagement', [
             'mode' => 'admin',
             'googleBackups' => $googleBackups,
+            'backups' => $backups,
+            'autoBackupEnabled' => $autoBackupSetting === null ? true : ($autoBackupSetting === '1' || $autoBackupSetting === true),
         ]);
+    }
+
+    protected function formatBackupSize($bytes)
+    {
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $power = $bytes > 0 ? floor(log($bytes, 1024)) : 0;
+        return number_format($bytes / pow(1024, $power), 2, '.', ',') . ' ' . $units[$power];
     }
 
     public function export(Request $request)
