@@ -35,7 +35,7 @@
     {{-- Schema Markup for Google Reviews & Rich Snippets --}}
     <script type="application/ld+json">
     {
-      "@context": "https://schema.org",
+      "@@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "VenQore",
       "operatingSystem": "Web, Windows, Android, iOS",
