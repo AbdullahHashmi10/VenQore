@@ -118,13 +118,13 @@ export default function Features() {
     const modules = [
         {
             icon: ShieldCheck, title: 'Financial Accuracy Engine', color: 'indigo',
-            description: 'Auditor-grade double-entry bookkeeping that runs automatically with every transaction — and a 635+ test suite that proves it.',
+            description: 'Auditor-grade double-entry bookkeeping that runs automatically with every transaction — and a 665+ test suite that proves it.',
             features: [
                 'Automatic journal entries on every sale, purchase, and return',
                 'FIFO batch-level cost tracking — real COGS, not averages',
                 'Tax separated at the database level — never inflates revenue',
                 'Immutable ledger with reversal-only corrections, no silent edits',
-                'Verified by 635+ tests and 3,970+ live assertions across 13 reconciliation gates',
+                'Verified by 665+ tests and 4,000+ live assertions across 13 reconciliation gates',
                 'DECIMAL(20,4) precision on every currency column — no rounding drift',
             ]
         },
@@ -319,7 +319,7 @@ export default function Features() {
                 <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
                     {[
                         { val: 40, suffix: '+', label: 'Verified Reports' },
-                        { val: 635, suffix: '+', label: 'Passing Tests' },
+                        { val: 665, suffix: '+', label: 'Passing Tests' },
                         { val: 10, suffix: '', label: 'Simultaneous Tabs' },
                         { val: 0, suffix: '.00', label: 'Balance Error', prefix: '' },
                     ].map((s, i) => (

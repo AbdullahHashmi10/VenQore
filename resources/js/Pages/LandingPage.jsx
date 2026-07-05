@@ -1063,7 +1063,7 @@ export default function LandingPage() {
         { q: 'Do I need an accountant to use it?', a: 'No. VenQore handles the double-entry mechanics automatically. Every sale, purchase, return, transfer and adjustment writes the correct balanced entry. Your accountant can verify the output — they just won’t need to create it by hand.' },
         { q: 'How long does setup take?', a: 'The Instant Store Creator needs only your store name, then seeds units, taxes and categories for your industry. Most businesses are live in 10–15 minutes, and full historical data can be imported the same day.' },
         { q: 'Will it work across multiple stores?', a: 'Yes. The Multi-Store Hub switches between branches in one click, and granular roles let you be Owner in one store, Manager in another and read-only Viewer in a third — all from a single account.' },
-        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by 635+ automated tests, 3,970+ integrity checks and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
+        { q: 'How accurate is the financial engine, really?', a: 'It runs on a DECIMAL(20,4) double-entry core verified by 665+ automated tests, 4,000+ integrity checks and 13 end-to-end scenarios. Dashboard figures reconcile to the general ledger down to the cent.' },
         { q: 'What happens to my data if I cancel?', a: 'It’s yours. Export it at any time via the import/export tools. We never hold your data hostage.' },
     ];
 
@@ -1244,8 +1244,8 @@ export default function LandingPage() {
                         <Reveal delay={0.1}><IntegrityPipeline /></Reveal>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 max-w-5xl mx-auto">
                             {[
-                                { e: 635, s: '+', l: 'Tests Passed' },
-                                { e: 3970, s: '+', l: 'Integrity Checks', g: true },
+                                { e: 665, s: '+', l: 'Tests Passed' },
+                                { e: 4000, s: '+', l: 'Integrity Checks', g: true },
                                 { e: 13, s: '', l: 'E2E Scenarios' },
                                 { e: 4, s: '', l: 'Decimal Precision', disp: 'DECIMAL(20,4)' },
                             ].map((s, i) => (
@@ -1381,7 +1381,7 @@ export default function LandingPage() {
                         {[
                             { e: 226, s: '+', l: 'Platform Features' },
                             { e: 40, s: '+', l: 'Business Reports' },
-                            { e: 635, s: '+', l: 'Tests Passed' },
+                            { e: 665, s: '+', l: 'Tests Passed' },
                             { e: 5, s: '', l: 'Audit Layers' },
                         ].map((s, i) => (
                             <Reveal key={i} delay={0.07 * i}>

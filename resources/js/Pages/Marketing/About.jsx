@@ -79,7 +79,7 @@ const TONE = {
 const TIMELINE = [
     { k: 'The frustration', d: 'Owners ringing up a thousand sales a day still could not answer one question: did I actually make money this month?' },
     { k: 'The decision', d: 'Instead of bolting reports onto a cash register, we chose to rebuild retail software on a real double-entry foundation.' },
-    { k: 'The engine', d: 'A DECIMAL(20,4) ledger with a FIFO cost core — wrapped in 635+ automated tests so the math can never quietly drift.' },
+    { k: 'The engine', d: 'A DECIMAL(20,4) ledger with a FIFO cost core — wrapped in 665+ automated tests so the math can never quietly drift.' },
     { k: 'The platform', d: '226+ features grew on top of that engine: POS, inventory, manufacturing, AI and 40+ reports — one connected system.' },
     { k: 'Today', d: 'From a single counter to multi-store operations, VenQore gives owners one number they can finally trust.' },
 ];
@@ -136,7 +136,7 @@ export default function About() {
                     </RevealOnScroll>
                     <RevealOnScroll delay={0.3}>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-3xl mx-auto mt-16 border-t border-white/[0.06] pt-10">
-                            {[{ e: 226, s: '+', l: 'Features' }, { e: 635, s: '+', l: 'Tests Passed' }, { e: 40, s: '+', l: 'Reports' }, { e: 5, s: '', l: 'Audit Layers' }].map((x, i) => (
+                            {[{ e: 226, s: '+', l: 'Features' }, { e: 665, s: '+', l: 'Tests Passed' }, { e: 40, s: '+', l: 'Reports' }, { e: 5, s: '', l: 'Audit Layers' }].map((x, i) => (
                                 <div key={i} className="text-center">
                                     <div className="text-3xl md:text-4xl font-black text-white tracking-tighter font-display"><Num end={x.e} suffix={x.s} /></div>
                                     <div className="text-[10px] text-slate-600 font-black uppercase tracking-[0.22em] mt-1">{x.l}</div>
@@ -229,8 +229,8 @@ export default function About() {
                     <RevealOnScroll delay={0.12} direction="left">
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { e: 635, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
-                                { e: 3970, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-indigo-300' },
+                                { e: 665, s: '+', l: 'Tests Passed', ic: CheckCircle2, c: 'text-emerald-300' },
+                                { e: 4000, s: '+', l: 'Integrity Checks', ic: Database, c: 'text-indigo-300' },
                                 { e: 13, s: '', l: 'E2E Scenarios', ic: Activity, c: 'text-cyan-300' },
                                 { e: 0, s: '', disp: 'DECIMAL(20,4)', l: 'Ledger Precision', ic: Scale, c: 'text-violet-300' },
                             ].map((x, i) => (

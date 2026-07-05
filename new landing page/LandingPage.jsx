@@ -498,15 +498,15 @@ export default function LandingPage() {
                                 <MechanismRow delay={0.20} title="Hardware Heartbeat" mechanism="Electron power-state detection" outcome="Loss-Proof POS" />
                                 <MechanismRow delay={0.24} title="Auto-Assembly" mechanism="BOM-triggered manufacturing" outcome="Instant Stock Fulfillment" />
                                 <MechanismRow delay={0.28} title="Three AI Brains" mechanism="Retention, Forecasting, Churn" outcome="Proactive Intelligence" />
-                                <MechanismRow delay={0.32} title="5-Category Audit Gate" mechanism="635+ tests, 3,970+ live assertions" outcome="Verified, Not Promised" />
+                                <MechanismRow delay={0.32} title="5-Category Audit Gate" mechanism="665+ tests, 4,000+ live assertions" outcome="Verified, Not Promised" />
                             </div>
                         </Reveal>
-
+                        
                         {/* Stats */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 max-w-4xl mx-auto">
                             {[
                                 { end: 40, suffix: '+', label: 'Reports' },
-                                { end: 635, suffix: '+', label: 'Passing Tests' },
+                                { end: 665, suffix: '+', label: 'Passing Tests' },
                                 { end: 10, suffix: '', label: 'POS Tabs' },
                                 { end: 15, suffix: 'min', label: 'Setup' },
                             ].map((s, i) => (

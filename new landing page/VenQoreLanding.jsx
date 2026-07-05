@@ -538,7 +538,7 @@ export default function VenQoreLanding() {
               {/* Live pill */}
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 28, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 999, padding: "6px 16px" }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#34d399", boxShadow: "0 0 8px #34d399", display: "block" }} />
-                <span style={{ fontSize: 12, color: "#94a3b8" }}>635 tests passing · 3,970 assertions live</span>
+                <span style={{ fontSize: 12, color: "#94a3b8" }}>665 tests passing · 4,000 assertions live</span>
               </div>
 
               <h1 style={{ fontSize: "clamp(38px, 5.8vw, 72px)", fontWeight: 900, lineHeight: 1.04, letterSpacing: "-0.04em", marginBottom: 24 }}>
@@ -706,8 +706,8 @@ export default function VenQoreLanding() {
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {/* Power specs */}
                 {[
-                  { label: "635+ Horsepower Tests", val: 635, suffix: "+", color: "#a78bfa", desc: "Passed unit & feature tests validating system boundaries" },
-                  { label: "3,970+ Octane Assertions", val: 3970, suffix: "+", color: "#38bdf8", desc: "Live assertions confirming ledger integrity under pressure" },
+                  { label: "665+ Horsepower Tests", val: 665, suffix: "+", color: "#a78bfa", desc: "Passed unit & feature tests validating system boundaries" },
+                  { label: "4,000+ Octane Assertions", val: 4000, suffix: "+", color: "#38bdf8", desc: "Live assertions confirming ledger integrity under pressure" },
                   { label: "13-Gate Compression Chamber", val: 13, suffix: "", color: "#34d399", desc: "Capstone reconciliation tests — multi-split payments, returns" },
                   { label: "DECIMAL(20,4) Precision", val: 20, suffix: " digits", color: "#fbbf24", desc: "Every currency column cast to eliminate rounding errors" },
                 ].map((s, i) => {
@@ -1054,7 +1054,7 @@ export default function VenQoreLanding() {
           </div>
           <div style={{ borderTop: "1px solid rgba(255,255,255,0.04)", paddingTop: 24, display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
             <span style={{ fontSize: 11, color: "#1e293b" }}>© 2026 VenQore. All rights reserved.</span>
-            <span style={{ fontSize: 11, color: "#1e293b" }}>V12 Twin Turbo Qore — 635 tests · 3,970 assertions · zero compromises.</span>
+            <span style={{ fontSize: 11, color: "#1e293b" }}>V12 Twin Turbo Qore — 665 tests · 4,000 assertions · zero compromises.</span>
           </div>
         </div>
       </footer>
