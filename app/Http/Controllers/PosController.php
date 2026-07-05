@@ -46,8 +46,14 @@ class PosController extends Controller
         }
 
         // Bank accounts: small, stable, filter out cash accounts
-        $bankAccounts = \App\Models\BankAccount::whereNotIn('account_type', ['cash'])
-            ->whereNotIn('type', ['cash'])
+        $bankAccounts = \App\Models\BankAccount::where(function ($query) {
+                $query->whereNull('account_type')
+                      ->orWhere('account_type', '!=', 'cash');
+            })
+            ->where(function ($query) {
+                $query->whereNull('type')
+                      ->orWhere('type', '!=', 'cash');
+            })
             ->get(['id', 'name', 'account_number as code', 'account_number']);
 
         return Inertia::render('Pos', [
