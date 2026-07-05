@@ -3,29 +3,46 @@ import { X, CreditCard, Banknote, Smartphone, Plus, Trash2, Printer, CheckCircle
 import { formatCurrency } from '@/Utils/format';
 import { usePage } from '@inertiajs/react';
 
-const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PKR', bankAccounts = [], customer = null }) => {
+const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PKR', bankAccounts = [], customer = null, defaultPrintReceipt = true }) => {
     if (!isOpen) return null;
 
-    const [payments, setPayments] = useState([{ 
-        method: 'cash', 
-        amount: '', 
-        account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
-    }]);
+    const [payments, setPayments] = useState([
+        { 
+            method: 'cash', 
+            amount: '', 
+            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+        },
+        { 
+            method: 'bank', 
+            amount: '', 
+            account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+        }
+    ]);
     const [notes, setNotes] = useState('');
-    const [printReceipt, setPrintReceipt] = useState(true);
+    const [printReceipt, setPrintReceipt] = useState(defaultPrintReceipt);
+    const [activeMethodDropdownIndex, setActiveMethodDropdownIndex] = useState(null);
+    const [activeAccountDropdownIndex, setActiveAccountDropdownIndex] = useState(null);
 
 
     // Reset state when modal opens
     useEffect(() => {
         if (isOpen) {
-            setPayments([{ 
-                method: 'cash', 
-                amount: totalAmount, 
-                account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
-            }]);
+            setPayments([
+                { 
+                    method: 'cash', 
+                    amount: '', 
+                    account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+                },
+                { 
+                    method: 'bank', 
+                    amount: '', 
+                    account_id: (bankAccounts.length > 0) ? bankAccounts[0].id : null 
+                }
+            ]);
             setNotes('');
+            setPrintReceipt(defaultPrintReceipt);
         }
-    }, [isOpen, totalAmount]);
+    }, [isOpen, totalAmount, defaultPrintReceipt]);
 
     const paymentMethods = [
         { id: 'cash', name: 'Cash', icon: Banknote, color: 'bg-emerald-500' },
@@ -127,21 +144,40 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                             <div key={index} className="flex gap-3 items-start animate-in slide-in-from-left-2 duration-200">
                                 <div className="flex-1">
                                     <div className="relative">
-                                        <select
-                                            value={payment.method}
-                                            onChange={(e) => updatePayment(index, 'method', e.target.value)}
-                                            className="w-full h-12 pl-10 pr-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 ring-indigo-500/20 appearance-none font-medium text-slate-700 dark:text-slate-200"
+                                        <button
+                                            type="button"
+                                            onClick={() => setActiveMethodDropdownIndex(activeMethodDropdownIndex === index ? null : index)}
+                                            className="w-full h-12 pl-10 pr-8 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 ring-indigo-500/20 font-medium text-slate-700 dark:text-slate-200 flex items-center justify-between cursor-pointer"
                                         >
-                                            {paymentMethods.map(method => (
-                                                <option key={method.id} value={method.id}>{method.name}</option>
-                                            ))}
-                                        </select>
+                                            <span className="truncate">
+                                                {paymentMethods.find(m => m.id === payment.method)?.name || 'Method'}
+                                            </span>
+                                            <span className="text-slate-400 text-[10px]">▼</span>
+                                        </button>
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
                                             {(() => {
                                                 const Icon = paymentMethods.find(m => m.id === payment.method)?.icon || Banknote;
                                                 return <Icon size={18} />;
                                             })()}
                                         </div>
+
+                                        {activeMethodDropdownIndex === index && (
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[80] animate-in slide-in-from-top-2 duration-200 max-h-48 overflow-y-auto">
+                                                {paymentMethods.map(method => (
+                                                    <button
+                                                        key={method.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            updatePayment(index, 'method', method.id);
+                                                            setActiveMethodDropdownIndex(null);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${payment.method === method.id ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    >
+                                                        {method.name}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="flex-[1.5]">
@@ -160,16 +196,35 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                                          />
                                      </div>
                                      {['bank', 'card', 'online', 'upi'].includes(payment.method) && bankAccounts.length > 0 && (
-                                         <div className="mt-1.5 animate-in slide-in-from-top-1 duration-200">
-                                             <select 
-                                                 value={payment.account_id || ''}
-                                                 onChange={(e) => updatePayment(index, 'account_id', e.target.value)}
-                                                 className="w-full bg-slate-100 dark:bg-slate-700 border-none rounded-lg py-1.5 px-3 text-[10px] font-bold text-slate-600 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all cursor-pointer"
+                                         <div className="mt-1.5 animate-in slide-in-from-top-1 duration-200 relative">
+                                             <button 
+                                                 type="button"
+                                                 onClick={() => setActiveAccountDropdownIndex(activeAccountDropdownIndex === index ? null : index)}
+                                                 className="w-full bg-slate-100 dark:bg-slate-700 rounded-lg py-1.5 px-3 text-[10px] font-bold text-slate-650 dark:text-slate-300 focus:ring-1 focus:ring-indigo-500/50 outline-none flex items-center justify-between cursor-pointer transition-all"
                                              >
-                                                 {bankAccounts.map(acc => (
-                                                     <option key={acc.id} value={acc.id}>{acc.name}</option>
-                                                 ))}
-                                             </select>
+                                                 <span>
+                                                     {bankAccounts.find(acc => String(acc.id) === String(payment.account_id))?.name || bankAccounts[0]?.name || 'Select Account'}
+                                                 </span>
+                                                 <span className="text-slate-400 text-[8px] ml-1">▼</span>
+                                             </button>
+
+                                             {activeAccountDropdownIndex === index && (
+                                                 <div className="absolute top-full left-0 right-0 mt-0.5 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[85] animate-in slide-in-from-top-1 duration-150 max-h-32 overflow-y-auto">
+                                                     {bankAccounts.map(acc => (
+                                                         <button
+                                                             key={acc.id}
+                                                             type="button"
+                                                             onClick={() => {
+                                                                 updatePayment(index, 'account_id', acc.id);
+                                                                 setActiveAccountDropdownIndex(null);
+                                                             }}
+                                                             className={`w-full text-left px-3 py-2 text-[10px] font-bold hover:bg-slate-105 dark:hover:bg-slate-750 transition-colors ${String(payment.account_id) === String(acc.id) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                         >
+                                                             {acc.name}
+                                                         </button>
+                                                     ))}
+                                                 </div>
+                                             )}
                                          </div>
                                      )}
                                  </div>
@@ -235,12 +290,12 @@ const PaymentModal = ({ isOpen, onClose, totalAmount, onComplete, currency = 'PK
                             w-full h-14 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all
                             ${totalPaid < totalAmount && !isCreditSale
                                 ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:shadow-indigo-500/30 active:scale-[0.98]'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-emerald-500/30 active:scale-[0.98]'
                             }
                         `}
                     >
                         <span>Complete Sale</span>
-                        <span className="bg-white/20 px-2 py-0.5 rounded text-sm">
+                        <span className="px-3 py-1.5 rounded-lg text-base font-black bg-white/25 border border-white/20">
                             {formatCurrency(totalPaid > totalAmount ? totalAmount : totalPaid)}
                         </span>
                     </button>

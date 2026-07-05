@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from '@/Components/Modal';
 
-export default function InputModal({ show, onClose, title, message, placeholder, initialValue = '', onSubmit, submitLabel = 'Submit' }) {
+export default function InputModal({ show, onClose, title, message, placeholder, initialValue = '', onSubmit, submitLabel = 'Submit', zIndex = 'z-50' }) {
     const [value, setValue] = useState(initialValue);
 
     useEffect(() => {
@@ -15,7 +15,7 @@ export default function InputModal({ show, onClose, title, message, placeholder,
     };
 
     return (
-        <Modal show={show} onClose={onClose} maxWidth="sm">
+        <Modal show={show} onClose={onClose} maxWidth="sm" zIndex={zIndex}>
             <form onSubmit={handleSubmit} className="p-6">
                 <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
                     {title}

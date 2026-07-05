@@ -45,8 +45,10 @@ class PosController extends Controller
             }
         }
 
-        // Bank accounts: small, stable, OK to load server-side
-        $bankAccounts = \App\Models\BankAccount::get(['id', 'name', 'account_number as code', 'account_number']);
+        // Bank accounts: small, stable, filter out cash accounts
+        $bankAccounts = \App\Models\BankAccount::whereNotIn('account_type', ['cash'])
+            ->whereNotIn('type', ['cash'])
+            ->get(['id', 'name', 'account_number as code', 'account_number']);
 
         return Inertia::render('Pos', [
             // ⬇ No more products prop — React fetches on mount

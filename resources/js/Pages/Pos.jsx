@@ -199,6 +199,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const [paymentMethod, setPaymentMethod] = useState('cash');
     const [selectedBankAccountId, setSelectedBankAccountId] = useState(bankAccounts.length > 0 ? bankAccounts[0].id : null);
     const [paymentDropdownOpen, setPaymentDropdownOpen] = useState(false);
+    const [taxDropdownOpen, setTaxDropdownOpen] = useState(false);
+    const [bankAccountDropdownOpen, setBankAccountDropdownOpen] = useState(false);
     const [showQuickAccountModal, setShowQuickAccountModal] = useState(false);
     const [creatingAccount, setCreatingAccount] = useState(false);
 
@@ -240,6 +242,15 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
 
     // Converter Modal State (Price / Qty / Total)
     const [converterModal, setConverterModal] = useState({ show: false, item: null, mode: 'price', price: '', qty: '', total: '' });
+
+    // Global Discount Modal State
+    const [globalDiscountModal, setGlobalDiscountModal] = useState({ show: false, type: 'fixed', value: '' });
+
+    // Global Discount Preset Custom Values State
+    const [discountPresets, setDiscountPresets] = useState(() => {
+        const saved = localStorage.getItem('pos_discount_presets');
+        return saved ? JSON.parse(saved) : [5, 7, 10];
+    });
 
     // Open Item Discount Modal
     const openItemDiscountModal = (item) => {
@@ -431,6 +442,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const parkedDropdownRef = useRef(null);
     const customerDropdownRef = useRef(null);
     const cartListRef = useRef(null);
+    const cashReceivedInputRef = useRef(null);
 
     // Sync local sales to context
     useEffect(() => {
@@ -903,28 +915,60 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const handleCheckoutClick = () => {
         if (activeSale.cart.length === 0) return;
 
-        // Auto-complete if amount is already tendered
-        const tendered = parseFloat(activeSale.cashReceived || 0);
-
-        // If amount is sufficient, skip the popup
-        if (tendered > 0 && tendered >= cartTotal) {
-            const paymentData = {
-                totalPaid: tendered,
-                change: tendered - cartTotal,
-                payments: [{
-                    method: paymentMethod || 'cash',
-                    amount: tendered,
-                    account_id: ['bank', 'card', 'online'].includes(paymentMethod) ? selectedBankAccountId : null
-                }],
-                notes: '',
-                printReceipt: printOnComplete
-            };
-
-            handlePaymentComplete(paymentData);
+        // If no amount is typed, block checkout and focus the Amount Tendered input
+        const rawTendered = activeSale.cashReceived;
+        if (!rawTendered || parseFloat(rawTendered) <= 0) {
+            addToast('Please enter the Amount Tendered first', 'warning');
+            
+            // Highlight and focus input
+            if (cashReceivedInputRef.current) {
+                cashReceivedInputRef.current.focus();
+                cashReceivedInputRef.current.select();
+                
+                // Add temporary shake animation class if element is available
+                const container = document.getElementById('tour-pos-paid');
+                if (container) {
+                    container.classList.add('animate-shake', 'ring-2', 'ring-rose-500');
+                    setTimeout(() => {
+                        container.classList.remove('animate-shake', 'ring-2', 'ring-rose-500');
+                    }, 500);
+                }
+            }
             return;
         }
 
-        setPaymentModalOpen(true);
+        const tendered = parseFloat(rawTendered);
+
+        const paymentData = {
+            totalPaid: tendered,
+            change: Math.max(0, tendered - cartTotal),
+            payments: [{
+                method: paymentMethod || 'cash',
+                amount: tendered,
+                account_id: ['bank', 'card', 'online'].includes(paymentMethod) ? selectedBankAccountId : null
+            }],
+            notes: '',
+            printReceipt: printOnComplete
+        };
+
+        handlePaymentComplete(paymentData);
+    };
+
+    const handleTenderedKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            // If empty, auto-fill Exact value, else checkout what was entered
+            const rawTendered = activeSale.cashReceived;
+            if (!rawTendered || parseFloat(rawTendered) <= 0) {
+                updateActiveSale({ cashReceived: cartTotal });
+                // Timeout to allow state update before processing
+                setTimeout(() => {
+                    handleCheckoutClick();
+                }, 50);
+            } else {
+                handleCheckoutClick();
+            }
+        }
     };
 
     const handlePaymentComplete = (paymentData) => {
@@ -946,6 +990,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const processCheckout = async (paymentData, addToLedger = false) => {
         setProcessingPayment(true);
 
+        // Clamp cash payment lines to avoid sending change excess to the backend,
+        // preventing journal imbalances for walk-in cash payments.
+        let remainingInvoiceTotal = cartTotal;
+        const adjustedPayments = (paymentData.payments || []).map(p => {
+            const isCash = p.method === 'cash';
+            const originalAmount = parseFloat(p.amount) || 0;
+            
+            if (isCash) {
+                // Cash payment cannot record a debit larger than the remaining invoice balance
+                const cashPortion = Math.min(originalAmount, remainingInvoiceTotal);
+                remainingInvoiceTotal = Math.max(0, remainingInvoiceTotal - cashPortion);
+                return { ...p, amount: cashPortion };
+            } else {
+                remainingInvoiceTotal = Math.max(0, remainingInvoiceTotal - originalAmount);
+                return p;
+            }
+        });
+
         const payload = {
             items: activeSale.cart.map(item => ({
                 product_id: item.id,
@@ -959,13 +1021,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
             customer_id: activeSale.customer?.id || null,
             payment_method: 'split',
             warehouse_id: selectedWarehouseId,
-            payments: paymentData.payments,
-            amount_paid: paymentData.totalPaid,
+            payments: adjustedPayments,
+            amount_paid: cartTotal, // Always count cartTotal as net paid internally
             tax: taxAmount,
             tax_rate: taxRate,
             discount: globalDiscount,
             notes: paymentData.notes,
-            add_to_ledger: addToLedger, // PASSED FLAG
+            add_to_ledger: addToLedger,
             source: 'pos',
             is_dropship: false,
         };
@@ -1044,14 +1106,53 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         }
 
         // Show notifications
-        let message = 'Reference: ' + data.reference;
+        let message = '';
         if (data.is_offline) {
-            message += '\n\n⚠️ Saved Offline. Will sync when online.';
+            message = 'Reference: ' + data.reference + '\n\n⚠️ Saved Offline. Will sync when online.';
             addToast('Sale saved offline', 'warning');
         } else {
-            if (data.manufacturing_notifications && data.manufacturing_notifications.length > 0) {
-                message += '\n\n📦 Auto-Manufacturing:\n' + data.manufacturing_notifications.join('\n');
-            }
+            // Count total number of items in the cart (sum of quantities of all lines)
+            const totalItemsCount = activeSale.cart.reduce((acc, item) => acc + (item.qty + (item.freeQuantity || 0)), 0);
+            
+            const messageElement = (
+                <div className="flex flex-col gap-5 py-3">
+                    <div className="bg-slate-950 p-6 rounded-2xl border-2 border-slate-800 shadow-2xl flex flex-col items-center justify-center">
+                        <span className="text-sm font-black text-slate-400 uppercase block tracking-widest mb-2">
+                            Amount Paid
+                        </span>
+                        <span className="text-5xl font-black text-emerald-450 dark:text-emerald-400 block animate-pulse whitespace-nowrap">
+                            {formatCurrency(paymentData.totalPaid, store || settings)}
+                        </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 flex flex-col items-center justify-center">
+                            <span className="text-[11px] font-black text-slate-400 uppercase block tracking-wider mb-1.5">
+                                Change Due
+                            </span>
+                            <span className="text-2xl font-black text-indigo-400 block whitespace-nowrap">
+                                {formatCurrency(paymentData.change, store || settings)}
+                            </span>
+                        </div>
+                        <div className="bg-slate-950 p-4 rounded-2xl border-2 border-slate-800 text-center">
+                            <span className="text-[11px] font-black text-slate-400 uppercase block tracking-wider mb-1.5">
+                                Total Items
+                            </span>
+                            <span className="text-2xl font-black text-white block">
+                                {totalItemsCount}
+                            </span>
+                        </div>
+                    </div>
+
+                    {data.manufacturing_notifications && data.manufacturing_notifications.length > 0 && (
+                        <div className="mt-2 text-left bg-amber-500/15 p-3 rounded-xl border border-amber-500/30 text-xs text-amber-400">
+                            <span className="font-bold block mb-1">📦 Auto-Manufacturing:</span>
+                            {data.manufacturing_notifications.join('\n')}
+                        </div>
+                    )}
+                </div>
+            );
+            
             if (store?.onboarding_step === 'pos_tour') {
                 router.post(
                     route('store.onboarding.step', { store_slug: store?.slug }),
@@ -1059,9 +1160,25 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     { preserveScroll: true }
                 );
             } else {
-                showAlert('Sale Completed!', message, 'success');
+                showAlert('Sale Completed!', messageElement, 'success');
 
-                // Auto-close after 3 seconds to speed up workflow
+                // Let Enter key dismiss this alert instantly for the next sale
+                const handleEnterDismiss = (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        setAlertState(prev => {
+                            if (prev.show && prev.title === 'Sale Completed!') {
+                                return { ...prev, show: false };
+                            }
+                            return prev;
+                        });
+                        document.removeEventListener('keydown', handleEnterDismiss);
+                        if (searchInputRef.current) searchInputRef.current.focus();
+                    }
+                };
+                document.addEventListener('keydown', handleEnterDismiss);
+
+                // Auto-close after 30 seconds (30000ms) to allow cashier/customer time to inspect
                 setTimeout(() => {
                     setAlertState(prev => {
                         // Only auto-close if the specific success modal is still open
@@ -1070,8 +1187,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                         }
                         return prev;
                     });
+                    document.removeEventListener('keydown', handleEnterDismiss);
                     if (searchInputRef.current) searchInputRef.current.focus();
-                }, 3000);
+                }, 30000);
             }
         }
     };
@@ -2354,44 +2472,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     </div>
 
                     <div className="flex-1 p-3 space-y-3 overflow-y-auto custom-scrollbar">
-                        {/* Summary Block - Compact */}
-                        <div className="space-y-2 bg-slate-100 dark:bg-white/5 p-3 rounded-xl">
-                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
-                                <span>Subtotal</span>
-                                <span className="text-slate-900 dark:text-white">{formatCurrency(subtotal, store || settings)}</span>
-                            </div>
-                            {totalDiscounts > 0 && (
-                                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs font-bold">
-                                    <span>Discount</span>
-                                    <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs">
-                                <span>Tax</span>
-                                <div className="flex items-center gap-1">
-                                    <select
-                                        value={taxRate}
-                                        onChange={(e) => updateActiveSale({ taxRate: parseFloat(e.target.value) || 0 })}
-                                        className="bg-transparent text-slate-900 dark:text-white border-none py-0 pl-1 pr-6 font-bold text-xs focus:ring-0 cursor-pointer"
-                                    >
-                                        <option value="0" className="dark:bg-slate-800">None (0%)</option>
-                                        {parsedTaxRates.map((tax) => (
-                                            <option key={tax.id} value={tax.rate} className="dark:bg-slate-800">
-                                                {tax.name} ({tax.rate}%)
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <span className="text-slate-900 dark:text-white font-bold">{formatCurrency(taxAmount, store || settings)}</span>
-                                </div>
-                            </div>
-                            <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
-                            <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">
-                                <span>Total</span>
-                                <span>{formatCurrency(cartTotal, store || settings)}</span>
-                            </div>
-                        </div>
-
-                        {/* Customer Search Row - Full Width to prevent clipping */}
+                        {/* 1. Customer Search Row - Full Width to prevent clipping (At the very top) */}
                         <div id="tour-pos-customer" className="relative z-[60]">
                             {customerDropdownOpen ? (
                                 <div className="animate-in slide-in-from-top-2 duration-200">
@@ -2442,19 +2523,17 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             )}
                         </div>
 
-                        {/* Discount & Payment Method Row */}
+                        {/* 2. Discount & Payment Method Row */}
                         <div className="flex gap-2">
                             {/* Discount Button */}
                             {hasDiscountPerm && (
                                 <div className="flex-1">
                                     <button
                                         onClick={() => {
-                                            showInput('Apply Discount', 'Enter fixed discount amount', (val) => {
-                                                const disc = parseFloat(val);
-                                                if (!isNaN(disc)) {
-                                                    updateActiveSale({ discountType: 'fixed', discountValue: disc });
-                                                    addToast(`Discount of ${formatCurrency(disc, store || settings)} applied`, 'success');
-                                                }
+                                            setGlobalDiscountModal({
+                                                show: true,
+                                                type: activeSale.discountType || 'fixed',
+                                                value: activeSale.discountValue ? String(activeSale.discountValue) : ''
                                             });
                                         }}
                                         className="w-full bg-white dark:bg-white/5 p-3 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/10 transition-colors border border-slate-200 dark:border-white/5 shadow-sm h-16 flex flex-col justify-center"
@@ -2465,7 +2544,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
                                                 {activeSale.discountType === 'percentage'
                                                     ? `${activeSale.discountValue}% (${formatCurrency(globalDiscount, store || settings)})`
-                                                    : formatCurrency(globalDiscount, store || settings)
+                                                    : `${formatCurrency(globalDiscount, store || settings)}`
                                                 }
                                             </span>
                                         </div>
@@ -2488,7 +2567,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </button>
                                     {/* Dropdown - Click to toggle */}
                                     {paymentDropdownOpen && (
-                                        <div className="absolute bottom-full right-0 mb-2 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[70] animate-in slide-in-from-bottom-2 duration-200">
+                                        <div className="absolute top-full right-0 mt-1 w-36 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[75] animate-in slide-in-from-top-2 duration-200">
                                             {['cash', 'credit', 'bank', 'card', 'online'].map(method => {
                                                 // Restricted: Credit only for registered customers
                                                 if (method === 'credit' && !activeSale.customer) return null;
@@ -2500,9 +2579,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                             setPaymentMethod(method);
                                                             setPaymentDropdownOpen(false);
                                                         }}
-                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-700 ${paymentMethod === method ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors uppercase ${paymentMethod === method ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
                                                     >
-                                                        {method.toUpperCase()}
+                                                        {method}
                                                     </button>
                                                 );
                                             })}
@@ -2512,7 +2591,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             </div>
                         </div>
 
-                        {/* Bank Account Selector (Conditional for Bank/Card/Online) */}
+                        {/* 3. Bank Account Selector (Conditional for Bank/Card/Online) */}
                         {['bank', 'card', 'online'].includes(paymentMethod) && (
                             bankAccounts.length > 0 ? (
                                 <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-inner animate-in fade-in slide-in-from-top-1 duration-200">
@@ -2525,16 +2604,37 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                             + Add New
                                         </button>
                                     </div>
-                                    <select 
-                                        value={selectedBankAccountId}
-                                        onChange={(e) => setSelectedBankAccountId(e.target.value)}
-                                        className="w-full bg-slate-800/50 border-white/5 rounded-xl py-2.5 px-3 text-xs font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all appearance-none cursor-pointer"
-                                        style={{ backgroundImage: 'none' }} // Remove default arrow for cleaner look
-                                    >
-                                        {bankAccounts.map(acc => (
-                                            <option key={acc.id} value={acc.id}>{acc.name} ({acc.code})</option>
-                                        ))}
-                                    </select>
+                                                                    <div className="relative">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setBankAccountDropdownOpen(!bankAccountDropdownOpen)}
+                                            className="w-full bg-slate-800/50 border border-white/5 rounded-xl py-2.5 px-3 text-xs font-bold text-white focus:ring-2 focus:ring-indigo-500/50 outline-none flex items-center justify-between cursor-pointer"
+                                        >
+                                            <span>
+                                                {bankAccounts.find(acc => String(acc.id) === String(selectedBankAccountId))?.name || 'Select Account'}
+                                                {bankAccounts.find(acc => String(acc.id) === String(selectedBankAccountId))?.code ? ` (${bankAccounts.find(acc => String(acc.id) === String(selectedBankAccountId))?.code})` : ''}
+                                            </span>
+                                            <span className="text-slate-400 font-bold ml-1">▼</span>
+                                        </button>
+                                        
+                                        {bankAccountDropdownOpen && (
+                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[75] animate-in slide-in-from-top-2 duration-200 max-h-48 overflow-y-auto">
+                                                {bankAccounts.map(acc => (
+                                                    <button
+                                                        key={acc.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setSelectedBankAccountId(acc.id);
+                                                            setBankAccountDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-3 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${String(selectedBankAccountId) === String(acc.id) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    >
+                                                        {acc.name} {acc.code ? `(${acc.code})` : ''}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="bg-rose-500/10 p-4 rounded-xl border border-rose-500/20 animate-in shake duration-300">
@@ -2556,24 +2656,105 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             )
                         )}
 
-                        {/* Payment Button - Replaces Cash Calculator */}
-                        {/* Payment Input Section - Restored "Fill in value" option */}
-                        <div className="space-y-3 mb-2">
-                            <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+                        {/* 4. Summary Block - Now Positioned before Amount Tendered */}
+                        <div className="space-y-2 bg-slate-100 dark:bg-white/5 p-3 rounded-xl">
+                            <div className="flex justify-between text-slate-500 dark:text-slate-400 text-xs">
+                                <span>Subtotal</span>
+                                <span className="text-slate-900 dark:text-white">{formatCurrency(subtotal, store || settings)}</span>
+                            </div>
+                            {totalDiscounts > 0 && (
+                                <div className="flex justify-between text-emerald-600 dark:text-emerald-400 text-xs font-bold">
+                                    <span>
+                                        Discount 
+                                        {activeSale.discountType === 'percentage' && ` (${activeSale.discountValue}%)`}
+                                    </span>
+                                    <span>-{formatCurrency(totalDiscounts, store || settings)}</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between items-center text-slate-500 dark:text-slate-400 text-xs">
+                                <span>Tax</span>
+                                <div className="flex items-center gap-1">
+                                    <div className="relative">
+                                        <button 
+                                            type="button"
+                                            onClick={() => setTaxDropdownOpen(!taxDropdownOpen)}
+                                            className="bg-transparent hover:bg-slate-200 dark:hover:bg-white/10 px-2 py-1 rounded-lg text-slate-900 dark:text-white font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                                        >
+                                            <span>
+                                                {taxRate === 0 
+                                                    ? 'None (0%)' 
+                                                    : (parsedTaxRates.find(t => parseFloat(t.rate) === parseFloat(taxRate))?.name + ` (${taxRate}%)` || `${taxRate}%`)
+                                                }
+                                            </span>
+                                            <span className="text-slate-400 text-[10px]">▼</span>
+                                        </button>
+                                        
+                                        {taxDropdownOpen && (
+                                            <div className="absolute right-0 bottom-full mb-1 w-40 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden z-[75] animate-in slide-in-from-bottom-2 duration-200">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        updateActiveSale({ taxRate: 0 });
+                                                        setTaxDropdownOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${taxRate === 0 ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                >
+                                                    None (0%)
+                                                </button>
+                                                {parsedTaxRates.map((tax) => (
+                                                    <button
+                                                        key={tax.id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            updateActiveSale({ taxRate: parseFloat(tax.rate) || 0 });
+                                                            setTaxDropdownOpen(false);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-slate-105 dark:hover:bg-slate-700/60 transition-colors ${parseFloat(taxRate) === parseFloat(tax.rate) ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/5' : 'text-slate-700 dark:text-slate-300'}`}
+                                                    >
+                                                        {tax.name} ({tax.rate}%)
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className="text-slate-900 dark:text-white font-bold">{formatCurrency(taxAmount, store || settings)}</span>
+                                </div>
+                            </div>
+                            <div className="h-px bg-slate-200 dark:bg-white/10 my-1"></div>
+                            <div className="flex justify-between font-bold text-emerald-600 dark:text-emerald-400 text-2xl">
+                                <span>Total</span>
+                                <span>{formatCurrency(cartTotal, store || settings)}</span>
+                            </div>
+                        </div>
+
+                        {/* 5. Amount Tendered Section with inline Split Payment button */}
+                        <div className="space-y-3">
+                            <div id="tour-pos-paid" className="bg-white dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm transition-all">
                                 <div className="flex justify-between items-center mb-2">
-                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400">
+                                    <label className="text-xs uppercase font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                         {returnMode ? 'AMOUNT TO REFUND' : 'Amount Tendered'}
                                     </label>
-                                    <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
-                                        Cash
-                                    </span>
+                                    <div className="flex items-center gap-2">
+                                        <button 
+                                            onClick={() => setPaymentModalOpen(true)}
+                                            className="text-[9px] font-black text-indigo-600 dark:text-indigo-400 hover:underline uppercase tracking-wider"
+                                            title="Open multi-method split payment options"
+                                        >
+                                            + Split Payment
+                                        </button>
+                                        <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-1.5 py-0.5 rounded font-bold">
+                                            {paymentMethod.toUpperCase()}
+                                        </span>
+                                    </div>
                                 </div>
                                 <div className="relative">
                                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-600 dark:text-emerald-500 font-bold text-lg">{getCurrencySymbol(store || settings)}</span>
                                     <input
+                                        ref={cashReceivedInputRef}
                                         type="number"
                                         value={activeSale.cashReceived}
                                         onChange={(e) => updateActiveSale({ cashReceived: e.target.value })}
+                                        onKeyDown={handleTenderedKeyDown}
                                         placeholder="0.00"
                                         className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg py-3 pl-8 pr-4 text-2xl font-bold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all no-spinner shadow-inner"
                                         disabled={activeSale.cart.length === 0}
@@ -2587,24 +2768,24 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                     </button>
                                 </div>
                             </div>
-
-                            {/* Change Display */}
-                            {!returnMode && (
-                                <div className={`p-4 rounded-xl border transition-colors ${changeDue >= 0
-                                    ? 'bg-emerald-500/10 border-emerald-500/20'
-                                    : 'bg-red-500/10 border-red-500/20'
-                                    }`}>
-                                    <div className="flex justify-between items-center">
-                                        <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
-                                            {changeDue >= 0 ? 'Change Due' : 'Shortage'}
-                                        </span>
-                                        <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
-                                            {formatCurrency(Math.abs(changeDue), store || settings)}
-                                        </span>
-                                    </div>
-                                </div>
-                            )}
                         </div>
+
+                        {/* 6. Change Display (At the very bottom of main list) */}
+                        {!returnMode && (
+                            <div className={`p-4 rounded-xl border transition-colors ${changeDue >= 0
+                                ? 'bg-emerald-500/10 border-emerald-500/20'
+                                : 'bg-red-500/10 border-red-500/20'
+                                }`}>
+                                <div className="flex justify-between items-center">
+                                    <span className={`text-xs font-bold uppercase ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                        {changeDue >= 0 ? 'Change Due' : 'Shortage'}
+                                    </span>
+                                    <span className={`text-2xl font-black ${changeDue >= 0 ? 'text-emerald-650 dark:text-emerald-400' : 'text-red-650 dark:text-red-400'}`}>
+                                        {formatCurrency(Math.abs(changeDue), store || settings)}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="p-4 bg-slate-100/50 dark:bg-black/20 backdrop-blur-sm space-y-2">
@@ -2673,13 +2854,18 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                 id="tour-pos-checkout"
                                 onClick={handleCheckoutClick}
                                 disabled={processingPayment || activeSale.cart.length === 0}
-                                className={`w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                className={`w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold shadow-lg shadow-emerald-900/30 flex items-center justify-center gap-2 active:scale-95 transition-all ${processingPayment ? 'opacity-50 cursor-not-allowed' : ''}`}
                             >
-                                {printOnComplete ? (
-                                    <><Printer size={20} /> {processingPayment ? 'Processing...' : 'Complete & Print'}</>
-                                ) : (
-                                    <><Check size={20} /> {processingPayment ? 'Processing...' : 'Complete Sale'}</>
-                                )}
+                                <div className="flex items-center justify-center gap-2.5 w-full">
+                                    {printOnComplete ? (
+                                        <><Printer size={20} /> <span>{processingPayment ? 'Processing...' : 'Complete & Print'}</span></>
+                                    ) : (
+                                        <><Check size={20} /> <span>{processingPayment ? 'Processing...' : 'Complete Sale'}</span></>
+                                    )}
+                                    <span className="px-3 py-1 rounded-lg text-sm font-black bg-white/20 border border-white/10 shrink-0 ml-1.5">
+                                        {formatCurrency(cartTotal, store || settings)}
+                                    </span>
+                                </div>
                             </button>
                         )}
 
@@ -2736,6 +2922,11 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 <div className="flex items-center gap-1.5">
                     <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F11</span>
                     <span>Customer</span>
+                </div>
+                <div className="w-px h-4 bg-slate-800"></div>
+                <div className="flex items-center gap-1.5">
+                    <span className="bg-slate-800 text-white px-1.5 py-0.5 rounded text-[9px] font-mono border border-slate-700">F12</span>
+                    <span>Remarks</span>
                 </div>
                 <div className="w-px h-4 bg-slate-800"></div>
                 <div className="flex items-center gap-1.5">
@@ -2812,6 +3003,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 title={inputState.title}
                 placeholder={inputState.placeholder}
                 onSubmit={inputState.onSubmit}
+                zIndex="z-[150]"
             />
 
             <PaymentModal
@@ -2822,7 +3014,137 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 currency={store?.currency_code || settings?.currency || 'PKR'}
                 bankAccounts={bankAccounts}
                 customer={activeSale.customer}
+                defaultPrintReceipt={printOnComplete}
             />
+
+            {/* Custom Global Discount Preset Modal */}
+            {globalDiscountModal.show && (
+                <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-2xl shadow-2xl border border-white/10 overflow-hidden text-white">
+                        <div className="p-5 border-b border-white/5 flex justify-between items-center bg-white/5">
+                            <div>
+                                <h3 className="text-base font-black uppercase tracking-tight">Apply <span className="text-emerald-400">Discount</span></h3>
+                                <p className="text-[11px] text-slate-400">Select type and discount value</p>
+                            </div>
+                            <button onClick={() => setGlobalDiscountModal({ show: false, type: 'fixed', value: '' })} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                                <X size={18} className="text-slate-500 hover:text-white" />
+                            </button>
+                        </div>
+
+                        <div className="p-5 space-y-4">
+                            {/* Type Toggle Tabs */}
+                            <div className="flex bg-slate-800 p-1 rounded-xl">
+                                <button
+                                    type="button"
+                                    onClick={() => setGlobalDiscountModal(prev => ({ ...prev, type: 'fixed' }))}
+                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${globalDiscountModal.type === 'fixed' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                                >
+                                    Fixed Amount ({getCurrencySymbol(store || settings)})
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setGlobalDiscountModal(prev => ({ ...prev, type: 'percentage' }))}
+                                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${globalDiscountModal.type === 'percentage' ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-400 hover:text-white'}`}
+                                >
+                                    Percentage (%)
+                                </button>
+                            </div>
+
+                            {/* Preset Buttons - Visible for Percentage discount mode */}
+                            {globalDiscountModal.type === 'percentage' && (
+                                <div className="space-y-1.5">
+                                    <div className="flex justify-between items-center">
+                                        <label className="text-[10px] uppercase font-bold text-slate-500 block">Presets (Hold to Edit)</label>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {discountPresets.map((val, idx) => {
+                                            let holdTimer = null;
+                                            const startHold = () => {
+                                                holdTimer = setTimeout(() => {
+                                                    // Trigger hold edit action
+                                                    showInput(`Edit Preset #${idx + 1}`, `Enter new percentage value (current: ${val}%)`, (newVal) => {
+                                                        const parsed = parseFloat(newVal);
+                                                        if (!isNaN(parsed)) {
+                                                            const newPresets = [...discountPresets];
+                                                            newPresets[idx] = parsed;
+                                                            setDiscountPresets(newPresets);
+                                                            localStorage.setItem('pos_discount_presets', JSON.stringify(newPresets));
+                                                            addToast(`Preset #${idx + 1} updated to ${parsed}%`, 'success');
+                                                        }
+                                                    });
+                                                    holdTimer = null;
+                                                }, 500);
+                                            };
+                                            const endHold = () => {
+                                                if (holdTimer) {
+                                                    clearTimeout(holdTimer);
+                                                    setGlobalDiscountModal(prev => ({ ...prev, value: String(val) }));
+                                                }
+                                            };
+                                            
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    type="button"
+                                                    onMouseDown={startHold}
+                                                    onMouseUp={endHold}
+                                                    onTouchStart={startHold}
+                                                    onTouchEnd={endHold}
+                                                    className={`py-2 text-xs font-bold rounded-lg border transition-all ${parseFloat(globalDiscountModal.value) === val ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400' : 'bg-slate-800/50 border-white/5 text-slate-350 hover:bg-slate-800'}`}
+                                                >
+                                                    {val}%
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Discount Value Input field */}
+                            <div>
+                                <label className="text-[10px] uppercase font-bold text-slate-500 block mb-1.5">
+                                    {globalDiscountModal.type === 'percentage' ? 'Discount Percentage (%)' : `Discount Value (${getCurrencySymbol(store || settings)})`}
+                                </label>
+                                <input
+                                    type="number"
+                                    value={globalDiscountModal.value}
+                                    onChange={(e) => setGlobalDiscountModal(prev => ({ ...prev, value: e.target.value }))}
+                                    placeholder="0.00"
+                                    className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 px-4 text-lg font-bold text-white placeholder-slate-600 focus:ring-2 focus:ring-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="p-5 bg-white/5 border-t border-white/5 flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    updateActiveSale({ discountType: 'fixed', discountValue: 0 });
+                                    setGlobalDiscountModal({ show: false, type: 'fixed', value: '' });
+                                    addToast('Discount cleared', 'info');
+                                }}
+                                className="flex-1 py-2.5 text-xs font-bold text-slate-400 hover:text-white bg-slate-800 rounded-xl transition-all"
+                            >
+                                Clear
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const parsedVal = parseFloat(globalDiscountModal.value) || 0;
+                                    updateActiveSale({ discountType: globalDiscountModal.type, discountValue: parsedVal });
+                                    setGlobalDiscountModal({ show: false, type: 'fixed', value: '' });
+                                    addToast('Discount applied successfully', 'success');
+                                }}
+                                className="flex-1 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 rounded-xl transition-all shadow-lg shadow-emerald-950/50"
+                            >
+                                Apply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+
 
             {/* Quick Bank Account Modal */}
             {showQuickAccountModal && (
