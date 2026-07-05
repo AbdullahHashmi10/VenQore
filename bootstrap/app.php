@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Canonical host (www → apex 301) + HSTS header — must run before everything
+        // else so a www.venqore.com request redirects immediately (2026-07-05 SEO fix).
+        $middleware->prepend(\App\Http\Middleware\CanonicalHostMiddleware::class);
+
         // Run our flawless custom updater lock on ALL requests first
         $middleware->append(\App\Http\Middleware\PreventAccessDuringUpdate::class);
 

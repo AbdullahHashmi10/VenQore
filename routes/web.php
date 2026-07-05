@@ -94,8 +94,14 @@ Route::get('/api/woo/plugin/check-update', [\App\Http\Controllers\WooSync\WooCon
 Route::get('/blog',              [\App\Http\Controllers\Marketing\BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}',       [\App\Http\Controllers\Marketing\BlogController::class, 'show'])->name('blog.show');
 
-Route::get('/terms',   fn() => Inertia::render('Legal/Terms'))->name('terms');
-Route::get('/privacy', fn() => Inertia::render('Legal/Privacy'))->name('privacy');
+// NOTE (2026-07-05): previously pointed at Inertia::render('Legal/Terms') / ('Legal/Privacy'),
+// but resources/js/Pages/Legal/ does not exist — every real visit to /terms or /privacy
+// threw a client-side "page not found" error in the browser after Inertia resolved the
+// response. Fixed to render the actual components (also removed a dead duplicate pair of
+// these two routes further down the file that pointed at the correct components but was
+// unreachable because a route registered earlier always wins).
+Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
+Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
 Route::get('/sitemap.xml', [\App\Http\Controllers\Marketing\SitemapController::class, 'index'])->name('sitemap');
 Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhookController::class, 'handle'])
     ->name('webhooks.lemon-squeezy');
@@ -668,8 +674,8 @@ Route::get('/refund-policy', function () {
     return Inertia::render('RefundPolicy');
 })->name('refund-policy');
 
-Route::get('/terms',   fn() => Inertia::render('TermsOfService'))->name('terms');
-Route::get('/privacy', fn() => Inertia::render('PrivacyPolicy'))->name('privacy');
+// (duplicate /terms and /privacy route registrations removed 2026-07-05 — see the
+// single definitions near the top of this file, fixed to render the real components)
 
 // ── Pre-Launch §14: Health Check ─────────────────────────────────────────────
 // Public — no auth. Checks DB, Redis, cache, storage, and Horizon queue health.

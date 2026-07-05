@@ -41,28 +41,13 @@
     <meta name="twitter:card" content="summary_large_image" inertia>
     <meta name="twitter:title" content="{{ $seo['title'] }}" inertia>
     <meta name="twitter:description" content="{{ $seo['description'] }}" inertia>
-    
-    {{-- Schema Markup for Google Reviews & Rich Snippets --}}
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "VenQore",
-      "operatingSystem": "Web, Windows, Android, iOS",
-      "applicationCategory": "BusinessApplication",
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.9",
-        "ratingCount": "128"
-      },
-      "offers": {
-        "@type": "Offer",
-        "price": "29.00",
-        "priceCurrency": "USD"
-      }
-    }
-    </script>
     <meta name="twitter:image" content="{{ $seo['og_image'] }}" inertia>
+    {{-- Structured data: page-specific JSON-LD only (2026-07-05 — removed a hardcoded,
+         site-wide SoftwareApplication+AggregateRating block that duplicated/conflicted
+         with the per-page schema below on the homepage and carried a fabricated 4.9/128
+         rating with no backing review data. SEMrush flagged this as a structured-data
+         markup error; Google also treats unsubstantiated review/rating markup as a
+         policy violation, so removing it is a compliance fix, not just an SEO one. --}}
     @foreach(($seo['jsonld'] ?? []) as $ld)
     <script type="application/ld+json">{!! json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endforeach

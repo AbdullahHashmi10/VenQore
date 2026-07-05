@@ -122,6 +122,7 @@ class MarketingSeo
                     . '<li>40+ financial reports from one verified ledger: P&amp;L, balance sheet, cash flow, aging, stock valuation</li>'
                     . '<li>Customer credit (khata), loyalty points, gift cards, purchase orders, manufacturing recipes</li>'
                     . '<li>Multi-store, staff roles, WooCommerce sync, AI-assisted workflows</li></ul>'
+                    . '<h2>Why offline-first</h2><p>Internet drops. Power cuts. Your till should not care. VenQore keeps selling on the device, saves every cart before the server even confirms it, and syncs back automatically the moment connectivity returns — so a bad connection never becomes a lost sale or a corrupted count.</p>'
                     . '<p><a href="/demo"><strong>Try the live demo — no signup</strong></a> · <a href="/pricing">See pricing (from $36/month, 14-day free trial)</a></p>'
                     . $nav . '</main>',
             ],
@@ -144,7 +145,7 @@ class MarketingSeo
             ],
 
             'marketing.pricing' => [
-                'title' => 'VenQore Pricing — Starter $36, Growth $63, Enterprise $129/month | 14-Day Free Trial',
+                'title' => 'VenQore Pricing — Plans from $36/month, 14-Day Free Trial',
                 'description' => 'Simple POS + ERP pricing: Starter $36/mo, Growth $63/mo, Enterprise $129/mo (Pakistan: Rs 1,100 / 1,800 / 5,300). Every plan includes the verified double-entry engine and Profit & Loss. 14-day free trial, no credit card.',
                 'keywords' => 'POS software price, ERP software cost, cheap retail POS, retail ERP pricing, point of sale subscription, Pakistan POS software price, online ERP pricing, small business software subscription',
                 'jsonld' => [
@@ -161,6 +162,9 @@ class MarketingSeo
                     . '<ul><li><strong>Starter — $36/month</strong> (Pakistan Rs 1,100): 1 location, 3 staff, 1,000 SKUs, offline POS, verified ledger, Profit &amp; Loss included</li>'
                     . '<li><strong>Growth — $63/month</strong> (Rs 1,800): 3 locations, 10 staff, 10,000 SKUs, bank reconciliation, production &amp; recipes, campaigns, advanced reports</li>'
                     . '<li><strong>Enterprise — $129/month</strong> (Rs 5,300): 10 locations, 50 staff, 50,000 SKUs, full 40-report suite, API access, loyalty &amp; gift cards, priority support</li></ul>'
+                    . '<h2>Frequently asked</h2>'
+                    . '<p><strong>How much does VenQore cost?</strong> Starter is $36/month, Growth is $63/month, and Enterprise is $129/month (billed monthly; annual billing is discounted). In Pakistan: Rs 1,100, Rs 1,800 and Rs 5,300 per month.</p>'
+                    . '<p><strong>Does every plan include real accounting?</strong> Yes. The verified double-entry engine and the Profit &amp; Loss statement are included on every plan, including Starter.</p>'
                     . '<p><a href="/demo">Try the live demo first</a> · <a href="/register">Start your free trial</a></p>' . $nav . '</main>',
             ],
 
@@ -171,6 +175,7 @@ class MarketingSeo
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Live Demo</h1>'
                     . '<p><strong>Explore a real, running VenQore store without creating an account.</strong> Ring up sales on the POS, open the Profit &amp; Loss, browse inventory and reports — everything is live and resets daily.</p>'
+                    . '<p>No signup and no time limit on exploring &mdash; the demo store resets nightly so you always start fresh. Ring up a sale on the POS, watch the FIFO cost update in real time, then open the Profit &amp; Loss and reconcile it yourself.</p>'
                     . '<p><a href="/pricing">Pricing from $36/month</a> · <a href="/register">Start a 14-day free trial</a></p>' . $nav . '</main>',
             ],
 
@@ -178,53 +183,118 @@ class MarketingSeo
                 'title' => 'About VenQore — Why We Built the POS That Keeps Real Books',
                 'description' => 'VenQore exists because small retailers deserve books they can bet on. The story, the engineering standard (636 automated tests), and the team behind the retail operating system.',
                 'jsonld' => [['@context' => 'https://schema.org'] + self::organizationLd()],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>About VenQore &mdash; Most Software Guesses. We Refused To.</h1>'
+                    . '<p><strong>VenQore began with one problem: a shop could ring up a thousand sales a day and still not answer whether it actually made money.</strong> So we rebuilt retail software on real double-entry accounting and obsessed over every detail in between.</p>'
+                    . '<h2>Three lies we refused to keep telling</h2>'
+                    . '<ul><li><strong>Tax counted as revenue:</strong> most systems fold the VAT/GST you owe the government straight into &quot;revenue,&quot; inflating the top line by 10-20%.</li>'
+                    . '<li><strong>Profit from a guessed cost:</strong> weighted-average costing overwrites what you actually paid, so every margin is built on a cost that no longer exists.</li>'
+                    . '<li><strong>Books you can silently edit:</strong> if a past sale can be changed with no reversal trail, that is not accounting &mdash; it is a spreadsheet pretending to be one.</li></ul>'
+                    . '<h2>What we built instead</h2>'
+                    . '<p>A precise decimal ledger with a FIFO cost core, verified by hundreds of automated tests so the math cannot quietly drift. 226+ features grew on top of that engine &mdash; POS, inventory, manufacturing, AI capture and 40+ reports &mdash; all reading from one verified ledger.</p>'
+                    . '<h2>Who we build for</h2>'
+                    . '<p>Retail, grocery, food &amp; beverage, fashion, electronics, wholesale, pharmacy, hardware and manufacturing businesses that need a fast till and books they can trust, even when the internet goes down.</p>'
+                    . '<p><a href="/demo"><strong>See it live</strong></a> &middot; <a href="/features">Explore the platform</a></p>'
+                    . $nav . '</main>',
             ],
 
             'marketing.contact' => [
                 'title' => 'Contact VenQore — Sales, Support & Partnerships',
                 'description' => 'Talk to the VenQore team about your store, migration from another POS, partnerships, or support. We reply within one business day.',
                 'jsonld' => [],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Contact VenQore &mdash; Let&#39;s Talk</h1>'
+                    . '<p><strong>Whether you need a personalized walkthrough, have technical questions, or want to discuss enterprise licensing, we respond within hours, not days.</strong></p>'
+                    . '<ul><li><strong>WhatsApp:</strong> the fastest way to reach us, with immediate response during business hours</li>'
+                    . '<li><strong>Email:</strong> <a href="mailto:hello@venqore.com">hello@venqore.com</a> for detailed inquiries, partnerships and enterprise discussions</li>'
+                    . '<li><strong>Live demo:</strong> book a 30-minute, one-on-one walkthrough of VenQore with your own data</li>'
+                    . '<li><strong>Partners:</strong> <a href="mailto:partners@venqore.com">partners@venqore.com</a> for reselling, white-labeling or integration inquiries</li></ul>'
+                    . '<p>We are a remote-first team with engineering based in Pakistan, serving retail and food businesses globally. Typical response time is 2-4 hours during business hours.</p>'
+                    . '<p><a href="/register"><strong>Start your free trial</strong></a> &middot; <a href="/demo">Try the live demo first</a></p>'
+                    . $nav . '</main>',
             ],
 
             'marketing.newsletter' => [
                 'title' => 'VenQore Newsletter — Product Launches & Retail Playbooks',
                 'description' => 'Get notified when new VenQore capabilities launch (VenSynQ marketplace sync, SmartCapture scan-to-invoice) plus practical playbooks for running a tighter retail operation.',
                 'jsonld' => [],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Newsletter &mdash; Product Launches &amp; Retail Playbooks</h1>'
+                    . '<p><strong>Get notified the moment new VenQore capabilities launch</strong> &mdash; VenSynQ marketplace sync, SmartCapture scan-to-invoice &mdash; plus practical playbooks for running a tighter retail operation: inventory control, FIFO costing, and double-entry accounting for shopkeepers.</p>'
+                    . '<p>One email per release, no spam. Unsubscribe any time.</p>'
+                    . '<p><a href="/demo"><strong>Try the live demo</strong></a> &middot; <a href="/blog">Read the blog</a></p>'
+                    . $nav . '</main>',
             ],
 
             'blog.index' => [
                 'title' => 'VenQore Blog — Retail Operations, POS & Accounting Guides',
                 'description' => 'Practical guides on point of sale, inventory control, FIFO costing, double-entry accounting for shopkeepers, and growing a retail business.',
                 'jsonld' => [],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>VenQore Blog &mdash; Retail Operations, POS &amp; Accounting Guides</h1>'
+                    . '<p><strong>Practical guides on point of sale, inventory control, FIFO costing, double-entry accounting for shopkeepers, and growing a retail business.</strong></p>'
+                    . '<ul>'
+                    . '<li><a href="/blog/your-business-has-been-lying-to-you-about-revenue">Your Business Has Been Lying to You About Revenue &mdash; Here&#39;s How to Find Out</a>: why the &quot;revenue&quot; figure in most POS systems includes tax you owe the government, and how to check your own numbers.</li>'
+                    . '<li><a href="/blog/the-hidden-tax-on-every-business-that-doesnt-track-customers-properly">The Hidden Tax on Every Business That Doesn&#39;t Track Customers Properly</a>: the silent cost of customers who quietly stop coming back, and a framework for catching them in time.</li>'
+                    . '</ul>'
+                    . '<p><a href="/demo">Try the live demo</a> &middot; <a href="/subscribe">Get new posts by email</a></p>'
+                    . $nav . '</main>',
             ],
 
             'terms' => [
                 'title' => 'Terms of Service — VenQore',
                 'description' => 'The terms that govern your use of VenQore, the offline-first POS and ERP platform.',
                 'jsonld' => [],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Terms of Service</h1>'
+                    . '<p>Please read these Terms of Service carefully before using VenQore. By creating an account or using any part of the Service, you agree to be bound by these terms.</p>'
+                    . '<p><strong>VenQore</strong> is a cloud-based Point of Sale (POS) and ERP platform for retail businesses, including inventory management, sales tracking, accounting and reporting. You must provide accurate information when creating an account, and you are responsible for all activity under it. Paid subscriptions are billed monthly or annually through Lemon Squeezy; you may cancel at any time, effective at the end of the current billing period.</p>'
+                    . '<p><a href="/privacy">Read the Privacy Policy</a> &middot; <a href="/refund-policy">Refund Policy</a></p>'
+                    . $nav . '</main>',
             ],
 
             'privacy' => [
                 'title' => 'Privacy Policy — VenQore',
                 'description' => 'How VenQore collects, uses and protects your data. Your business data belongs to you.',
                 'jsonld' => [],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Privacy Policy</h1>'
+                    . '<p>Your privacy matters to us. This policy explains what data we collect, why we collect it, and how you can control it. We do not sell your data.</p>'
+                    . '<p>We collect account data (name, email, business name, hashed password), business data you create in the Service (products, customers, sales, invoices, accounting entries &mdash; which belongs to you), usage data (IP address, browser type, pages visited) for security and improvement, and payment data handled entirely by Lemon Squeezy &mdash; we never see your full card number.</p>'
+                    . '<p>Your business data is never used for anything other than providing the Service to you.</p>'
+                    . '<p><a href="/terms">Read the Terms of Service</a> &middot; <a href="/refund-policy">Refund Policy</a></p>'
+                    . $nav . '</main>',
             ],
 
             'refund-policy' => [
                 'title' => 'Refund Policy — VenQore',
                 'description' => 'VenQore refund terms for subscriptions and lifetime deals — plain language, no surprises.',
                 'jsonld' => [],
-                'static_html' => null,
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Refund Policy</h1>'
+                    . '<p><strong>AppSumo Lifetime Deal purchases are covered by AppSumo&#39;s standard 60-day money-back guarantee.</strong> You may request a full refund within 60 calendar days of your original purchase date through your AppSumo dashboard or by contacting AppSumo support directly.</p>'
+                    . '<p>If you have stacked multiple codes and request a refund, the refund applies per code: refunding a code downgrades your plan to the next lower tier, and refunding all codes deactivates your account.</p>'
+                    . '<p><a href="/terms">Terms of Service</a> &middot; <a href="/privacy">Privacy Policy</a></p>'
+                    . $nav . '</main>',
+            ],
+
+            'register' => [
+                'title' => 'Create Your Free VenQore Account — 14-Day Trial, No Credit Card',
+                'description' => 'Start your 14-day free trial of VenQore: offline-first POS with verified double-entry accounting, FIFO inventory and 40+ financial reports. No credit card required.',
+                'jsonld' => [],
+                'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
+                    . '<h1>Create Your VenQore Account</h1>'
+                    . '<p><strong>Start a 14-day free trial &mdash; full features, no credit card required.</strong> VenQore is the offline-first point of sale and ERP with verified double-entry accounting built in.</p>'
+                    . '<ul><li>Auditor-grade accuracy: every transaction writes a correct, balanced journal entry</li>'
+                    . '<li>Professional POS: fast checkout shortcuts and a crash-proof, offline-first architecture</li>'
+                    . '<li>Dozens of verified financial reports: Profit &amp; Loss, Balance Sheet, Cash Flow and more</li>'
+                    . '<li>Full inventory control: FIFO costing, batch tracking, multi-warehouse support</li></ul>'
+                    . '<p><a href="/pricing">See plans from $36/month</a> &middot; <a href="/demo">Try the live demo first, no signup</a></p>'
+                    . $nav . '</main>',
             ],
 
             'marketing.vensynq' => [
-                'title' => 'VenSynQ — Sync Your POS Inventory with WooCommerce, Amazon, eBay & TikTok Shop',
+                'title' => 'VenSynQ — Sync POS Inventory with WooCommerce & Marketplaces',
                 'description' => 'VenSynQ is VenQore\'s multi-channel e-commerce sync engine: one inventory, one ledger, every marketplace. WooCommerce sync is live; Amazon, eBay and TikTok Shop are coming soon — join the waitlist.',
                 'jsonld' => [
                     self::faq([
@@ -240,12 +310,15 @@ class MarketingSeo
                     . '<li>Online orders become POS sales with correct COGS and a balanced journal entry</li>'
                     . '<li>SKU-based matching, webhook signature verification, conflict resolution</li>'
                     . '<li>Coming soon: Amazon, eBay, TikTok Shop — one dashboard for every channel</li></ul>'
+                    . '<h2>Frequently asked</h2>'
+                    . '<p><strong>What is VenSynQ?</strong> The multi-channel e-commerce fulfillment engine inside VenQore POS. It keeps one inventory and one verified ledger across your physical store and online channels — WooCommerce today, with Amazon, eBay and TikTok Shop connections coming soon.</p>'
+                    . '<p><strong>Does VenQore sync with WooCommerce?</strong> Yes — stock levels sync automatically and WooCommerce orders become POS sales, matched by SKU, with webhook-verified security.</p>'
                     . '<p><a href="/subscribe"><strong>Join the waitlist</strong></a> — get an email the moment each channel launches. · <a href="/demo">Try the live demo</a></p>'
                     . $nav . '</main>',
             ],
 
             'marketing.smartcapture' => [
-                'title' => 'SmartCapture — Turn Paper Invoices, Photos & Voice Notes into Digital Records',
+                'title' => 'SmartCapture — Paper Invoices & Voice Notes to Digital Records',
                 'description' => 'SmartCapture converts a photo of a supplier invoice or a spoken voice note into a structured digital transaction inside VenQore — items matched, prices filled, ledger-ready. Coming soon; join the waitlist.',
                 'jsonld' => [
                     self::faq([
@@ -262,6 +335,9 @@ class MarketingSeo
                     . '<li><strong>Voice to transaction:</strong> say it — "sold 5 bags of rice to Ali on credit" — and review the drafted sale</li>'
                     . '<li><strong>Catalog matching:</strong> recognized items map to your real products and cost history</li>'
                     . '<li><strong>Ledger-ready:</strong> every capture posts as a balanced journal entry, like everything in VenQore</li></ul>'
+                    . '<h2>Frequently asked</h2>'
+                    . '<p><strong>What is SmartCapture?</strong> VenQore&#39;s AI input layer: photograph a paper invoice or speak a voice note, and it becomes a structured, editable transaction — line items recognized, products matched to your catalog, ready to post to the verified ledger.</p>'
+                    . '<p><strong>When does it launch?</strong> SmartCapture is in final testing. Join the waitlist on this page to be notified at launch.</p>'
                     . '<p><strong>Coming soon.</strong> <a href="/subscribe"><strong>Join the waitlist</strong></a> and be first in when it ships. · <a href="/demo">Try the live demo</a></p>'
                     . $nav . '</main>',
             ],
