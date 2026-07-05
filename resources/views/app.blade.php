@@ -18,6 +18,9 @@
     @if($seo)
     {{-- ── Server-rendered SEO/GEO layer (2026-07-03) — real HTML for crawlers & AI bots ── --}}
     <meta name="description" content="{{ $seo['description'] }}">
+    @if(!empty($seo['keywords']))
+    <meta name="keywords" content="{{ $seo['keywords'] }}">
+    @endif
     <link rel="canonical" href="{{ $seo['canonical'] }}">
     <meta property="og:site_name" content="VenQore">
     <meta property="og:type" content="website">

@@ -85,6 +85,7 @@ class MarketingSeo
             'welcome' => [
                 'title' => 'VenQore — Offline-First POS & ERP with Verified Double-Entry Accounting',
                 'description' => 'VenQore is the point of sale that keeps real books. Offline-first POS + full ERP where every sale, purchase and return writes a balanced double-entry journal — verified by 636 automated tests. Try the live demo, no signup.',
+                'keywords' => 'peer system, POS system, Online ERP, Online Business Software, Point of Sale, retail POS software, retail ERP, inventory management, bookkeeping app, double-entry accounting software, retail operating system, wholesale ERP, store management software',
                 'jsonld' => [
                     [
                         '@context' => 'https://schema.org',
@@ -128,6 +129,7 @@ class MarketingSeo
             'marketing.features' => [
                 'title' => 'VenQore Features — 226+ POS & ERP Capabilities on One Verified Ledger',
                 'description' => 'Every VenQore feature, from offline POS checkout and FIFO inventory to double-entry accounting, 40+ reports, multi-store, staff roles, loyalty, and WooCommerce sync.',
+                'keywords' => 'POS system features, online ERP capabilities, inventory tracking, FIFO batches, double-entry ledger, multi-store POS, retail accounting software, WooCommerce sync, barcode scanning POS, offline POS, credit khata tracking',
                 'jsonld' => [],
                 'static_html' => '<main style="font-family:system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;line-height:1.6">'
                     . '<h1>VenQore Features</h1>'
@@ -144,6 +146,7 @@ class MarketingSeo
             'marketing.pricing' => [
                 'title' => 'VenQore Pricing — Starter $36, Growth $63, Enterprise $129/month | 14-Day Free Trial',
                 'description' => 'Simple POS + ERP pricing: Starter $36/mo, Growth $63/mo, Enterprise $129/mo (Pakistan: Rs 1,100 / 1,800 / 5,300). Every plan includes the verified double-entry engine and Profit & Loss. 14-day free trial, no credit card.',
+                'keywords' => 'POS software price, ERP software cost, cheap retail POS, retail ERP pricing, point of sale subscription, Pakistan POS software price, online ERP pricing, small business software subscription',
                 'jsonld' => [
                     self::faq([
                         ['How much does VenQore cost?', 'VenQore Starter is $36/month, Growth is $63/month, and Enterprise is $129/month (billed monthly; annual billing is discounted). In Pakistan: Rs 1,100, Rs 1,800 and Rs 5,300 per month. Every plan starts with a 14-day free trial with no credit card required.'],
