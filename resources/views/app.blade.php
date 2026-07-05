@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    {{-- Favicons for Browser & Google Search Results --}}
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+
     @php($seo = \App\Support\MarketingSeo::current())
 
     <title inertia>{{ $seo['title'] ?? config('app.name', 'VenQore POS') }}</title>
