@@ -39,7 +39,9 @@ class TenantOverrideController extends Controller
      */
     public function show(Tenant $tenant)
     {
-        $planLimits      = PlanRepository::getLimits($tenant->plan);
+        $planSlug = $tenant->effectivePlan();
+        $isLtd = str_starts_with($planSlug, 'ltd');
+        $planLimits      = $isLtd ? PlanRepository::getLtdSnapshot($planSlug) : PlanRepository::getLimits($planSlug);
         $effectiveLimits = [];
 
         foreach ($planLimits as $key => $planDefault) {
@@ -47,7 +49,7 @@ class TenantOverrideController extends Controller
             $effectiveLimits[$key] = [
                 'plan_default' => $planDefault,
                 'override'     => $override?->override_value,
-                'effective'    => PlanRepository::getEffectiveLimit($tenant->id, $tenant->plan, $key),
+                'effective'    => PlanRepository::getEffectiveLimit($tenant->id, $planSlug, $key),
                 'expires_at'   => $override?->expires_at,
                 'reason'       => $override?->reason,
                 'applied_at'   => $override?->updated_at,
