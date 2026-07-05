@@ -17,20 +17,20 @@
 
     @if($seo)
     {{-- ── Server-rendered SEO/GEO layer (2026-07-03) — real HTML for crawlers & AI bots ── --}}
-    <meta name="description" content="{{ $seo['description'] }}">
+    <meta name="description" content="{{ $seo['description'] }}" inertia>
     @if(!empty($seo['keywords']))
-    <meta name="keywords" content="{{ $seo['keywords'] }}">
+    <meta name="keywords" content="{{ $seo['keywords'] }}" inertia>
     @endif
-    <link rel="canonical" href="{{ $seo['canonical'] }}">
-    <meta property="og:site_name" content="VenQore">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="{{ $seo['title'] }}">
-    <meta property="og:description" content="{{ $seo['description'] }}">
-    <meta property="og:url" content="{{ $seo['canonical'] }}">
-    <meta property="og:image" content="{{ $seo['og_image'] }}">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="{{ $seo['title'] }}">
-    <meta name="twitter:description" content="{{ $seo['description'] }}">
+    <link rel="canonical" href="{{ $seo['canonical'] }}" inertia>
+    <meta property="og:site_name" content="VenQore" inertia>
+    <meta property="og:type" content="website" inertia>
+    <meta property="og:title" content="{{ $seo['title'] }}" inertia>
+    <meta property="og:description" content="{{ $seo['description'] }}" inertia>
+    <meta property="og:url" content="{{ $seo['canonical'] }}" inertia>
+    <meta property="og:image" content="{{ $seo['og_image'] }}" inertia>
+    <meta name="twitter:card" content="summary_large_image" inertia>
+    <meta name="twitter:title" content="{{ $seo['title'] }}" inertia>
+    <meta name="twitter:description" content="{{ $seo['description'] }}" inertia>
     
     {{-- Schema Markup for Google Reviews & Rich Snippets --}}
     <script type="application/ld+json">
@@ -52,7 +52,7 @@
       }
     }
     </script>
-    <meta name="twitter:image" content="{{ $seo['og_image'] }}">
+    <meta name="twitter:image" content="{{ $seo['og_image'] }}" inertia>
     @foreach(($seo['jsonld'] ?? []) as $ld)
     <script type="application/ld+json">{!! json_encode($ld, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
     @endforeach
