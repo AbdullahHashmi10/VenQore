@@ -101,7 +101,6 @@ class PlanFeatureMatrixSeeder extends Seeder
             'sales_return_vouchers'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'b2b_invoice_designer'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'pre_sales_reservation'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
-            'recurring_invoicing'        => ['trial' => '0', 'starter' => '0', 'growth' => '0', 'business' => '1'],
             'refund_reason_analysis'     => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'tax_exempt_customers'       => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],
             'customer_address_book'      => ['trial' => '1', 'starter' => '1', 'growth' => '1', 'business' => '1'],

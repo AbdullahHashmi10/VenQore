@@ -15,33 +15,45 @@ export default function AlertModal({ show, onClose, type = 'error', title, messa
         onClose();
     };
 
+    const isSaleCompleted = title === 'Sale Completed!';
+
     return (
         <Modal show={show} onClose={onClose} maxWidth="sm">
-            <div className="p-6 text-center">
-                <div className="flex justify-center mb-4">
-                    <div className={`p-3 rounded-full bg-opacity-10 ${type === 'error' ? 'bg-red-500' :
-                            type === 'success' ? 'bg-emerald-500' :
-                                type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
-                        }`}>
+            <div className={`p-8 text-center rounded-2xl transition-all duration-300 ${isSaleCompleted ? 'bg-slate-900 text-white' : ''}`}>
+                <div className="flex justify-center mb-5">
+                    <div className={`p-4 rounded-full bg-opacity-10 ${
+                        type === 'error' ? 'bg-red-500' :
+                        type === 'success' ? 'bg-emerald-500' :
+                        type === 'warning' ? 'bg-amber-500' : 'bg-blue-500'
+                    }`}>
                         {icons[type]}
                     </div>
                 </div>
 
-                <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">
+                <h2 className={`text-2xl font-black mb-4 tracking-tight ${isSaleCompleted ? 'text-white' : 'text-slate-800 dark:text-white'}`}>
                     {title}
                 </h2>
 
-                <p className="text-slate-500 dark:text-slate-400 mb-6">
-                    {message}
-                </p>
+                {typeof message === 'string' ? (
+                    <p className={`mb-6 whitespace-pre-line text-sm leading-relaxed ${isSaleCompleted ? 'text-slate-300 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
+                        {message}
+                    </p>
+                ) : (
+                    <div className="mb-6">
+                        {message}
+                    </div>
+                )}
 
                 <button
                     onClick={handleAction}
-                    className={`w-full py-3 rounded-xl font-bold text-white shadow-lg active:scale-95 transition-all ${type === 'error' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
-                            type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' :
-                                type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
-                                    'bg-blue-500 hover:bg-blue-600 shadow-blue-500/30'
-                        }`}
+                    className={`w-full py-4 rounded-xl font-extrabold text-white shadow-lg active:scale-[0.98] transition-all text-base ${
+                        isSaleCompleted 
+                        ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/20' 
+                        : (type === 'error' ? 'bg-red-500 hover:bg-red-600 shadow-red-500/30' :
+                           type === 'success' ? 'bg-emerald-500 hover:bg-emerald-600 shadow-emerald-500/30' :
+                           type === 'warning' ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-500/30' :
+                           'bg-blue-500 hover:bg-blue-600 shadow-blue-500/30')
+                    }`}
                 >
                     {actionLabel}
                 </button>

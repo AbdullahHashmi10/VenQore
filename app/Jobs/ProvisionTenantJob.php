@@ -154,20 +154,23 @@ class ProvisionTenantJob implements ShouldQueue
         }
         if ($aiLiteId && $variantIdStr === (string)$aiLiteId) {
             $aiStatus = 'managed';
-            $aiQueries = 300;
-            $aiScans = 200;
+            // Matches Pricing.jsx AI_OPTIONS: Lite = 200 queries / 150 scans
+            $aiQueries = 200;
+            $aiScans = 150;
             $isAddon = true;
         }
         if ($aiProId && $variantIdStr === (string)$aiProId) {
             $aiStatus = 'managed';
-            $aiQueries = 1000;
-            $aiScans = 800;
+            // Matches Pricing.jsx AI_OPTIONS: Pro = 420 queries / 480 scans
+            $aiQueries = 420;
+            $aiScans = 480;
             $isAddon = true;
         }
         if ($aiUltimateId && $variantIdStr === (string)$aiUltimateId) {
             $aiStatus = 'managed';
-            $aiQueries = 5000;
-            $aiScans = 4000;
+            // Matches Pricing.jsx AI_OPTIONS: Ultimate = 800 queries / 850 scans
+            $aiQueries = 800;
+            $aiScans = 850;
             $isAddon = true;
         }
         if ($aiByokId && $variantIdStr === (string)$aiByokId) {

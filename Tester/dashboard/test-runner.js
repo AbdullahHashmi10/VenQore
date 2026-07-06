@@ -77,6 +77,13 @@ const SUITE_TESTS = {
     'woocommerce integration is gated by plan',
     'report tier gating restricts access',
     'new features plan gating'
+  ],
+  'RecentFixesAuditTest': [
+    'provision tenant job stamps correct ai quotas',
+    'subscription expiry removes lemon squeezy sourced overrides',
+    'plan matrix does not contain duplicate recurring invoicing key',
+    'tenant override controller uses ltd snapshot for ltd plans',
+    'settings helper cache is partitioned by tenant'
   ]
 };
 
