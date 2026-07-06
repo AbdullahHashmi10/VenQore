@@ -307,9 +307,33 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         }
     };
 
-    // Handle activate addon trial
-    const handleAddonTrial = (addon) => {
-        router.post(route('store.billing.addon-trial', { store_slug: storeSlug }), { addon });
+    const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
+
+    // Handle checkout redirect for AI or Sync add-ons
+    const handlePurchaseAddon = (addonType) => {
+        setIsPurchasingAddon(addonType);
+        fetch(route('store.billing.checkout-addon', { store_slug: storeSlug }), {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify({ addon_type: addonType })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.url) {
+                window.location.href = data.url;
+            } else if (data.error) {
+                alert(data.error);
+                setIsPurchasingAddon(null);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Failed to generate checkout link.');
+            setIsPurchasingAddon(null);
+        });
     };
 
     // Open change plan confirmation modal
@@ -801,70 +825,132 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 <h3 className="text-lg font-black text-white">AI Engine Add-on</h3>
                             </div>
                             <p className="text-xs text-slate-400 leading-relaxed mb-6">
-                                Unlock Gemini-powered smart answers, scan invoice details directly, and let artificial intelligence track product parameters. 
-                                Set up managed queries or provide your own API key to bypass billing.
+                                Supercharge your store with AI-powered scanning (SmartCapture) and interactive assistant tools. Every store starts with 10 free credits to test out the capabilities.
                             </p>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* AI Status Card */}
-                                <div className="p-5 rounded-2xl bg-[#0b081e]/40 border border-white/[0.05]">
-                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Level</span>
-                                    <div className="text-2xl font-black text-white mt-1 capitalize">{tenant?.ai_status === 'none' ? 'Disabled' : tenant?.ai_status}</div>
-                                    
-                                    {tenant?.ai_status === 'managed' && (
-                                        <div className="space-y-2 mt-4 pt-4 border-t border-white/[0.05]">
-                                            <div className="flex justify-between text-xs text-slate-400">
-                                                <span>AI Queries:</span>
-                                                <span className="font-bold text-white">{tenant?.plan_limits?.ai_queries_used ?? 0} / {tenant?.plan_limits?.ai_queries_limit ?? 110}</span>
+                            {/* Status Card & Progress */}
+                            <div className="p-5 rounded-2xl bg-[#0b081e]/40 border border-white/[0.05] mb-8">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Level</span>
+                                        <div className="text-2xl font-black text-white mt-1 capitalize">
+                                            {tenant?.ai_status === 'none' ? 'Free Starter Tier (10 Credits)' : tenant?.ai_status}
+                                        </div>
+                                    </div>
+
+                                    {tenant?.ai_status === 'none' && (
+                                        <div className="flex-1 max-w-xs">
+                                            <div className="flex justify-between text-xs text-slate-400 mb-1">
+                                                <span>Free Scans Used:</span>
+                                                <span className="font-bold text-white">{(tenant?.plan_limits?.ai_scans_used ?? 0)} / 10</span>
                                             </div>
-                                            <div className="flex justify-between text-xs text-slate-400">
-                                                <span>AI Scans:</span>
-                                                <span className="font-bold text-white">{tenant?.plan_limits?.ai_scans_used ?? 0} / {tenant?.plan_limits?.ai_scans_limit ?? 90}</span>
+                                            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all duration-500" 
+                                                    style={{ width: `${Math.min(100, ((tenant?.plan_limits?.ai_scans_used ?? 0) / 10) * 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {tenant?.ai_status === 'managed' && (
+                                        <div className="flex gap-4">
+                                            <div className="text-right">
+                                                <div className="text-[10px] text-slate-500 font-bold uppercase">Scans</div>
+                                                <div className="text-sm font-black text-white">
+                                                    {(tenant?.plan_limits?.ai_scans_used ?? 0)} / {(tenant?.plan_limits?.ai_scans_limit ?? 90)}
+                                                </div>
+                                            </div>
+                                            <div className="text-right border-l border-white/10 pl-4">
+                                                <div className="text-[10px] text-slate-500 font-bold uppercase">Queries</div>
+                                                <div className="text-sm font-black text-white">
+                                                    {(tenant?.plan_limits?.ai_queries_used ?? 0)} / {(tenant?.plan_limits?.ai_queries_limit ?? 110)}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
 
                                     {tenant?.ai_status === 'byok' && (
-                                        <div className="mt-4 pt-4 border-t border-white/[0.05]">
-                                            <p className="text-[11px] text-amber-300">Bring Your Own Key active. Customize your keys in the Chatbot Settings page.</p>
+                                        <div className="text-xs text-amber-300 font-bold flex items-center gap-1.5">
+                                            <CheckCircle2 size={14} /> Bring Your Own Key License Active
                                         </div>
                                     )}
                                 </div>
+                            </div>
 
-                                {/* Trial Activate Card */}
-                                <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05] flex flex-col justify-between">
+                            {/* Upgrade Options Header */}
+                            <h4 className="text-sm font-black text-white mb-4 flex items-center gap-2">
+                                <Sparkles size={16} className="text-amber-400" /> Choose Your Upgrade Path
+                            </h4>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                {/* Option 1: BYOK */}
+                                <div className="lg:col-span-1 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
                                     <div>
-                                        <span className="text-[10px] font-bold text-purple-400 uppercase tracking-widest">Trial Configuration</span>
-                                        <h4 className="text-sm font-black text-white mt-1">Want to evaluate AI features?</h4>
-                                        <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">
-                                            If you are on an active trial, you can start a 14-day free trial of our managed AI Engine immediately. This can only be done once.
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                Bring Your Own Key
+                                            </span>
+                                            <div className="text-xl font-black text-white">$5 <span className="text-xs font-normal text-slate-400">once</span></div>
+                                        </div>
+                                        <h5 className="text-sm font-black text-white mb-2">Lifetime BYOK License</h5>
+                                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                                            Bypass platform scanning fees forever. Provide your own API keys for Gemini, Claude, OpenAI, or DeepSeek and pay nothing else.
                                         </p>
                                     </div>
-                                    
-                                    <div className="mt-4">
-                                        {tenant?.ai_status !== 'none' ? (
-                                            <span className="text-xs text-emerald-400 font-bold flex items-center gap-1.5">
-                                                <CheckCircle2 size={14} /> AI Engine Active
-                                            </span>
-                                        ) : isTrial ? (
-                                            tenant?.plan_limits?.ai_trial_used ? (
-                                                <span className="text-xs text-slate-500 font-bold">Add-on trial already utilized.</span>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleAddonTrial('ai')}
-                                                    className="px-5 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
-                                                >
-                                                    Start 14-Day AI Trial
-                                                </button>
-                                            )
+                                    <div className="mt-6">
+                                        {tenant?.ai_status === 'byok' ? (
+                                            <button disabled className="w-full py-2.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold uppercase tracking-wider cursor-default">
+                                                Already Purchased
+                                            </button>
                                         ) : (
                                             <button
-                                                onClick={() => handleSelectPlan('growth')}
-                                                className="px-5 py-2.5 bg-white text-[#020010] rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                                                onClick={() => handlePurchaseAddon('ai_byok')}
+                                                disabled={isPurchasingAddon !== null}
+                                                className="w-full py-2.5 bg-amber-500 hover:bg-amber-600 text-[#020010] rounded-xl text-xs font-black uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
                                             >
-                                                Subscribe to AI Add-on
+                                                {isPurchasingAddon === 'ai_byok' ? <Loader2 size={14} className="animate-spin" /> : 'Buy BYOK Unlock'}
                                             </button>
                                         )}
+                                    </div>
+                                </div>
+
+                                {/* Option 2: Managed Plans */}
+                                <div className="lg:col-span-2 p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] hover:border-white/10 transition-all flex flex-col justify-between">
+                                    <div>
+                                        <div className="flex justify-between items-start mb-4">
+                                            <span className="px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-purple-500/10 text-purple-400 border border-purple-500/20">
+                                                Managed API
+                                            </span>
+                                            <span className="text-xs text-slate-400">Monthly Subscriptions</span>
+                                        </div>
+                                        <h5 className="text-sm font-black text-white mb-2">Managed AI Subscriptions</h5>
+                                        <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+                                            No developer keys or setup required. Use our fast platform credentials directly. Pick the tier that matches your monthly volume:
+                                        </p>
+
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {[
+                                                { key: 'ai_starter', label: 'Starter AI', price: '$9', scans: 90, queries: 110 },
+                                                { key: 'ai_lite', label: 'Lite AI', price: '$19', scans: 150, queries: 200 },
+                                                { key: 'ai_pro', label: 'Pro AI', price: '$39', scans: 480, queries: 420 },
+                                                { key: 'ai_ultimate', label: 'Ultimate AI', price: '$79', scans: 850, queries: 800 }
+                                            ].map(plan => (
+                                                <div 
+                                                    key={plan.key} 
+                                                    onClick={() => handlePurchaseAddon(plan.key)}
+                                                    className="p-3 rounded-xl bg-white/[0.01] border border-white/[0.04] hover:border-purple-500/30 hover:bg-purple-500/[0.02] cursor-pointer transition-all flex flex-col justify-between group"
+                                                >
+                                                    <div className="flex justify-between items-center mb-1">
+                                                        <span className="text-xs font-black text-white group-hover:text-purple-300 transition-colors">{plan.label}</span>
+                                                        <span className="text-xs font-black text-purple-400">{plan.price}</span>
+                                                    </div>
+                                                    <div className="text-[9px] text-slate-500">
+                                                        {plan.scans} scans / {plan.queries} queries
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

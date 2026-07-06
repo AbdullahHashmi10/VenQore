@@ -126,20 +126,6 @@ class BillingController extends Controller
 
         $featureStatus = [
             [
-                'key' => 'woocommerce',
-                'name' => 'WooCommerce Sync',
-                'description' => 'Real-time inventory and order syncing with WooCommerce stores.',
-                'is_active' => $activeFeatures['woocommerce'],
-                'is_locked' => !PlanGate::check('woocommerce'),
-            ],
-            [
-                'key' => 'growth_engine',
-                'name' => 'AI Growth & Chatbot',
-                'description' => 'Gemini AI assistant and customer retention engine with recommendations.',
-                'is_active' => $activeFeatures['chatbot'],
-                'is_locked' => !PlanGate::check('growth_engine'),
-            ],
-            [
                 'key' => 'recurring_invoicing',
                 'name' => 'Recurring Invoicing',
                 'description' => 'Automated invoice generation for retainer and subscription contracts.',
@@ -383,65 +369,86 @@ class BillingController extends Controller
     }
 
     /**
-     * Activate a free 14-day add-on trial for AI or Sync (available only during active overall trial days).
+     * Generate a Lemon Squeezy checkout URL for an AI/Sync Add-on.
      */
-    public function addonTrial(Request $request): RedirectResponse
+    public function checkoutAddon(Request $request): \Illuminate\Http\JsonResponse
     {
         if (!app()->bound('current.tenant')) {
-            abort(403, 'No tenant context.');
+            return response()->json(['error' => 'No tenant context.'], 403);
         }
-
-        $request->validate([
-            'addon' => 'required|string|in:ai,sync'
-        ]);
 
         $tenant = app('current.tenant');
-        $addon = $request->input('addon');
 
-        // Rule 1: Must be in active overall trial period
-        if ($tenant->status !== 'trial' || !$tenant->trial_ends_at || $tenant->trial_ends_at->isPast()) {
-            return back()->with('error', 'Add-on trials can only be activated during your active trial period. Please subscribe to unlock.');
+        $request->validate([
+            'addon_type' => 'required|string|in:ai_byok,ai_starter,ai_lite,ai_pro,ai_ultimate,sync_woocommerce'
+        ]);
+
+        $addonType = $request->input('addon_type');
+
+        // Map addon_type to variant ID from config/services.php
+        $variantId = match ($addonType) {
+            'ai_byok'         => config('services.lemon_squeezy.ai_byok_addon_id'),
+            'ai_starter'      => config('services.lemon_squeezy.ai_starter_addon_id'),
+            'ai_lite'         => config('services.lemon_squeezy.ai_lite_addon_id'),
+            'ai_pro'          => config('services.lemon_squeezy.ai_pro_addon_id'),
+            'ai_ultimate'     => config('services.lemon_squeezy.ai_ultimate_addon_id'),
+            'sync_woocommerce' => config('services.lemon_squeezy.woocommerce_addon_id'),
+            default           => null
+        };
+
+        if (!$variantId) {
+            return response()->json(['error' => 'Add-on variant ID not configured.'], 500);
         }
 
-        $limits = $tenant->plan_limits ?? [];
+        $storeId = env('LEMON_SQUEEZY_STORE_ID');
+        $apiKey = env('LEMON_SQUEEZY_API_KEY');
 
-        if ($addon === 'ai') {
-            // Rule 2: Cannot activate a trial if already used
-            if (!empty($limits['ai_trial_used'])) {
-                return back()->with('error', 'You have already utilized your free trial for the AI Engine add-on.');
-            }
-
-            $limits['ai_trial_used'] = true;
-            $tenant->update([
-                'ai_status' => 'managed',
-                'ai_queries_limit' => 110, // Starter-tier default queries/mo
-                'ai_scans_limit' => 90,   // Starter-tier default scans/mo
-                'plan_limits' => $limits,
-            ]);
-
-            \Illuminate\Support\Facades\Log::info("Tenant {$tenant->id} ('{$tenant->slug}') activated AI Add-on trial.");
-            return back()->with('success', 'AI Engine trial activated successfully for the remainder of your trial period!');
-
-        } else {
-            // Rule 2: Cannot activate a trial if already used
-            if (!empty($limits['sync_trial_used'])) {
-                return back()->with('error', 'You have already utilized your free trial for the platform sync channels.');
-            }
-
-            $limits['sync_trial_used'] = true;
-            $currentSyncs = $tenant->sync_channels ?? [];
-            if (!in_array('woocommerce', $currentSyncs)) {
-                $currentSyncs[] = 'woocommerce'; // Enable WooCommerce sync as trial default
-            }
-
-            $tenant->update([
-                'sync_channels' => $currentSyncs,
-                'plan_limits' => $limits,
-            ]);
-
-            \Illuminate\Support\Facades\Log::info("Tenant {$tenant->id} ('{$tenant->slug}') activated Platform Sync trial.");
-            return back()->with('success', 'Platform Sync trial activated successfully for the remainder of your trial period!');
+        if (!$storeId || !$apiKey) {
+            return response()->json(['error' => 'Lemon Squeezy credentials not configured on the server.'], 500);
         }
+
+        // Call Lemon Squeezy API to generate checkout
+        $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
+            ->withHeaders(['Accept' => 'application/vnd.api+json', 'Content-Type' => 'application/vnd.api+json'])
+            ->post('https://api.lemonsqueezy.com/v1/checkouts', [
+                'data' => [
+                    'type' => 'checkouts',
+                    'attributes' => [
+                        'product_options' => [
+                            'redirect_url' => route('store.billing', ['store_slug' => $tenant->slug]),
+                        ],
+                        'checkout_data' => [
+                            'email' => $tenant->ownerEmail() ?? '',
+                            'custom' => [
+                                'tenant_id' => $tenant->id,
+                            ]
+                        ]
+                    ],
+                    'relationships' => [
+                        'store' => [
+                            'data' => [
+                                'type' => 'stores',
+                                'id' => (string)$storeId
+                            ]
+                        ],
+                        'variant' => [
+                            'data' => [
+                                'type' => 'variants',
+                                'id' => (string)$variantId
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+
+        if ($response->failed()) {
+            \Illuminate\Support\Facades\Log::error("Lemon Squeezy Add-on checkout generation failed: " . $response->body());
+            return response()->json(['error' => 'Failed to create checkout. Lemon Squeezy API returned an error.'], 500);
+        }
+
+        $checkoutUrl = $response->json('data.attributes.url');
+
+        return response()->json(['url' => $checkoutUrl]);
     }
 
     /**

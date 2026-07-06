@@ -204,7 +204,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
         Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->name('backup.import');
         Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->name('billing.cancel-trial');
-        Route::post('/billing/addon-trial',  [\App\Http\Controllers\BillingController::class, 'addonTrial'])->name('billing.addon-trial');
+        Route::post('/billing/checkout-addon', [\App\Http\Controllers\BillingController::class, 'checkoutAddon'])->name('billing.checkout-addon');
         Route::post('/billing/change-plan',  [\App\Http\Controllers\BillingController::class, 'changePlan'])->name('billing.change-plan');
         Route::post('/billing/deactivate-feature', [\App\Http\Controllers\BillingController::class, 'deactivateFeature'])->name('billing.deactivate-feature');
         Route::post('/billing/checkout-upload-service', [\App\Http\Controllers\BillingController::class, 'checkoutUploadService'])->name('billing.checkout-upload-service');
@@ -222,10 +222,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/settings',                    [\App\Http\Controllers\SettingsController::class, 'index'])->name('settings');
         Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
 
-        // SmartCapture API
+        // SmartCapture (AI Scan) API
         Route::prefix('smart-capture')->group(function () {
-            Route::post('/extract', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->name('smart-capture.extract');
-            Route::post('/confirm', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->name('smart-capture.confirm');
+            Route::get('/context',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'context'])->name('smart-capture.context');
+            Route::post('/extract',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->middleware('throttle:20,1')->name('smart-capture.extract');
+            Route::post('/confirm',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'confirm'])->middleware('throttle:30,1')->name('smart-capture.confirm');
+            Route::get('/settings',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'settings'])->name('smart-capture.settings');
+            Route::post('/settings', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'saveSettings'])->name('smart-capture.settings.save');
+            Route::post('/settings/test', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'testSettings'])->middleware('throttle:10,1')->name('smart-capture.settings.test');
         });
 
         // Trial expired landing (within store context)
