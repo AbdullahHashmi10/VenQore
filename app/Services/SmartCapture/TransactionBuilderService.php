@@ -38,17 +38,28 @@ class TransactionBuilderService
 
     /**
      * Build and confirm a transaction in the database.
+     *
+     * Expected $data:
+     *  - action          : validated action string
+     *  - party_id        : explicit, user-confirmed party id (required except for expense)
+     *  - party           : legacy party name (fallback ONLY for exact tenant-scoped lookup)
+     *  - payment_method  : cash | credit | bank
+     *  - expense_category_id : required when action = expense
+     *  - items[]         : { product_id | create_new:{name, unit_price, cost_price}, qty, unit_price, name }
+     *  - append_to       : optional { type: proposal|pre_invoice|pre_purchase|recurring_invoice, id }
      */
     public function confirm(array $data): array
     {
         $tenantId = app('current.tenant')->id;
         $action = $data['action'];
-        $partyName = $data['party'] ?? null;
         $paymentMethod = $data['payment_method'] ?? 'cash';
         $items = $data['items'] ?? [];
+        $appendTo = $data['append_to'] ?? null;
 
-        // 1. Resolve Party (Customer / Supplier)
-        $party = $this->resolveParty($partyName, $action, $tenantId);
+        // 1. Resolve Party (Customer / Supplier) — explicit and user-confirmed.
+        //    NO silent fallback to "first party": that silently mis-attributed
+        //    transactions before. The UI must send party_id.
+        $party = $this->resolveParty($data, $action, $tenantId);
 
         // 2. Resolve Warehouse (Default or first available)
         $warehouse = Warehouse::where('tenant_id', $tenantId)->orderByDesc('is_default')->first()
@@ -58,7 +69,21 @@ class TransactionBuilderService
             throw new \Exception("No warehouses available. Please configure a warehouse first.");
         }
 
-        return DB::transaction(function () use ($action, $party, $warehouse, $paymentMethod, $items, $tenantId) {
+        return DB::transaction(function () use ($action, $party, $warehouse, $paymentMethod, $items, $tenantId, $data, $appendTo) {
+            // 3. Create any user-confirmed NEW products first, so every line has a product_id.
+            $items = $this->materializeNewProducts($items, $tenantId, $action);
+
+            // 4. Append mode — add lines to an existing open/draft document.
+            if ($appendTo && !empty($appendTo['id']) && !empty($appendTo['type'])) {
+                return match ($appendTo['type']) {
+                    'proposal'          => $this->appendToProposal($appendTo['id'], $items, $tenantId),
+                    'pre_invoice'       => $this->appendToSalesOrder($appendTo['id'], $items, $tenantId, $warehouse),
+                    'pre_purchase'      => $this->appendToPurchaseOrder($appendTo['id'], $items, $tenantId),
+                    'recurring_invoice' => $this->appendToRecurringInvoice($appendTo['id'], $items, $tenantId),
+                    default             => throw new \Exception("Appending to '{$appendTo['type']}' documents is not supported. Only draft/open documents (proposals, sales orders, purchase orders, recurring invoices) can be appended to."),
+                };
+            }
+
             switch ($action) {
                 case 'purchase':
                     return $this->buildPurchase($party, $warehouse, $paymentMethod, $items, $tenantId);
@@ -66,7 +91,7 @@ class TransactionBuilderService
                 case 'invoice':
                     return $this->buildSale($party, $warehouse, $paymentMethod, $items);
                 case 'expense':
-                    return $this->buildExpense($items, $paymentMethod);
+                    return $this->buildExpense($items, $paymentMethod, $data);
                 case 'return':
                     return $this->buildReturn($party, $items, $paymentMethod);
                 case 'proposal':
@@ -86,30 +111,83 @@ class TransactionBuilderService
     }
 
     /**
-     * Resolve a customer or supplier party from their name.
+     * Resolve the party strictly. Priority:
+     *  1. Explicit party_id (must belong to this tenant).
+     *  2. Exact (case-insensitive) tenant-scoped name match on the legacy 'party' field.
+     * NEVER falls back to an arbitrary first party.
      */
-    private function resolveParty(?string $name, string $action, int $tenantId): ?Party
+    private function resolveParty(array $data, string $action, int|string $tenantId): ?Party
     {
-        if (!$name) {
-            return null;
-        }
-
         $type = in_array($action, ['purchase', 'pre_purchase', 'purchase_return']) ? 'supplier' : 'customer';
 
-        // Direct search
-        $party = Party::where('tenant_id', $tenantId)
-            ->where('type', $type)
-            ->where('name', 'like', '%' . $name . '%')
-            ->first();
-
-        // Safe fallback - if not found, create a walk-in/generic or use first available
-        if (!$party) {
+        if (!empty($data['party_id'])) {
             $party = Party::where('tenant_id', $tenantId)
+                ->where('id', $data['party_id'])
+                ->first();
+
+            if (!$party) {
+                throw new \Exception('Selected party was not found in this store.');
+            }
+
+            return $party;
+        }
+
+        $name = $data['party'] ?? null;
+        if ($name) {
+            return Party::where('tenant_id', $tenantId)
                 ->where('type', $type)
+                ->whereRaw('LOWER(name) = ?', [mb_strtolower(trim($name))])
                 ->first();
         }
 
-        return $party;
+        return null;
+    }
+
+    /**
+     * Create user-confirmed new products for lines flagged create_new, and
+     * verify all other product_ids belong to this tenant.
+     */
+    private function materializeNewProducts(array $items, int|string $tenantId, string $action): array
+    {
+        foreach ($items as $idx => $item) {
+            if (!empty($item['create_new']) && is_array($item['create_new'])) {
+                $new = $item['create_new'];
+                $name = trim((string) ($new['name'] ?? ''));
+
+                if ($name === '') {
+                    throw new \Exception('New product name cannot be empty.');
+                }
+
+                // Reuse an identically-named product instead of duplicating
+                $existing = Product::where('tenant_id', $tenantId)
+                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($name)])
+                    ->first();
+
+                $isPurchaseSide = in_array($action, ['purchase', 'pre_purchase', 'purchase_return']);
+                $linePrice = (float) ($item['unit_price'] ?? 0);
+
+                $product = $existing ?? Product::create([
+                    'tenant_id'  => $tenantId,
+                    'name'       => $name,
+                    'sku'        => $new['sku'] ?? ('AI-' . strtoupper(Str::random(8))),
+                    'price'      => (float) ($new['price'] ?? ($isPurchaseSide ? 0 : $linePrice)),
+                    'cost_price' => (float) ($new['cost_price'] ?? ($isPurchaseSide ? $linePrice : 0)),
+                ]);
+
+                $items[$idx]['product_id'] = $product->id;
+                unset($items[$idx]['create_new']);
+            } elseif ($action !== 'expense') {
+                // Tenant-isolation guard: the product must belong to this store
+                $ok = Product::where('tenant_id', $tenantId)
+                    ->where('id', $item['product_id'] ?? '')
+                    ->exists();
+                if (!$ok) {
+                    throw new \Exception('One of the selected products does not belong to this store.');
+                }
+            }
+        }
+
+        return $items;
     }
 
     /**
@@ -311,9 +389,28 @@ class TransactionBuilderService
 
     /**
      * Build operating expense transaction.
+     *
+     * Creates a REAL Expense record (with its required category) exactly like the
+     * Expenses module does, plus the double-entry journal and Activity log — so
+     * AI-captured expenses show up in the Expenses screen and P&L consistently.
      */
-    private function buildExpense(array $items, string $paymentMethod): array
+    private function buildExpense(array $items, string $paymentMethod, array $data = []): array
     {
+        $tenantId = app('current.tenant')->id;
+
+        $categoryId = $data['expense_category_id'] ?? null;
+        if (!$categoryId) {
+            throw new \Exception('An expense category is required. Please pick the category this expense belongs to.');
+        }
+
+        $category = \App\Models\ExpenseCategory::where('tenant_id', $tenantId)
+            ->where('id', $categoryId)
+            ->first();
+
+        if (!$category) {
+            throw new \Exception('Selected expense category was not found in this store.');
+        }
+
         $amount = 0.00;
         $descriptionLines = [];
 
@@ -322,34 +419,61 @@ class TransactionBuilderService
             $descriptionLines[] = ($item['name'] ?? 'General item') . ' (Qty: ' . ($item['qty'] ?? 1) . ')';
         }
 
-        $description = implode(', ', $descriptionLines);
-        if (empty($description)) {
-            $description = "SmartCapture Operating Expense";
+        if ($amount <= 0) {
+            throw new \Exception('Expense amount must be greater than zero.');
         }
 
-        $inputTax = 0.00; // default zero
-        $totalPaid = round($amount + $inputTax, 2);
-        $cashAccount = $paymentMethod === 'bank' ? '1010' : '1000';
+        $description = implode(', ', $descriptionLines) ?: 'SmartCapture Operating Expense';
 
-        $lines = [
-            ['account_code' => '6000', 'debit' => $amount, 'credit' => 0],
-            ['account_code' => $cashAccount, 'debit' => 0, 'credit' => $totalPaid],
-        ];
+        // Expenses support cash | bank only — map anything else to cash.
+        $method = $paymentMethod === 'bank' ? 'bank' : 'cash';
+        $totalPaid = round($amount, 2);
 
-        $referenceId = Str::uuid()->toString();
+        $expense = \App\Models\Expense::create([
+            'tenant_id'           => $tenantId,
+            'date'                => $data['date'] ?? now()->toDateString(),
+            'expense_category_id' => $category->id,
+            'category'            => $category->name,
+            'amount'              => $totalPaid,
+            'tax_amount'          => 0,
+            'payment_method'      => $method,
+            'payee'               => $data['party'] ?? null,
+            'reference'           => $data['reference'] ?? null,
+            'description'         => $description,
+            'notes'               => 'Created via AI Scan (SmartCapture)',
+        ]);
+
+        $cashAccount = $method === 'bank' ? '1010' : '1000';
 
         $this->accounting->createEntry([
-            'date' => now()->toDateString(),
-            'reference_type' => 'operating_expense',
-            'reference' => $referenceId,
-            'description' => "Expense — {$description}",
-        ], $lines);
+            'date'           => $expense->date instanceof \Carbon\Carbon ? $expense->date->toDateString() : (string) $expense->date,
+            'reference_type' => 'expense',
+            'reference'      => $expense->id,
+            'description'    => "{$category->name}: {$description}",
+        ], [
+            ['account_code' => '6000', 'debit' => $totalPaid, 'credit' => 0],
+            ['account_code' => $cashAccount, 'debit' => 0, 'credit' => $totalPaid],
+        ]);
+
+        try {
+            \App\Models\Activity::create([
+                'type'           => 'expense',
+                'description'    => 'Expense: ' . $description,
+                'amount'         => $totalPaid,
+                'reference_id'   => $expense->id,
+                'reference_type' => 'expense',
+                'user_id'        => Auth::id(),
+                'tenant_id'      => $tenantId,
+            ]);
+        } catch (\Exception $e) {
+            // Activity logging is best-effort
+        }
 
         return [
             'success' => true,
             'type' => 'expense',
-            'id' => $referenceId,
-            'reference' => 'EXP-' . strtoupper(Str::random(8)),
+            'id' => $expense->id,
+            'reference' => $expense->reference ?? ('EXP-' . strtoupper(Str::random(8))),
             'total' => $totalPaid
         ];
     }
@@ -935,6 +1059,256 @@ class TransactionBuilderService
             'id' => $debitNoteId,
             'reference' => $reference,
             'total' => $totalAmount
+        ];
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // APPEND MODE — add AI-captured lines to an existing open/draft document.
+    // Posted sales/purchases are intentionally NOT appendable (accounting-safe).
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Append items to an existing draft/sent proposal and refresh its totals.
+     */
+    private function appendToProposal(string $proposalId, array $items, int|string $tenantId): array
+    {
+        $proposal = DB::table('proposals')
+            ->where('tenant_id', $tenantId)
+            ->where('id', $proposalId)
+            ->first();
+
+        if (!$proposal) {
+            throw new \Exception('Proposal not found in this store.');
+        }
+        if (!in_array($proposal->status, ['draft', 'sent', 'pending'])) {
+            throw new \Exception("Only draft or sent proposals can be appended to (this one is '{$proposal->status}').");
+        }
+
+        $addedAmount = 0.00;
+        $addedTax = 0.00;
+
+        foreach ($items as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $qty = (float) $item['qty'];
+            $price = (float) ($item['unit_price'] ?? $product->price ?? 0);
+            $lineTotal = round($qty * $price, 2);
+
+            $taxCalc = $this->tax->calculateLineTax(
+                amount: $lineTotal,
+                taxRate: $product->tax_rate ?? 0,
+                priceIncludesTax: false
+            );
+
+            $addedAmount += $lineTotal;
+            $addedTax += $taxCalc['tax'];
+
+            DB::table('proposal_items')->insert([
+                'id'           => Str::uuid()->toString(),
+                'proposal_id'  => $proposal->id,
+                'product_id'   => $product->id,
+                'product_name' => $product->name,
+                'quantity'     => $qty,
+                'unit_price'   => $price,
+                'unit_cost'    => (float) ($product->cost_price ?? 0),
+                'total'        => $lineTotal,
+                'tax_rate'     => $product->tax_rate ?? 0,
+                'discount'     => 0,
+                'tenant_id'    => $tenantId,
+                'created_at'   => now(),
+                'updated_at'   => now(),
+            ]);
+        }
+
+        DB::table('proposals')->where('id', $proposal->id)->update([
+            'total_amount' => DB::raw('total_amount + ' . $addedAmount),
+            'tax_amount'   => DB::raw('tax_amount + ' . $addedTax),
+            'updated_at'   => now(),
+        ]);
+
+        return [
+            'success'   => true,
+            'type'      => 'proposal',
+            'id'        => $proposal->id,
+            'reference' => $proposal->reference_number,
+            'total'     => round(((float) $proposal->total_amount) + $addedAmount, 2),
+            'appended'  => count($items),
+        ];
+    }
+
+    /**
+     * Append items to an existing pending sales order (pre-invoice), reserving stock.
+     */
+    private function appendToSalesOrder(string $orderId, array $items, int|string $tenantId, Warehouse $warehouse): array
+    {
+        $order = DB::table('sales_orders')
+            ->where('tenant_id', $tenantId)
+            ->where('id', $orderId)
+            ->first();
+
+        if (!$order) {
+            throw new \Exception('Sales order not found in this store.');
+        }
+        if (!in_array($order->status, ['pending', 'draft', 'confirmed'])) {
+            throw new \Exception("Only open sales orders can be appended to (this one is '{$order->status}').");
+        }
+
+        $addedAmount = 0.00;
+
+        foreach ($items as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $qty = (float) $item['qty'];
+            $price = (float) ($item['unit_price'] ?? $product->price ?? 0);
+            $lineTotal = round($qty * $price, 2);
+            $addedAmount += $lineTotal;
+
+            // Reserve stock up to available inventory (same rules as creating a new order)
+            $currentStock = DB::table('stocks')
+                ->where('tenant_id', $tenantId)
+                ->where('product_id', $product->id)
+                ->where('warehouse_id', $warehouse->id)
+                ->first();
+            $available = $currentStock ? max(0, (float) $currentStock->quantity - (float) $currentStock->reserved_quantity) : 0;
+            $reserved = min($qty, $available);
+
+            if ($reserved > 0) {
+                DB::table('stocks')
+                    ->where('id', $currentStock->id)
+                    ->update(['reserved_quantity' => DB::raw('reserved_quantity + ' . $reserved)]);
+            }
+
+            DB::table('sales_order_items')->insert([
+                'id'                 => Str::uuid()->toString(),
+                'sales_order_id'     => $order->id,
+                'product_id'         => $product->id,
+                'name'               => $product->name,
+                'quantity_requested' => $qty,
+                'quantity_reserved'  => $reserved,
+                'unit_price'         => $price,
+                'discount'           => 0,
+                'discount_type'      => 'fixed',
+                'subtotal'           => $lineTotal,
+                'tenant_id'          => $tenantId,
+                'created_at'         => now(),
+                'updated_at'         => now(),
+            ]);
+        }
+
+        DB::table('sales_orders')->where('id', $order->id)->update([
+            'total_amount' => DB::raw('total_amount + ' . $addedAmount),
+            'updated_at'   => now(),
+        ]);
+
+        return [
+            'success'   => true,
+            'type'      => 'pre_invoice',
+            'id'        => $order->id,
+            'reference' => $order->order_number,
+            'total'     => round(((float) $order->total_amount) + $addedAmount, 2),
+            'appended'  => count($items),
+        ];
+    }
+
+    /**
+     * Append items to an existing open purchase order (pre-purchase).
+     */
+    private function appendToPurchaseOrder(string $orderId, array $items, int|string $tenantId): array
+    {
+        $order = DB::table('purchase_orders')
+            ->where('tenant_id', $tenantId)
+            ->where('id', $orderId)
+            ->first();
+
+        if (!$order) {
+            throw new \Exception('Purchase order not found in this store.');
+        }
+        if (!in_array($order->status, ['draft', 'ordered', 'pending'])) {
+            throw new \Exception("Only open purchase orders can be appended to (this one is '{$order->status}').");
+        }
+
+        $addedAmount = 0.00;
+
+        foreach ($items as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $qty = (float) $item['qty'];
+            $cost = (float) ($item['unit_price'] ?? $product->cost_price ?? 0);
+            $lineTotal = round($qty * $cost, 2);
+            $addedAmount += $lineTotal;
+
+            DB::table('purchase_order_items')->insert([
+                'id'                => Str::uuid()->toString(),
+                'purchase_order_id' => $order->id,
+                'product_id'        => $product->id,
+                'quantity'          => $qty,
+                'unit_cost'         => $cost,
+                'total_cost'        => $lineTotal,
+                'received_quantity' => 0,
+                'tenant_id'         => $tenantId,
+                'created_at'        => now(),
+                'updated_at'        => now(),
+            ]);
+        }
+
+        DB::table('purchase_orders')->where('id', $order->id)->update([
+            'total_amount' => DB::raw('total_amount + ' . $addedAmount),
+            'updated_at'   => now(),
+        ]);
+
+        return [
+            'success'   => true,
+            'type'      => 'pre_purchase',
+            'id'        => $order->id,
+            'reference' => $order->reference_number,
+            'total'     => round(((float) $order->total_amount) + $addedAmount, 2),
+            'appended'  => count($items),
+        ];
+    }
+
+    /**
+     * Append items to an existing active recurring invoice template (items JSON merge).
+     */
+    private function appendToRecurringInvoice(string $recurringId, array $items, int|string $tenantId): array
+    {
+        $recurring = DB::table('recurring_invoices')
+            ->where('tenant_id', $tenantId)
+            ->where('id', $recurringId)
+            ->first();
+
+        if (!$recurring) {
+            throw new \Exception('Recurring invoice not found in this store.');
+        }
+        if (!in_array($recurring->status, ['active', 'paused', 'draft'])) {
+            throw new \Exception("This recurring invoice cannot be modified (status '{$recurring->status}').");
+        }
+
+        $existingItems = json_decode($recurring->items ?? '[]', true) ?: [];
+        $addedAmount = 0.00;
+
+        foreach ($items as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $qty = (float) $item['qty'];
+            $price = (float) ($item['unit_price'] ?? $product->price ?? 0);
+            $addedAmount += round($qty * $price, 2);
+
+            $existingItems[] = [
+                'product_id' => $product->id,
+                'name'       => $product->name,
+                'qty'        => $qty,
+                'unit_price' => $price,
+            ];
+        }
+
+        DB::table('recurring_invoices')->where('id', $recurring->id)->update([
+            'items'      => json_encode($existingItems),
+            'updated_at' => now(),
+        ]);
+
+        return [
+            'success'   => true,
+            'type'      => 'recurring_invoice',
+            'id'        => $recurring->id,
+            'reference' => 'REC-UPDATED',
+            'total'     => $addedAmount,
+            'appended'  => count($items),
         ];
     }
 

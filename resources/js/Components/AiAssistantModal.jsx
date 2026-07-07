@@ -89,10 +89,12 @@ export default function AiAssistantModal({
             };
             setMessages(prev => [...prev, aiMessage]);
         } catch (err) {
+            const isLocked = err.response?.status === 402 || err.response?.data?.code === 'ai_locked';
             const errorMessage = {
                 role: 'assistant',
                 content: err.response?.data?.message || err.response?.data?.error || "Sorry, I couldn't process that request. (" + (err.message) + ")",
-                isError: true
+                isError: true,
+                isLocked
             };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
@@ -252,6 +254,21 @@ export default function AiAssistantModal({
                                             </div>
                                         )}
                                         <p className="text-sm leading-relaxed whitespace-pre-line">{msg.content}</p>
+
+                                        {/* AI add-on locked — upgrade / BYOK CTA */}
+                                        {msg.isLocked && (
+                                            <div className="mt-3 pt-3 border-t border-red-800/40 flex flex-wrap gap-2">
+                                                <Link
+                                                    href={route('store.billing', { store_slug: activeStore?.slug })}
+                                                    onClick={onMinimize}
+                                                    className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-xs font-bold transition-colors"
+                                                >
+                                                    <Sparkles size={12} />
+                                                    Unlock AI (Buy usage or BYOK)
+                                                    <ExternalLink size={10} />
+                                                </Link>
+                                            </div>
+                                        )}
 
                                         {/* Related Links */}
                                         {msg.relatedLinks && msg.relatedLinks.length > 0 && (

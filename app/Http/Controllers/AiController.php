@@ -32,6 +32,21 @@ class AiController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 403);
         }
 
+        // ── AI monetization gate ─────────────────────────────────────────────
+        // Asking the AI questions requires the AI add-on: managed usage bought
+        // from us (metered), or the BYOK unlock + the store's own API key.
+        // Plain database search (global-search route) stays free and unaffected.
+        $entitlement = app(\App\Services\SmartCapture\AiEntitlementService::class);
+        $check = $entitlement->checkQuery();
+        if (!$check['allowed']) {
+            return response()->json([
+                'success' => false,
+                'code'    => 'ai_locked',
+                'reason'  => $check['reason'],
+                'message' => $entitlement->lockMessage($check, 'AI Search'),
+            ], 402);
+        }
+
         if (!Schema::hasTable('settings')) {
              return response()->json(['error' => 'System not installed.'], 503);
         }
@@ -39,6 +54,23 @@ class AiController extends Controller
         $apiKey = Setting::where('key', 'openai_api_key')->value('value');
         $model = Setting::where('key', 'ai_model')->value('value') ?? 'gpt-4o';
         $provider = Setting::where('key', 'ai_provider')->value('value') ?? 'openai';
+
+        // Fallback: reuse the store's AI Scan BYOK key (Gemini/OpenAI only), then the platform key for managed tenants.
+        if (!$apiKey) {
+            $scanProvider = \App\Helpers\SettingsHelper::get('smartcapture_provider', 'gemini');
+            $scanKey = \App\Helpers\SettingsHelper::get('smartcapture_api_key');
+            if ($scanKey && in_array($scanProvider, ['gemini', 'openai'])) {
+                $apiKey = $scanKey;
+                $provider = $scanProvider;
+                $model = \App\Helpers\SettingsHelper::get('smartcapture_model') ?: ($scanProvider === 'gemini' ? 'gemini-2.5-flash' : 'gpt-4o-mini');
+            } elseif ($check['mode'] === 'managed') {
+                $apiKey = config('smartcapture.gemini_key') ?: env('GEMINI_API_KEY');
+                if ($apiKey) {
+                    $provider = 'gemini';
+                    $model = config('smartcapture.model', 'gemini-2.5-flash');
+                }
+            }
+        }
 
         if (!$apiKey) {
             return response()->json([
@@ -48,10 +80,17 @@ class AiController extends Controller
 
         try {
             if ($provider === 'gemini') {
-                return $this->handleGemini($apiKey, $model, $userQuery);
+                $response = $this->handleGemini($apiKey, $model, $userQuery);
             } else {
-                return $this->handleOpenAI($apiKey, $model, $userQuery);
+                $response = $this->handleOpenAI($apiKey, $model, $userQuery);
             }
+
+            // Meter managed usage only on success (BYOK is never metered)
+            if (method_exists($response, 'getStatusCode') && $response->getStatusCode() === 200) {
+                $entitlement->recordQuery($check['mode']);
+            }
+
+            return $response;
         } catch (\Exception $e) {
             Log::error($e);
             $rawBody = ($e instanceof \Illuminate\Http\Client\RequestException) ? $e->response->body() : '';
