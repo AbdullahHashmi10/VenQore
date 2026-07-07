@@ -83,8 +83,12 @@ test('gemini model extracts details and fuzzy match finds product candidates', f
 
     $response = $this->post("/s/{$this->tenant->slug}/smart-capture/extract", [
         'type' => 'image',
-        'base64' => base64_encode('fake-image-bytes'),
-        'mime_type' => 'image/png'
+        'files' => [
+            [
+                'base64' => base64_encode('fake-image-bytes'),
+                'mime' => 'image/png'
+            ]
+        ]
     ]);
 
     $response->assertStatus(200);
@@ -122,6 +126,7 @@ test('user can confirm a purchase transaction', function () {
     $payload = [
         'action' => 'purchase',
         'party' => 'Coca Cola Distributors',
+        'party_id' => $this->supplier->id,
         'payment_method' => 'cash',
         'items' => [
             [
@@ -191,6 +196,7 @@ test('user can confirm a sale transaction', function () {
     $payload = [
         'action' => 'sale',
         'party' => 'John Guest',
+        'party_id' => $this->customer->id,
         'payment_method' => 'cash',
         'items' => [
             [
@@ -222,8 +228,14 @@ test('user can confirm a sale transaction', function () {
 });
 
 test('user can confirm an operating expense transaction', function () {
+    $category = \App\Models\ExpenseCategory::create([
+        'tenant_id' => $this->tenant->id,
+        'name' => 'Utilities',
+    ]);
+
     $payload = [
         'action' => 'expense',
+        'expense_category_id' => $category->id,
         'payment_method' => 'cash',
         'items' => [
             [
@@ -241,7 +253,7 @@ test('user can confirm an operating expense transaction', function () {
 
     // Verify journal entries are posted (Debit 6000 Operating Expense, Credit 1000 Cash in Hand)
     $entry = JournalEntry::where('tenant_id', $this->tenant->id)
-        ->where('reference_type', 'operating_expense')
+        ->where('reference_type', 'expense')
         ->first();
 
     expect($entry)->not->toBeNull();
@@ -311,8 +323,12 @@ test('smartcapture lens and voice falls back gracefully on invalid api key', fun
 
     $response = $this->post("/s/{$this->tenant->slug}/smart-capture/extract", [
         'type' => 'image',
-        'base64' => base64_encode('fake-image'),
-        'mime_type' => 'image/png'
+        'files' => [
+            [
+                'base64' => base64_encode('fake-image'),
+                'mime' => 'image/png'
+            ]
+        ]
     ]);
 
     $response->assertStatus(422);
@@ -325,6 +341,7 @@ test('user can confirm a proposal transaction', function () {
     $payload = [
         'action' => 'proposal',
         'party' => 'John Guest',
+        'party_id' => $this->customer->id,
         'payment_method' => 'cash',
         'items' => [
             [
@@ -349,6 +366,7 @@ test('user can confirm a pre_invoice transaction', function () {
     $payload = [
         'action' => 'pre_invoice',
         'party' => 'John Guest',
+        'party_id' => $this->customer->id,
         'payment_method' => 'cash',
         'items' => [
             [
@@ -373,6 +391,7 @@ test('user can confirm a pre_purchase transaction', function () {
     $payload = [
         'action' => 'pre_purchase',
         'party' => 'Coca Cola Distributors',
+        'party_id' => $this->supplier->id,
         'payment_method' => 'credit',
         'items' => [
             [
@@ -401,6 +420,7 @@ test('user can confirm a recurring invoice transaction', function () {
     $payload = [
         'action' => 'recurring_invoice',
         'party' => 'John Guest',
+        'party_id' => $this->customer->id,
         'payment_method' => 'cash',
         'items' => [
             [
@@ -425,6 +445,7 @@ test('user can confirm a purchase return transaction', function () {
     $payload = [
         'action' => 'purchase_return',
         'party' => 'Coca Cola Distributors',
+        'party_id' => $this->supplier->id,
         'payment_method' => 'credit',
         'items' => [
             [
@@ -469,8 +490,12 @@ test('extract endpoint parses target_type and custom_command', function () {
 
     $response = $this->post("/s/{$this->tenant->slug}/smart-capture/extract", [
         'type' => 'image',
-        'base64' => base64_encode('fake-image-bytes'),
-        'mime_type' => 'image/png',
+        'files' => [
+            [
+                'base64' => base64_encode('fake-image-bytes'),
+                'mime' => 'image/png'
+            ]
+        ],
         'target_type' => 'proposal',
         'custom_command' => 'Apply 10% discount'
     ]);
@@ -485,7 +510,7 @@ test('gemini prompt includes database products for cross-referencing and transla
             $body = $request->body();
             // Assert that our custom product list is passed in the prompt body
             expect($body)->toContain('Coca Cola 350ml Can');
-            expect($body)->toContain('CRITICAL TRANSLATION & MAPPING RULES:');
+            expect($body)->toContain('TRANSLATION & CATALOG MAPPING RULES:');
 
             return Http::response([
                 'candidates' => [
@@ -509,8 +534,12 @@ test('gemini prompt includes database products for cross-referencing and transla
 
     $response = $this->post("/s/{$this->tenant->slug}/smart-capture/extract", [
         'type' => 'image',
-        'base64' => base64_encode('fake-image-bytes'),
-        'mime_type' => 'image/png'
+        'files' => [
+            [
+                'base64' => base64_encode('fake-image-bytes'),
+                'mime' => 'image/png'
+            ]
+        ]
     ]);
 
     $response->assertStatus(200);
