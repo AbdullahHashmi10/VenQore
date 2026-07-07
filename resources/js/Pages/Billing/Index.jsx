@@ -307,6 +307,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         }
     };
 
+    // Handle activation of addon free trial (e.g. WooCommerce sync or AI assistant during main store trial)
+    const handleAddonTrial = (addonType) => {
+        router.post(route('store.billing.checkout-addon', { store_slug: storeSlug }), {
+            addon_type: addonType,
+            trial_mode: true
+        });
+    };
+
+
     const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
 
     // Handle checkout redirect for AI or Sync add-ons
