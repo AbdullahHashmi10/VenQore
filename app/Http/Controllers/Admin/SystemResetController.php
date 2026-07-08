@@ -326,7 +326,7 @@ class SystemResetController extends Controller
                         DB::table('products')->where('tenant_id', $tenantId)->update(['stock_quantity' => 0]);
                     }
                     if (Schema::hasTable('product_variants') && Schema::hasColumn('product_variants', 'tenant_id')) {
-                        DB::table('product_variants')->where('tenant_id', $tenantId)->update(['stock_quantity' => 0]);
+                        DB::table('product_variants')->where('tenant_id', $tenantId)->update(['stock' => 0]);
                     }
 
                     // Clear History

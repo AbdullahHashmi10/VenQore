@@ -17,7 +17,6 @@ class PartyController extends Controller
             'phone'         => ['nullable', 'string', 'max:20'],
             'email'         => ['nullable', 'email', 'max:255'],
             'address'       => ['nullable', 'string', 'max:500'],
-            'tax_number'    => ['nullable', 'string', 'max:50'],
             'credit_limit'  => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -32,7 +31,6 @@ class PartyController extends Controller
             'phone'        => $validated['phone']        ?? null,
             'email'        => $validated['email']        ?? null,
             'address'      => $validated['address']      ?? null,
-            'tax_number'   => $validated['tax_number']   ?? null,
             'credit_limit' => $validated['credit_limit'] ?? 0,
             'created_at'   => now(),
             'updated_at'   => now(),
@@ -48,7 +46,6 @@ class PartyController extends Controller
             'phone'         => ['nullable', 'string', 'max:20'],
             'email'         => ['nullable', 'email', 'max:255'],
             'address'       => ['nullable', 'string', 'max:500'],
-            'tax_number'    => ['nullable', 'string', 'max:50'],
             'credit_limit'  => ['nullable', 'numeric', 'min:0'],
         ]);
 

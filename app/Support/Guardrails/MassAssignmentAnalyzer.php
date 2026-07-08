@@ -144,6 +144,71 @@ class MassAssignmentAnalyzer
             $className = $tok[1];
             $line = $tok[2];
 
+            if ($this->isDbFacade($className)) {
+                // Expect `::` next
+                $j = $this->nextMeaningful($tokens, $i + 1);
+                if ($j === null || !is_array($tokens[$j]) || $tokens[$j][0] !== T_DOUBLE_COLON) {
+                    continue;
+                }
+
+                // Then `table`
+                $k = $this->nextMeaningful($tokens, $j + 1);
+                if ($k === null || !is_array($tokens[$k]) || $tokens[$k][0] !== T_STRING || $tokens[$k][1] !== 'table') {
+                    continue;
+                }
+
+                // Expect `(` next
+                $p = $this->nextMeaningful($tokens, $k + 1);
+                if ($p === null || $tokens[$p] !== '(') {
+                    continue;
+                }
+
+                // The first argument of table() must be a T_CONSTANT_ENCAPSED_STRING
+                $argTokIdx = $this->nextMeaningful($tokens, $p + 1);
+                if ($argTokIdx === null || !is_array($tokens[$argTokIdx]) || $tokens[$argTokIdx][0] !== T_CONSTANT_ENCAPSED_STRING) {
+                    continue;
+                }
+                $tableName = $this->unquote($tokens[$argTokIdx][1]);
+                if ($tableName === null || $tableName === '') {
+                    continue;
+                }
+
+                // Next should be `)` to close table()
+                $closeParenIdx = $this->nextMeaningful($tokens, $argTokIdx + 1);
+                if ($closeParenIdx === null || $tokens[$closeParenIdx] !== ')') {
+                    continue;
+                }
+
+                // Now scan forward for ->insert, ->update, ->insertGetId, ->updateOrInsert
+                $writeMethodInfo = $this->findChainedWriteMethod($tokens, $closeParenIdx + 1);
+                if ($writeMethodInfo === null) {
+                    continue;
+                }
+
+                [$methodName, $methodOpenParenIdx] = $writeMethodInfo;
+
+                $isInsertOrUpdate = in_array($methodName, ['insert', 'update', 'insertGetId'], true);
+                $isUpdateOrInsert = $methodName === 'updateOrInsert';
+
+                if ($isInsertOrUpdate) {
+                    $keys = $this->extractKeysFromDbWriteArgs($tokens, $methodOpenParenIdx, 1);
+                } elseif ($isUpdateOrInsert) {
+                    $keys = $this->extractKeysFromDbWriteArgs($tokens, $methodOpenParenIdx, 2);
+                } else {
+                    continue;
+                }
+
+                if (!empty($keys)) {
+                    $calls[] = [
+                        'file'  => $path,
+                        'line'  => $line,
+                        'model' => $tableName, // Store table name in the 'model' field
+                        'keys'  => array_values(array_unique($keys)),
+                    ];
+                }
+                continue;
+            }
+
             // Next meaningful token must be `::`
             $j = $this->nextMeaningful($tokens, $i + 1);
             if ($j === null || !is_array($tokens[$j]) || $tokens[$j][0] !== T_DOUBLE_COLON) {
@@ -431,5 +496,133 @@ class MassAssignmentAnalyzer
             return $i;
         }
         return null;
+    }
+
+    private function isDbFacade(string $className): bool
+    {
+        $className = ltrim($className, '\\');
+        return $className === 'DB' 
+            || $className === 'Illuminate\Support\Facades\DB' 
+            || $className === 'Support\Facades\DB'
+            || $className === 'Facades\DB';
+    }
+
+    private function findChainedWriteMethod(array $tokens, int $startIndex): ?array
+    {
+        $n = count($tokens);
+        $i = $startIndex;
+
+        while ($i < $n) {
+            $i = $this->nextMeaningful($tokens, $i);
+            if ($i === null) return null;
+
+            if (!is_array($tokens[$i]) || $tokens[$i][0] !== T_OBJECT_OPERATOR) {
+                return null;
+            }
+
+            $methodIdx = $this->nextMeaningful($tokens, $i + 1);
+            if ($methodIdx === null || !is_array($tokens[$methodIdx]) || $tokens[$methodIdx][0] !== T_STRING) {
+                return null;
+            }
+
+            $methodName = $tokens[$methodIdx][1];
+
+            $openParenIdx = $this->nextMeaningful($tokens, $methodIdx + 1);
+            if ($openParenIdx === null || $tokens[$openParenIdx] !== '(') {
+                return null;
+            }
+
+            if (in_array($methodName, ['insert', 'update', 'insertGetId', 'updateOrInsert'], true)) {
+                return [$methodName, $openParenIdx];
+            }
+
+            $i = $this->skipMatchingParenthesis($tokens, $openParenIdx);
+            if ($i === null) {
+                return null;
+            }
+            $i++;
+        }
+
+        return null;
+    }
+
+    private function skipMatchingParenthesis(array $tokens, int $openParenIndex): ?int
+    {
+        $n = count($tokens);
+        $depth = 0;
+        for ($i = $openParenIndex; $i < $n; $i++) {
+            if ($tokens[$i] === '(') {
+                $depth++;
+            } elseif ($tokens[$i] === ')') {
+                $depth--;
+                if ($depth === 0) {
+                    return $i;
+                }
+            }
+        }
+        return null;
+    }
+
+    private function extractKeysFromDbWriteArgs(array $tokens, int $openParenIndex, int $arraysWanted): array
+    {
+        $n = count($tokens);
+        $depth = 0;
+        $arraysSeen = 0;
+        $keys = [];
+
+        for ($i = $openParenIndex; $i < $n; $i++) {
+            $t = $tokens[$i];
+
+            if ($t === '(') {
+                $depth++;
+                continue;
+            }
+            if ($t === ')') {
+                $depth--;
+                if ($depth === 0) {
+                    break;
+                }
+                continue;
+            }
+
+            if ($depth === 1 && $t === '[') {
+                if ($arraysSeen >= $arraysWanted) {
+                    $i = $this->skipBracketArray($tokens, $i);
+                    continue;
+                }
+
+                $next = $this->nextMeaningful($tokens, $i + 1);
+                if ($next !== null && $tokens[$next] === '[') {
+                    $outerEnd = $this->skipBracketArray($tokens, $i);
+                    $j = $i + 1;
+                    while ($j < $outerEnd) {
+                        $j = $this->nextMeaningful($tokens, $j);
+                        if ($j === null || $j >= $outerEnd) break;
+
+                        if ($tokens[$j] === '[') {
+                            [$foundKeys, $endIndex] = $this->collectArrayKeys($tokens, $j);
+                            foreach ($foundKeys as $fk) {
+                                $keys[] = $fk;
+                            }
+                            $j = $endIndex + 1;
+                        } else {
+                            $j++;
+                        }
+                    }
+                    $i = $outerEnd;
+                } else {
+                    [$foundKeys, $endIndex] = $this->collectArrayKeys($tokens, $i);
+                    foreach ($foundKeys as $fk) {
+                        $keys[] = $fk;
+                    }
+                    $i = $endIndex;
+                }
+
+                $arraysSeen++;
+                continue;
+            }
+        }
+
+        return $keys;
     }
 }

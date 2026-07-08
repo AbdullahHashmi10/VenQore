@@ -7,6 +7,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 /**
  * ResetDemoTenant — Phase 6.2
@@ -131,7 +132,8 @@ class ResetDemoTenant extends Command
 
             // ── 7. Seed bank accounts ──────────────────────────────────
             $cashId = DB::table('bank_accounts')->insertGetId([
-                'name' => 'Cash Drawer', 'account_type' => 'cash', 'balance' => 50000,
+                'name' => 'Cash Drawer', 'account_type' => 'cash', 
+                'opening_balance' => 50000, 'current_balance' => 50000,
                 'tenant_id' => $tenantId, 'created_at' => now(), 'updated_at' => now(),
             ]);
 
@@ -149,13 +151,15 @@ class ResetDemoTenant extends Command
 
             foreach ($products as $p) {
                 $productId = DB::table('products')->insertGetId([
+                    'id'          => Str::uuid()->toString(),
                     'name'        => $p['name'],
                     'sku'         => $p['sku'],
                     'price'       => $p['price'],
-                    'cost'        => $p['cost'],
-                    'stock'       => $p['qty'],
+                    'cost_price'  => $p['cost'],
+                    'quantity'    => $p['qty'],
+                    'stock_quantity' => $p['qty'],
                     'category_id' => $p['category_id'],
-                    'unit_id'     => $unitPcs,
+                    'unit'        => 'pcs',
                     'is_active'   => true,
                     'tenant_id'   => $tenantId,
                     'created_at'  => now()->subDays(rand(5, 90)),
@@ -164,9 +168,11 @@ class ResetDemoTenant extends Command
 
                 // Seed FIFO batch for each product
                 DB::table('inventory_batches')->insert([
+                    'id'            => Str::uuid()->toString(),
                     'product_id'    => $productId,
                     'warehouse_id'  => $warehouseId,
-                    'quantity'      => $p['qty'],
+                    'initial_qty'   => $p['qty'],
+                    'original_qty'  => $p['qty'],
                     'remaining_qty' => $p['qty'],
                     'unit_cost'     => $p['cost'],
                     'tenant_id'     => $tenantId,

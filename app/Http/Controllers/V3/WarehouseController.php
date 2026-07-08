@@ -15,6 +15,7 @@ class WarehouseController extends Controller
     {
         $warehouses = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
+            ->select('id', 'name', 'location as address', 'is_default', 'is_active', 'created_at', 'updated_at')
             ->orderByDesc('is_default')
             ->orderBy('name')
             ->get();
@@ -61,7 +62,7 @@ class WarehouseController extends Controller
                 'id'         => Str::uuid()->toString(),
                 'tenant_id'  => app('current.tenant')->id,
                 'name'       => $validated['name'],
-                'address'    => $validated['address'] ?? null,
+                'location'   => $validated['address'] ?? null,
                 'is_default' => (!empty($validated['is_default']) || $count === 0) ? 1 : 0,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -77,6 +78,7 @@ class WarehouseController extends Controller
         $warehouse = DB::table('warehouses')->where('warehouses.tenant_id', app('current.tenant')->id)
             ->where('tenant_id', app('current.tenant')->id)
             ->where('id', $id)
+            ->select('id', 'name', 'location as address', 'is_default', 'is_active', 'created_at', 'updated_at')
             ->firstOrFail();
 
         return Inertia::render('V3/Warehouses/Edit', [
@@ -108,7 +110,7 @@ class WarehouseController extends Controller
                 ->where('id', $id)
                 ->update([
                 'name'       => $validated['name'],
-                'address'    => $validated['address'] ?? null,
+                'location'   => $validated['address'] ?? null,
                 'is_default' => $validated['is_default'] ?? 0,
                 'is_active'  => $validated['is_active']  ?? 1,
                 'updated_at' => now(),

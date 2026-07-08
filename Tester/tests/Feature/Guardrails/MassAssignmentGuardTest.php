@@ -176,6 +176,17 @@ class MassAssignmentGuardTest extends VenQoreTestCase
     /** @return string[]|null */
     private function allowedKeysFor(string $modelClass): ?array
     {
+        if (!class_exists($modelClass)) {
+            try {
+                if (!Schema::hasTable($modelClass)) {
+                    return null;
+                }
+                return Schema::getColumnListing($modelClass);
+            } catch (\Throwable $e) {
+                return null;
+            }
+        }
+
         try {
             $instance = new $modelClass();
         } catch (\Throwable $e) {

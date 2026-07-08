@@ -86,6 +86,17 @@ class AuditMassAssignment extends Command
      */
     private function allowedKeysFor(string $modelClass): ?array
     {
+        if (!class_exists($modelClass)) {
+            try {
+                if (!Schema::hasTable($modelClass)) {
+                    return null;
+                }
+                return Schema::getColumnListing($modelClass);
+            } catch (\Throwable $e) {
+                return null;
+            }
+        }
+
         try {
             /** @var \Illuminate\Database\Eloquent\Model $instance */
             $instance = new $modelClass();

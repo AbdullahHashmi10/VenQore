@@ -55,6 +55,9 @@ jobs:
       - name: Run Database Migrations
         run: php artisan migrate --force
 
+      - name: Audit Mass Assignment
+        run: php artisan audit:mass-assignment
+
       - name: Run PHP Tests
         run: composer test:ci
 
