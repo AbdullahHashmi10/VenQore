@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PlanChangeNotification extends Model
 {
+    use HasTenant;
     protected $fillable = [
         'tenant_id', 'type', 'title', 'message',
         'details', 'is_read', 'sent_by', 'admin_user_id',
