@@ -6,6 +6,16 @@ This report documents the security audit, column drift fixes, schema alignments,
 
 ### 🛠️ Detailed Breakdown of Remediations
 
+- **[Session 4 — 2026-07-08] P3-2: Extended Mass Assignment Scanner to raw DB queries**:
+  - Upgraded the static `MassAssignmentAnalyzer` token parser to scan raw DB query builder writes: `DB::table(...)` insert, update, insertGetId, and updateOrInsert calls.
+  - Aligned allowed keys resolver to support both Eloquent model classes and raw table schema checks via `Schema::getColumnListing($tableName)`.
+  - Discovered and fully resolved **8 hidden database schema drifts** in raw write queries:
+    1. `WarehouseController` (V3): mapped validated frontend 'address' to database 'location' and selected 'location as address' to match the database structure while preserving frontend React compatibility.
+    2. `PartyController` (V3): removed non-existent `tax_number` column from database insert/update statements.
+    3. `SystemResetController`: corrected non-existent `stock_quantity` field write to correct column `stock` on product_variants.
+    4. `ResetDemoTenant` command: aligned seed database fields (`balance` -> `opening_balance`/`current_balance`, `cost` -> `cost_price`, `stock` -> `quantity`/`stock_quantity`, `unit_id` -> `unit`, `quantity` -> `original_qty`/`initial_qty`/`remaining_qty`). Imported `Str` class to support `Str::uuid()`.
+  - Wired `php artisan audit:mass-assignment` check into the `.github/workflows/ci.yml` file to guarantee no future mass assignment or database schema mismatch regressions can pass CI checks.
+
 - **[Session 4 — 2026-07-08] P3-3: Idempotency under Missing Tenant Context**:
   - Solved edge case in `SyncController::batchOrders` where existence checks under `HasTenant` scope could return false if the request ran under missing/loose tenant context, causing re-creation of already-synced offline sales.
   - Refactored lookup to use `Sale::withoutGlobalScope('tenant')->where('id', ...)->exists()`.
