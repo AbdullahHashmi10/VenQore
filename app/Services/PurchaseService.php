@@ -149,10 +149,36 @@ class PurchaseService
             'amount' => $invoice->total_amount,
             'date' => now(),
             'method' => $method,
+            'type' => 'out',
+        ]);
+
+        $accounting = app(\App\Services\V3\AccountingService::class);
+        $apAccount = $accounting->getAccountByCode('2000', 'Accounts Payable', 'liability');
+        $cashAccount = $accounting->getAccountByCode('1000', 'Cash on Hand', 'asset');
+
+        $journalEntry = $accounting->createEntry([
+            'date'           => $invoice->date ?? now()->toDateString(),
+            'reference_type' => 'payment',
+            'reference'      => $payment->id,
+            'description'    => "Payment sent to supplier (Invoice: {$invoice->invoice_number})",
+            'party_id'       => $invoice->party_id,
+            'created_by'     => auth()->id() ?? 1,
+        ], [
+            [
+                'account_id' => $apAccount->id,
+                'debit'      => $payment->amount,
+                'credit'     => 0,
+                'party_id'   => $invoice->party_id,
+            ],
+            [
+                'account_id' => $cashAccount->id,
+                'debit'      => 0,
+                'credit'     => $payment->amount,
+            ],
         ]);
 
         PaymentAllocation::create([
-            'payment_journal_entry_id' => $payment->id,
+            'payment_journal_entry_id' => $journalEntry->id,
             'purchase_id' => $invoice->id,
             'allocated_amount' => $invoice->total_amount,
         ]);
