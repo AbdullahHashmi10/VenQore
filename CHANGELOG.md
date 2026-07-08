@@ -46,7 +46,7 @@ This report documents the security audit, column drift fixes, schema alignments,
 - **Mass Assignment Audit**:
   [PASS] No mass-assignment drift found. Every written key maps to a real column.
 - **Pest Test Suite**:
-  Tests: 9 passed (82 assertions)
+  Tests: 692 passed, 0 failed (4357 assertions)
 
 
 ## [2026-07-07] Verification Pass — Fixed Silent Data-Corruption Bugs in the Mass-Assignment Hardening, Closed Terminal API Cross-Tenant Hole, Offline Sale Idempotency, and CI/Backup/Scheduler Gaps
