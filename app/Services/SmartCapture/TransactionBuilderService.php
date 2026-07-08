@@ -447,7 +447,7 @@ class TransactionBuilderService
 
         $this->accounting->createEntry([
             'date'           => $expense->date instanceof \Carbon\Carbon ? $expense->date->toDateString() : (string) $expense->date,
-            'reference_type' => 'expense',
+            'reference_type' => 'operating_expense',
             'reference'      => $expense->id,
             'description'    => "{$category->name}: {$description}",
         ], [

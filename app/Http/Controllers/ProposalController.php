@@ -315,6 +315,7 @@ class ProposalController extends Controller
                     'payment_status' => 'pending',
                     'subtotal' => $subtotalGross,
                     'discount' => $totalDiscount,
+                    'global_discount' => $totalDiscount,
                     'tax' => 0,
                     'total' => $netSales,
                     'subtotal_gross' => $subtotalGross,
