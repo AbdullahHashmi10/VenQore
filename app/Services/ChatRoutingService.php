@@ -172,7 +172,7 @@ class ChatRoutingService
             $this->safeBroadcast(new MessageSent($systemMsg, $session->session_uuid));
 
             // 4. Check agent online presence
-            if (!$this->isAgentOnline((int) $session->tenant_id)) {
+            if (!$this->isAgentOnline((string) $session->tenant_id)) {
                 // No agents online — post offline message & auto-generate a support ticket
                 $offlineMsg = ChatMessage::create([
                     'session_id' => $session->id,
@@ -211,7 +211,7 @@ class ChatRoutingService
      * Determine if any support agent / admin for the tenant is online.
      * Uses activity logs: any log in the last 15 minutes = agent online.
      */
-    public function isAgentOnline(int $tenantId): bool
+    public function isAgentOnline(string $tenantId): bool
     {
         return ActivityLog::withoutTenantScope()
             ->where('tenant_id', $tenantId)

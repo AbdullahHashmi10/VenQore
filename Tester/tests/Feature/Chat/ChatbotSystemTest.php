@@ -113,6 +113,11 @@ test('silent handoff to human on AI API failure', function () {
         'status' => ChatSession::STATUS_BOT_ACTIVE,
     ]);
 
+    // Clear any activity log rows from setup so isAgentOnline() returns false
+    \App\Models\ActivityLog::withoutTenantScope()
+        ->where('tenant_id', $this->tenant->id)
+        ->delete();
+
     // Send message which will cause AI service to fail and trigger silent handoff
     $response = $this->post("/api/{$this->tenant->slug}/chatbot/session/{$session->session_uuid}/message", [
         'body' => 'Help me now'
