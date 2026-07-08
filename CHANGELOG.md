@@ -6,6 +6,15 @@ This report documents the security audit, column drift fixes, schema alignments,
 
 ### 🛠️ Detailed Breakdown of Remediations
 
+- **[Session 4 — 2026-07-08] P3-3: Idempotency under Missing Tenant Context**:
+  - Solved edge case in `SyncController::batchOrders` where existence checks under `HasTenant` scope could return false if the request ran under missing/loose tenant context, causing re-creation of already-synced offline sales.
+  - Refactored lookup to use `Sale::withoutGlobalScope('tenant')->where('id', ...)->exists()`.
+  - Added new integration test `test_offline_sync_idempotency_under_missing_tenant_context` in `OfflineSyncIdempotencyGuardTest.php` to guarantee idempotency when `current.tenant` context is unbound.
+  - Tests: **2 passed (6 assertions)**.
+
+- **[Session 4 — 2026-07-08] R2: Re-seeded Guard Baselines**:
+  - Deleted stale `mass_assignment_drift.json` and `stale_fillable.json` files and ran the guard test suite to regenerate clean baselines, removing 18+ fixed keys/models from the exclusion list and tightening the guard rules.
+
 - **[Session 3 — 2026-07-08] P0-2: HeartbeatController Hijack Guard Test**:
   - The `HeartbeatController` fix (preventing cross-tenant terminal reassignment) was already in production code.
   - Written `HeartbeatOwnershipGuardTest.php` (4 test cases, 12 assertions) to permanently lock the fix:
