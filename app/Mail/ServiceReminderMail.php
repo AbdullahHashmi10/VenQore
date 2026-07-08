@@ -26,11 +26,12 @@ class ServiceReminderMail extends Mailable
 
         $rowsHtml = '';
         foreach ($this->reminders as $reminder) {
+            $lastSent = $reminder['last_sent'] ?? 'First run';
             $rowsHtml .= "
                 <tr>
                     <td><strong>{$reminder['name']}</strong></td>
                     <td>Every {$reminder['interval']} {$reminder['unit']}</td>
-                    <td>{$reminder['last_sent'] ?? 'First run'}</td>
+                    <td>{$lastSent}</td>
                 </tr>
             ";
         }
