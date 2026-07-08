@@ -24,6 +24,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Check for trailing NUL-byte corruption
+        run: |
+          git ls-files | grep -E '\.(php|json|js|jsx|md|yml|yaml)$' | while read -r file; do
+            if [ -f "$file" ] && [ -s "$file" ]; then
+              python3 -c "
+          import sys, os
+          f = sys.argv[1]
+          with open(f, 'rb') as fh:
+              fh.seek(-1, 2)
+              if fh.read(1) == b'\x00':
+                  print(f'Error: Trailing NUL byte found in {f}')
+                  sys.exit(1)
+          " "$file"
+            fi
+          done
+
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
