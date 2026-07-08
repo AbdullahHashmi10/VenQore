@@ -1,10 +1,34 @@
-﻿# CHANGELOG
+# CHANGELOG
 
 ## [2026-07-08] Remediations & Hardening Audit Report
 
 This report documents the security audit, column drift fixes, schema alignments, and automated regression testing performed on the **VenQore POS** codebase. All mass-assignment scanner warnings have been completely cleared, and a robust test suite has been established to guard against future regressions.
 
 ### 🛠️ Detailed Breakdown of Remediations
+
+- **[Session 3 — 2026-07-08] P0-2: HeartbeatController Hijack Guard Test**:
+  - The `HeartbeatController` fix (preventing cross-tenant terminal reassignment) was already in production code.
+  - Written `HeartbeatOwnershipGuardTest.php` (4 test cases, 12 assertions) to permanently lock the fix:
+    1. Attacker using victim's `device_id` + own `store_slug` is rejected with 403.
+    2. Unclaimed terminal can still be claimed on first heartbeat (device onboarding).
+    3. Missing `device_id` is rejected with 400.
+    4. Legitimate heartbeat from owning store returns 200 + `alive`.
+  - Tests: **4 passed (12 assertions)**.
+
+- **[Session 3 — 2026-07-08] P2-2: Tenant-Scope Audit (6 models)**:
+  - Audited all 6 models flagged as missing `HasTenant`: `CouponRedemption`, `PkVerification`, `PlanChangeNotification`, `StaffInvitation`, `TenantPlanOverride`, `WooConnection`.
+  - **`PlanChangeNotification`**: Added `use HasTenant` — all query sites were already tenant-filtered; now has defence-in-depth global scope.
+  - **5 intentionally-unscoped models** — documented inline with full rationale:
+    - `WooConnection`: scheduler and queue jobs are intentionally cross-tenant (process all tenants); all controller queries already use explicit `where('tenant_id', ...)`.
+    - `StaffInvitation`: token/short_code invitation acceptance must be globally accessible (invitee has no bound tenant at accept time). All admin list queries already explicit.
+    - `CouponRedemption`: AdminDashboard iterates all tenants with explicit `where('tenant_id')` per iteration.
+    - `PkVerification`: platform-admin model — SuperAdminController views all verifications across tenants by design.
+    - `TenantPlanOverride`: platform-admin model — SuperAdminController counts globally; `PlanRepository` always supplies `tenant_id` explicitly.
+  - Expanded `TenantIsolationSweepGuardTest.php` with 2 new tests:
+    1. `PlanChangeNotification` isolation: Tenant B cannot see Tenant A's notifications after `HasTenant` was added.
+    2. `StaffInvitation` list isolation: explicit `where('tenant_id')` pattern prevents cross-tenant leakage; token lookup remains globally accessible.
+  - Tests: **3 passed (11 assertions)**.
+
 
 - **Heartbeat Security & Throttling (P0-2, P0-3)**:
   - Validated device_id presence on /api/heartbeat (fails 400 if missing).
