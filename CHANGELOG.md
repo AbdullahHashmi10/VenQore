@@ -32,13 +32,21 @@ This report documents the security audit, column drift fixes, schema alignments,
 - **SQLite Backup Importer (P2-2)**:
   - Remapped imported sale records, purchase order details, and item costs to their correct V3 database columns.
   - Automatically imports suppliers to both suppliers and parties tables to satisfy foreign key constraints.
+- **Global Activity Log (P1-7)**:
+  - Ran database migration adding missing audit detail fields (payload, ip_address, user_agent, is_impersonated) to the ctivity_logs table.
+  - Resolved Eloquent primary key integrity crashes on inserts by equipping StoreActivityLog model with the standard HasUuids trait.
+- **Tenant Onboarding Skipped Flag (P1-8)**:
+  - Removed the unused, stale onboarding_skipped attribute from $fillable and $casts in the Tenant model to clean up database model drift.
+- **Remove Dead Code Paths (P2-3)**:
+  - Deleted the deprecated checkout() and ecordPayment() methods in PosController.php (which were bypassed and had legacy column mapping references).
+  - Cleaned up the associated Reflection test case in PaymentAllocationTest.php to align with the code removal.
 
 ### 📈 Verification & Testing Status
 
 - **Mass Assignment Audit**:
   [PASS] No mass-assignment drift found. Every written key maps to a real column.
 - **Pest Test Suite**:
-  Tests: 8 passed (74 assertions)
+  Tests: 9 passed (82 assertions)
 
 
 ## [2026-07-07] Verification Pass — Fixed Silent Data-Corruption Bugs in the Mass-Assignment Hardening, Closed Terminal API Cross-Tenant Hole, Offline Sale Idempotency, and CI/Backup/Scheduler Gaps

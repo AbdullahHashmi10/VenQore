@@ -67,45 +67,4 @@ class PaymentAllocationTest extends VenQoreTestCase
         $this->assertEquals($invoice->id, $allocation->purchase_id);
         $this->assertEquals(50.0, $allocation->allocated_amount);
     }
-
-    public function test_pos_controller_record_payment_creates_payment_allocation_with_correct_columns(): void
-    {
-        $tenant = $this->createTenant();
-        $this->actingAsTenantUser($tenant, 'owner');
-        $this->seedTenantDefaults($tenant);
-
-        // Create customer
-        $customer = Party::create([
-            'name' => 'Customer Y',
-            'type' => 'customer',
-        ]);
-
-        // Create dummy Invoice (represented as Sale or general invoice)
-        $invoice = Invoice::create([
-            'invoice_number' => 'INV-TEST-123',
-            'date' => '2026-07-08',
-            'party_id' => $customer->id,
-            'type' => 'sale',
-            'status' => 'unpaid',
-            'subtotal' => 100.0,
-            'total_amount' => 100.0,
-            'user_id' => auth()->id(),
-        ]);
-
-        // Call private recordPayment using reflection
-        $controller = new PosController();
-        $method = new ReflectionMethod(PosController::class, 'recordPayment');
-        $method->setAccessible(true);
-        $method->invoke($controller, $invoice, 100.0, 'cash');
-
-        // Verify Payment and PaymentAllocation
-        $payment = Payment::first();
-        $this->assertNotNull($payment);
-
-        $allocation = PaymentAllocation::first();
-        $this->assertNotNull($allocation);
-        $this->assertEquals($payment->id, $allocation->payment_journal_entry_id);
-        $this->assertEquals($invoice->id, $allocation->sale_id);
-        $this->assertEquals(100.0, $allocation->allocated_amount);
-    }
 }

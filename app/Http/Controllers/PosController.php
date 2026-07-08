@@ -99,31 +99,4 @@ class PosController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
-
-    public function checkout(Request $request)
-    {
-        // FIX-15: This legacy checkout route creates Invoice records that bypass V3 accounting entirely.
-        // It has been disabled. All POS sales must go through SaleController::store().
-        return response()->json([
-            'success' => false,
-            'message' => 'This endpoint is deprecated. Use /sales endpoint instead.'
-        ], 410);
-    }
-
-    private function recordPayment($invoice, $amount, $method)
-    {
-        $payment = \App\Models\Payment::create([
-            'party_id' => $invoice->party_id,
-            'amount' => $amount,
-            'date' => now()->toDateString(),
-            'type' => 'in',
-            'method' => $method,
-        ]);
-
-        \App\Models\PaymentAllocation::create([
-            'payment_journal_entry_id' => $payment->id,
-            'sale_id' => $invoice->id,
-            'allocated_amount' => $amount,
-        ]);
-    }
 }
