@@ -161,7 +161,7 @@ class SyncController extends Controller
         try {
             DB::transaction(function () use ($orders) {
                 foreach ($orders as $orderData) {
-                    if (\App\Models\Sale::where('id', $orderData['id'])->exists()) continue; 
+                    if (\App\Models\Sale::withoutGlobalScope('tenant')->where('id', $orderData['id'])->exists()) continue; 
                     try {
                         $syntheticRequest = new Request($orderData);
                         app(\App\Http\Controllers\SaleController::class)->store($syntheticRequest);

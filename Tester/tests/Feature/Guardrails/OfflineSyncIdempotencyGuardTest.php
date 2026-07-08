@@ -67,4 +67,45 @@ class OfflineSyncIdempotencyGuardTest extends VenQoreTestCase
 
         $this->assertSame(200, $response->getStatusCode());
     }
+
+    public function test_offline_sync_idempotency_under_missing_tenant_context(): void
+    {
+        $tenant = $this->createTenant('sync-guard-missing-context', 'ltd_3', 'active');
+        $user = $this->createTenantUser($tenant, 'owner');
+        
+        // Save the sale under the tenant first
+        $clientId = (string) Str::uuid();
+        Sale::create([
+            'id'               => $clientId,
+            'reference_number' => 'SYNC-DEDUPE-MISSING-CONTEXT',
+            'user_id'          => $user->id,
+            'tenant_id'        => $tenant->id,
+            'subtotal'         => 150.00,
+            'total'            => 150.00,
+        ]);
+
+        // Break tenant context
+        app()->forgetInstance('current.tenant');
+
+        // Verify the database check without context is still functional and detects the sale
+        $this->assertTrue(Sale::withoutGlobalScope('tenant')->where('id', $clientId)->exists());
+
+        // Call the endpoint with NO bound tenant context.
+        $request = new Request([
+            'orders' => [
+                ['id' => $clientId, 'items' => []],
+            ],
+        ]);
+
+        $response = app(SyncController::class)->batchOrders($request);
+
+        // Should not duplicate the sale, and should successfully return 200
+        $this->assertSame(
+            1,
+            DB::table('sales')->where('id', $clientId)->count(),
+            'DOUBLE-POST REGRESSION: Sale was duplicated when syncing with no bound tenant context.'
+        );
+        $this->assertSame(200, $response->getStatusCode());
+    }
 }
+

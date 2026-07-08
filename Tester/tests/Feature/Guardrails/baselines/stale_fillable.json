@@ -1,7 +1,1 @@
-[
-    "StoreActivityLog::$fillable \"payload\" is not a column on `activity_logs`",
-    "StoreActivityLog::$fillable \"ip_address\" is not a column on `activity_logs`",
-    "StoreActivityLog::$fillable \"user_agent\" is not a column on `activity_logs`",
-    "StoreActivityLog::$fillable \"is_impersonated\" is not a column on `activity_logs`",
-    "Tenant::$fillable \"onboarding_skipped\" is not a column on `tenants`"
-]
+[]
