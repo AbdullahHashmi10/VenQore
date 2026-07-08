@@ -6,6 +6,14 @@ This report documents the security audit, column drift fixes, schema alignments,
 
 ### 🛠️ Detailed Breakdown of Remediations
 
+- **[Session 4 — 2026-07-08] P3-4: Extended Value-Level Guards**:
+  - Expanded `SaleFinancialValueGuardTest.php` with three new value-level integration tests covering critical accounting flows:
+    1. **Credit Sales**: Asserts exact gross, discount, net, tax, and invoice total calculations for credit sales (`V3\SaleService`) and verifies customer Accounts Receivable balance updates via `PartyService`.
+    2. **Sale Reversals**: Asserts that `SaleReversalService` successfully posts counter journal entries and restores FIFO batch quantities.
+    3. **Purchases**: Asserts exact money value calculations on purchase bills (`PurchaseService`) and checks supplier Accounts Payable balance updates.
+  - Asserted zero trial balance mismatch (`assertTrialBalanceZero`) on all newly added flows.
+  - Tests: **4 passed (35 assertions)**.
+
 - **[Session 4 — 2026-07-08] P3-2: Extended Mass Assignment Scanner to raw DB queries**:
   - Upgraded the static `MassAssignmentAnalyzer` token parser to scan raw DB query builder writes: `DB::table(...)` insert, update, insertGetId, and updateOrInsert calls.
   - Aligned allowed keys resolver to support both Eloquent model classes and raw table schema checks via `Schema::getColumnListing($tableName)`.
