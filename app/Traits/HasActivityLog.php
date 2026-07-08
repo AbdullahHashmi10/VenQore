@@ -56,7 +56,12 @@ trait HasActivityLog
                 'is_impersonated' => session()->has('impersonating_user_id'),
             ]);
         } catch (\Exception $e) {
-            // Ignore missing table during migrations/testing
+            // Prevent crashing the application if logging fails (e.g., during migration/testing when table doesn't exist),
+            // but log the error so future schema drifts or write failures are visible in laravel.log.
+            \Illuminate\Support\Facades\Log::error('HasActivityLog failed to write audit entry: ' . $e->getMessage(), [
+                'model'  => get_class($model),
+                'action' => $action,
+            ]);
         }
     }
 }
