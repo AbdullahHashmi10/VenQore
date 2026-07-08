@@ -300,7 +300,7 @@ class SmartFulfillmentService
                     'invoice_id' => $invoice->id,
                     'product_id' => $draft['product_id'],
                     'quantity'   => $draft['shortfall_qty'],
-                    'price'      => $draft['cost_price'],
+                    'unit_price' => $draft['cost_price'],
                     'total'      => $draft['cost_price'] * $draft['shortfall_qty'],
                 ]);
             }

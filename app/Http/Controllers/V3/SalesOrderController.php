@@ -40,6 +40,7 @@ class SalesOrderController extends Controller
 
             $order = SalesOrder::create([
                 'id'            => $orderId,
+                'order_number'  => \App\Services\SequenceService::generateTransactionNumber('SO'),
                 'party_id'      => $validated['customer_id'],
                 'warehouse_id'  => $validated['warehouse_id'],
                 'order_date'    => $validated['order_date'],
@@ -47,6 +48,7 @@ class SalesOrderController extends Controller
                 'status'        => 'open',
                 'total_amount'  => $total,
                 'notes'         => $validated['notes'] ?? null,
+                'user_id'       => auth()->id() ?? 1,
                 'created_by'    => auth()->id() ?? 1,
             ]);
 

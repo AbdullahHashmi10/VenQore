@@ -109,7 +109,7 @@ class DebitNoteController extends Controller
             // Financial Update now handled by Journal Entry via V3 (if implemented here in future)
         });
 
-        return redirect()->route('debit-notes.index')->with('success', 'Debit Note created successfully.');
+        return redirect()->route('store.debit-notes.index', ['store_slug' => app('current.tenant')->slug])->with('success', 'Debit Note created successfully.');
     }
 
     protected function returnStock($productId, $warehouseId, $quantity, $reference)
@@ -125,7 +125,7 @@ class DebitNoteController extends Controller
              'warehouse_id' => $warehouseId,
              'type' => 'purchase_return',
              'quantity' => -$quantity,
-             'reference' => $reference,
+             'reference_id' => $reference,
              'user_id' => Auth::id(),
              'description' => "Debit Note / Return ($reference)"
         ]);

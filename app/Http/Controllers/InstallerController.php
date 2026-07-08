@@ -1064,7 +1064,8 @@ class InstallerController extends Controller
                         ['account_number' => $row['bank_id']], // Use ID as reference
                         [
                             'name' => $row['bank_name'] ?? 'Unknown Bank',
-                            'balance' => $row['current_balance'] ?? 0,
+                            'current_balance' => $row['current_balance'] ?? 0,
+                            'opening_balance' => $row['current_balance'] ?? 0,
                             'bank_name' => $row['bank_name'] ?? 'Vyapar Imported'
                         ]
                     );

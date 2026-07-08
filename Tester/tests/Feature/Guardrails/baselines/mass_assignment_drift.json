@@ -1,0 +1,186 @@
+[
+    {
+        "signature": "AppSumoCode::campaign",
+        "model": "App\\Models\\AppSumoCode",
+        "key": "campaign",
+        "file": "app\\Console\\Commands\\ImportAppSumoCodes.php",
+        "line": 89,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "AppSumoCode::status",
+        "model": "App\\Models\\AppSumoCode",
+        "key": "status",
+        "file": "app\\Console\\Commands\\ImportAppSumoCodes.php",
+        "line": 89,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "BankAccount::balance",
+        "model": "App\\Models\\BankAccount",
+        "key": "balance",
+        "file": "app\\Http\\Controllers\\InstallerController.php",
+        "line": 1063,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "InvoiceItem::price",
+        "model": "App\\Models\\InvoiceItem",
+        "key": "price",
+        "file": "app\\Services\\SmartFulfillmentService.php",
+        "line": 299,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PaymentAllocation::amount",
+        "model": "App\\Models\\PaymentAllocation",
+        "key": "amount",
+        "file": "app\\Http\\Controllers\\PosController.php",
+        "line": 123,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PaymentAllocation::amount",
+        "model": "App\\Models\\PaymentAllocation",
+        "key": "amount",
+        "file": "app\\Services\\PurchaseService.php",
+        "line": 154,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PaymentAllocation::invoice_id",
+        "model": "App\\Models\\PaymentAllocation",
+        "key": "invoice_id",
+        "file": "app\\Http\\Controllers\\PosController.php",
+        "line": 123,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PaymentAllocation::invoice_id",
+        "model": "App\\Models\\PaymentAllocation",
+        "key": "invoice_id",
+        "file": "app\\Services\\PurchaseService.php",
+        "line": 154,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PaymentAllocation::payment_id",
+        "model": "App\\Models\\PaymentAllocation",
+        "key": "payment_id",
+        "file": "app\\Http\\Controllers\\PosController.php",
+        "line": 123,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PaymentAllocation::payment_id",
+        "model": "App\\Models\\PaymentAllocation",
+        "key": "payment_id",
+        "file": "app\\Services\\PurchaseService.php",
+        "line": 154,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PurchaseItem::cost_price",
+        "model": "App\\Models\\PurchaseItem",
+        "key": "cost_price",
+        "file": "app\\Imports\\PurchasesImport.php",
+        "line": 179,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PurchaseItem::quantity",
+        "model": "App\\Models\\PurchaseItem",
+        "key": "quantity",
+        "file": "app\\Imports\\PurchasesImport.php",
+        "line": 179,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PurchaseItem::subtotal",
+        "model": "App\\Models\\PurchaseItem",
+        "key": "subtotal",
+        "file": "app\\Imports\\PurchasesImport.php",
+        "line": 179,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "PurchaseOrder::order_number",
+        "model": "App\\Models\\PurchaseOrder",
+        "key": "order_number",
+        "file": "app\\Http\\Controllers\\MigrationController.php",
+        "line": 313,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "Sale::invoice_number",
+        "model": "App\\Models\\Sale",
+        "key": "invoice_number",
+        "file": "app\\Http\\Controllers\\MigrationController.php",
+        "line": 245,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrder::created_by",
+        "model": "App\\Models\\SalesOrder",
+        "key": "created_by",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 41,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrder::warehouse_id",
+        "model": "App\\Models\\SalesOrder",
+        "key": "warehouse_id",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 41,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrderItem::discount_percent",
+        "model": "App\\Models\\SalesOrderItem",
+        "key": "discount_percent",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 57,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrderItem::line_total",
+        "model": "App\\Models\\SalesOrderItem",
+        "key": "line_total",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 57,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrderItem::qty",
+        "model": "App\\Models\\SalesOrderItem",
+        "key": "qty",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 57,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrderItem::sale_uom",
+        "model": "App\\Models\\SalesOrderItem",
+        "key": "sale_uom",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 57,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "SalesOrderItem::tax_rate",
+        "model": "App\\Models\\SalesOrderItem",
+        "key": "tax_rate",
+        "file": "app\\Http\\Controllers\\V3\\SalesOrderController.php",
+        "line": 57,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    },
+    {
+        "signature": "StockMovement::reference",
+        "model": "App\\Models\\StockMovement",
+        "key": "reference",
+        "file": "app\\Http\\Controllers\\DebitNoteController.php",
+        "line": 123,
+        "note": "REVIEW: live bug, dead legacy code, or migration-vs-prod schema gap?"
+    }
+]

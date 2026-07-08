@@ -503,9 +503,9 @@ class BillingController extends Controller
 
         $fallbackPrices = [
             'trial'    => 0.00,
-            'starter'  => 19.00,
-            'growth'   => 49.00,
-            'business' => 99.00,
+            'starter'  => 36.00,
+            'growth'   => 63.00,
+            'business' => 129.00,
         ];
 
         $rate = (float) (\App\Models\Setting::withoutGlobalScopes()->whereNull('tenant_id')->where('key', 'usd_pkr_rate')->value('value') ?: 280.0);

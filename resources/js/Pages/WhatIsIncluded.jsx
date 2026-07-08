@@ -99,13 +99,13 @@ export default function WhatIsIncluded() {
                         <div className="p-4 sm:p-6 text-center border-l border-indigo-500/30 bg-indigo-500/5">
                             <p className="text-xs text-indigo-400 uppercase tracking-widest mb-1">2 Codes Stacked</p>
                             <p className="font-bold text-indigo-300">Growth LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$158</p>
+                            <p className="text-2xl font-black text-white mt-1">$199</p>
                             <p className="text-xs text-slate-500 mt-1">one-time</p>
                         </div>
                         <div className="p-4 sm:p-6 text-center border-l border-amber-500/20 bg-amber-500/5">
                             <p className="text-xs text-amber-400 uppercase tracking-widest mb-1">3 Codes Stacked</p>
                             <p className="font-bold text-amber-300">Business LTD</p>
-                            <p className="text-2xl font-black text-white mt-1">$237</p>
+                            <p className="text-2xl font-black text-white mt-1">$399</p>
                             <p className="text-xs text-slate-500 mt-1">one-time</p>
                         </div>
                     </div>

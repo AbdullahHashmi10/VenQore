@@ -12,12 +12,12 @@ import {
 
 // --- Plan metadata (display-only) -------------------------------------------
 const PLAN_META = {
-    starter:  { label: 'Starter Engine',  price: '$19/mo',  color: '#6366f1', Icon: Shield },
-    growth:   { label: 'Growth Engine',   price: '$49/mo',  color: '#8b5cf6', Icon: Zap },
-    business: { label: 'Business Engine', price: '$99/mo',  color: '#f59e0b', Icon: Crown },
-    ltd_1:    { label: 'LTD — Starter',  price: 'Lifetime', color: '#10b981', Icon: Sparkles },
-    ltd_2:    { label: 'LTD — Growth',   price: 'Lifetime', color: '#10b981', Icon: Sparkles },
-    ltd_3:    { label: 'LTD — Business', price: 'Lifetime', color: '#10b981', Icon: Sparkles },
+    starter:  { label: 'Starter Engine',  price: '$36/mo',  color: '#6366f1', Icon: Shield },
+    growth:   { label: 'Growth Engine',   price: '$63/mo',  color: '#8b5cf6', Icon: Zap },
+    business: { label: 'Business Engine', price: '$129/mo', color: '#f59e0b', Icon: Crown },
+    ltd_1:    { label: 'LTD — Starter',  price: '$79',      color: '#10b981', Icon: Sparkles },
+    ltd_2:    { label: 'LTD — Growth',   price: '$199',     color: '#10b981', Icon: Sparkles },
+    ltd_3:    { label: 'LTD — Business', price: '$399',     color: '#10b981', Icon: Sparkles },
 };
 
 const FEATURES = [
@@ -51,9 +51,9 @@ const FEATURE_UPGRADE_TARGET = {
 
 // --- Onboarding Service Tiers ---
 const SERVICE_TIERS = {
-    basic:        { name: 'Basic Upload',        priceUSD: 0.50, pricePKR: 100,  extraUSD: 0.25, extraPKR: 50,  sla: '2–3 business days', desc: 'Product data uploaded with all core fields. Up to 5 variants per product included.' },
-    descriptions: { name: '+ Rich Descriptions', priceUSD: 1.00, pricePKR: 150,  extraUSD: 0.25, extraPKR: 50,  sla: '3–5 business days', desc: 'Everything in Basic + long descriptions, SEO copy, and full product detail. You provide images.' },
-    images:       { name: '+ AI Images',         priceUSD: 1.50, pricePKR: 200,  extraUSD: 0.25, extraPKR: 50,  sla: '4–6 business days', desc: 'Everything in Descriptions + we source or AI-generate product images for you.' },
+    basic:        { name: 'Basic Upload',        priceUSD: 1.00, pricePKR: 100,  extraUSD: 0.50, extraPKR: 50,  sla: '2–3 business days', desc: 'Product data uploaded with all core fields. Up to 5 variants per product included.' },
+    descriptions: { name: '+ Rich Descriptions', priceUSD: 1.50, pricePKR: 150,  extraUSD: 0.50, extraPKR: 50,  sla: '3–5 business days', desc: 'Everything in Basic + long descriptions, SEO copy, and full product detail. You provide images.' },
+    images:       { name: '+ AI Images',         priceUSD: 2.00, pricePKR: 200,  extraUSD: 0.50, extraPKR: 50,  sla: '4–6 business days', desc: 'Everything in Descriptions + we source or AI-generate product images for you.' },
 };
 
 function formatLimit(val) {
@@ -940,10 +940,10 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
                                         <div className="grid grid-cols-2 gap-3">
                                             {[
-                                                { key: 'ai_starter', label: 'Starter AI', price: '$9', scans: 90, queries: 110 },
-                                                { key: 'ai_lite', label: 'Lite AI', price: '$19', scans: 150, queries: 200 },
-                                                { key: 'ai_pro', label: 'Pro AI', price: '$39', scans: 480, queries: 420 },
-                                                { key: 'ai_ultimate', label: 'Ultimate AI', price: '$79', scans: 850, queries: 800 }
+                                                { key: 'ai_starter', label: 'Starter AI', price: '$3', scans: 90, queries: 110 },
+                                                { key: 'ai_lite', label: 'Lite AI', price: '$5', scans: 150, queries: 200 },
+                                                { key: 'ai_pro', label: 'Pro AI', price: '$15', scans: 480, queries: 420 },
+                                                { key: 'ai_ultimate', label: 'Ultimate AI', price: '$25', scans: 850, queries: 800 }
                                             ].map(plan => (
                                                 <div 
                                                     key={plan.key} 

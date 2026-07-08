@@ -14,11 +14,16 @@ class PaymentAllocation extends Model
 
     public function payment()
     {
-        return $this->belongsTo(Payment::class);
+        return $this->belongsTo(Payment::class, 'payment_journal_entry_id');
     }
 
-    public function invoice()
+    public function sale()
     {
-        return $this->belongsTo(Invoice::class);
+        return $this->belongsTo(Sale::class, 'sale_id');
+    }
+
+    public function purchase()
+    {
+        return $this->belongsTo(Invoice::class, 'purchase_id');
     }
 }

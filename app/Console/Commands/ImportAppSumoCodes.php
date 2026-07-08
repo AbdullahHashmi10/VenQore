@@ -88,8 +88,10 @@ class ImportAppSumoCodes extends Command
                 } else {
                     AppSumoCode::create([
                         'code'     => $code,
-                        'campaign' => $campaign,
-                        'status'   => 'issued',
+                        'metadata' => [
+                            'campaign' => $campaign,
+                            'status'   => 'issued',
+                        ],
                     ]);
                     $imported++;
                 }
@@ -111,7 +113,7 @@ class ImportAppSumoCodes extends Command
         ]);
 
         if (!$dryRun) {
-            $this->info("✅ Import complete. Total issued codes: " . AppSumoCode::issued()->count());
+            $this->info("✅ Import complete. Total issued codes: " . AppSumoCode::where('is_redeemed', false)->count());
         }
 
         return self::SUCCESS;

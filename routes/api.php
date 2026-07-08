@@ -9,11 +9,11 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/heartbeat', [HeartbeatController::class, 'store']);
+Route::post('/heartbeat', [HeartbeatController::class, 'store'])->middleware('throttle:60,1');
 
 use App\Http\Controllers\Api\TerminalActivityController;
-Route::post('/terminal/activities', [TerminalActivityController::class, 'store']);
-Route::post('/terminal/screenshot', [TerminalActivityController::class, 'uploadScreenshot']);
+Route::post('/terminal/activities', [TerminalActivityController::class, 'store'])->middleware('throttle:60,1');
+Route::post('/terminal/screenshot', [TerminalActivityController::class, 'uploadScreenshot'])->middleware('throttle:60,1');
 
 use App\Http\Controllers\Api\SyncController;
 

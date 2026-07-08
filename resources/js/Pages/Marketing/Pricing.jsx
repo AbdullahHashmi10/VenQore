@@ -125,9 +125,9 @@ export default function Pricing({ plans = [] }) {
         growth: { subscription_monthly: 1800, subscription_annual: 1500, ltd: 55720 },
         enterprise: { subscription_monthly: 5300, subscription_annual: 4416, ltd: 111720 },
     } : {
-        starter: { subscription_monthly: 36, subscription_annual: 29, ltd: 79 },
-        growth: { subscription_monthly: 63, subscription_annual: 50, ltd: 199 },
-        enterprise: { subscription_monthly: 129, subscription_annual: 103, ltd: 399 },
+        starter: { subscription_monthly: 36, subscription_annual: 30, ltd: 79 },
+        growth: { subscription_monthly: 63, subscription_annual: 53, ltd: 199 },
+        enterprise: { subscription_monthly: 129, subscription_annual: 108, ltd: 399 },
     };
 
     const PRICES = { ...defaultPrices };

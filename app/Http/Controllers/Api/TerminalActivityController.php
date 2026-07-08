@@ -49,8 +49,19 @@ class TerminalActivityController extends Controller
             if (!$terminal->device_id) {
                 $terminal->update(['device_id' => $deviceId]);
             }
-            if ($tenant && $terminal->tenant_id !== $tenant->id) {
-                $terminal->update(['tenant_id' => $tenant->id]);
+
+            // SECURITY (tenant isolation): this endpoint is unauthenticated, so
+            // the caller-supplied store_slug must NEVER be able to move a
+            // terminal that already belongs to a tenant into a different one —
+            // that is a cross-tenant hijack. Only allow an initial claim when
+            // the terminal has no owner yet; refuse conflicting ownership.
+            // Regression guard: Tester/tests/Feature/Guardrails/TerminalOwnershipGuardTest.php
+            if ($tenant) {
+                if (empty($terminal->tenant_id)) {
+                    $terminal->update(['tenant_id' => $tenant->id]);
+                } elseif ((string) $terminal->tenant_id !== (string) $tenant->id) {
+                    return response()->json(['error' => 'Terminal does not belong to this store.'], 403);
+                }
             }
         }
 

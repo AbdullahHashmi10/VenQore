@@ -100,12 +100,12 @@
  
          $dbData = null;
          if (!$existing) {
-             $dbPurchase = \App\Models\Purchase::where('reference_number', $invoice)->first();
+             $dbPurchase = \App\Models\Purchase::where('invoice_number', $invoice)->first();
              if ($dbPurchase) {
                  $existing = true;
                  $reason = "Purchase #$invoice already exists in DB (ID: $dbPurchase->id)";
                  $dbData = [
-                     'invoice_number' => $dbPurchase->reference_number,
+                     'invoice_number' => $dbPurchase->invoice_number,
                      'supplier_name' => $dbPurchase->supplier?->name ?? 'Unknown',
                      'total' => $dbPurchase->total,
                      'is_db' => true
@@ -160,12 +160,16 @@
          $cost = abs((float)($data['cost_price'] ?? ($product ? $product->cost_price : 0)));
          $lineTotal = abs((float)($data['total'] ?? ($qty * $cost)));
  
+         $warehouseId = \App\Models\Warehouse::orderByDesc('is_default')->value('id');
          $purchase = \App\Models\Purchase::firstOrCreate(
-             ['reference_number' => $invoice],
+             ['invoice_number' => $invoice],
              [
-                 'supplier_id' => $supplierId,
+                 'party_id' => $supplierId,
+                 'warehouse_id' => $warehouseId,
                  'user_id' => \Illuminate\Support\Facades\Auth::id() ?? (\App\Models\User::value('id') ?? 1),
-                 'total' => 0, 'status' => 'received', 'payment_status' => 'paid', 'created_at' => $date,
+                 'total' => 0,
+                 'payment_status' => 'paid',
+                 'purchase_date' => $date,
              ]
          );
  
@@ -178,7 +182,7 @@
          if ($product) {
              \App\Models\PurchaseItem::create([
                  'purchase_id' => $purchase->id, 'product_id' => $product->id,
-                 'quantity' => $qty, 'cost_price' => $cost, 'subtotal' => $lineTotal,
+                 'qty' => $qty, 'unit_cost' => $cost, 'line_total' => $lineTotal,
              ]);
              $purchase->increment('total', $lineTotal);
          }

@@ -131,6 +131,17 @@ class MigrationController extends Controller
             $partyTable = $this->findTable($tables, ['Party', 'Parties', 'kb_party', 'kb_names']);
             
             if ($partyTable) {
+                // Identify suppliers from the SQLite purchase tables
+                $supplierIds = [];
+                $purchTableForCheck = $this->findTable($tables, ['Purchase', 'Bill', 'VendorReference']);
+                if ($purchTableForCheck) {
+                    $pCols = $this->getColumns($pdo, $purchTableForCheck);
+                    $pPartyIdCol = $this->findCol($pCols, ['party_id', 'vendor_id', 'supplier_id']);
+                    if ($pPartyIdCol) {
+                        $supplierIds = $pdo->query("SELECT DISTINCT \"$pPartyIdCol\" FROM \"$purchTableForCheck\" WHERE \"$pPartyIdCol\" IS NOT NULL")->fetchAll(\PDO::FETCH_COLUMN);
+                    }
+                }
+
                 // Get columns
                 $cols = $this->getColumns($pdo, $partyTable);
                 // Map columns
@@ -148,20 +159,44 @@ class MigrationController extends Controller
 
                         $rawBalance = $balanceCol ? ($row[$balanceCol] ?? 0) : 0;
                         $balance = floatval($rawBalance);
-                        $type = 'customer';
                         
-                        $party = Party::updateOrCreate(
-                            ['phone' => $phone], 
-                            [
-                                'name' => $name,
-                                'type' => $type,
-                                'opening_balance' => $balance,
-                                'current_balance' => $balance
-                            ]
-                        );
+                        $isSupplier = in_array($oldId, $supplierIds);
 
-                        if ($oldId) {
-                            $partyMap[$oldId] = $party->id;
+                        if ($isSupplier) {
+                            $supplier = \App\Models\Supplier::updateOrCreate(
+                                ['phone' => $phone],
+                                [
+                                    'name' => $name,
+                                ]
+                            );
+                            
+                            // Also create a matching Party of type supplier to hold balances
+                            Party::updateOrCreate(
+                                ['phone' => $phone],
+                                [
+                                    'name' => $name,
+                                    'type' => 'supplier',
+                                    'opening_balance' => $balance,
+                                    'current_balance' => $balance
+                                ]
+                            );
+
+                            if ($oldId) {
+                                $partyMap[$oldId] = $supplier->id;
+                            }
+                        } else {
+                            $party = Party::updateOrCreate(
+                                ['phone' => $phone], 
+                                [
+                                    'name' => $name,
+                                    'type' => 'customer',
+                                    'opening_balance' => $balance,
+                                    'current_balance' => $balance
+                                ]
+                            );
+                            if ($oldId) {
+                                $partyMap[$oldId] = $party->id;
+                            }
                         }
                         $importedParties++;
                     }
@@ -175,12 +210,12 @@ class MigrationController extends Controller
             
             if ($itemTable) {
                 $cols = $this->getColumns($pdo, $itemTable);
-                $idCol = $this->findCol($cols, ['id', 'item_id']); // Capture old ID
+                $idCol = $this->findCol($cols, ['id', 'item_id', 'product_id']); // Capture old ID
                 $nameCol = $this->findCol($cols, ['name', 'item_name']);
                 $priceCol = $this->findCol($cols, ['sale_price', 'price', 'mrp']);
                 $costCol = $this->findCol($cols, ['purchase_price', 'cost']);
                 $stockCol = $this->findCol($cols, ['stock', 'quantity', 'current_stock']);
-                $codeCol = $this->findCol($cols, ['item_code', 'code', 'barcode']);
+                $codeCol = $this->findCol($cols, ['sku', 'item_code', 'code', 'barcode']);
 
                 if ($nameCol) {
                     $stmt = $pdo->query("SELECT * FROM \"$itemTable\"");
@@ -244,9 +279,10 @@ class MigrationController extends Controller
                          if ($newPartyId) {
                              $sale = \App\Models\Sale::create([
                                  'party_id' => $newPartyId,
-                                 'invoice_number' => $invNoCol ? ($row[$invNoCol] ?? 'INV-MIG-'.Str::random(6)) : 'INV-MIG-'.Str::random(6),
-                                 'date' => $dateCol ? ($row[$dateCol] ?? now()) : now(),
-                                 'grand_total' => $totalCol ? ($row[$totalCol] ?? 0) : 0,
+                                 'reference_number' => $invNoCol ? ($row[$invNoCol] ?? 'INV-MIG-'.Str::random(6)) : 'INV-MIG-'.Str::random(6),
+                                 'posted_at' => $dateCol ? ($row[$dateCol] ?? now()) : now(),
+                                 'subtotal' => $totalCol ? ($row[$totalCol] ?? 0) : 0,
+                                 'total' => $totalCol ? ($row[$totalCol] ?? 0) : 0,
                                  'status' => 'completed',
                                  'payment_status' => 'paid', // Assume paid for migration history
                                  'warehouse_id' => \App\Models\Warehouse::first()->id,
@@ -312,11 +348,10 @@ class MigrationController extends Controller
                         if ($newPartyId) {
                             $purchase = \App\Models\PurchaseOrder::create([
                                 'supplier_id' => $newPartyId, // PO uses supplier_id usually logic maps to Party if supplier
-                                'order_number' => $billNoCol ? ($row[$billNoCol] ?? 'PO-MIG-'.Str::random(6)) : 'PO-MIG-'.Str::random(6),
+                                'reference_number' => $billNoCol ? ($row[$billNoCol] ?? 'PO-MIG-'.Str::random(6)) : 'PO-MIG-'.Str::random(6),
                                 'order_date' => $dateCol ? ($row[$dateCol] ?? now()) : now(),
                                 'total_amount' => $totalCol ? ($row[$totalCol] ?? 0) : 0,
                                 'status' => 'received',
-                                'payment_status' => 'paid',
                                 'warehouse_id' => \App\Models\Warehouse::first()->id,
                                 'user_id' => auth()->id() ?? 1
                             ]);
@@ -340,7 +375,7 @@ class MigrationController extends Controller
                                                 'product_id' => $newItemId,
                                                 'quantity' => $qtyCol ? ($itemRow[$qtyCol] ?? 1) : 1,
                                                 'unit_cost' => $rateCol ? ($itemRow[$rateCol] ?? 0) : 0,
-                                                'subtotal' => ($qtyCol ? ($itemRow[$qtyCol] ?? 1) : 1) * ($rateCol ? ($itemRow[$rateCol] ?? 0) : 0),
+                                                'total_cost' => ($qtyCol ? ($itemRow[$qtyCol] ?? 1) : 1) * ($rateCol ? ($itemRow[$rateCol] ?? 0) : 0),
                                             ]);
                                         }
                                     }

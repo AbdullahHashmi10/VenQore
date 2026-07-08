@@ -152,9 +152,9 @@ class PurchaseService
         ]);
 
         PaymentAllocation::create([
-            'payment_id' => $payment->id,
-            'invoice_id' => $invoice->id,
-            'amount' => $invoice->total_amount,
+            'payment_journal_entry_id' => $payment->id,
+            'purchase_id' => $invoice->id,
+            'allocated_amount' => $invoice->total_amount,
         ]);
     }
 

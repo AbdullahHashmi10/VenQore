@@ -121,9 +121,9 @@ class PosController extends Controller
         ]);
 
         \App\Models\PaymentAllocation::create([
-            'payment_id' => $payment->id,
-            'invoice_id' => $invoice->id,
-            'amount' => $amount,
+            'payment_journal_entry_id' => $payment->id,
+            'sale_id' => $invoice->id,
+            'allocated_amount' => $amount,
         ]);
     }
 }

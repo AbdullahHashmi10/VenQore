@@ -20,6 +20,10 @@ class HeartbeatController extends Controller
         $status = $request->input('status', 'OPEN');
         $reason = $request->input('reason', null);
 
+        if (!$deviceId) {
+            return response()->json(['error' => 'Device ID required'], 400);
+        }
+
         // Resolve Tenant if store_slug is provided
         $tenant = null;
         if ($storeSlug) {
@@ -52,9 +56,12 @@ class HeartbeatController extends Controller
                 'status' => 'OPEN',
             ]);
         } else {
-            // Update tenant mapping if not set or if store slug changed pairing
-            if ($tenant && $terminal->tenant_id !== $tenant->id) {
-                $terminal->update(['tenant_id' => $tenant->id]);
+            if ($tenant) {
+                if (empty($terminal->tenant_id)) {
+                    $terminal->update(['tenant_id' => $tenant->id]);
+                } elseif ((string) $terminal->tenant_id !== (string) $tenant->id) {
+                    return response()->json(['error' => 'Terminal does not belong to this store.'], 403);
+                }
             }
             if ($deviceId && !$terminal->device_id) {
                 $terminal->update(['device_id' => $deviceId]);

@@ -27,4 +27,19 @@ class ActivityLog extends Model
     {
         return $this->morphTo();
     }
+
+    /**
+     * Helper to quickly write to activity log.
+     */
+    public static function log(string $name, string $description, ?\Illuminate\Database\Eloquent\Model $subject = null, ?array $properties = null): self
+    {
+        return self::create([
+            'action' => $name,
+            'description' => $description,
+            'subject_type' => $subject ? get_class($subject) : null,
+            'subject_id' => $subject ? $subject->id : null,
+            'user_id' => auth()->id() ?? 1,
+            'properties' => $properties,
+        ]);
+    }
 }
