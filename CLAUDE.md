@@ -224,6 +224,8 @@ resources/js/
 - **Inertia responses** use `Inertia::render('PageName', [...data])`.
 - **React components** use Tailwind utility classes (no separate CSS files).
 - **All DB queries must include `tenant_id` scope** — never query cross-tenant.
+- **PurchaseService Safety:** If you ever route or wire up the legacy `PurchaseService` in routes/controllers, ensure that the double-entry payment allocation logic remains fully covered and correct (it must link `PaymentAllocation` to a valid `JournalEntry` ID, not a `Payment` ID, so the MySQL trigger passes).
+- **No Trailing NUL-Bytes:** Never commit or save files ending with trailing NUL (`\x00`) bytes. CI automatically runs a python scan to block pushes with NUL-byte corruption.
 - Route names follow `feature.action` convention (e.g., `sales.store`, `inventory.index`).
 - Use `route()` Ziggy helper in React for named routes.
 - **Ziggy Routes:** Every time you add or rename a route in `routes/web.php`, you MUST run `php artisan ziggy:generate` to regenerate the frontend route cache (`resources/js/ziggy.js`) before building/committing to prevent build guard failures.
