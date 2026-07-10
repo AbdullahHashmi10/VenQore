@@ -14,6 +14,7 @@ use App\Services\V3\AccountingService;
 use App\Services\V3\FifoService;
 use App\Services\FbrService;
 use App\Services\LedgerService;
+use App\Services\FinancialReportingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -27,12 +28,14 @@ class SaleController extends Controller
     protected $accounting;
     protected $fbr;
     protected $fifo;
+    protected $frs;
 
-    public function __construct(AccountingService $accounting, FbrService $fbr, FifoService $fifo)
+    public function __construct(AccountingService $accounting, FbrService $fbr, FifoService $fifo, FinancialReportingService $frs)
     {
         $this->accounting = $accounting;
         $this->fbr        = $fbr;
         $this->fifo       = $fifo;
+        $this->frs        = $frs;
     }
     public function store(Request $request)
     {
@@ -438,41 +441,38 @@ class SaleController extends Controller
         
         $sub30Days = \Carbon\Carbon::now($tz)->subDays(30)->utc();
 
-        // 1. Sales & Orders Today
-        // net_sales = true revenue (ex-tax, ex-discount). All records are permanently normalised.
-        $todayStats = Sale::where('status', '!=', 'returned')
+        // 1. Sales & Orders Today (Ledger-derived via FinancialReportingService)
+        $todayRevenue = (float) $this->frs->getProfitAndLoss($todayStart->toDateString(), $todayEnd->toDateString())['revenue'];
+        $yesterdayRevenue = (float) $this->frs->getProfitAndLoss($yesterdayStart->toDateString(), $yesterdayEnd->toDateString())['revenue'];
+        $todayCount = Sale::where('status', '!=', 'returned')
             ->whereBetween('created_at', [$todayStart, $todayEnd])
-            ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
-            ->first();
+            ->count();
 
-        $yesterdaySales = Sale::where('status', '!=', 'returned')
-            ->whereBetween('created_at', [$yesterdayStart, $yesterdayEnd])
-            ->sum('net_sales');
+        $dailyGrowth = $yesterdayRevenue > 0 
+            ? (($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100 
+            : ($todayRevenue > 0 ? 100 : 0);
+
+        // 2. Monthly Net Sales (Ledger-derived via FinancialReportingService)
+        $monthRevenue = (float) $this->frs->getProfitAndLoss($startOfMonth->toDateString(), $todayEnd->toDateString())['revenue'];
+        $lastMonthRevenue = (float) $this->frs->getProfitAndLoss($startOfLastMonth->toDateString(), $endOfLastMonth->toDateString())['revenue'];
         
-        $dailyGrowth = $yesterdaySales > 0 
-            ? (($todayStats->total - $yesterdaySales) / $yesterdaySales) * 100 
-            : ($todayStats->total > 0 ? 100 : 0);
-
-        // 2. Monthly Net Sales
-        $monthStats = Sale::where('status', '!=', 'returned')
+        $monthCount = Sale::where('status', '!=', 'returned')
             ->where('created_at', '>=', $startOfMonth)
-            ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
-            ->first();
+            ->count();
 
-        $lastMonthStats = Sale::where('status', '!=', 'returned')
+        $lastMonthCount = Sale::where('status', '!=', 'returned')
             ->whereBetween('created_at', [$startOfLastMonth, $endOfLastMonth])
-            ->selectRaw('COALESCE(SUM(net_sales), 0) as total, COUNT(*) as count')
-            ->first();
+            ->count();
 
-        $monthlyGrowth = $lastMonthStats->total > 0 
-            ? (($monthStats->total - $lastMonthStats->total) / $lastMonthStats->total) * 100 
-            : ($monthStats->total > 0 ? 100 : 0);
+        $monthlyGrowth = $lastMonthRevenue > 0 
+            ? (($monthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100 
+            : ($monthRevenue > 0 ? 100 : 0);
 
         // 3. Average Order Value
-        $averageOrderValue = $monthStats->count > 0 ? $monthStats->total / $monthStats->count : 0;
+        $averageOrderValue = $monthCount > 0 ? $monthRevenue / $monthCount : 0;
         
         // Avg Growth
-        $avgLastMonth = $lastMonthStats->count > 0 ? $lastMonthStats->total / $lastMonthStats->count : 0;
+        $avgLastMonth = $lastMonthCount > 0 ? $lastMonthRevenue / $lastMonthCount : 0;
         $avgGrowth = $avgLastMonth > 0 ? (($averageOrderValue - $avgLastMonth) / $avgLastMonth) * 100 : 0;
 
         // 4. Active Customers
@@ -534,12 +534,12 @@ class SaleController extends Controller
 
         $data = [
             'stats' => [
-                'sales_today' => $todayStats->total,
+                'sales_today' => $todayRevenue,
                 'sales_today_growth' => round($dailyGrowth, 1),
-                'orders_today' => $todayStats->count,
-                'sales_month' => $monthStats->total,
+                'orders_today' => $todayCount,
+                'sales_month' => $monthRevenue,
                 'sales_month_growth' => round($monthlyGrowth, 1),
-                'orders_month' => $monthStats->count,
+                'orders_month' => $monthCount,
                 'avg_order_value' => round($averageOrderValue, 0),
                 'avg_order_growth' => round($avgGrowth, 1),
                 'active_customers' => $activeCustomers,

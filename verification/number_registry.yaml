@@ -407,6 +407,18 @@ metrics:
     classification: "TRANSACTION-DERIVED"
     verified: false
 
+  - id: "SALE-003"
+    name: "Sell Command Center / Sales Dashboard KPIs"
+    route: "store.sales.dashboard"
+    route_uri: "GET /sales"
+    inertia_page: "Sales/Dashboard"
+    controller: "App\\Http\\Controllers\\SaleController@dashboard"
+    service: "App\\Services\\FinancialReportingService"
+    ledger_accounts: ["4000", "4100"]
+    source_query: "ledger-derived via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
 # ── PURCHASE LIST ─────────────────────────────────────────────────────────────
 
   - id: "PUR-001"

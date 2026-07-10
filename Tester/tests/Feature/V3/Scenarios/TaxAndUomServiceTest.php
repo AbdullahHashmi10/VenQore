@@ -21,14 +21,22 @@ class TaxAndUomServiceTest extends TestCase
     {
         parent::setUp();
         
+        $tenant = new \App\Models\Tenant([
+            'id' => Str::uuid()->toString(),
+            'name' => 'Test Tenant',
+            'slug' => 'test-tenant',
+        ]);
+        $tenant->save();
+        app()->instance('current.tenant', $tenant);
+
         $user = \App\Models\User::factory()->create();
         $this->actingAs($user);
 
         $this->tax = app(TaxService::class);
         $this->uom = app(UomService::class);
 
-        $this->seedAccounts();
-        $this->productId = $this->seedProduct();
+        $this->seedAccounts($tenant->id);
+        $this->productId = $this->seedProduct($tenant->id);
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -87,13 +95,15 @@ class TaxAndUomServiceTest extends TestCase
     /** @test */
     public function it_returns_tax_report_with_2100_and_2300_breakdown()
     {
+        $tenantId = app('current.tenant')->id;
         // M1-06b correction: 2100 = Sales Tax Payable (2200 = Loans Payable — wrong account)
-        $this->seedAccount('2100', 'Sales Tax Payable',      'liability', 'credit');
-        $this->seedAccount('2300', 'Input Tax Recoverable',  'asset',     'debit');
+        $this->seedAccount($tenantId, '2100', 'Sales Tax Payable',      'liability', 'credit');
+        $this->seedAccount($tenantId, '2300', 'Input Tax Recoverable',  'asset',     'debit');
 
         // Post a fake sales tax entry
         DB::table('journal_entries')->insert([
             'id'             => Str::uuid()->toString(),
+            'tenant_id'      => $tenantId,
             'date'           => now()->toDateString(),
             'reference_type' => 'sale',
             'reference'      => Str::uuid()->toString(),
@@ -107,6 +117,7 @@ class TaxAndUomServiceTest extends TestCase
         $je2 = Str::uuid()->toString();
         DB::table('journal_entries')->insert([
             'id'             => $je2,
+            'tenant_id'      => $tenantId,
             'date'           => now()->toDateString(),
             'reference_type' => 'sale',
             'reference'      => Str::uuid()->toString(),
@@ -117,12 +128,13 @@ class TaxAndUomServiceTest extends TestCase
             'updated_at'     => now(),
         ]);
 
-        $account2100 = DB::table('accounts')->where('code', '2100')->first();
-        $account2300 = DB::table('accounts')->where('code', '2300')->first();
+        $account2100 = DB::table('accounts')->where('code', '2100')->where('tenant_id', $tenantId)->first();
+        $account2300 = DB::table('accounts')->where('code', '2300')->where('tenant_id', $tenantId)->first();
 
         DB::table('journal_items')->insert([
             [
                 'id'               => Str::uuid()->toString(),
+                'tenant_id'        => $tenantId,
                 'journal_entry_id' => $je2,
                 'account_id'       => $account2100->id,  // Sales Tax Payable (2100)
                 'debit'            => 0,
@@ -131,6 +143,7 @@ class TaxAndUomServiceTest extends TestCase
             ],
             [
                 'id'               => Str::uuid()->toString(),
+                'tenant_id'        => $tenantId,
                 'journal_entry_id' => $je2,
                 'account_id'       => $account2300->id,
                 'debit'            => 200.00,
@@ -236,7 +249,7 @@ class TaxAndUomServiceTest extends TestCase
     // HELPERS
     // ═══════════════════════════════════════════════════════════════════
 
-    private function seedAccounts(): void
+    private function seedAccounts(?string $tenantId): void
     {
         $accounts = [
             ['1000', 'Cash in Hand',          'asset',     'debit'],
@@ -244,10 +257,10 @@ class TaxAndUomServiceTest extends TestCase
             ['4000', 'Sales Revenue',          'income',    'credit'],
         ];
         foreach ($accounts as [$code, $name, $type, $balance]) {
-            if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
+            if (!DB::table('accounts')->where('code', $code)->where('tenant_id', $tenantId)->exists()) {
                 DB::table('accounts')->insert([
                     'id'             => Str::uuid()->toString(),
-                    'tenant_id'      => null,
+                    'tenant_id'      => $tenantId,
                     'code'           => $code,
                     'name'           => $name,
                     'type'           => $type,
@@ -260,12 +273,12 @@ class TaxAndUomServiceTest extends TestCase
     }
 
     private function seedAccount(
-        string $code, string $name, string $type, string $normalBalance
+        ?string $tenantId, string $code, string $name, string $type, string $normalBalance
     ): void {
-        if (!DB::table('accounts')->where('code', $code)->whereNull('tenant_id')->exists()) {
+        if (!DB::table('accounts')->where('code', $code)->where('tenant_id', $tenantId)->exists()) {
             DB::table('accounts')->insert([
                 'id'             => Str::uuid()->toString(),
-                'tenant_id'      => null,
+                'tenant_id'      => $tenantId,
                 'code'           => $code,
                 'name'           => $name,
                 'type'           => $type,
@@ -276,11 +289,12 @@ class TaxAndUomServiceTest extends TestCase
         }
     }
 
-    private function seedProduct(): string
+    private function seedProduct(?string $tenantId): string
     {
         $id = Str::uuid()->toString();
-        DB::table('products')->insert(['base_unit' => 'pcs', 
+        DB::table('products')->insert([
             'id'         => $id,
+            'tenant_id'  => $tenantId,
             'name'       => 'Rice',
             'sku'        => 'RICE-' . Str::random(5),
             'base_unit'  => 'KG',
@@ -294,8 +308,11 @@ class TaxAndUomServiceTest extends TestCase
     private function seedConversion(
         string $productId, string $saleUom, float $factor
     ): void {
+        $tenantId = app()->bound('current.tenant') && app('current.tenant') ? app('current.tenant')->id : null;
+
         DB::table('product_uom_conversions')->insertOrIgnore([
             'id'                => Str::uuid()->toString(),
+            'tenant_id'         => $tenantId,
             'product_id'        => $productId,
             'sale_uom'          => $saleUom,
             'conversion_factor' => $factor,

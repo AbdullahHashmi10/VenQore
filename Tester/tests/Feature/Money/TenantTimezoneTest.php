@@ -46,36 +46,29 @@ class TenantTimezoneTest extends VenQoreTestCase
             "quantity" => 100.00,
         ]);
 
+        // Seed a sale created at 2026-06-21 02:30 AM Karachi local time = 2026-06-20 21:30:00 UTC.
+        $utcCreatedAt = Carbon::create(2026, 6, 20, 21, 30, 0, 'UTC');
+        Carbon::setTestNow($utcCreatedAt);
+
+        $sale = app(\App\Services\V3\SaleService::class)->post([
+            'customer_id'     => $customer->id,
+            'warehouse_id'    => $warehouseId,
+            'sale_date'       => '2026-06-21',
+            'payment_method'  => 'cash',
+            'amount_received' => 100.00,
+            'items' => [[
+                'product_id'       => $product->id,
+                'qty'              => 1,
+                'sale_uom'         => 'pcs',
+                'unit_price'       => 100.00,
+                'discount_percent' => 0,
+                'tax_rate'         => 0,
+            ]],
+        ]);
+
         // Mock current time of the request to be 2026-06-21 10:00:00 Karachi time (05:00:00 UTC).
         $karachiNow = Carbon::create(2026, 6, 21, 10, 0, 0, 'Asia/Karachi');
         Carbon::setTestNow($karachiNow);
-
-        // Seed a sale created at 2026-06-21 02:30 AM Karachi local time = 2026-06-20 21:30:00 UTC.
-        // Note: Sale controller stores created_at as UTC, so we insert the sale with explicit UTC timestamps.
-        $utcCreatedAt = Carbon::create(2026, 6, 20, 21, 30, 0, 'UTC');
-
-        $sale = Sale::create([
-            'tenant_id' => $tenant->id,
-            'reference_number' => 'SAL-TZ-TEST-0001',
-            'source' => 'manual',
-            'party_id' => $customer->id,
-            'user_id' => auth()->id() ?? 1,
-            'warehouse_id' => $warehouseId,
-            'subtotal' => 100.00,
-            'tax' => 0.00,
-            'discount' => 0.00,
-            'total' => 100.00,
-            'subtotal_gross' => 100.00,
-            'total_item_discounts' => 0.00,
-            'global_discount' => 0.00,
-            'net_sales' => 100.00,
-            'total_tax' => 0.00,
-            'invoice_total' => 100.00,
-            'status' => 'posted',
-            'posted_at' => $utcCreatedAt,
-            'created_at' => $utcCreatedAt,
-            'updated_at' => $utcCreatedAt,
-        ]);
 
         // Hit the dashboard path
         $response = $this->getJson("/s/{$tenant->slug}/sales");
@@ -113,34 +106,28 @@ class TenantTimezoneTest extends VenQoreTestCase
             "quantity" => 100.00,
         ]);
 
-        $utcNow = Carbon::create(2026, 6, 21, 10, 0, 0, 'UTC');
-        Carbon::setTestNow($utcNow);
-
         // Seed a sale yesterday (2026-06-20 21:30:00 UTC) which should not count for today since tenant is UTC
         $utcCreatedAt = Carbon::create(2026, 6, 20, 21, 30, 0, 'UTC');
+        Carbon::setTestNow($utcCreatedAt);
 
-        $sale = Sale::create([
-            'tenant_id' => $tenant->id,
-            'reference_number' => 'SAL-TZ-TEST-0002',
-            'source' => 'manual',
-            'party_id' => $customer->id,
-            'user_id' => auth()->id() ?? 1,
-            'warehouse_id' => $warehouseId,
-            'subtotal' => 100.00,
-            'tax' => 0.00,
-            'discount' => 0.00,
-            'total' => 100.00,
-            'subtotal_gross' => 100.00,
-            'total_item_discounts' => 0.00,
-            'global_discount' => 0.00,
-            'net_sales' => 100.00,
-            'total_tax' => 0.00,
-            'invoice_total' => 100.00,
-            'status' => 'posted',
-            'posted_at' => $utcCreatedAt,
-            'created_at' => $utcCreatedAt,
-            'updated_at' => $utcCreatedAt,
+        $sale = app(\App\Services\V3\SaleService::class)->post([
+            'customer_id'     => $customer->id,
+            'warehouse_id'    => $warehouseId,
+            'sale_date'       => '2026-06-20',
+            'payment_method'  => 'cash',
+            'amount_received' => 100.00,
+            'items' => [[
+                'product_id'       => $product->id,
+                'qty'              => 1,
+                'sale_uom'         => 'pcs',
+                'unit_price'       => 100.00,
+                'discount_percent' => 0,
+                'tax_rate'         => 0,
+            ]],
         ]);
+
+        $utcNow = Carbon::create(2026, 6, 21, 10, 0, 0, 'UTC');
+        Carbon::setTestNow($utcNow);
 
         $response = $this->getJson("/s/{$tenant->slug}/sales");
         $response->assertStatus(200);

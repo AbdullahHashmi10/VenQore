@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Party;
 use App\Models\ExpenseCategory;
+use Illuminate\Support\Facades\DB;
 use Tests\Feature\VenQoreTestCase;
 
 class RegressionFixesTest extends VenQoreTestCase
@@ -288,29 +289,60 @@ class RegressionFixesTest extends VenQoreTestCase
         $owner = $this->createTenantUser($tenant, 'owner');
         $this->actingAsTenantUserModel($owner, $tenant);
 
-        // Standard posted sale
-        $sale1 = \App\Models\Sale::create([
+        $this->seedTenantDefaults($tenant);
+        $warehouseId = DB::table('warehouses')->where('tenant_id', $tenant->id)->value('id');
+        $product = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 1500.00]);
+        \App\Models\Stock::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $owner->id,
-            'reference_number' => 'SAL-123',
-            'status' => 'posted',
-            'net_sales' => 1500.00,
-            'total' => 1500.00,
-            'payment_method' => 'cash',
-            'created_at' => now(),
+            'product_id' => $product->id,
+            'warehouse_id' => $warehouseId,
+            'quantity' => 100,
+        ]);
+        $customer = \App\Models\Party::factory()->customer()->create(['tenant_id' => $tenant->id]);
+
+        // Standard posted sale
+        $sale1 = app(\App\Services\V3\SaleService::class)->post([
+            'customer_id'     => $customer->id,
+            'warehouse_id'    => $warehouseId,
+            'sale_date'       => now()->toDateString(),
+            'payment_method'  => 'cash',
+            'amount_received' => 1500.00,
+            'items' => [[
+                'product_id'       => $product->id,
+                'qty'              => 1,
+                'sale_uom'         => 'pcs',
+                'unit_price'       => 1500.00,
+                'discount_percent' => 0,
+                'tax_rate'         => 0,
+            ]],
         ]);
 
         // Returned sale
-        $sale2 = \App\Models\Sale::create([
+        $product2 = \App\Models\Product::factory()->create(['tenant_id' => $tenant->id, 'price' => 1000.00]);
+        \App\Models\Stock::create([
             'tenant_id' => $tenant->id,
-            'user_id' => $owner->id,
-            'reference_number' => 'RET-123',
-            'status' => 'returned',
-            'net_sales' => 1000.00,
-            'total' => 1000.00,
-            'payment_method' => 'cash',
-            'created_at' => now(),
+            'product_id' => $product2->id,
+            'warehouse_id' => $warehouseId,
+            'quantity' => 100,
         ]);
+        $sale2 = app(\App\Services\V3\SaleService::class)->post([
+            'customer_id'     => $customer->id,
+            'warehouse_id'    => $warehouseId,
+            'sale_date'       => now()->toDateString(),
+            'payment_method'  => 'cash',
+            'amount_received' => 1000.00,
+            'items' => [[
+                'product_id'       => $product2->id,
+                'qty'              => 1,
+                'sale_uom'         => 'pcs',
+                'unit_price'       => 1000.00,
+                'discount_percent' => 0,
+                'tax_rate'         => 0,
+            ]],
+        ]);
+        
+        // Reverse sale2 to make it returned
+        app(\App\Services\V3\SaleService::class)->reverse($sale2->id, now()->toDateString(), 'Customer requested return');
 
         $response = $this->get($this->storeUrl($tenant, 'sales'));
         $response->assertStatus(200);
