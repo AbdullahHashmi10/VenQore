@@ -27,7 +27,7 @@ class InventoryBatch extends Model
     protected $casts = [
         'original_qty'  => 'float',
         'remaining_qty' => 'float',
-        'unit_cost'     => 'float',
+        'unit_cost'     => 'decimal:4',
         'expiry_date'   => 'date',
     ];
 

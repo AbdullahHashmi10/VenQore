@@ -279,7 +279,7 @@ class TaxAndUomServiceTest extends TestCase
     private function seedProduct(): string
     {
         $id = Str::uuid()->toString();
-        DB::table('products')->insert([
+        DB::table('products')->insert(['base_unit' => 'pcs', 
             'id'         => $id,
             'name'       => 'Rice',
             'sku'        => 'RICE-' . Str::random(5),

@@ -50,9 +50,9 @@ class SaleItemBatch extends Model
     ];
 
     protected $casts = [
-        'qty_deducted'   => 'float',
-        'unit_cost'      => 'float',
-        'total_cogs'     => 'float',
+        'qty_deducted'   => 'decimal:4',
+        'unit_cost'      => 'decimal:4',
+        'total_cogs'     => 'decimal:4',
         'is_reversed'    => 'boolean',
         'reversed_at'    => 'datetime',
     ];

@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VenQore : Golden Verification Suite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #07070a;
+    --bg-card: #0d0d12;
+    --bg-card2: #111118;
+    --border: #1a1a24;
+    --border2: #22222e;
+    --gold: #f5a623;
+    --gold-dim: #b87a15;
+    --gold-glow: rgba(245,166,35,0.15);
+    --green: #10b981;
+    --green-glow: rgba(16,185,129,0.15);
+    --red: #f43f5e;
+    --red-dim: #9f1239;
+    --blue: #3b82f6;
+    --purple: #8b5cf6;
+    --amber: #f59e0b;
+    --teal: #14b8a6;
+    --text: #f0f0f5;
+    --text2: #a0a0b0;
+    --text3: #606070;
+    --phase-idle: #1a1a24;
+    --phase-running: #1a1e2e;
+    --phase-passed: #0d1f18;
+    --phase-failed: #1f0d14;
+    --phase-skipped: #1a1a1a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── AMBIENT GLOW ── */
+  .ambient {
+    position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+    width: 800px; height: 400px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(245,166,35,0.06) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 1400px; margin: 0 auto; padding: 0 24px 80px; position: relative; z-index: 1; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 0 16px;
+    border-bottom: 1px solid var(--border);
+    gap: 16px; flex-wrap: wrap;
+  }
+
+  .logo-group { display: flex; flex-direction: column; gap: 4px; }
+
+  .logo-row { display: flex; align-items: center; gap: 10px; }
+
+  .logo-icon {
+    width: 32px; height: 32px; border-radius: 8px;
+    background: linear-gradient(135deg, #f5a623, #d4880f);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 800; color: #07070a;
+    box-shadow: 0 0 20px rgba(245,166,35,0.3);
+  }
+
+  .logo-name { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; color: var(--text); }
+  .logo-name span { color: var(--gold); }
+
+  .logo-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase;
+    padding-left: 42px;
+  }
+
+  .header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .conn-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 1.5px; font-weight: 600; color: var(--text3);
+    text-transform: uppercase;
+  }
+
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text3); transition: all 0.3s; }
+  .conn-dot.live { background: var(--green); box-shadow: 0 0 8px var(--green); animation: pulse 2s infinite; }
+
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+  .btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 1.5px; font-weight: 700; text-transform: uppercase;
+    border-radius: 6px; padding: 7px 18px; cursor: pointer;
+    border: none; transition: all 0.15s; white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--gold); color: #07070a;
+    box-shadow: 0 0 20px rgba(245,166,35,0.25);
+  }
+  .btn-primary:hover { background: #f8b93a; box-shadow: 0 0 28px rgba(245,166,35,0.4); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+  .btn-secondary {
+    background: var(--bg-card); color: var(--text2);
+    border: 1px solid var(--border2);
+  }
+  .btn-secondary:hover { border-color: var(--text3); color: var(--text); }
+
+  .btn-danger {
+    background: rgba(244,63,94,0.1); color: var(--red);
+    border: 1px solid rgba(244,63,94,0.3);
+  }
+  .btn-danger:hover { background: rgba(244,63,94,0.2); }
+
+  .btn-gate {
+    background: rgba(16,185,129,0.1); color: var(--green);
+    border: 1px solid rgba(16,185,129,0.25);
+  }
+  .btn-gate:hover { background: rgba(16,185,129,0.2); box-shadow: 0 0 16px rgba(16,185,129,0.15); }
+
+  /* ── SCOREBOARD ── */
+  .scoreboard {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-top: 20px;
+  }
+
+  .score-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px 18px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color 0.3s;
+  }
+
+  .score-card:hover { border-color: var(--border2); }
+
+  .score-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px;
+    letter-spacing: 2px; color: var(--text3); text-transform: uppercase; font-weight: 600;
+  }
+
+  .score-value {
+    font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .score-value.gold  { color: var(--gold); }
+  .score-value.green { color: var(--green); }
+  .score-value.red   { color: var(--red); }
+  .score-value.blue  { color: var(--blue); }
+
+  .score-sub { font-size: 10px; color: var(--text3); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-wrap { margin-top: 20px; }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .progress-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; font-weight: 600; }
+  .progress-pct { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: var(--gold); }
+
+  .progress-bar {
+    height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+    border-radius: 2px; transition: width 0.5s ease;
+    box-shadow: 0 0 8px rgba(245,166,35,0.5);
+    width: 0%;
+  }
+
+  /* ── MAIN GRID ── */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 16px; margin-top: 20px;
+  }
+
+  @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    letter-spacing: 2px; color: var(--text3); text-transform: uppercase; font-weight: 600;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* ── PHASE GRID ── */
+  .phase-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .phase-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    display: grid; grid-template-columns: 36px 1fr auto;
+    gap: 12px; align-items: center;
+    transition: all 0.3s; cursor: pointer; position: relative; overflow: hidden;
+  }
+
+  .phase-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--border); border-radius: 3px 0 0 3px;
+    transition: all 0.3s;
+  }
+
+  .phase-card:hover { border-color: var(--border2); }
+  .phase-card:hover::before { background: var(--text3); }
+
+  .phase-card.running {
+    background: var(--phase-running);
+    border-color: rgba(59,130,246,0.4);
+    box-shadow: 0 0 20px rgba(59,130,246,0.07);
+    animation: phase-pulse 1.5s infinite;
+  }
+  .phase-card.running::before { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+  .phase-card.passed {
+    background: var(--phase-passed);
+    border-color: rgba(16,185,129,0.3);
+  }
+  .phase-card.passed::before { background: var(--green); }
+
+  .phase-card.failed {
+    background: var(--phase-failed);
+    border-color: rgba(244,63,94,0.3);
+  }
+  .phase-card.failed::before { background: var(--red); }
+
+  .phase-card.idle { opacity: 0.5; }
+
+  @keyframes phase-pulse {
+    0%,100% { box-shadow: 0 0 20px rgba(59,130,246,0.07); }
+    50% { box-shadow: 0 0 30px rgba(59,130,246,0.15); }
+  }
+
+  .phase-emoji { font-size: 20px; width: 36px; text-align: center; }
+
+  .phase-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .phase-label { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .phase-desc { font-size: 10px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .phase-meta { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+
+  .phase-status-badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px;
+    letter-spacing: 1px; font-weight: 700; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 4px;
+  }
+
+  .badge-idle    { background: rgba(96,96,112,0.15); color: var(--text3); }
+  .badge-pending { background: rgba(245,166,35,0.1);  color: var(--gold-dim); }
+  .badge-running { background: rgba(59,130,246,0.15); color: var(--blue); animation: blink 1s infinite; }
+  .badge-passed  { background: rgba(16,185,129,0.15); color: var(--green); }
+  .badge-failed  { background: rgba(244,63,94,0.15);  color: var(--red); }
+  .badge-skipped { background: rgba(96,96,112,0.1);   color: var(--text3); }
+
+  @keyframes blink { 50% { opacity: 0.6; } }
+
+  .phase-counts { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text3); }
+  .phase-counts .p { color: var(--green); }
+  .phase-counts .f { color: var(--red); }
+
+  .phase-run-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 8px;
+    letter-spacing: 1px; font-weight: 700; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 4px; cursor: pointer;
+    background: rgba(245,166,35,0.08); color: var(--gold);
+    border: 1px solid rgba(245,166,35,0.2);
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .phase-run-btn:hover { background: rgba(245,166,35,0.15); }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+  /* ── LOG TERMINAL ── */
+  .log-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+
+  .log-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    background: var(--bg-card2);
+  }
+
+  .log-title { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 2px; color: var(--text3); text-transform: uppercase; font-weight: 600; }
+
+  .log-body {
+    height: 320px; overflow-y: auto; padding: 10px 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    line-height: 1.8; color: var(--text2);
+  }
+
+  .log-line { white-space: pre-wrap; word-break: break-all; border-radius: 2px; }
+  .log-line.pass { color: var(--green); }
+  .log-line.fail { color: var(--red); }
+  .log-line.warn { color: var(--amber); }
+  .log-line.info { color: var(--blue); }
+  .log-line.gate { color: var(--gold); font-weight: 700; }
+
+  /* ── GATE PANEL ── */
+  .gate-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+  }
+
+  .gate-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+
+  .gate-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 8px;
+    background: var(--bg-card2); border: 1px solid var(--border);
+    font-size: 11px; transition: all 0.3s;
+  }
+
+  .gate-item.pass { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); }
+  .gate-item.fail { background: rgba(244,63,94,0.05);  border-color: rgba(244,63,94,0.2); }
+  .gate-item.wait { opacity: 0.5; }
+
+  .gate-icon { font-size: 14px; width: 18px; text-align: center; flex-shrink: 0; }
+  .gate-text { font-size: 10px; color: var(--text2); }
+  .gate-id   { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: var(--text3); flex-shrink: 0; }
+
+  /* ── HISTORY ── */
+  .history-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+  }
+
+  .history-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+
+  .history-item {
+    display: grid; grid-template-columns: 1fr auto auto;
+    gap: 8px; align-items: center;
+    padding: 8px 10px; border-radius: 6px;
+    background: var(--bg-card2); border: 1px solid var(--border);
+    font-size: 10px; color: var(--text2);
+    cursor: pointer; transition: all 0.15s;
+  }
+
+  .history-item:hover { border-color: var(--border2); }
+
+  .history-time { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text3); }
+  .history-pass { color: var(--green); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .history-fail { color: var(--red); font-weight: 700; font-family: 'JetBrains Mono', monospace; font-size: 10px; }
+  .history-duration { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text3); }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--bg-card); border-top: 1px solid var(--border);
+    padding: 8px 24px; display: flex; align-items: center; gap: 12px;
+  }
+
+  .status-text { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 1px; color: var(--text3); }
+  .status-text span { color: var(--text2); }
+
+  /* ── SPLASH STATE ── */
+  .splash {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 24px; text-align: center; color: var(--text3);
+  }
+  .splash-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+  .splash-title { font-size: 13px; font-weight: 600; color: var(--text2); margin-bottom: 6px; }
+  .splash-sub { font-size: 11px; }
+
+  /* ── SPINNER ── */
+  .spinner {
+    width: 12px; height: 12px; border: 2px solid var(--border2);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin 0.7s linear infinite; flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── MINI CHART ── */
+  .chart-wrap { height: 60px; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 52px; right: 24px; z-index: 200;
+    background: var(--bg-card); border: 1px solid var(--border2);
+    border-radius: 8px; padding: 12px 18px;
+    font-size: 12px; color: var(--text);
+    transform: translateY(20px) scale(0.95); opacity: 0;
+    transition: all 0.2s; pointer-events: none;
+    max-width: 320px;
+  }
+  #toast.show { transform: none; opacity: 1; }
+  #toast.error { border-color: rgba(244,63,94,0.4); color: var(--red); }
+  #toast.success { border-color: rgba(16,185,129,0.4); color: var(--green); }
+</style>
+</head>
+<body>
+<div class="ambient"></div>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo-group">
+      <div class="logo-row">
+        <div class="logo-icon">V</div>
+        <div class="logo-name">VENQORE <span>GOLDEN</span></div>
+      </div>
+      <div class="logo-sub">Financial Integrity Verification Suite · Phases 1 – 11</div>
+    </div>
+    <div class="header-right">
+      <div class="conn-badge">
+        <div class="conn-dot" id="conn-dot"></div>
+        <span id="conn-label">CONNECTING</span>
+      </div>
+      <button class="btn btn-gate" onclick="runQuickGate()" id="gate-btn">⚡ QUICK GATE</button>
+      <button class="btn btn-primary" onclick="runAll()" id="run-btn">▶ RUN ALL PHASES</button>
+      <button class="btn btn-danger" onclick="stopRun()" id="stop-btn" style="display:none">■ STOP</button>
+    </div>
+  </header>
+
+  <!-- SCOREBOARD -->
+  <div class="scoreboard">
+    <div class="score-card">
+      <div class="score-label">Total Tests</div>
+      <div class="score-value gold" id="sc-total">235</div>
+      <div class="score-sub">across 18 phases</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Passed</div>
+      <div class="score-value green" id="sc-passed">—</div>
+      <div class="score-sub">this run</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Failed</div>
+      <div class="score-value red" id="sc-failed">—</div>
+      <div class="score-sub">this run</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Duration</div>
+      <div class="score-value blue" id="sc-duration">—</div>
+      <div class="score-sub">seconds</div>
+    </div>
+    <div class="score-card">
+      <div class="score-label">Launch Gate</div>
+      <div class="score-value" id="sc-gate" style="color:var(--text3)">—</div>
+      <div class="score-sub" id="sc-gate-sub">not run</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap">
+    <div class="progress-header">
+      <span class="progress-title">Phase Completion</span>
+      <span class="progress-pct" id="progress-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid" style="margin-top:24px">
+
+    <!-- LEFT: Phase List -->
+    <div>
+      <div class="section-title">Verification Phases</div>
+      <div class="phase-list" id="phase-list">
+        <!-- Injected by JS -->
+      </div>
+    </div>
+
+    <!-- RIGHT: Log + Gate + History -->
+    <div class="right-panel">
+
+      <!-- LIVE LOG -->
+      <div class="log-card">
+        <div class="log-header">
+          <span class="log-title">Live Output</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="spinner" id="log-spinner" style="display:none"></div>
+            <button class="btn btn-secondary" style="padding:3px 8px;font-size:8px" onclick="copyLog()">COPY</button>
+            <button class="btn btn-secondary" style="padding:3px 8px;font-size:8px" onclick="clearLog()">CLR</button>
+          </div>
+        </div>
+        <div class="log-body" id="log-body">
+          <div class="splash">
+            <div class="splash-icon">🔬</div>
+            <div class="splash-title">Financial Integrity Suite</div>
+            <div class="splash-sub">Run all 18 phases or select a single phase to verify</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LAUNCH GATE STATUS -->
+      <div class="gate-card">
+        <div class="section-title">Launch Gate — 7 Checks</div>
+        <div class="gate-list" id="gate-list">
+          <!-- 7 gates, pre-rendered as waiting -->
+        </div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="history-card">
+        <div class="section-title">Run History</div>
+        <div class="history-list" id="history-list">
+          <div style="font-size:10px;color:var(--text3);padding:8px 0">No previous runs</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <span class="status-text">GOLDEN SUITE <span>v1.0</span></span>
+  <span class="status-text" style="flex:1" id="status-msg">Ready — click RUN ALL PHASES to begin</span>
+  <span class="status-text" id="status-time"></span>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+// ─── State ──────────────────────────────────────────────────────────────────
+let ws = null;
+let phases = [];
+let phaseStates = {};
+let running = false;
+let logCount = 0;
+
+// ─── Gate Definitions ───────────────────────────────────────────────────────
+const GATES = [
+  { id: 'GATE-1', text: 'All PHP test files exist (Phases 1–9)' },
+  { id: 'GATE-2', text: 'Frontend test file exists (Phase 10)' },
+  { id: 'GATE-3', text: 'Number registry: 0 CRITICAL issues' },
+  { id: 'GATE-4', text: 'Architectural enforcement ≥13 rules' },
+  { id: 'GATE-5', text: 'verify:ledger command implemented' },
+  { id: 'GATE-6', text: 'golden:verify command implemented' },
+  { id: 'GATE-7', text: 'LaunchGateTest.php exists & runs' }
+];
+
+// ─── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  renderGates();
+  updateTime();
+  setInterval(updateTime, 1000);
+  connect();
+});
+
+function updateTime() {
+  document.getElementById('status-time').textContent = new Date().toLocaleTimeString();
+}
+
+// ─── WebSocket ───────────────────────────────────────────────────────────────
+function connect() {
+  ws = new WebSocket('ws://localhost:7822');
+
+  ws.onopen = () => {
+    setConn(true);
+    setStatus('Connected to Golden Verification Server');
+  };
+
+  ws.onclose = () => {
+    setConn(false);
+    setStatus('Server disconnected — restart launch.bat');
+    setTimeout(connect, 3000);
+  };
+
+  ws.onerror = () => {
+    setConn(false);
+  };
+
+  ws.onmessage = (e) => {
+    try { handleMsg(JSON.parse(e.data)); } catch (ex) {}
+  };
+}
+
+function send(obj) {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
+}
+
+// ─── Message Handler ─────────────────────────────────────────────────────────
+function handleMsg(msg) {
+  switch (msg.type) {
+
+    case 'phases':
+      phases = msg.data;
+      renderPhaseList();
+      break;
+
+    case 'history':
+      renderHistory(msg.data);
+      break;
+
+    case 'run_start':
+      running = true;
+      logCount = 0;
+      clearLog();
+      setRunningUI(true);
+      setStatus('Running verification suite…');
+      // Reset all phases to pending
+      for (const p of phases) {
+        const state = { ...p, status: msg.singlePhase ? (p.id === msg.singlePhase ? 'pending' : 'idle') : 'pending', passed: 0, failed: 0 };
+        phaseStates[p.id] = state;
+        updatePhaseCard(p.id);
+      }
+      updateScoreboard({ passed: 0, failed: 0, duration: '—' });
+      updateProgress(0);
+      break;
+
+    case 'phase_start':
+      if (phaseStates[msg.phaseId]) {
+        phaseStates[msg.phaseId].status = 'running';
+        updatePhaseCard(msg.phaseId);
+        const phase = phases.find(p => p.id === msg.phaseId);
+        if (phase) setStatus(`Running: ${phase.label}…`);
+      }
+      break;
+
+    case 'phase_done':
+      if (phaseStates[msg.phaseId]) {
+        phaseStates[msg.phaseId] = { ...phaseStates[msg.phaseId], ...msg.data };
+        updatePhaseCard(msg.phaseId);
+        updateProgressFromState();
+      }
+      // If this is phase 11 (launch gate), update gate panel
+      if (msg.phaseId === 'phase11') updateGateFromPhase11(msg.data);
+      break;
+
+    case 'test_pass':
+      appendLog(`  ✓ ${msg.name}`, 'pass');
+      break;
+
+    case 'test_fail':
+      appendLog(`  ✗ ${msg.name}`, 'fail');
+      break;
+
+    case 'line':
+      // Filter noisy lines
+      if (msg.text && msg.text.trim()) {
+        const t = msg.text;
+        const cls = t.includes('✓') || t.includes('PASS') ? 'pass'
+                  : t.includes('✗') || t.includes('FAIL') ? 'fail'
+                  : t.includes('WARNING') ? 'warn'
+                  : t.startsWith('[') ? 'info'
+                  : t.includes('GATE') ? 'gate'
+                  : '';
+        appendLog(t, cls);
+      }
+      break;
+
+    case 'stderr':
+      if (msg.text && msg.text.trim()) appendLog(msg.text, 'warn');
+      break;
+
+    case 'summary_line':
+      appendLog(msg.text, 'gate');
+      break;
+
+    case 'complete':
+      running = false;
+      setRunningUI(false);
+      const r = msg.results;
+      updateScoreboard(r);
+      setStatus(`✓ Complete — ${r.passed} passed, ${r.failed} failed in ${r.duration}s`);
+      appendLog('', '');
+      appendLog(`════ RUN COMPLETE: ${r.passed} PASSED  ${r.failed} FAILED  ${r.duration}s ════`, 'gate');
+      updateProgressFromState();
+      // Refresh history
+      setTimeout(() => send({ action: 'get_history' }), 200);
+      break;
+
+    case 'stopped':
+      running = false;
+      setRunningUI(false);
+      setStatus('Run stopped by user');
+      break;
+
+    case 'error':
+      running = false;
+      setRunningUI(false);
+      toast(msg.message, 'error');
+      setStatus('Error — ' + msg.message);
+      break;
+  }
+}
+
+// ─── Render Phase List ───────────────────────────────────────────────────────
+function renderPhaseList() {
+  const list = document.getElementById('phase-list');
+  list.innerHTML = '';
+
+  // Initialize states
+  for (const p of phases) {
+    if (!phaseStates[p.id]) phaseStates[p.id] = { ...p, status: 'idle', passed: 0, failed: 0 };
+  }
+
+  for (const phase of phases) {
+    const card = document.createElement('div');
+    card.className = 'phase-card idle';
+    card.id = `phase-card-${phase.id}`;
+    card.innerHTML = `
+      <div class="phase-emoji">${phase.emoji}</div>
+      <div class="phase-info">
+        <div class="phase-label">${phase.label}</div>
+        <div class="phase-desc">${phase.description}</div>
+      </div>
+      <div class="phase-meta">
+        <span class="phase-status-badge badge-idle" id="badge-${phase.id}">IDLE</span>
+        <span class="phase-counts" id="counts-${phase.id}">
+          <span class="p">0</span> / <span class="f">0</span> / ${phase.tests}
+        </span>
+        <button class="phase-run-btn" onclick="runPhase('${phase.id}', event)">RUN</button>
+      </div>
+    `;
+    list.appendChild(card);
+  }
+}
+
+function updatePhaseCard(phaseId) {
+  const state  = phaseStates[phaseId];
+  const card   = document.getElementById(`phase-card-${phaseId}`);
+  const badge  = document.getElementById(`badge-${phaseId}`);
+  const counts = document.getElementById(`counts-${phaseId}`);
+  if (!card || !state) return;
+
+  card.className = `phase-card ${state.status}`;
+
+  const badgeClass = {
+    idle: 'badge-idle', pending: 'badge-pending', running: 'badge-running',
+    passed: 'badge-passed', failed: 'badge-failed', skipped: 'badge-skipped'
+  }[state.status] || 'badge-idle';
+
+  badge.className = `phase-status-badge ${badgeClass}`;
+  badge.textContent = state.status.toUpperCase();
+
+  const p = state.passed || 0;
+  const f = state.failed || 0;
+  const t = state.tests || 0;
+  counts.innerHTML = `<span class="p">${p}</span> / <span class="f">${f}</span> / ${t}`;
+}
+
+// ─── Gate Panel ──────────────────────────────────────────────────────────────
+function renderGates() {
+  const list = document.getElementById('gate-list');
+  list.innerHTML = GATES.map(g => `
+    <div class="gate-item wait" id="gate-item-${g.id}">
+      <div class="gate-icon" id="gate-icon-${g.id}">○</div>
+      <div class="gate-text">${g.text}</div>
+      <div class="gate-id">${g.id}</div>
+    </div>
+  `).join('');
+}
+
+function updateGateFromPhase11(phaseData) {
+  // When Phase 11 (Launch Gate) completes, update gate UI based on pass/fail counts
+  const passed = phaseData.status === 'passed';
+  const allPass = phaseData.failed === 0 && phaseData.passed > 0;
+
+  // Update all 7 gates based on overall Phase 11 outcome
+  for (const gate of GATES) {
+    const item = document.getElementById(`gate-item-${gate.id}`);
+    const icon = document.getElementById(`gate-icon-${gate.id}`);
+    if (item && icon) {
+      if (allPass) {
+        item.className = 'gate-item pass';
+        icon.textContent = '✅';
+      } else {
+        item.className = 'gate-item fail';
+        icon.textContent = '❌';
+      }
+    }
+  }
+
+  // Update the launch gate scoreboard
+  const gateEl = document.getElementById('sc-gate');
+  const gateSub = document.getElementById('sc-gate-sub');
+  if (allPass) {
+    gateEl.style.color = 'var(--green)';
+    gateEl.textContent = '7/7';
+    gateSub.textContent = 'READY';
+  } else {
+    gateEl.style.color = 'var(--red)';
+    gateEl.textContent = `${phaseData.passed}/7`;
+    gateSub.textContent = 'NOT READY';
+  }
+}
+
+// ─── Log ────────────────────────────────────────────────────────────────────
+function appendLog(text, cls) {
+  const body = document.getElementById('log-body');
+  if (logCount === 0) body.innerHTML = '';
+  logCount++;
+
+  // Limit log to last 800 lines
+  while (body.children.length > 800) body.removeChild(body.firstChild);
+
+  const div = document.createElement('div');
+  div.className = 'log-line' + (cls ? ` ${cls}` : '');
+  div.textContent = text;
+  body.appendChild(div);
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearLog() {
+  document.getElementById('log-body').innerHTML = '';
+  logCount = 0;
+}
+
+function copyLog() {
+  const logBody = document.getElementById('log-body');
+  const text = Array.from(logBody.querySelectorAll('.log-line'))
+    .map(el => el.textContent)
+    .join('\n');
+  
+  if (text.trim() === '') {
+    alert('Log is empty');
+    return;
+  }
+
+  navigator.clipboard.writeText(text).then(() => {
+    // maybe a small toast or visual feedback could be nice, but simple alert for now
+    alert('Log copied to clipboard!');
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+    alert('Failed to copy to clipboard.');
+  });
+}
+
+// ─── Progress ────────────────────────────────────────────────────────────────
+function updateProgress(pct) {
+  document.getElementById('progress-fill').style.width = `${pct}%`;
+  document.getElementById('progress-pct').textContent = `${Math.round(pct)}%`;
+}
+
+function updateProgressFromState() {
+  const total = phases.length;
+  if (total === 0) return;
+  const done = Object.values(phaseStates).filter(s => s.status === 'passed' || s.status === 'failed' || s.status === 'skipped').length;
+  const pct = (done / total) * 100;
+  updateProgress(pct);
+}
+
+// ─── Scoreboard ─────────────────────────────────────────────────────────────
+function updateScoreboard(r) {
+  if (r.passed !== undefined) {
+    document.getElementById('sc-passed').textContent = r.passed;
+    document.getElementById('sc-failed').textContent = r.failed;
+  }
+  if (r.duration) {
+    document.getElementById('sc-duration').textContent = r.duration + 's';
+  }
+}
+
+// ─── History ────────────────────────────────────────────────────────────────
+function renderHistory(data) {
+  const list = document.getElementById('history-list');
+  if (!data || !data.runs || data.runs.length === 0) {
+    list.innerHTML = '<div style="font-size:10px;color:var(--text3);padding:8px 0">No previous runs</div>';
+    return;
+  }
+  list.innerHTML = data.runs.slice(0, 8).map(r => {
+    const d = new Date(r.timestamp);
+    const time = d.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const ok = r.failed === 0;
+    return `
+      <div class="history-item">
+        <span class="history-time">${time}</span>
+        <span class="history-pass">✓${r.passed}</span>
+        <span class="history-fail ${r.failed > 0 ? '' : 'opacity-0'}" style="${r.failed === 0 ? 'color:var(--text3)' : ''}">✗${r.failed}</span>
+        <span class="history-duration">${r.duration || '?'}s</span>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── Actions ─────────────────────────────────────────────────────────────────
+function runAll() {
+  if (running) { toast('A run is already in progress', 'error'); return; }
+  send({ action: 'run_all' });
+}
+
+function runPhase(phaseId, e) {
+  if (e) e.stopPropagation();
+  if (running) { toast('A run is already in progress', 'error'); return; }
+  send({ action: 'run_phase', phaseId });
+}
+
+function runQuickGate() {
+  if (running) { toast('A run is already in progress', 'error'); return; }
+  send({ action: 'run_quick_gate' });
+  toast('Running Launch Gate (Phase 11)…');
+}
+
+function stopRun() {
+  send({ action: 'stop' });
+}
+
+// ─── UI Helpers ──────────────────────────────────────────────────────────────
+function setConn(live) {
+  const dot   = document.getElementById('conn-dot');
+  const label = document.getElementById('conn-label');
+  dot.className = 'conn-dot' + (live ? ' live' : '');
+  label.textContent = live ? 'LIVE' : 'OFFLINE';
+}
+
+function setRunningUI(isRunning) {
+  document.getElementById('run-btn').disabled = isRunning;
+  document.getElementById('gate-btn').disabled = isRunning;
+  document.getElementById('stop-btn').style.display = isRunning ? '' : 'none';
+  document.getElementById('log-spinner').style.display = isRunning ? '' : 'none';
+}
+
+function setStatus(msg) {
+  document.getElementById('status-msg').textContent = msg;
+}
+
+let toastTimer;
+function toast(msg, type = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (type ? ` ${type}` : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 3000);
+}
+</script>
+</body>
+</html>

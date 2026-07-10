@@ -68,6 +68,17 @@ class SaleService
      */
     public function post(array $data): object
     {
+        // Idempotency check (S-048 / Offline Sync)
+        if (!empty($data['client_sale_id'])) {
+            $existing = DB::table('sales')
+                ->where('tenant_id', $this->tenantId)
+                ->where('client_sale_id', $data['client_sale_id'])
+                ->first();
+            if ($existing) {
+                return Sale::find($existing->id);
+            }
+        }
+
         return DB::transaction(function () use ($data) {
 
             $saleId        = Str::uuid()->toString();
@@ -280,6 +291,7 @@ class SaleService
             DB::table('sales')->insert([
                 'id'                   => $saleId,
                 'tenant_id'            => $tenantId,  // WOUND 2 FIX — explicit tenant stamp
+                'client_sale_id'       => $data['client_sale_id'] ?? null,
                 'reference_number'     => $invoiceNumber,
                 'party_id'             => $data['customer_id'],
                 'warehouse_id'         => $data['warehouse_id'],
@@ -295,7 +307,7 @@ class SaleService
                 'payment_method'       => $data['payment_method'],
                 'status'               => 'posted',
                 'posted_at'            => $data['sale_date'] ?? now(),
-                'user_id'              => $data['approved_by'] ?? auth()->id(), // added for legacy
+                'user_id'              => $data['approved_by'] ?? auth()->id() ?? 1, // added for legacy
                 'created_at'           => $data['sale_date'] ?? now(),
                 'updated_at'           => now(),
             ]);

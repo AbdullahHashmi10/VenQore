@@ -118,6 +118,7 @@ class AccountingService
             'party_id'         => $data['party_id']         ?? null,
             'user_id'          => $data['created_by']       ?? auth()->id() ?? 1,
             'is_reversed'      => $data['is_reversed']      ?? 0,
+            'reversed_by'      => $data['reversed_by']      ?? null,
         ]);
 
         $partyIds = [];
@@ -223,6 +224,7 @@ class AccountingService
                 'description'    => "Reversal of entry {$journalEntryId}: {$reason}",
                 'party_id'       => $original->party_id ?? null,
                 'is_reversed'    => 1,
+                'reversed_by'    => $journalEntryId,
             ], $reversalLines);
 
             DB::table('journal_entries')

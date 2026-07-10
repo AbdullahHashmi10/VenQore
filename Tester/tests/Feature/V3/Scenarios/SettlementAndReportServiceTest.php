@@ -437,7 +437,7 @@ class SettlementAndReportServiceTest extends TestCase
     private function seedProduct(): string
     {
         $id = Str::uuid()->toString();
-        DB::table('products')->insert([
+        DB::table('products')->insert(['base_unit' => 'pcs', 
             'id'         => $id,
             'tenant_id'  => $this->tenantId,
             'name'       => 'Report Test Product',

@@ -826,6 +826,7 @@ class FinancialReportingService
             'operating_inflow'  => (float) $inflow,
             'operating_outflow' => (float) $outflow,
             'net_cash_flow'     => (float) ($inflow - $outflow),
+            'net_change_in_cash'=> (float) ($inflow - $outflow),
         ];
     }
 
@@ -971,8 +972,8 @@ class FinancialReportingService
             ->orderBy('a.code')
             ->selectRaw('
                 a.id, a.code, a.name, a.type, a.normal_balance,
-                COALESCE(SUM(ji.debit), 0)  AS total_debit,
-                COALESCE(SUM(ji.credit), 0) AS total_credit
+                SUM(CASE WHEN je.id IS NOT NULL THEN ji.debit ELSE 0 END)  AS total_debit,
+                SUM(CASE WHEN je.id IS NOT NULL THEN ji.credit ELSE 0 END) AS total_credit
             ')
             ->get();
 
@@ -990,8 +991,19 @@ class FinancialReportingService
                 'total_credit'   => round((float) $row->total_credit, 2),
                 'balance'        => $balance,
             ];
-            $grandDebit  += $row->total_debit;
-            $grandCredit += $row->total_credit;
+            if ($row->normal_balance === 'debit') {
+                if ($balance >= 0) {
+                    $grandDebit += $balance;
+                } else {
+                    $grandCredit += abs($balance);
+                }
+            } else {
+                if ($balance >= 0) {
+                    $grandCredit += $balance;
+                } else {
+                    $grandDebit += abs($balance);
+                }
+            }
         }
         return [
             'as_of'        => $asOf ?? 'all time',
@@ -1102,6 +1114,42 @@ class FinancialReportingService
                 'balance' => $outstanding,
             ];
         }
+
+        // Add credit balances/unallocated advances to match GL 1200
+        $parties = DB::table('parties')
+            ->where('tenant_id', $tenantId)
+            ->where('type', 'customer')
+            ->get();
+        foreach ($parties as $party) {
+            $sumInvoices = collect($rows)->where('party_id', $party->id)->sum('outstanding');
+            
+            $netGl = DB::table('journal_items as ji')
+                ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                ->where('ji.tenant_id', $tenantId)
+                ->where('je.tenant_id', $tenantId)
+                ->where('a.tenant_id', $tenantId)
+                ->where('ji.party_id', $party->id)
+                ->where('a.code', '1200')
+                ->where('je.is_reversed', 0)
+                ->where('je.date', '<=', $asOf)
+                ->selectRaw('SUM(ji.debit) - SUM(ji.credit) as bal')
+                ->value('bal') ?? 0;
+            
+            $netGl = round((float)$netGl, 2);
+            if (round($netGl - $sumInvoices, 2) < -0.01) {
+                $creditAmount = round($netGl - $sumInvoices, 2);
+                $rows[] = [
+                    'party_id' => $party->id, 'party_name' => $party->name,
+                    'invoice_number' => 'Credit / Advance', 'sale_date' => $asOf,
+                    'outstanding' => $creditAmount, 'age_days' => 0,
+                    'bucket' => '0-30',
+                    'total' => $creditAmount,
+                    'balance' => $creditAmount,
+                ];
+            }
+        }
+
         return new AgedReportResult([
             'as_of'   => $asOf, 'rows' => $rows,
             'summary' => $this->ageBucketSummary($rows),
@@ -1113,15 +1161,14 @@ class FinancialReportingService
     {
         $asOf     = $asOf ?? now()->toDateString();
         $tenantId = app('current.tenant')->id;
-        $purchases = DB::table('invoices as pu')
+        $purchases = DB::table('purchases as pu')
             ->where('pu.tenant_id', $tenantId)
             ->join('parties as p', function($join) use ($tenantId) {
                 $join->on('pu.party_id', '=', 'p.id')->where('p.tenant_id', $tenantId);
             })
-            ->where('pu.type', 'purchase')
-            ->where('pu.date', '<=', $asOf)
-            ->selectRaw('pu.id, pu.invoice_number, pu.date AS purchase_date,
-                         pu.total_amount, p.id AS party_id, p.name AS party_name')
+            ->where('pu.purchase_date', '<=', $asOf)
+            ->selectRaw('pu.id, pu.invoice_number, pu.purchase_date,
+                         pu.total AS total_amount, p.id AS party_id, p.name AS party_name')
             ->get();
 
         $rows = [];
@@ -1141,6 +1188,42 @@ class FinancialReportingService
                 'balance' => $outstanding,
             ];
         }
+
+        // Add credit balances/unallocated advances to match GL 2000
+        $parties = DB::table('parties')
+            ->where('tenant_id', $tenantId)
+            ->where('type', 'supplier')
+            ->get();
+        foreach ($parties as $party) {
+            $sumInvoices = collect($rows)->where('party_id', $party->id)->sum('outstanding');
+            
+            $netGl = DB::table('journal_items as ji')
+                ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+                ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+                ->where('ji.tenant_id', $tenantId)
+                ->where('je.tenant_id', $tenantId)
+                ->where('a.tenant_id', $tenantId)
+                ->where('ji.party_id', $party->id)
+                ->where('a.code', '2000')
+                ->where('je.is_reversed', 0)
+                ->where('je.date', '<=', $asOf)
+                ->selectRaw('SUM(ji.credit) - SUM(ji.debit) as bal')
+                ->value('bal') ?? 0;
+            
+            $netGl = round((float)$netGl, 2);
+            if (round($netGl - $sumInvoices, 2) < -0.01) {
+                $creditAmount = round($netGl - $sumInvoices, 2);
+                $rows[] = [
+                    'party_id' => $party->id, 'party_name' => $party->name,
+                    'invoice_number' => 'Credit / Advance', 'purchase_date' => $asOf,
+                    'outstanding' => $creditAmount, 'age_days' => 0,
+                    'bucket' => '0-30',
+                    'total' => $creditAmount,
+                    'balance' => $creditAmount,
+                ];
+            }
+        }
+
         return new AgedReportResult([
             'as_of'   => $asOf, 'rows' => $rows,
             'summary' => $this->ageBucketSummary($rows),
@@ -1160,7 +1243,7 @@ class FinancialReportingService
             ->whereBetween('s.posted_at', [$from, $to])
             ->selectRaw('s.id, s.reference_number AS invoice_number, s.posted_at AS sale_date,
                          pa.name AS customer_name, pr.id AS product_id, pr.name AS product_name,
-                         si.quantity AS qty, si.unit_price, si.tax_rate, si.line_total,
+                         si.quantity AS qty, si.unit_price, si.tax_rate, si.line_total, si.net_amount,
                          si.cost_price AS cogs_amount')
             ->orderBy('s.posted_at');
         if ($partyId)   { $query->where('s.party_id',     $partyId); }
@@ -1169,7 +1252,7 @@ class FinancialReportingService
         return [
             'period'        => ['from' => $from, 'to' => $to],
             'rows'          => $rows,
-            'total_revenue' => round(array_sum(array_column($rows, 'line_total')),   2),
+            'total_revenue' => round(array_sum(array_column($rows, 'net_amount')),   2),
             'total_cogs'    => round(array_sum(array_column($rows, 'cogs_amount')), 2),
         ];
     }
@@ -1177,17 +1260,16 @@ class FinancialReportingService
     public function getPurchasesReport(string $from, string $to, ?string $partyId = null): array
     {
         $tenantId = app('current.tenant')->id;
-        $query = DB::table('invoices as pu')
+        $query = DB::table('purchases as pu')
             ->where('pu.tenant_id', $tenantId)
-            ->join('invoice_items as pi', fn($j) => $j->on('pi.invoice_id','=','pu.id')->where('pi.tenant_id',$tenantId))
+            ->join('purchase_items as pi', fn($j) => $j->on('pi.purchase_id','=','pu.id')->where('pi.tenant_id',$tenantId))
             ->join('products as pr',      fn($j) => $j->on('pi.product_id','=','pr.id')->where('pr.tenant_id',$tenantId))
             ->join('parties as pa',       fn($j) => $j->on('pu.party_id','=','pa.id')->where('pa.tenant_id',$tenantId))
-            ->where('pu.type', 'purchase')
-            ->whereBetween('pu.date', [$from, $to])
-            ->selectRaw('pu.id, pu.invoice_number, pu.date AS purchase_date,
+            ->whereBetween('pu.purchase_date', [$from, $to])
+            ->selectRaw('pu.id, pu.invoice_number, pu.purchase_date,
                          pa.name AS supplier_name, pr.name AS product_name,
-                         pi.quantity AS qty, pi.unit_price AS unit_cost, pi.total AS line_total')
-            ->orderBy('pu.date');
+                         pi.qty, pi.unit_cost, (pi.line_total * (1 + pi.tax_rate / 100)) AS line_total')
+            ->orderBy('pu.purchase_date');
         if ($partyId) { $query->where('pu.party_id', $partyId); }
         $rows = $query->get()->toArray();
         return [
@@ -1234,11 +1316,14 @@ class FinancialReportingService
     {
         $tenantId = app('current.tenant')->id;
         $party = DB::table('parties')->where('tenant_id', $tenantId)->where('id', $partyId)->firstOrFail();
+        $accountCode = $party->type === 'supplier' ? '2000' : '1200';
+
         $lines = DB::table('journal_items as ji')
             ->where('ji.tenant_id', $tenantId)
             ->join('journal_entries as je', fn($j) => $j->on('ji.journal_entry_id','=','je.id')->where('je.tenant_id',$tenantId))
             ->join('accounts as a',         fn($j) => $j->on('ji.account_id','=','a.id')->where('a.tenant_id',$tenantId))
             ->where('ji.party_id', $partyId)
+            ->where('a.code', $accountCode)
             ->where('je.is_reversed', 0)
             ->whereBetween('je.date', [$from, $to])
             ->selectRaw('je.date, je.reference_type, je.description,
@@ -1246,19 +1331,29 @@ class FinancialReportingService
             ->orderBy('je.date')->orderBy('je.created_at')
             ->get()->toArray();
 
-        $openingBalance = (float) DB::table('journal_items as ji')
+        $rawOp = DB::table('journal_items as ji')
             ->where('ji.tenant_id', $tenantId)
             ->join('journal_entries as je', fn($j) => $j->on('ji.journal_entry_id','=','je.id')->where('je.tenant_id',$tenantId))
+            ->join('accounts as a',         fn($j) => $j->on('ji.account_id','=','a.id')->where('a.tenant_id',$tenantId))
             ->where('ji.party_id', $partyId)
+            ->where('a.code', $accountCode)
             ->where('je.is_reversed', 0)
             ->where('je.date', '<', $from)
-            ->selectRaw('SUM(ji.debit) - SUM(ji.credit) AS balance')
-            ->value('balance') ?? 0;
+            ->selectRaw('SUM(ji.debit) as total_debit, SUM(ji.credit) as total_credit')
+            ->first();
+
+        $drOp = (float)($rawOp->total_debit ?? 0);
+        $crOp = (float)($rawOp->total_credit ?? 0);
+        $openingBalance = $accountCode === '2000' ? ($crOp - $drOp) : ($drOp - $crOp);
 
         $runningBalance = $openingBalance;
         $ledgerLines = [];
         foreach ($lines as $line) {
-            $runningBalance += (float)$line->debit - (float)$line->credit;
+            if ($accountCode === '2000') {
+                $runningBalance += (float)$line->credit - (float)$line->debit;
+            } else {
+                $runningBalance += (float)$line->debit - (float)$line->credit;
+            }
             $ledgerLines[] = array_merge((array)$line, ['running_balance' => round($runningBalance, 2)]);
         }
         return [

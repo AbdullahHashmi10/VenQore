@@ -36,6 +36,9 @@ class StoreSaleRequest extends FormRequest
             'ecommerce_channel_id' => ['nullable', 'integer', 'exists:ecommerce_channels,id'],
             'channel_order_id'     => ['nullable', 'string', 'max:255'],
             'fulfillment_type'     => ['nullable', 'string', 'in:fbm,fba,jit'],
+
+            // Idempotency
+            'client_sale_id'       => ['nullable', 'string', 'max:36'],
         ];
     }
 

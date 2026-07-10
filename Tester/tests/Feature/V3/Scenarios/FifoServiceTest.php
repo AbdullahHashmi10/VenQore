@@ -37,7 +37,7 @@ class FifoServiceTest extends TestCase
         $this->productId   = Str::uuid()->toString();
         $this->warehouseId = Str::uuid()->toString();
 
-        DB::table('products')->insert([
+        DB::table('products')->insert(['base_unit' => 'pcs', 
             'id'           => $this->productId,
             'tenant_id'    => $this->tenantId,
             'name'         => 'Test Product',

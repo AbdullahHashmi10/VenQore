@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -7,14 +7,14 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// ── Existing schedules ─────────────────────────────────────────────────────
+// â”€â”€ Existing schedules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('amd:sync-stock')->everyFiveMinutes();
 \Illuminate\Support\Facades\Schedule::command('parked-sales:cleanup')->hourly();
 \Illuminate\Support\Facades\Schedule::command('staff:generate-daily-summaries')->dailyAt('00:05');
 \Illuminate\Support\Facades\Schedule::command('growth:analyze')->dailyAt('09:00');
 \Illuminate\Support\Facades\Schedule::command('finance:audit')->hourly();
 
-// ── Phase 2.4: Tenant Lifecycle Automation ────────────────────────────────
+// â”€â”€ Phase 2.4: Tenant Lifecycle Automation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Sends day-7 and day-2 reminder emails to tenants still on trial
 \Illuminate\Support\Facades\Schedule::command('tenants:send-trial-reminders')
     ->dailyAt('09:00')
@@ -27,7 +27,7 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Phase 2.5: Dead Account Cleanup ──────────────────────────────────────
+// â”€â”€ Phase 2.5: Dead Account Cleanup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Permanently deletes data for tenants cancelled/suspended 60+ days ago
 // Runs at 03:00 on the 1st of every month (low-traffic window)
 \Illuminate\Support\Facades\Schedule::command('tenants:cleanup-dead-accounts', ['--no-interaction' => true])
@@ -35,7 +35,7 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Phase 6.2: Demo Tenant Nightly Reset ─────────────────────────────────
+// â”€â”€ Phase 6.2: Demo Tenant Nightly Reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Resets demo.venqore.com to a clean state every night at 04:00.
 // Demo credentials: demo@venqore.com / demo1234
 \Illuminate\Support\Facades\Schedule::command('demo:reset', ['--force' => true])
@@ -43,8 +43,8 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Phase 6.3: Demo Full Deploy — Weekly ─────────────────────────────────
-// Every Sunday at 03:00 AM — full nuclear re-seed with 5-year data.
+// â”€â”€ Phase 6.3: Demo Full Deploy â€” Weekly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Every Sunday at 03:00 AM â€” full nuclear re-seed with 5-year data.
 // Ensures the demo store stays rich and realistic over time.
 \Illuminate\Support\Facades\Schedule::command('demo:full-deploy')
     ->weeklyOn(0, '03:00')
@@ -52,7 +52,7 @@ Artisan::command('inspire', function () {
     ->onOneServer();
 
 
-// ── WooCommerce Sync — Scheduler (Safety Net) ─────────────────────────────
+// â”€â”€ WooCommerce Sync â€” Scheduler (Safety Net) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Runs every 15 minutes to catch anything webhooks missed.
 // Each active connection gets its own SchedulerPollingJob dispatched.
 \Illuminate\Support\Facades\Schedule::command('woo:sync-all')
@@ -60,43 +60,43 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Recurring Invoice Generation ──────────────────────────────────────────
+// â”€â”€ Recurring Invoice Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('recurring-invoices:generate')
     ->dailyAt('00:01')
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Close Inactive Chat Sessions ──────────────────────────────────────────
+// â”€â”€ Close Inactive Chat Sessions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('chat:close-inactive')
     ->everyMinute()
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Automated Google Drive backups ───────────────────────────────────────
+// â”€â”€ Automated Google Drive backups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('backup:google-drive')
     ->dailyAt('02:00')
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Daily Sales Summary Mailing ──────────────────────────────────────────
+// â”€â”€ Daily Sales Summary Mailing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('sales:send-daily-summary')
     ->dailyAt('00:10')
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Daily Low Stock Alerts Mailing ───────────────────────────────────────
+// â”€â”€ Daily Low Stock Alerts Mailing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('inventory:send-low-stock-alerts')
     ->dailyAt('09:00')
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Weekly Business Summary Mailing ──────────────────────────────────────
+// â”€â”€ Weekly Business Summary Mailing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('sales:send-weekly-summary')
     ->weeklyOn(1, '08:00')
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Payment Reminder Mailing — Daily ─────────────────────────────────────
+// â”€â”€ Payment Reminder Mailing â€” Daily â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Sends payment reminder emails to customers with outstanding invoices
 // older than the payment_reminder_days setting (default: 7 days).
 \Illuminate\Support\Facades\Schedule::command('invoices:send-payment-reminders')
@@ -104,7 +104,7 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
-// ── Service Reminders — Daily ─────────────────────────────────────────────
+// â”€â”€ Service Reminders â€” Daily â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Checks each tenant's service_reminders list and fires email for any
 // reminder whose interval has elapsed since it was last sent.
 \Illuminate\Support\Facades\Schedule::command('services:send-reminders')
@@ -112,3 +112,16 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+
+
+// -- Phase 11: Nightly Ledger Integrity Monitor ------------------------------
+// Runs verify:ledger every night at 02:30 across ALL active tenants.
+// Checks 8 invariants: TB balance, unbalanced JEs, orphaned sales,
+// backdated entries, duplicate references, negative batches, inventory
+// three-way tie, and cross-tenant contamination.
+\Illuminate\Support\Facades\Schedule::command('verify:ledger', ['--silent' => true])
+    ->dailyAt('02:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('verify-ledger-nightly')
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));

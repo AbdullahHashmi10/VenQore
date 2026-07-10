@@ -51,15 +51,15 @@ class SaleItem extends Model
     protected $casts = [
         'quantity'        => 'decimal:4',
         'free_quantity'   => 'decimal:4',
-        'unit_price'      => 'float',
-        'cost_price'      => 'float',
-        'gross_amount'    => 'float',
-        'discount_amount' => 'float',
-        'net_amount'      => 'float',
+        'unit_price'      => 'decimal:4',
+        'cost_price'      => 'decimal:4',
+        'gross_amount'    => 'decimal:4',
+        'discount_amount' => 'decimal:4',
+        'net_amount'      => 'decimal:4',
         'tax_rate'        => 'float',
-        'tax_amount'      => 'float',
-        'line_total'      => 'float',
-        'subtotal'        => 'float',
+        'tax_amount'      => 'decimal:4',
+        'line_total'      => 'decimal:4',
+        'subtotal'        => 'decimal:4',
         'returned_quantity' => 'decimal:4',
     ];
 

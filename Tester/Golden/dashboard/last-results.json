@@ -1,0 +1,4593 @@
+{
+  "runs": [
+    {
+      "timestamp": "2026-07-10T02:02:59.788Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "106.84",
+      "passed": 258,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": 12,
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "passed",
+          "passed": 30,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "Every journal entry is balanced",
+              "status": "passed"
+            },
+            {
+              "name": "Trial balance total debits equal credits",
+              "status": "passed"
+            },
+            {
+              "name": "No journal item has both debit and credit nonzero",
+              "status": "passed"
+            },
+            {
+              "name": "No zero amount journal items",
+              "status": "passed"
+            },
+            {
+              "name": "Annual revenue matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Annual cogs matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Gross profit equals revenue minus cogs",
+              "status": "passed"
+            },
+            {
+              "name": "Net profit matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Balance sheet equation assets equals liabilities plus equity",
+              "status": "passed"
+            },
+            {
+              "name": "Inventory three way tie gl equals fifo value",
+              "status": "passed"
+            },
+            {
+              "name": "No negative inventory batches",
+              "status": "passed"
+            },
+            {
+              "name": "Fifo remaining qty never exceeds original qty",
+              "status": "passed"
+            },
+            {
+              "name": "Ar gl balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Ap gl balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Fifo correctly spans two batches for sale 003",
+              "status": "passed"
+            },
+            {
+              "name": "Batch phn 001 fully depleted after all sales",
+              "status": "passed"
+            },
+            {
+              "name": "Sale return creates reversed journal entry",
+              "status": "passed"
+            },
+            {
+              "name": "Sale return restores inventory batch",
+              "status": "passed"
+            },
+            {
+              "name": "Cash balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Bank balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Split payment creates both cash and ar lines",
+              "status": "passed"
+            },
+            {
+              "name": "100 percent discount sale has zero revenue but nonzero cogs",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 2 revenue is invisible to tenant 1 gl",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 2 inventory batches not in tenant 1 fifo",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 1 sales count excludes tenant 2",
+              "status": "passed"
+            },
+            {
+              "name": "July 4 zero activity date has no transactions",
+              "status": "passed"
+            },
+            {
+              "name": "Woocommerce sale creates journal entry like any other sale",
+              "status": "passed"
+            },
+            {
+              "name": "Input tax recoverable matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "All sale items reference valid sales",
+              "status": "passed"
+            },
+            {
+              "name": "All inventory batches have positive original qty",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": 5,
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "passed",
+          "passed": 12,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "E01 cash sale creates exact journal lines",
+              "status": "passed"
+            },
+            {
+              "name": "E02 credit sale creates ar instead of cash line",
+              "status": "passed"
+            },
+            {
+              "name": "E03 zero tax sale omits tax line",
+              "status": "passed"
+            },
+            {
+              "name": "E04 discounted sale revenue is net of discount",
+              "status": "passed"
+            },
+            {
+              "name": "E05 100 discount promotional sale zero revenue nonzero cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E06 split payment creates both cash and ar lines",
+              "status": "passed"
+            },
+            {
+              "name": "E07 overpayment credits customer advance account",
+              "status": "passed"
+            },
+            {
+              "name": "E08 fifo layer spanning computes correct blended cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E09 full sale return resets all ledger balances",
+              "status": "passed"
+            },
+            {
+              "name": "E10 woocommerce sale creates identical journal to normal sale",
+              "status": "passed"
+            },
+            {
+              "name": "E11 duplicate client sale id is idempotent",
+              "status": "passed"
+            },
+            {
+              "name": "E12 sale bypassing journal breaks invariant",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": 5,
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "passed",
+          "passed": 3,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "P01 cash purchase debits inventory and input tax",
+              "status": "passed"
+            },
+            {
+              "name": "P02 credit purchase credits ap instead of cash",
+              "status": "passed"
+            },
+            {
+              "name": "P03 purchase return reverses inventory and ap",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": 5,
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "passed",
+          "passed": 9,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "X01 cash expense debits opex credits cash",
+              "status": "passed"
+            },
+            {
+              "name": "X02 bank expense credits bank not cash",
+              "status": "passed"
+            },
+            {
+              "name": "X03 expense with input tax creates gl 2300 line",
+              "status": "passed"
+            },
+            {
+              "name": "X04 customer payment received reduces ar",
+              "status": "passed"
+            },
+            {
+              "name": "X05 supplier payment made reduces ap",
+              "status": "passed"
+            },
+            {
+              "name": "X06 partial payment reduces ar by exact amount",
+              "status": "passed"
+            },
+            {
+              "name": "X08 manual journal entry posts and balances",
+              "status": "passed"
+            },
+            {
+              "name": "X09 opening balance creates balanced equity entry",
+              "status": "passed"
+            },
+            {
+              "name": "X10 unbalanced journal entry is rejected by accounting service",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": 12,
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "passed",
+          "passed": 19,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "F01 annual pl matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F02 year end balance sheet totals match manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F03 balance sheet equation holds at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F04 balance sheet balances on every date in year",
+              "status": "passed"
+            },
+            {
+              "name": "F05 trial balance nets to zero at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F06 per account gl balances match manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F07 inventory three way tie at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F08 ar control account matches customer sum and manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F09 ap control account matches vendor sum and manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F10 cash balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F11 bank balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F12 getReceivables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F13 getPayables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F14 monthly pls sum to annual pl",
+              "status": "passed"
+            },
+            {
+              "name": "F15 tax summary matches manifest accounts",
+              "status": "passed"
+            },
+            {
+              "name": "F16 tenant 2 revenue never appears in tenant 1 pl",
+              "status": "passed"
+            },
+            {
+              "name": "F18 cash flow net change equals balance movement",
+              "status": "passed"
+            },
+            {
+              "name": "F19 getProfitByPeriod matches getProfitAndLoss",
+              "status": "passed"
+            },
+            {
+              "name": "F20 quarterly pls sum to annual",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": 10,
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "passed",
+          "passed": 6,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "B01 each batch has correct remaining qty",
+              "status": "passed"
+            },
+            {
+              "name": "B02 each batch has correct unit cost",
+              "status": "passed"
+            },
+            {
+              "name": "B03 fifo batches consumed oldest first per product",
+              "status": "passed"
+            },
+            {
+              "name": "B04 total fifo value matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "B06 each batch computed value matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "B08 inventory valuation report matches fifo sum",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": 13,
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "passed",
+          "passed": 7,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "C01 gl 5000 equals fifo batch consumption annually",
+              "status": "passed"
+            },
+            {
+              "name": "C02 getCogsReport reconciled is true for all periods",
+              "status": "passed"
+            },
+            {
+              "name": "C03 annual cogs matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "C04 monthly gl 5000 matches fifo batch cogs",
+              "status": "passed"
+            },
+            {
+              "name": "C05 cogs by product sums to total cogs",
+              "status": "passed"
+            },
+            {
+              "name": "C06 promotional sale cogs posted despite zero revenue",
+              "status": "passed"
+            },
+            {
+              "name": "C07 gross profit product cogs matches direct sum",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": 11,
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "D01 dashboard cash matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D02 dashboard bank matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D03 dashboard receivables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D04 dashboard payables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D05 dashboard revenue mtd is non zero and plausible",
+              "status": "passed"
+            },
+            {
+              "name": "D06 dashboard cogs mtd plausible",
+              "status": "passed"
+            },
+            {
+              "name": "D07 dashboard net profit mtd arithmetic consistent",
+              "status": "passed"
+            },
+            {
+              "name": "D08 dashboard response contains all required keys",
+              "status": "passed"
+            },
+            {
+              "name": "D09 dashboard does not include tenant 2 data",
+              "status": "passed"
+            },
+            {
+              "name": "D10 dashboard returns 200 with valid json",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": 10,
+          "description": "All report endpoints return exact manifest figures",
+          "status": "passed",
+          "passed": 15,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "R01 trial balance endpoint is balanced and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R02 profit loss endpoint matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R03 balance sheet endpoint balanced and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R04 cash flow endpoint returns plausible data",
+              "status": "passed"
+            },
+            {
+              "name": "R05 inventory valuation endpoint matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R06 cogs endpoint reconciled and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R07 gross profit by product sums to manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R08 tax endpoint output tax matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R09 sales report total revenue matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R10 purchases report total spend matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R11 profit loss scoped date returns partial year data",
+              "status": "passed"
+            },
+            {
+              "name": "R12 complement property q1 plus rest equals annual",
+              "status": "passed"
+            },
+            {
+              "name": "R13 aged receivables total matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R14 party ledger closing balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R15 all report endpoints return 200",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": 12,
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "passed",
+          "passed": 8,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "FM01 twelve monthly http revenues sum to annual",
+              "status": "passed"
+            },
+            {
+              "name": "FM02 party filter returns only that partys sales",
+              "status": "passed"
+            },
+            {
+              "name": "FM03 party filter complement equals annual revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FM04 zero activity day returns zero revenue and cogs",
+              "status": "passed"
+            },
+            {
+              "name": "FM05 revenue monotonicity annual ge half year",
+              "status": "passed"
+            },
+            {
+              "name": "FM06 single day precision returns only that days revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FM07 inventory movement product filter is exclusive",
+              "status": "passed"
+            },
+            {
+              "name": "FM08 balance sheet as of date is boundary inclusive",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": 10,
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "passed",
+          "passed": 11,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "IA cash consistent across dashboard balancesheet service",
+              "status": "passed"
+            },
+            {
+              "name": "IB bank consistent across dashboard and balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IC receivables consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "ID payables consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "IE revenue consistent pl vs gross profit rows",
+              "status": "passed"
+            },
+            {
+              "name": "IF cogs consistent across pl cogsreport and grossprofit",
+              "status": "passed"
+            },
+            {
+              "name": "IG inventory value consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "IH gross profit consistent pl vs gross profit rows",
+              "status": "passed"
+            },
+            {
+              "name": "II output tax consistent tax report vs balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IJ trial balance consistent with balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IK balance sheet http and service agree",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": 9,
+          "description": "Period filters behave correctly as time advances",
+          "status": "passed",
+          "passed": 7,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "CP01 balance sheet balanced at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP02 trial balance balanced at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP03 inventory three way tie at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP04 ar control matches getReceivables at all positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP05 pl arithmetic consistent at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP06 pl revenue monotonically non decreasing over time",
+              "status": "passed"
+            },
+            {
+              "name": "CP07 retained earnings equals pl net profit at all positions",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": 9,
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "FMT01 pl response values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT02 balance sheet values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT03 trial balance row values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT04 pl income account lines sum to revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FMT05 pl expense account lines sum to opex",
+              "status": "passed"
+            },
+            {
+              "name": "FMT06 balance sheet asset lines sum to total assets",
+              "status": "passed"
+            },
+            {
+              "name": "FMT07 zero period pl returns numeric zeros not nulls",
+              "status": "passed"
+            },
+            {
+              "name": "FMT08 monetary values are idempotently rounded to 2dp",
+              "status": "passed"
+            },
+            {
+              "name": "FMT09 pl operating expenses equals sum of expense lines",
+              "status": "passed"
+            },
+            {
+              "name": "FMT10 inventory valuation row sum equals reported total",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": 13,
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "passed",
+          "passed": 13,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "A01 report controller contains no raw sql",
+              "status": "passed"
+            },
+            {
+              "name": "A02 dashboard controller contains no raw sql",
+              "status": "passed"
+            },
+            {
+              "name": "A03 report controller injects financial reporting service",
+              "status": "passed"
+            },
+            {
+              "name": "A04 no money column defined as float or double in migrations",
+              "status": "passed"
+            },
+            {
+              "name": "A05 no model casts money field as float",
+              "status": "passed"
+            },
+            {
+              "name": "A06 financial reporting service does not import controllers",
+              "status": "passed"
+            },
+            {
+              "name": "A07 fifo service does not reference journal items",
+              "status": "passed"
+            },
+            {
+              "name": "A08 no controller references journal items directly",
+              "status": "passed"
+            },
+            {
+              "name": "A09 golden company seeder does not truncate shared tables",
+              "status": "passed"
+            },
+            {
+              "name": "A10 test base class does not auto seed",
+              "status": "passed"
+            },
+            {
+              "name": "A11 number registry declares minimum metric count",
+              "status": "passed"
+            },
+            {
+              "name": "A12 critical known issues remain tracked in registry",
+              "status": "passed"
+            },
+            {
+              "name": "A13 money column standardization migration exists",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": 10,
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "V01 orphaned sale does not inflate ledger revenue",
+              "status": "passed"
+            },
+            {
+              "name": "V02 unbalanced journal entry breaks trial balance",
+              "status": "passed"
+            },
+            {
+              "name": "V03 tampered batch qty breaks inventory three way tie",
+              "status": "passed"
+            },
+            {
+              "name": "V04 cross tenant journal item does not infect tenant1",
+              "status": "passed"
+            },
+            {
+              "name": "V05 duplicate journal entry doubles that sales revenue",
+              "status": "passed"
+            },
+            {
+              "name": "V06 backdated entry changes verified period pl",
+              "status": "passed"
+            },
+            {
+              "name": "V07 deleted party does not crash reports",
+              "status": "passed"
+            },
+            {
+              "name": "V08 negative batch qty breaks fifo but not ledger",
+              "status": "passed"
+            },
+            {
+              "name": "V09 reversed entry contributes zero to all reports",
+              "status": "passed"
+            },
+            {
+              "name": "V10 all attacks are fully rolled back after test",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": 15,
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "passed",
+          "passed": 15,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "E01 leap day transaction is included in pl",
+              "status": "passed"
+            },
+            {
+              "name": "E02 leap day boundary feb29 differs from feb28",
+              "status": "passed"
+            },
+            {
+              "name": "E03 year end boundary dec31 inclusive jan1 exclusive",
+              "status": "passed"
+            },
+            {
+              "name": "E04 balance sheet balanced on leap day",
+              "status": "passed"
+            },
+            {
+              "name": "E05 hundred percent discount has zero revenue positive cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E06 rounding pivot php and mysql agree",
+              "status": "passed"
+            },
+            {
+              "name": "E07 large decimal amount stored and retrieved exactly",
+              "status": "passed"
+            },
+            {
+              "name": "E08 rounding accumulation worst case stays within tolerance",
+              "status": "passed"
+            },
+            {
+              "name": "E09 inverted date range returns zero not crash",
+              "status": "passed"
+            },
+            {
+              "name": "E10 fifo consume uses lock for update inside transaction",
+              "status": "passed"
+            },
+            {
+              "name": "E11 sequential fifo consumes deplete batch correctly",
+              "status": "passed"
+            },
+            {
+              "name": "E12 insufficient stock throws exception",
+              "status": "passed"
+            },
+            {
+              "name": "E13 failed fifo transaction rolls back batch qty",
+              "status": "passed"
+            },
+            {
+              "name": "E14 single day range returns only that days data",
+              "status": "passed"
+            },
+            {
+              "name": "E15 zero value journal entry has no financial impact",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": 59,
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 59,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": 15,
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "passed",
+          "passed": 14,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "G01 all php test files exist and are non empty",
+              "status": "passed"
+            },
+            {
+              "name": "G02 frontend test file exists with sufficient coverage",
+              "status": "passed"
+            },
+            {
+              "name": "G03 number registry has zero critical issues",
+              "status": "passed"
+            },
+            {
+              "name": "G04 architectural enforcement covers minimum rules",
+              "status": "passed"
+            },
+            {
+              "name": "G05 verify ledger command exists and is valid",
+              "status": "passed"
+            },
+            {
+              "name": "G06 golden verify command exists and covers all sections",
+              "status": "passed"
+            },
+            {
+              "name": "G07 golden company trial balance is balanced live",
+              "status": "passed"
+            },
+            {
+              "name": "I01 balance sheet satisfies accounting equation at year end",
+              "status": "passed"
+            },
+            {
+              "name": "I02 revenue is ledger derived only",
+              "status": "passed"
+            },
+            {
+              "name": "I03 no orphaned journal items",
+              "status": "passed"
+            },
+            {
+              "name": "I04 no negative inventory batches",
+              "status": "passed"
+            },
+            {
+              "name": "I06 tenant isolation t1 revenue not contaminated",
+              "status": "passed"
+            },
+            {
+              "name": "I07 verify coverage command is syntactically valid",
+              "status": "passed"
+            },
+            {
+              "name": "I08 all financial reports generate without exception",
+              "status": "passed"
+            }
+          ]
+        }
+      },
+      "type": "full",
+      "_currentPhaseId": "phase4b",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-07-10T01:48:04.482Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "105.42",
+      "passed": 258,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": 12,
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "passed",
+          "passed": 30,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "Every journal entry is balanced",
+              "status": "passed"
+            },
+            {
+              "name": "Trial balance total debits equal credits",
+              "status": "passed"
+            },
+            {
+              "name": "No journal item has both debit and credit nonzero",
+              "status": "passed"
+            },
+            {
+              "name": "No zero amount journal items",
+              "status": "passed"
+            },
+            {
+              "name": "Annual revenue matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Annual cogs matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Gross profit equals revenue minus cogs",
+              "status": "passed"
+            },
+            {
+              "name": "Net profit matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Balance sheet equation assets equals liabilities plus equity",
+              "status": "passed"
+            },
+            {
+              "name": "Inventory three way tie gl equals fifo value",
+              "status": "passed"
+            },
+            {
+              "name": "No negative inventory batches",
+              "status": "passed"
+            },
+            {
+              "name": "Fifo remaining qty never exceeds original qty",
+              "status": "passed"
+            },
+            {
+              "name": "Ar gl balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Ap gl balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Fifo correctly spans two batches for sale 003",
+              "status": "passed"
+            },
+            {
+              "name": "Batch phn 001 fully depleted after all sales",
+              "status": "passed"
+            },
+            {
+              "name": "Sale return creates reversed journal entry",
+              "status": "passed"
+            },
+            {
+              "name": "Sale return restores inventory batch",
+              "status": "passed"
+            },
+            {
+              "name": "Cash balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Bank balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Split payment creates both cash and ar lines",
+              "status": "passed"
+            },
+            {
+              "name": "100 percent discount sale has zero revenue but nonzero cogs",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 2 revenue is invisible to tenant 1 gl",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 2 inventory batches not in tenant 1 fifo",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 1 sales count excludes tenant 2",
+              "status": "passed"
+            },
+            {
+              "name": "July 4 zero activity date has no transactions",
+              "status": "passed"
+            },
+            {
+              "name": "Woocommerce sale creates journal entry like any other sale",
+              "status": "passed"
+            },
+            {
+              "name": "Input tax recoverable matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "All sale items reference valid sales",
+              "status": "passed"
+            },
+            {
+              "name": "All inventory batches have positive original qty",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": 5,
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "passed",
+          "passed": 12,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "E01 cash sale creates exact journal lines",
+              "status": "passed"
+            },
+            {
+              "name": "E02 credit sale creates ar instead of cash line",
+              "status": "passed"
+            },
+            {
+              "name": "E03 zero tax sale omits tax line",
+              "status": "passed"
+            },
+            {
+              "name": "E04 discounted sale revenue is net of discount",
+              "status": "passed"
+            },
+            {
+              "name": "E05 100 discount promotional sale zero revenue nonzero cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E06 split payment creates both cash and ar lines",
+              "status": "passed"
+            },
+            {
+              "name": "E07 overpayment credits customer advance account",
+              "status": "passed"
+            },
+            {
+              "name": "E08 fifo layer spanning computes correct blended cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E09 full sale return resets all ledger balances",
+              "status": "passed"
+            },
+            {
+              "name": "E10 woocommerce sale creates identical journal to normal sale",
+              "status": "passed"
+            },
+            {
+              "name": "E11 duplicate client sale id is idempotent",
+              "status": "passed"
+            },
+            {
+              "name": "E12 sale bypassing journal breaks invariant",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": 5,
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "passed",
+          "passed": 3,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "P01 cash purchase debits inventory and input tax",
+              "status": "passed"
+            },
+            {
+              "name": "P02 credit purchase credits ap instead of cash",
+              "status": "passed"
+            },
+            {
+              "name": "P03 purchase return reverses inventory and ap",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": 5,
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "passed",
+          "passed": 9,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "X01 cash expense debits opex credits cash",
+              "status": "passed"
+            },
+            {
+              "name": "X02 bank expense credits bank not cash",
+              "status": "passed"
+            },
+            {
+              "name": "X03 expense with input tax creates gl 2300 line",
+              "status": "passed"
+            },
+            {
+              "name": "X04 customer payment received reduces ar",
+              "status": "passed"
+            },
+            {
+              "name": "X05 supplier payment made reduces ap",
+              "status": "passed"
+            },
+            {
+              "name": "X06 partial payment reduces ar by exact amount",
+              "status": "passed"
+            },
+            {
+              "name": "X08 manual journal entry posts and balances",
+              "status": "passed"
+            },
+            {
+              "name": "X09 opening balance creates balanced equity entry",
+              "status": "passed"
+            },
+            {
+              "name": "X10 unbalanced journal entry is rejected by accounting service",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": 12,
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "passed",
+          "passed": 19,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "F01 annual pl matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F02 year end balance sheet totals match manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F03 balance sheet equation holds at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F04 balance sheet balances on every date in year",
+              "status": "passed"
+            },
+            {
+              "name": "F05 trial balance nets to zero at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F06 per account gl balances match manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F07 inventory three way tie at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F08 ar control account matches customer sum and manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F09 ap control account matches vendor sum and manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F10 cash balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F11 bank balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F12 getReceivables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F13 getPayables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F14 monthly pls sum to annual pl",
+              "status": "passed"
+            },
+            {
+              "name": "F15 tax summary matches manifest accounts",
+              "status": "passed"
+            },
+            {
+              "name": "F16 tenant 2 revenue never appears in tenant 1 pl",
+              "status": "passed"
+            },
+            {
+              "name": "F18 cash flow net change equals balance movement",
+              "status": "passed"
+            },
+            {
+              "name": "F19 getProfitByPeriod matches getProfitAndLoss",
+              "status": "passed"
+            },
+            {
+              "name": "F20 quarterly pls sum to annual",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": 10,
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "passed",
+          "passed": 6,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "B01 each batch has correct remaining qty",
+              "status": "passed"
+            },
+            {
+              "name": "B02 each batch has correct unit cost",
+              "status": "passed"
+            },
+            {
+              "name": "B03 fifo batches consumed oldest first per product",
+              "status": "passed"
+            },
+            {
+              "name": "B04 total fifo value matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "B06 each batch computed value matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "B08 inventory valuation report matches fifo sum",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": 13,
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "passed",
+          "passed": 7,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "C01 gl 5000 equals fifo batch consumption annually",
+              "status": "passed"
+            },
+            {
+              "name": "C02 getCogsReport reconciled is true for all periods",
+              "status": "passed"
+            },
+            {
+              "name": "C03 annual cogs matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "C04 monthly gl 5000 matches fifo batch cogs",
+              "status": "passed"
+            },
+            {
+              "name": "C05 cogs by product sums to total cogs",
+              "status": "passed"
+            },
+            {
+              "name": "C06 promotional sale cogs posted despite zero revenue",
+              "status": "passed"
+            },
+            {
+              "name": "C07 gross profit product cogs matches direct sum",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": 11,
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "D01 dashboard cash matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D02 dashboard bank matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D03 dashboard receivables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D04 dashboard payables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D05 dashboard revenue mtd is non zero and plausible",
+              "status": "passed"
+            },
+            {
+              "name": "D06 dashboard cogs mtd plausible",
+              "status": "passed"
+            },
+            {
+              "name": "D07 dashboard net profit mtd arithmetic consistent",
+              "status": "passed"
+            },
+            {
+              "name": "D08 dashboard response contains all required keys",
+              "status": "passed"
+            },
+            {
+              "name": "D09 dashboard does not include tenant 2 data",
+              "status": "passed"
+            },
+            {
+              "name": "D10 dashboard returns 200 with valid json",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": 10,
+          "description": "All report endpoints return exact manifest figures",
+          "status": "passed",
+          "passed": 15,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "R01 trial balance endpoint is balanced and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R02 profit loss endpoint matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R03 balance sheet endpoint balanced and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R04 cash flow endpoint returns plausible data",
+              "status": "passed"
+            },
+            {
+              "name": "R05 inventory valuation endpoint matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R06 cogs endpoint reconciled and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R07 gross profit by product sums to manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R08 tax endpoint output tax matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R09 sales report total revenue matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R10 purchases report total spend matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R11 profit loss scoped date returns partial year data",
+              "status": "passed"
+            },
+            {
+              "name": "R12 complement property q1 plus rest equals annual",
+              "status": "passed"
+            },
+            {
+              "name": "R13 aged receivables total matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R14 party ledger closing balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R15 all report endpoints return 200",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": 12,
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "passed",
+          "passed": 8,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "FM01 twelve monthly http revenues sum to annual",
+              "status": "passed"
+            },
+            {
+              "name": "FM02 party filter returns only that partys sales",
+              "status": "passed"
+            },
+            {
+              "name": "FM03 party filter complement equals annual revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FM04 zero activity day returns zero revenue and cogs",
+              "status": "passed"
+            },
+            {
+              "name": "FM05 revenue monotonicity annual ge half year",
+              "status": "passed"
+            },
+            {
+              "name": "FM06 single day precision returns only that days revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FM07 inventory movement product filter is exclusive",
+              "status": "passed"
+            },
+            {
+              "name": "FM08 balance sheet as of date is boundary inclusive",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": 10,
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "passed",
+          "passed": 11,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "IA cash consistent across dashboard balancesheet service",
+              "status": "passed"
+            },
+            {
+              "name": "IB bank consistent across dashboard and balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IC receivables consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "ID payables consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "IE revenue consistent pl vs gross profit rows",
+              "status": "passed"
+            },
+            {
+              "name": "IF cogs consistent across pl cogsreport and grossprofit",
+              "status": "passed"
+            },
+            {
+              "name": "IG inventory value consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "IH gross profit consistent pl vs gross profit rows",
+              "status": "passed"
+            },
+            {
+              "name": "II output tax consistent tax report vs balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IJ trial balance consistent with balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IK balance sheet http and service agree",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": 9,
+          "description": "Period filters behave correctly as time advances",
+          "status": "passed",
+          "passed": 7,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "CP01 balance sheet balanced at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP02 trial balance balanced at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP03 inventory three way tie at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP04 ar control matches getReceivables at all positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP05 pl arithmetic consistent at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP06 pl revenue monotonically non decreasing over time",
+              "status": "passed"
+            },
+            {
+              "name": "CP07 retained earnings equals pl net profit at all positions",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": 9,
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "FMT01 pl response values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT02 balance sheet values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT03 trial balance row values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT04 pl income account lines sum to revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FMT05 pl expense account lines sum to opex",
+              "status": "passed"
+            },
+            {
+              "name": "FMT06 balance sheet asset lines sum to total assets",
+              "status": "passed"
+            },
+            {
+              "name": "FMT07 zero period pl returns numeric zeros not nulls",
+              "status": "passed"
+            },
+            {
+              "name": "FMT08 monetary values are idempotently rounded to 2dp",
+              "status": "passed"
+            },
+            {
+              "name": "FMT09 pl operating expenses equals sum of expense lines",
+              "status": "passed"
+            },
+            {
+              "name": "FMT10 inventory valuation row sum equals reported total",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": 13,
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "passed",
+          "passed": 13,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "A01 report controller contains no raw sql",
+              "status": "passed"
+            },
+            {
+              "name": "A02 dashboard controller contains no raw sql",
+              "status": "passed"
+            },
+            {
+              "name": "A03 report controller injects financial reporting service",
+              "status": "passed"
+            },
+            {
+              "name": "A04 no money column defined as float or double in migrations",
+              "status": "passed"
+            },
+            {
+              "name": "A05 no model casts money field as float",
+              "status": "passed"
+            },
+            {
+              "name": "A06 financial reporting service does not import controllers",
+              "status": "passed"
+            },
+            {
+              "name": "A07 fifo service does not reference journal items",
+              "status": "passed"
+            },
+            {
+              "name": "A08 no controller references journal items directly",
+              "status": "passed"
+            },
+            {
+              "name": "A09 golden company seeder does not truncate shared tables",
+              "status": "passed"
+            },
+            {
+              "name": "A10 test base class does not auto seed",
+              "status": "passed"
+            },
+            {
+              "name": "A11 number registry declares minimum metric count",
+              "status": "passed"
+            },
+            {
+              "name": "A12 critical known issues remain tracked in registry",
+              "status": "passed"
+            },
+            {
+              "name": "A13 money column standardization migration exists",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": 10,
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "V01 orphaned sale does not inflate ledger revenue",
+              "status": "passed"
+            },
+            {
+              "name": "V02 unbalanced journal entry breaks trial balance",
+              "status": "passed"
+            },
+            {
+              "name": "V03 tampered batch qty breaks inventory three way tie",
+              "status": "passed"
+            },
+            {
+              "name": "V04 cross tenant journal item does not infect tenant1",
+              "status": "passed"
+            },
+            {
+              "name": "V05 duplicate journal entry doubles that sales revenue",
+              "status": "passed"
+            },
+            {
+              "name": "V06 backdated entry changes verified period pl",
+              "status": "passed"
+            },
+            {
+              "name": "V07 deleted party does not crash reports",
+              "status": "passed"
+            },
+            {
+              "name": "V08 negative batch qty breaks fifo but not ledger",
+              "status": "passed"
+            },
+            {
+              "name": "V09 reversed entry contributes zero to all reports",
+              "status": "passed"
+            },
+            {
+              "name": "V10 all attacks are fully rolled back after test",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": 15,
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "passed",
+          "passed": 15,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "E01 leap day transaction is included in pl",
+              "status": "passed"
+            },
+            {
+              "name": "E02 leap day boundary feb29 differs from feb28",
+              "status": "passed"
+            },
+            {
+              "name": "E03 year end boundary dec31 inclusive jan1 exclusive",
+              "status": "passed"
+            },
+            {
+              "name": "E04 balance sheet balanced on leap day",
+              "status": "passed"
+            },
+            {
+              "name": "E05 hundred percent discount has zero revenue positive cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E06 rounding pivot php and mysql agree",
+              "status": "passed"
+            },
+            {
+              "name": "E07 large decimal amount stored and retrieved exactly",
+              "status": "passed"
+            },
+            {
+              "name": "E08 rounding accumulation worst case stays within tolerance",
+              "status": "passed"
+            },
+            {
+              "name": "E09 inverted date range returns zero not crash",
+              "status": "passed"
+            },
+            {
+              "name": "E10 fifo consume uses lock for update inside transaction",
+              "status": "passed"
+            },
+            {
+              "name": "E11 sequential fifo consumes deplete batch correctly",
+              "status": "passed"
+            },
+            {
+              "name": "E12 insufficient stock throws exception",
+              "status": "passed"
+            },
+            {
+              "name": "E13 failed fifo transaction rolls back batch qty",
+              "status": "passed"
+            },
+            {
+              "name": "E14 single day range returns only that days data",
+              "status": "passed"
+            },
+            {
+              "name": "E15 zero value journal entry has no financial impact",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": 59,
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 59,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "",
+              "status": "passed"
+            }
+          ]
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": 15,
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "passed",
+          "passed": 14,
+          "failed": 0,
+          "testLogs": [
+            {
+              "name": "G01 all php test files exist and are non empty",
+              "status": "passed"
+            },
+            {
+              "name": "G02 frontend test file exists with sufficient coverage",
+              "status": "passed"
+            },
+            {
+              "name": "G03 number registry has zero critical issues",
+              "status": "passed"
+            },
+            {
+              "name": "G04 architectural enforcement covers minimum rules",
+              "status": "passed"
+            },
+            {
+              "name": "G05 verify ledger command exists and is valid",
+              "status": "passed"
+            },
+            {
+              "name": "G06 golden verify command exists and covers all sections",
+              "status": "passed"
+            },
+            {
+              "name": "G07 golden company trial balance is balanced live",
+              "status": "passed"
+            },
+            {
+              "name": "I01 balance sheet satisfies accounting equation at year end",
+              "status": "passed"
+            },
+            {
+              "name": "I02 revenue is ledger derived only",
+              "status": "passed"
+            },
+            {
+              "name": "I03 no orphaned journal items",
+              "status": "passed"
+            },
+            {
+              "name": "I04 no negative inventory batches",
+              "status": "passed"
+            },
+            {
+              "name": "I06 tenant isolation t1 revenue not contaminated",
+              "status": "passed"
+            },
+            {
+              "name": "I07 verify coverage command is syntactically valid",
+              "status": "passed"
+            },
+            {
+              "name": "I08 all financial reports generate without exception",
+              "status": "passed"
+            }
+          ]
+        }
+      },
+      "type": "full",
+      "_currentPhaseId": "phase4b",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-07-10T01:43:31.466Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "110.88",
+      "passed": 199,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [
+            {
+              "name": "Every journal entry is balanced",
+              "status": "passed"
+            },
+            {
+              "name": "Trial balance total debits equal credits",
+              "status": "passed"
+            },
+            {
+              "name": "No journal item has both debit and credit nonzero",
+              "status": "passed"
+            },
+            {
+              "name": "No zero amount journal items",
+              "status": "passed"
+            },
+            {
+              "name": "Annual revenue matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Annual cogs matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Gross profit equals revenue minus cogs",
+              "status": "passed"
+            },
+            {
+              "name": "Net profit matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Balance sheet equation assets equals liabilities plus equity",
+              "status": "passed"
+            },
+            {
+              "name": "Inventory three way tie gl equals fifo value",
+              "status": "passed"
+            },
+            {
+              "name": "No negative inventory batches",
+              "status": "passed"
+            },
+            {
+              "name": "Fifo remaining qty never exceeds original qty",
+              "status": "passed"
+            },
+            {
+              "name": "Ar gl balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Ap gl balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Fifo correctly spans two batches for sale 003",
+              "status": "passed"
+            },
+            {
+              "name": "Batch phn 001 fully depleted after all sales",
+              "status": "passed"
+            },
+            {
+              "name": "Sale return creates reversed journal entry",
+              "status": "passed"
+            },
+            {
+              "name": "Sale return restores inventory batch",
+              "status": "passed"
+            },
+            {
+              "name": "Cash balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Bank balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "Split payment creates both cash and ar lines",
+              "status": "passed"
+            },
+            {
+              "name": "100 percent discount sale has zero revenue but nonzero cogs",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 2 revenue is invisible to tenant 1 gl",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 2 inventory batches not in tenant 1 fifo",
+              "status": "passed"
+            },
+            {
+              "name": "Tenant 1 sales count excludes tenant 2",
+              "status": "passed"
+            },
+            {
+              "name": "July 4 zero activity date has no transactions",
+              "status": "passed"
+            },
+            {
+              "name": "Woocommerce sale creates journal entry like any other sale",
+              "status": "passed"
+            },
+            {
+              "name": "Input tax recoverable matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "All sale items reference valid sales",
+              "status": "passed"
+            },
+            {
+              "name": "All inventory batches have positive original qty",
+              "status": "passed"
+            }
+          ],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "passed",
+          "passed": 30,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [
+            {
+              "name": "E01 cash sale creates exact journal lines",
+              "status": "passed"
+            },
+            {
+              "name": "E02 credit sale creates ar instead of cash line",
+              "status": "passed"
+            },
+            {
+              "name": "E03 zero tax sale omits tax line",
+              "status": "passed"
+            },
+            {
+              "name": "E04 discounted sale revenue is net of discount",
+              "status": "passed"
+            },
+            {
+              "name": "E05 100 discount promotional sale zero revenue nonzero cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E06 split payment creates both cash and ar lines",
+              "status": "passed"
+            },
+            {
+              "name": "E07 overpayment credits customer advance account",
+              "status": "passed"
+            },
+            {
+              "name": "E08 fifo layer spanning computes correct blended cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E09 full sale return resets all ledger balances",
+              "status": "passed"
+            },
+            {
+              "name": "E10 woocommerce sale creates identical journal to normal sale",
+              "status": "passed"
+            },
+            {
+              "name": "E11 duplicate client sale id is idempotent",
+              "status": "passed"
+            },
+            {
+              "name": "E12 sale bypassing journal breaks invariant",
+              "status": "passed"
+            }
+          ],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "passed",
+          "passed": 12,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [
+            {
+              "name": "P01 cash purchase debits inventory and input tax",
+              "status": "passed"
+            },
+            {
+              "name": "P02 credit purchase credits ap instead of cash",
+              "status": "passed"
+            },
+            {
+              "name": "P03 purchase return reverses inventory and ap",
+              "status": "passed"
+            }
+          ],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "passed",
+          "passed": 3,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [
+            {
+              "name": "X01 cash expense debits opex credits cash",
+              "status": "passed"
+            },
+            {
+              "name": "X02 bank expense credits bank not cash",
+              "status": "passed"
+            },
+            {
+              "name": "X03 expense with input tax creates gl 2300 line",
+              "status": "passed"
+            },
+            {
+              "name": "X04 customer payment received reduces ar",
+              "status": "passed"
+            },
+            {
+              "name": "X05 supplier payment made reduces ap",
+              "status": "passed"
+            },
+            {
+              "name": "X06 partial payment reduces ar by exact amount",
+              "status": "passed"
+            },
+            {
+              "name": "X08 manual journal entry posts and balances",
+              "status": "passed"
+            },
+            {
+              "name": "X09 opening balance creates balanced equity entry",
+              "status": "passed"
+            },
+            {
+              "name": "X10 unbalanced journal entry is rejected by accounting service",
+              "status": "passed"
+            }
+          ],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "passed",
+          "passed": 9,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [
+            {
+              "name": "F01 annual pl matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F02 year end balance sheet totals match manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F03 balance sheet equation holds at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F04 balance sheet balances on every date in year",
+              "status": "passed"
+            },
+            {
+              "name": "F05 trial balance nets to zero at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F06 per account gl balances match manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F07 inventory three way tie at year end",
+              "status": "passed"
+            },
+            {
+              "name": "F08 ar control account matches customer sum and manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F09 ap control account matches vendor sum and manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F10 cash balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F11 bank balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F12 getReceivables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F13 getPayables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "F14 monthly pls sum to annual pl",
+              "status": "passed"
+            },
+            {
+              "name": "F15 tax summary matches manifest accounts",
+              "status": "passed"
+            },
+            {
+              "name": "F16 tenant 2 revenue never appears in tenant 1 pl",
+              "status": "passed"
+            },
+            {
+              "name": "F18 cash flow net change equals balance movement",
+              "status": "passed"
+            },
+            {
+              "name": "F19 getProfitByPeriod matches getProfitAndLoss",
+              "status": "passed"
+            },
+            {
+              "name": "F20 quarterly pls sum to annual",
+              "status": "passed"
+            }
+          ],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "passed",
+          "passed": 19,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [
+            {
+              "name": "B01 each batch has correct remaining qty",
+              "status": "passed"
+            },
+            {
+              "name": "B02 each batch has correct unit cost",
+              "status": "passed"
+            },
+            {
+              "name": "B03 fifo batches consumed oldest first per product",
+              "status": "passed"
+            },
+            {
+              "name": "B04 total fifo value matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "B06 each batch computed value matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "B08 inventory valuation report matches fifo sum",
+              "status": "passed"
+            }
+          ],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "passed",
+          "passed": 6,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [
+            {
+              "name": "C01 gl 5000 equals fifo batch consumption annually",
+              "status": "passed"
+            },
+            {
+              "name": "C02 getCogsReport reconciled is true for all periods",
+              "status": "passed"
+            },
+            {
+              "name": "C03 annual cogs matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "C04 monthly gl 5000 matches fifo batch cogs",
+              "status": "passed"
+            },
+            {
+              "name": "C05 cogs by product sums to total cogs",
+              "status": "passed"
+            },
+            {
+              "name": "C06 promotional sale cogs posted despite zero revenue",
+              "status": "passed"
+            },
+            {
+              "name": "C07 gross profit product cogs matches direct sum",
+              "status": "passed"
+            }
+          ],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "passed",
+          "passed": 7,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [
+            {
+              "name": "D01 dashboard cash matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D02 dashboard bank matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D03 dashboard receivables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D04 dashboard payables matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "D05 dashboard revenue mtd is non zero and plausible",
+              "status": "passed"
+            },
+            {
+              "name": "D06 dashboard cogs mtd plausible",
+              "status": "passed"
+            },
+            {
+              "name": "D07 dashboard net profit mtd arithmetic consistent",
+              "status": "passed"
+            },
+            {
+              "name": "D08 dashboard response contains all required keys",
+              "status": "passed"
+            },
+            {
+              "name": "D09 dashboard does not include tenant 2 data",
+              "status": "passed"
+            },
+            {
+              "name": "D10 dashboard returns 200 with valid json",
+              "status": "passed"
+            }
+          ],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [
+            {
+              "name": "R01 trial balance endpoint is balanced and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R02 profit loss endpoint matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R03 balance sheet endpoint balanced and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R04 cash flow endpoint returns plausible data",
+              "status": "passed"
+            },
+            {
+              "name": "R05 inventory valuation endpoint matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R06 cogs endpoint reconciled and matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R07 gross profit by product sums to manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R08 tax endpoint output tax matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R09 sales report total revenue matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R10 purchases report total spend matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R11 profit loss scoped date returns partial year data",
+              "status": "passed"
+            },
+            {
+              "name": "R12 complement property q1 plus rest equals annual",
+              "status": "passed"
+            },
+            {
+              "name": "R13 aged receivables total matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R14 party ledger closing balance matches manifest",
+              "status": "passed"
+            },
+            {
+              "name": "R15 all report endpoints return 200",
+              "status": "passed"
+            }
+          ],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "passed",
+          "passed": 15,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [
+            {
+              "name": "FM01 twelve monthly http revenues sum to annual",
+              "status": "passed"
+            },
+            {
+              "name": "FM02 party filter returns only that partys sales",
+              "status": "passed"
+            },
+            {
+              "name": "FM03 party filter complement equals annual revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FM04 zero activity day returns zero revenue and cogs",
+              "status": "passed"
+            },
+            {
+              "name": "FM05 revenue monotonicity annual ge half year",
+              "status": "passed"
+            },
+            {
+              "name": "FM06 single day precision returns only that days revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FM07 inventory movement product filter is exclusive",
+              "status": "passed"
+            },
+            {
+              "name": "FM08 balance sheet as of date is boundary inclusive",
+              "status": "passed"
+            }
+          ],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "passed",
+          "passed": 8,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [
+            {
+              "name": "IA cash consistent across dashboard balancesheet service",
+              "status": "passed"
+            },
+            {
+              "name": "IB bank consistent across dashboard and balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IC receivables consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "ID payables consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "IE revenue consistent pl vs gross profit rows",
+              "status": "passed"
+            },
+            {
+              "name": "IF cogs consistent across pl cogsreport and grossprofit",
+              "status": "passed"
+            },
+            {
+              "name": "IG inventory value consistent across three surfaces",
+              "status": "passed"
+            },
+            {
+              "name": "IH gross profit consistent pl vs gross profit rows",
+              "status": "passed"
+            },
+            {
+              "name": "II output tax consistent tax report vs balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IJ trial balance consistent with balance sheet",
+              "status": "passed"
+            },
+            {
+              "name": "IK balance sheet http and service agree",
+              "status": "passed"
+            }
+          ],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "passed",
+          "passed": 11,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [
+            {
+              "name": "CP01 balance sheet balanced at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP02 trial balance balanced at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP03 inventory three way tie at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP04 ar control matches getReceivables at all positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP05 pl arithmetic consistent at all clock positions",
+              "status": "passed"
+            },
+            {
+              "name": "CP06 pl revenue monotonically non decreasing over time",
+              "status": "passed"
+            },
+            {
+              "name": "CP07 retained earnings equals pl net profit at all positions",
+              "status": "passed"
+            }
+          ],
+          "description": "Period filters behave correctly as time advances",
+          "status": "passed",
+          "passed": 7,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [
+            {
+              "name": "FMT01 pl response values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT02 balance sheet values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT03 trial balance row values are numeric",
+              "status": "passed"
+            },
+            {
+              "name": "FMT04 pl income account lines sum to revenue",
+              "status": "passed"
+            },
+            {
+              "name": "FMT05 pl expense account lines sum to opex",
+              "status": "passed"
+            },
+            {
+              "name": "FMT06 balance sheet asset lines sum to total assets",
+              "status": "passed"
+            },
+            {
+              "name": "FMT07 zero period pl returns numeric zeros not nulls",
+              "status": "passed"
+            },
+            {
+              "name": "FMT08 monetary values are idempotently rounded to 2dp",
+              "status": "passed"
+            },
+            {
+              "name": "FMT09 pl operating expenses equals sum of expense lines",
+              "status": "passed"
+            },
+            {
+              "name": "FMT10 inventory valuation row sum equals reported total",
+              "status": "passed"
+            }
+          ],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [
+            {
+              "name": "A01 report controller contains no raw sql",
+              "status": "passed"
+            },
+            {
+              "name": "A02 dashboard controller contains no raw sql",
+              "status": "passed"
+            },
+            {
+              "name": "A03 report controller injects financial reporting service",
+              "status": "passed"
+            },
+            {
+              "name": "A04 no money column defined as float or double in migrations",
+              "status": "passed"
+            },
+            {
+              "name": "A05 no model casts money field as float",
+              "status": "passed"
+            },
+            {
+              "name": "A06 financial reporting service does not import controllers",
+              "status": "passed"
+            },
+            {
+              "name": "A07 fifo service does not reference journal items",
+              "status": "passed"
+            },
+            {
+              "name": "A08 no controller references journal items directly",
+              "status": "passed"
+            },
+            {
+              "name": "A09 golden company seeder does not truncate shared tables",
+              "status": "passed"
+            },
+            {
+              "name": "A10 test base class does not auto seed",
+              "status": "passed"
+            },
+            {
+              "name": "A11 number registry declares minimum metric count",
+              "status": "passed"
+            },
+            {
+              "name": "A12 critical known issues remain tracked in registry",
+              "status": "passed"
+            },
+            {
+              "name": "A13 money column standardization migration exists",
+              "status": "passed"
+            }
+          ],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "passed",
+          "passed": 13,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [
+            {
+              "name": "V01 orphaned sale does not inflate ledger revenue",
+              "status": "passed"
+            },
+            {
+              "name": "V02 unbalanced journal entry breaks trial balance",
+              "status": "passed"
+            },
+            {
+              "name": "V03 tampered batch qty breaks inventory three way tie",
+              "status": "passed"
+            },
+            {
+              "name": "V04 cross tenant journal item does not infect tenant1",
+              "status": "passed"
+            },
+            {
+              "name": "V05 duplicate journal entry doubles that sales revenue",
+              "status": "passed"
+            },
+            {
+              "name": "V06 backdated entry changes verified period pl",
+              "status": "passed"
+            },
+            {
+              "name": "V07 deleted party does not crash reports",
+              "status": "passed"
+            },
+            {
+              "name": "V08 negative batch qty breaks fifo but not ledger",
+              "status": "passed"
+            },
+            {
+              "name": "V09 reversed entry contributes zero to all reports",
+              "status": "passed"
+            },
+            {
+              "name": "V10 all attacks are fully rolled back after test",
+              "status": "passed"
+            }
+          ],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "passed",
+          "passed": 10,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [
+            {
+              "name": "E01 leap day transaction is included in pl",
+              "status": "passed"
+            },
+            {
+              "name": "E02 leap day boundary feb29 differs from feb28",
+              "status": "passed"
+            },
+            {
+              "name": "E03 year end boundary dec31 inclusive jan1 exclusive",
+              "status": "passed"
+            },
+            {
+              "name": "E04 balance sheet balanced on leap day",
+              "status": "passed"
+            },
+            {
+              "name": "E05 hundred percent discount has zero revenue positive cogs",
+              "status": "passed"
+            },
+            {
+              "name": "E06 rounding pivot php and mysql agree",
+              "status": "passed"
+            },
+            {
+              "name": "E07 large decimal amount stored and retrieved exactly",
+              "status": "passed"
+            },
+            {
+              "name": "E08 rounding accumulation worst case stays within tolerance",
+              "status": "passed"
+            },
+            {
+              "name": "E09 inverted date range returns zero not crash",
+              "status": "passed"
+            },
+            {
+              "name": "E10 fifo consume uses lock for update inside transaction",
+              "status": "passed"
+            },
+            {
+              "name": "E11 sequential fifo consumes deplete batch correctly",
+              "status": "passed"
+            },
+            {
+              "name": "E12 insufficient stock throws exception",
+              "status": "passed"
+            },
+            {
+              "name": "E13 failed fifo transaction rolls back batch qty",
+              "status": "passed"
+            },
+            {
+              "name": "E14 single day range returns only that days data",
+              "status": "passed"
+            },
+            {
+              "name": "E15 zero value journal entry has no financial impact",
+              "status": "passed"
+            }
+          ],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "passed",
+          "passed": 15,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [
+            {
+              "name": "G01 all php test files exist and are non empty",
+              "status": "passed"
+            },
+            {
+              "name": "G02 frontend test file exists with sufficient coverage",
+              "status": "passed"
+            },
+            {
+              "name": "G03 number registry has zero critical issues",
+              "status": "passed"
+            },
+            {
+              "name": "G04 architectural enforcement covers minimum rules",
+              "status": "passed"
+            },
+            {
+              "name": "G05 verify ledger command exists and is valid",
+              "status": "passed"
+            },
+            {
+              "name": "G06 golden verify command exists and covers all sections",
+              "status": "passed"
+            },
+            {
+              "name": "G07 golden company trial balance is balanced live",
+              "status": "passed"
+            },
+            {
+              "name": "I01 balance sheet satisfies accounting equation at year end",
+              "status": "passed"
+            },
+            {
+              "name": "I02 revenue is ledger derived only",
+              "status": "passed"
+            },
+            {
+              "name": "I03 no orphaned journal items",
+              "status": "passed"
+            },
+            {
+              "name": "I04 no negative inventory batches",
+              "status": "passed"
+            },
+            {
+              "name": "I06 tenant isolation t1 revenue not contaminated",
+              "status": "passed"
+            },
+            {
+              "name": "I07 verify coverage command is syntactically valid",
+              "status": "passed"
+            },
+            {
+              "name": "I08 all financial reports generate without exception",
+              "status": "passed"
+            }
+          ],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "passed",
+          "passed": 14,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "_currentPhaseId": "phase4b",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-07-10T01:39:17.443Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "103.98",
+      "passed": 199,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-07-10T01:34:07.790Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "101.64",
+      "passed": 0,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-07-10T01:32:08.714Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "104.94",
+      "passed": 0,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "exitCode": 0
+    },
+    {
+      "timestamp": "2026-07-10T00:49:21.027Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "36.70",
+      "passed": 0,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "idle",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "single",
+      "singlePhase": "phase11",
+      "exitCode": 2
+    },
+    {
+      "timestamp": "2026-07-10T00:43:24.151Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "113.63",
+      "passed": 0,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "exitCode": 2
+    },
+    {
+      "timestamp": "2026-07-09T02:58:27.626Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "45.75",
+      "passed": 0,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "exitCode": 2
+    },
+    {
+      "timestamp": "2026-07-09T02:47:25.737Z",
+      "projectPath": "E:\\AMD POS\\AMD POS",
+      "duration": "66.54",
+      "passed": 0,
+      "failed": 0,
+      "phases": {
+        "phase1": {
+          "id": "phase1",
+          "label": "Phase 1 — Golden Company Seeder",
+          "emoji": "🏗️",
+          "file": "Tester/tests/Feature/Golden/GoldenCompanyTest.php",
+          "tests": [],
+          "description": "Deterministic dataset seeded; all values cross-checked against manifest",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3a": {
+          "id": "phase3a",
+          "label": "Phase 3a — Sale Input Verification",
+          "emoji": "🧾",
+          "file": "Tester/tests/Feature/Golden/SaleInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates sale creation, journal entries, and validation rules",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3b": {
+          "id": "phase3b",
+          "label": "Phase 3b — Purchase Input Verification",
+          "emoji": "📦",
+          "file": "Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates purchase creation and supplier payable entries",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase3c": {
+          "id": "phase3c",
+          "label": "Phase 3c — Expense & Payment Verification",
+          "emoji": "💳",
+          "file": "Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php",
+          "tests": [],
+          "description": "Validates expense posting and customer/supplier payment flows",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4a": {
+          "id": "phase4a",
+          "label": "Phase 4a — Financial Core",
+          "emoji": "💰",
+          "file": "Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php",
+          "tests": [],
+          "description": "P&L, Balance Sheet, Trial Balance against manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4b": {
+          "id": "phase4b",
+          "label": "Phase 4b — FIFO Batch Verification",
+          "emoji": "📊",
+          "file": "Tester/tests/Feature/Golden/FifoBatchVerificationTest.php",
+          "tests": [],
+          "description": "FIFO consumption order, batch drain, and valuation correctness",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase4c": {
+          "id": "phase4c",
+          "label": "Phase 4c — COGS Reconciliation",
+          "emoji": "⚖️",
+          "file": "Tester/tests/Feature/Golden/CogsReconciliationTest.php",
+          "tests": [],
+          "description": "COGS per transaction reconciled to the independent calculator",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5a": {
+          "id": "phase5a",
+          "label": "Phase 5a — Dashboard Output",
+          "emoji": "📈",
+          "file": "Tester/tests/Feature/Golden/DashboardOutputTest.php",
+          "tests": [],
+          "description": "Dashboard KPI cards verified against ledger for all periods",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5b": {
+          "id": "phase5b",
+          "label": "Phase 5b — Report Output",
+          "emoji": "📋",
+          "file": "Tester/tests/Feature/Golden/ReportOutputTest.php",
+          "tests": [],
+          "description": "All report endpoints return exact manifest figures",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase5c": {
+          "id": "phase5c",
+          "label": "Phase 5c — Filter Matrix",
+          "emoji": "🔍",
+          "file": "Tester/tests/Feature/Golden/FilterMatrixTest.php",
+          "tests": [],
+          "description": "Date filter combinations: today/month/year/custom/MTD/YTD",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6a": {
+          "id": "phase6a",
+          "label": "Phase 6a — Cross-Surface Consistency",
+          "emoji": "🔗",
+          "file": "Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php",
+          "tests": [],
+          "description": "Dashboard = Reports = Trial Balance for same period",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6b": {
+          "id": "phase6b",
+          "label": "Phase 6b — Clock Position Consistency",
+          "emoji": "🕐",
+          "file": "Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php",
+          "tests": [],
+          "description": "Period filters behave correctly as time advances",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase6c": {
+          "id": "phase6c",
+          "label": "Phase 6c — Formatting Consistency",
+          "emoji": "🎨",
+          "file": "Tester/tests/Feature/Golden/FormattingConsistencyTest.php",
+          "tests": [],
+          "description": "Decimal(20,4), no float casts, consistent currency symbols",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase7": {
+          "id": "phase7",
+          "label": "Phase 7 — Architectural Enforcement",
+          "emoji": "🏛️",
+          "file": "Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php",
+          "tests": [],
+          "description": "Zero raw SQL in controllers, no float columns in migrations",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase8": {
+          "id": "phase8",
+          "label": "Phase 8 — Adversarial & Corruption",
+          "emoji": "🛡️",
+          "file": "Tester/tests/Feature/Golden/AdversarialCorruptionTest.php",
+          "tests": [],
+          "description": "Orphans, unbalanced entries, tenant isolation, negative stock",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase9": {
+          "id": "phase9",
+          "label": "Phase 9 — Edge Cases & Concurrency",
+          "emoji": "⚡",
+          "file": "Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php",
+          "tests": [],
+          "description": "Leap day, rounding pivot, FIFO locking, ACID atomicity",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase10": {
+          "id": "phase10",
+          "label": "Phase 10 — Frontend Logic (Vitest)",
+          "emoji": "⚛️",
+          "file": "resources/js/tests/frontend.test.js",
+          "tests": [],
+          "description": "roundTotal, formatCurrency, POS cart math, manifest cross-checks",
+          "isVitest": true,
+          "status": "passed",
+          "passed": 0,
+          "failed": 0
+        },
+        "phase11": {
+          "id": "phase11",
+          "label": "Phase 11 — Launch Gate",
+          "emoji": "🚀",
+          "file": "Tester/tests/Feature/Golden/LaunchGateTest.php",
+          "tests": [],
+          "description": "All 7 launch gate checks + 8 live financial invariants",
+          "status": "skipped",
+          "passed": 0,
+          "failed": 0
+        }
+      },
+      "type": "full",
+      "exitCode": 2
+    }
+  ]
+}

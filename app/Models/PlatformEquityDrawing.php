@@ -15,7 +15,7 @@ class PlatformEquityDrawing extends Model
     ];
 
     protected $casts = [
-        'amount' => 'float',
+        'amount' => 'decimal:4',
         'date'   => 'datetime',
     ];
 

@@ -5,7 +5,10 @@
     "scripts": {
         "build": "node scratch/audit_ziggy_routes.cjs && vite build",
         "dev": "vite",
-        "audit:routes": "node scratch/audit_route_params.cjs"
+        "audit:routes": "node scratch/audit_route_params.cjs",
+        "test": "vitest run resources/js/tests",
+        "test:watch": "vitest resources/js/tests",
+        "test:coverage": "vitest run --coverage resources/js/tests"
     },
     "devDependencies": {
         "@headlessui/react": "^2.0.0",
@@ -13,6 +16,7 @@
         "@tailwindcss/forms": "^0.5.3",
         "@tailwindcss/typography": "^0.5.19",
         "@vitejs/plugin-react": "^4.2.0",
+        "@vitest/coverage-v8": "^4.1.10",
         "adm-zip": "^0.5.16",
         "archiver": "^7.0.1",
         "autoprefixer": "^10.4.16",
@@ -26,7 +30,8 @@
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "tailwindcss": "^3.4.17",
-        "vite": "^7.0.7"
+        "vite": "^7.0.7",
+        "vitest": "^4.1.10"
     },
     "dependencies": {
         "dexie": "^4.2.1",

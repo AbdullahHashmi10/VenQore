@@ -164,7 +164,9 @@ class PaymentService
         $tid = $this->tenantId;
         $invoice = DB::table($table)->where('tenant_id', $tid)->where('id', $invoiceId)->first();
         if (!$invoice) {
-            throw new \InvalidArgumentException("Invoice not found: {$invoiceId}");
+            $dbSales = DB::table($table)->where('id', $invoiceId)->first();
+            $dbSalesTenant = $dbSales ? $dbSales->tenant_id : 'NO_RECORD';
+            throw new \InvalidArgumentException("Invoice not found: {$invoiceId}. Target Tenant ID: {$tid}. Actual DB Tenant ID: {$dbSalesTenant}. Table: {$table}");
         }
 
         $invoiceTotal = (float) ($invoice->total ?? 0);

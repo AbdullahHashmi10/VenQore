@@ -85,12 +85,16 @@ class ReportController extends Controller
             'category'    => $row['category'],
             'total_qty'   => $row['stock_quantity'],
             'unit_cost'   => $row['unit_cost'],
+            'stock_value' => $row['stock_value'],
             'total_value' => $row['stock_value'],
             'retail_value'=> $row['retail_value'],
         ]);
         return response()->json([
-            'rows'        => $rows->values()->toArray(),
-            'grand_total' => $this->frs->getInventoryValue(),
+            'rows'            => $rows->values()->toArray(),
+            'grand_total'     => $this->frs->getInventoryValue(),
+            'total_value'     => $this->frs->getInventoryValue(),
+            'inventory_value' => $this->frs->getInventoryValue(),
+            'total'           => $this->frs->getInventoryValue(),
         ]);
     }
 

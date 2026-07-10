@@ -14,9 +14,9 @@ class PurchaseItem extends Model
 
     protected $casts = [
         'qty'          => 'float',
-        'unit_cost'    => 'float',
+        'unit_cost'    => 'decimal:4',
         'tax_rate'     => 'float',
-        'line_total'   => 'float',
+        'line_total'   => 'decimal:4',
         'business_pct' => 'float',
     ];
 

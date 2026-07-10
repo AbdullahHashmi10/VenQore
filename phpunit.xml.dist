@@ -11,6 +11,44 @@
         <testsuite name="Feature">
             <directory suffix="Test.php">./Tester/tests/Feature</directory>
         </testsuite>
+        <testsuite name="Golden">
+            <directory suffix="Test.php">./Tester/tests/Feature/Golden</directory>
+        </testsuite>
+        <testsuite name="Phase2">
+            <file>./Tester/tests/Feature/Golden/GoldenCompanyTest.php</file>
+        </testsuite>
+        <testsuite name="Phase3">
+            <file>./Tester/tests/Feature/Golden/SaleInputVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php</file>
+        </testsuite>
+        <testsuite name="Phase4">
+            <file>./Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/FifoBatchVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/CogsReconciliationTest.php</file>
+        </testsuite>
+        <testsuite name="Phase5">
+            <file>./Tester/tests/Feature/Golden/DashboardOutputTest.php</file>
+            <file>./Tester/tests/Feature/Golden/ReportOutputTest.php</file>
+            <file>./Tester/tests/Feature/Golden/FilterMatrixTest.php</file>
+        </testsuite>
+        <testsuite name="Phase6">
+            <file>./Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php</file>
+            <file>./Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php</file>
+            <file>./Tester/tests/Feature/Golden/FormattingConsistencyTest.php</file>
+        </testsuite>
+        <testsuite name="Phase7">
+            <file>./Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php</file>
+        </testsuite>
+        <testsuite name="Phase8">
+            <file>./Tester/tests/Feature/Golden/AdversarialCorruptionTest.php</file>
+        </testsuite>
+        <testsuite name="Phase9">
+            <file>./Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php</file>
+        </testsuite>
+        <testsuite name="Phase11">
+            <file>./Tester/tests/Feature/Golden/LaunchGateTest.php</file>
+        </testsuite>
     </testsuites>
     <source>
         <include>

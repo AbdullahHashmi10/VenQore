@@ -1,0 +1,594 @@
+# ============================================================
+# VenQore Number Registry — Phase 0 of the Verification Blueprint
+# ============================================================
+# Every metric displayed anywhere in the application.
+# Classification:
+#   LEDGER-DERIVED      — reads only from journal_items/journal_entries via
+#                         FinancialReportingService or AccountingService  ✅
+#   TRANSACTION-DERIVED — reads raw sales/purchases/payments tables       ⚠️
+#   HYBRID              — reads both ledger and transaction tables         ⚠️
+#   NON-FINANCIAL       — no money/qty metric                             ⬜
+#
+# This file is the coverage denominator for the entire test suite.
+# coverage% = verified_metrics / total LEDGER-DERIVED entries
+# ============================================================
+# Generator: verify:map artisan command (auto-regenerated)
+# Last updated: 2026-07-09
+# ============================================================
+
+version: "1.0"
+schema: "venqore-number-registry"
+
+# ── DASHBOARD ─────────────────────────────────────────────────────────────────
+metrics:
+  - id: "DASH-001"
+    name: "Cash Balance"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\V3\\AccountingService@getBalance('1000')"
+    ledger_accounts: ["1000"]
+    source_query: "journal_items aggregated through AccountingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+    notes: "Account 1000 = Cash in Hand"
+
+  - id: "DASH-002"
+    name: "Bank Balance"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\V3\\AccountingService@getBalance('1010')"
+    ledger_accounts: ["1010"]
+    source_query: "journal_items aggregated through AccountingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+    notes: "Account 1010 = Bank"
+
+  - id: "DASH-003"
+    name: "Total Receivables (Accounts Receivable)"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\V3\\AccountingService@getBalance('1200')"
+    ledger_accounts: ["1200"]
+    source_query: "journal_items aggregated through AccountingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+    notes: "Account 1200 = Accounts Receivable"
+
+  - id: "DASH-004"
+    name: "Total Payables (Accounts Payable)"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\V3\\AccountingService@getBalance('2000')"
+    ledger_accounts: ["2000"]
+    source_query: "journal_items aggregated through AccountingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+    notes: "Account 2000 = Accounts Payable"
+
+  - id: "DASH-005"
+    name: "Revenue MTD (Month-to-Date)"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
+    ledger_accounts: ["4000", "4100"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "DASH-006"
+    name: "COGS MTD (Month-to-Date)"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
+    ledger_accounts: ["5000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "DASH-007"
+    name: "Net Profit MTD"
+    route: "store.dashboard"
+    route_uri: "GET /dashboard"
+    inertia_page: "Dashboard"
+    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
+    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
+    ledger_accounts: ["4000", "5000", "6000"]
+    source_query: "journal_items via FinancialReportingService (revenue - cogs - expenses)"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+# ── FINANCIAL REPORTS (ReportController → FinancialReportingService) ──────────
+
+  - id: "RPT-001"
+    name: "Trial Balance — all account balances"
+    route: "store.reports.trial-balance"
+    route_uri: "GET /reports/trial-balance"
+    inertia_page: "Reports/TrialBalance"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@trialBalance"
+    service: "App\\Services\\FinancialReportingService@getTrialBalance"
+    ledger_accounts: ["ALL"]
+    source_query: "journal_items grouped by account_code"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-002"
+    name: "Profit & Loss — Revenue, COGS, Gross Profit, Net Profit"
+    route: "store.reports.profit-loss"
+    route_uri: "GET /reports/profit-loss"
+    inertia_page: "Reports/ProfitLoss"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@profitAndLoss"
+    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
+    ledger_accounts: ["4xxx", "5xxx", "6xxx"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-003"
+    name: "Balance Sheet — Assets, Liabilities, Equity"
+    route: "store.reports.balance-sheet"
+    route_uri: "GET /reports/balance-sheet"
+    inertia_page: "Reports/BalanceSheet"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@balanceSheet"
+    service: "App\\Services\\FinancialReportingService@getBalanceSheet"
+    ledger_accounts: ["1xxx", "2xxx", "3xxx"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-004"
+    name: "Cash Flow Statement"
+    route: "store.reports.cash-flow"
+    route_uri: "GET /reports/cash-flow"
+    inertia_page: "Reports/CashFlow"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@cashFlow"
+    service: "App\\Services\\FinancialReportingService@getCashFlowReport"
+    ledger_accounts: ["1000", "1010"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-005"
+    name: "Aged Receivables — per customer, per bucket"
+    route: "store.reports.aged-receivables"
+    route_uri: "GET /reports/aged-receivables"
+    inertia_page: "Reports/AgedReceivables"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@agedReceivables"
+    service: "App\\Services\\FinancialReportingService@getAgedReceivables"
+    ledger_accounts: ["1200"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-006"
+    name: "Aged Payables — per vendor, per bucket"
+    route: "store.reports.aged-payables"
+    route_uri: "GET /reports/aged-payables"
+    inertia_page: "Reports/AgedPayables"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@agedPayables"
+    service: "App\\Services\\FinancialReportingService@getAgedPayables"
+    ledger_accounts: ["2000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-007"
+    name: "Sales Report — total sales, discounts, tax, net"
+    route: "store.reports.sales"
+    route_uri: "GET /reports/sales"
+    inertia_page: "Reports/Sales"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@sales"
+    service: "App\\Services\\FinancialReportingService@getSalesReport"
+    ledger_accounts: ["4000", "2100", "1200", "1000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-008"
+    name: "Purchases Report — total purchases, AP, payments"
+    route: "store.reports.purchases"
+    route_uri: "GET /reports/purchases"
+    inertia_page: "Reports/Purchases"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@purchases"
+    service: "App\\Services\\FinancialReportingService@getPurchasesReport"
+    ledger_accounts: ["1100", "2000", "1000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-009"
+    name: "Inventory Valuation — per product, total value"
+    route: "store.reports.inventory-valuation"
+    route_uri: "GET /reports/inventory-valuation"
+    inertia_page: "Reports/InventoryValuation"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@inventoryValuation"
+    service: "App\\Services\\FinancialReportingService@getInventoryValuationReport"
+    ledger_accounts: ["1100"]
+    source_query: "inventory_batches FIFO layers + journal validation"
+    classification: "LEDGER-DERIVED"
+    verified: false
+    notes: "Must match GL Account 1100 balance — three-way tie required"
+
+  - id: "RPT-010"
+    name: "COGS Report — per sale, per period"
+    route: "store.reports.cogs"
+    route_uri: "GET /reports/cogs"
+    inertia_page: "Reports/Cogs"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@cogs"
+    service: "App\\Services\\FinancialReportingService@getCogsReport"
+    ledger_accounts: ["5000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-011"
+    name: "Gross Profit Report — per sale/product/category"
+    route: "store.reports.gross-profit"
+    route_uri: "GET /reports/gross-profit"
+    inertia_page: "Reports/GrossProfit"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@grossProfit"
+    service: "App\\Services\\FinancialReportingService@getGrossProfitBySale"
+    ledger_accounts: ["4000", "5000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-012"
+    name: "Tax Report — collected, paid, liability"
+    route: "store.reports.tax"
+    route_uri: "GET /reports/tax"
+    inertia_page: "Reports/Tax"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@tax"
+    service: "App\\Services\\FinancialReportingService@getTaxSummary"
+    ledger_accounts: ["2100"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-013"
+    name: "Party Ledger — per customer/vendor transaction history"
+    route: "store.reports.party-ledger"
+    route_uri: "GET /reports/party-ledger/{partyId}"
+    inertia_page: "Reports/PartyLedger"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@partyLedger"
+    service: "App\\Services\\FinancialReportingService@getPartyLedger"
+    ledger_accounts: ["1200", "2000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "RPT-014"
+    name: "Inventory Movement — stock in/out per product/period"
+    route: "store.reports.inventory-movement"
+    route_uri: "GET /reports/inventory-movement"
+    inertia_page: "Reports/InventoryMovement"
+    controller: "App\\Http\\Controllers\\V3\\ReportController@inventoryMovement"
+    service: "App\\Services\\FinancialReportingService@getInventoryMovement"
+    ledger_accounts: ["1100"]
+    source_query: "inventory_batches + stock_movements"
+    classification: "HYBRID"
+    verified: false
+    notes: "Mixes inventory_batches (physical) and journal (financial) — needs audit"
+
+# ── CUSTOMER / SUPPLIER STATEMENTS ───────────────────────────────────────────
+
+  - id: "STMT-001"
+    name: "Customer Statement — balance, invoices, payments"
+    route: "store.customers.statement"
+    route_uri: "GET /customers/{id}/statement"
+    inertia_page: "Customers/Statement"
+    controller: "App\\Http\\Controllers\\V3\\CustomerStatementController@show"
+    service: "App\\Services\\FinancialReportingService@getPartyLedger"
+    ledger_accounts: ["1200"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+  - id: "STMT-002"
+    name: "Supplier Statement — balance, bills, payments"
+    route: "store.suppliers.statement"
+    route_uri: "GET /suppliers/{id}/statement"
+    inertia_page: "Suppliers/Statement"
+    controller: "App\\Http\\Controllers\\V3\\SupplierStatementController@show"
+    service: "App\\Services\\FinancialReportingService@getPartyLedger"
+    ledger_accounts: ["2000"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+
+# ── POS TERMINAL ─────────────────────────────────────────────────────────────
+
+  - id: "POS-001"
+    name: "POS Cart Total (live checkout calculation)"
+    route: "pos"
+    route_uri: "GET /pos"
+    inertia_page: "Pos"
+    controller: "App\\Http\\Controllers\\PosController@index"
+    service: "NONE — calculated in Pos.jsx frontend"
+    ledger_accounts: []
+    source_query: "JavaScript arithmetic in Pos.jsx (parseFloat, reduce)"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+    risk: "HIGH — JS-side math not covered by backend tests; Phase 10 target"
+    notes: "subtotal, discount, tax, total all computed in React"
+
+  - id: "POS-002"
+    name: "POS Session Cash Summary (open/close session)"
+    route: "pos.open"
+    route_uri: "POST /pos/open-session"
+    inertia_page: "Pos"
+    controller: "App\\Http\\Controllers\\PosController@openSession"
+    service: "NONE — raw DB write"
+    ledger_accounts: []
+    source_query: "pos_sessions table"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+
+  - id: "POS-003"
+    name: "Sale stored to ledger (checkout POST)"
+    route: "store.sales.store"
+    route_uri: "POST /sales"
+    inertia_page: "Pos"
+    controller: "App\\Http\\Controllers\\SaleController@store (LEGACY)"
+    service: "App\\Services\\V3\\FifoService (partial) — postSaleJournal inline"
+    ledger_accounts: ["4000", "1200", "1000", "5000", "1100"]
+    source_query: "inline journal write in SaleController::postSaleJournal()"
+    classification: "HYBRID"
+    verified: false
+    risk: "CRITICAL — COGS fabrication bug on FIFO failure (Audit Finding 1)"
+    notes: "See MASTER_IMPLEMENTATION_PLAN L001"
+
+# ── WOOCOMMERCE ───────────────────────────────────────────────────────────────
+
+  - id: "WOO-001"
+    name: "WooCommerce Sale — revenue & COGS"
+    route: "woocommerce.webhook"
+    route_uri: "POST /woocommerce/webhook"
+    inertia_page: "NONE — webhook"
+    controller: "App\\Http\\Controllers\\WooCommerceController@webhook"
+    service: "App\\Services\\InventoryService@processSale (LEGACY — no journal)"
+    ledger_accounts: []
+    source_query: "Transaction::create() — NO journal_entry created"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+    risk: "CRITICAL — WooCommerce sales invisible to ALL financial reports (Audit Finding 3)"
+    notes: "See MASTER_IMPLEMENTATION_PLAN L003"
+
+# ── EXPORT SURFACES ───────────────────────────────────────────────────────────
+
+  - id: "EXP-001"
+    name: "Report Export — PDF/Excel/CSV for all financial reports"
+    route: "store.reports.export"
+    route_uri: "GET /reports/export/{type}"
+    inertia_page: "NONE — download"
+    controller: "App\\Http\\Controllers\\V3\\ReportExportController"
+    service: "App\\Services\\FinancialReportingService (mirrors ReportController)"
+    ledger_accounts: ["ALL"]
+    source_query: "journal_items via FinancialReportingService"
+    classification: "LEDGER-DERIVED"
+    verified: false
+    notes: "Exports must byte-match the on-screen report totals — Phase 5 target"
+
+# ── SALES LIST (legacy controller) ────────────────────────────────────────────
+
+  - id: "SALE-001"
+    name: "Sales List — invoice totals, balances"
+    route: "store.sales.index"
+    route_uri: "GET /sales"
+    inertia_page: "Sales/Index"
+    controller: "App\\Http\\Controllers\\SaleController@index"
+    service: "NONE — direct Sale model query"
+    ledger_accounts: []
+    source_query: "sales table direct SELECT"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+    risk: "MEDIUM — does not read from ledger; consistency with reports depends on sync"
+
+  - id: "SALE-002"
+    name: "Sale Show — invoice detail totals"
+    route: "store.sales.show"
+    route_uri: "GET /sales/{id}"
+    inertia_page: "Sales/Show"
+    controller: "App\\Http\\Controllers\\SaleController@show"
+    service: "NONE — direct Sale model query"
+    ledger_accounts: []
+    source_query: "sales + sale_items table"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+
+# ── PURCHASE LIST ─────────────────────────────────────────────────────────────
+
+  - id: "PUR-001"
+    name: "Purchases List — bill totals, AP balances"
+    route: "store.purchases.index"
+    route_uri: "GET /purchases"
+    inertia_page: "Purchases/Index"
+    controller: "App\\Http\\Controllers\\V3\\PurchaseController@index"
+    service: "NONE — direct Purchase model"
+    ledger_accounts: []
+    source_query: "purchases table direct SELECT"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+
+# ── EXPENSE TRACKING ──────────────────────────────────────────────────────────
+
+  - id: "EXP-101"
+    name: "Expense List — totals by category"
+    route: "store.expenses.index"
+    route_uri: "GET /expenses"
+    inertia_page: "Expenses/Index"
+    controller: "App\\Http\\Controllers\\V3\\ExpenseController@index"
+    service: "NONE — direct Expense model"
+    ledger_accounts: []
+    source_query: "expenses table direct SELECT"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+
+# ── PAYROLL ───────────────────────────────────────────────────────────────────
+
+  - id: "PAY-001"
+    name: "Payroll — salary totals, deductions, net pay"
+    route: "store.payroll.index"
+    route_uri: "GET /payroll"
+    inertia_page: "Payroll/Index"
+    controller: "App\\Http\\Controllers\\V3\\PayrollController@index"
+    service: "NONE — direct PayrollRun model"
+    ledger_accounts: []
+    source_query: "payroll_runs + payroll_entries table"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+
+# ── ASSETS & DEPRECIATION ─────────────────────────────────────────────────────
+
+  - id: "AST-001"
+    name: "Asset List — book value, accumulated depreciation"
+    route: "store.assets.index"
+    route_uri: "GET /assets"
+    inertia_page: "Assets/Index"
+    controller: "App\\Http\\Controllers\\V3\\AssetController@index"
+    service: "NONE — direct Asset model"
+    ledger_accounts: ["1500", "1510"]
+    source_query: "assets table with depreciation_runs join"
+    classification: "HYBRID"
+    verified: false
+
+# ── LOANS ─────────────────────────────────────────────────────────────────────
+
+  - id: "LOAN-001"
+    name: "Loan List — principal, interest, outstanding"
+    route: "store.loans.index"
+    route_uri: "GET /loans"
+    inertia_page: "Loans/Index"
+    controller: "App\\Http\\Controllers\\V3\\LoanController@index"
+    service: "NONE — direct Loan model"
+    ledger_accounts: ["2200"]
+    source_query: "loans + loan_payments table"
+    classification: "HYBRID"
+    verified: false
+
+# ── BANK & FUND BALANCES ──────────────────────────────────────────────────────
+
+  - id: "BANK-001"
+    name: "Bank Account Balances"
+    route: "store.banks.index"
+    route_uri: "GET /bank-accounts"
+    inertia_page: "BankAccounts/Index"
+    controller: "App\\Http\\Controllers\\Api\\BankAccountController@index"
+    service: "NONE — direct BankAccount model"
+    ledger_accounts: ["1010"]
+    source_query: "bank_accounts table balance column"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+    risk: "MEDIUM — balance column may not reconcile with ledger account 1010"
+
+  - id: "FUND-001"
+    name: "Fund Balances"
+    route: "store.funds.index"
+    route_uri: "GET /funds"
+    inertia_page: "Funds/Index"
+    controller: "App\\Http\\Controllers\\V3\\FundController@index"
+    service: "NONE — direct Fund model"
+    ledger_accounts: ["1000"]
+    source_query: "funds table balance column"
+    classification: "TRANSACTION-DERIVED"
+    verified: false
+
+# ── CONSISTENCY GROUPS ────────────────────────────────────────────────────────
+# Metrics that claim to show the same value across multiple surfaces.
+# Phase 6 Consistency Sweep asserts byte-equality across all members of a group.
+
+consistency_groups:
+  - id: "CG-001"
+    metric: "Total Revenue (current period)"
+    surfaces:
+      - "DASH-005"   # Dashboard revenue_mtd card
+      - "RPT-002"    # P&L revenue line
+      - "RPT-007"    # Sales Report total
+      - "EXP-001"    # Export of above
+    risk: "HIGH — dashboard uses MTD; reports use custom date range; boundary mismatch common"
+
+  - id: "CG-002"
+    metric: "Net Profit"
+    surfaces:
+      - "DASH-007"   # Dashboard net_profit_mtd card
+      - "RPT-002"    # P&L net profit line
+    risk: "MEDIUM"
+
+  - id: "CG-003"
+    metric: "Accounts Receivable total"
+    surfaces:
+      - "DASH-003"   # Dashboard receivables card (account 1200)
+      - "RPT-005"    # Aged Receivables total
+      - "STMT-001"   # Customer statement balances (sum)
+    risk: "HIGH — AR control must equal sum of all customer open balances"
+
+  - id: "CG-004"
+    metric: "Accounts Payable total"
+    surfaces:
+      - "DASH-004"   # Dashboard payables card (account 2000)
+      - "RPT-006"    # Aged Payables total
+      - "STMT-002"   # Supplier statement balances (sum)
+    risk: "HIGH — AP control must equal sum of all vendor open balances"
+
+  - id: "CG-005"
+    metric: "Inventory Asset value"
+    surfaces:
+      - "RPT-009"    # Inventory Valuation report
+      - "RPT-003"    # Balance Sheet inventory line (account 1100)
+      - "RPT-001"    # Trial Balance account 1100
+    risk: "CRITICAL — three-way tie; any divergence indicates FIFO/ledger mismatch"
+
+  - id: "CG-006"
+    metric: "COGS"
+    surfaces:
+      - "RPT-002"    # P&L COGS line
+      - "RPT-010"    # COGS report
+      - "RPT-011"    # Gross Profit report (revenue - gross_profit = COGS)
+    risk: "HIGH"
+
+# ── FLAGGED FOR REMEDIATION ───────────────────────────────────────────────────
+# Metrics classified TRANSACTION-DERIVED or HYBRID that must be refactored
+# before launch gate (Phase 11 criterion 5).
+
+flagged_for_remediation:
+  - id: "POS-003"
+    reason: "COGS fabrication on FIFO failure — Audit Finding 1"
+    plan_task: "L001"
+  - id: "WOO-001"
+    reason: "WooCommerce sales skip journal entirely — Audit Finding 3"
+    plan_task: "L003"
+  - id: "POS-001"
+    reason: "JS-side cart math — Phase 10 frontend verification target"
+    plan_task: "Phase 10"
+  - id: "BANK-001"
+    reason: "bank_accounts.balance may not reconcile with GL 1010"
+    plan_task: "Phase 6 sweep"
+  - id: "FUND-001"
+    reason: "funds.balance may not reconcile with GL 1000"
+    plan_task: "Phase 6 sweep"
+  - id: "RPT-014"
+    reason: "Inventory Movement is HYBRID — mixes physical and financial data sources"
+    plan_task: "Phase 4 audit"
+
+# ── REGISTRY STATS ────────────────────────────────────────────────────────────
+stats:
+  total_metrics: 28
+  ledger_derived: 17
+  transaction_derived: 8
+  hybrid: 3
+  non_financial: 0
+  verified: 0
+  coverage_pct: "0%"
+  consistency_groups: 6
+  flagged_for_remediation: 6
