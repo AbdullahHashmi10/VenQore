@@ -91,7 +91,7 @@ class ReportController extends Controller
     public function dashboard()
     {
         // Redirect to index for now, or keep as separate dashboard
-        return redirect()->route('reports.index');
+        return redirect()->route('store.reports.index', ['store_slug' => app('current.tenant')->slug]);
     }
 
     public function sales(Request $request)
@@ -696,33 +696,77 @@ class ReportController extends Controller
     public function expenses(Request $request)
     {
         ReportTierGate::enforce('reports.expenses');
-        $category = $request->input('category_id'); // Actually category name string
+        $category = $request->input('category_id'); // Category name or ID
         $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
         $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
 
-        $query = Expense::whereBetween('date', [$startDate, $endDate]);
+        $tenantId = app('current.tenant')->id;
+        $cogsAccount = Account::where('code', '5000')->first();
+        $cogsId = $cogsAccount ? $cogsAccount->id : null;
+
+        $expenseAccounts = Account::where('type', 'expense')
+            ->when($cogsId, fn($q) => $q->where('id', '!=', $cogsId))
+            ->get();
+        $expenseAccountIds = $expenseAccounts->pluck('id');
+
+        $journalItemsQuery = DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'ji.journal_entry_id', '=', 'je.id')
+            ->join('accounts as a', 'ji.account_id', '=', 'a.id')
+            ->where('ji.tenant_id', $tenantId)
+            ->whereIn('ji.account_id', $expenseAccountIds)
+            ->whereBetween('je.date', [$startDate, $endDate])
+            ->where('je.is_reversed', 0)
+            ->select(
+                'ji.id',
+                'je.date',
+                'je.reference',
+                'je.description',
+                'a.name as category_name',
+                'a.id as category_id',
+                'ji.debit as amount'
+            )
+            ->orderBy('je.date', 'desc');
 
         if ($category) {
-            $query->where('category', $category);
+            $journalItemsQuery->where(function($q) use ($category) {
+                $q->where('a.name', $category)
+                  ->orWhere('a.id', $category);
+            });
         }
 
-        $expenses = $query->orderBy('date', 'desc')->get();
+        $expenses = $journalItemsQuery->get()->map(function($item) {
+            return [
+                'id' => $item->id,
+                'date' => $item->date,
+                'reference' => $item->reference,
+                'description' => $item->description,
+                'category' => $item->category_name,
+                'category_id' => $item->category_id,
+                'amount' => (float)$item->amount
+            ];
+        });
+
+        $totalExpenses = (float) $expenses->sum('amount');
+        $count = $expenses->count();
+        $days = max(1, Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1);
+        $avgDaily = $count > 0 ? $totalExpenses / $days : 0;
+
+        $topCategory = $expenses->groupBy('category')->map(function ($group, $catName) {
+            return [
+                'name' => $catName,
+                'total' => $group->sum('amount')
+            ];
+        })->sortByDesc('total')->first();
 
         $stats = [
-            'total_expenses' => $expenses->sum('amount'),
-            'count' => $expenses->count(),
-            'avg_daily' => $expenses->count() > 0 ? $expenses->sum('amount') / max(1, Carbon::parse($startDate)->diffInDays(Carbon::parse($endDate)) + 1) : 0,
-            'top_category' => $expenses->groupBy('category')->map(function ($group, $catName) {
-                return [
-                    'name' => $catName ?: 'Uncategorized',
-                    'total' => $group->sum('amount')
-                ];
-            })->sortByDesc('total')->first()
+            'total_expenses' => $totalExpenses,
+            'count' => $count,
+            'avg_daily' => $avgDaily,
+            'top_category' => $topCategory
         ];
 
-        // Get unique categories for filter
-        $categories = Expense::distinct()->pluck('category')->filter()->map(function ($cat) {
-            return ['id' => $cat, 'name' => $cat];
+        $categories = $expenseAccounts->map(function ($acc) {
+            return ['id' => $acc->id, 'name' => $acc->name];
         })->values();
 
         return Inertia::render('Reports/Expenses', [
@@ -950,13 +994,33 @@ class ReportController extends Controller
             $totalDebit  = $ledger ? (float) $ledger->total_debit : 0.0;
             $totalCredit = $ledger ? (float) $ledger->total_credit : 0.0;
 
+            $normalBalance = $account->normal_balance ?: (in_array($account->type, ['asset', 'expense']) ? 'debit' : 'credit');
+            $balance = $normalBalance === 'debit' ? ($totalDebit - $totalCredit) : ($totalCredit - $totalDebit);
+
+            $netDebit = 0.0;
+            $netCredit = 0.0;
+
+            if ($normalBalance === 'debit') {
+                if ($balance >= 0) {
+                    $netDebit = $balance;
+                } else {
+                    $netCredit = abs($balance);
+                }
+            } else {
+                if ($balance >= 0) {
+                    $netCredit = $balance;
+                } else {
+                    $netDebit = abs($balance);
+                }
+            }
+
             return [
                 'id'     => $account->id,
                 'code'   => $account->code,
                 'name'   => $account->name,
                 'type'   => $account->type,
-                'debit'  => $totalDebit,
-                'credit' => $totalCredit,
+                'debit'  => round($netDebit, 2),
+                'credit' => round($netCredit, 2),
                 'net'    => round($totalDebit - $totalCredit, 4),
             ];
         })
@@ -1050,14 +1114,16 @@ class ReportController extends Controller
         ReportTierGate::enforce('reports.discount');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
-        // FIX-17: Read from sales table (V3), not legacy invoices table
         $sales = Sale::posted()
-            ->where('discount', '>', 0)
+            ->where(function($q) {
+                $q->where('global_discount', '>', 0)
+                  ->orWhere('total_item_discounts', '>', 0);
+            })
             ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
             ->with('party')
             ->orderBy('posted_at', 'desc')
             ->get();
-        $totalDiscount = $sales->sum('discount');
+        $totalDiscount = $sales->sum(fn($s) => (float)$s->global_discount + (float)$s->total_item_discounts);
 
         return Inertia::render('Reports/DiscountReport', [
             'invoices'      => $sales,
@@ -1498,6 +1564,9 @@ class ReportController extends Controller
         $range = $request->input('range', 'this_month');
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
+        if ($startDate && $endDate && $range === 'this_month') {
+            $range = 'custom';
+        }
 
         $tenantId = app('current.tenant')->id;
         $query = DB::table('sales_order_items')

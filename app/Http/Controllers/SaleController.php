@@ -429,21 +429,30 @@ class SaleController extends Controller
     {
         $tz = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
         
-        $todayStart = \Carbon\Carbon::today($tz)->startOfDay()->utc();
-        $todayEnd = \Carbon\Carbon::today($tz)->endOfDay()->utc();
+        // Local date Carbon instances (for toDateString() and ledger reports)
+        $localToday = \Carbon\Carbon::today($tz);
+        $localYesterday = \Carbon\Carbon::yesterday($tz);
+        $localStartOfMonth = \Carbon\Carbon::now($tz)->startOfMonth();
+        $localStartOfLastMonth = \Carbon\Carbon::now($tz)->subMonth()->startOfMonth();
+        $localEndOfLastMonth = \Carbon\Carbon::now($tz)->subMonth()->endOfMonth();
+        $localSub30Days = \Carbon\Carbon::now($tz)->subDays(30);
+
+        // UTC timestamps (for database created_at comparisons)
+        $todayStart = $localToday->copy()->startOfDay()->utc();
+        $todayEnd = $localToday->copy()->endOfDay()->utc();
         
-        $yesterdayStart = \Carbon\Carbon::yesterday($tz)->startOfDay()->utc();
-        $yesterdayEnd = \Carbon\Carbon::yesterday($tz)->endOfDay()->utc();
+        $yesterdayStart = $localYesterday->copy()->startOfDay()->utc();
+        $yesterdayEnd = $localYesterday->copy()->endOfDay()->utc();
         
-        $startOfMonth = \Carbon\Carbon::now($tz)->startOfMonth()->utc();
-        $startOfLastMonth = \Carbon\Carbon::now($tz)->subMonth()->startOfMonth()->utc();
-        $endOfLastMonth = \Carbon\Carbon::now($tz)->subMonth()->endOfMonth()->utc();
+        $startOfMonth = $localStartOfMonth->copy()->startOfDay()->utc();
+        $startOfLastMonth = $localStartOfLastMonth->copy()->startOfDay()->utc();
+        $endOfLastMonth = $localEndOfLastMonth->copy()->endOfDay()->utc();
         
-        $sub30Days = \Carbon\Carbon::now($tz)->subDays(30)->utc();
+        $sub30Days = $localSub30Days->copy()->startOfDay()->utc();
 
         // 1. Sales & Orders Today (Ledger-derived via FinancialReportingService)
-        $todayRevenue = (float) $this->frs->getProfitAndLoss($todayStart->toDateString(), $todayEnd->toDateString())['revenue'];
-        $yesterdayRevenue = (float) $this->frs->getProfitAndLoss($yesterdayStart->toDateString(), $yesterdayEnd->toDateString())['revenue'];
+        $todayRevenue = (float) $this->frs->getProfitAndLoss($localToday->toDateString(), $localToday->toDateString())['revenue'];
+        $yesterdayRevenue = (float) $this->frs->getProfitAndLoss($localYesterday->toDateString(), $localYesterday->toDateString())['revenue'];
         $todayCount = Sale::where('status', '!=', 'returned')
             ->whereBetween('created_at', [$todayStart, $todayEnd])
             ->count();
@@ -453,8 +462,8 @@ class SaleController extends Controller
             : ($todayRevenue > 0 ? 100 : 0);
 
         // 2. Monthly Net Sales (Ledger-derived via FinancialReportingService)
-        $monthRevenue = (float) $this->frs->getProfitAndLoss($startOfMonth->toDateString(), $todayEnd->toDateString())['revenue'];
-        $lastMonthRevenue = (float) $this->frs->getProfitAndLoss($startOfLastMonth->toDateString(), $endOfLastMonth->toDateString())['revenue'];
+        $monthRevenue = (float) $this->frs->getProfitAndLoss($localStartOfMonth->toDateString(), $localToday->toDateString())['revenue'];
+        $lastMonthRevenue = (float) $this->frs->getProfitAndLoss($localStartOfLastMonth->toDateString(), $localEndOfLastMonth->toDateString())['revenue'];
         
         $monthCount = Sale::where('status', '!=', 'returned')
             ->where('created_at', '>=', $startOfMonth)

@@ -218,8 +218,8 @@ export default function Dashboard({
                                     {formatCurrency(parseFloat(netProfit[netProfitPeriod]?.value || 0), store)}
                                 </p>
                                 <div className="flex flex-wrap gap-x-2 gap-y-0.5 justify-center mt-1 text-[9px] font-medium opacity-80 leading-none">
-                                    <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Income">In: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
-                                    <span className="text-red-500 whitespace-nowrap" title="Expense">Ex: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
+                                    <span className="text-emerald-600 dark:text-emerald-400 whitespace-nowrap" title="Revenue">Revenue: {formatCurrency(netProfit[netProfitPeriod]?.income || 0, store)}</span>
+                                    <span className="text-red-500 whitespace-nowrap" title="Expenses">Expenses: {formatCurrency(netProfit[netProfitPeriod]?.expense || 0, store)}</span>
                                 </div>
                             </div>
                         </div>

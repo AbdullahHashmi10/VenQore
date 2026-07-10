@@ -192,11 +192,11 @@
                 {{ number_format($sale->net_sales, 2) }}
             </td>
         </tr>
-        @if($sale->tax_amount > 0)
+        @if($sale->total_tax > 0)
         <tr>
             <td>Tax</td>
             <td class="text-right">
-                {{ number_format($sale->tax_amount, 2) }}
+                {{ number_format($sale->total_tax, 2) }}
             </td>
         </tr>
         @endif

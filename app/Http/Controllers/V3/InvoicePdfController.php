@@ -19,7 +19,7 @@ class InvoicePdfController extends Controller
                 'p.name as customer_name',
                 'p.address as customer_address',
                 'p.phone as customer_phone',
-                'p.tax_number as customer_tax_number',
+                DB::raw("'' as customer_tax_number"),
                 'w.name as warehouse_name'
             )
             ->firstOrFail();
@@ -34,6 +34,7 @@ class InvoicePdfController extends Controller
                 'pr.base_unit as sale_uom',
                 'si.unit_price',
                 'si.tax_rate',
+                'si.tax_amount',
                 'si.line_total',
                 'si.free_quantity',
                 'si.discount_amount',

@@ -10,7 +10,7 @@ class TaxService
     private $tenantId;
 
     public function __construct() {
-        $this->tenantId = app()->bound('current.tenant') && app('current.tenant') ? app('current.tenant')->id : null;
+        $this->tenantId = app('current.tenant')->id;
     }
     /**
      * OWNS: All tax calculation logic.
@@ -92,40 +92,29 @@ class TaxService
         $tid = $this->tenantId;
         // M1-06b fix: 2100 is Sales Tax Payable (2200 is Loans Payable — wrong account).
         $account2100 = DB::table('accounts')
-            ->where(function($q) use ($tid) {
-                if ($tid) $q->where('tenant_id', $tid)->orWhereNull('tenant_id');
-                else $q->whereNull('tenant_id');
-            })
+            ->where('tenant_id', $tid)
             ->where('code', '2100')
             ->first();
             
         $account2300 = DB::table('accounts')
-            ->where(function($q) use ($tid) {
-                if ($tid) $q->where('tenant_id', $tid)->orWhereNull('tenant_id');
-                else $q->whereNull('tenant_id');
-            })
+            ->where('tenant_id', $tid)
             ->where('code', '2300')
             ->first();
 
         // 2100 Sales Tax Payable — credit-normal — balance = SUM(credit) - SUM(debit)
         $salesTaxCollected = 0.00;
         if ($account2100) {
-            $query = DB::table('journal_items')
+            $row = DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->where('journal_items.account_id', $account2100->id)
                 ->where('journal_entries.is_reversed', 0)
+                ->where('journal_items.tenant_id', $tid)
                 ->whereBetween('journal_entries.date', [
                     $from->toDateString(),
                     $to->toDateString(),
-                ]);
-
-            if ($tid) {
-                $query->where('journal_items.tenant_id', $tid);
-            } else {
-                $query->whereNull('journal_items.tenant_id');
-            }
-
-            $row = $query->selectRaw('SUM(credit) as total_credit, SUM(debit) as total_debit')->first();
+                ])
+                ->selectRaw('SUM(credit) as total_credit, SUM(debit) as total_debit')
+                ->first();
 
             $salesTaxCollected = round(
                 (float)($row->total_credit ?? 0) - (float)($row->total_debit ?? 0),
@@ -136,22 +125,17 @@ class TaxService
         // 2300 Input Tax Recoverable — debit-normal — balance = SUM(debit) - SUM(credit)
         $inputTaxRecoverable = 0.00;
         if ($account2300) {
-            $query = DB::table('journal_items')
+            $row = DB::table('journal_items')
                 ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
                 ->where('journal_items.account_id', $account2300->id)
                 ->where('journal_entries.is_reversed', 0)
+                ->where('journal_items.tenant_id', $tid)
                 ->whereBetween('journal_entries.date', [
                     $from->toDateString(),
                     $to->toDateString(),
-                ]);
-
-            if ($tid) {
-                $query->where('journal_items.tenant_id', $tid);
-            } else {
-                $query->whereNull('journal_items.tenant_id');
-            }
-
-            $row = $query->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')->first();
+                ])
+                ->selectRaw('SUM(debit) as total_debit, SUM(credit) as total_credit')
+                ->first();
 
             $inputTaxRecoverable = round(
                 (float)($row->total_debit ?? 0) - (float)($row->total_credit ?? 0),

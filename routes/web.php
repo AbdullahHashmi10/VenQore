@@ -786,7 +786,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Suppliers
 
     // Suppliers
-    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->middleware('permission:purchases.view');
+    Route::resource('suppliers', \App\Http\Controllers\SupplierController::class)->only(['index', 'store', 'update', 'destroy'])->middleware('permission:purchases.view');
 
     // Purchase Orders
     Route::resource('purchase-orders', \App\Http\Controllers\PurchaseOrderController::class)->middleware('permission:purchases.view');
@@ -803,7 +803,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     // Sales Orders (Pre-orders with Hold)
     Route::resource('sales-orders', \App\Http\Controllers\SalesOrderController::class)->parameters([
         'sales-orders' => 'order'
-    ]);
+    ])->except(['edit']);
     Route::post('/sales-orders/{salesOrder}/convert', [\App\Http\Controllers\SalesOrderController::class, 'convertToSale'])->name('sales-orders.convert');
     Route::get('/sales-orders/export/excel', [\App\Http\Controllers\SalesOrderController::class, 'export'])->middleware('permission:data.export')->name('sales-orders.export');
     Route::get('/sales-orders/{salesOrder}/print', [\App\Http\Controllers\SalesOrderController::class, 'print'])->name('sales-orders.print');
@@ -1039,7 +1039,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/purchases/{purchase}/receive', [\App\Http\Controllers\PurchaseController::class, 'storeReceive'])->name('purchases.receive.store');
 
     // Customers
-    Route::resource('customers', \App\Http\Controllers\CustomerController::class);
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->except(['show', 'edit']);
     // Customers & Suppliers Search
     Route::get('/customers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('customers.search');
     Route::get('/suppliers-search', [\App\Http\Controllers\PartyController::class, 'search'])->name('suppliers.search');
@@ -1228,7 +1228,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::post('/admin-panel/settings', [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('legacy.admin.settings.update');
     Route::get('/admin-panel/logs', [\App\Http\Controllers\AdminController::class, 'logs'])->middleware('permission:reports.audit')->name('legacy.admin.logs');
     Route::get('/admin-panel/database', [\App\Http\Controllers\AdminController::class, 'database'])->middleware('permission:admin.settings_manage')->name('legacy.admin.database');
-    Route::get('/admin-panel/staff', function () { return redirect()->route('legacy.admin.users'); })->name('legacy.admin.staff');
+    Route::get('/admin-panel/staff', function () { return redirect()->route('store.legacy.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('legacy.admin.staff');
 
     // Staff Attendance
     Route::get('/staff-attendance', [\App\Http\Controllers\StaffAttendanceController::class, 'index'])->name('staff-attendance.index');
@@ -1449,8 +1449,8 @@ Route::prefix('superadmin')
     });
 
 Route::prefix('s/{store_slug}/v3')->name('store.v3.')->middleware(['auth', 'verified', 'tenant'])->group(function () {
-    Route::resource('products', \App\Http\Controllers\V3\ProductController::class);
-    Route::resource('warehouses', \App\Http\Controllers\V3\WarehouseController::class);
+    Route::resource('products', \App\Http\Controllers\V3\ProductController::class)->except(['show']);
+    Route::resource('warehouses', \App\Http\Controllers\V3\WarehouseController::class)->except(['show']);
     Route::resource('purchases', \App\Http\Controllers\V3\PurchaseController::class)
          ->only(['index', 'create', 'store', 'show']);
 

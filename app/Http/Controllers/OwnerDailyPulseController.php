@@ -70,14 +70,17 @@ class OwnerDailyPulseController extends Controller
 
         // --- Self-Healing Auto-Backfiller (Last 30 Days) ---
         $pulseService = new OwnerDailyPulseService();
+        $tz = $tenant->timezone ?: config('app.timezone', 'UTC');
+        $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
+        
         $existingDates = DailySnapshot::where('tenant_id', $tenant->id)
-            ->where('date', '>=', now()->subDays(30)->toDateString())
+            ->where('date', '>=', $now->copy()->subDays(30)->toDateString())
             ->pluck('date')
             ->map(fn($d) => $d instanceof Carbon ? $d->toDateString() : (string) $d)
             ->toArray();
 
         for ($i = 0; $i < 30; $i++) {
-            $targetDate = now()->subDays($i)->toDateString();
+            $targetDate = $now->copy()->subDays($i)->toDateString();
             // Check if snapshot is missing
             if (!in_array($targetDate, $existingDates)) {
                 try {

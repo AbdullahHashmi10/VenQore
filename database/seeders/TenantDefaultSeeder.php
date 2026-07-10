@@ -52,6 +52,7 @@ class TenantDefaultSeeder
             ['code' => '3000', 'name' => "Owner's Capital",          'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '3100', 'name' => 'Retained Earnings',        'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '3999', 'name' => 'Historical Variance',      'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
+            ['code' => '7000', 'name' => 'Opening Balance Equity',   'type' => 'equity',    'balance' => 0, 'normal_balance' => 'credit'],
 
             // Revenue (4xxx) — credit-normal: positive balance = credit > debit
             ['code' => '4000', 'name' => 'Sales Revenue',            'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],

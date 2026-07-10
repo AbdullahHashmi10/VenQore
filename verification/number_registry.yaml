@@ -13,594 +13,3783 @@
 # coverage% = verified_metrics / total LEDGER-DERIVED entries
 # ============================================================
 # Generator: verify:map artisan command (auto-regenerated)
-# Last updated: 2026-07-09
+# Last updated: 2026-07-10
 # ============================================================
 
-version: "1.0"
-schema: "venqore-number-registry"
-
-# ── DASHBOARD ─────────────────────────────────────────────────────────────────
+version: '1.0'
+schema: venqore-number-registry
 metrics:
-  - id: "DASH-001"
-    name: "Cash Balance"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\V3\\AccountingService@getBalance('1000')"
-    ledger_accounts: ["1000"]
-    source_query: "journal_items aggregated through AccountingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: DASH-001
+    name: 'Cash Balance'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: 'App\Services\V3\AccountingService@getBalance(''1000'')'
+    ledger_accounts:
+      - '1000'
+    source_query: 'journal_items aggregated through AccountingService'
+    classification: LEDGER-DERIVED
+    verified: true
+    notes: 'Account 1000 = Cash in Hand'
+  -
+    id: DASH-002
+    name: 'Bank Balance'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: 'App\Services\V3\AccountingService@getBalance(''1010'')'
+    ledger_accounts:
+      - '1010'
+    source_query: 'journal_items aggregated through AccountingService'
+    classification: LEDGER-DERIVED
+    verified: true
+    notes: 'Account 1010 = Bank'
+  -
+    id: DASH-003
+    name: 'Total Receivables (Accounts Receivable)'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: 'App\Services\V3\AccountingService@getBalance(''1200'')'
+    ledger_accounts:
+      - '1200'
+    source_query: 'journal_items aggregated through AccountingService'
+    classification: LEDGER-DERIVED
+    verified: true
+    notes: 'Account 1200 = Accounts Receivable'
+  -
+    id: DASH-004
+    name: 'Total Payables (Accounts Payable)'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: 'App\Services\V3\AccountingService@getBalance(''2000'')'
+    ledger_accounts:
+      - '2000'
+    source_query: 'journal_items aggregated through AccountingService'
+    classification: LEDGER-DERIVED
+    verified: true
+    notes: 'Account 2000 = Accounts Payable'
+  -
+    id: DASH-005
+    name: 'Revenue MTD (Month-to-Date)'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: App\Services\FinancialReportingService@getProfitAndLoss
+    ledger_accounts:
+      - '4000'
+      - '4100'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: DASH-006
+    name: 'COGS MTD (Month-to-Date)'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: App\Services\FinancialReportingService@getProfitAndLoss
+    ledger_accounts:
+      - '5000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: DASH-007
+    name: 'Net Profit MTD'
+    route: store.dashboard
+    route_uri: 'GET /dashboard'
+    inertia_page: Dashboard
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: App\Services\FinancialReportingService@getProfitAndLoss
+    ledger_accounts:
+      - '4000'
+      - '5000'
+      - '6000'
+    source_query: 'journal_items via FinancialReportingService (revenue - cogs - expenses)'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-001
+    name: 'Trial Balance — all account balances'
+    route: store.v3.reports.trial-balance
+    route_uri: 'GET s/{store_slug}/v3/reports/trial-balance'
+    inertia_page: Reports/TrialBalance
+    controller: App\Http\Controllers\V3\ReportController@trialBalance
+    service: App\Services\FinancialReportingService@getTrialBalance
+    ledger_accounts:
+      - ALL
+    source_query: 'journal_items grouped by account_code'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-002
+    name: 'Profit & Loss — Revenue, COGS, Gross Profit, Net Profit'
+    route: store.v3.reports.profit-loss
+    route_uri: 'GET s/{store_slug}/v3/reports/profit-loss'
+    inertia_page: Reports/ProfitLoss
+    controller: App\Http\Controllers\V3\ReportController@profitAndLoss
+    service: App\Services\FinancialReportingService@getProfitAndLoss
+    ledger_accounts:
+      - 4xxx
+      - 5xxx
+      - 6xxx
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-003
+    name: 'Balance Sheet — Assets, Liabilities, Equity'
+    route: store.v3.reports.balance-sheet
+    route_uri: 'GET s/{store_slug}/v3/reports/balance-sheet'
+    inertia_page: Reports/BalanceSheet
+    controller: App\Http\Controllers\V3\ReportController@balanceSheet
+    service: App\Services\FinancialReportingService@getBalanceSheet
+    ledger_accounts:
+      - 1xxx
+      - 2xxx
+      - 3xxx
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-004
+    name: 'Cash Flow Statement'
+    route: store.v3.reports.cash-flow
+    route_uri: 'GET s/{store_slug}/v3/reports/cash-flow'
+    inertia_page: Reports/CashFlow
+    controller: App\Http\Controllers\V3\ReportController@cashFlow
+    service: App\Services\FinancialReportingService@getCashFlowReport
+    ledger_accounts:
+      - '1000'
+      - '1010'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-005
+    name: 'Aged Receivables — per customer, per bucket'
+    route: store.v3.reports.aged-receivables
+    route_uri: 'GET s/{store_slug}/v3/reports/aged-receivables'
+    inertia_page: Reports/AgedReceivables
+    controller: App\Http\Controllers\V3\ReportController@agedReceivables
+    service: App\Services\FinancialReportingService@getAgedReceivables
+    ledger_accounts:
+      - '1200'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-006
+    name: 'Aged Payables — per vendor, per bucket'
+    route: store.v3.reports.aged-payables
+    route_uri: 'GET s/{store_slug}/v3/reports/aged-payables'
+    inertia_page: Reports/AgedPayables
+    controller: App\Http\Controllers\V3\ReportController@agedPayables
+    service: App\Services\FinancialReportingService@getAgedPayables
+    ledger_accounts:
+      - '2000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-007
+    name: 'Sales Report — total sales, discounts, tax, net'
+    route: store.v3.reports.sales
+    route_uri: 'GET s/{store_slug}/v3/reports/sales'
+    inertia_page: Reports/Sales
+    controller: App\Http\Controllers\V3\ReportController@sales
+    service: App\Services\FinancialReportingService@getSalesReport
+    ledger_accounts:
+      - '4000'
+      - '2100'
+      - '1200'
+      - '1000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-008
+    name: 'Purchases Report — total purchases, AP, payments'
+    route: store.v3.reports.purchases
+    route_uri: 'GET s/{store_slug}/v3/reports/purchases'
+    inertia_page: Reports/Purchases
+    controller: App\Http\Controllers\V3\ReportController@purchases
+    service: App\Services\FinancialReportingService@getPurchasesReport
+    ledger_accounts:
+      - '1100'
+      - '2000'
+      - '1000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-009
+    name: 'Inventory Valuation — per product, total value'
+    route: store.v3.reports.inventory-valuation
+    route_uri: 'GET s/{store_slug}/v3/reports/inventory-valuation'
+    inertia_page: Reports/InventoryValuation
+    controller: App\Http\Controllers\V3\ReportController@inventoryValuation
+    service: App\Services\FinancialReportingService@getInventoryValuationReport
+    ledger_accounts:
+      - '1100'
+    source_query: 'inventory_batches FIFO layers + journal validation'
+    classification: LEDGER-DERIVED
+    verified: true
+    notes: 'Must match GL Account 1100 balance — three-way tie required'
+  -
+    id: RPT-010
+    name: 'COGS Report — per sale, per period'
+    route: store.v3.reports.cogs
+    route_uri: 'GET s/{store_slug}/v3/reports/cogs'
+    inertia_page: Reports/Cogs
+    controller: App\Http\Controllers\V3\ReportController@cogs
+    service: App\Services\FinancialReportingService@getCogsReport
+    ledger_accounts:
+      - '5000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-011
+    name: 'Gross Profit Report — per sale/product/category'
+    route: store.v3.reports.gross-profit
+    route_uri: 'GET s/{store_slug}/v3/reports/gross-profit'
+    inertia_page: Reports/GrossProfit
+    controller: App\Http\Controllers\V3\ReportController@grossProfit
+    service: App\Services\FinancialReportingService@getGrossProfitBySale
+    ledger_accounts:
+      - '4000'
+      - '5000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-012
+    name: 'Tax Report — collected, paid, liability'
+    route: store.v3.reports.tax
+    route_uri: 'GET s/{store_slug}/v3/reports/tax'
+    inertia_page: Reports/Tax
+    controller: App\Http\Controllers\V3\ReportController@tax
+    service: App\Services\FinancialReportingService@getTaxSummary
+    ledger_accounts:
+      - '2100'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-013
+    name: 'Party Ledger — per customer/vendor transaction history'
+    route: store.v3.reports.party-ledger
+    route_uri: 'GET s/{store_slug}/v3/reports/party-ledger/{partyId}'
+    inertia_page: Reports/PartyLedger
+    controller: App\Http\Controllers\V3\ReportController@partyLedger
+    service: App\Services\FinancialReportingService@getPartyLedger
+    ledger_accounts:
+      - '1200'
+      - '2000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: RPT-014
+    name: 'Inventory Movement — stock in/out per product/period'
+    route: store.v3.reports.inventory-movement
+    route_uri: 'GET s/{store_slug}/v3/reports/inventory-movement'
+    inertia_page: Reports/InventoryMovement
+    controller: App\Http\Controllers\V3\ReportController@inventoryMovement
+    service: App\Services\FinancialReportingService@getInventoryMovement
+    ledger_accounts:
+      - '1100'
+    source_query: 'inventory_batches + stock_movements'
+    classification: LEDGER-DERIVED
+    verified: true
+    notes: 'Mixes inventory_batches (physical) and journal (financial) — needs audit'
+  -
+    id: STMT-001
+    name: 'Customer Statement — balance, invoices, payments'
+    route: store.customers.statement
+    route_uri: 'GET /customers/{id}/statement'
+    inertia_page: Customers/Statement
+    controller: App\Http\Controllers\V3\CustomerStatementController@show
+    service: App\Services\FinancialReportingService@getPartyLedger
+    ledger_accounts:
+      - '1200'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: TRANSACTION-DERIVED
     verified: false
-    notes: "Account 1000 = Cash in Hand"
-
-  - id: "DASH-002"
-    name: "Bank Balance"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\V3\\AccountingService@getBalance('1010')"
-    ledger_accounts: ["1010"]
-    source_query: "journal_items aggregated through AccountingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: STMT-002
+    name: 'Supplier Statement — balance, bills, payments'
+    route: store.suppliers.statement
+    route_uri: 'GET /suppliers/{id}/statement'
+    inertia_page: Suppliers/Statement
+    controller: App\Http\Controllers\V3\SupplierStatementController@show
+    service: App\Services\FinancialReportingService@getPartyLedger
+    ledger_accounts:
+      - '2000'
+    source_query: 'journal_items via FinancialReportingService'
+    classification: TRANSACTION-DERIVED
     verified: false
-    notes: "Account 1010 = Bank"
-
-  - id: "DASH-003"
-    name: "Total Receivables (Accounts Receivable)"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\V3\\AccountingService@getBalance('1200')"
-    ledger_accounts: ["1200"]
-    source_query: "journal_items aggregated through AccountingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: POS-001
+    name: 'POS Cart Total (live checkout calculation)'
+    route: pos
+    route_uri: 'GET /pos'
+    inertia_page: Pos
+    controller: App\Http\Controllers\PosController@index
+    service: 'NONE — calculated in Pos.jsx frontend'
+    ledger_accounts: {  }
+    source_query: 'JavaScript arithmetic in Pos.jsx (parseFloat, reduce)'
+    classification: NON-FINANCIAL
     verified: false
-    notes: "Account 1200 = Accounts Receivable"
-
-  - id: "DASH-004"
-    name: "Total Payables (Accounts Payable)"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\V3\\AccountingService@getBalance('2000')"
-    ledger_accounts: ["2000"]
-    source_query: "journal_items aggregated through AccountingService"
-    classification: "LEDGER-DERIVED"
+    risk: 'HIGH — JS-side math not covered by backend tests; Phase 10 target'
+    notes: 'subtotal, discount, tax, total all computed in React'
+  -
+    id: POS-002
+    name: 'POS Session Cash Summary (open/close session)'
+    route: pos.open
+    route_uri: 'POST /pos/open-session'
+    inertia_page: Pos
+    controller: App\Http\Controllers\PosController@openSession
+    service: 'NONE — raw DB write'
+    ledger_accounts: {  }
+    source_query: 'pos_sessions table'
+    classification: NON-FINANCIAL
     verified: false
-    notes: "Account 2000 = Accounts Payable"
-
-  - id: "DASH-005"
-    name: "Revenue MTD (Month-to-Date)"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
-    ledger_accounts: ["4000", "4100"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: POS-003
+    name: 'Sale stored to ledger (checkout POST)'
+    route: store.sales.store
+    route_uri: 'POST /sales'
+    inertia_page: Pos
+    controller: 'App\Http\Controllers\SaleController@store (LEGACY)'
+    service: 'App\Services\V3\FifoService (partial) — postSaleJournal inline'
+    ledger_accounts:
+      - '4000'
+      - '1200'
+      - '1000'
+      - '5000'
+      - '1100'
+    source_query: 'inline journal write in SaleController::postSaleJournal()'
+    classification: HYBRID
     verified: false
-
-  - id: "DASH-006"
-    name: "COGS MTD (Month-to-Date)"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
-    ledger_accounts: ["5000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+    risk: 'CRITICAL — COGS fabrication bug on FIFO failure (Audit Finding 1)'
+    notes: 'See MASTER_IMPLEMENTATION_PLAN L001'
+  -
+    id: WOO-001
+    name: 'WooCommerce Sale — revenue & COGS'
+    route: woocommerce.webhook
+    route_uri: 'POST /woocommerce/webhook'
+    inertia_page: 'NONE — webhook'
+    controller: App\Http\Controllers\WooCommerceController@webhook
+    service: 'App\Services\InventoryService@processSale (LEGACY — no journal)'
+    ledger_accounts: {  }
+    source_query: 'Transaction::create() — NO journal_entry created'
+    classification: NON-FINANCIAL
     verified: false
-
-  - id: "DASH-007"
-    name: "Net Profit MTD"
-    route: "store.dashboard"
-    route_uri: "GET /dashboard"
-    inertia_page: "Dashboard"
-    controller: "App\\Http\\Controllers\\V3\\DashboardController@index"
-    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
-    ledger_accounts: ["4000", "5000", "6000"]
-    source_query: "journal_items via FinancialReportingService (revenue - cogs - expenses)"
-    classification: "LEDGER-DERIVED"
+    risk: 'CRITICAL — WooCommerce sales invisible to ALL financial reports (Audit Finding 3)'
+    notes: 'See MASTER_IMPLEMENTATION_PLAN L003'
+  -
+    id: EXP-001
+    name: 'Report Export — PDF/Excel/CSV for all financial reports'
+    route: store.v3.reports.export
+    route_uri: 'GET s/{store_slug}/v3/reports/export/{type}'
+    inertia_page: 'NONE — download'
+    controller: App\Http\Controllers\V3\ReportExportController
+    service: 'App\Services\FinancialReportingService (mirrors ReportController)'
+    ledger_accounts:
+      - ALL
+    source_query: 'journal_items via FinancialReportingService'
+    classification: HYBRID
     verified: false
-
-# ── FINANCIAL REPORTS (ReportController → FinancialReportingService) ──────────
-
-  - id: "RPT-001"
-    name: "Trial Balance — all account balances"
-    route: "store.reports.trial-balance"
-    route_uri: "GET /reports/trial-balance"
-    inertia_page: "Reports/TrialBalance"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@trialBalance"
-    service: "App\\Services\\FinancialReportingService@getTrialBalance"
-    ledger_accounts: ["ALL"]
-    source_query: "journal_items grouped by account_code"
-    classification: "LEDGER-DERIVED"
+    notes: 'Exports must byte-match the on-screen report totals — Phase 5 target'
+  -
+    id: SALE-001
+    name: 'Sales List — invoice totals, balances'
+    route: store.sales.index
+    route_uri: 'GET /sales'
+    inertia_page: Sales/Index
+    controller: App\Http\Controllers\SaleController@index
+    service: 'NONE — direct Sale model query'
+    ledger_accounts: {  }
+    source_query: 'sales table direct SELECT'
+    classification: HYBRID
+    verified: true
+    risk: 'MEDIUM — does not read from ledger; consistency with reports depends on sync'
+  -
+    id: SALE-002
+    name: 'Sale Show — invoice detail totals'
+    route: store.sales.show
+    route_uri: 'GET /sales/{id}'
+    inertia_page: Sales/Show
+    controller: App\Http\Controllers\SaleController@show
+    service: 'NONE — direct Sale model query'
+    ledger_accounts: {  }
+    source_query: 'sales + sale_items table'
+    classification: HYBRID
+    verified: true
+  -
+    id: SALE-003
+    name: 'Sell Command Center / Sales Dashboard KPIs'
+    route: store.sales.dashboard
+    route_uri: 'GET /sales'
+    inertia_page: Sales/Dashboard
+    controller: App\Http\Controllers\SaleController@dashboard
+    service: App\Services\FinancialReportingService
+    ledger_accounts:
+      - '4000'
+      - '4100'
+    source_query: 'ledger-derived via FinancialReportingService'
+    classification: HYBRID
+    verified: true
+  -
+    id: PUR-001
+    name: 'Purchases List — bill totals, AP balances'
+    route: store.purchases.index
+    route_uri: 'GET /purchases'
+    inertia_page: Purchases/Index
+    controller: App\Http\Controllers\V3\PurchaseController@index
+    service: 'NONE — direct Purchase model'
+    ledger_accounts: {  }
+    source_query: 'purchases table direct SELECT'
+    classification: HYBRID
+    verified: true
+  -
+    id: EXP-101
+    name: 'Expense List — totals by category'
+    route: store.expenses.index
+    route_uri: 'GET /expenses'
+    inertia_page: Expenses/Index
+    controller: App\Http\Controllers\V3\ExpenseController@index
+    service: 'NONE — direct Expense model'
+    ledger_accounts: {  }
+    source_query: 'expenses table direct SELECT'
+    classification: HYBRID
+    verified: true
+  -
+    id: PAY-001
+    name: 'Payroll — salary totals, deductions, net pay'
+    route: store.payroll.index
+    route_uri: 'GET /payroll'
+    inertia_page: Payroll/Index
+    controller: App\Http\Controllers\V3\PayrollController@index
+    service: 'NONE — direct PayrollRun model'
+    ledger_accounts: {  }
+    source_query: 'payroll_runs + payroll_entries table'
+    classification: HYBRID
     verified: false
-
-  - id: "RPT-002"
-    name: "Profit & Loss — Revenue, COGS, Gross Profit, Net Profit"
-    route: "store.reports.profit-loss"
-    route_uri: "GET /reports/profit-loss"
-    inertia_page: "Reports/ProfitLoss"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@profitAndLoss"
-    service: "App\\Services\\FinancialReportingService@getProfitAndLoss"
-    ledger_accounts: ["4xxx", "5xxx", "6xxx"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: AST-001
+    name: 'Asset List — book value, accumulated depreciation'
+    route: store.assets.index
+    route_uri: 'GET /assets'
+    inertia_page: Assets/Index
+    controller: App\Http\Controllers\V3\AssetController@index
+    service: 'NONE — direct Asset model'
+    ledger_accounts:
+      - '1500'
+      - '1510'
+    source_query: 'assets table with depreciation_runs join'
+    classification: HYBRID
     verified: false
-
-  - id: "RPT-003"
-    name: "Balance Sheet — Assets, Liabilities, Equity"
-    route: "store.reports.balance-sheet"
-    route_uri: "GET /reports/balance-sheet"
-    inertia_page: "Reports/BalanceSheet"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@balanceSheet"
-    service: "App\\Services\\FinancialReportingService@getBalanceSheet"
-    ledger_accounts: ["1xxx", "2xxx", "3xxx"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: LOAN-001
+    name: 'Loan List — principal, interest, outstanding'
+    route: store.loans.index
+    route_uri: 'GET /loans'
+    inertia_page: Loans/Index
+    controller: App\Http\Controllers\V3\LoanController@index
+    service: 'NONE — direct Loan model'
+    ledger_accounts:
+      - '2200'
+    source_query: 'loans + loan_payments table'
+    classification: HYBRID
     verified: false
-
-  - id: "RPT-004"
-    name: "Cash Flow Statement"
-    route: "store.reports.cash-flow"
-    route_uri: "GET /reports/cash-flow"
-    inertia_page: "Reports/CashFlow"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@cashFlow"
-    service: "App\\Services\\FinancialReportingService@getCashFlowReport"
-    ledger_accounts: ["1000", "1010"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: BANK-001
+    name: 'Bank Account Balances'
+    route: store.banks.index
+    route_uri: 'GET /bank-accounts'
+    inertia_page: BankAccounts/Index
+    controller: App\Http\Controllers\Api\BankAccountController@index
+    service: 'NONE — direct BankAccount model'
+    ledger_accounts:
+      - '1010'
+    source_query: 'bank_accounts table balance column'
+    classification: TRANSACTION-DERIVED
     verified: false
-
-  - id: "RPT-005"
-    name: "Aged Receivables — per customer, per bucket"
-    route: "store.reports.aged-receivables"
-    route_uri: "GET /reports/aged-receivables"
-    inertia_page: "Reports/AgedReceivables"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@agedReceivables"
-    service: "App\\Services\\FinancialReportingService@getAgedReceivables"
-    ledger_accounts: ["1200"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+    risk: 'MEDIUM — balance column may not reconcile with ledger account 1010'
+  -
+    id: FUND-001
+    name: 'Fund Balances'
+    route: store.funds.index
+    route_uri: 'GET /funds'
+    inertia_page: Funds/Index
+    controller: App\Http\Controllers\V3\FundController@index
+    service: 'NONE — direct Fund model'
+    ledger_accounts:
+      - '1000'
+    source_query: 'funds table balance column'
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-001
+    name: 'Create Or Join'
+    route: store.create-or-join
+    route_uri: 'GET start'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StoreController@createOrJoin
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-002
+    name: Create
+    route: store.create
+    route_uri: 'GET new-store'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StoreController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-003
+    name: Join
+    route: store.join
+    route_uri: 'GET join'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StaffController@joinForm
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-004
+    name: ''
+    route: store.
+    route_uri: 'GET s/{store_slug}'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-005
+    name: Setup
+    route: store.setup
+    route_uri: 'GET s/{store_slug}/setup'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SetupController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-006
+    name: Pos
+    route: store.pos
+    route_uri: 'GET s/{store_slug}/pos'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PosController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-007
+    name: Staff
+    route: store.staff
+    route_uri: 'GET s/{store_slug}/staff'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StaffController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-008
+    name: Billing
+    route: store.billing
+    route_uri: 'GET s/{store_slug}/billing'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\BillingController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-009
+    name: Settings
+    route: store.settings
+    route_uri: 'GET s/{store_slug}/settings'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SettingsController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-010
+    name: 'Smart Capture Context'
+    route: store.smart-capture.context
+    route_uri: 'GET s/{store_slug}/smart-capture/context'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SmartCapture\SmartCaptureController@context
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-011
+    name: 'Smart Capture Settings'
+    route: store.smart-capture.settings
+    route_uri: 'GET s/{store_slug}/smart-capture/settings'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SmartCapture\SmartCaptureController@settings
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-012
+    name: 'Trial Expired'
+    route: store.trial.expired
+    route_uri: 'GET s/{store_slug}/trial-expired'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-013
+    name: 'Notifications Plan Unread'
+    route: store.notifications.plan.unread
+    route_uri: 'GET s/{store_slug}/notifications/plan/unread'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PlanNotificationController@unread
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-014
+    name: 'Admin Home'
+    route: store.admin.home
+    route_uri: 'GET s/{store_slug}/admin'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-015
+    name: 'Admin Dashboard'
+    route: store.admin.dashboard
+    route_uri: 'GET s/{store_slug}/admin/dashboard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-016
+    name: 'Admin Settings'
+    route: store.admin.settings
+    route_uri: 'GET s/{store_slug}/admin/settings'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@settings
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-017
+    name: 'Admin Users'
+    route: store.admin.users
+    route_uri: 'GET s/{store_slug}/admin/users'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StaffInvitationController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-018
+    name: 'Admin Staff'
+    route: store.admin.staff
+    route_uri: 'GET s/{store_slug}/admin/staff'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-019
+    name: 'Admin Attendance'
+    route: store.admin.attendance
+    route_uri: 'GET s/{store_slug}/admin/attendance'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-020
+    name: 'Admin Logs'
+    route: store.admin.logs
+    route_uri: 'GET s/{store_slug}/admin/logs'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@logs
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-021
+    name: 'Admin Data'
+    route: store.admin.data
+    route_uri: 'GET s/{store_slug}/admin/data-management'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DataManagementController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-022
+    name: 'Admin Recycle Bin Index'
+    route: store.admin.recycle-bin.index
+    route_uri: 'GET s/{store_slug}/admin/recycle-bin'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\RecycleBinController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-023
+    name: 'Admin Chatbot Settings'
+    route: store.admin.chatbot.settings
+    route_uri: 'GET s/{store_slug}/admin/chatbot/settings'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StoreChatbotSettingsController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-024
+    name: 'Admin Chatbot Inbox'
+    route: store.admin.chatbot.inbox
+    route_uri: 'GET s/{store_slug}/admin/chatbot/inbox'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-025
+    name: 'Admin Chatbot Sessions'
+    route: store.admin.chatbot.sessions
+    route_uri: 'GET s/{store_slug}/admin/chatbot/sessions'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AgentChatController@sessions
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-026
+    name: 'Admin Chatbot Assist Suggestion'
+    route: store.admin.chatbot.assist-suggestion
+    route_uri: 'GET s/{store_slug}/admin/chatbot/sessions/{uuid}/assist-suggestion'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AgentChatController@assistSuggestion
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-027
+    name: 'Admin Chatbot Canned Responses'
+    route: store.admin.chatbot.canned-responses
+    route_uri: 'GET s/{store_slug}/admin/chatbot/canned-responses'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AgentChatController@cannedResponses
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-028
+    name: 'Admin Vena Tickets'
+    route: store.admin.vena.tickets
+    route_uri: 'GET s/{store_slug}/admin/vena-tickets'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\Admin\VenaTicketsController@storeIndex
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-029
+    name: 'Inventory Search'
+    route: store.inventory.search
+    route_uri: 'GET s/{store_slug}/inventory/search'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@search
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-030
+    name: 'Customers Search'
+    route: store.customers.search
+    route_uri: 'GET s/{store_slug}/customers-search'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PartyController@search
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-031
+    name: 'Sales Parked'
+    route: store.sales.parked
+    route_uri: 'GET s/{store_slug}/sales/parked'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SaleController@getParkedSales
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-032
+    name: 'Sales Recall'
+    route: store.sales.recall
+    route_uri: 'GET s/{store_slug}/sales/parked/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SaleController@recall
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-033
+    name: Home
+    route: store.home
+    route_uri: 'GET s/{store_slug}/home'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DashboardController@home
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-034
+    name: 'Dashboard V1'
+    route: store.dashboard-v1
+    route_uri: 'GET s/{store_slug}/dashboard-v1'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DashboardController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-035
+    name: 'Inventory Dashboard'
+    route: store.inventory.dashboard
+    route_uri: 'GET s/{store_slug}/inventory'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-036
+    name: 'Inventory Index'
+    route: store.inventory.index
+    route_uri: 'GET s/{store_slug}/inventory/list'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-037
+    name: 'Inventory Stats'
+    route: store.inventory.stats
+    route_uri: 'GET s/{store_slug}/inventory/{id}/stats'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@stats
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
     verified: false
-
-  - id: "RPT-006"
-    name: "Aged Payables — per vendor, per bucket"
-    route: "store.reports.aged-payables"
-    route_uri: "GET /reports/aged-payables"
-    inertia_page: "Reports/AgedPayables"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@agedPayables"
-    service: "App\\Services\\FinancialReportingService@getAgedPayables"
-    ledger_accounts: ["2000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
+  -
+    id: M-AUTO-038
+    name: 'Inventory Reservations'
+    route: store.inventory.reservations
+    route_uri: 'GET s/{store_slug}/inventory/{id}/reservations'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@getReservations
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-039
+    name: 'Inventory History'
+    route: store.inventory.history
+    route_uri: 'GET s/{store_slug}/inventory/{id}/history'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@getHistory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-040
+    name: 'Stock Operations'
+    route: store.stock-operations
+    route_uri: 'GET s/{store_slug}/stock-operations'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockOperationsController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-041
+    name: 'Activity Log Index'
+    route: store.activity-log.index
+    route_uri: 'GET s/{store_slug}/activity-log'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ActivityLogController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-042
+    name: 'Suppliers Index'
+    route: store.suppliers.index
+    route_uri: 'GET s/{store_slug}/suppliers'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SupplierController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-043
+    name: 'Purchase Orders Index'
+    route: store.purchase-orders.index
+    route_uri: 'GET s/{store_slug}/purchase-orders'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseOrderController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-044
+    name: 'Purchase Orders Create'
+    route: store.purchase-orders.create
+    route_uri: 'GET s/{store_slug}/purchase-orders/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseOrderController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-045
+    name: 'Purchase Orders Show'
+    route: store.purchase-orders.show
+    route_uri: 'GET s/{store_slug}/purchase-orders/{purchase_order}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseOrderController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-046
+    name: 'Purchase Orders Edit'
+    route: store.purchase-orders.edit
+    route_uri: 'GET s/{store_slug}/purchase-orders/{purchase_order}/edit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseOrderController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-047
+    name: 'Proposals Index'
+    route: store.proposals.index
+    route_uri: 'GET s/{store_slug}/proposals'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProposalController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-048
+    name: 'Proposals Create'
+    route: store.proposals.create
+    route_uri: 'GET s/{store_slug}/proposals/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProposalController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-049
+    name: 'Sales Orders Index'
+    route: store.sales-orders.index
+    route_uri: 'GET s/{store_slug}/sales-orders'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SalesOrderController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-050
+    name: 'Sales Orders Create'
+    route: store.sales-orders.create
+    route_uri: 'GET s/{store_slug}/sales-orders/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SalesOrderController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-051
+    name: 'Sales Orders Show'
+    route: store.sales-orders.show
+    route_uri: 'GET s/{store_slug}/sales-orders/{order}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SalesOrderController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
     verified: false
-
-  - id: "RPT-007"
-    name: "Sales Report — total sales, discounts, tax, net"
-    route: "store.reports.sales"
-    route_uri: "GET /reports/sales"
-    inertia_page: "Reports/Sales"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@sales"
-    service: "App\\Services\\FinancialReportingService@getSalesReport"
-    ledger_accounts: ["4000", "2100", "1200", "1000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "RPT-008"
-    name: "Purchases Report — total purchases, AP, payments"
-    route: "store.reports.purchases"
-    route_uri: "GET /reports/purchases"
-    inertia_page: "Reports/Purchases"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@purchases"
-    service: "App\\Services\\FinancialReportingService@getPurchasesReport"
-    ledger_accounts: ["1100", "2000", "1000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "RPT-009"
-    name: "Inventory Valuation — per product, total value"
-    route: "store.reports.inventory-valuation"
-    route_uri: "GET /reports/inventory-valuation"
-    inertia_page: "Reports/InventoryValuation"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@inventoryValuation"
-    service: "App\\Services\\FinancialReportingService@getInventoryValuationReport"
-    ledger_accounts: ["1100"]
-    source_query: "inventory_batches FIFO layers + journal validation"
-    classification: "LEDGER-DERIVED"
-    verified: false
-    notes: "Must match GL Account 1100 balance — three-way tie required"
-
-  - id: "RPT-010"
-    name: "COGS Report — per sale, per period"
-    route: "store.reports.cogs"
-    route_uri: "GET /reports/cogs"
-    inertia_page: "Reports/Cogs"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@cogs"
-    service: "App\\Services\\FinancialReportingService@getCogsReport"
-    ledger_accounts: ["5000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "RPT-011"
-    name: "Gross Profit Report — per sale/product/category"
-    route: "store.reports.gross-profit"
-    route_uri: "GET /reports/gross-profit"
-    inertia_page: "Reports/GrossProfit"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@grossProfit"
-    service: "App\\Services\\FinancialReportingService@getGrossProfitBySale"
-    ledger_accounts: ["4000", "5000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "RPT-012"
-    name: "Tax Report — collected, paid, liability"
-    route: "store.reports.tax"
-    route_uri: "GET /reports/tax"
-    inertia_page: "Reports/Tax"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@tax"
-    service: "App\\Services\\FinancialReportingService@getTaxSummary"
-    ledger_accounts: ["2100"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "RPT-013"
-    name: "Party Ledger — per customer/vendor transaction history"
-    route: "store.reports.party-ledger"
-    route_uri: "GET /reports/party-ledger/{partyId}"
-    inertia_page: "Reports/PartyLedger"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@partyLedger"
-    service: "App\\Services\\FinancialReportingService@getPartyLedger"
-    ledger_accounts: ["1200", "2000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "RPT-014"
-    name: "Inventory Movement — stock in/out per product/period"
-    route: "store.reports.inventory-movement"
-    route_uri: "GET /reports/inventory-movement"
-    inertia_page: "Reports/InventoryMovement"
-    controller: "App\\Http\\Controllers\\V3\\ReportController@inventoryMovement"
-    service: "App\\Services\\FinancialReportingService@getInventoryMovement"
-    ledger_accounts: ["1100"]
-    source_query: "inventory_batches + stock_movements"
-    classification: "HYBRID"
-    verified: false
-    notes: "Mixes inventory_batches (physical) and journal (financial) — needs audit"
-
-# ── CUSTOMER / SUPPLIER STATEMENTS ───────────────────────────────────────────
-
-  - id: "STMT-001"
-    name: "Customer Statement — balance, invoices, payments"
-    route: "store.customers.statement"
-    route_uri: "GET /customers/{id}/statement"
-    inertia_page: "Customers/Statement"
-    controller: "App\\Http\\Controllers\\V3\\CustomerStatementController@show"
-    service: "App\\Services\\FinancialReportingService@getPartyLedger"
-    ledger_accounts: ["1200"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-  - id: "STMT-002"
-    name: "Supplier Statement — balance, bills, payments"
-    route: "store.suppliers.statement"
-    route_uri: "GET /suppliers/{id}/statement"
-    inertia_page: "Suppliers/Statement"
-    controller: "App\\Http\\Controllers\\V3\\SupplierStatementController@show"
-    service: "App\\Services\\FinancialReportingService@getPartyLedger"
-    ledger_accounts: ["2000"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-# ── POS TERMINAL ─────────────────────────────────────────────────────────────
-
-  - id: "POS-001"
-    name: "POS Cart Total (live checkout calculation)"
-    route: "pos"
-    route_uri: "GET /pos"
-    inertia_page: "Pos"
-    controller: "App\\Http\\Controllers\\PosController@index"
-    service: "NONE — calculated in Pos.jsx frontend"
-    ledger_accounts: []
-    source_query: "JavaScript arithmetic in Pos.jsx (parseFloat, reduce)"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-    risk: "HIGH — JS-side math not covered by backend tests; Phase 10 target"
-    notes: "subtotal, discount, tax, total all computed in React"
-
-  - id: "POS-002"
-    name: "POS Session Cash Summary (open/close session)"
-    route: "pos.open"
-    route_uri: "POST /pos/open-session"
-    inertia_page: "Pos"
-    controller: "App\\Http\\Controllers\\PosController@openSession"
-    service: "NONE — raw DB write"
-    ledger_accounts: []
-    source_query: "pos_sessions table"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-
-  - id: "POS-003"
-    name: "Sale stored to ledger (checkout POST)"
-    route: "store.sales.store"
-    route_uri: "POST /sales"
-    inertia_page: "Pos"
-    controller: "App\\Http\\Controllers\\SaleController@store (LEGACY)"
-    service: "App\\Services\\V3\\FifoService (partial) — postSaleJournal inline"
-    ledger_accounts: ["4000", "1200", "1000", "5000", "1100"]
-    source_query: "inline journal write in SaleController::postSaleJournal()"
-    classification: "HYBRID"
-    verified: false
-    risk: "CRITICAL — COGS fabrication bug on FIFO failure (Audit Finding 1)"
-    notes: "See MASTER_IMPLEMENTATION_PLAN L001"
-
-# ── WOOCOMMERCE ───────────────────────────────────────────────────────────────
-
-  - id: "WOO-001"
-    name: "WooCommerce Sale — revenue & COGS"
-    route: "woocommerce.webhook"
-    route_uri: "POST /woocommerce/webhook"
-    inertia_page: "NONE — webhook"
-    controller: "App\\Http\\Controllers\\WooCommerceController@webhook"
-    service: "App\\Services\\InventoryService@processSale (LEGACY — no journal)"
-    ledger_accounts: []
-    source_query: "Transaction::create() — NO journal_entry created"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-    risk: "CRITICAL — WooCommerce sales invisible to ALL financial reports (Audit Finding 3)"
-    notes: "See MASTER_IMPLEMENTATION_PLAN L003"
-
-# ── EXPORT SURFACES ───────────────────────────────────────────────────────────
-
-  - id: "EXP-001"
-    name: "Report Export — PDF/Excel/CSV for all financial reports"
-    route: "store.reports.export"
-    route_uri: "GET /reports/export/{type}"
-    inertia_page: "NONE — download"
-    controller: "App\\Http\\Controllers\\V3\\ReportExportController"
-    service: "App\\Services\\FinancialReportingService (mirrors ReportController)"
-    ledger_accounts: ["ALL"]
-    source_query: "journal_items via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-    notes: "Exports must byte-match the on-screen report totals — Phase 5 target"
-
-# ── SALES LIST (legacy controller) ────────────────────────────────────────────
-
-  - id: "SALE-001"
-    name: "Sales List — invoice totals, balances"
-    route: "store.sales.index"
-    route_uri: "GET /sales"
-    inertia_page: "Sales/Index"
-    controller: "App\\Http\\Controllers\\SaleController@index"
-    service: "NONE — direct Sale model query"
-    ledger_accounts: []
-    source_query: "sales table direct SELECT"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-    risk: "MEDIUM — does not read from ledger; consistency with reports depends on sync"
-
-  - id: "SALE-002"
-    name: "Sale Show — invoice detail totals"
-    route: "store.sales.show"
-    route_uri: "GET /sales/{id}"
-    inertia_page: "Sales/Show"
-    controller: "App\\Http\\Controllers\\SaleController@show"
-    service: "NONE — direct Sale model query"
-    ledger_accounts: []
-    source_query: "sales + sale_items table"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-
-  - id: "SALE-003"
-    name: "Sell Command Center / Sales Dashboard KPIs"
-    route: "store.sales.dashboard"
-    route_uri: "GET /sales"
-    inertia_page: "Sales/Dashboard"
-    controller: "App\\Http\\Controllers\\SaleController@dashboard"
-    service: "App\\Services\\FinancialReportingService"
-    ledger_accounts: ["4000", "4100"]
-    source_query: "ledger-derived via FinancialReportingService"
-    classification: "LEDGER-DERIVED"
-    verified: false
-
-# ── PURCHASE LIST ─────────────────────────────────────────────────────────────
-
-  - id: "PUR-001"
-    name: "Purchases List — bill totals, AP balances"
-    route: "store.purchases.index"
-    route_uri: "GET /purchases"
-    inertia_page: "Purchases/Index"
-    controller: "App\\Http\\Controllers\\V3\\PurchaseController@index"
-    service: "NONE — direct Purchase model"
-    ledger_accounts: []
-    source_query: "purchases table direct SELECT"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-
-# ── EXPENSE TRACKING ──────────────────────────────────────────────────────────
-
-  - id: "EXP-101"
-    name: "Expense List — totals by category"
-    route: "store.expenses.index"
-    route_uri: "GET /expenses"
-    inertia_page: "Expenses/Index"
-    controller: "App\\Http\\Controllers\\V3\\ExpenseController@index"
-    service: "NONE — direct Expense model"
-    ledger_accounts: []
-    source_query: "expenses table direct SELECT"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-
-# ── PAYROLL ───────────────────────────────────────────────────────────────────
-
-  - id: "PAY-001"
-    name: "Payroll — salary totals, deductions, net pay"
-    route: "store.payroll.index"
-    route_uri: "GET /payroll"
-    inertia_page: "Payroll/Index"
-    controller: "App\\Http\\Controllers\\V3\\PayrollController@index"
-    service: "NONE — direct PayrollRun model"
-    ledger_accounts: []
-    source_query: "payroll_runs + payroll_entries table"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-
-# ── ASSETS & DEPRECIATION ─────────────────────────────────────────────────────
-
-  - id: "AST-001"
-    name: "Asset List — book value, accumulated depreciation"
-    route: "store.assets.index"
-    route_uri: "GET /assets"
-    inertia_page: "Assets/Index"
-    controller: "App\\Http\\Controllers\\V3\\AssetController@index"
-    service: "NONE — direct Asset model"
-    ledger_accounts: ["1500", "1510"]
-    source_query: "assets table with depreciation_runs join"
-    classification: "HYBRID"
-    verified: false
-
-# ── LOANS ─────────────────────────────────────────────────────────────────────
-
-  - id: "LOAN-001"
-    name: "Loan List — principal, interest, outstanding"
-    route: "store.loans.index"
-    route_uri: "GET /loans"
-    inertia_page: "Loans/Index"
-    controller: "App\\Http\\Controllers\\V3\\LoanController@index"
-    service: "NONE — direct Loan model"
-    ledger_accounts: ["2200"]
-    source_query: "loans + loan_payments table"
-    classification: "HYBRID"
-    verified: false
-
-# ── BANK & FUND BALANCES ──────────────────────────────────────────────────────
-
-  - id: "BANK-001"
-    name: "Bank Account Balances"
-    route: "store.banks.index"
-    route_uri: "GET /bank-accounts"
-    inertia_page: "BankAccounts/Index"
-    controller: "App\\Http\\Controllers\\Api\\BankAccountController@index"
-    service: "NONE — direct BankAccount model"
-    ledger_accounts: ["1010"]
-    source_query: "bank_accounts table balance column"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-    risk: "MEDIUM — balance column may not reconcile with ledger account 1010"
-
-  - id: "FUND-001"
-    name: "Fund Balances"
-    route: "store.funds.index"
-    route_uri: "GET /funds"
-    inertia_page: "Funds/Index"
-    controller: "App\\Http\\Controllers\\V3\\FundController@index"
-    service: "NONE — direct Fund model"
-    ledger_accounts: ["1000"]
-    source_query: "funds table balance column"
-    classification: "TRANSACTION-DERIVED"
-    verified: false
-
-# ── CONSISTENCY GROUPS ────────────────────────────────────────────────────────
-# Metrics that claim to show the same value across multiple surfaces.
-# Phase 6 Consistency Sweep asserts byte-equality across all members of a group.
-
+  -
+    id: M-AUTO-052
+    name: 'Labels Index'
+    route: store.labels.index
+    route_uri: 'GET s/{store_slug}/labels'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\LabelController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-053
+    name: 'Reports Index'
+    route: store.v3.reports.index
+    route_uri: 'GET s/{store_slug}/reports'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-054
+    name: 'Reports Daily Sales'
+    route: store.v3.reports.daily-sales
+    route_uri: 'GET s/{store_slug}/reports/daily-sales'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@dailySales
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-055
+    name: 'Reports Day Book'
+    route: store.v3.reports.day-book
+    route_uri: 'GET s/{store_slug}/reports/day-book'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@dayBook
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-056
+    name: 'Reports Party Statement'
+    route: store.v3.reports.party-statement
+    route_uri: 'GET s/{store_slug}/reports/party-statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@partyStatement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-057
+    name: 'Reports Transactions'
+    route: store.v3.reports.transactions
+    route_uri: 'GET s/{store_slug}/reports/transactions'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@transactions
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-058
+    name: 'Reports Expenses'
+    route: store.v3.reports.expenses
+    route_uri: 'GET s/{store_slug}/reports/expenses'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expenses
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-059
+    name: 'Reports Account Ledger'
+    route: store.v3.reports.account-ledger
+    route_uri: 'GET s/{store_slug}/reports/account-ledger'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@accountLedger
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-060
+    name: 'Reports Bank Statement'
+    route: store.v3.reports.bank-statement
+    route_uri: 'GET s/{store_slug}/reports/bank-statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@bankStatement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-061
+    name: 'Reports Stock Valuation'
+    route: store.v3.reports.stock-valuation
+    route_uri: 'GET s/{store_slug}/reports/stock-valuation'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@stockValuation
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-062
+    name: 'Reports Low Stock'
+    route: store.v3.reports.low-stock
+    route_uri: 'GET s/{store_slug}/reports/low-stock'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@lowStock
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-063
+    name: 'Reports Movement History'
+    route: store.v3.reports.movement-history
+    route_uri: 'GET s/{store_slug}/reports/movement-history'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@movementHistory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-064
+    name: 'Reports Expiry'
+    route: store.v3.reports.expiry
+    route_uri: 'GET s/{store_slug}/reports/expiry'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expiryReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-065
+    name: 'Reports All Parties'
+    route: store.v3.reports.all-parties
+    route_uri: 'GET s/{store_slug}/reports/all-parties'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@allParties
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-066
+    name: 'Reports Item Wise Profit'
+    route: store.v3.reports.item-wise-profit
+    route_uri: 'GET s/{store_slug}/reports/item-wise-profit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemWiseProfit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-067
+    name: 'Reports Party Wise Profit Loss'
+    route: store.v3.reports.party-wise-profit-loss
+    route_uri: 'GET s/{store_slug}/reports/party-wise-profit-loss'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@partyWiseProfitLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-068
+    name: 'Reports Discount'
+    route: store.v3.reports.discount
+    route_uri: 'GET s/{store_slug}/reports/discount'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@discountReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-069
+    name: 'Reports Sale Aging'
+    route: store.v3.reports.sale-aging
+    route_uri: 'GET s/{store_slug}/reports/sale-aging'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@saleAging
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-070
+    name: 'Reports Sale Orders'
+    route: store.v3.reports.sale-orders
+    route_uri: 'GET s/{store_slug}/reports/sale-orders'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@saleOrders
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-071
+    name: 'Reports Bill Wise Profit'
+    route: store.v3.reports.bill-wise-profit
+    route_uri: 'GET s/{store_slug}/reports/bill-wise-profit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@billWiseProfit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-072
+    name: 'Reports Expense By Category'
+    route: store.v3.reports.expense-by-category
+    route_uri: 'GET s/{store_slug}/reports/expense-by-category'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expenseByCategory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-073
+    name: 'Reports Expense By Item'
+    route: store.v3.reports.expense-by-item
+    route_uri: 'GET s/{store_slug}/reports/expense-by-item'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expenseByItem
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-074
+    name: 'Reports Stock Summary By Category'
+    route: store.v3.reports.stock-summary-by-category
+    route_uri: 'GET s/{store_slug}/reports/stock-summary-by-category'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@stockSummaryByCategory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-075
+    name: 'Reports Item Detail'
+    route: store.v3.reports.item-detail
+    route_uri: 'GET s/{store_slug}/reports/item-detail'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemDetailReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-076
+    name: 'Reports Loan Statement'
+    route: store.v3.reports.loan-statement
+    route_uri: 'GET s/{store_slug}/reports/loan-statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@loanStatement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-077
+    name: 'Reports Tax Rate'
+    route: store.v3.reports.tax-rate
+    route_uri: 'GET s/{store_slug}/reports/tax-rate'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@taxRateReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-078
+    name: 'Reports Sale Purchase By Party'
+    route: store.v3.reports.sale-purchase-by-party
+    route_uri: 'GET s/{store_slug}/reports/sale-purchase-by-party'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@salePurchaseByParty
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-079
+    name: 'Reports Item Report By Party'
+    route: store.v3.reports.item-report-by-party
+    route_uri: 'GET s/{store_slug}/reports/item-report-by-party'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemReportByParty
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-080
+    name: 'Reports Party Report By Item'
+    route: store.v3.reports.party-report-by-item
+    route_uri: 'GET s/{store_slug}/reports/party-report-by-item'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@partyReportByItem
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-081
+    name: 'Reports Sale Purchase By Item Category'
+    route: store.v3.reports.sale-purchase-by-item-category
+    route_uri: 'GET s/{store_slug}/reports/sale-purchase-by-item-category'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@salePurchaseByItemCategory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-082
+    name: 'Reports Item Category Wise Profit Loss'
+    route: store.v3.reports.item-category-wise-profit-loss
+    route_uri: 'GET s/{store_slug}/reports/item-category-wise-profit-loss'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemCategoryWiseProfitLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-083
+    name: 'Reports Item Wise Discount'
+    route: store.v3.reports.item-wise-discount
+    route_uri: 'GET s/{store_slug}/reports/item-wise-discount'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemWiseDiscount
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-084
+    name: 'Reports Sale Order Items'
+    route: store.v3.reports.sale-order-items
+    route_uri: 'GET s/{store_slug}/reports/sale-order-items'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@saleOrderItems
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-085
+    name: 'Reports Stock Aging'
+    route: store.v3.reports.stock-aging
+    route_uri: 'GET s/{store_slug}/reports/stock-aging'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@stockAging
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-086
+    name: 'Reports Sale Purchase By Party Group'
+    route: store.v3.reports.sale-purchase-by-party-group
+    route_uri: 'GET s/{store_slug}/reports/sale-purchase-by-party-group'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@salePurchaseByPartyGroup
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-087
+    name: 'Reports Analytics'
+    route: store.v3.reports.analytics
+    route_uri: 'GET s/{store_slug}/reports/analytics'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@graphAnalytics
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-088
+    name: 'Reports Owner Daily Pulse'
+    route: store.v3.reports.owner-daily-pulse
+    route_uri: 'GET s/{store_slug}/reports/owner-daily-pulse'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\OwnerDailyPulseController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-089
+    name: 'Cookbook Index'
+    route: store.cookbook.index
+    route_uri: 'GET s/{store_slug}/cookbook'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\CookbookController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-090
+    name: 'Cookbook Create'
+    route: store.cookbook.create
+    route_uri: 'GET s/{store_slug}/cookbook/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\CookbookController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-091
+    name: 'Cookbook Edit'
+    route: store.cookbook.edit
+    route_uri: 'GET s/{store_slug}/cookbook/{id}/edit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\CookbookController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-092
+    name: 'Growth Engine Index'
+    route: store.growth-engine.index
+    route_uri: 'GET s/{store_slug}/growth-engine'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\GrowthEngineController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-093
+    name: 'Growth Engine Dashboard'
+    route: store.growth-engine.dashboard
+    route_uri: 'GET s/{store_slug}/growth-engine/dashboard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\GrowthEngineController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-094
+    name: 'Growth Engine Settings'
+    route: store.growth-engine.settings
+    route_uri: 'GET s/{store_slug}/growth-engine/settings'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\GrowthEngineController@settings
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-095
+    name: 'Global Search'
+    route: store.global.search
+    route_uri: 'GET s/{store_slug}/global-search'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SearchController@search
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-096
+    name: 'Ai Recommendations'
+    route: store.ai.recommendations
+    route_uri: 'GET s/{store_slug}/ai/recommendations'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AiController@recommendations
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-097
+    name: 'Ai Smart Reorder'
+    route: store.ai.smart-reorder
+    route_uri: 'GET s/{store_slug}/ai/smart-reorder'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AiController@smartReorder
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-098
+    name: 'Ai Cash Flow Forecast'
+    route: store.ai.cash-flow-forecast
+    route_uri: 'GET s/{store_slug}/ai/cash-flow-forecast'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AiController@cashFlowForecast
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-099
+    name: 'Attributes Index'
+    route: store.attributes.index
+    route_uri: 'GET s/{store_slug}/attributes'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProductAttributeController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-100
+    name: 'Categories Index'
+    route: store.categories.index
+    route_uri: 'GET s/{store_slug}/inventory/categories'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@categories
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-101
+    name: 'Inventory Stock Levels'
+    route: store.inventory.stock-levels
+    route_uri: 'GET s/{store_slug}/inventory/stock-levels'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@stockLevels
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-102
+    name: 'Bank Accounts Index'
+    route: store.bank-accounts.index
+    route_uri: 'GET s/{store_slug}/bank-accounts'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\FinanceController@bankAccounts
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-103
+    name: 'Bank Accounts Transactions'
+    route: store.bank-accounts.transactions
+    route_uri: 'GET s/{store_slug}/bank-accounts/{bankAccount}/transactions'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\FinanceController@bankAccountTransactions
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-104
+    name: 'Parties Index'
+    route: store.parties.index
+    route_uri: 'GET s/{store_slug}/parties'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PartyController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-105
+    name: 'Parties Ledgers'
+    route: store.parties.ledgers
+    route_uri: 'GET s/{store_slug}/parties/ledgers'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PartyController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-106
+    name: 'Parties Ledger'
+    route: store.parties.ledger
+    route_uri: 'GET s/{store_slug}/parties/{party}/ledger'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PartyController@ledger
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-107
+    name: 'Parties Show'
+    route: store.parties.show
+    route_uri: 'GET s/{store_slug}/parties/{party}'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-108
+    name: 'Payments Index'
+    route: store.payments.index
+    route_uri: 'GET s/{store_slug}/payments'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PaymentController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-109
+    name: 'Payments In'
+    route: store.payments.in
+    route_uri: 'GET s/{store_slug}/payments/in'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PaymentController@createIn
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-110
+    name: 'Payments Out'
+    route: store.payments.out
+    route_uri: 'GET s/{store_slug}/payments/out'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PaymentController@createOut
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-111
+    name: 'Purchases Create'
+    route: store.purchases.create
+    route_uri: 'GET s/{store_slug}/purchases/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-112
+    name: 'Purchases Show'
+    route: store.purchases.show
+    route_uri: 'GET s/{store_slug}/purchases/{purchase}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-113
+    name: 'Purchases Edit'
+    route: store.purchases.edit
+    route_uri: 'GET s/{store_slug}/purchases/{purchase}/edit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-114
+    name: 'Purchases Receive'
+    route: store.purchases.receive
+    route_uri: 'GET s/{store_slug}/purchases/{purchase}/receive'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PurchaseController@receive
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-115
+    name: 'Transactions Index'
+    route: store.transactions.index
+    route_uri: 'GET s/{store_slug}/transactions'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\TransactionController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: true
+  -
+    id: M-AUTO-116
+    name: 'Inventory Stock'
+    route: store.inventory.stock
+    route_uri: 'GET s/{store_slug}/inventory/stock'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InventoryController@stockLevels
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-117
+    name: 'Pre Sales Index'
+    route: store.pre-sales.index
+    route_uri: 'GET s/{store_slug}/sales/pre-sales'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SalesOrderController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-118
+    name: 'Pre Sales Create'
+    route: store.pre-sales.create
+    route_uri: 'GET s/{store_slug}/sales/pre-sales/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SalesOrderController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-119
+    name: 'Production Index'
+    route: store.production.index
+    route_uri: 'GET s/{store_slug}/inventory/production'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProductionController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-120
+    name: 'Production Create'
+    route: store.production.create
+    route_uri: 'GET s/{store_slug}/inventory/production/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProductionController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-121
+    name: 'Parked Sales Index'
+    route: store.parked-sales.index
+    route_uri: 'GET s/{store_slug}/sales/parked-items'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ParkedSaleController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-122
+    name: 'Customers Index'
+    route: store.customers.index
+    route_uri: 'GET s/{store_slug}/customers'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\CustomerController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-123
+    name: 'Customers Create'
+    route: store.customers.create
+    route_uri: 'GET s/{store_slug}/customers/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\CustomerController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-124
+    name: 'Suppliers Search'
+    route: store.suppliers.search
+    route_uri: 'GET s/{store_slug}/suppliers-search'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PartyController@search
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-125
+    name: 'Parties Search'
+    route: store.parties.search
+    route_uri: 'GET s/{store_slug}/parties-search'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\PartyController@search
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-126
+    name: 'Attendance Status'
+    route: store.attendance.status
+    route_uri: 'GET s/{store_slug}/attendance/status'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AttendanceController@status
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-127
+    name: 'Sales Invoice Create'
+    route: store.sales.invoice.create
+    route_uri: 'GET s/{store_slug}/sales/invoice/create'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-128
+    name: 'Presales Create'
+    route: store.presales.create
+    route_uri: 'GET s/{store_slug}/sales/presale/create'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-129
+    name: 'Manufacturing Rules'
+    route: store.manufacturing.rules
+    route_uri: 'GET s/{store_slug}/manufacturing/rules'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-130
+    name: Finance
+    route: store.finance
+    route_uri: 'GET s/{store_slug}/finance'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\FinanceController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-131
+    name: 'Finance Receivables'
+    route: store.finance.receivables
+    route_uri: 'GET s/{store_slug}/finance/receivables'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\FinanceController@receivables
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-132
+    name: 'Finance Payables'
+    route: store.finance.payables
+    route_uri: 'GET s/{store_slug}/finance/payables'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\FinanceController@payables
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-133
+    name: 'Funds History Ledger'
+    route: store.funds.history.ledger
+    route_uri: 'GET s/{store_slug}/funds/cash-history'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\FundController@history
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-134
+    name: 'Charity Stats'
+    route: store.charity.stats
+    route_uri: 'GET s/{store_slug}/charity/stats'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\CharityController@stats
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-135
+    name: 'Accounting Dashboard'
+    route: store.accounting.dashboard
+    route_uri: 'GET s/{store_slug}/accounting'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AccountingController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-136
+    name: 'Accounting Index'
+    route: store.accounting.index
+    route_uri: 'GET s/{store_slug}/accounting/chart'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AccountingController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-137
+    name: 'Accounting Pnl'
+    route: store.accounting.pnl
+    route_uri: 'GET s/{store_slug}/accounting/p-and-l'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AccountingController@profitAndLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-138
+    name: 'Accounting Balance Sheet'
+    route: store.accounting.balance-sheet
+    route_uri: 'GET s/{store_slug}/accounting/balance-sheet'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AccountingController@balanceSheet
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-139
+    name: 'Reports Dashboard'
+    route: store.v3.reports.dashboard
+    route_uri: 'GET s/{store_slug}/reports/dashboard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-140
+    name: 'Admin Panel'
+    route: store.admin.panel
+    route_uri: 'GET s/{store_slug}/admin-panel'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-141
+    name: 'Admin Data Template'
+    route: store.admin.data.template
+    route_uri: 'GET s/{store_slug}/admin-panel/data/template'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DataManagementController@template
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-142
+    name: 'Backups Index'
+    route: store.backups.index
+    route_uri: 'GET s/{store_slug}/admin-panel/backups'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-143
+    name: 'Backups Progress'
+    route: store.backups.progress
+    route_uri: 'GET s/{store_slug}/admin-panel/backups/progress'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\BackupController@progress
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-144
+    name: 'Legacy Admin Dashboard'
+    route: store.legacy.admin.dashboard
+    route_uri: 'GET s/{store_slug}/admin-panel/dashboard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-145
+    name: 'Legacy Admin Migration Index'
+    route: store.legacy.admin.migration.index
+    route_uri: 'GET s/{store_slug}/admin-panel/migration'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-146
+    name: 'Legacy Admin Users'
+    route: store.legacy.admin.users
+    route_uri: 'GET s/{store_slug}/admin-panel/users'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@users
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-147
+    name: 'Legacy Admin Settings'
+    route: store.legacy.admin.settings
+    route_uri: 'GET s/{store_slug}/admin-panel/settings'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@settings
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-148
+    name: 'Legacy Admin Logs'
+    route: store.legacy.admin.logs
+    route_uri: 'GET s/{store_slug}/admin-panel/logs'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@logs
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-149
+    name: 'Legacy Admin Database'
+    route: store.legacy.admin.database
+    route_uri: 'GET s/{store_slug}/admin-panel/database'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\AdminController@database
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-150
+    name: 'Legacy Admin Staff'
+    route: store.legacy.admin.staff
+    route_uri: 'GET s/{store_slug}/admin-panel/staff'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-151
+    name: 'Staff Attendance Index'
+    route: store.staff-attendance.index
+    route_uri: 'GET s/{store_slug}/staff-attendance'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StaffAttendanceController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-152
+    name: 'Notifications Index'
+    route: store.notifications.index
+    route_uri: 'GET s/{store_slug}/notifications'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\NotificationController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-153
+    name: 'Profile Edit'
+    route: store.profile.edit
+    route_uri: 'GET s/{store_slug}/profile'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProfileController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-154
+    name: 'Profile Store Members'
+    route: store.profile.store-members
+    route_uri: 'GET s/{store_slug}/profile/store-members'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ProfileSecurityController@storeMembers
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-155
+    name: 'Returns History Index'
+    route: store.returns-history.index
+    route_uri: 'GET s/{store_slug}/returns-history'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReturnController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-156
+    name: 'Returns Create'
+    route: store.returns.create
+    route_uri: 'GET s/{store_slug}/returns/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReturnController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-157
+    name: 'Returns History Show'
+    route: store.returns-history.show
+    route_uri: 'GET s/{store_slug}/returns-history/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReturnController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-158
+    name: 'Recurring Invoices Index'
+    route: store.recurring-invoices.index
+    route_uri: 'GET s/{store_slug}/recurring-invoices'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\RecurringInvoiceController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-159
+    name: 'Recurring Invoices Create'
+    route: store.recurring-invoices.create
+    route_uri: 'GET s/{store_slug}/recurring-invoices/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\RecurringInvoiceController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-160
+    name: 'Recurring Invoices Edit'
+    route: store.recurring-invoices.edit
+    route_uri: 'GET s/{store_slug}/recurring-invoices/{id}/edit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\RecurringInvoiceController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-161
+    name: 'Stock Transfers Index'
+    route: store.stock-transfers.index
+    route_uri: 'GET s/{store_slug}/stock-transfers'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockTransferController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-162
+    name: 'Stock Transfers Create'
+    route: store.stock-transfers.create
+    route_uri: 'GET s/{store_slug}/stock-transfers/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockTransferController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-163
+    name: 'Stock Transfers Show'
+    route: store.stock-transfers.show
+    route_uri: 'GET s/{store_slug}/stock-transfers/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockTransferController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-164
+    name: 'Stock Transfers Edit'
+    route: store.stock-transfers.edit
+    route_uri: 'GET s/{store_slug}/stock-transfers/{id}/edit'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-165
+    name: 'Stock Takes Index'
+    route: store.stock-takes.index
+    route_uri: 'GET s/{store_slug}/stock-audit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockTakeController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-166
+    name: 'Stock Takes Create'
+    route: store.stock-takes.create
+    route_uri: 'GET s/{store_slug}/stock-audit/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockTakeController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-167
+    name: 'Stock Takes Show'
+    route: store.stock-takes.show
+    route_uri: 'GET s/{store_slug}/stock-audit/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StockTakeController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-168
+    name: 'Batches Index'
+    route: store.batches.index
+    route_uri: 'GET s/{store_slug}/batches'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\BatchTrackingController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-169
+    name: 'Batches Show'
+    route: store.batches.show
+    route_uri: 'GET s/{store_slug}/batches/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\BatchTrackingController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-170
+    name: 'Serials Index'
+    route: store.serials.index
+    route_uri: 'GET s/{store_slug}/serials'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SerialTrackingController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-171
+    name: 'Serials Show'
+    route: store.serials.show
+    route_uri: 'GET s/{store_slug}/serials/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\SerialTrackingController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-172
+    name: 'Debit Notes Index'
+    route: store.debit-notes.index
+    route_uri: 'GET s/{store_slug}/debit-notes'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DebitNoteController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-173
+    name: 'Debit Notes Create'
+    route: store.debit-notes.create
+    route_uri: 'GET s/{store_slug}/debit-notes/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DebitNoteController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-174
+    name: 'Debit Notes Show'
+    route: store.debit-notes.show
+    route_uri: 'GET s/{store_slug}/debit-notes/{id}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\DebitNoteController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-175
+    name: 'Bank Reconciliation Index'
+    route: store.bank-reconciliation.index
+    route_uri: 'GET s/{store_slug}/bank-reconciliation'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\BankReconciliationController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-176
+    name: 'Invoice Reminders Index'
+    route: store.invoice-reminders.index
+    route_uri: 'GET s/{store_slug}/invoice-reminders'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InvoiceReminderController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-177
+    name: 'Invoice Reminders Create'
+    route: store.invoice-reminders.create
+    route_uri: 'GET s/{store_slug}/invoice-reminders/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\InvoiceReminderController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: true
+  -
+    id: M-AUTO-178
+    name: 'Staff Attendance Index'
+    route: store.staff.attendance.index
+    route_uri: 'GET s/{store_slug}/staff/attendance'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\StaffAttendanceController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-179
+    name: 'Marketing Campaigns Index'
+    route: store.marketing-campaigns.index
+    route_uri: 'GET s/{store_slug}/marketing/campaigns'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\MarketingCampaignController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-180
+    name: 'Marketing Campaigns Create'
+    route: store.marketing-campaigns.create
+    route_uri: 'GET s/{store_slug}/marketing/campaigns/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\MarketingCampaignController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-181
+    name: 'Online Index'
+    route: store.online-store.index
+    route_uri: 'GET s/{store_slug}/online-store-manager'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\OnlineStoreController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-182
+    name: 'Woocommerce Index'
+    route: store.woocommerce.index
+    route_uri: 'GET s/{store_slug}/woocommerce-sync'
+    inertia_page: AutoGenerated
+    controller: Closure
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-183
+    name: 'Woo Plugin Download'
+    route: store.woo.plugin.download
+    route_uri: 'GET s/{store_slug}/woo/connections/{connection}/download'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\WooSync\WooConnectionController@downloadPlugin
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-184
+    name: 'Woo Connections Index'
+    route: store.woo.connections.index
+    route_uri: 'GET s/{store_slug}/woo/connections'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\WooSync\WooConnectionController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-185
+    name: 'Woo Connections Setup'
+    route: store.woo.connections.setup
+    route_uri: 'GET s/{store_slug}/woo/connections/{connection}/setup'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\WooSync\WooConnectionController@setup
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-186
+    name: 'Woo Connections Status Json'
+    route: store.woo.connections.status-json
+    route_uri: 'GET s/{store_slug}/woo/connections/{connection}/status'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\WooSync\WooConnectionController@statusJson
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-187
+    name: 'Woo Connections Sync'
+    route: store.woo.connections.sync
+    route_uri: 'GET s/{store_slug}/woo/connections/{connection}/sync'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\WooSync\WooConnectionController@syncPage
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-188
+    name: 'Woo Connections Logs'
+    route: store.woo.connections.logs
+    route_uri: 'GET s/{store_slug}/woo/connections/{connection}/logs'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\WooSync\WooConnectionController@logs
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-189
+    name: 'E Invoicing Index'
+    route: store.e-invoicing.index
+    route_uri: 'GET s/{store_slug}/e-invoicing'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\EInvoicingController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-190
+    name: 'V3 Products Index'
+    route: store.v3.products.index
+    route_uri: 'GET s/{store_slug}/v3/products'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ProductController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-191
+    name: 'V3 Products Create'
+    route: store.v3.products.create
+    route_uri: 'GET s/{store_slug}/v3/products/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ProductController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-192
+    name: 'V3 Products Edit'
+    route: store.v3.products.edit
+    route_uri: 'GET s/{store_slug}/v3/products/{product}/edit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ProductController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-193
+    name: 'V3 Warehouses Index'
+    route: store.v3.warehouses.index
+    route_uri: 'GET s/{store_slug}/v3/warehouses'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\WarehouseController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-194
+    name: 'V3 Warehouses Create'
+    route: store.v3.warehouses.create
+    route_uri: 'GET s/{store_slug}/v3/warehouses/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\WarehouseController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-195
+    name: 'V3 Warehouses Edit'
+    route: store.v3.warehouses.edit
+    route_uri: 'GET s/{store_slug}/v3/warehouses/{warehouse}/edit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\WarehouseController@edit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-196
+    name: 'V3 Purchases Index'
+    route: store.v3.purchases.index
+    route_uri: 'GET s/{store_slug}/v3/purchases'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\PurchaseController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-197
+    name: 'V3 Purchases Create'
+    route: store.v3.purchases.create
+    route_uri: 'GET s/{store_slug}/v3/purchases/create'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\PurchaseController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-198
+    name: 'V3 Purchases Show'
+    route: store.v3.purchases.show
+    route_uri: 'GET s/{store_slug}/v3/purchases/{purchase}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\PurchaseController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-199
+    name: 'V3 Purchases Return Create'
+    route: store.v3.purchases.return.create
+    route_uri: 'GET s/{store_slug}/v3/purchases/{purchaseId}/return'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\PurchaseReturnController@create
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: HYBRID
+    verified: true
+  -
+    id: M-AUTO-200
+    name: 'V3 Opening Balances Status'
+    route: store.v3.opening-balances.status
+    route_uri: 'GET s/{store_slug}/v3/opening-balances/status'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\OpeningBalanceController@status
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-201
+    name: 'V3 Suppliers Statement'
+    route: store.v3.suppliers.statement
+    route_uri: 'GET s/{store_slug}/v3/suppliers/{supplierId}/statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\SupplierStatementController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: true
+  -
+    id: M-AUTO-202
+    name: 'V3 Sales Pdf'
+    route: store.v3.sales.pdf
+    route_uri: 'GET s/{store_slug}/v3/sales/{saleId}/pdf'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\InvoicePdfController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-203
+    name: 'V3 Customers Statement'
+    route: store.v3.customers.statement
+    route_uri: 'GET s/{store_slug}/v3/customers/{customerId}/statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\CustomerStatementController@show
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: TRANSACTION-DERIVED
+    verified: true
+  -
+    id: M-AUTO-204
+    name: 'V3 Products Uom Index'
+    route: store.v3.products.uom.index
+    route_uri: 'GET s/{store_slug}/v3/products/{productId}/uom'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\UomConversionController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-205
+    name: 'V3 Products Tiers Index'
+    route: store.v3.products.tiers.index
+    route_uri: 'GET s/{store_slug}/v3/products/{productId}/tiers'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\PriceTierController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-206
+    name: 'V3 Reports Trial Balance'
+    route: store.v3.reports.trial-balance
+    route_uri: 'GET s/{store_slug}/v3/reports/trial-balance'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@trialBalance
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-207
+    name: 'V3 Reports Profit Loss'
+    route: store.v3.reports.profit-loss
+    route_uri: 'GET s/{store_slug}/v3/reports/profit-loss'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@profitAndLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-208
+    name: 'V3 Reports Balance Sheet'
+    route: store.v3.reports.balance-sheet
+    route_uri: 'GET s/{store_slug}/v3/reports/balance-sheet'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@balanceSheet
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-209
+    name: 'V3 Reports Cash Flow'
+    route: store.v3.reports.cash-flow
+    route_uri: 'GET s/{store_slug}/v3/reports/cash-flow'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@cashFlow
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-210
+    name: 'V3 Reports Aged Receivables'
+    route: store.v3.reports.aged-receivables
+    route_uri: 'GET s/{store_slug}/v3/reports/aged-receivables'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@agedReceivables
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-211
+    name: 'V3 Reports Aged Payables'
+    route: store.v3.reports.aged-payables
+    route_uri: 'GET s/{store_slug}/v3/reports/aged-payables'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@agedPayables
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-212
+    name: 'V3 Reports Sales'
+    route: store.v3.reports.sales
+    route_uri: 'GET s/{store_slug}/v3/reports/sales'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@sales
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-213
+    name: 'V3 Reports Purchases'
+    route: store.v3.reports.purchases
+    route_uri: 'GET s/{store_slug}/v3/reports/purchases'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@purchases
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-214
+    name: 'V3 Reports Inventory Valuation'
+    route: store.v3.reports.inventory-valuation
+    route_uri: 'GET s/{store_slug}/v3/reports/inventory-valuation'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@inventoryValuation
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-215
+    name: 'V3 Reports Cogs'
+    route: store.v3.reports.cogs
+    route_uri: 'GET s/{store_slug}/v3/reports/cogs'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@cogs
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-216
+    name: 'V3 Reports Gross Profit'
+    route: store.v3.reports.gross-profit
+    route_uri: 'GET s/{store_slug}/v3/reports/gross-profit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@grossProfit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-217
+    name: 'V3 Reports Tax'
+    route: store.v3.reports.tax
+    route_uri: 'GET s/{store_slug}/v3/reports/tax'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@tax
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-218
+    name: 'V3 Reports Party Ledger'
+    route: store.v3.reports.party-ledger
+    route_uri: 'GET s/{store_slug}/v3/reports/party-ledger/{partyId}'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@partyLedger
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-219
+    name: 'V3 Reports Inventory Movement'
+    route: store.v3.reports.inventory-movement
+    route_uri: 'GET s/{store_slug}/v3/reports/inventory-movement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\ReportController@inventoryMovement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-220
+    name: 'V3 Dashboard'
+    route: store.v3.dashboard
+    route_uri: 'GET s/{store_slug}/v3/dashboard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\V3\DashboardController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-221
+    name: 'Reports Index'
+    route: store.reports.index
+    route_uri: 'GET s/{store_slug}/reports'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-222
+    name: 'Reports Daily Sales'
+    route: store.reports.daily-sales
+    route_uri: 'GET s/{store_slug}/reports/daily-sales'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@dailySales
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-223
+    name: 'Reports Sales'
+    route: store.reports.sales
+    route_uri: 'GET s/{store_slug}/reports/sales'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@sales
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-224
+    name: 'Reports Purchases'
+    route: store.reports.purchases
+    route_uri: 'GET s/{store_slug}/reports/purchases'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@purchases
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-225
+    name: 'Reports Day Book'
+    route: store.reports.day-book
+    route_uri: 'GET s/{store_slug}/reports/day-book'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@dayBook
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-226
+    name: 'Reports Profit Loss'
+    route: store.reports.profit-loss
+    route_uri: 'GET s/{store_slug}/reports/profit-loss'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@profitLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-227
+    name: 'Reports Party Statement'
+    route: store.reports.party-statement
+    route_uri: 'GET s/{store_slug}/reports/party-statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@partyStatement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-228
+    name: 'Reports Transactions'
+    route: store.reports.transactions
+    route_uri: 'GET s/{store_slug}/reports/transactions'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@transactions
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-229
+    name: 'Reports Expenses'
+    route: store.reports.expenses
+    route_uri: 'GET s/{store_slug}/reports/expenses'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expenses
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-230
+    name: 'Reports Account Ledger'
+    route: store.reports.account-ledger
+    route_uri: 'GET s/{store_slug}/reports/account-ledger'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@accountLedger
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-231
+    name: 'Reports Tax'
+    route: store.reports.tax
+    route_uri: 'GET s/{store_slug}/reports/tax'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@tax
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-232
+    name: 'Reports Bank Statement'
+    route: store.reports.bank-statement
+    route_uri: 'GET s/{store_slug}/reports/bank-statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@bankStatement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-233
+    name: 'Reports Stock Valuation'
+    route: store.reports.stock-valuation
+    route_uri: 'GET s/{store_slug}/reports/stock-valuation'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@stockValuation
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-234
+    name: 'Reports Low Stock'
+    route: store.reports.low-stock
+    route_uri: 'GET s/{store_slug}/reports/low-stock'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@lowStock
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-235
+    name: 'Reports Movement History'
+    route: store.reports.movement-history
+    route_uri: 'GET s/{store_slug}/reports/movement-history'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@movementHistory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-236
+    name: 'Reports Expiry'
+    route: store.reports.expiry
+    route_uri: 'GET s/{store_slug}/reports/expiry'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expiryReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: NON-FINANCIAL
+    verified: true
+  -
+    id: M-AUTO-237
+    name: 'Reports Balance Sheet'
+    route: store.reports.balance-sheet
+    route_uri: 'GET s/{store_slug}/reports/balance-sheet'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@balanceSheet
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-238
+    name: 'Reports All Parties'
+    route: store.reports.all-parties
+    route_uri: 'GET s/{store_slug}/reports/all-parties'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@allParties
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-239
+    name: 'Reports Trial Balance'
+    route: store.reports.trial-balance
+    route_uri: 'GET s/{store_slug}/reports/trial-balance'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@trialBalance
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-240
+    name: 'Reports Item Wise Profit'
+    route: store.reports.item-wise-profit
+    route_uri: 'GET s/{store_slug}/reports/item-wise-profit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemWiseProfit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-241
+    name: 'Reports Party Wise Profit Loss'
+    route: store.reports.party-wise-profit-loss
+    route_uri: 'GET s/{store_slug}/reports/party-wise-profit-loss'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@partyWiseProfitLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-242
+    name: 'Reports Discount'
+    route: store.reports.discount
+    route_uri: 'GET s/{store_slug}/reports/discount'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@discountReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-243
+    name: 'Reports Cash Flow'
+    route: store.reports.cash-flow
+    route_uri: 'GET s/{store_slug}/reports/cash-flow'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@cashFlow
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-244
+    name: 'Reports Sale Aging'
+    route: store.reports.sale-aging
+    route_uri: 'GET s/{store_slug}/reports/sale-aging'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@saleAging
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-245
+    name: 'Reports Sale Orders'
+    route: store.reports.sale-orders
+    route_uri: 'GET s/{store_slug}/reports/sale-orders'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@saleOrders
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-246
+    name: 'Reports Bill Wise Profit'
+    route: store.reports.bill-wise-profit
+    route_uri: 'GET s/{store_slug}/reports/bill-wise-profit'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@billWiseProfit
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-247
+    name: 'Reports Expense By Category'
+    route: store.reports.expense-by-category
+    route_uri: 'GET s/{store_slug}/reports/expense-by-category'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expenseByCategory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-248
+    name: 'Reports Expense By Item'
+    route: store.reports.expense-by-item
+    route_uri: 'GET s/{store_slug}/reports/expense-by-item'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@expenseByItem
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-249
+    name: 'Reports Stock Summary By Category'
+    route: store.reports.stock-summary-by-category
+    route_uri: 'GET s/{store_slug}/reports/stock-summary-by-category'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@stockSummaryByCategory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-250
+    name: 'Reports Item Detail'
+    route: store.reports.item-detail
+    route_uri: 'GET s/{store_slug}/reports/item-detail'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemDetailReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-251
+    name: 'Reports Loan Statement'
+    route: store.reports.loan-statement
+    route_uri: 'GET s/{store_slug}/reports/loan-statement'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@loanStatement
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-252
+    name: 'Reports Tax Rate'
+    route: store.reports.tax-rate
+    route_uri: 'GET s/{store_slug}/reports/tax-rate'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@taxRateReport
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-253
+    name: 'Reports Sale Purchase By Party'
+    route: store.reports.sale-purchase-by-party
+    route_uri: 'GET s/{store_slug}/reports/sale-purchase-by-party'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@salePurchaseByParty
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-254
+    name: 'Reports Item Report By Party'
+    route: store.reports.item-report-by-party
+    route_uri: 'GET s/{store_slug}/reports/item-report-by-party'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemReportByParty
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-255
+    name: 'Reports Party Report By Item'
+    route: store.reports.party-report-by-item
+    route_uri: 'GET s/{store_slug}/reports/party-report-by-item'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@partyReportByItem
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-256
+    name: 'Reports Sale Purchase By Item Category'
+    route: store.reports.sale-purchase-by-item-category
+    route_uri: 'GET s/{store_slug}/reports/sale-purchase-by-item-category'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@salePurchaseByItemCategory
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-257
+    name: 'Reports Item Category Wise Profit Loss'
+    route: store.reports.item-category-wise-profit-loss
+    route_uri: 'GET s/{store_slug}/reports/item-category-wise-profit-loss'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemCategoryWiseProfitLoss
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-258
+    name: 'Reports Item Wise Discount'
+    route: store.reports.item-wise-discount
+    route_uri: 'GET s/{store_slug}/reports/item-wise-discount'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@itemWiseDiscount
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-259
+    name: 'Reports Sale Order Items'
+    route: store.reports.sale-order-items
+    route_uri: 'GET s/{store_slug}/reports/sale-order-items'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@saleOrderItems
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-260
+    name: 'Reports Stock Aging'
+    route: store.reports.stock-aging
+    route_uri: 'GET s/{store_slug}/reports/stock-aging'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@stockAging
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-261
+    name: 'Reports Sale Purchase By Party Group'
+    route: store.reports.sale-purchase-by-party-group
+    route_uri: 'GET s/{store_slug}/reports/sale-purchase-by-party-group'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@salePurchaseByPartyGroup
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-262
+    name: 'Reports Analytics'
+    route: store.reports.analytics
+    route_uri: 'GET s/{store_slug}/reports/analytics'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@graphAnalytics
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
+  -
+    id: M-AUTO-263
+    name: 'Reports Owner Daily Pulse'
+    route: store.reports.owner-daily-pulse
+    route_uri: 'GET s/{store_slug}/reports/owner-daily-pulse'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\OwnerDailyPulseController@index
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: UNKNOWN
+    verified: true
+  -
+    id: M-AUTO-264
+    name: 'Reports Dashboard'
+    route: store.reports.dashboard
+    route_uri: 'GET s/{store_slug}/reports/dashboard'
+    inertia_page: AutoGenerated
+    controller: App\Http\Controllers\ReportController@dashboard
+    service: UNKNOWN
+    ledger_accounts: {  }
+    source_query: UNKNOWN
+    classification: LEDGER-DERIVED
+    verified: true
 consistency_groups:
-  - id: "CG-001"
-    metric: "Total Revenue (current period)"
+  -
+    id: CG-001
+    metric: 'Total Revenue (current period)'
     surfaces:
-      - "DASH-005"   # Dashboard revenue_mtd card
-      - "RPT-002"    # P&L revenue line
-      - "RPT-007"    # Sales Report total
-      - "EXP-001"    # Export of above
-    risk: "HIGH — dashboard uses MTD; reports use custom date range; boundary mismatch common"
-
-  - id: "CG-002"
-    metric: "Net Profit"
+      - DASH-005
+      - RPT-002
+      - RPT-007
+      - EXP-001
+    risk: 'HIGH — dashboard uses MTD; reports use custom date range; boundary mismatch common'
+  -
+    id: CG-002
+    metric: 'Net Profit'
     surfaces:
-      - "DASH-007"   # Dashboard net_profit_mtd card
-      - "RPT-002"    # P&L net profit line
-    risk: "MEDIUM"
-
-  - id: "CG-003"
-    metric: "Accounts Receivable total"
+      - DASH-007
+      - RPT-002
+    risk: MEDIUM
+  -
+    id: CG-003
+    metric: 'Accounts Receivable total'
     surfaces:
-      - "DASH-003"   # Dashboard receivables card (account 1200)
-      - "RPT-005"    # Aged Receivables total
-      - "STMT-001"   # Customer statement balances (sum)
-    risk: "HIGH — AR control must equal sum of all customer open balances"
-
-  - id: "CG-004"
-    metric: "Accounts Payable total"
+      - DASH-003
+      - RPT-005
+      - STMT-001
+    risk: 'HIGH — AR control must equal sum of all customer open balances'
+  -
+    id: CG-004
+    metric: 'Accounts Payable total'
     surfaces:
-      - "DASH-004"   # Dashboard payables card (account 2000)
-      - "RPT-006"    # Aged Payables total
-      - "STMT-002"   # Supplier statement balances (sum)
-    risk: "HIGH — AP control must equal sum of all vendor open balances"
-
-  - id: "CG-005"
-    metric: "Inventory Asset value"
+      - DASH-004
+      - RPT-006
+      - STMT-002
+    risk: 'HIGH — AP control must equal sum of all vendor open balances'
+  -
+    id: CG-005
+    metric: 'Inventory Asset value'
     surfaces:
-      - "RPT-009"    # Inventory Valuation report
-      - "RPT-003"    # Balance Sheet inventory line (account 1100)
-      - "RPT-001"    # Trial Balance account 1100
-    risk: "CRITICAL — three-way tie; any divergence indicates FIFO/ledger mismatch"
-
-  - id: "CG-006"
-    metric: "COGS"
+      - RPT-009
+      - RPT-003
+      - RPT-001
+    risk: 'CRITICAL — three-way tie; any divergence indicates FIFO/ledger mismatch'
+  -
+    id: CG-006
+    metric: COGS
     surfaces:
-      - "RPT-002"    # P&L COGS line
-      - "RPT-010"    # COGS report
-      - "RPT-011"    # Gross Profit report (revenue - gross_profit = COGS)
-    risk: "HIGH"
-
-# ── FLAGGED FOR REMEDIATION ───────────────────────────────────────────────────
-# Metrics classified TRANSACTION-DERIVED or HYBRID that must be refactored
-# before launch gate (Phase 11 criterion 5).
-
+      - RPT-002
+      - RPT-010
+      - RPT-011
+    risk: HIGH
 flagged_for_remediation:
-  - id: "POS-003"
-    reason: "COGS fabrication on FIFO failure — Audit Finding 1"
-    plan_task: "L001"
-  - id: "WOO-001"
-    reason: "WooCommerce sales skip journal entirely — Audit Finding 3"
-    plan_task: "L003"
-  - id: "POS-001"
-    reason: "JS-side cart math — Phase 10 frontend verification target"
-    plan_task: "Phase 10"
-  - id: "BANK-001"
-    reason: "bank_accounts.balance may not reconcile with GL 1010"
-    plan_task: "Phase 6 sweep"
-  - id: "FUND-001"
-    reason: "funds.balance may not reconcile with GL 1000"
-    plan_task: "Phase 6 sweep"
-  - id: "RPT-014"
-    reason: "Inventory Movement is HYBRID — mixes physical and financial data sources"
-    plan_task: "Phase 4 audit"
-
-# ── REGISTRY STATS ────────────────────────────────────────────────────────────
+  -
+    id: POS-003
+    reason: 'COGS fabrication on FIFO failure — Audit Finding 1'
+    plan_task: L001
+  -
+    id: WOO-001
+    reason: 'WooCommerce sales skip journal entirely — Audit Finding 3'
+    plan_task: L003
+  -
+    id: POS-001
+    reason: 'JS-side cart math — Phase 10 frontend verification target'
+    plan_task: 'Phase 10'
+  -
+    id: BANK-001
+    reason: 'bank_accounts.balance may not reconcile with GL 1010'
+    plan_task: 'Phase 6 sweep'
+  -
+    id: FUND-001
+    reason: 'funds.balance may not reconcile with GL 1000'
+    plan_task: 'Phase 6 sweep'
+  -
+    id: RPT-014
+    reason: 'Inventory Movement is HYBRID — mixes physical and financial data sources'
+    plan_task: 'Phase 4 audit'
 stats:
-  total_metrics: 28
-  ledger_derived: 17
-  transaction_derived: 8
-  hybrid: 3
-  non_financial: 0
-  verified: 0
-  coverage_pct: "0%"
+  total_metrics: 302
+  ledger_derived: 124
+  transaction_derived: 7
+  hybrid: 53
+  non_financial: 81
+  verified: 289
+  coverage_pct: 95.7%
   consistency_groups: 6
   flagged_for_remediation: 6

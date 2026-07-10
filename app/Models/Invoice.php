@@ -27,7 +27,10 @@ class Invoice extends Model
         }
         return (float) $this->payments()->sum('amount');
     }
-
+    public function getTotalAttribute()
+    {
+        return $this->total_amount;
+    }
     public function getCustomerNetBalanceAttribute(): ?float
     {
         if (!$this->party_id || !$this->tenant_id) {

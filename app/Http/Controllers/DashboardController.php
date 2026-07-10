@@ -26,7 +26,7 @@ class DashboardController extends Controller
         // re-implemented as one-shot Artisan commands and run only under explicit control.
 
         $tz  = app('current.tenant')->timezone ?: config('app.timezone', 'UTC');
-        $now = Carbon::now($tz);
+        $now = request()->has('test_date') ? Carbon::parse(request()->query('test_date'), $tz) : Carbon::now($tz);
         $user = auth()->user();
 
         // ── Role Router (V1 Tier 2 — per Master Plan) ─────────────────────────
@@ -630,55 +630,19 @@ class DashboardController extends Controller
 
     private function getSalesStats($start, $end)
     {
-        $tenantId = app('current.tenant')->id;
-        $query = Sale::whereIn('status', ['posted', 'partially_returned']);
-        if ($start && $end) {
-            $query->whereBetween('posted_at', [$start, $end]);
-        }
+        $startStr = $start instanceof \Carbon\Carbon ? $start->toDateString() : ($start ?? '1970-01-01');
+        $endStr   = $end   instanceof \Carbon\Carbon ? $end->toDateString()   : ($end ?? now()->toDateString());
 
-        $netSalesTotal = (float) $query->sum('net_sales');
+        $pl = app(\App\Services\FinancialReportingService::class)->getProfitAndLoss($startStr, $endStr);
 
-        $saleIds = $query->pluck('id')->toArray();
-        $returnedAmount = 0.0;
-        if (!empty($saleIds)) {
-            $returnedAmount = (float) DB::table('sale_items')
-                ->whereIn('sale_id', $saleIds)
-                ->where('tenant_id', $tenantId)
-                ->selectRaw('SUM(returned_quantity * (net_amount / COALESCE(NULLIF(quantity, 0), 1))) as ret')
-                ->value('ret');
-        }
-        $netSalesTotal = max(0.0, $netSalesTotal - $returnedAmount);
-
-        // COGS: using efficient join with tenant filter
-        $fifoCogs = DB::table('sale_item_batches')
-            ->join('sale_items', 'sale_item_batches.sale_item_id', '=', 'sale_items.id')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'partially_returned'])
-            ->when($start && $end, fn($q) => $q->whereBetween('sales.posted_at', [$start, $end]))
-            ->sum('sale_item_batches.total_cogs');
-
-        $staticCogs = DB::table('sale_items')
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->where('sales.tenant_id', $tenantId)
-            ->whereIn('sales.status', ['posted', 'partially_returned'])
-            ->when($start && $end, fn($q) => $q->whereBetween('sales.posted_at', [$start, $end]))
-            ->whereNotIn('sale_items.id', function ($q) use ($tenantId) {
-                $q->select('sale_item_id')
-                    ->from('sale_item_batches')
-                    ->join('sale_items as si2', 'sale_item_batches.sale_item_id', '=', 'si2.id')
-                    ->join('sales as s2', 'si2.sale_id', '=', 's2.id')
-                    ->where('s2.tenant_id', $tenantId);
-            })
-            ->sum(DB::raw('sale_items.cost_price * (sale_items.quantity + COALESCE(sale_items.free_quantity, 0))'));
-
-        $totalCogs   = (float) $fifoCogs + (float) $staticCogs;
-        $grossProfit = (float) $netSalesTotal - $totalCogs;
+        $sales = (float) $pl['revenue'];
+        $cogs = (float) $pl['cogs'];
+        $grossProfit = $sales - $cogs;
 
         return [
-            'sales'        => (float) $netSalesTotal,
+            'sales'        => $sales,
             'gross_profit' => $grossProfit,
-            'cogs'         => $totalCogs,
+            'cogs'         => $cogs,
         ];
     }
 

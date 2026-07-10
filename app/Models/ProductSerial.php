@@ -36,4 +36,9 @@ class ProductSerial extends Model
     {
         return $this->belongsTo(Sale::class);
     }
+
+    public function purchase()
+    {
+        return $this->belongsTo(Purchase::class);
+    }
 }

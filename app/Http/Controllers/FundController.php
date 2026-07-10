@@ -211,7 +211,8 @@ class FundController extends Controller
                 'journal_entries.reference as reference_id',
                 'journal_items.debit',
                 'journal_items.credit',
-                'journal_items.id as item_id'
+                'journal_items.id as item_id',
+                'journal_items.journal_entry_id'
             )
             ->orderBy('journal_entries.date', 'desc')
             ->orderBy('journal_entries.created_at', 'desc')

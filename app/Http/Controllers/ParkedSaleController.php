@@ -11,7 +11,7 @@ class ParkedSaleController extends Controller
 {
     public function index()
     {
-        $parkedSales = ParkedSale::with(['customer', 'user'])
+        $parkedSales = ParkedSale::with(['user'])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($sale) {
@@ -34,7 +34,7 @@ class ParkedSaleController extends Controller
             'total' => $parkedSales->count(),
             'total_value' => $parkedSales->sum('total'),
             'today' => ParkedSale::whereDate('created_at', $today)->count(),
-            'with_customer' => ParkedSale::whereNotNull('customer_id')->count()
+            'with_customer' => ParkedSale::whereNotNull('customer_name')->where('customer_name', '!=', '')->count()
         ];
 
         return Inertia::render('Sales/ParkedSales', [

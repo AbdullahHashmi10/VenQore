@@ -793,13 +793,13 @@ class FinancialReportingService
      */
     public function getCashFlowReport(string $start, string $end): array
     {
+        $tenantId = app('current.tenant')->id;
         // Identify all Cash/Bank accounts (Codes 1000-1099)
-        $cashAccounts = Account::where('type', 'asset')
+        $cashAccounts = Account::where('tenant_id', $tenantId)
+            ->where('type', 'asset')
             ->whereBetween('code', ['1000', '1099'])
             ->pluck('id')
             ->toArray();
-
-        $tenantId = app('current.tenant')->id;
         // 1. Operating Inflow (Debits to Cash where partner account is Income or Receivable)
         $inflow = DB::table('journal_items')
             ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
