@@ -84,6 +84,15 @@ const SUITE_TESTS = {
     'plan matrix does not contain duplicate recurring invoicing key',
     'tenant override controller uses ltd snapshot for ltd plans',
     'settings helper cache is partitioned by tenant'
+  ],
+  'PurchaseInputVerificationTest': [
+    'p01 cash purchase debits inventory and input tax',
+    'p02 credit purchase credits ap instead of cash',
+    'p03 purchase return reverses inventory and ap',
+    'p04 cash purchase return debits cash instead of ap'
+  ],
+  'SalesOrderTest': [
+    'can create and convert v3 sales order'
   ]
 };
 
@@ -216,6 +225,7 @@ function runTests(projectPath, ws) {
     'Tester/tests/Feature/AppSumo',
     'Tester/tests/Feature/V3',
     'Tester/tests/Feature/Auth',
+    'Tester/tests/Feature/Golden',
     'Tester/tests/Feature/DocumentConversionTest.php',
     'Tester/tests/Feature/ProfileTest.php',
     'Tester/tests/Feature/ImportMappingTest.php',
@@ -279,6 +289,7 @@ function runTests(projectPath, ws) {
     'AppSumo',
     'V3',
     'Auth',
+    'Golden',
     'DocumentConversionTest',
     'ProfileTest',
     'ImportMappingTest',
