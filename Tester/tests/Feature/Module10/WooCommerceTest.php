@@ -125,6 +125,34 @@ test('webhook_creates_party_and_records_transaction', function () {
         'tenant_id' => $tenant->id,
         'invoice_id' => 'WC-9999'
     ]);
+
+    // Check if double-entry journal entry was posted
+    $this->assertDatabaseHas('journal_entries', [
+        'tenant_id' => $tenant->id,
+        'reference' => 'WC-9999',
+        'reference_type' => 'sale',
+    ]);
+
+    // Check if the journal items balance correctly
+    $entry = \App\Models\JournalEntry::where('tenant_id', $tenant->id)
+        ->where('reference', 'WC-9999')
+        ->first();
+
+    $this->assertNotNull($entry, 'Journal entry should be created');
+
+    $this->assertDatabaseHas('journal_items', [
+        'journal_entry_id' => $entry->id,
+        'account_code' => '1000', // Cash (DR)
+        'debit' => 200.00,
+        'credit' => 0.00,
+    ]);
+
+    $this->assertDatabaseHas('journal_items', [
+        'journal_entry_id' => $entry->id,
+        'account_code' => '4000', // Sales Revenue (CR)
+        'debit' => 0.00,
+        'credit' => 200.00,
+    ]);
 });
 
 test('tampered_webhook_rejected', function () {

@@ -8,16 +8,27 @@ use App\Models\Party;
 use App\Models\Transaction;
 use App\Services\InventoryService;
 use App\Services\PlanGate;
+use App\Services\V3\AccountingService;
+use App\Services\V3\FifoService;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class WooCommerceController extends Controller
 {
     protected $inventoryService;
+    protected $accounting;
+    protected $fifo;
 
-    public function __construct(InventoryService $inventoryService)
-    {
+    public function __construct(
+        InventoryService $inventoryService,
+        AccountingService $accounting,
+        FifoService $fifo
+    ) {
         $this->inventoryService = $inventoryService;
+        $this->accounting       = $accounting;
+        $this->fifo             = $fifo;
     }
 
     public function index()
@@ -87,18 +98,28 @@ class WooCommerceController extends Controller
             ['type' => 'customer']
         );
 
+        // Resolve the tenant's default warehouse (FifoService deducts per-warehouse).
+        $warehouse = \App\Models\Warehouse::where('tenant_id', $connection->tenant->id)
+            ->orderByDesc('is_default')
+            ->orderBy('created_at')
+            ->first();
+
         $itemsToProcess = [];
 
         foreach ($payload['line_items'] as $item) {
-            $sku = $item['sku'];
-            $quantity = $item['quantity'];
+            $sku = $item['sku'] ?? null;
+            $quantity = (float) ($item['quantity'] ?? 0);
+            if (!$sku || $quantity <= 0) {
+                continue;
+            }
 
             $product = Product::where('sku', $sku)->first();
 
             if ($product) {
                 $itemsToProcess[] = [
-                    'id' => $product->id,
-                    'quantity' => $quantity
+                    'id'       => $product->id,
+                    'product'  => $product,
+                    'quantity' => $quantity,
                 ];
             } else {
                 Log::warning("Product with SKU $sku not found in VenQore POS");
@@ -107,21 +128,72 @@ class WooCommerceController extends Controller
 
         if (!empty($itemsToProcess)) {
             try {
-                $total = $this->inventoryService->processSale($itemsToProcess, $party->id);
+                // L012 FIX: a WooCommerce order must post a full double-entry journal,
+                // exactly like a POS sale — otherwise Woo revenue/COGS are invisible on
+                // the P&L and Balance Sheet. Previously this only deducted stock and wrote
+                // a legacy `transactions` row, bypassing journal_items entirely.
+                //
+                // We deduct through the V3 FifoService (the single source of COGS truth —
+                // it writes sale_item_batches audit rows and returns real batch costs),
+                // then post: DR 1000 Cash + CR 4000 Revenue (Woo orders are prepaid online),
+                // and DR 5000 COGS + CR 1100 Inventory. The legacy Transaction row is kept
+                // so existing consumers/tests that read `transactions` still work.
+                $result = DB::transaction(function () use ($itemsToProcess, $party, $warehouse, $payload, $connection) {
+                    $revenueTotal = 0.0;
+                    $cogsTotal    = 0.0;
 
-                // Record Transaction
-                Transaction::create([
-                    'party_id' => $party->id,
-                    'invoice_id' => 'WC-' . $payload['id'],
-                    'amount' => $total,
-                    'type' => 'debit',
-                    'running_balance' => $party->current_balance + $total, // Simplified
-                ]);
+                    foreach ($itemsToProcess as $line) {
+                        /** @var \App\Models\Product $product */
+                        $product = $line['product'];
+                        $qty     = (float) $line['quantity'];
 
-                // Update party balance - [V3 SWAP] Removed: Redundant decrement/increment.
-                // $party->increment('current_balance', $total);
+                        $revenueTotal += (float) $product->price * $qty;
 
-                return response()->json(['success' => true], 200);
+                        // Real FIFO deduction → returns per-batch costs; writes sale_item_batches.
+                        if ($warehouse) {
+                            $deductions = $this->fifo->deductStock($product->id, $warehouse->id, $qty);
+                            foreach ($deductions as $d) {
+                                $cogsTotal += (float) $d['total_cost'];
+                            }
+                        }
+                    }
+
+                    $revenueTotal = round($revenueTotal, 2);
+                    $cogsTotal    = round($cogsTotal, 2);
+
+                    // ── Post the double-entry journal ──────────────────────────────
+                    // Revenue leg: Woo orders arrive already paid online → debit Cash.
+                    $journalLines = [
+                        ['account_code' => '1000', 'debit' => $revenueTotal, 'credit' => 0, 'party_id' => $party->id],
+                        ['account_code' => '4000', 'debit' => 0, 'credit' => $revenueTotal],
+                    ];
+                    // COGS leg (only when we have a real inventory cost).
+                    if ($cogsTotal > 0) {
+                        $journalLines[] = ['account_code' => '5000', 'debit' => $cogsTotal, 'credit' => 0];
+                        $journalLines[] = ['account_code' => '1100', 'debit' => 0, 'credit' => $cogsTotal];
+                    }
+
+                    $this->accounting->createEntry([
+                        'date'           => now()->toDateString(),
+                        'reference_type' => 'sale',
+                        'reference'      => 'WC-' . ($payload['id'] ?? Str::uuid()->toString()),
+                        'description'    => 'WooCommerce order WC-' . ($payload['id'] ?? 'unknown'),
+                        'party_id'       => $party->id,
+                    ], $journalLines);
+
+                    // Keep the legacy transactions row (unchanged behavior for existing readers).
+                    Transaction::create([
+                        'party_id'        => $party->id,
+                        'invoice_id'      => 'WC-' . ($payload['id'] ?? 'unknown'),
+                        'amount'          => $revenueTotal,
+                        'type'            => 'debit',
+                        'running_balance' => $party->current_balance + $revenueTotal, // Simplified
+                    ]);
+
+                    return $revenueTotal;
+                });
+
+                return response()->json(['success' => true, 'total' => $result], 200);
             } catch (\Exception $e) {
                 Log::error('Error processing WooCommerce Order: ' . $e->getMessage());
                 return response()->json(['error' => $e->getMessage()], 500);
