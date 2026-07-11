@@ -93,6 +93,13 @@ const SUITE_TESTS = {
   ],
   'SalesOrderTest': [
     'can create and convert v3 sales order'
+  ],
+  'PartialReturnTest': [
+    'partial qty restores only that qty',
+    'partial return calculates proportional cogs',
+    'proportional net revenue on discounted sale',
+    'refund account follows payment method',
+    'over return blocked by clamping'
   ]
 };
 

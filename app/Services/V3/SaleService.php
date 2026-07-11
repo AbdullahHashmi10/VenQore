@@ -452,6 +452,207 @@ class SaleService
                 throw new \LogicException("Sale {$saleId} has already been returned.");
             }
 
+            // Check if it's a partial return
+            $isPartial = !empty($items) && $this->isPartialReturn($sale, $items);
+
+            if ($isPartial) {
+                // ─── PARTIAL RETURN PATH ──────────────────────────────────────
+                $returnTotal = 0.0;
+                $journalItems = [];
+
+                // Resolve the refund GL account based on the ORIGINAL sale's payment method.
+                $originalPaymentMethod = strtolower($sale->payment_method ?? 'cash');
+                if (in_array($originalPaymentMethod, ['bank', 'card', 'online', 'upi'])) {
+                    $refundAccountCode = '1010';
+                } elseif (in_array($originalPaymentMethod, ['credit', 'ledger', 'khata'])) {
+                    $refundAccountCode = '1200';
+                } else {
+                    $refundAccountCode = '1000'; // cash default
+                }
+
+                $refundAccount = $this->accounting->getAccountByCode($refundAccountCode);
+                $cogsAccount   = $this->accounting->getAccountByCode('5000', 'Cost of Goods Sold', 'expense');
+                $invAccount    = $this->accounting->getAccountByCode('1100', 'Inventory Asset', 'asset');
+                $incAccount    = $this->accounting->getAccountByCode('4000', 'Sales Revenue', 'income');
+
+                foreach ($items as $item) {
+                    $saleItemId = $item['sale_item_id'];
+                    $returnQty = (float)$item['return_qty'];
+
+                    $originalItem = DB::table('sale_items')
+                        ->where('tenant_id', $this->tenantId)
+                        ->where('sale_id', $sale->id)
+                        ->where('id', $saleItemId)
+                        ->first();
+
+                    if (!$originalItem) {
+                        continue;
+                    }
+
+                    $alreadyReturned = (float)$originalItem->returned_quantity;
+                    $remainingReturnable = max(0.0, (float)$originalItem->quantity - $alreadyReturned);
+                    $qty = min($returnQty, $remainingReturnable);
+                    if ($qty <= 0) {
+                        continue;
+                    }
+
+                    // Pro-rate net revenue
+                    $originalQty = max(0.001, (float)$originalItem->quantity);
+                    $netAmountPerUnit = ((float)$originalItem->net_amount > 0)
+                        ? (float)$originalItem->net_amount / $originalQty
+                        : (float)$originalItem->unit_price;
+
+                    $lineRevenue = round($netAmountPerUnit * $qty, 4);
+                    $returnTotal += $lineRevenue;
+
+                    // Restore FIFO stock
+                    $activeBatches = DB::table('sale_item_batches')
+                        ->select('sale_item_batches.*')
+                        ->join('inventory_batches', 'sale_item_batches.inventory_batch_id', '=', 'inventory_batches.id')
+                        ->where('sale_item_batches.sale_item_id', $originalItem->id)
+                        ->where('sale_item_batches.qty_deducted', '>', 0)
+                        ->whereNull('sale_item_batches.reversed_at')
+                        ->orderBy('inventory_batches.created_at', 'desc')
+                        ->orderBy('inventory_batches.seq', 'desc')
+                        ->get();
+
+                    $qtyToRestore = $qty;
+                    $costToRestore = 0.0;
+
+                    foreach ($activeBatches as $sib) {
+                        if ($qtyToRestore <= 0) break;
+                        $restoreFromThis = min((float)$sib->qty_deducted, $qtyToRestore);
+                        $batch = DB::table('inventory_batches')->where('id', $sib->inventory_batch_id)->first();
+                        if ($batch) {
+                            $restoredQty = min($restoreFromThis, (float)$batch->original_qty - (float)$batch->remaining_qty);
+                            
+                            // Increment remaining_qty on inventory_batches
+                            DB::table('inventory_batches')
+                                ->where('id', $batch->id)
+                                ->increment('remaining_qty', $restoredQty);
+
+                            $costToRestore += $restoredQty * (float)$batch->unit_cost;
+                            
+                            if ($restoredQty >= (float)$sib->qty_deducted) {
+                                // Mark reversed
+                                DB::table('sale_item_batches')
+                                    ->where('id', $sib->id)
+                                    ->update([
+                                        'reversed_at' => now(),
+                                        'reversal_reason' => "Partial return of {$sale->reference_number}"
+                                    ]);
+                            } else {
+                                $newQty = (float)$sib->qty_deducted - $restoredQty;
+                                DB::table('sale_item_batches')
+                                    ->where('id', $sib->id)
+                                    ->update([
+                                        'qty_deducted' => $newQty,
+                                        'total_cogs' => $newQty * (float)$sib->unit_cost
+                                    ]);
+                            }
+                        }
+                        $qtyToRestore -= $restoreFromThis;
+                    }
+
+                    // Sync legacy stocks and aggregates
+                    $stock = DB::table('stocks')
+                        ->where('product_id', $originalItem->product_id)
+                        ->where('warehouse_id', $sale->warehouse_id)
+                        ->first();
+                    if ($stock) {
+                        DB::table('stocks')->where('id', $stock->id)->increment('quantity', $qty);
+                    }
+
+                    if ($originalItem->product_variant_id) {
+                        DB::table('product_variants')
+                            ->where('id', $originalItem->product_variant_id)
+                            ->increment('stock', $qty);
+                    }
+
+                    DB::table('products')->where('id', $originalItem->product_id)->increment('stock_quantity', $qty);
+
+                    // Reversal journal lines
+                    if ($costToRestore > 0 && $cogsAccount && $invAccount) {
+                        $journalItems[] = [
+                            'account_id' => $invAccount->id,
+                            'debit' => $costToRestore,
+                            'credit' => 0,
+                            'description' => "Inventory restored: partial return of {$sale->reference_number}"
+                        ];
+                        $journalItems[] = [
+                            'account_id' => $cogsAccount->id,
+                            'debit' => 0,
+                            'credit' => $costToRestore,
+                            'description' => "COGS reversal: partial return of {$sale->reference_number}"
+                        ];
+                    }
+
+                    if ($lineRevenue > 0 && $refundAccount && $incAccount) {
+                        $journalItems[] = [
+                            'account_id' => $incAccount->id,
+                            'debit' => $lineRevenue,
+                            'credit' => 0,
+                            'description' => "Revenue reversal: partial return of {$sale->reference_number}"
+                        ];
+                        $journalItems[] = [
+                            'account_id' => $refundAccount->id,
+                            'debit' => 0,
+                            'credit' => $lineRevenue,
+                            'description' => "Refund ({$refundAccountCode}): partial return of {$sale->reference_number}"
+                        ];
+                    }
+
+                    DB::table('sale_items')->where('id', $originalItem->id)->increment('returned_quantity', $qty);
+                }
+
+                if ($returnTotal == 0 && empty($journalItems)) {
+                    throw new \LogicException("Nothing left to return on this sale.");
+                }
+
+                // Post the partial reversal journal entry
+                if (!empty($journalItems)) {
+                    $this->accounting->createEntry([
+                        'date' => now()->toDateString(),
+                        'reference' => 'PRET-' . $sale->reference_number,
+                        'description' => "Partial return of {$sale->reference_number}. Reason: {$reason}",
+                        'party_id' => $sale->party_id,
+                        'source_type' => \App\Models\Sale::class,
+                        'source_id' => $sale->id,
+                    ], $journalItems);
+                }
+
+                // Record Refund Payment
+                \App\Models\Payment::create([
+                    'sale_id'   => $sale->id,
+                    'party_id'  => $sale->party_id,
+                    'amount'    => -$returnTotal,
+                    'type'      => 'out',
+                    'method'    => $sale->payment_method ?? 'cash',
+                    'reference' => 'Partial refund of payment: ' . $sale->reference_number,
+                    'date'      => $returnDate ?? now()->toDateString(),
+                ]);
+
+                // Check if the entire sale is now fully returned across all items
+                $allSaleItems = DB::table('sale_items')->where('tenant_id', $this->tenantId)->where('sale_id', $sale->id)->get();
+                $isFullyReturned = true;
+                foreach ($allSaleItems as $si) {
+                    if ((float)$si->returned_quantity < (float)$si->quantity - 0.0001) {
+                        $isFullyReturned = false;
+                        break;
+                    }
+                }
+
+                $newStatus = $isFullyReturned ? 'returned' : 'partially_returned';
+
+                DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $sale->id)->update([
+                    'status' => $newStatus,
+                    'updated_at' => now(),
+                ]);
+
+                return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $sale->id)->first();
+            }
+
+            // ─── FULL RETURN PATH ──────────────────────────────────────────────────
             // Restore stock for every sale_item
             $saleItems = DB::table('sale_items')->where('tenant_id', $this->getTenantId())->where('sale_id', $saleId)->get();
             foreach ($saleItems as $saleItem) {
@@ -504,6 +705,38 @@ class SaleService
 
             return DB::table('sales')->where('tenant_id', $this->tenantId)->where('id', $saleId)->first();
         });
+    }
+
+    /**
+     * Determine if a return is partial.
+     */
+    private function isPartialReturn(object $sale, array $items): bool
+    {
+        if (empty($items)) {
+            return false;
+        }
+
+        $saleItems = DB::table('sale_items')
+            ->where('tenant_id', $this->tenantId)
+            ->where('sale_id', $sale->id)
+            ->get();
+
+        if (count($items) < count($saleItems)) {
+            return true;
+        }
+
+        foreach ($items as $item) {
+            $originalItem = $saleItems->firstWhere('id', $item['sale_item_id']);
+            if (!$originalItem) {
+                continue;
+            }
+            $remaining = (float)$originalItem->quantity - (float)$originalItem->returned_quantity;
+            if ((float)$item['return_qty'] < $remaining - 0.0001) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // ─── Private Helpers ──────────────────────────────────────────────────────
