@@ -713,7 +713,7 @@ function onRunEnd(results) {
   updateProgress(100);
 
   if (results) {
-    updateStats(results.passed, results.failed, results.todos);
+    updateStats(results.passed, results.failed, results.todos, results.total);
     renderFinalReport(results);
     document.getElementById('last-run-info').textContent = '· RUN AT ' + formatTime(results.timestamp) + ' (' + results.duration + 's)';
 
@@ -865,12 +865,12 @@ function applyAuthoritativeSummary(c) {
   setC('stat-total', c.total);
 }
 
-function updateStats(passed, failed, todos) {
+function updateStats(passed, failed, todos, total) {
   passCount = passed; failCount = failed; todoCount = todos;
   document.getElementById('stat-pass').textContent = passed;
   document.getElementById('stat-fail').textContent = failed;
   document.getElementById('stat-todo').textContent = todos;
-  document.getElementById('stat-total').textContent = passed + failed;
+  document.getElementById('stat-total').textContent = total !== undefined && total !== null ? total : (passed + failed + todos);
 }
 
 function updateVerdictTitle(text, color) {
@@ -988,7 +988,7 @@ function renderFinalReport(results) {
 
 function renderLastResults(run) {
   if (!run) return;
-  updateStats(run.passed || 0, run.failed || 0, run.todos || 0);
+  updateStats(run.passed || 0, run.failed || 0, run.todos || 0, run.total);
   document.getElementById('last-run-info').textContent = '· RUN AT ' + formatTime(run.timestamp) + ' (' + run.duration + 's)';
   if (run.modules) {
     Object.entries(run.modules).forEach(([key, data]) => {
