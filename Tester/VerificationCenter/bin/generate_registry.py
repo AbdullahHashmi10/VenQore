@@ -39,8 +39,9 @@ def main():
     files = sorted(f for f in glob.glob(ROOT + "/**/*Test.php", recursive=True) if "/_archive/" not in f)
     groups = defaultdict(lambda: {"files": [], "tests": 0})
     for f in files:
+        f_norm = f.replace("\\", "/")
         n = count_tests(f)
-        rel = f.replace(ROOT + "/", "")
+        rel = f_norm.replace(ROOT + "/", "")
         suite = os.path.dirname(rel) or "root"
         groups[suite]["files"].append((rel, n, tier(rel)))
         groups[suite]["tests"] += n

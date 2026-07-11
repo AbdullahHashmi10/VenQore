@@ -166,6 +166,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/setup',  [\App\Http\Controllers\SetupController::class, 'index'])->name('setup');
         Route::post('/setup', [\App\Http\Controllers\SetupController::class, 'complete'])->name('setup.complete');
 
+        // L032: Terminal pairing tokens (tenant admin issues these; a new
+        // terminal presents one on first heartbeat to prove authorization).
+        Route::get('/terminal-pairing-tokens',        [\App\Http\Controllers\TerminalPairingController::class, 'index'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.index');
+        Route::post('/terminal-pairing-tokens',       [\App\Http\Controllers\TerminalPairingController::class, 'store'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.store');
+        Route::delete('/terminal-pairing-tokens/{id}', [\App\Http\Controllers\TerminalPairingController::class, 'destroy'])->middleware('permission:admin.settings_manage')->name('terminal-pairing.destroy');
+
         // POS (on-demand API, no full catalog pre-load)
         Route::get('/pos',                     [\App\Http\Controllers\PosController::class, 'index'])->name('pos');
         // GAP 1 FIX: Dead route removed. POS sales go through the legacy SaleController via Route::post('sales', ...) at line 1101.
