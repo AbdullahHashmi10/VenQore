@@ -546,8 +546,10 @@ class LedgerTruthAuditCommand extends Command
             // Skip explicitly excluded route names
             if (in_array($name, self::SKIP_NAMES, true)) continue;
 
-            // Skip routes explicitly marked as NON-FINANCIAL in registry
-            if (in_array($name, $this->nonFinancialRoutes, true)) continue;
+            // NOTE: NON-FINANCIAL is a *reporting label*, not a route-exclusion filter.
+            // Every store.* GET route must be visited so we know which pages serve Inertia
+            // vs JSON vs redirect. The nonFinancialRoutes pre-filter was cutting 154 routes
+            // down to ~8 — do NOT restore it here.
 
             // Skip URI fragments that indicate non-Inertia responses
             $skipRoute = false;
