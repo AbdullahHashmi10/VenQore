@@ -11,10 +11,10 @@ echo   Expected coverage: ~154 routes
 echo ============================================================
 echo.
 
-:: ── Move to the project root ────────────────────────────────────────────────
+REM Move to the project root
 cd /d "%~dp0"
 
-:: ── Locate PHP ──────────────────────────────────────────────────────────────
+REM Locate PHP
 set "PHP_BIN="
 if exist "E:\Software\xampp\php\php.exe"     set "PHP_BIN=E:\Software\xampp\php\php.exe"
 if not defined PHP_BIN if exist "D:\Software\XAMPP\php\php.exe" set "PHP_BIN=D:\Software\XAMPP\php\php.exe"
@@ -33,7 +33,7 @@ if not defined PHP_BIN (
 echo  Using PHP: %PHP_BIN%
 echo.
 
-:: ── Parse optional flags passed to this .bat ────────────────────────────────
+REM Parse optional flags passed to this .bat
 set "EXTRA_FLAGS="
 for %%A in (%*) do (
     if /I "%%A"=="/skip-seed"      set "EXTRA_FLAGS=!EXTRA_FLAGS! --skip-seed"
@@ -54,10 +54,10 @@ echo.
 echo ------------------------------------------------------------
 echo.
 
-:: ── Force the testing environment ────────────────────────────────────────────
+REM Force the testing environment
 set "APP_ENV=testing"
 
-:: ── Run the sweep with unlimited memory to avoid out-of-memory crashes ───────
+REM Run the sweep with unlimited memory to avoid out-of-memory crashes
 "%PHP_BIN%" -d memory_limit=-1 artisan audit:ledger-truth --strict --env=testing %EXTRA_FLAGS%
 set "SWEEP_EXIT=%ERRORLEVEL%"
 
