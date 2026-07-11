@@ -160,6 +160,34 @@ class AuthenticationTest extends TestCase
         $response->assertRedirect('/login');
         $response->assertSessionHas('error', 'Your session has expired. Please try again.');
     }
+
+    public function test_pos_pin_login_rate_limiting(): void
+    {
+        $tenant = \App\Models\Tenant::factory()->create();
+        $storeId = $tenant->id;
+        $rateKey = 'pos-pin-login:' . $storeId . '|127.0.0.1';
+        \Illuminate\Support\Facades\RateLimiter::clear($rateKey);
+
+        // Attempt 5 failed PIN logins
+        for ($i = 0; $i < 5; $i++) {
+            $response = $this->post('/login/pin', [
+                'store_id' => $storeId,
+                'pin' => '0000', // Invalid PIN
+            ]);
+            $response->assertSessionHasErrors(['pin']);
+            $this->assertStringContainsString('Invalid PIN.', session()->get('errors')->getBag('default')->first('pin'));
+        }
+
+        // 6th attempt should be rate limited / throttled
+        $response = $this->post('/login/pin', [
+            'store_id' => $storeId,
+            'pin' => '0000',
+        ]);
+        $response->assertSessionHasErrors(['pin']);
+        $this->assertStringContainsString('Too many login attempts', session()->get('errors')->getBag('default')->first('pin'));
+
+        \Illuminate\Support\Facades\RateLimiter::clear($rateKey);
+    }
 }
 
 

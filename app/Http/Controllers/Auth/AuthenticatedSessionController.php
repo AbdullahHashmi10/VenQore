@@ -127,6 +127,15 @@ class AuthenticatedSessionController extends Controller
         $storeId = (int) $request->store_id;
         $pin     = $request->pin;
 
+        $rateKey = 'pos-pin-login:' . $storeId . '|' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($rateKey, 5)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($rateKey);
+            return back()->withErrors([
+                'pin' => "Too many login attempts. Please try again in {$seconds} seconds."
+            ]);
+        }
+
         // Find matching active membership with this PIN
         $membership = TenantUser::where('tenant_id', $storeId)
             ->where('status', 'active')
@@ -136,8 +145,11 @@ class AuthenticatedSessionController extends Controller
             ->first(fn($m) => \Illuminate\Support\Facades\Hash::check($pin, $m->pos_pin));
 
         if (!$membership || !$membership->user) {
+            \Illuminate\Support\Facades\RateLimiter::hit($rateKey, 60);
             return back()->withErrors(['pin' => 'Invalid PIN.']);
         }
+
+        \Illuminate\Support\Facades\RateLimiter::clear($rateKey);
 
         Auth::login($membership->user);
         $request->session()->regenerate();
