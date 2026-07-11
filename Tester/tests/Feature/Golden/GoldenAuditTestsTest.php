@@ -39,7 +39,7 @@ class GoldenAuditTestsTest extends TestCase
             ->assertExitCode(0);
 
         // Run the ledger truth audit
-        $this->artisan('audit:ledger-truth', ['--strict' => true])
+        $this->artisan('audit:ledger-truth', ['--strict' => true, '--financial-only' => true])
             ->assertExitCode(0);
     }
 

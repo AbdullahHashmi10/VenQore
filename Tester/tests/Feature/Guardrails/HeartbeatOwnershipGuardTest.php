@@ -86,11 +86,18 @@ class HeartbeatOwnershipGuardTest extends VenQoreTestCase
 
         $store = $this->createTenant('legit-hb-store', 'ltd_3', 'active');
 
+        $token = \App\Models\TerminalPairingToken::create([
+            'tenant_id' => $store->id,
+            'token'     => 'CLAIM-TOKEN-123',
+            'expires_at'=> now()->addHour(),
+        ]);
+
         $response = $this->postJson('/api/heartbeat', [
             'device_id'  => 'hb-kiosk-device-777',
             'terminal_id' => $terminal->id,
             'store_slug' => $store->slug,
             'status'     => 'OPEN',
+            'pairing_token' => 'CLAIM-TOKEN-123',
         ]);
 
         $response->assertOk();
