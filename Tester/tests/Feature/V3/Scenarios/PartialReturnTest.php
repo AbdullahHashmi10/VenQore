@@ -168,6 +168,7 @@ class PartialReturnTest extends TestCase
             'payment_method'   => $paymentMethod,
             'reference_number' => 'SAL-' . Str::random(4),
             'status'           => 'posted',
+            'user_id'          => auth()->id(),
             'subtotal'         => $grossTotal,
             'total'            => $netTotal,
             'net_sales'        => $netTotal,
