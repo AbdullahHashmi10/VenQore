@@ -140,16 +140,19 @@ test('webhook_creates_party_and_records_transaction', function () {
 
     $this->assertNotNull($entry, 'Journal entry should be created');
 
+    $cashAccountId = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '1000')->value('id');
+    $revenueAccountId = \App\Models\Account::where('tenant_id', $tenant->id)->where('code', '4000')->value('id');
+
     $this->assertDatabaseHas('journal_items', [
         'journal_entry_id' => $entry->id,
-        'account_code' => '1000', // Cash (DR)
+        'account_id' => $cashAccountId,
         'debit' => 200.00,
         'credit' => 0.00,
     ]);
 
     $this->assertDatabaseHas('journal_items', [
         'journal_entry_id' => $entry->id,
-        'account_code' => '4000', // Sales Revenue (CR)
+        'account_id' => $revenueAccountId,
         'debit' => 0.00,
         'credit' => 200.00,
     ]);
