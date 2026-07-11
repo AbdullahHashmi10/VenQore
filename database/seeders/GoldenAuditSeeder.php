@@ -562,9 +562,9 @@ class GoldenAuditSeeder extends Seeder
         foreach ($selectedKeys as $key) {
             $prod = $products[$key];
             $qty = rand(20, 50);
-            $cost = $prod['cost_price'] * (1 - (rand(0, 5) / 100)); // deterministic slight discount
-            $lineTotal = $qty * $cost;
-            $lineTax = $lineTotal * 0.17;
+            $cost = round($prod['cost_price'] * (1 - (rand(0, 5) / 100)), 2);
+            $lineTotal = round($qty * $cost, 2);
+            $lineTax = round($lineTotal * 0.17, 2);
 
             $items[] = [
                 'product_id' => $prod['id'],
@@ -684,12 +684,12 @@ class GoldenAuditSeeder extends Seeder
             $price = $prod['price'];
             $disc = rand(0, 10); // discount percent
             $gross = $qty * $price;
-            $discAmt = $gross * ($disc / 100);
-            $net = $gross - $discAmt;
-            $lineTax = $net * 0.17;
+            $discAmt = round($gross * ($disc / 100), 2);
+            $net = round($gross - $discAmt, 2);
+            $lineTax = round($net * 0.17, 2);
 
             // Simple average inventory/cogs deduction
-            $lineCogs = $qty * $prod['cost_price'];
+            $lineCogs = round($qty * $prod['cost_price'], 2);
             $totalDiscount += $discAmt;
 
             $items[] = [
@@ -700,7 +700,7 @@ class GoldenAuditSeeder extends Seeder
                 'net_amount' => $net,
                 'tax_rate' => 17.00,
                 'tax_amount' => $lineTax,
-                'line_total' => $net + $lineTax,
+                'line_total' => round($net + $lineTax, 2),
                 'cogs' => $lineCogs,
             ];
 
