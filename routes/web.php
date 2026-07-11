@@ -234,7 +234,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::post('/settings',   [\App\Http\Controllers\AdminController::class, 'updateSettings'])->name('settings.update');
             Route::get('/users',       [\App\Http\Controllers\StaffInvitationController::class, 'index'])->name('users');
             // Member management — single source of truth
-            Route::patch('/users/{member}',  [\App\Http\Controllers\AdminController::class, 'updateMember'])->name('users.update');
+            Route::patch('/users/{member}',  [\App\Http\Controllers\AdminController::class, 'updateMember'])->middleware('permission:users.manage')->name('users.update');
             Route::delete('/users/{member}', [\App\Http\Controllers\AdminController::class, 'removeMember'])->middleware('permission:users.manage')->name('users.remove');
             Route::post('/users',      [\App\Http\Controllers\AdminController::class, 'storeUser'])->middleware('permission:users.manage')->name('users.store');
             Route::get('/staff',       function () { return redirect()->route('store.admin.users', ['store_slug' => app('current.tenant')->slug]); })->name('staff');

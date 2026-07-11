@@ -231,7 +231,6 @@ class User extends Authenticatable
         }
 
         $perms = $this->permissions; // delegates to getPermissionsAttribute()
-        if (in_array('*', $perms)) return true;
         return in_array($permission, $perms);
     }
 

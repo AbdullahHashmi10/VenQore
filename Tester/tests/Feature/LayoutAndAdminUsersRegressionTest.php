@@ -163,4 +163,81 @@ class LayoutAndAdminUsersRegressionTest extends VenQoreTestCase
         $response2 = $this->get("/s/{$tenant->slug}/admin/attendance");
         $response2->assertRedirect(route('store.admin.users', ['store_slug' => $tenant->slug]));
     }
+
+    /** @test */
+    public function test_admin_cannot_promote_user_to_admin_or_owner(): void
+    {
+        $tenant = $this->createTenant();
+        $admin = $this->createTenantUser($tenant, 'admin');
+        $cashier = $this->createTenantUser($tenant, 'cashier');
+
+        $this->actingAsTenantUserModel($admin, $tenant);
+
+        $cashierMembership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $cashier->id)
+            ->firstOrFail();
+
+        // 1. Try to promote to admin - should fail with 403
+        $response1 = $this->patch("/s/{$tenant->slug}/admin/users/{$cashierMembership->id}", [
+            'role' => 'admin',
+        ]);
+        $response1->assertStatus(403);
+
+        // 2. Try to promote to owner - should fail with 403
+        $response2 = $this->patch("/s/{$tenant->slug}/admin/users/{$cashierMembership->id}", [
+            'role' => 'owner',
+        ]);
+        $response2->assertStatus(403);
+    }
+
+    /** @test */
+    public function test_admin_cannot_edit_or_suspend_another_admin_or_owner(): void
+    {
+        $tenant = $this->createTenant();
+        $admin1 = $this->createTenantUser($tenant, 'admin');
+        $admin2 = $this->createTenantUser($tenant, 'admin');
+        $owner = $this->createTenantUser($tenant, 'owner');
+
+        $this->actingAsTenantUserModel($admin1, $tenant);
+
+        $admin2Membership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $admin2->id)
+            ->firstOrFail();
+
+        $ownerMembership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $owner->id)
+            ->firstOrFail();
+
+        // Admin trying to edit another Admin - should fail with 403
+        $response1 = $this->patch("/s/{$tenant->slug}/admin/users/{$admin2Membership->id}", [
+            'display_name' => 'Hacked Admin',
+        ]);
+        $response1->assertStatus(403);
+
+        // Admin trying to edit Owner - should fail with 403
+        $response2 = $this->patch("/s/{$tenant->slug}/admin/users/{$ownerMembership->id}", [
+            'display_name' => 'Hacked Owner',
+        ]);
+        $response2->assertStatus(403);
+    }
+
+    /** @test */
+    public function test_wildcard_permission_cannot_bypass_gating(): void
+    {
+        $tenant = $this->createTenant();
+        $cashier = $this->createTenantUser($tenant, 'cashier');
+
+        // Grant the cashier wildcard '*' permission in the tenant_user pivot
+        $membership = TenantUser::where('tenant_id', $tenant->id)
+            ->where('user_id', $cashier->id)
+            ->firstOrFail();
+        $membership->update(['permissions' => ['*']]);
+
+        $this->actingAsTenantUserModel($cashier, $tenant);
+
+        // A cashier with '*' should still be rejected when accessing an owner-only or admin-only route
+        // because the God-mode wildcard bypass has been removed.
+        $response = $this->get("/s/{$tenant->slug}/admin");
+        $response->assertStatus(403);
+    }
 }

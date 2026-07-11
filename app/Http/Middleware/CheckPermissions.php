@@ -46,11 +46,6 @@ class CheckPermissions
         //  2. config/permissions.php default role map as a fallback
         $userPerms = $user->permissions;
 
-        // God-mode wildcard bypass
-        if (in_array('*', $userPerms)) {
-            return $next($request);
-        }
-
         // If no required permissions specified, allow basic authenticated access
         if (empty($permissions)) {
             return $next($request);

@@ -839,11 +839,30 @@ class AdminController extends Controller
                 abort(403, 'Owner role cannot be changed.');
             }
 
+            // Retrieve acting user's membership to check roles hierarchy
+            $myMembership = TenantUser::where('tenant_id', app('current.tenant')->id)
+                ->where('user_id', Auth::id())
+                ->firstOrFail();
+
+            $isOwner = $myMembership->role === 'owner';
+
+            // Non-owners (admins) cannot promote users to owner, franchise_admin, or admin
+            if (!$isOwner && $request->has('role')) {
+                $requestedRole = $request->input('role');
+                if (in_array($requestedRole, ['owner', 'franchise_admin', 'admin'])) {
+                    abort(403, 'Admins cannot promote members to owner, franchise_admin, or admin roles.');
+                }
+            }
+
             $updateData = $request->only(['role', 'custom_role_name', 'display_name', 'status']);
             \Log::info('updateMember data: ' . json_encode($updateData));
+            
             if ($request->has('permissions')) {
                 $permissions = $request->input('permissions') ?? [];
-                $isOwner = app()->bound('current.membership') && app('current.membership')->role === 'owner';
+                
+                // Remove wildcard '*' to prevent God-mode bypass injection (L026)
+                $permissions = array_filter($permissions, fn($p) => $p !== '*');
+
                 if (!$isOwner) {
                     $permissions = array_filter($permissions, fn($p) => $p !== 'admin.billing_store');
                 }
@@ -904,6 +923,13 @@ class AdminController extends Controller
 
         if (!in_array($myMembership->role, ['owner', 'admin'])) {
             abort(403);
+        }
+
+        // Non-owner admins cannot modify other admins, franchise_admins, or owners
+        if ($myMembership->role !== 'owner') {
+            if (in_array($member->role, ['owner', 'franchise_admin', 'admin'])) {
+                abort(403, 'Admins cannot modify or remove other admins, franchise_admins, or owners.');
+            }
         }
     }
 }
