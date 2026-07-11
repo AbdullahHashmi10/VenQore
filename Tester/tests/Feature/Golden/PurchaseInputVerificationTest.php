@@ -233,4 +233,68 @@ class PurchaseInputVerificationTest extends InputVerificationTestCase
 
         $this->assertLedgerInvariantsHold();
     }
+
+    /**
+     * @test
+     * Post a cash purchase, then return all goods.
+     * After return: GL 1100 net = 0 for that product, GL 1000 (Cash) must be restored, GL 2000 (AP) remains unchanged.
+     */
+    public function test_P04_cash_purchase_return_debits_cash_instead_of_ap(): void
+    {
+        $vendorId  = $this->createVendor();
+        $productId = \Illuminate\Support\Str::uuid()->toString();
+        DB::table('products')->insert(['base_unit' => 'pcs', 
+            'id' => $productId, 'tenant_id' => $this->tenant->id,
+            'name' => 'Return Cash Product', 'sku' => 'RT-CS-' . substr($productId, 0, 8),
+            'price' => 1200.00, 'cost_price' => 800.00, 'tax_rate' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $gl1100Before = $this->glBalance('1100');
+        $cashBefore   = $this->glBalance('1000');
+        $apBefore     = $this->glBalance('2000');
+
+        $purchaseSvc = app(\App\Services\V3\PurchaseService::class);
+        $purchase    = $purchaseSvc->store([
+            'vendor_id'      => $vendorId,
+            'warehouse_id'   => $this->warehouseId,
+            'purchase_date'  => '2025-06-15',
+            'payment_method' => 'cash',
+            'items' => [[
+                'product_id' => $productId,
+                'qty'        => 5,
+                'unit_cost'  => 800.00,
+                'tax_rate'   => 0,
+            ]],
+        ]);
+
+        // Cash purchase credits Cash (1000)
+        $this->assertEqualsWithDelta($cashBefore - 4000.00, $this->glBalance('1000'), $this->TOLERANCE,
+            'Cash should decrease after cash purchase');
+        $this->assertEqualsWithDelta($apBefore, $this->glBalance('2000'), $this->TOLERANCE,
+            'AP should remain unchanged after cash purchase');
+
+        // Now return all items
+        $purchaseSvc->createReturn($purchase->id, [
+            'return_date' => '2025-06-16',
+            'reason'      => 'Defective goods',
+            'items' => [[
+                'product_id'         => $productId,
+                'purchase_item_id'   => DB::table('purchase_items')
+                    ->where('purchase_id', $purchase->id)
+                    ->value('id'),
+                'qty_returned'       => 5,
+            ]],
+        ]);
+
+        // Cash must be restored to original balance, AP unchanged, Inventory restored
+        $this->assertEqualsWithDelta($gl1100Before, $this->glBalance('1100'), $this->TOLERANCE,
+            'GL 1100 must be restored after purchase return');
+        $this->assertEqualsWithDelta($cashBefore, $this->glBalance('1000'), $this->TOLERANCE,
+            'GL 1000 (Cash) must be restored after cash purchase return');
+        $this->assertEqualsWithDelta($apBefore, $this->glBalance('2000'), $this->TOLERANCE,
+            'GL 2000 (AP) must remain unchanged after cash purchase return');
+
+        $this->assertLedgerInvariantsHold();
+    }
 }
