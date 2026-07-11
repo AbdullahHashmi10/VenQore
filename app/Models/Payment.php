@@ -13,7 +13,11 @@ class Payment extends Model
 {
     use HasFactory, HasUuids, HasTenant;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'tenant_id', 'party_id', 'sale_id', 'amount', 'date',
+        'method', 'type', 'reference', 'notes',
+        'bank_account_id', 'cheque_date',
+    ];
 
     protected $casts = [
         'date' => 'date',

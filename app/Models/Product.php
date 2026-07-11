@@ -16,7 +16,16 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class Product extends Model
 {
     use \Illuminate\Database\Eloquent\Factories\HasFactory, SoftDeletes, HasUuids, HasTenant, \App\Traits\HasActivityLog;
-    protected $guarded = [];
+
+    protected $fillable = [
+        'tenant_id', 'name', 'sku', 'type', 'category_id', 'brand_id',
+        'price', 'cost_price', 'wholesale_price', 'wholesale_min_quantity',
+        'tax_rate', 'price_includes_tax', 'hsn_code', 'unit',
+        'base_unit', 'secondary_unit', 'conversion_rate', 'min_stock_alert',
+        'alert_quantity', 'stock_quantity', 'quantity', 'is_weighted',
+        'is_manufactured', 'is_expiry_tracked', 'has_variants', 'track_serial',
+        'description', 'short_description', 'image_path', 'woocommerce_id',
+    ];
 
     public function barcodes()
     {

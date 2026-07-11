@@ -10,7 +10,10 @@ class PaymentAllocation extends Model
 {
     use HasUuids, HasTenant;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'tenant_id', 'payment_journal_entry_id',
+        'sale_id', 'purchase_id', 'allocated_amount', 'status',
+    ];
 
     public function payment()
     {

@@ -11,7 +11,7 @@
 schema_version: 1
 
 baseline_file: "Tester/tests/Feature/Guardrails/baselines/unprotected_write_routes.json"
-baseline_checksum_sha256: "86859e461101a97160cc8d0b83df27dbd32908fce0d16332ef0fc28ce63bf403"
+baseline_checksum_sha256: "b465f70edce7839c5b89c3f4f38001494bcced20c8e0d4428672fb9839539e3d"
 
 # The ratchet ceiling. Starts at the audited debt (257) and must only ever DECREASE.
 max_unprotected: 257

@@ -25,10 +25,17 @@ class TerminalAppIntegrationTest extends VenQoreTestCase
         $tenant = $this->createTenant('store-test-123');
         $deviceId = (string) Str::uuid();
 
+        $token = \App\Models\TerminalPairingToken::create([
+            'tenant_id' => $tenant->id,
+            'token'     => 'PAIR-TOKEN-1',
+            'expires_at'=> now()->addHour(),
+        ]);
+
         $response = $this->postJson('/api/heartbeat', [
             'device_id' => $deviceId,
             'store_slug' => $tenant->slug,
             'name' => 'POS Desktop Terminal',
+            'pairing_token' => 'PAIR-TOKEN-1',
         ]);
 
         $response->assertStatus(200)
@@ -53,10 +60,17 @@ class TerminalAppIntegrationTest extends VenQoreTestCase
         $tenant = $this->createTenant('store-test-123');
         $deviceId = (string) Str::uuid();
 
+        $token = \App\Models\TerminalPairingToken::create([
+            'tenant_id' => $tenant->id,
+            'token'     => 'PAIR-TOKEN-2',
+            'expires_at'=> now()->addHour(),
+        ]);
+
         // First heartbeat
         $response1 = $this->postJson('/api/heartbeat', [
             'device_id' => $deviceId,
             'store_slug' => $tenant->slug,
+            'pairing_token' => 'PAIR-TOKEN-2',
         ]);
         $terminalId1 = $response1->json('terminal_id');
 
@@ -78,10 +92,17 @@ class TerminalAppIntegrationTest extends VenQoreTestCase
         $tenant = $this->createTenant('store-test-123');
         $deviceId = (string) Str::uuid();
 
+        $token = \App\Models\TerminalPairingToken::create([
+            'tenant_id' => $tenant->id,
+            'token'     => 'PAIR-TOKEN-3',
+            'expires_at'=> now()->addHour(),
+        ]);
+
         // Register terminal
         $response = $this->postJson('/api/heartbeat', [
             'device_id' => $deviceId,
             'store_slug' => $tenant->slug,
+            'pairing_token' => 'PAIR-TOKEN-3',
         ]);
         $terminalId = $response->json('terminal_id');
 

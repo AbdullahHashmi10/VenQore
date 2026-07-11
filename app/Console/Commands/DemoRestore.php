@@ -64,7 +64,7 @@ class DemoRestore extends Command
             $demoTenant->update([
                 'is_demo' => true,
                 'is_golden_master' => true,
-                'subdomain' => $tenantData['subdomain'] ?? 'demo',
+                'slug' => $tenantData['slug'] ?? $tenantData['subdomain'] ?? 'demo',
             ]);
         }
 
