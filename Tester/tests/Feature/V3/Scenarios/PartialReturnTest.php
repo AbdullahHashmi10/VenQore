@@ -212,6 +212,7 @@ class PartialReturnTest extends TestCase
     public function partial_qty_restores_only_that_qty()
     {
         $this->seedFifoBatch(10, 50.00);
+        
         [$saleId, $saleItemId] = $this->createSale(5, 100.00);
 
         $returnedSale = $this->sales->reverse($saleId, 'Partial return', null, [

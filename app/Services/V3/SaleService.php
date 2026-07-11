@@ -520,11 +520,14 @@ class SaleService
                     $costToRestore = 0.0;
 
                     foreach ($activeBatches as $sib) {
+                        \Illuminate\Support\Facades\Log::info("reverse() activeBatch SIB: " . json_encode($sib));
                         if ($qtyToRestore <= 0) break;
                         $restoreFromThis = min((float)$sib->qty_deducted, $qtyToRestore);
                         $batch = DB::table('inventory_batches')->where('id', $sib->inventory_batch_id)->first();
+                        \Illuminate\Support\Facades\Log::info("reverse() activeBatch batch: " . json_encode($batch));
                         if ($batch) {
-                            $restoredQty = min($restoreFromThis, (float)$batch->original_qty - (float)$batch->remaining_qty);
+                            $restoredQty = min($restoreFromThis, (float)$batch->initial_qty - (float)$batch->remaining_qty);
+                            \Illuminate\Support\Facades\Log::info("reverse() activeBatch restoredQty: " . $restoredQty);
                             
                             // Increment remaining_qty on inventory_batches
                             DB::table('inventory_batches')
