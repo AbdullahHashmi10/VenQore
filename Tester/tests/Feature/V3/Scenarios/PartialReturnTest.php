@@ -198,7 +198,7 @@ class PartialReturnTest extends TestCase
                 'tenant_id'          => $this->tenantId,
                 'sale_item_id'       => $saleItemId,
                 'inventory_batch_id' => $d['batch_id'],
-                'qty_deducted'       => $d['qty'],
+                'qty_deducted'       => $d['qty_taken'],
                 'unit_cost'          => $d['unit_cost'],
                 'total_cogs'         => $d['total_cost'],
                 'created_at'         => now(),
