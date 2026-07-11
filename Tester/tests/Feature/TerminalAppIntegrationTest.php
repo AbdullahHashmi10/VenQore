@@ -251,4 +251,37 @@ class TerminalAppIntegrationTest extends VenQoreTestCase
         // will throw a ModelNotFoundException (404) because of the HasTenant global scope.
         $viewResponse->assertStatus(404);
     }
+
+    /**
+     * Verify security boundaries on the terminal screenshot upload endpoint (L028).
+     */
+    public function test_terminal_screenshot_upload_security_boundaries(): void
+    {
+        // 1. Attempt upload with an unauthorized/non-existent device_id -> should return 401 Unauthorized
+        $invalidDeviceId = (string) Str::uuid();
+        $file = UploadedFile::fake()->create('hacker_screen.bin', 100); // 100 bytes
+        
+        $response1 = $this->postJson('/api/terminal/screenshot', [
+            'device_id' => $invalidDeviceId,
+            'file' => $file,
+        ]);
+        $response1->assertStatus(401);
+        $response1->assertJson(['error' => 'Unauthorized device']);
+
+        // 2. Setup a valid terminal device
+        $tenant = $this->createTenant('store-secure-test');
+        $validDeviceId = (string) Str::uuid();
+        $this->postJson('/api/heartbeat', [
+            'device_id' => $validDeviceId,
+            'store_slug' => $tenant->slug,
+        ]);
+
+        // 3. Attempt upload of a file that is too large (11MB = 11264 KB) -> should fail validation (422)
+        $largeFile = UploadedFile::fake()->create('huge_screen.bin', 11264); // 11MB
+        $response2 = $this->postJson('/api/terminal/screenshot', [
+            'device_id' => $validDeviceId,
+            'file' => $largeFile,
+        ]);
+        $response2->assertStatus(422);
+    }
 }

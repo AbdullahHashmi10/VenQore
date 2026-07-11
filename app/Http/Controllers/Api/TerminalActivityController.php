@@ -92,14 +92,22 @@ class TerminalActivityController extends Controller
             return response()->json(['error' => 'Device ID required'], 400);
         }
 
-        if (!$request->hasFile('file')) {
-            return response()->json(['error' => 'No file uploaded'], 400);
+        // Authenticate the device (L028)
+        $terminal = \App\Models\Terminal::withoutGlobalScope('tenant')->where('device_id', $deviceId)->first();
+        if (!$terminal) {
+            return response()->json(['error' => 'Unauthorized device'], 401);
         }
+
+        // Validate the upload file size (max 10MB) to prevent disk exhaustion DoS
+        $request->validate([
+            'file' => 'required|file|max:10240',
+        ]);
 
         $file = $request->file('file');
         
-        // Store in a private directory inside storage/app/terminal_screenshots/
-        $filename = $file->getClientOriginalName();
+        // Sanitize the filename to prevent directory traversal attacks
+        $filename = basename($file->getClientOriginalName());
+        
         // Sanity check extension
         if (!Str::endsWith($filename, '.bin')) {
             $filename .= '.bin';
