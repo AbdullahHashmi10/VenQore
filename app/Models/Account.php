@@ -15,7 +15,7 @@ class Account extends Model
     protected static function booted()
     {
         static::creating(function ($account) {
-            $tenantId = $account->tenant_id ?? app('current.tenant')->id ?? null;
+            $tenantId = $account->tenant_id ?? (app()->bound('current.tenant') ? app('current.tenant')->id : null);
             if ($tenantId && $account->code) {
                 $exists = static::withoutGlobalScopes()
                     ->where('tenant_id', $tenantId)
