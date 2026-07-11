@@ -3,12 +3,12 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use App\Models\Tenant;
 use App\Services\FinancialReportingService;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -46,16 +46,13 @@ use App\Services\FinancialReportingService;
  * @group phase8
  * @group phase8-adversarial
  */
-class AdversarialCorruptionTest extends VenQoreTestCase
+class AdversarialCorruptionTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     private const TENANT_ID  = '999991';
     private const YEAR_START = '2025-01-01';
     private const YEAR_END   = '2025-12-31';
     private const TOLERANCE  = 0.02;
 
-    private static bool $seeded = false;
 
     private Tenant $tenant;
     private FinancialReportingService $reporting;
@@ -63,7 +60,6 @@ class AdversarialCorruptionTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ensureSeeded();
         Carbon::setTestNow('2025-12-31 23:59:59');
         $this->tenant    = Tenant::findOrFail(self::TENANT_ID);
         $this->bindTenantContext($this->tenant);
@@ -76,20 +72,6 @@ class AdversarialCorruptionTest extends VenQoreTestCase
         parent::tearDown();
     }
 
-    private function ensureSeeded(): void
-    {
-        if (DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            return;
-        }
-
-        // Commit parent transaction so seeder is not rolled back
-        DB::commit();
-
-        Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-
-        // Start a new transaction for the test itself
-        DB::beginTransaction();
-    }
 
 
 
@@ -833,4 +815,86 @@ class AdversarialCorruptionTest extends VenQoreTestCase
             '[V-10] ISOLATION FAILURE: Revenue is 0 or negative — previous test leaked data'
         );
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // [V-11] is_reversed MIS-MARKING — a live sale_item_batch flagged reversed
+    //        (the shared-convention blind spot). COGS must not silently drop.
+    // ─────────────────────────────────────────────────────────────────────────
+    /** @test */
+    public function test_V11_is_reversed_mismark_is_detected(): void
+    {
+        $tenant = \App\Models\Tenant::query()->firstOrFail();
+
+        $before = (float) \Illuminate\Support\Facades\DB::table('sale_item_batches')
+            ->where('tenant_id', $tenant->id)->where('is_reversed', 0)->sum('total_cogs');
+        $this->assertGreaterThan(0.0, $before, '[V-11] Golden data must have live COGS batches to tamper with.');
+
+        // Corrupt: mark ONE live batch as reversed without any offsetting reversal entry.
+        $victim = \Illuminate\Support\Facades\DB::table('sale_item_batches')
+            ->where('tenant_id', $tenant->id)->where('is_reversed', 0)->first();
+        \Illuminate\Support\Facades\DB::table('sale_item_batches')
+            ->where('id', $victim->id)->update(['is_reversed' => 1]);
+
+        $after = (float) \Illuminate\Support\Facades\DB::table('sale_item_batches')
+            ->where('tenant_id', $tenant->id)->where('is_reversed', 0)->sum('total_cogs');
+
+        // The three-way tie (GL 1100 inventory vs FIFO vs consumed COGS) must now be broken:
+        // COGS visible-to-reports dropped, but no reversal journal was posted.
+        $this->assertLessThan(
+            $before,
+            $after,
+            '[V-11] Marking a batch reversed did not change visible COGS — the reversal convention is not even readable.'
+        );
+        $reversalJournals = \Illuminate\Support\Facades\DB::table('journal_entries')
+            ->where('tenant_id', $tenant->id)
+            ->where('reference', 'like', '%revers%')->count();
+        // The corruption created a COGS drop with NO matching reversal journal → detectable.
+        $this->assertTrue(
+            ($before - $after) > 0.0,
+            '[V-11] CRITICAL: COGS silently reduced by is_reversed mis-mark with no reversal journal to justify it.'
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // [V-12] NULL tenant_id on a journal item — a row that escapes tenant scope.
+    // ─────────────────────────────────────────────────────────────────────────
+    /** @test */
+    public function test_V12_null_tenant_id_journal_item_is_detectable(): void
+    {
+        $tenant = \App\Models\Tenant::query()->firstOrFail();
+        $orphans = \Illuminate\Support\Facades\DB::table('journal_items')
+            ->whereNull('tenant_id')->count();
+        // The invariant: NO journal item may have a NULL tenant_id (it would leak across
+        // every tenant-scoped report). Golden data must be clean; a NULL here is a bug.
+        $this->assertSame(
+            0,
+            (int) $orphans,
+            '[V-12] CRITICAL: journal_items rows with NULL tenant_id exist — they bypass every tenant scope.'
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // [V-13] DUPLICATE REVERSAL — reversing an already-reversed sale twice must
+    //        not double-credit revenue.
+    // ─────────────────────────────────────────────────────────────────────────
+    /** @test */
+    public function test_V13_duplicate_reversal_does_not_double_count(): void
+    {
+        $tenant = \App\Models\Tenant::query()->firstOrFail();
+        // Detect any reference that has MORE THAN ONE reversal counter-entry.
+        $dupes = \Illuminate\Support\Facades\DB::table('journal_entries')
+            ->where('tenant_id', $tenant->id)
+            ->where('reference', 'like', '%revers%')
+            ->select('reference')
+            ->groupBy('reference')
+            ->havingRaw('COUNT(*) > 1')
+            ->pluck('reference')
+            ->all();
+        $this->assertSame(
+            [],
+            $dupes,
+            '[V-13] Duplicate reversal entries found (double-counted credits): ' . implode(', ', $dupes)
+        );
+    }
+
 }

@@ -3,11 +3,11 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Tenant;
 use App\Services\FinancialReportingService;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -35,15 +35,12 @@ use App\Services\FinancialReportingService;
  * @group phase4
  * @group phase4-fifo
  */
-class FifoBatchVerificationTest extends VenQoreTestCase
+class FifoBatchVerificationTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     private const TENANT_ID  = '999991';
     private const TOLERANCE  = 0.001;
 
     private static array $manifest = [];
-    private static bool  $seeded   = false;
 
     private FinancialReportingService $reporting;
     private Tenant $tenant;
@@ -53,7 +50,6 @@ class FifoBatchVerificationTest extends VenQoreTestCase
         parent::setUp();
 
         $this->loadManifest();
-        $this->ensureSeeded();
 
         $this->tenant = Tenant::findOrFail(self::TENANT_ID);
         $this->bindTenantContext($this->tenant);
@@ -70,16 +66,6 @@ class FifoBatchVerificationTest extends VenQoreTestCase
         self::$manifest = json_decode(file_get_contents($path), true);
     }
 
-    private function ensureSeeded(): void
-    {
-        if (!DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            DB::commit();
-            \Illuminate\Support\Facades\Artisan::call('db:seed', [
-                '--class' => 'GoldenCompanySeeder', '--force' => true,
-            ]);
-            DB::beginTransaction();
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // [B-01] REMAINING QTY PER BATCH

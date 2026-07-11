@@ -1,6 +1,6 @@
 <?php
 
-namespace Tester\tests\Feature\Core;
+namespace Tests\Feature\Core;
 
 use Tests\Feature\VenQoreTestCase;
 use App\Models\Product;

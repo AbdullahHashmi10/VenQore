@@ -1,0 +1,43 @@
+{
+    // Infection PHP mutation-testing config (blueprint Phase F.3).
+    //
+    // Mutation score (MSI) is the ONLY category-independent proof that assertions BITE:
+    // Infection mutates the code, reruns the tests, and reports what fraction of mutants
+    // the suite killed. A green suite with a low MSI is a suite full of assertions that
+    // don't actually check anything.
+    //
+    // SCOPE: financial core only (blueprint risk mitigation — mutation is expensive; run
+    // nightly, not per-commit). Floors feed the trust model (start >=60%, ratchet to
+    // >=85% financial-core).
+    //
+    // RUN (on-machine, PHP required):
+    //   vendor/bin/infection --configuration=infection.json5 --min-msi=60 --min-covered-msi=85 \
+    //       --threads=4 --test-framework=phpunit --coverage=build/coverage
+    "$schema": "vendor/infection/infection/resources/schema.json",
+    "source": {
+        "directories": [
+            "app/Services/V3/AccountingService.php",
+            "app/Services/V3/FifoService.php",
+            "app/Services/V3/SaleService.php",
+            "app/Services/FinancialReportingService.php",
+            "app/Services/V3"
+        ]
+    },
+    "mutators": {
+        "@default": true,
+        // Keep noise low: skip cosmetic mutators that don't reflect financial risk.
+        "Concat": false,
+        "CastString": false
+    },
+    "logs": {
+        "text": "Tester/VerificationCenter/mutation/infection.log",
+        "summary": "Tester/VerificationCenter/mutation/summary.log",
+        "json": "Tester/VerificationCenter/mutation/infection.json",
+        "perMutator": "Tester/VerificationCenter/mutation/per-mutator.md"
+    },
+    "tmpDir": "build/infection",
+    "minMsi": 60,
+    "minCoveredMsi": 85,
+    "testFramework": "phpunit",
+    "testFrameworkOptions": "--configuration=Tester/phpunit.xml --testsuite=High,Critical"
+}

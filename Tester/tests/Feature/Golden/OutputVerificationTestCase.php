@@ -3,13 +3,13 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use App\Models\Tenant;
 use Tests\Feature\Golden\Verification\VerificationClaim;
 use Tests\Feature\Golden\Verification\ClaimLogger;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -29,10 +29,8 @@ use Tests\Feature\Golden\Verification\ClaimLogger;
  *    a JSON blob with `{ component, props, ... }` instead of full HTML
  *  - All monetary comparisons use TOLERANCE = 0.02 (2 paise)
  */
-abstract class OutputVerificationTestCase extends VenQoreTestCase
+abstract class OutputVerificationTestCase extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     protected const TENANT_ID   = '999991';
     protected const TENANT_SLUG = 'golden-company';
     protected const TENANT_2_ID = '999992';
@@ -41,7 +39,6 @@ abstract class OutputVerificationTestCase extends VenQoreTestCase
     protected const TOLERANCE   = 0.02;
 
     protected static array $manifest = [];
-    protected static bool  $seeded   = false;
 
     protected Tenant $tenant;
 
@@ -53,7 +50,6 @@ abstract class OutputVerificationTestCase extends VenQoreTestCase
     {
         parent::setUp();
 
-        $this->ensureSeeded();
         $this->loadManifest();
 
         // Freeze the clock at year-end early morning to prevent any timezone conversion from pushing it to 2026
@@ -94,20 +90,6 @@ abstract class OutputVerificationTestCase extends VenQoreTestCase
         self::$manifest = json_decode(file_get_contents($path), true);
     }
 
-    protected function ensureSeeded(): void
-    {
-        if (DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            return;
-        }
-
-        // Commit parent transaction so seeder is not rolled back
-        DB::commit();
-
-        Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-
-        // Start a new transaction for the test itself
-        DB::beginTransaction();
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // HTTP HELPERS

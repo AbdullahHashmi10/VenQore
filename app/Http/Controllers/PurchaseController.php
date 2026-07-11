@@ -127,23 +127,45 @@ class PurchaseController extends Controller
         }
 
         // FIX-07: Stats from V3 Journal AP account (2000)
-        $apAccount = \App\Models\Account::where('code', '2000')->value('id');
+        // FIX-08: Scoped by tenant, and respects the same from_date/to_date filter
+        // used by the purchases list above — stats must reflect the same window
+        // the user is looking at, not a lifetime, cross-tenant total.
+        $tenantId = app()->bound('current.tenant') ? app('current.tenant')->id : null;
+
+        $apAccount = \App\Models\Account::where('code', '2000')
+            ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+            ->value('id');
+
+        $applyStatsScope = function ($query) use ($tenantId, $request) {
+            if ($tenantId) {
+                $query->where('journal_entries.tenant_id', $tenantId);
+            }
+            if ($request->from_date && $request->to_date) {
+                $query->whereBetween('journal_entries.date', [
+                    $request->from_date,
+                    $request->to_date,
+                ]);
+            }
+            return $query;
+        };
 
         // Total invoiced = sum of all AP credits (what we owe suppliers)
-        $totalPurchase = (float) DB::table('journal_items')
-            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-            ->where('journal_entries.reference_type', 'purchase')
-            ->where('journal_entries.is_reversed', 0)
-            ->where('journal_items.account_id', $apAccount)
-            ->sum('journal_items.credit');
+        $totalPurchase = (float) $applyStatsScope(
+            DB::table('journal_items')
+                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                ->where('journal_entries.reference_type', 'purchase')
+                ->where('journal_entries.is_reversed', 0)
+                ->where('journal_items.account_id', $apAccount)
+        )->sum('journal_items.credit');
 
         // Total paid = sum of all AP debits against purchase entries and payments
-        $totalPaid = (float) DB::table('journal_items')
-            ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
-            ->whereIn('journal_entries.reference_type', ['purchase', 'purchase_payment'])
-            ->where('journal_entries.is_reversed', 0)
-            ->where('journal_items.account_id', $apAccount)
-            ->sum('journal_items.debit');
+        $totalPaid = (float) $applyStatsScope(
+            DB::table('journal_items')
+                ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                ->whereIn('journal_entries.reference_type', ['purchase', 'purchase_payment'])
+                ->where('journal_entries.is_reversed', 0)
+                ->where('journal_items.account_id', $apAccount)
+        )->sum('journal_items.debit');
 
         $totalDue = $totalPurchase - $totalPaid;
 
@@ -151,7 +173,10 @@ class PurchaseController extends Controller
             'total_purchase' => $totalPurchase,
             'total_paid'     => $totalPaid,
             'total_due'      => $totalDue,
-            'pending_count'  => Invoice::where('type', 'purchase')->where('status', 'pending')->count(),
+            'pending_count'  => Invoice::where('type', 'purchase')
+                ->where('status', 'pending')
+                ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
+                ->count(),
         ];
 
         return Inertia::render('Purchases/PurchasesList', [

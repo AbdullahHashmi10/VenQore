@@ -91,31 +91,47 @@ class RunShadowMigration extends Command
                             ->where('source_type', 'sale_variance_dump')
                             ->exists();
                         if (!$exists) {
-                            $jeId = Str::uuid()->toString();
-                            DB::table('journal_entries')->insert([
-                                'id' => $jeId,
-                                'tenant_id' => $tenantId,
-                                'date' => $sale->created_at ?? now(),
-                                'reference' => $sale->reference_number ?? 'MIG-VAR',
-                                'description' => "Migration Variance Dump for Sale {$sale->id}",
-                                'source_type' => 'sale_variance_dump',
-                                'source_id' => $sale->id,
-                                'user_id' => $systemUser ? $systemUser->id : null,
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ]);
-                            
                             $absVar = abs($variance);
-                            if ($variance > 0) {
-                                // Missing credit to balance
-                                DB::table('journal_items')->insert([
-                                    ['id' => Str::uuid()->toString(), 'tenant_id' => $tenantId, 'journal_entry_id' => $jeId, 'account_id' => $varianceAccount->id, 'debit' => 0, 'credit' => $absVar, 'description' => 'Historical Variance (Positive)', 'created_at' => now(), 'updated_at'=>now()],
-                                ]);
-                            } else {
-                                // Missing debit to balance
-                                DB::table('journal_items')->insert([
-                                    ['id' => Str::uuid()->toString(), 'tenant_id' => $tenantId, 'journal_entry_id' => $jeId, 'account_id' => $varianceAccount->id, 'debit' => $absVar, 'credit' => 0, 'description' => 'Historical Variance (Negative)', 'created_at' => now(), 'updated_at'=>now()],
-                                ]);
+                            $offsetAccount = DB::table('accounts')->where('tenant_id', $tenantId)->where('code', '7000')->first();
+                            if ($offsetAccount) {
+                                $lines = [];
+                                if ($variance > 0) {
+                                    $lines[] = [
+                                        'account_id' => $varianceAccount->id,
+                                        'debit'      => 0,
+                                        'credit'     => $absVar,
+                                    ];
+                                    $lines[] = [
+                                        'account_id' => $offsetAccount->id,
+                                        'debit'      => $absVar,
+                                        'credit'     => 0,
+                                    ];
+                                } else {
+                                    $lines[] = [
+                                        'account_id' => $varianceAccount->id,
+                                        'debit'      => $absVar,
+                                        'credit'     => 0,
+                                    ];
+                                    $lines[] = [
+                                        'account_id' => $offsetAccount->id,
+                                        'debit'      => 0,
+                                        'credit'     => $absVar,
+                                    ];
+                                }
+
+                                $tenantObj = \App\Models\Tenant::find($tenantId);
+                                if ($tenantObj) {
+                                    app()->instance('current.tenant', $tenantObj);
+                                    app(\App\Services\V3\AccountingService::class)->createEntry([
+                                        'date'           => $sale->created_at ? \Carbon\Carbon::parse($sale->created_at)->toDateString() : now()->toDateString(),
+                                        'reference_type' => 'manual',
+                                        'reference'      => $sale->reference_number ?? 'MIG-VAR',
+                                        'description'    => "Migration Variance Dump for Sale {$sale->id}",
+                                        'source_type'    => 'sale_variance_dump',
+                                        'source_id'      => $sale->id,
+                                        'user_id'        => $systemUser ? $systemUser->id : null,
+                                    ], $lines);
+                                }
                             }
                         }
                     }

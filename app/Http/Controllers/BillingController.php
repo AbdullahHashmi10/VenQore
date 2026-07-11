@@ -662,18 +662,22 @@ class BillingController extends Controller
                 break;
 
             case 'fixed_asset_depreciation':
-                \DB::table('journal_entries')
+                $entryIds = \DB::table('journal_entries')
                     ->where('tenant_id', $tenant->id)
                     ->where('reference_type', 'depreciation')
-                    ->delete();
+                    ->pluck('id')
+                    ->toArray();
+                app(\App\Services\V3\AccountingService::class)->deleteEntries($entryIds);
                 $message = 'Asset depreciation postings cleared from ledger.';
                 break;
 
             case 'fiscal_year_closing':
-                \DB::table('journal_entries')
+                $entryIds = \DB::table('journal_entries')
                     ->where('tenant_id', $tenant->id)
                     ->where('reference_type', 'fiscal_year_close')
-                    ->delete();
+                    ->pluck('id')
+                    ->toArray();
+                app(\App\Services\V3\AccountingService::class)->deleteEntries($entryIds);
                 $message = 'Fiscal year close postings cleared from ledger.';
                 break;
 

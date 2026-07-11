@@ -1,0 +1,3 @@
+Run Ledger evidence records are written here (append-only) by
+Tests\Support\RunLedger\RunLedgerExtension on every PHPUnit run.
+This .gitkeep keeps the directory present before the first run.

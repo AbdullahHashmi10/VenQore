@@ -3,7 +3,6 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
@@ -12,6 +11,7 @@ use App\Services\FinancialReportingService;
 use App\Services\LedgerService;
 use Tests\Feature\Golden\Verification\VerificationClaim;
 use Tests\Feature\Golden\Verification\ClaimLogger;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -64,10 +64,8 @@ use Tests\Feature\Golden\Verification\ClaimLogger;
  * @group golden
  * @group phase4
  */
-class FinancialCoreVerificationTest extends VenQoreTestCase
+class FinancialCoreVerificationTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     // ─── Constants ────────────────────────────────────────────────────────────
     private const TENANT_ID   = '999991';
     private const TENANT_2_ID = '999992';
@@ -76,7 +74,6 @@ class FinancialCoreVerificationTest extends VenQoreTestCase
     private const TOLERANCE   = 0.02;
 
     private static array $manifest = [];
-    private static bool  $seeded   = false;
 
     private FinancialReportingService $reporting;
     private Tenant                    $tenant;
@@ -90,7 +87,6 @@ class FinancialCoreVerificationTest extends VenQoreTestCase
         parent::setUp();
 
         $this->loadManifest();
-        $this->ensureGoldenCompanySeeded();
 
         $this->tenant = Tenant::findOrFail(self::TENANT_ID);
         $this->bindTenantContext($this->tenant);
@@ -111,15 +107,6 @@ class FinancialCoreVerificationTest extends VenQoreTestCase
         self::$manifest = json_decode(file_get_contents($path), true);
     }
 
-    private function ensureGoldenCompanySeeded(): void
-    {
-        $exists = DB::table('tenants')->where('id', self::TENANT_ID)->exists();
-        if (!$exists) {
-            DB::commit();
-            Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-            DB::beginTransaction();
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // ASSERTION HELPERS

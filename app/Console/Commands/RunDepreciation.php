@@ -57,15 +57,7 @@ class RunDepreciation extends Command
         DB::beginTransaction();
         try {
             $totalDepreciation = 0;
-            $journalItems = [];
-
-            // Master Journal Entry
-            $entry = JournalEntry::create([
-                'date' => $date,
-                'reference' => 'DEP-' . $date->format('Ymd'),
-                'description' => 'Daily Depreciation Run',
-                'amount' => 0 // Will update
-            ]);
+            $journalLines = [];
 
             foreach ($assets as $asset) {
                 // Annual Depreciation Amount = Balance * (Rate / 100)
@@ -77,14 +69,10 @@ class RunDepreciation extends Command
                     continue;
 
                 // Credit Asset (Value goes down)
-                $journalItems[] = [
-                    'journal_entry_id' => $entry->id,
+                $journalLines[] = [
                     'account_id' => $asset->id,
-                    'debit' => 0,
-                    'credit' => $dailyDepreciation,
-                    'description' => "Depreciation for {$asset->name}",
-                    'created_at' => now(),
-                    'updated_at' => now()
+                    'debit'      => 0,
+                    'credit'     => $dailyDepreciation,
                 ];
 
                 // Update Asset Balance
@@ -95,26 +83,18 @@ class RunDepreciation extends Command
 
             if ($totalDepreciation > 0) {
                 // Debit Expense
-                $journalItems[] = new JournalItem([
-                    'journal_entry_id' => $entry->id,
+                $journalLines[] = [
                     'account_id' => $expenseAccount->id,
-                    'debit' => $totalDepreciation,
-                    'credit' => 0,
-                    'description' => 'Total Daily Depreciation',
-                    'created_at' => now(),
-                    'updated_at' => now()
-                ]);
+                    'debit'      => $totalDepreciation,
+                    'credit'     => 0,
+                ];
 
-                // Bulk insert items (except the object one, JournalItem::insert doesn't work with object mix easily, better loop)
-                foreach ($journalItems as $item) {
-                    if (is_array($item)) {
-                        JournalItem::create($item);
-                    } else {
-                        $item->save();
-                    }
-                }
-
-                $entry->update(['amount' => $totalDepreciation]);
+                app(\App\Services\V3\AccountingService::class)->createEntry([
+                    'date'           => $date->toDateString(),
+                    'reference_type' => 'manual',
+                    'reference'      => 'DEP-' . $date->format('Ymd'),
+                    'description'    => 'Daily Depreciation Run',
+                ], $journalLines);
 
                 // Update Expense Balance
                 $expenseAccount->increment('balance', $totalDepreciation);

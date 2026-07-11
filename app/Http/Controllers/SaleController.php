@@ -240,35 +240,38 @@ class SaleController extends Controller
             $addToLedger = $request->boolean('add_to_ledger') && $request->customer_id;
             $changeReturn = (!$addToLedger && $tendered > $invoiceTotal) ? ($tendered - $invoiceTotal) : 0;
 
-            $sale = Sale::create([
-                'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
-                'reference_number'     => \App\Services\SequenceService::generateTransactionNumber('SAL'),
-                'source'               => $request->source === 'pos' ? 'pos' : 'manual',
-                'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
-                'user_id'              => Auth::id() ?? 1,
-                'warehouse_id'         => $request->warehouse_id ?? (\App\Models\Warehouse::first()?->id ?? 1),
-                'subtotal'             => $subtotalGross,
-                'tax'                  => $totalTax,
-                'discount'             => $globalDiscount,
-                'total'                => $invoiceTotal,
-                'subtotal_gross'       => $subtotalGross,
-                'total_item_discounts' => $totalItemDiscounts,
-                'global_discount'      => $globalDiscount,
-                'net_sales'            => $netSales,
-                'total_tax'            => $totalTax,
-                'delivery_charge'      => $deliveryCharge,
-                'shipping_charges'     => $deliveryCharge,
-                'extra_charge_value'   => $extraCharge,
-                'extra_charge_label'   => $request->extra_charge_label,
-                'invoice_total'        => $invoiceTotal,
-                'tendered_amount'      => $tendered,
-                'change_return'        => $changeReturn,
-                'round_off'            => $roundOff,
-                'status'               => 'posted',
-                'posted_at'            => now(),
-                'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
-                'payment_method'       => $request->payment_method,
-            ]);
+            $sale = Sale::withoutEvents(function () use ($request, $subtotalGross, $totalTax, $globalDiscount, $invoiceTotal, $totalItemDiscounts, $netSales, $deliveryCharge, $extraCharge, $tendered, $changeReturn, $roundOff) {
+                return Sale::create([
+                    'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
+                    'tenant_id'            => app('current.tenant')->id,
+                    'reference_number'     => \App\Services\SequenceService::generateTransactionNumber('SAL'),
+                    'source'               => $request->source === 'pos' ? 'pos' : 'manual',
+                    'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
+                    'user_id'              => Auth::id() ?? 1,
+                    'warehouse_id'         => $request->warehouse_id ?? (\App\Models\Warehouse::first()?->id ?? 1),
+                    'subtotal'             => $subtotalGross,
+                    'tax'                  => $totalTax,
+                    'discount'             => $globalDiscount,
+                    'total'                => $invoiceTotal,
+                    'subtotal_gross'       => $subtotalGross,
+                    'total_item_discounts' => $totalItemDiscounts,
+                    'global_discount'      => $globalDiscount,
+                    'net_sales'            => $netSales,
+                    'total_tax'            => $totalTax,
+                    'delivery_charge'      => $deliveryCharge,
+                    'shipping_charges'     => $deliveryCharge,
+                    'extra_charge_value'   => $extraCharge,
+                    'extra_charge_label'   => $request->extra_charge_label,
+                    'invoice_total'        => $invoiceTotal,
+                    'tendered_amount'      => $tendered,
+                    'change_return'        => $changeReturn,
+                    'round_off'            => $roundOff,
+                    'status'               => 'posted',
+                    'posted_at'            => now(),
+                    'payment_status'       => $tendered >= $invoiceTotal ? 'paid' : ($tendered > 0 ? 'partial' : 'unpaid'),
+                    'payment_method'       => $request->payment_method,
+                ]);
+            });
 
             // 4. STORAGE: Process Items, Stock, and FIFO
             $totalCogs = 0;

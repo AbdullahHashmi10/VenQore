@@ -19,6 +19,19 @@ class VerifySentinelCommand extends Command
     private const SENTINEL_TENANT_ID = '999991';
     private const BYPASSED_AMOUNT = 9999.00;
 
+    // Phase G (F-21): collision-PROOF marker amounts — DISTINCT per table, and chosen so
+    // that no marker is a substring of the tenant id or of another marker (the old single
+    // 9999.00 marker collided with '999991' substrings and across tables). Each table's
+    // bypass row carries its own prime-ish, non-round sentinel value so a leak can be
+    // attributed to the exact table it came from.
+    private const MARKER = [
+        'sales'                => 7311.53,
+        'purchases'            => 6127.29,
+        'expenses'             => 5209.71,
+        'customer_payments'    => 4703.17,
+        'supplier_payments'    => 3821.83,
+    ];
+
     public function handle(): int
     {
         $this->info("===============================================================");

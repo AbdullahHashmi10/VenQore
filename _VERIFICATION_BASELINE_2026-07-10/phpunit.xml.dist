@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+>
+    <testsuites>
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./Tester/tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature">
+            <directory suffix="Test.php">./Tester/tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Golden">
+            <directory suffix="Test.php">./Tester/tests/Feature/Golden</directory>
+        </testsuite>
+        <testsuite name="Phase2">
+            <file>./Tester/tests/Feature/Golden/GoldenCompanyTest.php</file>
+        </testsuite>
+        <testsuite name="Phase3">
+            <file>./Tester/tests/Feature/Golden/SaleInputVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/PurchaseInputVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/ExpensePaymentInputVerificationTest.php</file>
+        </testsuite>
+        <testsuite name="Phase4">
+            <file>./Tester/tests/Feature/Golden/FinancialCoreVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/FifoBatchVerificationTest.php</file>
+            <file>./Tester/tests/Feature/Golden/CogsReconciliationTest.php</file>
+        </testsuite>
+        <testsuite name="Phase5">
+            <file>./Tester/tests/Feature/Golden/DashboardOutputTest.php</file>
+            <file>./Tester/tests/Feature/Golden/ReportOutputTest.php</file>
+            <file>./Tester/tests/Feature/Golden/FilterMatrixTest.php</file>
+        </testsuite>
+        <testsuite name="Phase6">
+            <file>./Tester/tests/Feature/Golden/CrossSurfaceConsistencyTest.php</file>
+            <file>./Tester/tests/Feature/Golden/ClockPositionConsistencyTest.php</file>
+            <file>./Tester/tests/Feature/Golden/FormattingConsistencyTest.php</file>
+        </testsuite>
+        <testsuite name="Phase7">
+            <file>./Tester/tests/Feature/Golden/ArchitecturalEnforcementTest.php</file>
+        </testsuite>
+        <testsuite name="Phase8">
+            <file>./Tester/tests/Feature/Golden/AdversarialCorruptionTest.php</file>
+        </testsuite>
+        <testsuite name="Phase9">
+            <file>./Tester/tests/Feature/Golden/EdgeCasesTimeConcurrencyTest.php</file>
+        </testsuite>
+        <testsuite name="Phase11">
+            <file>./Tester/tests/Feature/Golden/LaunchGateTest.php</file>
+        </testsuite>
+    </testsuites>
+    <source>
+        <include>
+            <directory suffix=".php">./app</directory>
+        </include>
+    </source>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+        <env name="BCRYPT_ROUNDS" value="4"/>
+        <env name="CACHE_STORE" value="array"/>
+        <env name="DB_CONNECTION" value="mysql"/>
+        <env name="DB_HOST" value="127.0.0.1"/>
+        <env name="DB_PORT" value="3306"/>
+        <env name="DB_DATABASE" value="amd_pos_test"/>
+        <env name="DB_USERNAME" value="root"/>
+        <env name="DB_PASSWORD" value=""/>
+        <env name="MAIL_MAILER" value="array"/>
+        <env name="PULSE_ENABLED" value="false"/>
+        <env name="QUEUE_CONNECTION" value="sync"/>
+        <env name="SESSION_DRIVER" value="array"/>
+        <env name="TELESCOPE_ENABLED" value="false"/>
+    </php>
+</phpunit>

@@ -39,7 +39,12 @@ class Sale extends Model
         'gross_platform_fee'    => 'decimal:4',
     ];
 
-    protected $appends = ['paid_amount', 'total_amount'];
+    protected $appends = ['paid_amount', 'total_amount', 'net_amount'];
+
+    public function getNetAmountAttribute()
+    {
+        return (float) ($this->net_sales ?? $this->total ?? 0);
+    }
 
     public function getTotalAmountAttribute()
     {

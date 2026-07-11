@@ -5,8 +5,14 @@ namespace Tests\Feature;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\User;
+use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\DB;
+use Tests\Feature\Golden\Verification\ClaimLogger;
+use Tests\Feature\Golden\Verification\VerificationClaim;
+use Tests\Support\GoldenSeedManager;
+use Tests\Support\RequiresGoldenCompany;
 use Tests\TestCase;
 
 /**
@@ -36,6 +42,39 @@ abstract class VenQoreTestCase extends TestCase
         parent::setUp();
         // No SQLite shims needed: tests run on MySQL amd_pos_test (Tester-Fix-0).
         // DB_CONNECTION=mysql is enforced by Tester/phpunit.xml and root .env.testing.
+    }
+
+    /**
+     * Phase A seeding architecture (closes audit F-03/FC-5).
+     *
+     * Overrides RefreshDatabase::refreshTestDatabase() so that reference
+     * datasets (Golden Company) are seeded OUTSIDE the per-test transaction:
+     *
+     *   migrate:fresh (once per process)
+     *     → GoldenSeedManager::ensureSeeded()   ← only for RequiresGoldenCompany tests,
+     *                                              committed data, checksum-guarded
+     *       → beginDatabaseTransaction()        ← per-test wrapper, rolled back in teardown
+     *
+     * The first two lines replicate the framework trait verbatim (Laravel 12);
+     * the seeding hook is the only addition. This replaces the in-test
+     * DB::commit()/Artisan::call(seed)/DB::beginTransaction() surgery that the
+     * forensic audit identified as the likely root cause of the error cascade.
+     */
+    protected function refreshTestDatabase()
+    {
+        if (! RefreshDatabaseState::$migrated) {
+            $this->artisan('migrate:fresh', $this->migrateFreshUsing());
+
+            $this->app[Kernel::class]->setArtisan(null);
+
+            RefreshDatabaseState::$migrated = true;
+        }
+
+        if ($this instanceof RequiresGoldenCompany) {
+            GoldenSeedManager::ensureSeeded('golden_company');
+        }
+
+        $this->beginDatabaseTransaction();
     }
 
     /**
@@ -224,6 +263,16 @@ abstract class VenQoreTestCase extends TestCase
      */
     protected function assertJournalEntry(array $expected): void
     {
+        // ClaimLogger instrumentation — merged from the dead Golden base class
+        // (audit F-02: the instrumented copy was unreachable due to an FQCN
+        // collision, starving the verification engines of claims).
+        ClaimLogger::log(new VerificationClaim(
+            expectedValue: $expected['debit'] ?? $expected['credit'] ?? 0,
+            actualValue: null, // presence assertion — DB existence checked below
+            metric: 'Journal Entry Presence: ' . ($expected['account_code'] ?? $expected['account_id'] ?? 'Unknown Account'),
+            surface: 'VenQoreTestCase'
+        ));
+
         $query = DB::table('journal_items');
 
         if (isset($expected['tenant_id'])) {
@@ -290,6 +339,74 @@ abstract class VenQoreTestCase extends TestCase
                 abs($debit - $credit)
             )
         );
+    }
+
+    /**
+     * Phase C (F-09 / FC-12) — FULL LINE-SET EQUALITY for a journal entry.
+     * Unlike assertJournalEntry (which only checks that SOME matching line exists),
+     * this asserts the entry's complete set of (account_code, debit, credit) lines
+     * equals the expected set exactly — no missing lines, no extra lines, no wrong
+     * amounts. This is what kills "existence-only" assertions that pass even when a
+     * journal is materially wrong.
+     *
+     * @param  string  $reference   The transaction reference (journal_entries.reference)
+     * @param  array   $expected    List of ['account_code'=>..,'debit'=>..,'credit'=>..]
+     */
+    protected function assertJournalLinesExactly(string $reference, array $expected, ?Tenant $tenant = null): void
+    {
+        $q = DB::table('journal_items as ji')
+            ->join('journal_entries as je', 'je.id', '=', 'ji.journal_entry_id')
+            ->join('accounts as a', 'a.id', '=', 'ji.account_id')
+            ->where('je.reference', $reference);
+        if ($tenant !== null) {
+            $q->where('je.tenant_id', $tenant->id);
+        }
+        $actual = $q->get(['a.code as account_code', 'ji.debit', 'ji.credit'])
+            ->map(fn ($r) => [
+                'account_code' => (string) $r->account_code,
+                'debit'        => round((float) $r->debit, 2),
+                'credit'       => round((float) $r->credit, 2),
+            ])->all();
+
+        $norm = function (array $lines) {
+            $lines = array_map(fn ($l) => [
+                'account_code' => (string) $l['account_code'],
+                'debit'        => round((float) ($l['debit'] ?? 0), 2),
+                'credit'       => round((float) ($l['credit'] ?? 0), 2),
+            ], $lines);
+            usort($lines, fn ($a, $b) => [$a['account_code'], $a['debit'], $a['credit']]
+                                        <=> [$b['account_code'], $b['debit'], $b['credit']]);
+            return $lines;
+        };
+
+        $this->assertEquals(
+            $norm($expected),
+            $norm($actual),
+            "Journal line-set mismatch for reference '{$reference}'.\n"
+            . 'Expected: ' . json_encode($norm($expected)) . "\n"
+            . 'Actual:   ' . json_encode($norm($actual))
+        );
+    }
+
+    /**
+     * Phase C (F-12 / FC-13) — read a required key from the Golden manifest.
+     * Replaces the `M(...) ?? 0` pattern that silently turned a MISSING manifest
+     * key into a passing zero. A missing key now FAILS the test loudly.
+     *
+     * @param  array   $manifest  The decoded manifest array
+     * @param  string  $dotPath   Dot path, e.g. "year_end.profit_and_loss.cogs"
+     */
+    protected function manifestValue(array $manifest, string $dotPath): mixed
+    {
+        $node = $manifest;
+        foreach (explode('.', $dotPath) as $seg) {
+            if (! is_array($node) || ! array_key_exists($seg, $node)) {
+                $this->fail("Manifest key missing: '{$dotPath}' (stopped at '{$seg}'). "
+                    . 'A missing manifest key must fail, never default to 0 (audit F-12).');
+            }
+            $node = $node[$seg];
+        }
+        return $node;
     }
 
     // ─── FIFO Assertions ──────────────────────────────────────────────────────
@@ -361,6 +478,16 @@ abstract class VenQoreTestCase extends TestCase
      */
     protected function assertMoneyEquals(float $expected, float $actual, string $message = ''): void
     {
+        // ClaimLogger instrumentation — merged from the dead Golden base class
+        // (audit F-02). Emits an actual expected-vs-actual comparison claim so the
+        // verification engines see real values, not just presence assertions.
+        ClaimLogger::log(new VerificationClaim(
+            expectedValue: $expected,
+            actualValue: $actual,
+            metric: $message ?: 'Money Equality',
+            surface: 'VenQoreTestCase'
+        ));
+
         $this->assertEquals(
             round($expected, 2),
             round($actual, 2),

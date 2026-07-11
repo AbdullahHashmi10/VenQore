@@ -12,6 +12,22 @@ class Account extends Model
 {
     use HasFactory, HasUuids, HasTenant, SoftDeletes;
 
+    protected static function booted()
+    {
+        static::creating(function ($account) {
+            $tenantId = $account->tenant_id ?? app('current.tenant')->id ?? null;
+            if ($tenantId && $account->code) {
+                $exists = static::withoutGlobalScopes()
+                    ->where('tenant_id', $tenantId)
+                    ->where('code', $account->code)
+                    ->exists();
+                if ($exists) {
+                    return false; // cancel creation as it already exists
+                }
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'code',

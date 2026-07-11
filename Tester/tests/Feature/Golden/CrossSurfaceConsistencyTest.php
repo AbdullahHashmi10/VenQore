@@ -3,7 +3,6 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
@@ -11,6 +10,7 @@ use App\Models\Tenant;
 use App\Services\FinancialReportingService;
 use Tests\Feature\Golden\Verification\VerificationClaim;
 use Tests\Feature\Golden\Verification\ClaimLogger;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -53,10 +53,8 @@ use Tests\Feature\Golden\Verification\ClaimLogger;
  * @group phase6
  * @group phase6-consistency
  */
-class CrossSurfaceConsistencyTest extends VenQoreTestCase
+class CrossSurfaceConsistencyTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     protected const TENANT_ID  = '999991';
     protected const YEAR_START = '2025-01-01';
     protected const YEAR_END   = '2025-12-31';
@@ -65,7 +63,6 @@ class CrossSurfaceConsistencyTest extends VenQoreTestCase
     /** The clock position for this batch of consistency checks. */
     protected string $clockDate = self::YEAR_END;
 
-    private static bool $seeded = false;
 
     protected Tenant $tenant;
     protected FinancialReportingService $reporting;
@@ -73,7 +70,6 @@ class CrossSurfaceConsistencyTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ensureSeeded();
 
         Carbon::setTestNow($this->clockDate . ' 23:59:59');
 
@@ -496,12 +492,4 @@ class CrossSurfaceConsistencyTest extends VenQoreTestCase
         $this->assertConsistent($httpEquity, $bs['total_equity'],      '[I-K] BS: HTTP total_equity vs service');
     }
 
-    protected function ensureSeeded(): void
-    {
-        if (!DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            DB::commit();
-            Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-            DB::beginTransaction();
-        }
-    }
 }

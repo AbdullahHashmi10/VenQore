@@ -116,9 +116,11 @@ class AccountingService
             'approved_by'      => $data['approved_by']      ?? null,
             'idempotency_key'  => $data['idempotency_key']  ?? null,
             'party_id'         => $data['party_id']         ?? null,
-            'user_id'          => $data['created_by']       ?? auth()->id() ?? 1,
+            'user_id'          => $data['user_id']          ?? $data['created_by']       ?? auth()->id() ?? 1,
             'is_reversed'      => $data['is_reversed']      ?? 0,
             'reversed_by'      => $data['reversed_by']      ?? null,
+            'source_type'      => $data['source_type']      ?? null,
+            'source_id'        => $data['source_id']        ?? null,
         ]);
 
         $partyIds = [];
@@ -309,4 +311,22 @@ class AccountingService
                 'is_active'      => true,
             ]);
     }
+
+    /**
+     * Delete multiple journal entries and their items.
+     * Strictly for migration rollback / reverse operations.
+     */
+    public function deleteEntries(array $entryIds): void
+    {
+        DB::transaction(function () use ($entryIds) {
+            DB::table('journal_items')
+                ->whereIn('journal_entry_id', $entryIds)
+                ->delete();
+
+            DB::table('journal_entries')
+                ->whereIn('id', $entryIds)
+                ->delete();
+        });
+    }
 }
+

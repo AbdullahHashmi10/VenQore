@@ -57,6 +57,7 @@ class TenantDefaultSeeder
             // Revenue (4xxx) — credit-normal: positive balance = credit > debit
             ['code' => '4000', 'name' => 'Sales Revenue',            'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '4100', 'name' => 'Other Income',             'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
+            ['code' => '4200', 'name' => 'Stock Adjustment Gain',    'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
             ['code' => '4900', 'name' => 'Round Off Income',         'type' => 'income',    'balance' => 0, 'normal_balance' => 'credit'],
 
             // Expenses (5xxx) — debit-normal: positive balance = debit > credit
@@ -67,6 +68,7 @@ class TenantDefaultSeeder
             ['code' => '5400', 'name' => 'Marketing',                'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
             ['code' => '5900', 'name' => 'Round Off Expense',        'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
             ['code' => '6000', 'name' => 'Operating Expenses',       'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
+            ['code' => '6300', 'name' => 'Stock Adjustment Loss',    'type' => 'expense',   'balance' => 0, 'normal_balance' => 'debit'],
         ];
 
         $now = now();

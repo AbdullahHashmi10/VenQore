@@ -585,15 +585,23 @@ class SaleInputVerificationTest extends InputVerificationTestCase
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // [E-10] WOOCOMMERCE-TAGGED SALE — same journal as normal sale
+    // [E-10] V3 SOURCE-TAG PASS-THROUGH — a source='woocommerce' tag on the V3
+    // SaleService path must not change journalization.
+    //
+    // RENAMED (Phase D, audit FC-2): this test does NOT exercise the WooCommerce
+    // WEBHOOK. It calls V3 SaleService::post() directly with a source tag. The real
+    // webhook (WooWebhookController@receive) posts NO journal today — that gap is
+    // pinned by Tests\Feature\Production\WooWebhookJournalPinningTest (WOO-001,
+    // quarantine lane). Do not read this test as webhook coverage.
     // ─────────────────────────────────────────────────────────────────────────
 
     /**
      * @test
-     * A sale tagged source='woocommerce' must create an IDENTICAL journal to a normal sale.
-     * The WooCommerce source must NOT bypass journalization.
+     * A V3 sale tagged source='woocommerce' must create an IDENTICAL journal to an
+     * untagged V3 sale — the source tag must not bypass journalization on the V3 path.
+     * (This is source-tag pass-through, NOT webhook verification — see WOO-001.)
      */
-    public function test_E10_woocommerce_sale_creates_identical_journal_to_normal_sale(): void
+    public function test_E10_v3_source_tag_woocommerce_does_not_change_journal(): void
     {
         [$productId] = $this->createProductWithStock(
             qty: 10, unitCost: 1000.00, sellPrice: 1500.00, taxRate: 17

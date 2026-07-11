@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="../vendor/autoload.php"
+         bootstrap="bootstrap.php"
          colors="true"
          stopOnFailure="false"
 >
+    <!-- Run Ledger: every run writes an append-only evidence record to
+         Tester/VerificationCenter/runs/ (Phase A — closes audit FC-5). -->
+    <extensions>
+        <bootstrap class="Tests\Support\RunLedger\RunLedgerExtension"/>
+    </extensions>
     <testsuites>
         <testsuite name="Smoke">
             <directory>tests/Feature/Smoke</directory>
@@ -49,11 +54,19 @@
             <directory>tests/Feature/Module19</directory>
             <directory>tests/Feature/Module20</directory>
         </testsuite>
+        <!-- Quarantine lane: known-defect pinning tests (POS-003, WOO-001).
+             Visible + waiver-gated; incomplete while waiver valid, red on expiry. -->
+        <testsuite name="Quarantine">
+            <directory>tests/Feature/Production</directory>
+        </testsuite>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+        </testsuite>
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
         </testsuite>
     </testsuites>
     <source>

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tester\Tests\Feature\Guardrails;
+namespace Tests\Feature\Guardrails;
 
 use Illuminate\Support\Facades\Route;
 use Tests\Feature\VenQoreTestCase;
@@ -55,19 +55,39 @@ class PermissionBypassGuardTest extends VenQoreTestCase
     {
         $current = $this->unprotectedWriteRoutes();
 
-        // First run: seed the baseline with today's known set and pass.
-        if (!file_exists(self::BASELINE)) {
-            @mkdir(dirname(self::BASELINE), 0777, true);
-            file_put_contents(
-                self::BASELINE,
-                json_encode($current, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n"
-            );
+        // Phase E (F-18): the baseline is CHECKSUM-PROTECTED and COMMITTED. The test
+        // FAILS if it is absent — it must NEVER silently reseed (a deleted baseline used
+        // to make this test pass with zero protection). Restore it from git.
+        $this->assertFileExists(
+            self::BASELINE,
+            'Permission baseline missing. It is committed + checksum-locked and must NOT be '
+                . 'reseeded. Restore Tester/tests/Feature/Guardrails/baselines/unprotected_write_routes.json from git.'
+        );
 
-            $this->assertTrue(
-                true,
-                'Baseline seeded with ' . count($current) . ' currently-unprotected write route(s).'
+        // Verify the baseline matches the checksum in the ratchet registry.
+        $ratchetPath = dirname(__DIR__, 3) . '/VerificationCenter/registry/permission_ratchet.yaml';
+        if (is_file($ratchetPath) && class_exists(\Symfony\Component\Yaml\Yaml::class)) {
+            $ratchet = \Symfony\Component\Yaml\Yaml::parseFile($ratchetPath);
+            $expected = $ratchet['baseline_checksum_sha256'] ?? null;
+            if ($expected !== null) {
+                $actual = hash('sha256', (string) file_get_contents(self::BASELINE));
+                $this->assertSame(
+                    $expected,
+                    $actual,
+                    'Permission baseline checksum mismatch. The frozen route set changed without '
+                        . 'updating permission_ratchet.yaml. If you intentionally re-baselined, update the checksum.'
+                );
+            }
+
+            // Ratchet ceiling: the live unprotected count must not exceed max_unprotected.
+            $ceiling = (int) ($ratchet['max_unprotected'] ?? PHP_INT_MAX);
+            $this->assertLessThanOrEqual(
+                $ceiling,
+                count($current),
+                'Permission debt ratchet BREACHED: ' . count($current) . ' unprotected write routes exceed '
+                    . "the ceiling of {$ceiling}. Protect routes or (deliberately) raise the ceiling — but the "
+                    . 'ceiling must only ever DECREASE across releases.'
             );
-            return;
         }
 
         $baseline = json_decode((string) file_get_contents(self::BASELINE), true) ?: [];

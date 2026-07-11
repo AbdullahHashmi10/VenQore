@@ -2,14 +2,14 @@
 
 namespace Tests\Feature\Golden;
 
-use Tests\TestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Tests\Feature\VenQoreTestCase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use App\Models\Tenant;
 use Tests\Feature\Golden\Verification\VerificationClaim;
 use Tests\Feature\Golden\Verification\ClaimLogger;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -32,14 +32,11 @@ use Tests\Feature\Golden\Verification\ClaimLogger;
  *
  * @group golden
  */
-class GoldenCompanyTest extends TestCase
+class GoldenCompanyTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     protected static string $tenantId   = '999991';
     protected static string $t2Id       = '999992';
     protected static array  $manifest   = [];
-    protected static bool   $seeded     = false;
     protected static float  $tolerance  = 0.02;
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -49,7 +46,7 @@ class GoldenCompanyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ensureGoldenCompanyExists();
+        app()->instance('current.tenant', Tenant::findOrFail(self::$tenantId));
         $this->loadManifest();
     }
 
@@ -66,26 +63,6 @@ class GoldenCompanyTest extends TestCase
         self::$manifest = json_decode(file_get_contents($jsonPath), true);
     }
 
-    private function ensureGoldenCompanyExists(): void
-    {
-        if (DB::table('tenants')->where('id', self::$tenantId)->exists()) {
-            $tenant = Tenant::find(self::$tenantId);
-            app()->instance('current.tenant', $tenant);
-            return;
-        }
-
-        // Commit parent transaction so seeder is not rolled back
-        DB::commit();
-
-        Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-
-        // Start a new transaction for the test itself
-        DB::beginTransaction();
-
-        $tenant = Tenant::find(self::$tenantId);
-        app()->instance('current.tenant', $tenant);
-        $goldenCompanyExists = true;
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // GL HELPERS
@@ -431,7 +408,7 @@ class GoldenCompanyTest extends TestCase
             ->join('sales as s', 's.id', '=', 'si.sale_id')
             ->where('s.tenant_id', self::$tenantId)
             ->where('s.id', 'gc-sale-002-00000000000000000001')
-            ->where('sib.is_reversed', true)
+            ->where('sib.is_reversed', 1)
             ->count();
 
         $this->assertGreaterThan(0, $restoredBatches,

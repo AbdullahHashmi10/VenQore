@@ -1,6 +1,6 @@
 <?php
 
-namespace Tester\tests\Feature\Money;
+namespace Tests\Feature\Money;
 
 use App\Models\Tenant;
 use Tests\Feature\VenQoreTestCase;

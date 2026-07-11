@@ -11,7 +11,7 @@ class SalesExport implements FromCollection, WithHeadings, WithMapping
 {
     public function collection()
     {
-        return Sale::with(['party'])->orderBy('created_at', 'desc')->get();
+        return Sale::with(['party'])->where('status', 'posted')->orderBy('created_at', 'desc')->get();
     }
 
     public function headings(): array

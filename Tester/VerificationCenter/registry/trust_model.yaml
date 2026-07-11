@@ -1,0 +1,76 @@
+# Trust Model — the score is COMPUTED from these dimensions, never asserted.
+# Blueprint §13 / §19. The dashboard renders the measured value; the launch gate
+# (Phase J) reads this same file so gate and dashboard can never disagree.
+#
+# Each dimension has a floor. The score is a weighted roll-up of dimension health,
+# and — critically — it DECAYS: if the latest run is red, or a floor is breached,
+# the score falls on the next evaluation. A 10 that cannot become a 4 overnight is
+# not a measurement (§19.10).
+
+schema_version: 1
+
+# Provisional weights for the current milestone. Phases E/F/G/J tighten the floors
+# (MSI, sweep floors, permission=0) as those capabilities land.
+dimensions:
+  green_and_provable:
+    weight: 0.20
+    floor: "latest verify:all run green (quarantine excepted) AND >=3-run green history"
+    measured_from: "VerificationCenter/runs/latest.json + run history"
+  complete_and_visible:
+    weight: 0.12
+    floor: "0 unregistered test files; registry drift test green"
+    measured_from: "RegistryDriftTest + SuiteIntegrityTest results"
+  truth_anchored:
+    weight: 0.15
+    floor: "every T1 verification has an independent oracle; signed independence review"
+    measured_from: "ORACLE_INDEPENDENCE.md sign-off + oracle_tier audit"
+  production_path_parity:
+    weight: 0.15
+    floor: "every money-writing path (V3, legacy POS, webhook, imports, offline) has input verification"
+    measured_from: "Phase D suite registration"
+  bite_proven:
+    weight: 0.12
+    floor: "financial-core MSI >= 85%; sensitivity self-tests (E-12, sentinel, gate) fire"
+    measured_from: "Infection MSI report + sentinel/gate self-tests"
+  bypass_resistant:
+    weight: 0.08
+    floor: "AST guardrails enforce single-writer/one-brain; permission debt = 0 or signed"
+    measured_from: "AST rule results + permission ratchet"
+  corruption_alerting:
+    weight: 0.06
+    floor: "integrity checks scheduled in production AND tested to alert"
+    measured_from: "verify:ledger schedule + alert test"
+  self_explaining:
+    weight: 0.05
+    floor: "every failure auto-produces business + technical report pair"
+    measured_from: "reports/ artifacts per failing verification"
+  honestly_red:
+    weight: 0.04
+    floor: "known defects are running, visible, waiver-gated; gate proven able to fail"
+    measured_from: "quarantine lane + gate self-test"
+  decaying_by_design:
+    weight: 0.03
+    floor: "score recomputed every run and demonstrably falls on red"
+    measured_from: "trust score history in run ledger"
+
+# Milestone projections (blueprint §13) — the dashboard shows MEASURED, not projected.
+milestones:
+  current: 4.5
+  after_A: 5.5
+  after_B: 6.0
+  after_C: 6.7
+  after_D: 7.8
+  after_E: 8.3
+  after_F: 8.8
+  after_G: 9.3
+  after_H_I: 9.7
+  after_J: 10.0   # held only while runs stay green and floors stay met
+
+# Hard gate conditions (Phase J consumes these): ANY true => launch blocked.
+gate_blocks_when:
+  - "any registry entry with CRITICAL in risk OR severity lacking verified:true/status:resolved"
+  - "latest verify:all run not green (quarantine excepted)"
+  - "any expired quarantine waiver"
+  - "trust score below required threshold"
+  - "MSI floor breached (once Phase F active)"
+  - "sweep floor breached (once Phase G active)"

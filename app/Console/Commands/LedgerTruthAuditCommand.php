@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\Route;
  */
 class LedgerTruthAuditCommand extends Command
 {
+    /** Phase G scan-floor + strict-mode counters. */
+    private int $routeFloor = 0;
+    private int $cntNonJsonUnverified = 0;
+
     protected $signature = 'audit:ledger-truth
                             {--skip-seed   : Skip the GoldenAuditSeeder step}
                             {--only=       : Comma-separated list of route names to scan (e.g. store.dashboard,store.reports.sales)}
@@ -256,6 +260,10 @@ class LedgerTruthAuditCommand extends Command
         $this->loadRegistry();
         $routes = $this->discoverGetRoutes();
         $total  = count($routes);
+        // Phase G (F-19): the scan floor is the number of routes we DISCOVERED. If fewer
+        // than this are actually scanned/classified, strict mode fails — a sweep must
+        // prove how much it swept.
+        $this->routeFloor = $total;
         $this->line("  Found <info>{$total}</info> GET routes to scan.");
 
         $this->newLine();
@@ -281,16 +289,54 @@ class LedgerTruthAuditCommand extends Command
 
         if ($this->option('strict')) {
             $unverifiedLedgerMetrics = 0;
+            $ledgerDerivedTotal = 0;
+            $comparedMetrics = 0;
             foreach ($this->registry['metrics'] ?? [] as $m) {
-                if (($m['classification'] ?? '') === 'LEDGER-DERIVED' && !($m['verified'] ?? false)) {
-                    $unverifiedLedgerMetrics++;
+                if (($m['classification'] ?? '') === 'LEDGER-DERIVED') {
+                    $ledgerDerivedTotal++;
+                    if (!($m['verified'] ?? false)) {
+                        $unverifiedLedgerMetrics++;
+                    } else {
+                        $comparedMetrics++;
+                    }
                 }
             }
 
-            if ($this->cntMismatch > 0 || $unverifiedLedgerMetrics > 0) {
+            // Phase G floors (F-19): assert HOW MUCH was actually swept, so a sweep that
+            // silently skipped everything cannot pass. Routes scanned must meet the
+            // discovered-route floor, and compared metrics must meet the LEDGER-DERIVED floor.
+            $routesScanned = $this->cntPass + $this->cntMismatch + $this->cntAllZeros
+                + ($this->cntNonJsonUnverified ?? 0);
+            $routeFloor = (int) ($this->routeFloor ?? 0);
+
+            $failures = [];
+            if ($this->cntMismatch > 0) {
+                $failures[] = "Mismatches vs Ledger: {$this->cntMismatch}";
+            }
+            if ($unverifiedLedgerMetrics > 0) {
+                $failures[] = "Unverified LEDGER-DERIVED metrics: {$unverifiedLedgerMetrics}";
+            }
+            if ($this->cntAllZeros > 0) {
+                // F-25: ALL_ZEROS fails strict.
+                $failures[] = "ALL_ZEROS routes (suspicious, unverifiable): {$this->cntAllZeros}";
+            }
+            if (($this->cntNonJsonUnverified ?? 0) > 0) {
+                // F-23: NON_JSON is not a pass in strict.
+                $failures[] = "NON_JSON routes (not comparable): {$this->cntNonJsonUnverified}";
+            }
+            if ($routeFloor > 0 && $routesScanned < $routeFloor) {
+                // F-19: not enough routes actually scanned.
+                $failures[] = "Route scan floor breached: scanned {$routesScanned} < floor {$routeFloor}";
+            }
+            if ($ledgerDerivedTotal > 0 && $comparedMetrics < $ledgerDerivedTotal) {
+                $failures[] = "Metric compare floor breached: compared {$comparedMetrics} < LEDGER-DERIVED {$ledgerDerivedTotal}";
+            }
+
+            if (!empty($failures)) {
                 $this->error("🚨 Strict mode validation failed!");
-                $this->error("   Mismatches vs Ledger: {$this->cntMismatch}");
-                $this->error("   Unverified Ledger Metrics: {$unverifiedLedgerMetrics}");
+                foreach ($failures as $f) {
+                    $this->error("   {$f}");
+                }
                 return Command::FAILURE;
             }
         }
@@ -622,7 +668,7 @@ class LedgerTruthAuditCommand extends Command
             $this->recordResult($name, $route['uri'], 'REDIRECT', $code, "→ {$location}", []);
             $this->cntPass++;
             $this->printLine('↩', $code, $name, 'REDIRECT');
-            $this->markMetricsForRouteAsVerified($name);
+            // Phase G (F-24): a redirect compares no metric — do NOT mark verified.
             return;
         }
 
@@ -640,12 +686,20 @@ class LedgerTruthAuditCommand extends Command
         $data = json_decode($body, true);
 
         if (!$data || !is_array($data)) {
-            // Non-JSON (raw HTML, PDF, etc.)
-            $this->recordResult($name, $route['uri'], 'NON_JSON', $code, 'Non-JSON response (200 OK)', []);
-            $this->cntPass++;
-            $this->printLine('✅', $code, $name, 'NON_JSON');
-            $this->markMetricsForRouteAsVerified($name);
-            return;
+            // Non-JSON (raw HTML, PDF, etc.). Phase G (F-23): NON_JSON is a
+            // CLASSIFICATION, never an auto-verification. In strict mode it does NOT
+            // pass and does NOT bulk-mark metrics verified — an unparseable body means
+            // we could not compare anything, which is the opposite of "verified".
+            $strict = (bool) $this->option('strict');
+            $this->recordResult($name, $route['uri'], 'NON_JSON', $code, 'Non-JSON response (200 OK) — not comparable', []);
+            if ($strict) {
+                $this->cntNonJsonUnverified = ($this->cntNonJsonUnverified ?? 0) + 1;
+                $this->printLine('📄', $code, $name, 'NON_JSON (unverified)');
+            } else {
+                $this->cntPass++;
+                $this->printLine('📄', $code, $name, 'NON_JSON');
+            }
+            return; // never markMetricsForRouteAsVerified — nothing was compared
         }
 
         // ── Extract props ─────────────────────────────────────────────────
@@ -668,17 +722,23 @@ class LedgerTruthAuditCommand extends Command
             && count(array_filter($financialProps, fn($v) => abs($v) > 0.001)) === 0;
 
         if ($allZero) {
+            // Phase G (F-25): ALL_ZEROS is SUSPICIOUS, not verified. A page whose every
+            // financial prop is 0 may simply not be sourcing from the ledger. In strict
+            // mode this FAILS; it never bulk-marks metrics verified.
+            $strict = (bool) $this->option('strict');
             $this->recordResult($name, $route['uri'], 'ALL_ZEROS', $code, 'All financial props returned 0 – data may not be sourced from Ledger', $financialProps);
             $this->cntAllZeros++;
-            $this->printLine('⚠️', $code, $name, 'ALL_ZEROS');
-            $this->markMetricsForRouteAsVerified($name);
-            return;
+            $this->printLine('⚠️', $code, $name, 'ALL_ZEROS' . ($strict ? ' (strict fail)' : ''));
+            return; // never markMetricsForRouteAsVerified — a wall of zeros proves nothing
         }
 
         $this->recordResult($name, $route['uri'], 'PASS', $code, '', $financialProps);
         $this->cntPass++;
         $this->printLine('✅', $code, $name, 'PASS');
-        $this->markMetricsForRouteAsVerified($name);
+        // Phase G (F-24): do NOT bulk-mark every metric on this route verified. A metric is
+        // marked verified ONLY when deepCheck() actually compared it against a control value
+        // (see markMetricAsVerified in the per-metric comparison path). Route-level bulk
+        // verification is removed — reaching a 200 is not evidence a number is correct.
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -743,7 +803,7 @@ class LedgerTruthAuditCommand extends Command
             }
             
             // 3. Compare values
-            if (abs($pageVal - $ledgerVal) > 0.10) {
+            if (abs($pageVal - $ledgerVal) > 0.01) { // Phase G (F-26): tolerance tightened 0.10 -> 0.01
                 $name = $m['name'] ?? $propPath;
                 $mismatches[] = "{$name}: UI=" . number_format($pageVal, 2)
                     . " Ledger=" . number_format($ledgerVal, 2);

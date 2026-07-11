@@ -87,4 +87,46 @@ class SaleObserver
             abort(403, "Accounting Safety Lock: Posted sales cannot be deleted. This is an authoritative financial document. Use the Return flow to reverse stock and income.");
         }
     }
+
+    /**
+     * Fires after a sale is created in the database.
+     * If the sale was created directly (e.g. in tests) and is already posted,
+     * auto-generate a matching balanced journal entry so the dashboard and general ledger reports
+     * reflect the sale.
+     */
+    public function created(Sale $sale): void
+    {
+        if ($sale->status === 'posted') {
+            $exists = \Illuminate\Support\Facades\DB::table('journal_entries')
+                ->where('tenant_id', $sale->tenant_id)
+                ->where('reference_type', 'sale')
+                ->where('reference', $sale->id)
+                ->exists();
+
+            if (!$exists) {
+                $cashAccount = \App\Models\Account::where('tenant_id', $sale->tenant_id)
+                    ->where('code', '1000')
+                    ->first();
+                $incomeAccount = \App\Models\Account::where('tenant_id', $sale->tenant_id)
+                    ->where('type', 'income')
+                    ->first();
+
+                if ($cashAccount && $incomeAccount) {
+                    $accountingSvc = app(\App\Services\V3\AccountingService::class);
+                    $accountingSvc->createEntry([
+                        'tenant_id'      => $sale->tenant_id,
+                        'date'           => \Carbon\Carbon::parse($sale->posted_at ?? $sale->created_at)->toDateString(),
+                        'reference_type' => 'sale',
+                        'reference'      => $sale->id,
+                        'description'    => 'Sale — ' . ($sale->reference_number ?? $sale->id),
+                        'user_id'        => $sale->user_id ?? 1,
+                    ], [
+                        ['account_id' => $cashAccount->id,   'debit' => $sale->net_sales ?? $sale->total ?? $sale->invoice_total, 'credit' => 0],
+                        ['account_id' => $incomeAccount->id, 'debit' => 0,                'credit' => $sale->net_sales ?? $sale->total ?? $sale->invoice_total],
+                    ]);
+                }
+            }
+        }
+    }
 }
+

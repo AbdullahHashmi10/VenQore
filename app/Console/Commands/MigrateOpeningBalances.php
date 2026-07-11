@@ -156,52 +156,38 @@ class MigrateOpeningBalances extends Command
                 }
 
                 if (!$dryRun) {
-                    $jeId = (string) Str::orderedUuid();
-                    $now  = now()->toDateTimeString();
+                    $exists = DB::table('journal_entries')
+                        ->where('tenant_id', $tenant->id)
+                        ->where('idempotency_key', $idempKey)
+                        ->exists();
 
-                    $entry = [
-                        'id'               => $jeId,
-                        'tenant_id'        => $tenant->id,
-                        'date'             => $migrationDate,
-                        'reference'        => 'OB-MIGRATE-' . strtoupper(substr($party->id, -8)),
-                        'description'      => $desc,
-                        'idempotency_key'  => $idempKey,
-                        'is_reversed'      => 0,
-                        'is_reversal'      => 0,
-                        'reference_type'   => 'opening_balance_migration',
-                        'party_id'         => $party->id,
-                        'user_id'          => $adminUserId,
-                        'created_at'       => $now,
-                        'updated_at'       => $now,
-                    ];
-
-                    $affected = DB::table('journal_entries')->insertOrIgnore($entry);
-
-                    if ($affected > 0) {
-                        DB::table('journal_items')->insert([
-                            [
-                                'id'               => (string) Str::orderedUuid(),
-                                'tenant_id'        => $tenant->id,
-                                'journal_entry_id' => $jeId,
-                                'account_id'       => $drAccountId,
-                                'debit'            => $absBalance,
-                                'credit'           => 0,
-                                'description'      => $desc,
-                                'created_at'       => $now,
-                                'updated_at'       => $now,
-                            ],
-                            [
-                                'id'               => (string) Str::orderedUuid(),
-                                'tenant_id'        => $tenant->id,
-                                'journal_entry_id' => $jeId,
-                                'account_id'       => $crAccountId,
-                                'debit'            => 0,
-                                'credit'           => $absBalance,
-                                'description'      => $desc,
-                                'created_at'       => $now,
-                                'updated_at'       => $now,
-                            ],
-                        ]);
+                    if (!$exists) {
+                        DB::transaction(function() use ($tenant, $migrationDate, $party, $desc, $idempKey, $adminUserId, $drAccountId, $crAccountId, $absBalance) {
+                            $accountingSvc = app(\App\Services\V3\AccountingService::class);
+                            $accountingSvc->createEntry([
+                                'tenant_id'       => $tenant->id,
+                                'date'            => $migrationDate,
+                                'reference_type'  => 'opening_balance_migration',
+                                'reference'       => 'OB-MIGRATE-' . strtoupper(substr($party->id, -8)),
+                                'description'     => $desc,
+                                'idempotency_key' => $idempKey,
+                                'party_id'        => $party->id,
+                                'created_by'      => $adminUserId,
+                            ], [
+                                [
+                                    'account_id' => $drAccountId,
+                                    'debit'      => $absBalance,
+                                    'credit'     => 0,
+                                    'party_id'   => $party->id,
+                                ],
+                                [
+                                    'account_id' => $crAccountId,
+                                    'debit'      => 0,
+                                    'credit'     => $absBalance,
+                                    'party_id'   => $party->id,
+                                ],
+                            ]);
+                        });
                     }
                 }
 
@@ -233,8 +219,7 @@ class MigrateOpeningBalances extends Command
 
         $this->warn("Deleting {$entries->count()} journal entries and their items...");
 
-        DB::table('journal_items')->whereIn('journal_entry_id', $entries)->delete();
-        DB::table('journal_entries')->whereIn('id', $entries)->delete();
+        app(\App\Services\V3\AccountingService::class)->deleteEntries($entries->toArray());
 
         $this->info("Reversed. All ob_migrate journal entries have been deleted.");
         return self::SUCCESS;

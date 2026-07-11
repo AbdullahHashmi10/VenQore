@@ -1,0 +1,1035 @@
+# ============================================================
+# VenQore Golden Company — Transaction Specification
+# Phase 1 of the Verification Blueprint
+# ============================================================
+#
+# DOCTRINE: Truth-first authoring.
+# Every transaction declared here was computed BEFORE the seeder was
+# written. The independent calculator (calculator.php) reads THIS file
+# and produces manifest.yaml — the app and the calculator must agree.
+#
+# DETERMINISM RULES:
+#   - All IDs are fixed (never random). Seeder re-runs yield byte-identical DBs.
+#   - All timestamps are frozen to the declared date at 00:00:00 Asia/Karachi
+#     (via Carbon::setTestNow() in the seeder).
+#   - Manifest checksum is stored in manifest.yaml — tests refuse to run
+#     if spec_checksum in manifest ≠ SHA256 of this file.
+#
+# UNIVERSE:
+#   Fiscal year: 2025-01-01 → 2025-12-31
+#   "Today" frozen at: 2025-12-31 23:59:59 Asia/Karachi
+#   Currency: PKR (2 decimal places, round half-up at line level)
+#   Tax regime: Simple GST at two rates — 17% and 0%
+#   Two tenants: Golden Co (TENANT-1) and Isolation Co (TENANT-2, minimal)
+#   Two warehouses: Main (WH-MAIN), Branch (WH-BRANCH)
+#   Two branches: Downtown (BR-DOWNTOWN), Uptown (BR-UPTOWN)
+#
+# ============================================================
+
+spec_version: "1.0"
+spec_date: "2025-12-31"
+frozen_clock: "2025-12-31 23:59:59"
+timezone: "Asia/Karachi"
+checksum: "PENDING"  # updated by calculator.php after generation
+
+# ── TENANT DEFINITIONS ────────────────────────────────────────────────────────
+
+tenants:
+  - id: "TENANT-1"
+    name: "Golden Electronics Co."
+    slug: "golden-co"
+    currency_code: "PKR"
+    currency_symbol: "Rs."
+    timezone: "Asia/Karachi"
+    plan: "growth"
+    role: "primary"   # This is the tenant under test
+
+  - id: "TENANT-2"
+    name: "Isolation Tester Ltd."
+    slug: "isolation-co"
+    currency_code: "PKR"
+    currency_symbol: "Rs."
+    timezone: "Asia/Karachi"
+    plan: "starter"
+    role: "isolation"  # Must NEVER leak data into TENANT-1
+
+# ── WAREHOUSES ────────────────────────────────────────────────────────────────
+
+warehouses:
+  - id: "WH-MAIN"
+    tenant_id: "TENANT-1"
+    name: "Main Warehouse"
+    location: "Downtown Karachi"
+    is_default: true
+
+  - id: "WH-BRANCH"
+    tenant_id: "TENANT-1"
+    name: "Branch Warehouse"
+    location: "Uptown Karachi"
+    is_default: false
+
+# ── PARTIES (Customers & Vendors) ─────────────────────────────────────────────
+
+parties:
+  # Customers
+  - id: "CUST-AHMED"
+    tenant_id: "TENANT-1"
+    name: "Ahmed Electronics"
+    type: "customer"
+    credit_limit: 500000.00
+    opening_balance: 0.00
+
+  - id: "CUST-SARA"
+    tenant_id: "TENANT-1"
+    name: "Sara Trading"
+    type: "customer"
+    credit_limit: 200000.00
+    opening_balance: 0.00
+
+  - id: "CUST-WALK"
+    tenant_id: "TENANT-1"
+    name: "Walk-in Customer"
+    type: "customer"
+    credit_limit: null
+    opening_balance: 0.00
+
+  # Vendors
+  - id: "VEND-TECH"
+    tenant_id: "TENANT-1"
+    name: "TechSupply Co."
+    type: "vendor"
+    opening_balance: 0.00
+
+  - id: "VEND-ELEC"
+    tenant_id: "TENANT-1"
+    name: "ElecParts Ltd."
+    type: "vendor"
+    opening_balance: 0.00
+
+  # Isolation tenant
+  - id: "CUST-ISO"
+    tenant_id: "TENANT-2"
+    name: "Isolation Customer"
+    type: "customer"
+    opening_balance: 0.00
+
+# ── PRODUCTS ──────────────────────────────────────────────────────────────────
+# All products use FIFO costing. Tax rate is line-level.
+
+products:
+  - id: "PROD-PHONE"
+    tenant_id: "TENANT-1"
+    name: "Smartphone X10"
+    sku: "GC-PHN-001"
+    selling_price: 45000.00
+    cost_price: 32000.00     # purchase cost (used for fallback — should not be needed in Golden Co)
+    tax_rate: 17             # GST 17%
+    track_inventory: true
+    track_serial: false
+    unit: "pcs"
+
+  - id: "PROD-CABLE"
+    tenant_id: "TENANT-1"
+    name: "USB-C Cable"
+    sku: "GC-CBL-001"
+    selling_price: 800.00
+    cost_price: 400.00
+    tax_rate: 0              # zero-rated
+    track_inventory: true
+    track_serial: false
+    unit: "pcs"
+
+  - id: "PROD-LAPTOP"
+    tenant_id: "TENANT-1"
+    name: "Laptop Pro 14"
+    sku: "GC-LPT-001"
+    selling_price: 180000.00
+    cost_price: 130000.00
+    tax_rate: 17
+    track_inventory: true
+    track_serial: true       # serial-tracked
+    unit: "pcs"
+
+  - id: "PROD-ADAPTER"
+    tenant_id: "TENANT-1"
+    name: "Power Adapter 65W"
+    sku: "GC-ADP-001"
+    selling_price: 2500.00
+    cost_price: 1200.00
+    tax_rate: 17
+    track_inventory: true
+    track_serial: false
+    unit: "pcs"
+
+  # Isolation tenant product — must never appear in TENANT-1 reports
+  - id: "PROD-ISO"
+    tenant_id: "TENANT-2"
+    name: "Isolation Widget"
+    sku: "ISO-001"
+    selling_price: 1000.00
+    cost_price: 500.00
+    tax_rate: 0
+    track_inventory: true
+    track_serial: false
+    unit: "pcs"
+
+# ══════════════════════════════════════════════════════════════════════════════
+# TRANSACTIONS — ordered chronologically, executed in this exact sequence
+# ══════════════════════════════════════════════════════════════════════════════
+
+transactions:
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # OPENING BALANCE — January 1, 2025
+  # Capital injection: Owner puts Rs. 1,000,000 into the business
+  # Journal: DR 1000 Cash 1,000,000 / CR 3000 Owner's Capital 1,000,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-OB-001"
+    type: "opening_balance"
+    tenant_id: "TENANT-1"
+    date: "2025-01-01"
+    description: "Owner capital injection"
+    journal:
+      - account_code: "1000"
+        debit: 1000000.00
+        credit: 0
+      - account_code: "3000"
+        debit: 0
+        credit: 1000000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # PURCHASE P-001 — January 5, 2025 — Credit purchase of phones
+  # Buy 10 Smartphone X10 @ Rs.32,000 each from TechSupply Co. on credit
+  # Total: Rs.320,000 + 17% GST input = Rs.374,400 total bill
+  # Journal: DR 1100 Inventory 320,000 / DR 2300 Input Tax 54,400 / CR 2000 AP 374,400
+  # FIFO batch created: BATCH-PHN-001 @ Rs.32,000/unit × 10 = Rs.320,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-PUR-001"
+    type: "purchase"
+    tenant_id: "TENANT-1"
+    date: "2025-01-05"
+    vendor_id: "VEND-TECH"
+    warehouse_id: "WH-MAIN"
+    payment_method: "credit"
+    reference: "PO-TECH-001"
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 10
+        unit_cost: 32000.00
+        tax_rate: 17
+        batch_id: "BATCH-PHN-001"
+    # Computed values (for manifest verification):
+    subtotal: 320000.00
+    tax_amount: 54400.00       # 320000 × 17% = 54400
+    total: 374400.00
+    journal:
+      - account_code: "1100"
+        debit: 320000.00
+        credit: 0
+      - account_code: "2300"   # Input Tax Recoverable
+        debit: 54400.00
+        credit: 0
+      - account_code: "2000"   # AP — TechSupply Co.
+        debit: 0
+        credit: 374400.00
+        party_id: "VEND-TECH"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # PURCHASE P-002 — January 8, 2025 — Cash purchase of cables
+  # Buy 50 USB-C Cables @ Rs.400 each from ElecParts — paid in cash
+  # Zero-rated GST. Total: Rs.20,000
+  # FIFO batch: BATCH-CBL-001 @ Rs.400/unit × 50
+  # Journal: DR 1100 Inventory 20,000 / CR 1000 Cash 20,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-PUR-002"
+    type: "purchase"
+    tenant_id: "TENANT-1"
+    date: "2025-01-08"
+    vendor_id: "VEND-ELEC"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    reference: "PO-ELEC-001"
+    items:
+      - product_id: "PROD-CABLE"
+        qty: 50
+        unit_cost: 400.00
+        tax_rate: 0
+        batch_id: "BATCH-CBL-001"
+    subtotal: 20000.00
+    tax_amount: 0.00
+    total: 20000.00
+    journal:
+      - account_code: "1100"
+        debit: 20000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 20000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SALE S-001 — January 10, 2025 — Cash sale of 2 phones to walk-in
+  # Sell 2 Smartphone X10 @ Rs.45,000 each. Zero discount. 17% GST.
+  # Net sales = 90,000. Tax = 15,300. Invoice total = 105,300.
+  # COGS: 2 × Rs.32,000 = Rs.64,000 (from BATCH-PHN-001 → FIFO)
+  # Journal:
+  #   DR 1000 Cash 105,300
+  #   CR 4000 Revenue 90,000
+  #   CR 2100 Tax Payable 15,300
+  #   DR 5000 COGS 64,000
+  #   CR 1100 Inventory 64,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-001"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-01-10"
+    customer_id: "CUST-WALK"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 105300.00
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 2
+        unit_price: 45000.00
+        discount_percent: 0
+        tax_rate: 17
+    # Computed:
+    subtotal_gross: 90000.00
+    total_item_discounts: 0.00
+    net_sales: 90000.00
+    total_tax: 15300.00
+    invoice_total: 105300.00
+    cogs: 64000.00
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-PHN-001"
+        qty_taken: 2
+        unit_cost: 32000.00
+        total_cost: 64000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SALE S-002 — January 15, 2025 — Credit sale to Ahmed Electronics
+  # Sell 3 Smartphone X10 @ Rs.45,000 each. 10% trade discount. 17% GST.
+  # Gross: 135,000. Discount: 13,500. Net: 121,500. Tax: 20,655. Total: 142,155.
+  # COGS: 3 × Rs.32,000 = Rs.96,000
+  # Journal:
+  #   DR 1200 AR 142,155  (party: Ahmed)
+  #   CR 4000 Revenue 121,500
+  #   CR 2100 Tax Payable 20,655
+  #   DR 5000 COGS 96,000
+  #   CR 1100 Inventory 96,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-002"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-01-15"
+    customer_id: "CUST-AHMED"
+    warehouse_id: "WH-MAIN"
+    payment_method: "credit"
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 3
+        unit_price: 45000.00
+        discount_percent: 10
+        tax_rate: 17
+    subtotal_gross: 135000.00
+    total_item_discounts: 13500.00
+    net_sales: 121500.00
+    total_tax: 20655.00
+    invoice_total: 142155.00
+    cogs: 96000.00
+    payment_status: "unpaid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-PHN-001"
+        qty_taken: 3
+        unit_cost: 32000.00
+        total_cost: 96000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # CUSTOMER PAYMENT CP-001 — January 20, 2025
+  # Ahmed pays Rs.100,000 against SAL-002 (partial payment)
+  # Journal: DR 1000 Cash 100,000 / CR 1200 AR 100,000 (party: Ahmed)
+  # Remaining AR from SAL-002: 42,155
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-CP-001"
+    type: "customer_payment"
+    tenant_id: "TENANT-1"
+    date: "2025-01-20"
+    customer_id: "CUST-AHMED"
+    payment_method: "cash"
+    amount: 100000.00
+    allocated_to_sale: "TXN-SAL-002"
+    description: "Partial payment for INV-SAL-002"
+    journal:
+      - account_code: "1000"
+        debit: 100000.00
+        credit: 0
+      - account_code: "1200"
+        debit: 0
+        credit: 100000.00
+        party_id: "CUST-AHMED"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # PURCHASE P-003 — February 1, 2025 — Second phone batch (different cost)
+  # Buy 5 more Smartphone X10 @ Rs.33,500 each from TechSupply — on credit
+  # This creates a second FIFO layer at a DIFFERENT cost (tests FIFO ordering)
+  # Subtotal: 167,500. Tax 17%: 28,475. Total: 195,975.
+  # FIFO batch: BATCH-PHN-002 @ Rs.33,500/unit × 5
+  # Journal: DR 1100 167,500 / DR 2300 28,475 / CR 2000 195,975
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-PUR-003"
+    type: "purchase"
+    tenant_id: "TENANT-1"
+    date: "2025-02-01"
+    vendor_id: "VEND-TECH"
+    warehouse_id: "WH-MAIN"
+    payment_method: "credit"
+    reference: "PO-TECH-002"
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 5
+        unit_cost: 33500.00
+        tax_rate: 17
+        batch_id: "BATCH-PHN-002"
+    subtotal: 167500.00
+    tax_amount: 28475.00
+    total: 195975.00
+    journal:
+      - account_code: "1100"
+        debit: 167500.00
+        credit: 0
+      - account_code: "2300"
+        debit: 28475.00
+        credit: 0
+      - account_code: "2000"
+        debit: 0
+        credit: 195975.00
+        party_id: "VEND-TECH"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # VENDOR PAYMENT VP-001 — February 5, 2025
+  # Pay TechSupply Rs.374,400 (full settlement of PUR-001)
+  # Journal: DR 2000 AP 374,400 / CR 1000 Cash 374,400
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-VP-001"
+    type: "supplier_payment"
+    tenant_id: "TENANT-1"
+    date: "2025-02-05"
+    vendor_id: "VEND-TECH"
+    payment_method: "cash"
+    amount: 374400.00
+    allocated_to_purchase: "TXN-PUR-001"
+    description: "Full payment for PO-TECH-001"
+    journal:
+      - account_code: "2000"
+        debit: 374400.00
+        credit: 0
+        party_id: "VEND-TECH"
+      - account_code: "1000"
+        debit: 0
+        credit: 374400.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SALE S-003 — February 10, 2025 — FIFO test: consumes BOTH batches
+  # Sell 7 Smartphone X10 to Sara Trading — credit sale, 0% discount, 17% GST
+  # FIFO: 5 remaining from BATCH-PHN-001 @ 32,000 + 2 from BATCH-PHN-002 @ 33,500
+  # COGS = (5 × 32,000) + (2 × 33,500) = 160,000 + 67,000 = 227,000
+  # Net sales: 7 × 45,000 = 315,000. Tax: 53,550. Invoice: 368,550.
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-003"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-02-10"
+    customer_id: "CUST-SARA"
+    warehouse_id: "WH-MAIN"
+    payment_method: "credit"
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 7
+        unit_price: 45000.00
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 315000.00
+    total_item_discounts: 0.00
+    net_sales: 315000.00
+    total_tax: 53550.00
+    invoice_total: 368550.00
+    cogs: 227000.00
+    payment_status: "unpaid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-PHN-001"
+        qty_taken: 5
+        unit_cost: 32000.00
+        total_cost: 160000.00
+      - batch_id: "BATCH-PHN-002"
+        qty_taken: 2
+        unit_cost: 33500.00
+        total_cost: 67000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # EXPENSE E-001 — February 15, 2025 — Rent
+  # Pay rent Rs.50,000 cash for February
+  # Journal: DR 5200 Rent Expense 50,000 / CR 1000 Cash 50,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-EXP-001"
+    type: "expense"
+    tenant_id: "TENANT-1"
+    date: "2025-02-15"
+    category: "Rent"
+    description: "February 2025 rent"
+    payment_method: "cash"
+    amount: 50000.00
+    journal:
+      - account_code: "5200"
+        debit: 50000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 50000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # PURCHASE P-004 — March 1, 2025 — Laptops + Adapters (branch warehouse)
+  # Buy 3 Laptop Pro 14 @ Rs.130,000 + 5 Power Adapters @ Rs.1,200
+  # Vendor: TechSupply on credit. 17% GST on both.
+  # Laptops: 390,000 + tax 66,300 = 456,300
+  # Adapters: 6,000 + tax 1,020 = 7,020
+  # Total bill: 463,320
+  # Batches: BATCH-LPT-001 (3 laptops @ 130,000), BATCH-ADP-001 (5 adapters @ 1,200)
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-PUR-004"
+    type: "purchase"
+    tenant_id: "TENANT-1"
+    date: "2025-03-01"
+    vendor_id: "VEND-TECH"
+    warehouse_id: "WH-BRANCH"
+    payment_method: "credit"
+    reference: "PO-TECH-003"
+    items:
+      - product_id: "PROD-LAPTOP"
+        qty: 3
+        unit_cost: 130000.00
+        tax_rate: 17
+        batch_id: "BATCH-LPT-001"
+      - product_id: "PROD-ADAPTER"
+        qty: 5
+        unit_cost: 1200.00
+        tax_rate: 17
+        batch_id: "BATCH-ADP-001"
+    subtotal: 396000.00          # 390000 + 6000
+    tax_amount: 67320.00         # 66300 + 1020
+    total: 463320.00
+    journal:
+      - account_code: "1100"
+        debit: 396000.00
+        credit: 0
+      - account_code: "2300"
+        debit: 67320.00
+        credit: 0
+      - account_code: "2000"
+        debit: 0
+        credit: 463320.00
+        party_id: "VEND-TECH"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SALE S-004 — March 10, 2025 — Sale with 100% discount (promotional)
+  # Give 2 USB-C Cables FREE to Ahmed Electronics (promotional)
+  # Net sales = 0, Tax = 0, Invoice = 0
+  # COGS = 2 × Rs.400 = Rs.800 (FIFO still deducts)
+  # Journal: DR 5000 COGS 800 / CR 1100 Inventory 800 (zero revenue entry skipped if 0)
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-004"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-03-10"
+    customer_id: "CUST-AHMED"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 0.00
+    items:
+      - product_id: "PROD-CABLE"
+        qty: 2
+        unit_price: 800.00
+        discount_percent: 100
+        tax_rate: 0
+        is_promotional: true
+    subtotal_gross: 1600.00
+    total_item_discounts: 1600.00
+    net_sales: 0.00
+    total_tax: 0.00
+    invoice_total: 0.00
+    cogs: 800.00
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-CBL-001"
+        qty_taken: 2
+        unit_cost: 400.00
+        total_cost: 800.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SALE S-005 — March 15, 2025 — Split payment (part cash, part credit)
+  # Sell 1 Laptop to walk-in, Rs.180,000 price, 17% GST, 0% discount
+  # Net: 180,000. Tax: 30,600. Invoice: 210,600.
+  # Customer pays Rs.150,000 cash; Rs.60,600 goes to AR
+  # COGS: 1 × 130,000 = 130,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-005"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-03-15"
+    customer_id: "CUST-WALK"
+    warehouse_id: "WH-BRANCH"
+    payment_method: "split"
+    amount_received: 150000.00
+    items:
+      - product_id: "PROD-LAPTOP"
+        qty: 1
+        unit_price: 180000.00
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 180000.00
+    total_item_discounts: 0.00
+    net_sales: 180000.00
+    total_tax: 30600.00
+    invoice_total: 210600.00
+    cogs: 130000.00
+    payment_status: "partial"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-LPT-001"
+        qty_taken: 1
+        unit_cost: 130000.00
+        total_cost: 130000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SALE RETURN SR-001 — March 20, 2025
+  # Ahmed returns the 3 phones from SAL-002 (full reversal)
+  # Reverses the journal of SAL-002; restores FIFO batches
+  # This is the "refund chain" scenario
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SR-001"
+    type: "sale_return"
+    tenant_id: "TENANT-1"
+    date: "2025-03-20"
+    original_sale_id: "TXN-SAL-002"
+    reason: "Customer cancelled order"
+    # Reversal restores: BATCH-PHN-001 +3 units back
+    # Journal is exact mirror of SAL-002, swapped debit/credit
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # EXPENSE E-002 — March 31, 2025 — Utilities
+  # Pay electricity bill Rs.15,000 cash
+  # Journal: DR 5300 Utilities 15,000 / CR 1000 Cash 15,000
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-EXP-002"
+    type: "expense"
+    tenant_id: "TENANT-1"
+    date: "2025-03-31"
+    category: "Utilities"
+    description: "March electricity bill"
+    payment_method: "cash"
+    amount: 15000.00
+    journal:
+      - account_code: "5300"
+        debit: 15000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 15000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # APRIL-JUNE: Strong quarter (peak sales season)
+  # Condensed for spec clarity — full detail in manifest
+  # ────────────────────────────────────────────────────────────────────────────
+
+  # Purchase of more phones — April batch
+  - id: "TXN-PUR-005"
+    type: "purchase"
+    tenant_id: "TENANT-1"
+    date: "2025-04-01"
+    vendor_id: "VEND-TECH"
+    warehouse_id: "WH-MAIN"
+    payment_method: "credit"
+    reference: "PO-TECH-004"
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 20
+        unit_cost: 34000.00
+        tax_rate: 17
+        batch_id: "BATCH-PHN-003"
+    subtotal: 680000.00
+    tax_amount: 115600.00
+    total: 795600.00
+    journal:
+      - account_code: "1100"
+        debit: 680000.00
+        credit: 0
+      - account_code: "2300"
+        debit: 115600.00
+        credit: 0
+      - account_code: "2000"
+        debit: 0
+        credit: 795600.00
+        party_id: "VEND-TECH"
+
+  # Strong April sales — batch of 8 phones cash
+  - id: "TXN-SAL-006"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-04-10"
+    customer_id: "CUST-WALK"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 421200.00
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 8
+        unit_price: 45000.00
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 360000.00
+    total_item_discounts: 0.00
+    net_sales: 360000.00
+    total_tax: 61200.00
+    invoice_total: 421200.00
+    cogs: 272000.00            # 8 × 34,000 (all from BATCH-PHN-003, earlier batches depleted)
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-PHN-003"
+        qty_taken: 8
+        unit_cost: 34000.00
+        total_cost: 272000.00
+
+  # May — salary expense
+  - id: "TXN-EXP-003"
+    type: "expense"
+    tenant_id: "TENANT-1"
+    date: "2025-05-31"
+    category: "Salaries"
+    description: "May 2025 staff salaries"
+    payment_method: "bank"
+    amount: 120000.00
+    journal:
+      - account_code: "5100"
+        debit: 120000.00
+        credit: 0
+      - account_code: "1010"
+        debit: 0
+        credit: 120000.00
+
+  # June — cash deposit to bank (inter-fund transfer — not a financial event per P&L)
+  - id: "TXN-TRF-001"
+    type: "bank_transfer"
+    tenant_id: "TENANT-1"
+    date: "2025-06-15"
+    description: "Cash to bank transfer"
+    amount: 200000.00
+    journal:
+      - account_code: "1010"
+        debit: 200000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 200000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # JULY — LOSS MONTH SCENARIO
+  # High expenses, no sales. Tests that P&L correctly shows a net loss.
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-EXP-004"
+    type: "expense"
+    tenant_id: "TENANT-1"
+    date: "2025-07-01"
+    category: "Rent"
+    description: "July rent"
+    payment_method: "cash"
+    amount: 50000.00
+    journal:
+      - account_code: "5200"
+        debit: 50000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 50000.00
+
+  - id: "TXN-EXP-005"
+    type: "expense"
+    tenant_id: "TENANT-1"
+    date: "2025-07-15"
+    category: "Marketing"
+    description: "July marketing campaign"
+    payment_method: "bank"
+    amount: 80000.00
+    journal:
+      - account_code: "5400"
+        debit: 80000.00
+        credit: 0
+      - account_code: "1010"
+        debit: 0
+        credit: 80000.00
+
+  # Zero-activity day marker (for boundary testing)
+  - id: "TXN-ZERO-DAY"
+    type: "zero_activity_marker"
+    tenant_id: "TENANT-1"
+    date: "2025-07-04"
+    description: "No transactions on this date (boundary test)"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # AUGUST — Recovery, WooCommerce sale, overpayment
+  # ────────────────────────────────────────────────────────────────────────────
+
+  # WooCommerce-originated sale (webhook scenario)
+  # For Golden Company purposes we seed this as a V3 journal entry
+  # so it CORRECTLY appears in reports (unlike the real WooCommerce bug)
+  - id: "TXN-WOO-001"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-08-05"
+    customer_id: "CUST-SARA"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 49760.00
+    source: "woocommerce"
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 1
+        unit_price: 42530.00    # discounted online price
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 42530.00
+    total_item_discounts: 0.00
+    net_sales: 42530.00
+    total_tax: 7230.10          # 42530 × 17% = 7230.10
+    invoice_total: 49760.10
+    cogs: 34000.00              # 1 × 34,000 from BATCH-PHN-003
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-PHN-003"
+        qty_taken: 1
+        unit_cost: 34000.00
+        total_cost: 34000.00
+
+  # Overpayment scenario
+  - id: "TXN-SAL-007"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-08-20"
+    customer_id: "CUST-AHMED"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 210600.00  # pays Rs.210,600 for a Rs.210,600 invoice → exact
+    items:
+      - product_id: "PROD-LAPTOP"
+        qty: 1
+        unit_price: 180000.00
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 180000.00
+    total_item_discounts: 0.00
+    net_sales: 180000.00
+    total_tax: 30600.00
+    invoice_total: 210600.00
+    cogs: 130000.00
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-LPT-001"
+        qty_taken: 1
+        unit_cost: 130000.00
+        total_cost: 130000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # SEPTEMBER — Remaining Ahmed AR balance settled
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-CP-002"
+    type: "customer_payment"
+    tenant_id: "TENANT-1"
+    date: "2025-09-01"
+    customer_id: "CUST-AHMED"
+    payment_method: "bank"
+    amount: 42155.00
+    allocated_to_sale: "TXN-SAL-002"
+    description: "Final settlement of SAL-002 balance (note: SAL-002 returned, so this reduces advance credit)"
+    journal:
+      - account_code: "1010"
+        debit: 42155.00
+        credit: 0
+      - account_code: "1200"
+        debit: 0
+        credit: 42155.00
+        party_id: "CUST-AHMED"
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # OCTOBER–NOVEMBER: Adapter sales + cable sales (clear remaining inventory)
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-008"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-10-01"
+    customer_id: "CUST-WALK"
+    warehouse_id: "WH-BRANCH"
+    payment_method: "cash"
+    amount_received: 14625.00
+    items:
+      - product_id: "PROD-ADAPTER"
+        qty: 5
+        unit_price: 2500.00
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 12500.00
+    total_item_discounts: 0.00
+    net_sales: 12500.00
+    total_tax: 2125.00
+    invoice_total: 14625.00
+    cogs: 6000.00              # 5 × 1,200 from BATCH-ADP-001
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-ADP-001"
+        qty_taken: 5
+        unit_cost: 1200.00
+        total_cost: 6000.00
+
+  - id: "TXN-SAL-009"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-11-01"
+    customer_id: "CUST-WALK"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 38400.00
+    items:
+      - product_id: "PROD-CABLE"
+        qty: 48
+        unit_price: 800.00
+        discount_percent: 0
+        tax_rate: 0
+    subtotal_gross: 38400.00
+    total_item_discounts: 0.00
+    net_sales: 38400.00
+    total_tax: 0.00
+    invoice_total: 38400.00
+    cogs: 19200.00             # 48 × 400 from BATCH-CBL-001
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-CBL-001"
+        qty_taken: 48
+        unit_cost: 400.00
+        total_cost: 19200.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # DECEMBER — Year-end, remaining phones sold, final expenses
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-SAL-010"
+    type: "sale"
+    tenant_id: "TENANT-1"
+    date: "2025-12-01"
+    customer_id: "CUST-SARA"
+    warehouse_id: "WH-MAIN"
+    payment_method: "cash"
+    amount_received: 421200.00
+    items:
+      - product_id: "PROD-PHONE"
+        qty: 8
+        unit_price: 45000.00
+        discount_percent: 0
+        tax_rate: 17
+    subtotal_gross: 360000.00
+    total_item_discounts: 0.00
+    net_sales: 360000.00
+    total_tax: 61200.00
+    invoice_total: 421200.00
+    cogs: 272000.00            # 8 × 34,000 from BATCH-PHN-003
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-PHN-003"
+        qty_taken: 8
+        unit_cost: 34000.00
+        total_cost: 272000.00
+
+  - id: "TXN-EXP-006"
+    type: "expense"
+    tenant_id: "TENANT-1"
+    date: "2025-12-31"
+    category: "Rent"
+    description: "December rent"
+    payment_method: "cash"
+    amount: 50000.00
+    journal:
+      - account_code: "5200"
+        debit: 50000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 50000.00
+
+  # ────────────────────────────────────────────────────────────────────────────
+  # ISOLATION TENANT TRANSACTIONS
+  # These transactions exist in TENANT-2 and must NEVER appear in TENANT-1 reports
+  # ────────────────────────────────────────────────────────────────────────────
+
+  - id: "TXN-ISO-PUR-001"
+    type: "purchase"
+    tenant_id: "TENANT-2"
+    date: "2025-06-01"
+    vendor_id: "VEND-ELEC"
+    warehouse_id: "WH-ISO"
+    payment_method: "cash"
+    items:
+      - product_id: "PROD-ISO"
+        qty: 10
+        unit_cost: 500.00
+        tax_rate: 0
+        batch_id: "BATCH-ISO-001"
+    subtotal: 5000.00
+    tax_amount: 0.00
+    total: 5000.00
+    journal:
+      - account_code: "1100"
+        debit: 5000.00
+        credit: 0
+      - account_code: "1000"
+        debit: 0
+        credit: 5000.00
+
+  - id: "TXN-ISO-SAL-001"
+    type: "sale"
+    tenant_id: "TENANT-2"
+    date: "2025-06-15"
+    customer_id: "CUST-ISO"
+    warehouse_id: "WH-ISO"
+    payment_method: "cash"
+    amount_received: 10000.00
+    items:
+      - product_id: "PROD-ISO"
+        qty: 10
+        unit_price: 1000.00
+        discount_percent: 0
+        tax_rate: 0
+    subtotal_gross: 10000.00
+    total_item_discounts: 0.00
+    net_sales: 10000.00
+    total_tax: 0.00
+    invoice_total: 10000.00
+    cogs: 5000.00
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-ISO-001"
+        qty_taken: 10
+        unit_cost: 500.00
+        total_cost: 5000.00

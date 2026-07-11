@@ -3,10 +3,10 @@ title VenQore Test Runner
 color 0a
 
 echo.
-echo  ╔══════════════════════════════════════╗
-echo  ║       VenQore Test Runner            ║
-echo  ║       Starting up...                 ║
-echo  ╚══════════════════════════════════════╝
+echo  ========================================
+echo         VenQore Test Runner            
+echo         Starting up...                 
+echo  ========================================
 echo.
 
 :: Check Node.js
@@ -43,8 +43,8 @@ timeout /t 2 /nobreak >nul
 :: Open browser
 start "" "http://localhost:7821"
 
-echo  ✓ VenQore Test Runner is running.
-echo  ✓ Dashboard opened in your browser.
+echo  [SUCCESS] VenQore Test Runner is running.
+echo  [SUCCESS] Dashboard opened in your browser at http://localhost:7821.
 echo.
 echo  Keep this window open while testing.
 echo  Close it to stop the server.

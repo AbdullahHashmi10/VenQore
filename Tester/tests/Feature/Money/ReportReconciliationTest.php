@@ -1,6 +1,6 @@
 <?php
 
-namespace Tester\tests\Feature\Money;
+namespace Tests\Feature\Money;
 
 use App\Models\Product;
 use App\Models\Warehouse;
@@ -189,17 +189,19 @@ class ReportReconciliationTest extends VenQoreTestCase
             $keptQty = $item->quantity - ($item->returned_quantity ?? 0);
             $dbRevenue += $net * ($keptQty / $item->quantity);
 
+            // @oracle: COGS is derived from CONSUMED INVENTORY BATCHES only.
+            // Phase D / FC-3: the previous `if ($fifoCogs == 0) $fifoCogs = cost_price *
+            // quantity` fallback replicated the POS-003 fabrication bug in the oracle
+            // itself — so a fabricating app reconciled green against a fabricating test.
+            // That fallback is DELETED. A sale with zero consumed-batch COGS is a real
+            // defect this reconciliation must surface, not hide. (Independent oracle:
+            // does not import or re-implement any report/service COGS logic.)
             $fifoCogs = DB::table('sale_item_batches')
                 ->where('sale_item_id', $item->id)
                 ->where('is_reversed', 0)
                 ->sum('total_cogs');
-            
-            if ($fifoCogs == 0) {
-                $fifoCogs = $item->cost_price * $item->quantity;
-                $dbCogs += $fifoCogs * ($keptQty / $item->quantity);
-            } else {
-                $dbCogs += $fifoCogs;
-            }
+
+            $dbCogs += (float) $fifoCogs;
         }
 
         // Subtract global discount from P&L revenue to align with the ledger and reports

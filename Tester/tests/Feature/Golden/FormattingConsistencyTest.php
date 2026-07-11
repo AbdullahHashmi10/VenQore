@@ -3,12 +3,12 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use App\Models\Tenant;
 use App\Services\FinancialReportingService;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -42,17 +42,14 @@ use App\Services\FinancialReportingService;
  * @group phase6
  * @group phase6-formatting
  */
-class FormattingConsistencyTest extends VenQoreTestCase
+class FormattingConsistencyTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     private const TENANT_ID  = '999991';
     private const YEAR_START = '2025-01-01';
     private const YEAR_END   = '2025-12-31';
     private const TOLERANCE  = 0.02;
     private const LINE_TOL   = 0.50; // Allow up to 50p rounding drift across many lines
 
-    private static bool $seeded = false;
 
     private Tenant $tenant;
     private FinancialReportingService $reporting;
@@ -60,7 +57,6 @@ class FormattingConsistencyTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ensureSeeded();
         Carbon::setTestNow(self::YEAR_END . ' 02:00:00');
         $this->tenant    = Tenant::findOrFail(self::TENANT_ID);
         $this->bindTenantContext($this->tenant);
@@ -85,14 +81,6 @@ class FormattingConsistencyTest extends VenQoreTestCase
         parent::tearDown();
     }
 
-    private function ensureSeeded(): void
-    {
-        if (!DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            DB::commit();
-            Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-            DB::beginTransaction();
-        }
-    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // [FMT-01] P&L RESPONSE VALUES ARE NUMERIC

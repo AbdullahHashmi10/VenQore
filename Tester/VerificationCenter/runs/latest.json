@@ -1,0 +1,14 @@
+{
+    "run_id": "20260711_005341_10472",
+    "green": false,
+    "finished_at": "2026-07-11T00:53:41+00:00",
+    "counts": {
+        "passed": 929,
+        "failed": 4,
+        "errored": 0,
+        "skipped": 3,
+        "incomplete": 55,
+        "risky": 1
+    },
+    "total": 992
+}

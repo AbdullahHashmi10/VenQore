@@ -1,0 +1,133 @@
+{
+    "generated_at": "2026-07-10T23:30:22+00:00",
+    "milestone": "B",
+    "registry": {
+        "suites": 38,
+        "phpunit_test_methods": 1044,
+        "verification_sources": 5,
+        "tier_files": {
+            "T1": 49,
+            "T2": 73,
+            "T3": 30
+        },
+        "tier_test_methods": {
+            "T1": 364,
+            "T2": 524,
+            "T3": 156
+        }
+    },
+    "latest_run": {
+        "run_id": "20260710_225442_13776",
+        "green": false,
+        "finished_at": "2026-07-10T22:54:42+00:00",
+        "counts": {
+            "passed": 709,
+            "failed": 6,
+            "errored": 3,
+            "skipped": 0,
+            "incomplete": 53,
+            "risky": 0
+        },
+        "total": 771
+    },
+    "verify_all": {
+        "ran_at": "2026-07-10T22:47:51+00:00",
+        "main_exit": 1,
+        "green": false,
+        "quarantine": "reported-separately",
+        "registry": {
+            "suites": 38,
+            "phpunit_test_methods": 1044,
+            "sources": 5
+        },
+        "results": {
+            "phpunit": {
+                "exit": 1,
+                "tail": "FATAL: Test bootstrap detected DB_DATABASE=venqore_pos (the PRODUCTION database).\nTests use migrate:fresh and would destroy production data. Aborting.",
+                "ledger": {
+                    "run_id": "fallback_20260710_224617",
+                    "green": false,
+                    "finished_at": "2026-07-10T22:46:17+00:00",
+                    "counts": {
+                        "passed": 0,
+                        "failed": 1,
+                        "errored": 0,
+                        "skipped": 0,
+                        "risky": 0
+                    },
+                    "total": 1
+                }
+            },
+            "sources": {
+                "ledger-truth-sweep": {
+                    "exit": 2,
+                    "error": "GoldenAuditSeeder: Only allowed on test database."
+                },
+                "data-integrity": {
+                    "exit": 2,
+                    "error": "SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: venqore_pos, SQL: select * from `tenants` where `tenants`.`id` = 999998 and `tenants`.`deleted_at` is null limit 1)"
+                },
+                "verify-engines": {
+                    "exit": 0,
+                    "oracle_tier": "T2"
+                },
+                "verify-sentinel": {
+                    "exit": 2,
+                    "error": "SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: venqore_pos, SQL: select * from `tenants` where `tenants`.`id` = 999991 and `tenants`.`deleted_at` is null limit 1)"
+                },
+                "golden-verify": {
+                    "exit": 2,
+                    "error": "SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it (Connection: mysql, Host: 127.0.0.1, Port: 3306, Database: venqore_pos, SQL: select exists(select * from `tenants` where `id` = 999991) as `exists`)"
+                }
+            }
+        }
+    },
+    "trust": {
+        "measured_score": 2.57,
+        "weight_measured": 0.35,
+        "projected_after_B": 6,
+        "dimensions": {
+            "green_and_provable": {
+                "health": 0,
+                "evidence": "latest run total=771"
+            },
+            "complete_and_visible": {
+                "health": 0.5,
+                "evidence": "RegistryDriftTest + SuiteIntegrityTest guard completeness"
+            },
+            "truth_anchored": {
+                "health": null,
+                "evidence": "pending Phase C/D oracle independence sign-off"
+            },
+            "production_path_parity": {
+                "health": null,
+                "evidence": "pending Phase D suites"
+            },
+            "bite_proven": {
+                "health": null,
+                "evidence": "pending Phase F mutation baseline"
+            },
+            "bypass_resistant": {
+                "health": null,
+                "evidence": "pending Phase E AST rules + permission ratchet"
+            },
+            "corruption_alerting": {
+                "health": null,
+                "evidence": "pending Phase F scheduled verify:ledger alert test"
+            },
+            "self_explaining": {
+                "health": null,
+                "evidence": "pending Phase H report pairs"
+            },
+            "honestly_red": {
+                "health": null,
+                "evidence": "pending Phase D quarantine + Phase J gate self-test"
+            },
+            "decaying_by_design": {
+                "health": 1,
+                "evidence": "score recomputed each run from latest.json"
+            }
+        },
+        "note": "Score is measured over landed dimensions only; pending dimensions are excluded, not assumed green."
+    }
+}

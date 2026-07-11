@@ -1,0 +1,36 @@
+# Permission Debt Ratchet (blueprint Phase E.2, closes F-18 / FC-6).
+#
+# The 257 grandfathered permission-less write routes are DEBT. This ratchet drives the
+# count down over releases and NEVER lets it rise. The guard test reads max_unprotected
+# and fails if the live count exceeds it. Lower this number as routes get protected;
+# the guard enforces the new ceiling. The dashboard charts the burndown.
+#
+# baseline_checksum locks the frozen route set: the guard FAILS if the baseline file is
+# absent or altered without updating this checksum (no silent reseed — F-18).
+
+schema_version: 1
+
+baseline_file: "Tester/tests/Feature/Guardrails/baselines/unprotected_write_routes.json"
+baseline_checksum_sha256: "86859e461101a97160cc8d0b83df27dbd32908fce0d16332ef0fc28ce63bf403"
+
+# The ratchet ceiling. Starts at the audited debt (257) and must only ever DECREASE.
+max_unprotected: 257
+
+# Tranche targets — the burndown plan. Each release protects a batch; lower max_unprotected
+# to the next tranche and the guard enforces it.
+tranche_targets:
+  - release: "E"      # this release: freeze + checksum-lock, no regressions
+    ceiling: 257
+  - release: "E+1"
+    ceiling: 200
+  - release: "E+2"
+    ceiling: 120
+  - release: "E+3"
+    ceiling: 40
+  - release: "GA"
+    ceiling: 0        # every write route protected or individually signed-off
+
+# Classification pass (blueprint E.2): each of the 257 must be tagged
+# needs-permission | intentionally-public(sign-off). Tags live alongside the baseline
+# as review notes; unclassified routes count against the ceiling.
+classification_status: "pending"   # flip to 'complete' when all 257 are tagged

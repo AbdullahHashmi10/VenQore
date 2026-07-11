@@ -412,6 +412,67 @@ function calculateTax(float $amount, float $taxRate): float {
     return round($amount * $taxRate / 100, 2);
 }
 
+/**
+ * Phase C — DERIVE sale totals from raw item inputs (qty, unit_price,
+ * discount_percent, tax_rate) and FIFO batch costs, then CROSS-CHECK against the
+ * values the spec declares. Generation FAILS if derived != declared: the spec is
+ * now double-entry-checked against itself, closing audit F-C1 ("calculator
+ * transcribes instead of deriving").
+ *
+ * Returns the DERIVED totals (used to build the journal), never the transcribed
+ * spec values.
+ *
+ * @throws RuntimeException on any derived-vs-declared mismatch.
+ */
+function deriveSaleTotals(array $txn): array {
+    $netSales = 0.0;
+    $totalTax = 0.0;
+    foreach ($txn['items'] as $item) {
+        $gross    = (float) $item['qty'] * (float) $item['unit_price'];
+        $discount = round($gross * ((float) ($item['discount_percent'] ?? 0)) / 100, 2);
+        $lineNet  = round($gross - $discount, 2);
+        $lineTax  = calculateTax($lineNet, (float) ($item['tax_rate'] ?? 0));
+        $netSales = round($netSales + $lineNet, 2);
+        $totalTax = round($totalTax + $lineTax, 2);
+    }
+    $invoiceTotal = round($netSales + $totalTax, 2);
+
+    // COGS derived from the FIFO batches the sale consumed (qty_taken × unit_cost),
+    // NOT from any declared cogs field and NOT from a cost_price × qty fallback
+    // (that fallback is the POS-003 fabrication bug; see audit FC-3).
+    $cogs = 0.0;
+    foreach (($txn['fifo_batches_consumed'] ?? []) as $b) {
+        $cogs = round($cogs + (float) $b['qty_taken'] * (float) $b['unit_cost'], 2);
+    }
+
+    // ── Cross-check against declared spec values (the self-check) ──
+    $checks = [
+        'net_sales'     => [$netSales,     (float) ($txn['net_sales']     ?? NAN)],
+        'total_tax'     => [$totalTax,     (float) ($txn['total_tax']     ?? NAN)],
+        'invoice_total' => [$invoiceTotal, (float) ($txn['invoice_total'] ?? NAN)],
+        'cogs'          => [$cogs,         (float) ($txn['cogs']          ?? NAN)],
+    ];
+    foreach ($checks as $field => [$derived, $declared]) {
+        if (is_nan($declared)) {
+            continue; // field not declared in spec — nothing to cross-check
+        }
+        if (abs($derived - $declared) > 0.005) {
+            throw new RuntimeException(sprintf(
+                "SPEC SELF-CHECK FAILED for %s.%s: derived=%.2f but spec declares=%.2f (diff=%.2f). "
+                . "Fix the spec or the derivation — the manifest must not ship transcribed numbers.",
+                $txn['id'] ?? '(unknown txn)', $field, $derived, $declared, abs($derived - $declared)
+            ));
+        }
+    }
+
+    return [
+        'net_sales'     => $netSales,
+        'total_tax'     => $totalTax,
+        'invoice_total' => $invoiceTotal,
+        'cogs'          => $cogs,
+    ];
+}
+
 // ── Main Calculation ──────────────────────────────────────────────────────────
 
 function runCalculations(array $spec, bool $verbose = false): array {
@@ -481,10 +542,12 @@ function runCalculations(array $spec, bool $verbose = false): array {
             case 'sale':
                 // Compute journal lines independently
                 $items       = $txn['items'];
-                $netSales    = $txn['net_sales'];
-                $totalTax    = $txn['total_tax'];
-                $invTotal    = $txn['invoice_total'];
-                $cogs        = $txn['cogs'];
+                // Phase C: DERIVE (and self-check) instead of transcribe (F-C1).
+                $derived     = deriveSaleTotals($txn);
+                $netSales    = $derived['net_sales'];
+                $totalTax    = $derived['total_tax'];
+                $invTotal    = $derived['invoice_total'];
+                $cogs        = $derived['cogs'];
                 $payMethod   = $txn['payment_method'];
                 $amtReceived = $txn['amount_received'] ?? $invTotal;
 
@@ -523,7 +586,7 @@ function runCalculations(array $spec, bool $verbose = false): array {
                     foreach ($txn['fifo_batches_consumed'] as $batch) {
                         $fifo->deduct('', $batch['qty_taken'], [$batch['batch_id']]);
                     }
-                    $saleJournalRefs[$id] = ['lines' => $lines, 'customer_id' => $txn['customer_id'], 'invTotal' => $invTotal, 'cogs' => $cogs];
+                    $saleJournalRefs[$id] = ['lines' => $lines, 'customer_id' => $txn['customer_id'], 'invTotal' => $invTotal, 'cogs' => $cogs, 'fifo_consumed' => $txn['fifo_batches_consumed'] ?? []];
                 }
 
                 $manifest['transactions'][$id] = [
@@ -551,9 +614,11 @@ function runCalculations(array $spec, bool $verbose = false): array {
                     $ledger->post($date, $id, $revLines, $tenantId);
                     // Reverse AR
                     $arLedger->credit($origRef['customer_id'], $origRef['invTotal'], $id, $date);
-                    // Restore FIFO (for TXN-SAL-002: restore 3 phones to BATCH-PHN-001)
-                    // In the spec, SAL-002 consumed 3 from BATCH-PHN-001
-                    $fifo->restore('BATCH-PHN-001', 3);
+                    // Phase C: derive the reversal from what the original sale ACTUALLY
+                    // consumed (spec fifo_batches_consumed), not a hardcoded batch/qty.
+                    foreach (($origRef['fifo_consumed'] ?? []) as $b) {
+                        $fifo->restore($b['batch_id'], (float) $b['qty_taken']);
+                    }
                 }
                 $manifest['transactions'][$id] = [
                     'type'          => $type,

@@ -3,12 +3,12 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
 use App\Models\Tenant;
 use App\Services\FinancialReportingService;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -43,14 +43,11 @@ use App\Services\FinancialReportingService;
  * @group phase11
  * @group phase11-launch-gate
  */
-class LaunchGateTest extends VenQoreTestCase
+class LaunchGateTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     private const TENANT_ID = '999991';
     private const TOLERANCE = 0.02;
 
-    private static bool $seeded = false;
 
     private Tenant $tenant;
     private FinancialReportingService $reporting;
@@ -58,7 +55,6 @@ class LaunchGateTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ensureSeeded();
         Carbon::setTestNow('2025-12-31 23:59:59');
         $this->tenant    = Tenant::findOrFail(self::TENANT_ID);
         $this->bindTenantContext($this->tenant);
@@ -71,14 +67,6 @@ class LaunchGateTest extends VenQoreTestCase
         parent::tearDown();
     }
 
-    private function ensureSeeded(): void
-    {
-        if (!DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            DB::commit();
-            Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-            DB::beginTransaction();
-        }
-    }
 
     // ═════════════════════════════════════════════════════════════════════════
     // LAUNCH GATE 1: PHP TEST FILES EXIST
@@ -193,53 +181,62 @@ class LaunchGateTest extends VenQoreTestCase
      */
     public function test_G03_number_registry_has_zero_critical_issues(): void
     {
-        $path = base_path('verification/number_registry.yaml');
+        // Phase J (FC-1): rebuilt on YAML PARSING, not string grep. The old gate greped
+        // for `severity: CRITICAL` while the registry uses `risk: CRITICAL` — so it saw
+        // ZERO of the two open critical financial bugs. This version parses BOTH the number
+        // registry AND the quarantine registry and treats an entry as a launch-blocking
+        // critical if EITHER `risk` OR `severity` is CRITICAL and it is not resolved AND
+        // (for quarantine) not covered by a still-valid waiver.
+        $unresolvedCriticals = [];
 
-        $this->assertFileExists($path,
-            "[G-03] LAUNCH BLOCK: verification/number_registry.yaml not found. " .
-            "Phase 0 must create the number registry before launch."
-        );
-
-        $content = file_get_contents($path);
-
-        // Count open CRITICAL issues (not marked resolved)
-        // Look for severity: CRITICAL without a following 'status: resolved'
-        $lines = explode("\n", $content);
-        $openCritical = 0;
-        $inCriticalBlock = false;
-        $blockResolved   = false;
-
-        foreach ($lines as $i => $line) {
-            if (str_contains($line, 'severity: CRITICAL') || str_contains($line, "severity: 'CRITICAL'")) {
-                $inCriticalBlock = true;
-                $blockResolved   = false;
-            }
-            if ($inCriticalBlock && (str_contains($line, 'status: resolved') || str_contains($line, "status: 'resolved'"))) {
-                $blockResolved = true;
-            }
-            // End of block (new top-level entry or end of section)
-            if ($inCriticalBlock && str_starts_with($line, '  - id:') && !str_contains($line, 'CRITICAL')) {
-                if (!$blockResolved) {
-                    $openCritical++;
+        // (1) number_registry.yaml — CRITICAL in risk OR severity, not resolved/verified.
+        $numPath = base_path('verification/number_registry.yaml');
+        if (is_file($numPath)) {
+            $data = \Symfony\Component\Yaml\Yaml::parseFile($numPath);
+            foreach (($data['metrics'] ?? []) as $m) {
+                $isCritical = $this->isCritical($m['risk'] ?? null) || $this->isCritical($m['severity'] ?? null);
+                $resolved   = ($m['verified'] ?? false) === true
+                    || in_array(strtolower((string) ($m['status'] ?? '')), ['resolved', 'fixed'], true);
+                if ($isCritical && ! $resolved) {
+                    $unresolvedCriticals[] = 'number_registry:' . ($m['id'] ?? '?');
                 }
-                $inCriticalBlock = false;
-                $blockResolved   = false;
             }
         }
 
-        // Simpler fallback count
-        $criticalCount = substr_count($content, 'severity: CRITICAL');
-        $resolvedCount = substr_count($content, 'status: resolved');
+        // (2) quarantine.yaml — CRITICAL waivers are TRACKED and BLOCKING unless the waiver
+        // is still valid (A-12 reconciliation). An EXPIRED critical waiver blocks launch.
+        $qPath = base_path('Tester/VerificationCenter/registry/quarantine.yaml');
+        if (is_file($qPath)) {
+            $q = \Symfony\Component\Yaml\Yaml::parseFile($qPath);
+            foreach (($q['waivers'] ?? []) as $w) {
+                if (! $this->isCritical($w['risk'] ?? null) && ! $this->isCritical($w['severity'] ?? null)) {
+                    continue;
+                }
+                $expires = $w['expires'] ?? null;
+                $expired = $expires !== null && strtotime((string) $expires) < time();
+                $resolved = in_array(strtolower((string) ($w['status'] ?? '')), ['resolved', 'fixed'], true);
+                // A valid (unexpired) waiver keeps the CRITICAL tracked-but-not-blocking.
+                // An expired waiver (or a resolved-but-still-listed defect gone stale) blocks.
+                if (! $resolved && $expired) {
+                    $unresolvedCriticals[] = 'quarantine:' . ($w['id'] ?? '?') . ' (waiver EXPIRED ' . $expires . ')';
+                }
+            }
+        }
 
-        // If we can't parse precisely, use conservative estimate
-        $estimatedOpen = max(0, $criticalCount - $resolvedCount);
-
-        $this->assertEquals(0, $estimatedOpen,
-            "[G-03] LAUNCH BLOCK: {$estimatedOpen} CRITICAL issue(s) appear unresolved in number_registry.yaml. " .
-            "Known critical issues (POS-003: COGS fabrication, WOO-001: WooCommerce bypass) must be " .
-            "fixed and verified before production launch. " .
-            "File: verification/number_registry.yaml"
+        $this->assertSame(
+            [],
+            $unresolvedCriticals,
+            "[G-03] LAUNCH BLOCK: unresolved CRITICAL issue(s) with no valid waiver:\n  - "
+                . implode("\n  - ", $unresolvedCriticals)
+                . "\n\nKnown critical bugs (POS-003 COGS fabrication, WOO-001 WooCommerce bypass) are "
+                . "waiver-gated in quarantine.yaml; an EXPIRED waiver blocks launch until the bug is fixed."
         );
+    }
+
+    /** True if a value is CRITICAL (string, any case, quoted or not). */
+    private function isCritical($v): bool
+    {
+        return is_string($v) && strtoupper(trim($v, " '\"")) === 'CRITICAL';
     }
 
     // ═════════════════════════════════════════════════════════════════════════

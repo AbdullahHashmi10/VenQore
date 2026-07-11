@@ -1,0 +1,36 @@
+# Quarantine registry — the "honestly red" lane (blueprint §19.9).
+#
+# Each waiver protects a REAL, KNOWN production defect that has a pinning test asserting
+# correct behavior (and therefore failing today). The waiver keeps the pinning test
+# visible-but-non-blocking UNTIL its expiry. On expiry, the pinning test fails for real
+# and the launch gate blocks. Fixing the underlying bug is APPLICATION work, tracked
+# outside this platform; the platform's job is to pin it red and count down the clock.
+#
+# Fields: id, title, risk (CRITICAL|HIGH|...), approver, expires (YYYY-MM-DD),
+#         pinning_test, defect_location, note.
+
+waivers:
+  - id: "POS-003"
+    title: "Legacy POS fabricates COGS via cost_price × qty when FIFO does not run"
+    risk: "CRITICAL"
+    approver: "chief-verification-engineer"
+    expires: "2026-10-11"          # 90-day countdown from 2026-07-11
+    pinning_test: "Tests\\Feature\\Production\\LegacyPosCogsPinningTest::test_pos003_cogs_is_from_fifo_not_fabricated"
+    defect_location: "app/Http/Controllers/SaleController.php:351-352 (catch + else fabricate cost_price × qty)"
+    note: >
+      When stock is disabled or FIFO checkAvailability() returns false, COGS is fabricated
+      as product.cost_price × qty instead of from consumed inventory batches. Corrupts gross
+      profit on every affected sale. The report SQL at SaleController.php:521 has the same
+      fallback. Production fix is the app team's ticket.
+
+  - id: "WOO-001"
+    title: "WooCommerce webhook writes stock but posts NO journal entry"
+    risk: "CRITICAL"
+    approver: "chief-verification-engineer"
+    expires: "2026-10-11"
+    pinning_test: "Tests\\Feature\\Production\\WooWebhookJournalPinningTest::test_woo001_webhook_sale_posts_balanced_journal"
+    defect_location: "app/Http/Controllers/WooSync/WooWebhookController.php (no AccountingService / journal write)"
+    note: >
+      A WooCommerce order received via the webhook deducts stock but never creates a
+      double-entry journal, so revenue/COGS/tax for online sales never reach the ledger.
+      Every financial report understates online activity. Production fix is the app team's ticket.

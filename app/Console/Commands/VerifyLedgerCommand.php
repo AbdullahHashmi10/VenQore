@@ -276,16 +276,13 @@ class VerifyLedgerCommand extends Command
         $orphanCount = DB::table('sales as s')
             ->where('s.tenant_id', $tenantId)
             ->where('s.status', 'posted')
-            ->where(function ($q) {
-                $q->where('s.is_reversed', false)->orWhereNull('s.is_reversed');
-            })
             ->whereNotExists(function ($q) use ($tenantId) {
                 $q->select(DB::raw(1))
                   ->from('journal_entries as je')
                   ->where('je.tenant_id', $tenantId)
                   ->where('je.is_reversed', false)
                   ->where(function ($inner) {
-                      $inner->whereColumn('je.reference', 's.reference')
+                      $inner->whereColumn('je.reference', 's.reference_number')
                             ->orWhereColumn('je.reference', 's.id');
                   });
             })

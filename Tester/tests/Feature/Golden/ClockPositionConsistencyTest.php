@@ -3,7 +3,6 @@
 namespace Tests\Feature\Golden;
 
 use Tests\Feature\VenQoreTestCase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
 use Carbon\Carbon;
@@ -11,6 +10,7 @@ use App\Models\Tenant;
 use App\Services\FinancialReportingService;
 use Tests\Feature\Golden\Verification\VerificationClaim;
 use Tests\Feature\Golden\Verification\ClaimLogger;
+use Tests\Support\RequiresGoldenCompany;
 
 /**
  * ============================================================
@@ -44,14 +44,11 @@ use Tests\Feature\Golden\Verification\ClaimLogger;
  * @group phase6
  * @group phase6-clocks
  */
-class ClockPositionConsistencyTest extends VenQoreTestCase
+class ClockPositionConsistencyTest extends VenQoreTestCase implements RequiresGoldenCompany
 {
-    use DatabaseTransactions;
-
     private const TENANT_ID = '999991';
     private const TOLERANCE = 0.02;
 
-    private static bool $seeded = false;
 
     private Tenant $tenant;
     private FinancialReportingService $reporting;
@@ -67,7 +64,6 @@ class ClockPositionConsistencyTest extends VenQoreTestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->ensureSeeded();
         $this->tenant    = Tenant::findOrFail(self::TENANT_ID);
         $this->reporting = app(FinancialReportingService::class);
     }
@@ -78,14 +74,6 @@ class ClockPositionConsistencyTest extends VenQoreTestCase
         parent::tearDown();
     }
 
-    private function ensureSeeded(): void
-    {
-        if (!DB::table('tenants')->where('id', self::TENANT_ID)->exists()) {
-            DB::commit();
-            Artisan::call('db:seed', ['--class' => 'GoldenCompanySeeder', '--force' => true]);
-            DB::beginTransaction();
-        }
-    }
 
     private function freezeAt(string $date): void
     {

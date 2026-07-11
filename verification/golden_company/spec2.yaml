@@ -1,0 +1,204 @@
+# ============================================================
+# VenQore Golden Company 2 — Edge-Case Transaction Specification
+# Phase C of the Verification Blueprint (F-C2)
+# ============================================================
+#
+# DOCTRINE: same as Golden Company 1 — truth-first, hand-derived BEFORE seeding.
+# This second dataset exists to kill single-dataset overfit. It is consumed by
+# the SAME calculator.php engine (deriveSaleTotals + Ledger + FifoEngine) via a
+# parameterized dataset id — NO new code path in tests.
+#
+# NEW DIMENSIONS EXERCISED (vs Golden Company 1):
+#   - Non-UTC deep timezone offset: America/Los_Angeles (UTC-8, DST-crossing year)
+#   - Multi-warehouse stock (WH-WEST, WH-EAST) with per-warehouse FIFO
+#   - Batch EXPIRY dates (one batch expires mid-year)
+#   - FRACTIONAL quantities (weighed goods: 2.5 kg, 0.75 kg)
+#   - A NEGATIVE-STOCK event (oversell then replenish)
+#   - FISCAL-PERIOD boundary sale (Dec 31 23:59 local vs UTC next-day)
+#
+# Every declared net_sales/total_tax/invoice_total/cogs below was hand-computed;
+# deriveSaleTotals() cross-checks each and FAILS generation on any mismatch.
+# The hand-computation worksheet is committed as spec2_worksheet.md (ORACLE
+# independence requirement, blueprint risk row).
+# ============================================================
+
+spec_version: "2.0"
+spec_date: "2025-12-31"
+frozen_clock: "2025-12-31 23:59:59"
+timezone: "America/Los_Angeles"
+checksum: "PENDING"
+
+tenants:
+  - id: "TENANT-G2"
+    name: "Westcoast Provisions LLC"
+    slug: "westcoast-g2"
+
+warehouses:
+  - id: "WH-WEST"
+    name: "West DC"
+  - id: "WH-EAST"
+    name: "East DC"
+
+products:
+  - id: "PROD-COFFEE"
+    name: "Single-Origin Coffee (per kg)"
+    unit: "kg"
+    fractional: true
+  - id: "PROD-MUG"
+    name: "Ceramic Mug"
+    unit: "each"
+    fractional: false
+
+# ── FIFO batches (note expiry + per-warehouse) ────────────────────────────────
+purchases:
+  # Coffee batch A: 100 kg @ $12.00/kg into WH-WEST, expires 2025-06-30
+  - id: "TXN-PUR-G2-01"
+    type: "purchase"
+    tenant_id: "TENANT-G2"
+    date: "2025-01-05"
+    vendor_id: "VEND-BEAN"
+    warehouse_id: "WH-WEST"
+    payment_method: "cash"
+    items:
+      - product_id: "PROD-COFFEE"
+        qty: 100
+        unit_cost: 12.00
+        batch_id: "BATCH-COF-WEST-A"
+        expiry: "2025-06-30"
+    subtotal: 1200.00
+    tax_amount: 0.00
+    total: 1200.00
+  # Coffee batch B: 50 kg @ $15.00/kg into WH-WEST, expires 2025-12-31 (newer, costlier)
+  - id: "TXN-PUR-G2-02"
+    type: "purchase"
+    tenant_id: "TENANT-G2"
+    date: "2025-07-01"
+    vendor_id: "VEND-BEAN"
+    warehouse_id: "WH-WEST"
+    payment_method: "cash"
+    items:
+      - product_id: "PROD-COFFEE"
+        qty: 50
+        unit_cost: 15.00
+        batch_id: "BATCH-COF-WEST-B"
+        expiry: "2025-12-31"
+    subtotal: 750.00
+    tax_amount: 0.00
+    total: 750.00
+  # Mug batch: 40 mugs @ $3.00 into WH-EAST
+  - id: "TXN-PUR-G2-03"
+    type: "purchase"
+    tenant_id: "TENANT-G2"
+    date: "2025-02-10"
+    vendor_id: "VEND-CLAY"
+    warehouse_id: "WH-EAST"
+    payment_method: "cash"
+    items:
+      - product_id: "PROD-MUG"
+        qty: 40
+        unit_cost: 3.00
+        batch_id: "BATCH-MUG-EAST-A"
+        expiry: null
+    subtotal: 120.00
+    tax_amount: 0.00
+    total: 120.00
+
+# ── Sales (hand-derived totals) ───────────────────────────────────────────────
+transactions:
+  # SALE G2-001 — fractional qty, single batch, 8.25% sales tax
+  # 2.5 kg coffee @ $20.00/kg = 50.00 gross. 0% discount. Tax 8.25% => 4.13 (round half-up).
+  # net=50.00, tax=4.13, invoice=54.13. COGS: 2.5 kg from BATCH-COF-WEST-A @12.00 = 30.00.
+  - id: "TXN-SAL-G2-001"
+    type: "sale"
+    tenant_id: "TENANT-G2"
+    date: "2025-03-15"
+    customer_id: "CUST-CAFE"
+    warehouse_id: "WH-WEST"
+    payment_method: "cash"
+    amount_received: 54.13
+    items:
+      - product_id: "PROD-COFFEE"
+        qty: 2.5
+        unit_price: 20.00
+        discount_percent: 0
+        tax_rate: 8.25
+    net_sales: 50.00
+    total_tax: 4.13
+    invoice_total: 54.13
+    cogs: 30.00
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-COF-WEST-A"
+        qty_taken: 2.5
+        unit_cost: 12.00
+        total_cost: 30.00
+
+  # SALE G2-002 — FIFO spanning two batches + fractional + discount
+  # 60 kg coffee @ $22.00/kg = 1320.00 gross. 10% discount = 132.00 => net 1188.00.
+  # Tax 8.25% of 1188.00 = 98.01. invoice = 1286.01.
+  # COGS: FIFO — 97.5 kg remain in A after G2-001 (100-2.5). Take 60 from A @12 = 720.00.
+  - id: "TXN-SAL-G2-002"
+    type: "sale"
+    tenant_id: "TENANT-G2"
+    date: "2025-08-20"
+    customer_id: "CUST-ROASTER"
+    warehouse_id: "WH-WEST"
+    payment_method: "credit"
+    amount_received: 0.00
+    items:
+      - product_id: "PROD-COFFEE"
+        qty: 60
+        unit_price: 22.00
+        discount_percent: 10
+        tax_rate: 8.25
+    net_sales: 1188.00
+    total_tax: 98.01
+    invoice_total: 1286.01
+    cogs: 720.00
+    payment_status: "unpaid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-COF-WEST-A"
+        qty_taken: 60
+        unit_cost: 12.00
+        total_cost: 720.00
+
+  # SALE G2-003 — fiscal-boundary sale, Dec 31 23:30 local (LA) = Jan 1 07:30 UTC
+  # 5 mugs @ $9.00 = 45.00 gross. 0% discount. Tax 8.25% = 3.71. invoice = 48.71.
+  # COGS: 5 mugs from BATCH-MUG-EAST-A @3.00 = 15.00.
+  - id: "TXN-SAL-G2-003"
+    type: "sale"
+    tenant_id: "TENANT-G2"
+    date: "2025-12-31"
+    time_local: "23:30:00"
+    customer_id: "CUST-GIFT"
+    warehouse_id: "WH-EAST"
+    payment_method: "cash"
+    amount_received: 48.71
+    items:
+      - product_id: "PROD-MUG"
+        qty: 5
+        unit_price: 9.00
+        discount_percent: 0
+        tax_rate: 8.25
+    net_sales: 45.00
+    total_tax: 3.71
+    invoice_total: 48.71
+    cogs: 15.00
+    payment_status: "paid"
+    fifo_batches_consumed:
+      - batch_id: "BATCH-MUG-EAST-A"
+        qty_taken: 5
+        unit_cost: 3.00
+        total_cost: 15.00
+
+# ── Known edge events (asserted by adversarial/edge suites, not sales math) ────
+edge_events:
+  negative_stock:
+    description: "Oversell 45 mugs when only 35 remain (40 - 5 sold); stock goes to -10, then replenish."
+    product_id: "PROD-MUG"
+    warehouse_id: "WH-EAST"
+    oversell_to: -10
+  batch_expiry:
+    description: "BATCH-COF-WEST-A expires 2025-06-30; sales after that date must not draw from it in strict-expiry mode."
+    batch_id: "BATCH-COF-WEST-A"
+    expiry: "2025-06-30"

@@ -1,6 +1,6 @@
 <?php
 
-namespace Tester\Tests\Feature\Guardrails;
+namespace Tests\Feature\Guardrails;
 
 use App\Support\Guardrails\MassAssignmentAnalyzer;
 use Illuminate\Support\Str;
