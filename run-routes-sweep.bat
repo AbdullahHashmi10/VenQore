@@ -34,8 +34,6 @@ echo  Using PHP: %PHP_BIN%
 echo.
 
 :: ── Parse optional flags passed to this .bat ────────────────────────────────
-::   /skip-seed   → pass --skip-seed to artisan (reuses existing golden tenant)
-::   /only=x,y   → pass --only=x,y (scan only named routes)
 set "EXTRA_FLAGS="
 for %%A in (%*) do (
     if /I "%%A"=="/skip-seed"      set "EXTRA_FLAGS=!EXTRA_FLAGS! --skip-seed"
@@ -50,8 +48,8 @@ echo.
 echo  NOTE: This sweep seeds a Golden Audit tenant on amd_pos_test.
 echo        The GoldenAuditSeeder refuses to run on the production database.
 echo.
-echo  ▶  Pass /skip-seed to reuse the existing tenant (faster re-runs).
-echo  ▶  Pass /financial-only to show only pages that carry financial props.
+echo  - Pass /skip-seed to reuse the existing tenant (faster re-runs).
+echo  - Pass /financial-only to show only pages that carry financial props.
 echo.
 echo ------------------------------------------------------------
 echo.
@@ -59,14 +57,8 @@ echo.
 :: ── Force the testing environment ────────────────────────────────────────────
 set "APP_ENV=testing"
 
-:: ── Run the full 154-route sweep ─────────────────────────────────────────────
-::   WHY ~154 and not 8?
-::   The audit:ledger-truth command discovers all store.* GET routes, then
-::   skips only the routes listed in SKIP_NAMES (exports, prints, API endpoints
-::   etc.) and SKIP_URI_FRAGMENTS (/api/, /print, /export ...).
-::   Do NOT pass --financial here – that flag filters the *output* but the
-::   underlying scan still touches every eligible route.
-"%PHP_BIN%" artisan audit:ledger-truth --strict --env=testing%EXTRA_FLAGS%
+:: ── Run the sweep with unlimited memory to avoid out-of-memory crashes ───────
+"%PHP_BIN%" -d memory_limit=-1 artisan audit:ledger-truth --strict --env=testing %EXTRA_FLAGS%
 set "SWEEP_EXIT=%ERRORLEVEL%"
 
 echo.
@@ -83,7 +75,7 @@ if "%SWEEP_EXIT%"=="0" (
     echo            or the sweep could not complete. Exit code %SWEEP_EXIT%.
     echo.
     echo   Scroll up to find the mismatch rows above.
-    echo   A full report is also written to storage/ (path shown above).
+    echo   A full report is also written to storage/discrepancy_report.md
 )
 
 echo.
