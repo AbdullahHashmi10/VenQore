@@ -267,6 +267,9 @@ function runTests(projectPath, ws) {
     failed: 0,
     todos: 0,
     incomplete: 0,
+    skipped: 0,
+    risky: 0,
+    summaryAuthoritative: false,
     modules: {},
     bugs: [],
     rawLines: []
@@ -531,8 +534,11 @@ function parseLine(line, results, ws) {
     }
   }
 
-  const testTodo = line.match(/^\s+↓\s+(.*?)(?:\s+\d+(?:\.\d+)?s)?\s*$/);
-  if (testTodo) {
+  // Pest markers: ↓ = skipped/todo, ! or - = incomplete, i = risky/warn.
+  // These only refine the live (pre-summary) counts; the Tests: summary line
+  // below is the authoritative override once the run finishes.
+  const testTodo = line.match(/^\s+[↓\-!i]\s+(.*?)(?:\s+\d+(?:\.\d+)?s)?\s*$/);
+  if (testTodo && !results.summaryAuthoritative) {
     const testName = testTodo[1].trim();
     results.todos++;
     if (results.modules[testName]) {
@@ -554,9 +560,41 @@ function parseLine(line, results, ws) {
     }
   }
 
-  // Summary line
+  // ── Summary line = AUTHORITATIVE source of truth ──────────────────────────
+  // Pest prints e.g.:  Tests:  4 failed, 1 risky, 55 incomplete, 3 skipped, 929 passed (5195 assertions)
+  // The per-line ✓/✗ tally above cannot see risky/incomplete/skipped states, so it
+  // undercounts total and inflates passed. When the real summary appears, we parse
+  // each labelled bucket and OVERRIDE the card counters so the dashboard matches Pest exactly.
   const summaryMatch = line.match(/Tests:\s+(.*)/);
   if (summaryMatch) {
+    const summaryText = summaryMatch[1];
+    const grab = (label) => {
+      const m = summaryText.match(new RegExp('(\\d+)\\s+' + label));
+      return m ? parseInt(m[1], 10) : 0;
+    };
+    results.passed     = grab('passed');
+    results.failed     = grab('failed');
+    results.risky      = grab('risky');
+    results.incomplete = grab('incomplete');
+    results.skipped    = grab('skipped');
+    results.todos      = results.incomplete + results.skipped; // legacy field kept in sync
+    // Real executed total = sum of every reported bucket (NOT a running ✓/✗ line count).
+    results.total = results.passed + results.failed + results.risky
+                  + results.incomplete + results.skipped;
+    results.summaryAuthoritative = true;
+    ws.send(JSON.stringify({
+      type: 'summary',
+      text: line.trim(),
+      counts: {
+        total: results.total,
+        passed: results.passed,
+        failed: results.failed,
+        risky: results.risky,
+        incomplete: results.incomplete,
+        skipped: results.skipped
+      }
+    }));
+    // keep the old event name too, for any older dashboard build still listening
     ws.send(JSON.stringify({ type: 'summary_line', text: line.trim() }));
   }
 
@@ -598,7 +636,7 @@ function runBuild(projectPath, ws, customVersion) {
   
   // 1. Run npm run build
   ws.send(JSON.stringify({ type: 'build_log', text: 'Step 1: Compiling assets (npm run build)...' }));
-  const npmBuild = spawn('npm', ['run', 'build'], { cwd: projectPath, shell: true });
+   const npmBuild = spawn('npm', ['run', 'build'], { cwd: projectPath, shell: true });
   
   npmBuild.stdout.on('data', (data) => {
     ws.send(JSON.stringify({ type: 'build_log', text: data.toString().trim() }));

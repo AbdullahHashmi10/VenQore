@@ -161,7 +161,7 @@
     <section class="lg:col-span-4 space-y-4">
 
       <!-- KPI STATS -->
-      <article class="grid grid-cols-4 gap-2">
+      <article class="grid grid-cols-6 gap-2">
         <div class="minimal-card p-2 rounded text-center">
           <span class="text-[8px] font-mono font-bold text-zinc-500">TOTAL</span>
           <h4 class="text-sm font-bold text-zinc-100 mt-1 font-mono" id="stat-total">0</h4>
@@ -175,7 +175,15 @@
           <h4 class="text-sm font-bold text-rose-400 mt-1 font-mono" id="stat-fail">0</h4>
         </div>
         <div class="minimal-card p-2 rounded text-center">
-          <span class="text-[8px] font-mono font-bold text-zinc-500">PEND</span>
+          <span class="text-[8px] font-mono font-bold text-zinc-500">RISKY</span>
+          <h4 class="text-sm font-bold text-orange-400 mt-1 font-mono" id="stat-risky">0</h4>
+        </div>
+        <div class="minimal-card p-2 rounded text-center">
+          <span class="text-[8px] font-mono font-bold text-zinc-500">SKIP</span>
+          <h4 class="text-sm font-bold text-sky-400 mt-1 font-mono" id="stat-skip">0</h4>
+        </div>
+        <div class="minimal-card p-2 rounded text-center">
+          <span class="text-[8px] font-mono font-bold text-zinc-500">INCMP</span>
           <h4 class="text-sm font-bold text-amber-400 mt-1 font-mono" id="stat-todo">0</h4>
         </div>
       </article>
@@ -598,6 +606,12 @@ function handleMessage(msg) {
       addLog(msg.text, 'info');
       break;
     }
+    case 'summary': {
+      // Authoritative counts parsed from Pest's own "Tests:" line.
+      // Override every KPI card so the dashboard matches the real result exactly.
+      applyAuthoritativeSummary(msg.counts);
+      break;
+    }
     case 'stderr': {
       if (msg.text.trim()) addLog(msg.text.trim(), 'fail');
       break;
@@ -652,6 +666,9 @@ function onRunStart() {
   modulesDone = 0;
   completedModules.clear();
   passCount = 0; failCount = 0; todoCount = 0;
+  summaryLocked = false; // new run: allow live tallying until the real summary lands
+  ['stat-total','stat-pass','stat-fail','stat-risky','stat-skip','stat-todo']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '0'; });
 
   document.getElementById('run-btn').textContent = 'SCANNING...';
   document.getElementById('run-btn').disabled = true;
@@ -816,15 +833,36 @@ function renderBuildHistory(hist) {
 
 // ─── UI Helpers ───────────────────────────────────────────────────────────────
 let passCount = 0, failCount = 0, todoCount = 0;
+let summaryLocked = false; // once Pest's real "Tests:" summary lands, stop live overrides
 
 function incStat(type) {
+  if (summaryLocked) return; // authoritative numbers are in — don't clobber them
   if (type === 'pass') passCount++;
   if (type === 'fail') failCount++;
   if (type === 'todo') todoCount++;
   document.getElementById('stat-pass').textContent = passCount;
   document.getElementById('stat-fail').textContent = failCount;
   document.getElementById('stat-todo').textContent = todoCount;
-  document.getElementById('stat-total').textContent = passCount + failCount;
+  // live (pre-summary) total is a best-effort tally; the summary corrects it at the end
+  document.getElementById('stat-total').textContent = passCount + failCount + todoCount;
+}
+
+// Called when the runner forwards the parsed "Tests:" summary. This is the single
+// source of truth: it overrides the live tally so the cards match Pest exactly,
+// including risky / skipped / incomplete which the live ✓/✗ stream cannot see.
+function applyAuthoritativeSummary(c) {
+  if (!c) return;
+  summaryLocked = true;
+  passCount = c.passed || 0;
+  failCount = c.failed || 0;
+  todoCount = c.incomplete || 0;
+  const setC = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || 0; };
+  setC('stat-pass',  c.passed);
+  setC('stat-fail',  c.failed);
+  setC('stat-risky', c.risky);
+  setC('stat-skip',  c.skipped);
+  setC('stat-todo',  c.incomplete);
+  setC('stat-total', c.total);
 }
 
 function updateStats(passed, failed, todos) {

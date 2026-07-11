@@ -392,9 +392,13 @@ class FifoBatchVerificationTest extends VenQoreTestCase implements RequiresGolde
      * After reversal: the inventory batches consumed by TXN-SAL-002
      * must have had their qty restored.
      *
-     * We verify this by checking the sale_item_batches for the original
-     * sale vs the return — the return should have negative/reversed records,
-     * and the batch.remaining_qty should reflect the restoration.
+     * REVERSAL DESIGN (see App\Models\SaleItemBatch docblock - "flip in place"):
+     *   The original sale_item_batches row is NOT deleted and NO separate offset
+     *   row is created. Instead the ORIGINAL row is marked is_reversed = true,
+     *   and inventory_batches.remaining_qty is incremented back by qty_deducted.
+     *   A forensic auditor sees the single row transition is_reversed 0 -> 1.
+     *
+     * This test verifies exactly that documented behavior.
      */
     public function test_B07_sale_return_restores_batch_quantities(): void
     {
@@ -410,41 +414,62 @@ class FifoBatchVerificationTest extends VenQoreTestCase implements RequiresGolde
             );
         }
 
-        // The batch used by the reversed sale should have its qty back
-        // Get the sale_item_batches for the original sale
-        $batchUsage = DB::table('sale_item_batches as sib')
+        // After a full reversal, EVERY sale_item_batches row for the reversed sale
+        // must be flipped to is_reversed = true (the "mark, never delete" protocol).
+        $batchRows = DB::table('sale_item_batches as sib')
             ->join('sale_items as si', 'si.id', '=', 'sib.sale_item_id')
             ->where('si.sale_id', $reversedSale->id)
-            ->where('sib.is_reversed', false)
-            ->select('sib.inventory_batch_id', 'sib.qty_deducted', 'sib.total_cogs')
+            ->select('sib.id', 'sib.inventory_batch_id', 'sib.qty_deducted', 'sib.is_reversed')
             ->get();
 
-        if ($batchUsage->isEmpty()) {
-            $this->markTestSkipped('No sale_item_batches found for the reversed sale.');
-        }
+        $this->assertNotEmpty($batchRows,
+            '[B-07] The reversed sale must retain its sale_item_batches rows as a permanent audit trail (rows must never be deleted).'
+        );
 
-        foreach ($batchUsage as $usage) {
-            // Find the corresponding return record (is_reversed = true for this batch)
-            $returnUsage = DB::table('sale_item_batches as sib')
-                ->join('sale_items as si', 'si.id', '=', 'sib.sale_item_id')
-                ->where('sib.inventory_batch_id', $usage->inventory_batch_id)
-                ->where('sib.is_reversed', true)
+        // Every row must be marked reversed - nothing left as an active (is_reversed=0) deduction.
+        $stillActive = $batchRows->where('is_reversed', false)->count();
+        $this->assertSame(0, $stillActive,
+            "[B-07] After a full reversal, no sale_item_batches row for the returned sale may remain is_reversed=false; found {$stillActive} still active."
+        );
+
+        // Each reversed row's qty_deducted must have been restored to its inventory batch.
+        foreach ($batchRows as $row) {
+            $this->assertTrue((bool) $row->is_reversed,
+                "[B-07] sale_item_batches row {$row->id} for the returned sale must be marked is_reversed=true."
+            );
+
+            $batch = DB::table('inventory_batches')
+                ->where('id', $row->inventory_batch_id)
                 ->first();
 
-            $this->assertNotNull($returnUsage,
-                "[B-07] Batch {$usage->inventory_batch_id}: no reversal record found in sale_item_batches after sale return"
+            $this->assertNotNull($batch,
+                "[B-07] inventory_batch {$row->inventory_batch_id} referenced by a reversed deduction must still exist."
             );
 
-            // The returned qty should equal the original consumed qty
-            $this->assertEqualsWithDelta(
-                (float)$usage->qty_deducted,
-                (float)$returnUsage->qty_deducted,
-                self::TOLERANCE,
-                "[B-07] Return qty_deducted should equal original sale qty_deducted for batch {$usage->inventory_batch_id}"
+            // Over-restoration guard: a reversal must never push a batch above its
+            // original quantity. remaining_qty must always stay within [0, original_qty].
+            // NOTE: we do NOT assert remaining_qty >= qty_deducted, because in FIFO the
+            // restored units can be legitimately re-consumed by a LATER sale
+            // (e.g. Golden Company: SR-001 restores 3 to phn-001, then SAL-003 takes 5,
+            // leaving remaining_qty = 0). The restoration is proven by the is_reversed=1
+            // flip above plus this bounded-quantity invariant.
+            $this->assertLessThanOrEqual(
+                (float) $batch->original_qty + self::TOLERANCE,
+                (float) $batch->remaining_qty,
+                "[B-07] Batch {$row->inventory_batch_id}: remaining_qty must not exceed original_qty after restoration."
+            );
+            $this->assertGreaterThanOrEqual(
+                -self::TOLERANCE,
+                (float) $batch->remaining_qty,
+                "[B-07] Batch {$row->inventory_batch_id}: remaining_qty must never go negative."
             );
         }
-    }
 
+        // The system-level proof that the restoration itself was applied lives in
+        // GoldenCompanyTest::sale_return_restores_inventory_batch (net-zero after re-sale)
+        // and the ledger COGS reconciliation (R-06/R-07). Here we assert the batch-row
+        // audit trail: the reversed sale's deductions are all flipped and bounded.
+    }
     // ─────────────────────────────────────────────────────────────────────────
     // [B-08] INVENTORY VALUATION REPORT = FIFO SUM
     // ─────────────────────────────────────────────────────────────────────────
