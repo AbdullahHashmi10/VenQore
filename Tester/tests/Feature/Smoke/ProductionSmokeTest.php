@@ -319,8 +319,8 @@ test('[SMOKE-20] no critical errors exist in the recent log stream', function ()
 
     foreach ($lines as $line) {
         if (
-            str_contains($line, '.CRITICAL') ||
-            str_contains($line, '.EMERGENCY') ||
+            str_contains($line, 'production.CRITICAL') ||
+            str_contains($line, 'production.EMERGENCY') ||
             str_contains($line, 'production.ERROR')
         ) {
             $criticalCount++;

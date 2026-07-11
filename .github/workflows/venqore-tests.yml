@@ -14,6 +14,17 @@ jobs:
   test:
     name: PHP ${{ matrix.php }} — Feature Tests
     runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ''
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: amd_pos_test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s --health-timeout=5s --health-retries=10
 
     strategy:
       fail-fast: false
@@ -31,7 +42,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           extensions: >-
-            mbstring, pdo, pdo_sqlite, sqlite3, bcmath, ctype,
+            mbstring, pdo, pdo_mysql, bcmath, ctype,
             fileinfo, json, openssl, tokenizer, xml, zip
           coverage: none   # no Xdebug overhead — coverage runs separately
 
@@ -51,17 +62,23 @@ jobs:
       - name: Copy .env.testing
         run: |
           cp .env.example .env.testing
-          # Override for SQLite in-memory (same as local test runner)
-          echo "APP_ENV=testing"              >> .env.testing
-          echo "DB_CONNECTION=sqlite"         >> .env.testing
-          echo "DB_DATABASE=:memory:"         >> .env.testing
-          echo "CACHE_DRIVER=array"           >> .env.testing
-          echo "QUEUE_CONNECTION=sync"        >> .env.testing
-          echo "SESSION_DRIVER=array"         >> .env.testing
-          echo "MAIL_MAILER=array"            >> .env.testing
+          echo "APP_ENV=testing"                >> .env.testing
+          echo "DB_CONNECTION=mysql"            >> .env.testing
+          echo "DB_HOST=127.0.0.1"              >> .env.testing
+          echo "DB_PORT=3306"                   >> .env.testing
+          echo "DB_DATABASE=amd_pos_test"       >> .env.testing
+          echo "DB_USERNAME=root"               >> .env.testing
+          echo "DB_PASSWORD="                   >> .env.testing
+          echo "CACHE_DRIVER=array"             >> .env.testing
+          echo "QUEUE_CONNECTION=sync"          >> .env.testing
+          echo "SESSION_DRIVER=array"           >> .env.testing
+          echo "MAIL_MAILER=array"              >> .env.testing
 
       - name: Generate application key
         run: php artisan key:generate --env=testing
+
+      - name: Migrate test DB
+        run: php artisan migrate --env=testing --force
 
       # ── Run Tests ───────────────────────────────────────────────────────
       - name: Run VenQore feature tests (all 20 modules)

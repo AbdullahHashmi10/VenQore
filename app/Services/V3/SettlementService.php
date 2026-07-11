@@ -7,12 +7,16 @@ use Illuminate\Support\Str;
 
 class SettlementService
 {
-    private $tenantId;
+    public function __get($name) {
+        if ($name === 'tenantId') {
+            return app('current.tenant')->id;
+        }
+        return null;
+    }
 
     public function __construct(
         private AccountingService $accounting
     ) {
-        $this->tenantId = app('current.tenant')->id;
     }
 
     /**

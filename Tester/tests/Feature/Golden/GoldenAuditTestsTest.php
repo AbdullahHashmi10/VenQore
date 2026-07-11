@@ -3,6 +3,7 @@
 namespace Tests\Feature\Golden;
 
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 /**
  * @group golden
@@ -22,6 +23,8 @@ use Tests\TestCase;
  */
 class GoldenAuditTestsTest extends TestCase
 {
+    use RefreshDatabase;
+
     /**
      * @test
      * Test that the Ledger Truth Audit passes cleanly in strict mode
@@ -49,6 +52,10 @@ class GoldenAuditTestsTest extends TestCase
     public function test_data_integrity_audit(): void
     {
         putenv('APP_ENV=testing');
+
+        // Run the seeder first to ensure clean state
+        $this->artisan('db:seed', ['--class' => 'GoldenAuditSeeder'])
+            ->assertExitCode(0);
 
         // Run the data integrity audit
         $this->artisan('audit:data-integrity')

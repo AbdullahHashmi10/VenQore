@@ -8,7 +8,13 @@ use Illuminate\Support\Str;
 
 class SaleService
 {
-    private $tenantId;
+    public function __get($name)
+    {
+        if ($name === 'tenantId') {
+            return $this->getTenantId();
+        }
+        return null;
+    }
 
     public function __construct(
         private AccountingService $accounting,
@@ -17,7 +23,6 @@ class SaleService
         private TaxService        $tax,
         private UomService        $uom
     ) {
-        $this->tenantId = app('current.tenant')->id;
     }
 
     /**
@@ -448,7 +453,7 @@ class SaleService
             }
 
             // Restore stock for every sale_item
-            $saleItems = DB::table('sale_items')->where('tenant_id', $this->tenantId)->where('sale_id', $saleId)->get();
+            $saleItems = DB::table('sale_items')->where('tenant_id', $this->getTenantId())->where('sale_id', $saleId)->get();
             foreach ($saleItems as $saleItem) {
                 $this->fifo->restoreStock($saleItem->id);
                 DB::table('sale_items')

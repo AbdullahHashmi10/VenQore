@@ -7,10 +7,14 @@ use Carbon\Carbon;
 
 class TaxService
 {
-    private $tenantId;
+    public function __get($name) {
+        if ($name === 'tenantId') {
+            return app('current.tenant')->id;
+        }
+        return null;
+    }
 
     public function __construct() {
-        $this->tenantId = app('current.tenant')->id;
     }
     /**
      * OWNS: All tax calculation logic.

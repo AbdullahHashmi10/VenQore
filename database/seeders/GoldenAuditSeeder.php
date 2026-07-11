@@ -946,15 +946,14 @@ class GoldenAuditSeeder extends Seeder
 
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         
-        // These tables don't have tenant_id column - delete all rows
         if (DB::getSchemaBuilder()->hasTable('sale_item_batches')) {
-            DB::table('sale_item_batches')->delete();
+            DB::table('sale_item_batches')->whereIn('tenant_id', $tenantIds)->delete();
         }
         if (DB::getSchemaBuilder()->hasTable('payment_allocations')) {
-            DB::table('payment_allocations')->delete();
+            DB::table('payment_allocations')->whereIn('tenant_id', $tenantIds)->delete();
         }
         if (DB::getSchemaBuilder()->hasTable('sales_order_items')) {
-            DB::table('sales_order_items')->delete();
+            DB::table('sales_order_items')->whereIn('tenant_id', $tenantIds)->delete();
         }
         if (DB::getSchemaBuilder()->hasTable('categories')) {
             DB::table('categories')->whereIn('tenant_id', $tenantIds)->delete();

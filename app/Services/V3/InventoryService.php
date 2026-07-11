@@ -13,13 +13,17 @@ class InventoryService
      * remaining_qty directly.
      */
 
-    private $tenantId;
+    public function __get($name) {
+        if ($name === 'tenantId') {
+            return app('current.tenant')->id;
+        }
+        return null;
+    }
 
     public function __construct(
         public FifoService       $fifo,
         private AccountingService $accounting
     ) {
-        $this->tenantId = app('current.tenant')->id;
     }
 
     /**

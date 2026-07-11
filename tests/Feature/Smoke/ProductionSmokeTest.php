@@ -318,9 +318,14 @@ test('[SMOKE-20] no critical errors exist in the recent log stream', function ()
     $lines = explode("\n", $buffer);
 
     foreach ($lines as $line) {
+        // Only flag genuine production-channel critical entries.
+        // testing.CRITICAL is intentionally emitted by AdversarialCorruptionTest
+        // (e.g., verify:ledger detecting injected corruption) — those are proof the
+        // guard works, not deployment failures. Scoping to "production." prevents
+        // transient false positives when the test suite itself runs verify:ledger.
         if (
-            str_contains($line, '.CRITICAL') ||
-            str_contains($line, '.EMERGENCY') ||
+            str_contains($line, 'production.CRITICAL') ||
+            str_contains($line, 'production.EMERGENCY') ||
             str_contains($line, 'production.ERROR')
         ) {
             $criticalCount++;
