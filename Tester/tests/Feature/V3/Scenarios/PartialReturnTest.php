@@ -183,7 +183,7 @@ class PartialReturnTest extends TestCase
             'product_id'  => $this->productId,
             'quantity'    => $qty,
             'unit_price'  => $price,
-            'discount'    => $discount,
+            'discount_amount'  => $discount,
             'net_amount'  => $netTotal,
             'returned_quantity' => 0,
             'created_at'  => now(),
