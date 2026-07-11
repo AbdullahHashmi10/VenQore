@@ -11,7 +11,10 @@ class BankAccount extends Model
 {
     use HasUuids, HasTenant;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'tenant_id', 'name', 'account_number', 'type', 'account_type',
+        'bank_name', 'opening_balance', 'current_balance', 'notes',
+    ];
 
     public function expenses()
     {

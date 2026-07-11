@@ -147,20 +147,20 @@ class SuperAdminController extends Controller
                 'active_coupons'   => \App\Models\Coupon::where('is_active', true)->count(),
                 'inactive_coupons' => \App\Models\Coupon::where('is_active', false)->count(),
 
-                'total_overrides'  => \App\Models\TenantPlanOverride::count(),
-                'active_overrides' => \App\Models\TenantPlanOverride::where(function($q) {
+                'total_overrides'  => \App\Models\TenantPlanOverride::withoutTenantScope()->count(),
+                'active_overrides' => \App\Models\TenantPlanOverride::withoutTenantScope()->where(function($q) {
                     $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
                 })->count(),
-                'expired_overrides' => \App\Models\TenantPlanOverride::where('expires_at', '<=', now())->count(),
+                'expired_overrides' => \App\Models\TenantPlanOverride::withoutTenantScope()->where('expires_at', '<=', now())->count(),
                 'pk_verifications' => [
-                    'pending' => \App\Models\PkVerification::where('status', 'pending')->count(),
-                    'approved' => \App\Models\PkVerification::where('status', 'approved')->count(),
-                    'rejected' => \App\Models\PkVerification::where('status', 'rejected')->count(),
+                    'pending' => \App\Models\PkVerification::withoutTenantScope()->where('status', 'pending')->count(),
+                    'approved' => \App\Models\PkVerification::withoutTenantScope()->where('status', 'approved')->count(),
+                    'rejected' => \App\Models\PkVerification::withoutTenantScope()->where('status', 'rejected')->count(),
                 ],
             ],
         ];
 
-        $pkVerificationsList = \App\Models\PkVerification::with(['tenant', 'user'])
+        $pkVerificationsList = \App\Models\PkVerification::withoutTenantScope()->with(['tenant', 'user'])
             ->latest()
             ->get()
             ->map(fn($v) => [

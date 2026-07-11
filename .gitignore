@@ -38,6 +38,15 @@ release_hosting_VenQore_*.zip
 AMD_POS_Update_*/
 AMD_POS_Update_v*.zip
 *.exe
+
+# L001: prevent future full-codebase duplicate snapshots from being committed.
+# The canonical working copy is the repository root. Point-in-time copies like
+# these confuse "which file is real" and pollute test discovery — keep them out
+# of version control. (The existing tracked VenQore_Local/ and
+# _VERIFICATION_BASELINE_*/ dirs should be removed in a dedicated cleanup commit.)
+/VenQore_Local/
+/_VERIFICATION_BASELINE_*/
+/AMD_POS_Update_v*/
 php_files_in_zip.txt
 zip_contents.txt
 

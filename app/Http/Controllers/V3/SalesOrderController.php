@@ -56,15 +56,26 @@ class SalesOrderController extends Controller
                 $line = round($item['qty'] * $item['unit_price'], 2);
                 $disc = round($line * ($item['discount_percent'] ?? 0) / 100, 2);
 
+                // L017 FIX: write BOTH column conventions so every reader is correct.
+                //   - qty / sale_uom / discount_percent / tax_rate / line_total  -> V3 fields
+                //   - quantity_requested / quantity_reserved / subtotal          -> the columns
+                //     that the base schema, ReportController, InventoryController and the
+                //     reservation logic actually read from.
+                // Previously only the V3 fields were written, so quantity_requested (NOT NULL
+                // in the base table) was left unset -- failing the insert on strict MySQL or
+                // silently storing 0 and making the order quantity invisible to every report.
                 SalesOrderItem::create([
-                    'sales_order_id'  => $order->id,
-                    'product_id'      => $item['product_id'],
-                    'qty'             => $item['qty'],
-                    'sale_uom'        => $item['sale_uom'],
-                    'unit_price'      => $item['unit_price'], // LOCKED here
-                    'discount_percent'=> $item['discount_percent'] ?? 0,
-                    'tax_rate'        => $item['tax_rate'] ?? 0,
-                    'line_total'      => $line - $disc,
+                    'sales_order_id'    => $order->id,
+                    'product_id'        => $item['product_id'],
+                    'qty'               => $item['qty'],
+                    'quantity_requested'=> $item['qty'],       // mirror into the canonical column
+                    'quantity_reserved' => 0,                  // nothing held yet at creation
+                    'sale_uom'          => $item['sale_uom'],
+                    'unit_price'        => $item['unit_price'], // LOCKED here
+                    'discount_percent'  => $item['discount_percent'] ?? 0,
+                    'tax_rate'          => $item['tax_rate'] ?? 0,
+                    'line_total'        => $line - $disc,
+                    'subtotal'          => $line - $disc,      // mirror into the canonical column
                 ]);
             }
         });

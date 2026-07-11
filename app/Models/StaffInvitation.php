@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
@@ -13,6 +14,8 @@ use Illuminate\Support\Str;
  */
 class StaffInvitation extends Model
 {
+    use HasTenant;
+
     protected $table = 'staff_invitations';
 
     protected $fillable = [

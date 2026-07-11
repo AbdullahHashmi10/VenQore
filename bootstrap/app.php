@@ -103,6 +103,32 @@ return Application::configure(basePath: dirname(__DIR__))
             }
         });
 
+        // ── L020 / L040: Error monitoring / APM (Sentry) ─────────────────────
+        // The sentry/sentry-laravel package (added to composer.json) auto-registers
+        // its own exception reporter, so we do NOT capture exceptions manually here
+        // (that would double-report). Instead we enrich Sentry's scope with tenant
+        // and user context so captured events are diagnosable without reproduction.
+        // Entirely inert until SENTRY_LARAVEL_DSN is set and the package installed.
+        // The same Sentry project is the intended sink for the reconciliation/
+        // backup/cron failure alerts wired in routes/console.php (L007/L019/L021).
+        $exceptions->report(function (\Throwable $e) {
+            if (!config('sentry.dsn') || !app()->bound('sentry')) {
+                return; // APM not configured/installed — no-op.
+            }
+            try {
+                \Sentry\configureScope(function (\Sentry\State\Scope $scope): void {
+                    if (app()->bound('current.tenant')) {
+                        $scope->setTag('tenant_id', (string) app('current.tenant')->id);
+                    }
+                    if ($uid = auth()->id()) {
+                        $scope->setUser(['id' => (string) $uid]);
+                    }
+                });
+            } catch (\Throwable) {
+                // Monitoring must never crash the app.
+            }
+        });
+
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
             // Skip: validation errors, auth redirects, and custom HTTP responses
             // This ensures standard Laravel/Inertia forms display validation errors gracefully

@@ -20,10 +20,12 @@ class Terminal extends Model
         'status',
         'last_status_reason',
         'is_active',
+        'paired_at',
     ];
 
     protected $casts = [
         'last_heartbeat_at' => 'datetime',
         'is_active' => 'boolean',
+        'paired_at' => 'datetime',
     ];
 }

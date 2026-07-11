@@ -20,25 +20,36 @@ Route::middleware('guest')->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
-    Route::post('register', [RegisteredUserController::class, 'store']);
+    // Apply the named 'auth' rate limiter (10/min per IP, defined in
+    // AppServiceProvider) to the unauthenticated credential-submitting
+    // endpoints so they can't be brute-forced from a single source.
+    Route::post('register', [RegisteredUserController::class, 'store'])
+        ->middleware('throttle:auth');
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 
-    Route::post('login', [AuthenticatedSessionController::class, 'store']);
-    Route::post('login/passcode', [AuthenticatedSessionController::class, 'storePasscode'])->name('login.passcode');
-    Route::post('login/pin', [AuthenticatedSessionController::class, 'storePosPin'])->name('login.pin');
+    Route::post('login', [AuthenticatedSessionController::class, 'store'])
+        ->middleware('throttle:auth');
+    Route::post('login/passcode', [AuthenticatedSessionController::class, 'storePasscode'])
+        ->middleware('throttle:auth')
+        ->name('login.passcode');
+    Route::post('login/pin', [AuthenticatedSessionController::class, 'storePosPin'])
+        ->middleware('throttle:auth')
+        ->name('login.pin');
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
         ->name('password.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
+        ->middleware('throttle:auth')
         ->name('password.email');
 
     Route::get('reset-password/{token}', [NewPasswordController::class, 'create'])
         ->name('password.reset');
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
+        ->middleware('throttle:auth')
         ->name('password.store');
 });
 

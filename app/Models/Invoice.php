@@ -11,7 +11,12 @@ class Invoice extends Model
 {
     use HasUuids, HasTenant;
 
-    protected $guarded = [];
+    protected $fillable = [
+        'tenant_id', 'invoice_number', 'date', 'due_date', 'party_id', 'user_id',
+        'type', 'status', 'approval_status', 'subtotal', 'discount', 'discount_amount',
+        'tax', 'tax_amount', 'round_off', 'total_amount', 'paid_amount', 'notes',
+        'reference', 'is_jit', 'jit_sale_id', 'channel_order_id',
+    ];
 
     protected $casts = [
         'date' => 'date',

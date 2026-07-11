@@ -67,7 +67,28 @@ class SaleController extends Controller
             'extra_charge_label'    => 'nullable|string',
             'add_to_ledger'         => 'nullable|boolean',
             'payment_account_id'    => 'nullable',
+            'idempotency_key'       => 'nullable|string|max:100',
         ]);
+
+        // ── L038: Idempotency protection ────────────────────────────────────
+        // A network retry or double-click on the primary online sale endpoint
+        // must NOT double-post revenue and inventory. Callers may supply an
+        // idempotency key via the `Idempotency-Key` header or an
+        // `idempotency_key` field. If a sale with that key already exists for
+        // this tenant, return it instead of creating a duplicate.
+        $idempotencyKey = $request->header('Idempotency-Key') ?: $request->input('idempotency_key');
+        if ($idempotencyKey) {
+            $existingSale = Sale::where('idempotency_key', $idempotencyKey)->first();
+            if ($existingSale) {
+                return response()->json([
+                    'success'    => true,
+                    'idempotent' => true,
+                    'message'    => 'Sale already recorded for this request.',
+                    'sale_id'    => $existingSale->id,
+                    'reference'  => $existingSale->reference_number,
+                ], 200);
+            }
+        }
 
         try {
             DB::beginTransaction();
@@ -245,6 +266,7 @@ class SaleController extends Controller
                     'id'                   => $request->input('id', \Illuminate\Support\Str::uuid()->toString()),
                     'tenant_id'            => app('current.tenant')->id,
                     'reference_number'     => \App\Services\SequenceService::generateTransactionNumber('SAL'),
+                    'idempotency_key'      => $request->header('Idempotency-Key') ?: $request->input('idempotency_key'),
                     'source'               => $request->source === 'pos' ? 'pos' : 'manual',
                     'party_id'             => $request->customer_id ?: \App\Models\Party::firstOrCreate(['phone' => '0000000000', 'name' => 'Walk-in Customer'], ['type' => 'customer'])->id,
                     'user_id'              => Auth::id() ?? 1,
@@ -332,26 +354,47 @@ class SaleController extends Controller
                 }
 
                 // FIFO Deduction
+                //
+                // L006 FIX (COGS integrity): For any stock-tracked product we ALWAYS
+                // deduct through FifoService::deductStock(). That method is the single
+                // source of COGS truth — it returns real, batch-derived costs and, on a
+                // stockout, either (a) creates a proper negative_stock inventory_batches
+                // row with a genuine cost basis and writes the matching sale_item_batches
+                // audit rows, or (b) throws InsufficientStockException when the merchant
+                // has "stop negative stock" enabled. That exception is caught by the
+                // outer transaction handler in this method and returned as a clean 422
+                // (the whole sale rolls back), so NOTHING is half-posted.
+                //
+                // We deliberately DO NOT catch-and-fabricate here. Previously a FIFO
+                // failure or a stockout silently fell back to (cost_price * qty) with no
+                // sale_item_batches row — posting an invented COGS to the ledger and
+                // corrupting P&L / inventory valuation with no audit trail. That is the
+                // exact defect L006 removes. The only remaining path that uses the
+                // product's flat cost_price is when stock tracking is DISABLED for the
+                // product (service / non-inventory items that legitimately have no batches).
                 $itemCogs = 0;
-                if ($isStockEnabled && $this->fifo->checkAvailability($ld['product_id'], $sale->warehouse_id, $totalQty)) {
-                    try {
-                        $deductions = app(\App\Services\V3\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
-                        foreach ($deductions as $d) {
-                            $itemCogs += $d['total_cost'];
-                            DB::table('sale_item_batches')->insert([
-                                'id'                 => \Illuminate\Support\Str::uuid()->toString(),
-                                'tenant_id'          => $sale->tenant_id,
-                                'sale_item_id'       => $saleItem->id,
-                                'inventory_batch_id' => $d['batch_id'],
-                                'qty_deducted'       => $d['qty_taken'],
-                                'unit_cost'          => $d['unit_cost'],
-                                'total_cogs'         => $d['total_cost'],
-                                'created_at' => now(), 'updated_at' => now(),
-                            ]);
-                        }
-                        $saleItem->update(['cost_price' => $totalQty > 0 ? $itemCogs / $totalQty : 0]);
-                    } catch (\Exception $e) { $itemCogs = ($product->cost_price ?? 0) * $totalQty; }
+                if ($isStockEnabled) {
+                    // Let InsufficientStockException propagate — the outer catch turns it
+                    // into a clean 422 + full rollback. No fabrication, no partial post.
+                    $deductions = app(\App\Services\V3\FifoService::class)->deductStock($ld['product_id'], $sale->warehouse_id, $totalQty);
+                    foreach ($deductions as $d) {
+                        $itemCogs += $d['total_cost'];
+                        DB::table('sale_item_batches')->insert([
+                            'id'                 => \Illuminate\Support\Str::uuid()->toString(),
+                            'tenant_id'          => $sale->tenant_id,
+                            'sale_item_id'       => $saleItem->id,
+                            'inventory_batch_id' => $d['batch_id'],
+                            'qty_deducted'       => $d['qty_taken'],
+                            'unit_cost'          => $d['unit_cost'],
+                            'total_cogs'         => $d['total_cost'],
+                            'created_at' => now(), 'updated_at' => now(),
+                        ]);
+                    }
+                    $saleItem->update(['cost_price' => $totalQty > 0 ? $itemCogs / $totalQty : 0]);
                 } else {
+                    // Stock tracking disabled for this product: no inventory_batches exist,
+                    // so the product's configured cost_price is the correct (not fabricated)
+                    // cost basis. This is an explicit, intended path — not a silent fallback.
                     $itemCogs = ($product->cost_price ?? 0) * $totalQty;
                 }
                 $totalCogs += $itemCogs;
@@ -418,6 +461,25 @@ class SaleController extends Controller
         } catch (\App\Exceptions\InsufficientStockException $e) {
             DB::rollBack();
             return response()->json(['success' => false, 'message' => $e->getMessage()], 422);
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+            // L038: lost the race on the (tenant_id, idempotency_key) unique index —
+            // a concurrent identical request already created the sale. Return it
+            // instead of surfacing a duplicate-key error.
+            if ($idempotencyKey && str_contains($e->getMessage(), 'sales_tenant_idempotency_unique')) {
+                $existingSale = Sale::where('idempotency_key', $idempotencyKey)->first();
+                if ($existingSale) {
+                    return response()->json([
+                        'success'    => true,
+                        'idempotent' => true,
+                        'message'    => 'Sale already recorded for this request.',
+                        'sale_id'    => $existingSale->id,
+                        'reference'  => $existingSale->reference_number,
+                    ], 200);
+                }
+            }
+            Log::error('Sale Store Error (query): ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         } catch (\Exception $e) {
             DB::rollBack();
             if (str_contains($e->getMessage(), 'Insufficient stock')) {

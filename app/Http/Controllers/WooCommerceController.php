@@ -54,7 +54,10 @@ class WooCommerceController extends Controller
     public function webhook(Request $request, string $uuid)
     {
         // Find the active connection matching this UUID
-        $connection = \App\Models\WooConnection::where('uuid', $uuid)
+        // Unauthenticated webhook: no tenant context is bound, so bypass the
+        // HasTenant global scope and resolve the tenant from the connection itself.
+        $connection = \App\Models\WooConnection::withoutTenantScope()
+            ->where('uuid', $uuid)
             ->where('status', 'active')
             ->first();
 

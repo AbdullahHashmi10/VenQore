@@ -45,8 +45,9 @@ class HubController extends Controller
                 'is_last_used'    => $m->tenant_id === $user->last_store_id,
             ]);
 
-        // Also fetch pending invites for this user's email from StaffInvitation model
-        $pendingInvites = \App\Models\StaffInvitation::where('invitee_email', $user->email)
+        // Invites belong to the inviting tenant, not the current user's tenant —
+        // resolve them across tenants by the invitee's email.
+        $pendingInvites = \App\Models\StaffInvitation::withoutTenantScope()->where('invitee_email', $user->email)
             ->whereIn('status', ['pending', 'no_account'])
             ->where('expires_at', '>', now())
             ->with(['tenant:id,name,plan'])

@@ -51,15 +51,44 @@ namespace App\Support\Guardrails;
  *     ModelClass::firstOrCreate([...], [...])
  *     ModelClass::updateOrCreate([...], [...])
  * These are unambiguous (the receiver names the model) and cover the large
- * majority of write paths. Instance calls like `$model->update([...])` are out
- * of scope precisely because the receiver's model type is not knowable from a
- * static token scan without full type inference — flagging them would produce
- * noise. Those are covered instead by runtime value-assertion tests.
+ * majority of write paths.
+ *
+ * INSTANCE WRITES (L035)
+ * ----------------------
+ * The analyzer ALSO now catches the dominant instance-write pattern:
+ *     $x = Model::find(...);  $x->update([...]);
+ *     (new Model)->fill([...]);
+ * It does so by first building a file-local map of `$var => model class` from
+ * assignments where the right-hand side is a resolvable static model call (or
+ * `new Model`), then flagging `$var->update|fill|forceFill([...])` against that
+ * map. Full type inference is NOT attempted: if a receiver's model class cannot
+ * be resolved this way, the write is SKIPPED, never flagged — preserving the
+ * "no false positives" contract. Genuinely dynamic receivers remain covered by
+ * runtime value-assertion tests.
  */
 class MassAssignmentAnalyzer
 {
     /** Eloquent static methods whose FIRST array arg is mass-assigned. */
     private const CREATE_METHODS = ['create', 'forceCreate', 'make'];
+
+    /**
+     * Instance methods whose FIRST array arg is mass-assigned on a model object:
+     *     $model->update([...]) / ->fill([...]) / ->forceFill([...])
+     * These are only flagged when the receiver variable can be resolved to a
+     * known App\Models\* class from an assignment earlier in the same file
+     * (see resolveLocalModelVars). L035.
+     */
+    private const INSTANCE_WRITE_METHODS = ['update', 'fill', 'forceFill'];
+
+    /**
+     * Static finder methods that still return an instance of the SAME model, so
+     * `$x = Model::find(...)` lets us type `$x` as that model for instance-write
+     * detection.
+     */
+    private const RETURNS_SAME_MODEL = [
+        'find', 'findOrFail', 'first', 'firstOrFail', 'create', 'forceCreate',
+        'make', 'firstOrCreate', 'firstOrNew', 'updateOrCreate', 'findOrNew',
+    ];
 
     /**
      * Eloquent static methods whose SECOND array arg is mass-assigned (the
@@ -254,7 +283,149 @@ class MassAssignmentAnalyzer
             }
         }
 
+        // L035: instance-method writes ($var->update([...]) / ->fill([...])),
+        // resolvable when $var was typed by an earlier `$var = Model::...`.
+        foreach ($this->scanInstanceWrites($tokens, $path) as $call) {
+            $calls[] = $call;
+        }
+
         return $calls;
+    }
+
+    /**
+     * L035 — Detect `$var->update([...])` / `->fill([...])` / `->forceFill([...])`
+     * where $var can be resolved to a known model class from an assignment
+     * earlier in the same file. Conservative: an unresolvable receiver is
+     * skipped, never flagged.
+     *
+     * @return array<int, array{file:string, line:int, model:string, keys:string[]}>
+     */
+    private function scanInstanceWrites(array $tokens, string $path): array
+    {
+        $varModel = $this->resolveLocalModelVars($tokens);
+        if (empty($varModel)) {
+            return [];
+        }
+
+        $n = count($tokens);
+        $calls = [];
+
+        for ($i = 0; $i < $n; $i++) {
+            $t = $tokens[$i];
+
+            // Look for `$var`
+            if (!is_array($t) || $t[0] !== T_VARIABLE) {
+                continue;
+            }
+            $var = $t[1];
+            if (!isset($varModel[$var])) {
+                continue;
+            }
+
+            // Next meaningful must be `->`
+            $arrowIdx = $this->nextMeaningful($tokens, $i + 1);
+            if ($arrowIdx === null || !is_array($tokens[$arrowIdx]) || $tokens[$arrowIdx][0] !== T_OBJECT_OPERATOR) {
+                continue;
+            }
+
+            // Then a write method name
+            $methodIdx = $this->nextMeaningful($tokens, $arrowIdx + 1);
+            if ($methodIdx === null || !is_array($tokens[$methodIdx]) || $tokens[$methodIdx][0] !== T_STRING) {
+                continue;
+            }
+            $method = $tokens[$methodIdx][1];
+            if (!in_array($method, self::INSTANCE_WRITE_METHODS, true)) {
+                continue;
+            }
+
+            // Then `(`
+            $p = $this->nextMeaningful($tokens, $methodIdx + 1);
+            if ($p === null || $tokens[$p] !== '(') {
+                continue;
+            }
+
+            $keys = $this->extractKeysFromCallArgs($tokens, $p, 1);
+            if (!empty($keys)) {
+                $calls[] = [
+                    'file'  => $path,
+                    'line'  => $t[2],
+                    'model' => $varModel[$var],
+                    'keys'  => array_values(array_unique($keys)),
+                ];
+            }
+        }
+
+        return $calls;
+    }
+
+    /**
+     * Build a map of `$var` => App\Models\* class for local variables assigned
+     * directly from a resolvable static model call, i.e.:
+     *
+     *     $x = Model::find(...);      // or first/create/updateOrCreate/etc.
+     *     $x = new Model(...);
+     *
+     * Deliberately simple and file-local: if the same variable is later
+     * reassigned to something unresolvable, it is dropped from the map so we do
+     * not flag against a stale type.
+     *
+     * @return array<string,string>  variable name (incl. leading $) => FQCN
+     */
+    private function resolveLocalModelVars(array $tokens): array
+    {
+        $n = count($tokens);
+        $map = [];
+
+        for ($i = 0; $i < $n; $i++) {
+            $t = $tokens[$i];
+            if (!is_array($t) || $t[0] !== T_VARIABLE) {
+                continue;
+            }
+            $var = $t[1];
+
+            // Expect `=` (assignment, not ==, +=, etc.)
+            $eqIdx = $this->nextMeaningful($tokens, $i + 1);
+            if ($eqIdx === null || $tokens[$eqIdx] !== '=') {
+                continue;
+            }
+
+            $rhsIdx = $this->nextMeaningful($tokens, $eqIdx + 1);
+            if ($rhsIdx === null) {
+                continue;
+            }
+            $rhs = $tokens[$rhsIdx];
+
+            $resolved = null;
+
+            // Case A: `$x = new Model(...)`
+            if (is_array($rhs) && $rhs[0] === T_NEW) {
+                $classIdx = $this->nextMeaningful($tokens, $rhsIdx + 1);
+                if ($classIdx !== null && is_array($tokens[$classIdx])
+                    && in_array($tokens[$classIdx][0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                    $resolved = $this->resolveModelClass($tokens[$classIdx][1]);
+                }
+            }
+            // Case B: `$x = Model::method(...)` where method returns same model
+            elseif (is_array($rhs) && in_array($rhs[0], [T_STRING, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED], true)) {
+                $dcIdx = $this->nextMeaningful($tokens, $rhsIdx + 1);
+                if ($dcIdx !== null && is_array($tokens[$dcIdx]) && $tokens[$dcIdx][0] === T_DOUBLE_COLON) {
+                    $mIdx = $this->nextMeaningful($tokens, $dcIdx + 1);
+                    if ($mIdx !== null && is_array($tokens[$mIdx]) && $tokens[$mIdx][0] === T_STRING
+                        && in_array($tokens[$mIdx][1], self::RETURNS_SAME_MODEL, true)) {
+                        $resolved = $this->resolveModelClass($rhs[1]);
+                    }
+                }
+            }
+
+            if ($resolved !== null) {
+                $map[$var] = $resolved;
+            } else {
+                // Reassigned to something we can't type → forget prior typing.
+                unset($map[$var]);
+            }
+        }
+
+        return $map;
     }
 
     /**

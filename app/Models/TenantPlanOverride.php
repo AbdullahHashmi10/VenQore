@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TenantPlanOverride extends Model
 {
+    use HasTenant;
+
     protected $fillable = [
         'tenant_id', 'override_key', 'override_value',
         'original_value', 'reason', 'applied_by', 'expires_at',

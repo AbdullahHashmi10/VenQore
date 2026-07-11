@@ -89,7 +89,8 @@ class PlanRepository
         $ttl      = 300;
 
         $override = Cache::remember($cacheKey, $ttl, function () use ($tenantId, $key) {
-            $row = TenantPlanOverride::where('tenant_id', $tenantId)
+            $row = TenantPlanOverride::withoutTenantScope()
+                ->where('tenant_id', $tenantId)
                 ->where('override_key', $key)
                 ->where(function ($q) {
                     $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
@@ -129,7 +130,7 @@ class PlanRepository
      */
     public static function invalidateTenantCache(int $tenantId): void
     {
-        $keys = TenantPlanOverride::where('tenant_id', $tenantId)->pluck('override_key');
+        $keys = TenantPlanOverride::withoutTenantScope()->where('tenant_id', $tenantId)->pluck('override_key');
         foreach ($keys as $key) {
             Cache::forget("tenant_override:{$tenantId}:{$key}");
         }

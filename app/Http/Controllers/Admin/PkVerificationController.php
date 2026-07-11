@@ -27,8 +27,10 @@ class PkVerificationController extends Controller
         $cleanCnic = str_replace('-', '', $request->cnic);
         $cnicHash = hash('sha256', $cleanCnic);
 
-        // Enforce uniqueness: One account/tenant per ID card
-        $exists = PkVerification::where('cnic_hash', $cnicHash)
+        // Enforce uniqueness: One account/tenant per ID card.
+        // This check is deliberately cross-tenant, so it must bypass the tenant scope.
+        $exists = PkVerification::withoutTenantScope()
+            ->where('cnic_hash', $cnicHash)
             ->where('tenant_id', '!=', $request->tenant_id)
             ->exists();
 

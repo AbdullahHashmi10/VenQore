@@ -130,7 +130,7 @@ class TenantOverrideController extends Controller
             $tenant->id, $tenant->plan, $validated['override_key']
         );
 
-        TenantPlanOverride::updateOrCreate(
+        TenantPlanOverride::withoutTenantScope()->updateOrCreate(
             [
                 'tenant_id'    => $tenant->id,
                 'override_key' => $validated['override_key'],

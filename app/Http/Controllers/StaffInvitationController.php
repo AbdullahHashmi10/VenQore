@@ -316,7 +316,8 @@ class StaffInvitationController extends Controller
     public function acceptByToken(Request $request)
     {
         $token      = $request->query('token');
-        $invitation = StaffInvitation::where('token', $token)->first();
+        // Token lookup before the invitee joins the tenant — bypass tenant scope.
+        $invitation = StaffInvitation::withoutTenantScope()->where('token', $token)->first();
 
         if (!$invitation || !$invitation->isValid()) {
             return Inertia::render('Invite/Invalid', [
@@ -351,7 +352,8 @@ class StaffInvitationController extends Controller
     {
         $request->validate(['code' => 'required|string']);
 
-        $invitation = StaffInvitation::where('short_code', strtoupper(trim($request->code)))->first();
+        // Short-code lookup before the invitee joins the tenant — bypass tenant scope.
+        $invitation = StaffInvitation::withoutTenantScope()->where('short_code', strtoupper(trim($request->code)))->first();
 
         if (!$invitation || !$invitation->isValid()) {
             return response()->json(['valid' => false, 'message' => 'Invalid or expired invite code.'], 422);
@@ -391,7 +393,7 @@ class StaffInvitationController extends Controller
     {
         $request->validate(['token' => 'required|string']);
 
-        $invitation = StaffInvitation::where('token', $request->token)->first();
+        $invitation = StaffInvitation::withoutTenantScope()->where('token', $request->token)->first();
 
         if (!$invitation || !$invitation->isValid()) {
             return back()->with('error', 'This invitation link is invalid or has expired.');
@@ -439,7 +441,7 @@ class StaffInvitationController extends Controller
     public function declineByToken(Request $request)
     {
         $request->validate(['token' => 'required|string']);
-        $invitation = StaffInvitation::where('token', $request->token)->first();
+        $invitation = StaffInvitation::withoutTenantScope()->where('token', $request->token)->first();
 
         if ($invitation && $invitation->isValid()) {
             $this->verifyAcceptanceTenant($invitation, $request);

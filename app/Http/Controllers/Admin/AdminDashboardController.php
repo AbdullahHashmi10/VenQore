@@ -71,7 +71,8 @@ class AdminDashboardController extends Controller
             $basePrice = $planPrices[$t->plan] ?? 0;
             
             // Query actual active coupon redemptions for this tenant
-            $redemption = \App\Models\CouponRedemption::where('tenant_id', $t->id)->with('coupon')->first();
+            // (platform-admin loop over all tenants — bypass the tenant scope).
+            $redemption = \App\Models\CouponRedemption::withoutTenantScope()->where('tenant_id', $t->id)->with('coupon')->first();
             if ($redemption && $redemption->coupon) {
                 $coupon = $redemption->coupon;
                 if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
@@ -113,7 +114,7 @@ class AdminDashboardController extends Controller
                 'mrr'   => $group->where('status', 'active')->sum(function($t) use ($planPrices) {
                     // Recalculate with coupon redemptions for accurate breakdown
                     $basePrice = $planPrices[$t->plan] ?? 0;
-                    $redemption = \App\Models\CouponRedemption::where('tenant_id', $t->id)->with('coupon')->first();
+                    $redemption = \App\Models\CouponRedemption::withoutTenantScope()->where('tenant_id', $t->id)->with('coupon')->first();
                     if ($redemption && $redemption->coupon) {
                         $coupon = $redemption->coupon;
                         if ($coupon->discount_type === 'percentage' || $coupon->discount_type === 'percent') {
@@ -191,7 +192,7 @@ class AdminDashboardController extends Controller
             $monthMrr = 0;
             foreach ($historicalActiveStores as $t) {
                 $basePrice = $planPrices[$t->plan] ?? 0;
-                $redemption = \App\Models\CouponRedemption::where('tenant_id', $t->id)
+                $redemption = \App\Models\CouponRedemption::withoutTenantScope()->where('tenant_id', $t->id)
                     ->where('redeemed_at', '<=', $date->endOfMonth())
                     ->with('coupon')
                     ->first();

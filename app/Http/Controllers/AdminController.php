@@ -415,6 +415,12 @@ class AdminController extends Controller
 
         // Handle Logo Upload
         if ($request->hasFile('print_logo_file')) {
+            // Validate: images only, max 4MB — prevents arbitrary/oversized file
+            // uploads into a public storage path.
+            $request->validate([
+                'print_logo_file' => ['image', 'mimes:jpg,jpeg,png,gif,webp,svg', 'max:4096'],
+            ]);
+
             $file = $request->file('print_logo_file');
             $path = $file->store('system', 'public');
             

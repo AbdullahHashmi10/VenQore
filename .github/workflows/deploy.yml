@@ -1,8 +1,14 @@
 name: Deploy VenQore to Production
 
-# Trigger on push to main branch
+# L023: Deploy is gated on the test workflows succeeding. Instead of triggering
+# directly on push to main (which could deploy code no test ever ran against),
+# this workflow runs only after the "VenQore Tests" workflow completes, and the
+# job below refuses to proceed unless that run concluded successfully on main.
+# workflow_dispatch remains for deliberate manual (emergency) deploys.
 on:
-  push:
+  workflow_run:
+    workflows: ["VenQore Tests"]
+    types: [completed]
     branches: [main]
   workflow_dispatch:    # Allow manual trigger from GitHub UI
 
@@ -11,6 +17,13 @@ jobs:
     name: Deploy to venqore.com
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Proceed only when triggered manually, or when the upstream test run
+    # both targeted main and passed. This makes it technically impossible to
+    # deploy code that has not passed CI.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
 
     steps:
       # ── 1. Checkout ──────────────────────────────────────────────

@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\HasTenant;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PkVerification extends Model
 {
+    use HasTenant;
+
     protected $fillable = [
         'tenant_id',
         'user_id',

@@ -8,11 +8,15 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // â”€â”€ Existing schedules â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-\Illuminate\Support\Facades\Schedule::command('amd:sync-stock')->everyFiveMinutes();
+\Illuminate\Support\Facades\Schedule::command('amd:sync-stock')
+    ->everyFiveMinutes()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 \Illuminate\Support\Facades\Schedule::command('parked-sales:cleanup')->hourly();
 \Illuminate\Support\Facades\Schedule::command('staff:generate-daily-summaries')->dailyAt('00:05');
 \Illuminate\Support\Facades\Schedule::command('growth:analyze')->dailyAt('09:00');
-\Illuminate\Support\Facades\Schedule::command('finance:audit')->hourly();
+\Illuminate\Support\Facades\Schedule::command('finance:audit')
+    ->hourly()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Phase 2.4: Tenant Lifecycle Automation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Sends day-7 and day-2 reminder emails to tenants still on trial
@@ -25,7 +29,8 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('tenants:process-expired-trials')
     ->hourly()
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Phase 2.5: Dead Account Cleanup â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Permanently deletes data for tenants cancelled/suspended 60+ days ago
@@ -58,13 +63,15 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('woo:sync-all')
     ->everyFifteenMinutes()
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Recurring Invoice Generation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('recurring-invoices:generate')
     ->dailyAt('00:01')
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Close Inactive Chat Sessions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('chat:close-inactive')
@@ -76,7 +83,8 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('backup:google-drive')
     ->dailyAt('02:00')
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Daily Sales Summary Mailing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('sales:send-daily-summary')
@@ -88,7 +96,8 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('inventory:send-low-stock-alerts')
     ->dailyAt('09:00')
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Weekly Business Summary Mailing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 \Illuminate\Support\Facades\Schedule::command('sales:send-weekly-summary')
@@ -102,7 +111,8 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('invoices:send-payment-reminders')
     ->dailyAt('10:00')
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
 
 // â”€â”€ Service Reminders â€” Daily â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Checks each tenant's service_reminders list and fires email for any
@@ -125,3 +135,33 @@ Artisan::command('inspire', function () {
     ->onOneServer()
     ->name('verify-ledger-nightly')
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+// ── L007: Inventory-vs-GL Reconciliation ────────────────────────────────────
+// Nightly backstop for the "balanced-but-wrong ledger" failure class.
+// Compares physical inventory value against the GL Inventory Asset (1100)
+// balance per tenant and alerts on any drift beyond tolerance.
+\Illuminate\Support\Facades\Schedule::command('inventory:reconcile-gl')
+    ->dailyAt('02:45')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('inventory-gl-reconcile-nightly')
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+// ── L019: Platform database backups + restore verification ──────────────────
+// Daily full backup (vq:backup) and weekly restore-verification (backup:verify).
+// The google-drive sync above pushes the resulting artifacts offsite.
+// emailOutputOnFailure ensures a silent scheduler gap can't recur unnoticed.
+\Illuminate\Support\Facades\Schedule::command('vq:backup')
+    ->dailyAt('01:30')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('platform-backup-daily')
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+\Illuminate\Support\Facades\Schedule::command('backup:verify')
+    ->weeklyOn(0, '05:00')
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->name('platform-backup-verify-weekly')
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+

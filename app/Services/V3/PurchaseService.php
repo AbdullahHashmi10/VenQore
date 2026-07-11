@@ -263,12 +263,27 @@ class PurchaseService
                 ]);
             }
 
-            // B18 Journal:
-            // DR 2000 Accounts Payable (supplier owes us back)
-            // CR 1100 Inventory Asset  (stock leaves)
+            // B18 Journal -- L011 FIX: the debit side must MIRROR how the original
+            // purchase was paid. In both cases inventory leaves (CR 1100), but the
+            // offsetting debit differs:
+            //
+            //   - CREDIT purchase (still owed on account): the original purchase
+            //     CREDITED 2000 Accounts Payable. Returning goods reduces what we owe,
+            //     so we DR 2000 Accounts Payable.
+            //
+            //   - CASH purchase (already paid): the original purchase CREDITED 1000
+            //     Cash. We do NOT owe the supplier anything, so debiting AP would
+            //     invent a phantom negative payable. Instead the supplier owes us a
+            //     refund, so we DR 1000 Cash (the refund we are due / received back).
+            //
+            // Previously this ALWAYS debited 2000, which corrupted the payables ledger
+            // on every cash-purchase return (phantom supplier balances).
+            $isCashPurchase = ($purchase->payment_method ?? null) === 'cash';
+            $offsetAccountCode = $isCashPurchase ? '1000' : '2000';
+
             $journalLines = [
                 [
-                    'account_code' => '2000',
+                    'account_code' => $offsetAccountCode,
                     'debit'        => $totalReturnCost,
                     'credit'       => 0,
                     'party_id'     => $purchase->party_id,
@@ -279,7 +294,6 @@ class PurchaseService
                     'credit'       => $totalReturnCost,
                 ],
             ];
-
             $returnId = Str::uuid()->toString();
 
             $journalEntry = $this->accounting->createEntry([

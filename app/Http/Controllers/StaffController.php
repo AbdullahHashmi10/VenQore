@@ -164,7 +164,8 @@ class StaffController extends Controller
      */
     public function acceptInvite(Request $request, string $token): Response|RedirectResponse
     {
-        $membership = StaffInvitation::where('token', $token)
+        // Token lookup before the invitee joins the tenant — bypass tenant scope.
+        $membership = StaffInvitation::withoutTenantScope()->where('token', $token)
             ->whereNull('accepted_at')
             ->where('expires_at', '>', now())
             ->with('tenant:id,name,plan')
@@ -190,7 +191,8 @@ class StaffController extends Controller
     {
         $request->validate(['token' => 'required|string|size:64']);
 
-        $invitation = StaffInvitation::where('token', $request->token)
+        // Token lookup before the invitee joins the tenant — bypass tenant scope.
+        $invitation = StaffInvitation::withoutTenantScope()->where('token', $request->token)
             ->whereNull('accepted_at')
             ->where('expires_at', '>', now())
             ->firstOrFail();
@@ -233,8 +235,9 @@ class StaffController extends Controller
     {
         $user = Auth::user();
 
-        // Fetch pending invites for this user's email 
-        $pendingInvites = \App\Models\StaffInvitation::where('invitee_email', $user->email)
+        // Invites belong to the inviting tenant, not the current user's tenant —
+        // resolve them across tenants by the invitee's email.
+        $pendingInvites = \App\Models\StaffInvitation::withoutTenantScope()->where('invitee_email', $user->email)
             ->whereIn('status', ['pending', 'no_account'])
             ->where('expires_at', '>', now())
             ->with(['tenant:id,name,plan'])

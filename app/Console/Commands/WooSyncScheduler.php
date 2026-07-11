@@ -19,7 +19,8 @@ class WooSyncScheduler extends Command
 
     public function handle(): int
     {
-        $query = WooConnection::where('status', 'active');
+        // Console context spans all tenants — bypass the HasTenant global scope.
+        $query = WooConnection::withoutTenantScope()->where('status', 'active');
 
         if ($connectionId = $this->option('connection')) {
             $query->where('id', $connectionId);
