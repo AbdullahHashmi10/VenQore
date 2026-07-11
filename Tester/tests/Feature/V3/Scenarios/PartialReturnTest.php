@@ -155,6 +155,7 @@ class PartialReturnTest extends TestCase
             'reference_type' => 'sale',
             'reference'      => $saleId,
             'description'    => 'Sale Journal',
+            'user_id'        => auth()->id(),
             'created_at'     => now(),
             'updated_at'     => now(),
         ]);
@@ -248,9 +249,10 @@ class PartialReturnTest extends TestCase
         ]);
 
         // Verifying journal entries are balanced and reversed COGS is 100
+        $refNum = DB::table('sales')->where('id', $saleId)->value('reference_number');
         $entry = DB::table('journal_entries')
             ->where('tenant_id', $this->tenantId)
-            ->where('reference', 'PRET-' . $returnedSale = DB::table('sales')->where('id', $saleId)->value('reference_number'))
+            ->where('reference', 'PRET-' . $refNum)
             ->first();
 
         $this->assertNotNull($entry);
