@@ -135,17 +135,39 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
             // 2. Loss Leaders
             const lossMakers = items.filter(i => i.profit < 0);
             if (lossMakers.length > 0) {
-                insights.push({ type: 'danger', title: 'Bleeding Assets', text: `${lossMakers.length} items are selling at a loss. Review pricing immediately.` });
+                insights.push({
+                    type: 'danger',
+                    title: 'Bleeding Assets',
+                    text: `${lossMakers.length} items are selling at a loss. Review pricing immediately.`,
+                    products: lossMakers.map(i => ({ id: i.product_id, name: i.name, value: i.profit }))
+                });
             }
 
             // 3. Margin Opportunities
             const lowMarginHighVol = items.filter(i => (i.profit / i.revenue) < 0.05 && i.revenue > (totalRevenue / items.length));
             if (lowMarginHighVol.length > 0) {
-                insights.push({ type: 'opportunity', title: 'Price Optimization', text: `${lowMarginHighVol.length} high-volume items have margins below 5%. A small price increase here creates massive pure profit.` });
+                insights.push({
+                    type: 'opportunity',
+                    title: 'Price Optimization',
+                    text: `${lowMarginHighVol.length} high-volume items have margins below 5%. A small price increase here creates massive pure profit.`,
+                    products: lowMarginHighVol.map(i => ({ id: i.product_id, name: i.name, value: i.profit }))
+                });
             }
 
+            // Correct score logic: start at 100 and apply mathematical penalties
+            let score = 100;
+            if (paretoRatio > 70) score -= 10;
+            if (lossMakers.length > 0) {
+                score -= 15; // penalty for having loss makers
+                score -= (lossMakers.length * 5); // penalty per item
+            }
+            if (lowMarginHighVol.length > 0) {
+                score -= (lowMarginHighVol.length * 3);
+            }
+            score = Math.max(0, Math.min(100, score));
+
             setAnalysisResult({
-                score: Math.min(100, Math.max(0, 50 + (parseFloat(avgMargin) * 2) - (lossMakers.length * 5))),
+                score,
                 insights
             });
             setIsAnalyzing(false);
@@ -351,7 +373,26 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                 {analysisResult.insights.map((insight, idx) => (
                                     <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10 text-rose-700' : insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10 text-amber-700' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10 text-emerald-700' : 'bg-slate-50 border-indigo-500 dark:bg-slate-800 text-slate-700'}`}>
                                         <h4 className="text-sm font-bold mb-1">{insight.title}</h4>
-                                        <p className="text-xs opacity-80">{insight.text}</p>
+                                        <p className="text-xs opacity-80 mb-2">{insight.text}</p>
+                                        
+                                        {/* Interactive product list linking to detail modals */}
+                                        {insight.products && insight.products.length > 0 && (
+                                            <div className="mt-2 space-y-1 bg-white/50 dark:bg-slate-900/40 p-2 rounded-lg border border-black/5 dark:border-white/5 max-h-40 overflow-y-auto">
+                                                {insight.products.map((p) => (
+                                                    <button
+                                                        key={p.id}
+                                                        onClick={() => {
+                                                            setAnalysisResult(null);
+                                                            setSelectedProduct(items.find(i => i.product_id === p.id));
+                                                        }}
+                                                        className="w-full flex justify-between items-center text-left py-1.5 px-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-xs transition-all font-semibold text-slate-600 dark:text-slate-300"
+                                                    >
+                                                        <span className="truncate pr-4 underline hover:text-indigo-500">{p.name}</span>
+                                                        <span className="shrink-0 font-bold font-mono text-rose-600">{formatCurrency(p.value, store)}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
