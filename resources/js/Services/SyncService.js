@@ -156,7 +156,18 @@ export const SyncService = {
         const slug = this.getStoreSlug();
         if (!slug) return false;
 
-        const response = await axios.post(route('store.api.heartbeat', { store_slug: slug }), {}, { _skipGlobalErrorHandler: true });
+        // Ensure a persistent device_id exists for browser clients to pass backend validation
+        let deviceId = localStorage.getItem('browser_device_id');
+        if (!deviceId) {
+            deviceId = 'br_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+            localStorage.setItem('browser_device_id', deviceId);
+        }
+
+        const response = await axios.post(
+            route('store.api.heartbeat', { store_slug: slug }),
+            { device_id: deviceId },
+            { _skipGlobalErrorHandler: true }
+        );
         await db.settings.put({ key: 'last_online_verify', value: Date.now() });
 
         const data = response?.data || {};
