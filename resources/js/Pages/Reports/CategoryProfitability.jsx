@@ -4,7 +4,7 @@ import ReportsLayout from '@/Layouts/ReportsLayout';
 import {
     TrendingUp, DollarSign, ArrowLeft, PieChart as PieIcon,
     ChevronDown, ChevronRight, Users, Package, Layers, X, Target,
-    Activity, Loader2, Zap, Lightbulb
+    Activity, Loader2, Zap, Lightbulb, HelpCircle, ShieldCheck
 } from 'lucide-react';
 import {
     PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend
@@ -297,41 +297,16 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                         </div>
                     </div>
 
-                    {/* RIGHT COL: Insights & Chart */}
-                    <div className="xl:col-span-2 flex flex-col gap-6 min-h-0">
-                        {/* Interactive Growth Engine Analyzer Card */}
-                        <div className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 rounded-2xl shadow-xl relative overflow-hidden shrink-0">
-                            <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-2 mb-3">
-                                    <div className="bg-indigo-500/30 p-1.5 rounded-lg border border-indigo-400/20"><Activity size={18} /></div>
-                                    <h3 className="text-sm font-black tracking-wide uppercase text-indigo-300">Category Intelligence</h3>
-                                </div>
-                                <h2 className="text-xl font-black tracking-tight mb-2">Automated Category Audit</h2>
-                                <p className="text-xs text-indigo-200/90 leading-relaxed mb-4">
-                                    Analyze category margins and trace product performance mapping. Click below to run the automated auditor engine.
-                                </p>
-                                <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
-                                    <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2"><Lightbulb size={12} /> Insight</h4>
-                                    <p className="text-[11px] text-slate-300">Find category pricing discrepancies and improve overall margin mix.</p>
-                                </div>
-                            </div>
-
-                            <button onClick={runAnalysis} disabled={isAnalyzing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait">
-                                {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} fill="currentColor" />}
-                                {isAnalyzing ? 'Auditing Categories...' : 'Run Category Analysis'}
-                            </button>
-                        </div>
-
-                        {/* Chart Contribution */}
-                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col flex-1 min-h-[300px]">
+                    {/* MIDDLE COL: Visuals */}
+                    <div className="xl:col-span-1 flex flex-col gap-4">
+                        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex-1 min-h-[300px] flex flex-col">
                             <h3 className="text-xs font-bold text-slate-500 uppercase mb-4 flex items-center gap-2">
-                                <PieIcon size={14} /> Profit Contribution by Category
+                                <PieIcon size={14} /> Profit Contribution
                             </h3>
                             <div className="flex-1 relative">
-                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+                                <ResponsiveContainer width="100%" height="200" minWidth={1} minHeight={1}>
                                     <PieChart>
-                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
+                                        <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                                             {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />)}
                                         </Pie>
                                         <RechartsTooltip formatter={(val) => formatCurrency(val, store)} contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }} itemStyle={{ color: '#fff' }} />
@@ -339,6 +314,50 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
+                        </div>
+
+                        <div className="bg-indigo-900 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                            <div className="relative z-10">
+                                <h3 className="text-xs font-bold opacity-90 mb-2 flex items-center gap-2">
+                                    <HelpCircle size={14} /> Strategy Tip
+                                </h3>
+                                <div className="text-xs opacity-80 leading-relaxed space-y-2">
+                                    <p>Your Top Category <strong>{topCategory.name}</strong> is generating significant cash flow.</p>
+                                    <div className="mt-2 pt-2 border-t border-white/10 flex items-center gap-1 font-bold text-emerald-300">
+                                        <ShieldCheck size={14} /> Focus Core Growth
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* RIGHT COL: Growth Engine */}
+                    <div className="xl:col-span-1 flex flex-col gap-4 h-full">
+                        <div className="bg-gradient-to-br from-slate-900 to-slate-800 p-5 rounded-2xl border border-slate-700 shadow-lg text-white h-full relative overflow-hidden flex flex-col justify-between">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+                            <div>
+                                <h3 className="text-base font-black uppercase tracking-tight mb-4 flex items-center gap-2 text-emerald-400">
+                                    <Zap size={18} fill="currentColor" /> Category Engine
+                                </h3>
+
+                                <div className="space-y-4">
+                                    <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                                        <h4 className="text-xs font-bold text-emerald-300 mb-1 flex items-center gap-2"><Target size={12} /> Optimization</h4>
+                                        <p className="text-[11px] text-slate-300 leading-relaxed">Run the AI analyzer to detect margin leaks and find hidden pricing opportunities in your category catalog.</p>
+                                    </div>
+                                    <div className="bg-white/5 backdrop-blur-sm p-3 rounded-xl border border-white/10">
+                                        <h4 className="text-xs font-bold text-amber-300 mb-1 flex items-center gap-2"><Lightbulb size={12} /> Insight</h4>
+                                        <p className="text-[11px] text-slate-300">Identify low-profit or loss-making categories that are draining overall margins.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onClick={runAnalysis} disabled={isAnalyzing} className="w-full mt-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold uppercase tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 active:scale-95 disabled:opacity-50 disabled:cursor-wait shrink-0">
+                                {isAnalyzing ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} fill="currentColor" />}
+                                {isAnalyzing ? 'Auditing Categories...' : 'Run Category Analysis'}
+                            </button>
                         </div>
                     </div>
                 </div>
