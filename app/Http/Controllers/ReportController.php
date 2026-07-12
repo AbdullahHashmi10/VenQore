@@ -2249,15 +2249,15 @@ class ReportController extends Controller
             ->where('party_id', $partyId)
             ->whereIn('status', ['posted', 'partially_returned', 'returned'])
             ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->select('id', 'invoice_no', 'posted_at', 'grand_total', 'status')
+            ->select('id', 'reference_number', 'posted_at', 'invoice_total', 'status')
             ->orderByDesc('posted_at')
             ->get()
             ->map(function ($row) {
                 return [
                     'id' => $row->id,
-                    'invoice_no' => $row->invoice_no,
+                    'invoice_no' => $row->reference_number,
                     'date' => Carbon::parse($row->posted_at)->toDateTimeString(),
-                    'amount' => (float)$row->grand_total,
+                    'amount' => (float)$row->invoice_total,
                     'status' => $row->status
                 ];
             });
@@ -2270,7 +2270,12 @@ class ReportController extends Controller
             ->where('sales.party_id', $partyId)
             ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
             ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->select('products.name', 'products.sku', DB::raw('SUM(sale_items.quantity) as qty'), DB::raw('SUM(sale_items.net_amount) as spent'))
+            ->select(
+                'products.name', 
+                'products.sku', 
+                DB::raw('SUM(sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) as qty'), 
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as spent')
+            )
             ->groupBy('products.id', 'products.name', 'products.sku')
             ->orderByDesc('qty')
             ->limit(10)
