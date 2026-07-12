@@ -22,14 +22,29 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
     // Retrieve active category_id from query parameters so modal persists across reloads
     const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const selectedCategoryId = urlParams.get('category_id');
-    const selectedCategory = data.find(c => (c.category_id ?? '').toString() === selectedCategoryId);
+
+    // Local state to keep the category modal open even during reloads when category is temporarily missing from data
+    const [selectedCategory, setSelectedCategoryState] = useState(null);
+
+    React.useEffect(() => {
+        if (selectedCategoryId) {
+            const found = data.find(c => (c.category_id ?? '').toString() === selectedCategoryId);
+            if (found) {
+                setSelectedCategoryState(found);
+            }
+        } else {
+            setSelectedCategoryState(null);
+        }
+    }, [selectedCategoryId, data]);
 
     const setSelectedCategory = (category) => {
         const params = new URLSearchParams(window.location.search);
         if (category) {
             params.set('category_id', category.category_id ?? 'custom_index');
+            setSelectedCategoryState(category);
         } else {
             params.delete('category_id');
+            setSelectedCategoryState(null);
         }
         router.get(route("store.reports.item-category-wise-profit-loss", { store_slug: store.slug }),
             Object.fromEntries(params.entries()),

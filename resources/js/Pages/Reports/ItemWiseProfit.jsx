@@ -28,14 +28,29 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
     // Retrieve active product_id from query parameters so modal persists across reloads
     const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     const selectedProductId = urlParams.get('product_id');
-    const selectedProduct = items.find(i => i.product_id === selectedProductId);
+
+    // Local state to keep the product modal open even during reloads when product is temporarily missing from data
+    const [selectedProduct, setSelectedProductState] = useState(null);
+
+    React.useEffect(() => {
+        if (selectedProductId) {
+            const found = items.find(i => i.product_id === selectedProductId);
+            if (found) {
+                setSelectedProductState(found);
+            }
+        } else {
+            setSelectedProductState(null);
+        }
+    }, [selectedProductId, items]);
 
     const setSelectedProduct = (item) => {
         const params = new URLSearchParams(window.location.search);
         if (item) {
             params.set('product_id', item.product_id);
+            setSelectedProductState(item);
         } else {
             params.delete('product_id');
+            setSelectedProductState(null);
         }
         router.get(route("store.reports.item-wise-profit", { store_slug: store.slug }),
             Object.fromEntries(params.entries()),
