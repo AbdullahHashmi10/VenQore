@@ -1535,8 +1535,7 @@ class ReportController extends Controller
     public function itemCategoryWiseProfitLoss(Request $request)
     {
         ReportTierGate::enforce('reports.item-category-wise-profit-loss');
-         $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
-         $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
+         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
          $frs = new FinancialReportingService();
          $rawData = $frs->getGrossProfitByCategory($startDate, $endDate);
@@ -1578,6 +1577,7 @@ class ReportController extends Controller
              'filters' => [
                  'start_date' => $startDate,
                  'end_date'   => $endDate,
+                 'range'      => $range,
              ],
          ]);
     }
