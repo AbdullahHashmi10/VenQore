@@ -843,7 +843,7 @@ class FinancialReportingService
             ->unique();
 
         $products = DB::table('products')
-            ->whereIn('id', $productIds)
+            ->whereIn('products.id', $productIds)
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
             ->select('products.id', 'products.name', 'products.sku', 'categories.name as category_name')
             ->get()
