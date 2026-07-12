@@ -368,6 +368,16 @@ export default function ReportsHub() {
                     href: route("store.reports.expiry", {
                         store_slug: store.slug
                     })
+                },
+                {
+                    title: 'Point-In-Time Inventory',
+                    description: 'Historical inventory valuation',
+                    longDescription: 'Go back in time and view the exact quantity and asset value of your inventory as of any specific date. Crucial for matching past accounting balances and financial reconciliation.',
+                    icon: History,
+                    color: 'text-indigo-400',
+                    href: route("store.reports.point-in-time-inventory", {
+                        store_slug: store.slug
+                    })
                 }
             ]
         },
@@ -582,6 +592,26 @@ export default function ReportsHub() {
                     icon: Landmark,
                     color: 'text-red-500',
                     href: route("store.reports.loan-statement", {
+                        store_slug: store.slug
+                    })
+                },
+                {
+                    title: 'Customer Insights',
+                    description: 'Customer buying patterns',
+                    longDescription: 'Deep dive into customer metrics, customer lifetime value, ordering frequency, average order values, and churn indicators to optimize your sales and marketing strategies.',
+                    icon: Users2,
+                    color: 'text-emerald-500',
+                    href: route("store.reports.customer-insights", {
+                        store_slug: store.slug
+                    })
+                },
+                {
+                    title: 'Supplier Insights',
+                    description: 'Procurement efficiency',
+                    longDescription: 'Analyze supplier performance, purchase volumes, product costs, lead times, and outstanding payables to make informed procurement decisions and negotiate better terms.',
+                    icon: Landmark,
+                    color: 'text-blue-500',
+                    href: route("store.reports.supplier-insights", {
                         store_slug: store.slug
                     })
                 }
