@@ -1540,38 +1540,55 @@ class ReportController extends Controller
          $frs = new FinancialReportingService();
          $rawData = $frs->getGrossProfitByCategory($startDate, $endDate);
 
-         // Category-Wise Detailed Report additions (per the UI Review request):
-         // Purchases and Stock Value merged in per-category. Customer detail is
-         // exposed as a per-row 'customers' array (top spenders in that category)
-         // rather than a table column — same drilldown pattern as Item-Wise.
+         // Fetch products gross profit and associated detail maps to allow deep modal click inside categories
+         $productsProfit = $frs->getGrossProfitByProduct($startDate, $endDate);
+         $productPurchases = $frs->getPurchasesByProduct($startDate, $endDate);
+         $allProductIds = $productsProfit->pluck('product_id')->all();
+         $productStockValues = $frs->getCurrentStockValueByProduct($allProductIds);
+         $productCustomerDetail = !empty($allProductIds)
+             ? $frs->getCustomerDetailByProduct($allProductIds, $startDate, $endDate)
+             : collect();
+
+         $mappedProducts = $productsProfit->map(function ($p) use ($productPurchases, $productStockValues, $productCustomerDetail) {
+             $pid = $p['product_id'];
+             $purchase = $productPurchases->get($pid, ['qty_purchased' => 0.0, 'purchase_cost' => 0.0]);
+             $stock = $productStockValues->get($pid, ['stock_qty' => 0.0, 'stock_value' => 0.0]);
+             $customers = $productCustomerDetail->get($pid, collect())->values();
+
+             return array_merge($p, [
+                 'purchase_cost' => $purchase['purchase_cost'],
+                 'stock_value'   => $stock['stock_value'],
+                 'customers'     => $customers,
+             ]);
+         });
+
+         // Category-Wise Detailed Report additions:
          $purchases = $frs->getPurchasesByCategory($startDate, $endDate);
          $stockValues = $frs->getCurrentStockValueByCategory();
          $customerDetail = $frs->getCustomerDetailByCategory($startDate, $endDate);
 
-         $data = $rawData->map(function ($row) use ($purchases, $stockValues, $customerDetail) {
+         $data = $rawData->map(function ($row) use ($purchases, $stockValues, $customerDetail, $mappedProducts) {
              $cid = $row['category_id'];
              $purchase = $purchases->get($cid, ['qty_purchased' => 0.0, 'purchase_cost' => 0.0]);
              $stock = $stockValues->get($cid, ['stock_qty' => 0.0, 'stock_value' => 0.0]);
              $customers = $customerDetail->get($cid, collect())->values();
+
+             // Filter products belonging to this category
+             $categoryProducts = $mappedProducts->filter(function ($p) use ($cid) {
+                 $pCid = $p['category_id'] ?? 'uncategorized';
+                 return (string)$pCid === (string)$cid;
+             })->values();
 
              return array_merge($row, [
                  'qty_purchased'   => $purchase['qty_purchased'],
                  'purchase_cost'   => $purchase['purchase_cost'],
                  'stock_qty'       => $stock['stock_qty'],
                  'stock_value'     => $stock['stock_value'],
-                 // Full customer drilldown, rendered as a proper table in the
-                 // dedicated page's expand-row (see CategoryProfitability.jsx) —
-                 // not flattened to a string, since this page isn't constrained
-                 // by MasterReport's col.render-must-be-a-function limitation.
                  'customers'       => $customers,
+                 'products'        => $categoryProducts,
              ]);
          });
 
-         // Dedicated page (not GenericReport/MasterReport) — this report needs a
-         // per-category P&L statement and a customer-detail drilldown when a row
-         // is expanded, which MasterReport's flat table doesn't support. Mirrors
-         // ItemWiseProfit.jsx's expand-row pattern one level higher (category
-         // instead of product).
          return Inertia::render('Reports/CategoryProfitability', [
              'data' => $data,
              'filters' => [

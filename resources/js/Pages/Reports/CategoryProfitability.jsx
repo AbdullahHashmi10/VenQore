@@ -18,6 +18,8 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
     const [range, setRange] = useState(filters.range || 'this_month');
     const [localSearchQuery, setLocalSearchQuery] = useState('');
     const [marginFilter, setMarginFilter] = useState('all');
+    const [activeTab, setActiveTab] = useState('customers');
+    const [selectedProduct, setSelectedProduct] = useState(null);
 
     // Retrieve active category_id from query parameters so modal persists across reloads
     const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
@@ -567,6 +569,206 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                             </div>
                                         </div>
 
+                                        {/* Tabbed Column */}
+                                        <div className="xl:col-span-7 flex flex-col">
+                                            {/* Tab Switcher Headers */}
+                                            <div className="flex border-b border-slate-200 dark:border-slate-700 mb-4 shrink-0">
+                                                <button
+                                                    onClick={() => setActiveTab('customers')}
+                                                    className={`pb-2.5 px-4 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
+                                                        activeTab === 'customers'
+                                                            ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+                                                            : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                                    }`}
+                                                >
+                                                    <span className="flex items-center gap-1.5"><Users size={14} /> Customer Detail</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => setActiveTab('products')}
+                                                    className={`pb-2.5 px-4 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
+                                                        activeTab === 'products'
+                                                            ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400'
+                                                            : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                                                    }`}
+                                                >
+                                                    <span className="flex items-center gap-1.5"><Package size={14} /> Products ({activeCategory.products?.length || 0})</span>
+                                                </button>
+                                            </div>
+
+                                            {/* Tab Content */}
+                                            {activeTab === 'customers' ? (
+                                                customers.length === 0 ? (
+                                                    <div className="p-12 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center flex-1">
+                                                        <p className="text-sm text-slate-400 italic">No customer-attributed purchases in this period.</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm flex-1">
+                                                        <table className="w-full text-xs sm:text-sm text-left">
+                                                            <thead className="text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                                                                <tr>
+                                                                    <th className="py-3 px-4 font-bold">Customer Name</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Times Purchased</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Qty Bought</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Total Spent</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                                {customers.map((c, ci) => (
+                                                                    <tr key={ci} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+                                                                        <td className="py-3 px-4 font-bold text-slate-700 dark:text-slate-200">{c.party_name}</td>
+                                                                        <td className="py-3 px-4 text-right text-slate-500 font-semibold">{c.purchase_count}</td>
+                                                                        <td className="py-3 px-4 text-right text-slate-500 font-semibold">{c.total_qty}</td>
+                                                                        <td className="py-3 px-4 text-right font-mono text-slate-600 dark:text-slate-300 font-black">{formatCurrency(c.total_spent, store)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )
+                                            ) : (
+                                                !(activeCategory.products && activeCategory.products.length > 0) ? (
+                                                    <div className="p-12 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center flex-1">
+                                                        <p className="text-sm text-slate-400 italic">No products found with sales in this category during the period.</p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm flex-1">
+                                                        <table className="w-full text-xs sm:text-sm text-left">
+                                                            <thead className="text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                                                                <tr>
+                                                                    <th className="py-3 px-4 font-bold">Product Name</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Qty Sold</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Revenue</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Profit</th>
+                                                                    <th className="text-right py-3 px-4 font-bold">Margin</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                                {activeCategory.products.map((p, pi) => {
+                                                                    const pMargin = p.net_revenue > 0 ? (p.gross_profit / p.net_revenue) * 100 : 0;
+                                                                    return (
+                                                                        <tr
+                                                                            key={pi}
+                                                                            onClick={() => setSelectedProduct(p)}
+                                                                            className="hover:bg-indigo-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer group"
+                                                                        >
+                                                                            <td className="py-3 px-4 font-bold text-slate-700 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 underline">
+                                                                                {p.name}
+                                                                            </td>
+                                                                            <td className="py-3 px-4 text-right text-slate-500 font-semibold">{p.quantity}</td>
+                                                                            <td className="py-3 px-4 text-right font-mono text-slate-600 dark:text-slate-300 font-semibold">{formatCurrency(p.net_revenue, store)}</td>
+                                                                            <td className={`py-3 px-4 text-right font-mono font-bold ${p.gross_profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                                                                {formatCurrency(p.gross_profit, store)}
+                                                                            </td>
+                                                                            <td className="py-3 px-4 text-right font-semibold">
+                                                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${pMargin > 20 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : pMargin < 0 ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                                                                                    {pMargin.toFixed(1)}%
+                                                                                </span>
+                                                                            </td>
+                                                                        </tr>
+                                                                    );
+                                                                })}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Modal Footer */}
+                                <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end shrink-0">
+                                    <button onClick={() => setSelectedCategory(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
+
+                {/* Product Detail Modal (opened when clicking a product inside the Category Detail Modal) */}
+                {selectedProduct && (() => {
+                    const margin = selectedProduct.net_revenue > 0 ? (selectedProduct.gross_profit / selectedProduct.net_revenue) * 100 : 0;
+                    const customers = selectedProduct.customers || [];
+                    return (
+                        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                            <div className="bg-white dark:bg-slate-900 w-full max-w-6xl w-[92vw] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                                {/* Modal Header */}
+                                <div className="bg-indigo-600 p-6 text-white relative overflow-hidden shrink-0">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                                    <div className="relative z-10 flex justify-between items-center">
+                                        <div className="space-y-1">
+                                            <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
+                                                Period: {range ? range.replace('_', ' ') : 'this year'} ({filters.start_date || startDate || 'N/A'} to {filters.end_date || endDate || 'N/A'})
+                                            </span>
+                                            <h2 className="text-2xl font-black tracking-tight mt-1">{selectedProduct.name}</h2>
+                                            <p className="text-indigo-100 text-xs font-semibold">
+                                                SKU: <span className="text-white font-bold">{selectedProduct.sku || 'N/A'}</span>
+                                            </p>
+                                        </div>
+                                        <button onClick={() => setSelectedProduct(null)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2.5 rounded-xl">
+                                            <X size={20} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                                    {/* Financial KPIs */}
+                                    <div className="grid grid-cols-3 gap-6">
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-xs font-bold text-slate-400 uppercase">Revenue in Period</p>
+                                            <p className="text-3xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(selectedProduct.net_revenue, store)}</p>
+                                        </div>
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-xs font-bold text-slate-400 uppercase">Profit in Period</p>
+                                            <p className={`text-3xl font-black mt-1 ${selectedProduct.gross_profit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                                {formatCurrency(selectedProduct.gross_profit, store)}
+                                            </p>
+                                        </div>
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-xs font-bold text-slate-400 uppercase">Profit Margin</p>
+                                            <p className="text-3xl font-black text-indigo-500 dark:text-indigo-400 mt-1">{margin.toFixed(1)}%</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                                        {/* Per-Item P&L Statement */}
+                                        <div className="xl:col-span-5">
+                                            <div className="flex items-center gap-2 mb-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                                                <DollarSign size={14} /> Profit &amp; Loss Statement
+                                            </div>
+                                            <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                                <table className="w-full text-xs sm:text-sm">
+                                                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                                                        <tr>
+                                                            <td className="py-3 px-4 text-slate-500">Revenue (net of returns)</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-200 font-bold">{formatCurrency(selectedProduct.net_revenue, store)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="py-3 px-4 text-slate-500">Less: Cost of Goods Sold</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-rose-500 font-medium">({formatCurrency((selectedProduct.net_revenue || 0) - (selectedProduct.gross_profit || 0), store)})</td>
+                                                        </tr>
+                                                        <tr className="bg-slate-100 dark:bg-slate-800/80">
+                                                            <td className="py-3 px-4 font-bold text-slate-700 dark:text-slate-200">Gross Profit</td>
+                                                            <td className={`py-3 px-4 text-right font-mono font-bold ${selectedProduct.gross_profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>{formatCurrency(selectedProduct.gross_profit, store)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="py-3 px-4 text-slate-500">Gross Margin</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-200 font-bold">{margin.toFixed(1)}%</td>
+                                                        </tr>
+                                                        <tr className="border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20">
+                                                            <td className="py-3 px-4 text-slate-400 italic">Purchases in period</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-500">{formatCurrency(selectedProduct.purchase_cost || 0, store)}</td>
+                                                        </tr>
+                                                        <tr className="bg-slate-50/50 dark:bg-slate-800/20">
+                                                            <td className="py-3 px-4 text-slate-400 italic">Current stock value</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-500">{formatCurrency(selectedProduct.stock_value || 0, store)}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
                                         {/* Customer Purchase Detail */}
                                         <div className="xl:col-span-7">
                                             <div className="flex items-center gap-2 mb-3 text-xs font-bold text-slate-500 uppercase tracking-wider">
@@ -577,7 +779,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
                                                     <p className="text-sm text-slate-400 italic">No customer-attributed purchases in this period.</p>
                                                 </div>
                                             ) : (
-                                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm">
+                                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900 shadow-sm flex-1">
                                                     <table className="w-full text-xs sm:text-sm text-left">
                                                         <thead className="text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
                                                             <tr>
@@ -606,7 +808,7 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
 
                                 {/* Modal Footer */}
                                 <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end shrink-0">
-                                    <button onClick={() => setSelectedCategory(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
+                                    <button onClick={() => setSelectedProduct(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
                                 </div>
                             </div>
                         </div>
