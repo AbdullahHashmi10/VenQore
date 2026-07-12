@@ -370,31 +370,64 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                 </div>
                             </div>
                             <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-                                {analysisResult.insights.map((insight, idx) => (
-                                    <div key={idx} className={`p-4 rounded-xl border-l-4 ${insight.type === 'danger' ? 'bg-rose-50 border-rose-500 dark:bg-rose-900/10 text-rose-700' : insight.type === 'warning' ? 'bg-amber-50 border-amber-500 dark:bg-amber-900/10 text-amber-700' : insight.type === 'success' ? 'bg-emerald-50 border-emerald-500 dark:bg-emerald-900/10 text-emerald-700' : 'bg-slate-50 border-indigo-500 dark:bg-slate-800 text-slate-700'}`}>
-                                        <h4 className="text-sm font-bold mb-1">{insight.title}</h4>
-                                        <p className="text-xs opacity-80 mb-2">{insight.text}</p>
-                                        
-                                        {/* Interactive product list linking to detail modals */}
-                                        {insight.products && insight.products.length > 0 && (
-                                            <div className="mt-2 space-y-1 bg-white/50 dark:bg-slate-900/40 p-2 rounded-lg border border-black/5 dark:border-white/5 max-h-40 overflow-y-auto">
-                                                {insight.products.map((p) => (
-                                                    <button
-                                                        key={p.id}
-                                                        onClick={() => {
-                                                            setAnalysisResult(null);
-                                                            setSelectedProduct(items.find(i => i.product_id === p.id));
-                                                        }}
-                                                        className="w-full flex justify-between items-center text-left py-1.5 px-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-xs transition-all font-semibold text-slate-600 dark:text-slate-300"
-                                                    >
-                                                        <span className="truncate pr-4 underline hover:text-indigo-500">{p.name}</span>
-                                                        <span className="shrink-0 font-bold font-mono text-rose-600">{formatCurrency(p.value, store)}</span>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                {analysisResult.insights.map((insight, idx) => {
+                                    let containerClass = "bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-l-slate-400";
+                                    let titleClass = "text-slate-900 dark:text-white font-bold text-sm mb-1";
+                                    let textClass = "text-xs opacity-90 text-slate-700 dark:text-slate-300 mb-2";
+                                    let listBgClass = "bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800";
+                                    let nameClass = "text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400";
+                                    let valueClass = "text-slate-600 dark:text-slate-400";
+
+                                    if (insight.type === 'danger') {
+                                        containerClass = "bg-rose-50 dark:bg-rose-950/20 text-rose-900 dark:text-rose-100 border-l-rose-600 border border-y border-r border-rose-200/60 dark:border-rose-900/30";
+                                        titleClass = "text-rose-900 dark:text-rose-200 font-extrabold text-sm mb-1";
+                                        textClass = "text-rose-800/90 dark:text-rose-300/90 text-xs mb-2";
+                                        listBgClass = "bg-white/80 dark:bg-slate-950/80 border border-rose-200/50 dark:border-rose-900/30";
+                                        nameClass = "text-slate-850 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400";
+                                        valueClass = "text-rose-600 dark:text-rose-400 font-bold";
+                                    } else if (insight.type === 'warning') {
+                                        containerClass = "bg-amber-50 dark:bg-amber-950/20 text-amber-900 dark:text-amber-100 border-l-amber-600 border border-y border-r border-amber-200/60 dark:border-amber-900/30";
+                                        titleClass = "text-amber-900 dark:text-amber-200 font-extrabold text-sm mb-1";
+                                        textClass = "text-amber-800/90 dark:text-amber-300/90 text-xs mb-2";
+                                    } else if (insight.type === 'success') {
+                                        containerClass = "bg-emerald-50 dark:bg-emerald-950/20 text-emerald-900 dark:text-emerald-100 border-l-emerald-600 border border-y border-r border-emerald-200/60 dark:border-emerald-900/30";
+                                        titleClass = "text-emerald-900 dark:text-emerald-200 font-extrabold text-sm mb-1";
+                                        textClass = "text-emerald-800/90 dark:text-emerald-300/90 text-xs mb-2";
+                                    } else if (insight.type === 'opportunity') {
+                                        containerClass = "bg-indigo-50 dark:bg-indigo-950/20 text-indigo-900 dark:text-indigo-100 border-l-indigo-600 border border-y border-r border-indigo-200/60 dark:border-indigo-900/30";
+                                        titleClass = "text-indigo-900 dark:text-indigo-200 font-extrabold text-sm mb-1";
+                                        textClass = "text-indigo-800/90 dark:text-indigo-300/90 text-xs mb-2";
+                                        listBgClass = "bg-white/80 dark:bg-slate-950/80 border border-indigo-200/50 dark:border-indigo-900/30";
+                                        nameClass = "text-slate-850 dark:text-slate-100 hover:text-indigo-600 dark:hover:text-indigo-400";
+                                        valueClass = "text-indigo-600 dark:text-indigo-400 font-bold";
+                                    }
+
+                                    return (
+                                        <div key={idx} className={`p-4 rounded-xl border-l-4 ${containerClass}`}>
+                                            <h4 className={titleClass}>{insight.title}</h4>
+                                            <p className={textClass}>{insight.text}</p>
+                                            
+                                            {/* Interactive product list linking to detail modals */}
+                                            {insight.products && insight.products.length > 0 && (
+                                                <div className={`mt-2 space-y-1 p-2 rounded-lg max-h-40 overflow-y-auto ${listBgClass}`}>
+                                                    {insight.products.map((p) => (
+                                                        <button
+                                                            key={p.id}
+                                                            onClick={() => {
+                                                                setAnalysisResult(null);
+                                                                setSelectedProduct(items.find(i => i.product_id === p.id));
+                                                            }}
+                                                            className="w-full flex justify-between items-center text-left py-1.5 px-2 hover:bg-black/5 dark:hover:bg-white/5 rounded text-xs transition-all font-semibold"
+                                                        >
+                                                            <span className={`truncate pr-4 underline ${nameClass}`}>{p.name}</span>
+                                                            <span className={`shrink-0 font-bold font-mono ${valueClass}`}>{formatCurrency(p.value, store)}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
                             </div>
                             <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
                                 <button onClick={() => setAnalysisResult(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg transition-colors">Dismiss</button>
