@@ -30,6 +30,9 @@ return [
         'reports.party-statement',
         'reports.sale-purchase-by-party',
         'reports.chart-of-accounts',
+        'reports.point-in-time-inventory',
+        'reports.customer-insights',
+        'reports.supplier-insights',
     ],
     'business' => [
         'reports.sale-aging',
