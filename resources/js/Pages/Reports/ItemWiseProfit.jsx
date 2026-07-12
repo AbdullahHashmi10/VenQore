@@ -44,18 +44,15 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
     }, [selectedProductId, items]);
 
     const setSelectedProduct = (item) => {
-        const params = new URLSearchParams(window.location.search);
+        const url = new URL(window.location.href);
         if (item) {
-            params.set('product_id', item.product_id);
+            url.searchParams.set('product_id', item.product_id.toString());
             setSelectedProductState(item);
         } else {
-            params.delete('product_id');
+            url.searchParams.delete('product_id');
             setSelectedProductState(null);
         }
-        router.get(route("store.reports.item-wise-profit", { store_slug: store.slug }),
-            Object.fromEntries(params.entries()),
-            { preserveState: true, preserveScroll: true, replace: true }
-        );
+        window.history.replaceState({}, '', url.toString());
     };
 
     // Filter items locally by search query & margin percentage

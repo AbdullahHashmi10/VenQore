@@ -38,18 +38,15 @@ export default function CategoryProfitability({ data = [], filters = {} }) {
     }, [selectedCategoryId, data]);
 
     const setSelectedCategory = (category) => {
-        const params = new URLSearchParams(window.location.search);
+        const url = new URL(window.location.href);
         if (category) {
-            params.set('category_id', category.category_id ?? 'custom_index');
+            url.searchParams.set('category_id', (category.category_id ?? 'custom_index').toString());
             setSelectedCategoryState(category);
         } else {
-            params.delete('category_id');
+            url.searchParams.delete('category_id');
             setSelectedCategoryState(null);
         }
-        router.get(route("store.reports.item-category-wise-profit-loss", { store_slug: store.slug }),
-            Object.fromEntries(params.entries()),
-            { preserveState: true, preserveScroll: true, replace: true }
-        );
+        window.history.replaceState({}, '', url.toString());
     };
 
     // Filter categories locally by search query & margin percentage
