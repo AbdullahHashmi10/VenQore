@@ -2220,31 +2220,73 @@ class ReportController extends Controller
 
         $data = (new FinancialReportingService())->getCustomerInsights($startDate, $endDate);
 
-        return Inertia::render('Reports/GenericReport', [
-            'title' => 'Customer Insights',
-            'columns' => [
-                ['key' => 'party_name', 'label' => 'Customer', 'sortable' => true],
-                ['key' => 'invoice_count', 'label' => 'Invoices', 'type' => 'number', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'total_spend', 'label' => 'Total Spend', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'avg_invoice_value', 'label' => 'Avg. Invoice', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'favorite_category', 'label' => 'Favorite Category', 'sortable' => true],
-                ['key' => 'least_favorite_category', 'label' => 'Least Favorite Category', 'sortable' => true],
-                ['key' => 'most_bought_item', 'label' => 'Most Bought Item', 'sortable' => true],
-                ['key' => 'last_purchase_at', 'label' => 'Last Purchase', 'type' => 'date', 'sortable' => true],
-            ],
+        return Inertia::render('Reports/CustomerInsights', [
             'data' => $data,
             'stats' => [
                 ['label' => 'Total Customers', 'value' => $data->count()],
-                ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_spend')), 'type' => 'up'],
+                ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_spend'))],
                 ['label' => 'Avg. Spend / Customer', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->count() > 0 ? $data->sum('total_spend') / $data->count() : 0)],
             ],
-            'chartData' => $data->sortByDesc('total_spend')->take(10)->map(fn($r) => ['name' => $r['party_name'], 'value' => $r['total_spend']])->values(),
-            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#7c3aed'],
             'filters' => [
                 'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
             ],
+        ]);
+    }
+
+    public function customerInsightsDetails(Request $request)
+    {
+        ReportTierGate::enforce('reports.customer-insights');
+        $partyId = $request->input('party_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $tenantId = app('current.tenant')->id;
+
+        // 1. Fetch real invoices from sales table for this party within the date range
+        $invoices = DB::table('sales')
+            ->where('tenant_id', $tenantId)
+            ->where('party_id', $partyId)
+            ->whereIn('status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->select('id', 'invoice_no', 'posted_at', 'grand_total', 'status')
+            ->orderByDesc('posted_at')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id' => $row->id,
+                    'invoice_no' => $row->invoice_no,
+                    'date' => Carbon::parse($row->posted_at)->toDateTimeString(),
+                    'amount' => (float)$row->grand_total,
+                    'status' => $row->status
+                ];
+            });
+
+        // 2. Fetch most purchased items by this customer
+        $topItems = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->where('sales.party_id', $partyId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('sales.posted_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->select('products.name', 'products.sku', DB::raw('SUM(sale_items.quantity) as qty'), DB::raw('SUM(sale_items.net_amount) as spent'))
+            ->groupBy('products.id', 'products.name', 'products.sku')
+            ->orderByDesc('qty')
+            ->limit(10)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'name' => $row->name,
+                    'sku' => $row->sku,
+                    'quantity' => (float)$row->qty,
+                    'total_spent' => (float)$row->spent
+                ];
+            });
+
+        return response()->json([
+            'invoices' => $invoices,
+            'top_items' => $topItems
         ]);
     }
 

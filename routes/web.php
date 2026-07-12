@@ -893,6 +893,7 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->name('reports.point-in-time-inventory');
         Route::get('/reports/point-in-time-inventory/details', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventoryDetails'])->name('reports.point-in-time-inventory.details');
         Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->name('reports.customer-insights');
+        Route::get('/reports/customer-insights/details', [\App\Http\Controllers\ReportController::class, 'customerInsightsDetails'])->name('reports.customer-insights.details');
         Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->name('reports.supplier-insights');
 
         // Owner's Daily Pulse (Secure Vault Dashboard)
