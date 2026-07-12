@@ -20,8 +20,37 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
     const [sortKey, setSortKey] = useState('stock_value');
     const [sortDir, setSortDir] = useState('desc');
     const [selectedItem, setSelectedItem] = useState(null);
+    const [modalDetails, setModalDetails] = useState({ ledger: [], batches: [] });
+    const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [isAuditing, setIsAuditing] = useState(false);
     const [auditResult, setAuditResult] = useState(null);
+
+    const handleSelectItem = (item) => {
+        setSelectedItem(item);
+        if (!item) {
+            setModalDetails({ ledger: [], batches: [] });
+            return;
+        }
+        setIsLoadingDetails(true);
+        fetch(route('store.reports.point-in-time-inventory.details', {
+            store_slug: store.slug,
+            product_id: item.product_id,
+            as_of_date: asOfDate,
+            as_of_time: asOfTime || undefined
+        }))
+        .then(res => res.json())
+        .then(json => {
+            setModalDetails({
+                ledger: json.ledger || [],
+                batches: json.batches || []
+            });
+            setIsLoadingDetails(false);
+        })
+        .catch(err => {
+            console.error(err);
+            setIsLoadingDetails(false);
+        });
+    };
 
     const applyDate = () => {
         router.get(route('store.reports.point-in-time-inventory', { store_slug: store.slug }), {
@@ -135,57 +164,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
         }, 800);
     };
 
-    // Auto-generate realistic batches and stock events for product drilldown modal
-    const modalDetails = useMemo(() => {
-        if (!selectedItem) return null;
-        const qty = selectedItem.quantity || 0;
-        const uCost = selectedItem.unit_cost || 0;
 
-        // Split quantity into realistic FIFO layers
-        const batches = [];
-        if (qty > 0) {
-            if (qty > 100) {
-                batches.push({
-                    id: 'BATCH-2026A',
-                    cost: uCost * 0.98,
-                    receivedQty: Math.round(qty * 0.4),
-                    qtyLeft: Math.round(qty * 0.3),
-                    date: '2026-05-14',
-                    status: 'Active'
-                });
-                batches.push({
-                    id: 'BATCH-2026B',
-                    cost: uCost * 1.01,
-                    receivedQty: Math.round(qty * 0.6),
-                    qtyLeft: qty - Math.round(qty * 0.3),
-                    date: '2026-06-28',
-                    status: 'Active'
-                });
-            } else {
-                batches.push({
-                    id: 'BATCH-2026-GEN',
-                    cost: uCost,
-                    receivedQty: qty,
-                    qtyLeft: qty,
-                    date: '2026-06-01',
-                    status: 'Active'
-                });
-            }
-        }
-
-        // Generate mock transaction ledger entries leading up to this moment
-        const ledger = [
-            { type: 'Stock In', qty: qty > 0 ? `+${Math.round(qty * 1.5)}` : '+50', ref: 'PO-99120', date: '2026-05-14', user: 'Admin Account' },
-            { type: 'Sales', qty: qty > 0 ? `-${Math.round(qty * 0.3)}` : '-30', ref: 'INV-48810', date: '2026-06-02', user: 'Register 1' },
-        ];
-        if (qty > 0) {
-            ledger.push({ type: 'Sales', qty: `-${Math.round(qty * 0.2)}`, ref: 'INV-51209', date: '2026-07-04', user: 'Register 2' });
-        } else {
-            ledger.push({ type: 'Adjustment', qty: '-20', ref: 'ADJ-1002', date: '2026-07-09', user: 'Manager Accounts' });
-        }
-
-        return { batches, ledger };
-    }, [selectedItem]);
 
     const statIcon = (label) => {
         if (label.includes('As Of') || label.includes('Date')) return <Calendar size={18} />;
@@ -352,7 +331,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                             <tr 
                                                 key={row.product_id || idx} 
                                                 className="hover:bg-indigo-50/50 dark:hover:bg-slate-850/40 transition-colors cursor-pointer group"
-                                                onClick={() => setSelectedItem(row)}
+                                                onClick={() => handleSelectItem(row)}
                                             >
                                                 <td className="px-6 py-3">
                                                     <div className="flex items-center gap-1">
@@ -465,7 +444,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                     {topTiedProducts.map((p, idx) => (
                                         <div 
                                             key={idx} 
-                                            onClick={() => setSelectedItem(p)}
+                                            onClick={() => handleSelectItem(p)}
                                             className="flex justify-between items-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-2 text-[11px] transition-all cursor-pointer group"
                                         >
                                             <span className="text-slate-300 font-medium truncate w-32 group-hover:text-indigo-400">{p.name}</span>
@@ -503,7 +482,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                                 SKU: <span className="text-white font-bold">{selectedItem.sku || 'N/A'}</span> &bull; Category: <span className="text-white font-bold">{selectedItem.category || 'N/A'}</span>
                                             </p>
                                         </div>
-                                        <button onClick={() => setSelectedItem(null)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-lg">
+                                        <button onClick={() => handleSelectItem(null)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-lg">
                                             <X size={18} />
                                         </button>
                                     </div>
@@ -532,80 +511,93 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                                     </div>
 
                                     {/* Modal Split Columns */}
-                                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                                        
-                                        {/* FIFO Valuation Batches */}
-                                        <div className="md:col-span-6 flex flex-col">
-                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Layers size={13} /> Active FIFO Cost Layers</h4>
-                                            {modalDetails.batches.length === 0 ? (
-                                                <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
-                                                    No cost layers—item is out of stock.
-                                                </div>
-                                            ) : (
-                                                <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
-                                                    <table className="w-full text-xs text-left">
-                                                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
-                                                            <tr>
-                                                                <th className="py-2.5 px-3">Batch ID</th>
-                                                                <th className="py-2.5 px-3 text-right">Cost Price</th>
-                                                                <th className="py-2.5 px-3 text-right">Remaining Qty</th>
-                                                                <th className="py-2.5 px-3 text-right">Remaining Value</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                            {modalDetails.batches.map((b, idx) => (
-                                                                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
-                                                                    <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
-                                                                        {b.id}
-                                                                        <span className="block text-[9px] text-slate-400 font-mono">Inwarded {b.date}</span>
-                                                                    </td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-bold">{formatCurrency(b.cost, store)}</td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-semibold">{b.qtyLeft} <span className="text-[10px] text-slate-400">/ {b.receivedQty}</span></td>
-                                                                    <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(b.qtyLeft * b.cost, store)}</td>
+                                    {isLoadingDetails ? (
+                                        <div className="flex flex-col items-center justify-center py-20 text-indigo-500 gap-3">
+                                            <span className="animate-spin text-3xl">⌛</span>
+                                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Querying Ledger...</span>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                            
+                                            {/* FIFO Valuation Batches */}
+                                            <div className="md:col-span-6 flex flex-col">
+                                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Layers size={13} /> Active FIFO Cost Layers</h4>
+                                                {modalDetails.batches.length === 0 ? (
+                                                    <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
+                                                        No cost layers—item is out of stock.
+                                                    </div>
+                                                ) : (
+                                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+                                                        <table className="w-full text-xs text-left">
+                                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
+                                                                <tr>
+                                                                    <th className="py-2.5 px-3">Batch ID</th>
+                                                                    <th className="py-2.5 px-3 text-right">Cost Price</th>
+                                                                    <th className="py-2.5 px-3 text-right">Remaining Qty</th>
+                                                                    <th className="py-2.5 px-3 text-right">Remaining Value</th>
                                                                 </tr>
-                                                            ))}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Recent Stock Audit Ledger */}
-                                        <div className="md:col-span-6 flex flex-col">
-                                            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Activity size={13} /> Reconstruction Audit Trail</h4>
-                                            <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
-                                                <table className="w-full text-xs text-left">
-                                                    <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
-                                                        <tr>
-                                                            <th className="py-2.5 px-3">Date</th>
-                                                            <th className="py-2.5 px-3">Transaction</th>
-                                                            <th className="py-2.5 px-3">Reference</th>
-                                                            <th className="py-2.5 px-3 text-right">Delta Qty</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                        {modalDetails.ledger.map((l, idx) => (
-                                                            <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
-                                                                <td className="py-2.5 px-3 text-slate-500 font-mono">{l.date}</td>
-                                                                <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
-                                                                    {l.type}
-                                                                    <span className="block text-[9px] text-slate-400 font-sans">by {l.user}</span>
-                                                                </td>
-                                                                <td className="py-2.5 px-3 font-mono text-slate-500">{l.ref}</td>
-                                                                <td className={`py-2.5 px-3 text-right font-mono font-bold ${l.qty.startsWith('+') ? 'text-emerald-600' : 'text-rose-500'}`}>{l.qty}</td>
-                                                            </tr>
-                                                        ))}
-                                                    </tbody>
-                                                </table>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                                {modalDetails.batches.map((b, idx) => (
+                                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                                                                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
+                                                                            {b.id}
+                                                                            <span className="block text-[9px] text-slate-400 font-mono">Inwarded {b.date}</span>
+                                                                        </td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-bold">{formatCurrency(b.cost, store)}</td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono text-slate-500 font-semibold">{b.qtyLeft} <span className="text-[10px] text-slate-400">/ {b.receivedQty}</span></td>
+                                                                        <td className="py-2.5 px-3 text-right font-mono font-bold text-slate-600 dark:text-slate-300">{formatCurrency(b.qtyLeft * b.cost, store)}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
                                             </div>
-                                        </div>
 
-                                    </div>
+                                            {/* Recent Stock Audit Ledger */}
+                                            <div className="md:col-span-6 flex flex-col">
+                                                <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5"><Activity size={13} /> Reconstruction Audit Trail</h4>
+                                                {modalDetails.ledger.length === 0 ? (
+                                                    <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 text-center text-slate-400 italic">
+                                                        No stock movement ledger transactions found.
+                                                    </div>
+                                                ) : (
+                                                    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-white dark:bg-slate-900">
+                                                        <table className="w-full text-xs text-left">
+                                                            <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 uppercase border-b border-slate-200 dark:border-slate-700">
+                                                                <tr>
+                                                                    <th className="py-2.5 px-3">Date</th>
+                                                                    <th className="py-2.5 px-3">Transaction</th>
+                                                                    <th className="py-2.5 px-3">Reference</th>
+                                                                    <th className="py-2.5 px-3 text-right">Delta Qty</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                                {modalDetails.ledger.map((l, idx) => (
+                                                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/20">
+                                                                        <td className="py-2.5 px-3 text-slate-500 font-mono">{l.date}</td>
+                                                                        <td className="py-2.5 px-3 font-semibold text-slate-700 dark:text-slate-200">
+                                                                            {l.type}
+                                                                            <span className="block text-[9px] text-slate-400 font-sans">by {l.user}</span>
+                                                                        </td>
+                                                                        <td className="py-2.5 px-3 font-mono text-slate-500">{l.ref}</td>
+                                                                        <td className={`py-2.5 px-3 text-right font-mono font-bold ${l.qty.startsWith('+') ? 'text-emerald-600' : 'text-rose-500'}`}>{l.qty}</td>
+                                                                    </tr>
+                                                                ))}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Modal Footer */}
                                 <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end shrink-0">
-                                    <button onClick={() => setSelectedItem(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
+                                    <button onClick={() => handleSelectItem(null)} className="px-5 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs sm:text-sm font-bold rounded-lg transition-colors">Close</button>
                                 </div>
 
                             </div>

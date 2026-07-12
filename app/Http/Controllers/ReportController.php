@@ -2144,6 +2144,71 @@ class ReportController extends Controller
         ]);
     }
 
+    public function pointInTimeInventoryDetails(Request $request)
+    {
+        ReportTierGate::enforce('reports.point-in-time-inventory');
+        $productId = $request->input('product_id');
+        $asOfDate = $request->input('as_of_date');
+        $asOfTime = $request->input('as_of_time');
+
+        $asOf = $asOfTime ? "{$asOfDate} {$asOfTime}" : $asOfDate;
+
+        $hasTimeComponent = (bool) preg_match('/\d{1,2}:\d{2}/', $asOf);
+        $asOfEnd = $hasTimeComponent
+            ? Carbon::parse($asOf)
+            : Carbon::parse($asOf)->endOfDay();
+
+        $tenantId = app('current.tenant')->id;
+
+        // 1. Fetch real stock movements for this product up to $asOfEnd
+        $ledger = DB::table('stock_movements')
+            ->where('product_id', $productId)
+            ->where('created_at', '<=', $asOfEnd)
+            ->orderByDesc('created_at')
+            ->limit(50)
+            ->get()
+            ->map(function ($row) {
+                $type = 'Stock In';
+                if ($row->quantity < 0) {
+                    $type = 'Sale/Deduction';
+                }
+                if ($row->reference_type) {
+                    $type = class_basename($row->reference_type);
+                }
+
+                return [
+                    'date' => Carbon::parse($row->created_at)->toDateTimeString(),
+                    'type' => $type,
+                    'ref' => $row->reference_id ?? 'N/A',
+                    'qty' => ($row->quantity > 0 ? '+' : '') . round($row->quantity, 2),
+                    'user' => 'Ledger Entry'
+                ];
+            });
+
+        // 2. Fetch real active FIFO batches at $asOfEnd
+        $batches = DB::table('inventory_batches')
+            ->where('tenant_id', $tenantId)
+            ->where('product_id', $productId)
+            ->where('created_at', '<=', $asOfEnd)
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($b) {
+                return [
+                    'id' => 'BATCH-' . substr($b->id, 0, 8),
+                    'cost' => (float)$b->unit_cost,
+                    'receivedQty' => (float)$b->quantity,
+                    'qtyLeft' => (float)$b->remaining_qty,
+                    'date' => Carbon::parse($b->created_at)->toDateString(),
+                    'status' => $b->remaining_qty > 0 ? 'Active' : 'Depleted'
+                ];
+            });
+
+        return response()->json([
+            'ledger' => $ledger,
+            'batches' => $batches
+        ]);
+    }
+
     /**
      * Customer Insights Report — favorite AND least-favorite category, most-bought
      * item per customer, plus overall purchase behavior.
