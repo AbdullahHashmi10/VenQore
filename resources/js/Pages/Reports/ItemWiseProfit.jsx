@@ -23,6 +23,7 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
     const [range, setRange] = useState(filters.range || 'this_month');
     const [productFilter, setProductFilter] = useState(filters.product_ids || []);
     const [localSearchQuery, setLocalSearchQuery] = useState('');
+    const [marginFilter, setMarginFilter] = useState('all');
 
     // Retrieve active product_id from query parameters so modal persists across reloads
     const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
@@ -42,15 +43,31 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
         );
     };
 
-    // Filter items locally by search query
+    // Filter items locally by search query & margin percentage
     const filteredItems = useMemo(() => {
-        if (!localSearchQuery) return items;
-        const q = localSearchQuery.toLowerCase();
-        return items.filter(item => 
-            item.name.toLowerCase().includes(q) || 
-            (item.sku || '').toLowerCase().includes(q)
-        );
-    }, [items, localSearchQuery]);
+        let list = items;
+
+        if (marginFilter !== 'all') {
+            list = list.filter(item => {
+                const margin = item.revenue > 0 ? (item.profit / item.revenue) * 100 : 0;
+                if (marginFilter === 'negative') return margin < 0;
+                if (marginFilter === '0_10') return margin >= 0 && margin <= 10;
+                if (marginFilter === '10_30') return margin > 10 && margin <= 30;
+                if (marginFilter === '30_50') return margin > 30 && margin <= 50;
+                if (marginFilter === '50_plus') return margin > 50;
+                return true;
+            });
+        }
+
+        if (localSearchQuery) {
+            const q = localSearchQuery.toLowerCase();
+            list = list.filter(item => 
+                item.name.toLowerCase().includes(q) || 
+                (item.sku || '').toLowerCase().includes(q)
+            );
+        }
+        return list;
+    }, [items, localSearchQuery, marginFilter]);
 
     // Analysis State
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -253,6 +270,40 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                 </div>
                             </div>
                         </div>
+
+                        {/* Margin Percentage Filter Pills */}
+                        <div className="px-5 py-3 bg-slate-50/30 dark:bg-slate-800/10 border-b border-slate-100 dark:border-slate-800/80 flex flex-wrap gap-1.5 items-center">
+                            <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mr-1">Margins:</span>
+                            {[
+                                { id: 'all', label: 'All' },
+                                { id: 'negative', label: 'Loss (<0%)', hover: 'hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/20 dark:hover:text-rose-450 hover:border-rose-300' },
+                                { id: '0_10', label: '0% - 10%', hover: 'hover:bg-amber-50 hover:text-amber-600 dark:hover:bg-amber-950/20 dark:hover:text-amber-455 hover:border-amber-300' },
+                                { id: '10_30', label: '10% - 30%', hover: 'hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-950/20 dark:hover:text-blue-450 hover:border-blue-300' },
+                                { id: '30_50', label: '30% - 50%', hover: 'hover:bg-indigo-50 hover:text-indigo-600 dark:hover:bg-indigo-950/20 dark:hover:text-indigo-450 hover:border-indigo-300' },
+                                { id: '50_plus', label: '50%+', hover: 'hover:bg-emerald-50 hover:text-emerald-600 dark:hover:bg-emerald-950/20 dark:hover:text-emerald-450 hover:border-emerald-300' }
+                            ].map((opt) => {
+                                const isActive = marginFilter === opt.id;
+                                let activeStyles = 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 ' + opt.hover;
+                                if (isActive) {
+                                    if (opt.id === 'negative') activeStyles = 'bg-rose-600 border-rose-600 text-white shadow-sm';
+                                    else if (opt.id === '0_10') activeStyles = 'bg-amber-500 border-amber-500 text-white shadow-sm';
+                                    else if (opt.id === '10_30') activeStyles = 'bg-blue-600 border-blue-600 text-white shadow-sm';
+                                    else if (opt.id === '30_50') activeStyles = 'bg-indigo-600 border-indigo-600 text-white shadow-sm';
+                                    else if (opt.id === '50_plus') activeStyles = 'bg-emerald-600 border-emerald-600 text-white shadow-sm';
+                                    else activeStyles = 'bg-slate-800 border-slate-800 dark:bg-slate-200 dark:border-slate-200 text-white dark:text-slate-900 shadow-sm';
+                                }
+                                return (
+                                    <button
+                                        key={opt.id}
+                                        onClick={() => setMarginFilter(opt.id)}
+                                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all border ${activeStyles}`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
                         {productFilter.length > 0 && (
                             <div className="px-5 py-2 bg-indigo-50 dark:bg-indigo-900/10 border-b border-indigo-100 dark:border-indigo-900/30 flex items-center justify-between text-xs">
                                 <span className="text-indigo-600 dark:text-indigo-400 font-bold">{productFilter.length} product(s) selected</span>
