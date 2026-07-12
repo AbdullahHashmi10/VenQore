@@ -23,7 +23,24 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
     const [range, setRange] = useState(filters.range || 'this_month');
     const [productFilter, setProductFilter] = useState(filters.product_ids || []);
     const [localSearchQuery, setLocalSearchQuery] = useState('');
-    const [selectedProduct, setSelectedProduct] = useState(null);
+
+    // Retrieve active product_id from query parameters so modal persists across reloads
+    const urlParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    const selectedProductId = urlParams.get('product_id');
+    const selectedProduct = items.find(i => i.product_id === selectedProductId);
+
+    const setSelectedProduct = (item) => {
+        const params = new URLSearchParams(window.location.search);
+        if (item) {
+            params.set('product_id', item.product_id);
+        } else {
+            params.delete('product_id');
+        }
+        router.get(route("store.reports.item-wise-profit", { store_slug: store.slug }),
+            Object.fromEntries(params.entries()),
+            { preserveState: true, preserveScroll: true, replace: true }
+        );
+    };
 
     // Filter items locally by search query
     const filteredItems = useMemo(() => {
@@ -61,20 +78,24 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
     const handleRangeChange = (r) => {
         setRange(r);
         if (r !== 'custom') {
+            const params = new URLSearchParams(window.location.search);
+            params.set('range', r);
+            params.delete('start_date');
+            params.delete('end_date');
             router.get(route("store.reports.item-wise-profit", {
                 store_slug: store.slug
-            }), { range: r }, { preserveState: true, preserveScroll: true });
+            }), Object.fromEntries(params.entries()), { preserveState: true, preserveScroll: true });
         }
     };
 
     const applyCustomRange = () => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('range', 'custom');
+        params.set('start_date', startDate);
+        params.set('end_date', endDate);
         router.get(route("store.reports.item-wise-profit", {
             store_slug: store.slug
-        }), {
-            range: 'custom',
-            start_date: startDate,
-            end_date: endDate
-        }, { preserveState: true, preserveScroll: true });
+        }), Object.fromEntries(params.entries()), { preserveState: true, preserveScroll: true });
     };
 
     const toggleProductFilter = (productId) => {
