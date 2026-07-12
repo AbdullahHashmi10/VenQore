@@ -17,6 +17,7 @@ const REPORT_GROUPS = [
             { title: 'Sales Analytics', route: 'store.reports.analytics', icon: BarChart2 },
             { title: 'Profit & Loss', route: 'store.reports.profit-loss', icon: DollarSign },
             { title: 'Item-wise Profit', route: 'store.reports.item-wise-profit', icon: Package },
+            { title: 'Category Profitability', route: 'store.reports.item-category-wise-profit-loss', icon: PieChart },
             { title: 'Bill-wise Profit', route: 'store.reports.bill-wise-profit', icon: FileText },
             { title: 'Discount Report', route: 'store.reports.discount', icon: Activity },
             { title: 'Sale Aging', route: 'store.reports.sale-aging', icon: Clock },

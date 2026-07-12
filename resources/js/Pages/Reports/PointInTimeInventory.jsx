@@ -2,19 +2,23 @@ import React, { useState } from 'react';
 import { router, usePage, Head, Link } from '@inertiajs/react';
 import ReportsLayout from '@/Layouts/ReportsLayout';
 import {
-    ArrowLeft, Calendar, Package, DollarSign, Layers, Info, Search
+    ArrowLeft, Calendar, Clock, Package, DollarSign, Layers, Info, Search
 } from 'lucide-react';
 import { formatCurrency } from '@/Utils/format';
 
 export default function PointInTimeInventory({ data = [], stats = [], meta = {} }) {
     const { store } = usePage().props;
-    const [asOf, setAsOf] = useState(meta.as_of || new Date().toISOString().split('T')[0]);
+    const [asOfDate, setAsOfDate] = useState(meta.as_of_date || new Date().toISOString().split('T')[0]);
+    const [asOfTime, setAsOfTime] = useState(meta.as_of_time || '');
     const [search, setSearch] = useState('');
     const [sortKey, setSortKey] = useState('stock_value');
     const [sortDir, setSortDir] = useState('desc');
 
     const applyDate = () => {
-        router.get(route('store.reports.point-in-time-inventory', { store_slug: store.slug }), { as_of: asOf }, { preserveState: true, preserveScroll: true });
+        router.get(route('store.reports.point-in-time-inventory', { store_slug: store.slug }), {
+            as_of_date: asOfDate,
+            as_of_time: asOfTime || undefined,
+        }, { preserveState: true, preserveScroll: true });
     };
 
     const filtered = data
@@ -35,7 +39,7 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
     };
 
     const statIcon = (label) => {
-        if (label.includes('Date')) return <Calendar size={18} />;
+        if (label.includes('As Of') || label.includes('Date')) return <Calendar size={18} />;
         if (label.includes('Value')) return <DollarSign size={18} />;
         if (label.includes('Quantity')) return <Layers size={18} />;
         return <Package size={18} />;
@@ -54,25 +58,43 @@ export default function PointInTimeInventory({ data = [], stats = [], meta = {} 
                         </Link>
                         <div>
                             <h1 className="text-xl font-black text-slate-800 dark:text-white tracking-tight">Point-In-Time Inventory</h1>
-                            <p className="text-xs text-slate-500 font-medium">Stock quantity and value reconstructed as of any past date</p>
+                            <p className="text-xs text-slate-500 font-medium">Stock quantity and value reconstructed as of any past date and time</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1.5 rounded-xl">
+                    <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-1.5 rounded-xl flex-wrap">
                         <Calendar size={16} className="text-slate-400 ml-1" />
                         <span className="text-xs font-bold text-slate-500 uppercase">As of</span>
                         <input
                             type="date"
-                            value={asOf}
+                            value={asOfDate}
                             max={new Date().toISOString().split('T')[0]}
-                            onChange={(e) => setAsOf(e.target.value)}
+                            onChange={(e) => setAsOfDate(e.target.value)}
                             className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
                         />
+                        <Clock size={14} className="text-slate-400" />
+                        <input
+                            type="time"
+                            value={asOfTime}
+                            onChange={(e) => setAsOfTime(e.target.value)}
+                            title="Optional — leave blank to use end of day"
+                            className="px-2 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300 w-24"
+                        />
+                        {asOfTime && (
+                            <button
+                                onClick={() => setAsOfTime('')}
+                                title="Clear time (use end of day instead)"
+                                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 text-xs px-1"
+                            >
+                                ✕
+                            </button>
+                        )}
                         <button onClick={applyDate} className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">
                             View
                         </button>
                     </div>
                 </div>
+                <p className="text-[11px] text-slate-400 px-1 -mt-2 shrink-0">Leave the time blank to see inventory as of the end of the selected day. Set a time to see the exact stock position at that moment.</p>
 
                 {/* Info note about reconstruction method */}
                 {meta.note && (

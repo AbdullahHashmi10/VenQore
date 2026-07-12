@@ -799,13 +799,27 @@ class FinancialReportingService
      * batch cost nearest to $asOf rather than a literal historical weighted-
      * average). Flagged here rather than silently presented as exact.
      *
-     * @param  string  $asOf  Y-m-d date to reconstruct inventory as of (end of that day)
+     * @param  string  $asOf  Y-m-d date, OR Y-m-d H:i / Y-m-d H:i:s datetime, to
+     *                        reconstruct inventory as of. A bare date (no time
+     *                        component) is treated as end-of-that-day, matching
+     *                        the original date-only behavior. A datetime string
+     *                        is honored down to the minute/second given, so a
+     *                        user can ask "what was on hand at 3:45 PM on the 8th"
+     *                        and not just "as of the end of the 8th."
      * @return \Illuminate\Support\Collection  keyed by product_id
      */
     public function getPointInTimeInventory(string $asOf): \Illuminate\Support\Collection
     {
         $tenantId = app('current.tenant')->id;
-        $asOfEnd = Carbon::parse($asOf)->endOfDay();
+
+        // A plain date like "2026-07-08" has no time-of-day component, so Carbon
+        // parses it at 00:00:00 — that would silently exclude every movement that
+        // happened earlier that same day. Detect "no time given" and push to
+        // end-of-day in that case only; otherwise honor the exact time supplied.
+        $hasTimeComponent = (bool) preg_match('/\d{1,2}:\d{2}/', $asOf);
+        $asOfEnd = $hasTimeComponent
+            ? Carbon::parse($asOf)
+            : Carbon::parse($asOf)->endOfDay();
 
         // Current live quantity per product (today).
         $currentQty = DB::table('inventory_batches')
@@ -849,7 +863,7 @@ class FinancialReportingService
             ->get()
             ->keyBy('id');
 
-        return $productIds->map(function ($productId) use ($currentQty, $movementsSinceAsOf, $historicalCost, $products, $asOf) {
+        return $productIds->map(function ($productId) use ($currentQty, $movementsSinceAsOf, $historicalCost, $products, $asOfEnd) {
             $product = $products->get($productId);
             if (!$product) return null;
 
@@ -864,7 +878,10 @@ class FinancialReportingService
                 'name'         => $product->name,
                 'sku'          => $product->sku,
                 'category'     => $product->category_name ?? 'Uncategorized',
-                'as_of_date'   => $asOf,
+                // Full resolved instant used as the cutoff (date + time), not just
+                // the raw input string — so the report can show exactly what moment
+                // was reconstructed, down to the second.
+                'as_of'        => $asOfEnd->toDateTimeString(),
                 'quantity'     => max(0, $qtyAtAsOf), // clamp: a negative here means incomplete pre-tracking movement history, not real negative stock
                 'unit_cost'    => round($unitCost, 2),
                 'stock_value'  => $valueAtAsOf,
@@ -941,6 +958,13 @@ class FinancialReportingService
         return $overall->map(function ($row) use ($byCategory, $byProduct) {
             $cats = $byCategory->get($row->party_id, collect());
             $favCategory = $cats->sortByDesc('spend')->first();
+            // Least-favorite category: the lowest-spend category this customer
+            // still bought from at least once (distinct from a category they
+            // never bought — that's simply absent from $cats entirely, not
+            // "least favorite" in any meaningful sense). Only meaningful when
+            // the customer bought from 2+ distinct categories; a single-category
+            // customer has no genuine least-favorite, so leave it blank.
+            $leastFavCategory = $cats->count() > 1 ? $cats->sortBy('spend')->first() : null;
 
             $prods = $byProduct->get($row->party_id, collect());
             $favProduct = $prods->sortByDesc('qty')->first();
@@ -955,6 +979,9 @@ class FinancialReportingService
                 'last_purchase_at'  => $row->last_purchase_at,
                 'favorite_category' => $favCategory->category_name ?? '—',
                 'favorite_category_spend' => round((float) ($favCategory->spend ?? 0), 2),
+                'least_favorite_category' => $leastFavCategory->category_name ?? '—',
+                'least_favorite_category_spend' => round((float) ($leastFavCategory->spend ?? 0), 2),
+                'categories_purchased' => $cats->count(),
                 'most_bought_item'  => $favProduct->product_name ?? '—',
                 'most_bought_item_qty' => round((float) ($favProduct->qty ?? 0), 2),
             ];

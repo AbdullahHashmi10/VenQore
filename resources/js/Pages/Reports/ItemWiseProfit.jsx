@@ -21,8 +21,19 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
     const [range, setRange] = useState(filters.range || 'this_month');
-    const [expandedItem, setExpandedItem] = useState(null); // product_id of the row showing customer detail
     const [productFilter, setProductFilter] = useState(filters.product_ids || []);
+    const [localSearchQuery, setLocalSearchQuery] = useState('');
+    const [selectedProduct, setSelectedProduct] = useState(null);
+
+    // Filter items locally by search query
+    const filteredItems = useMemo(() => {
+        if (!localSearchQuery) return items;
+        const q = localSearchQuery.toLowerCase();
+        return items.filter(item => 
+            item.name.toLowerCase().includes(q) || 
+            (item.sku || '').toLowerCase().includes(q)
+        );
+    }, [items, localSearchQuery]);
 
     // Analysis State
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -182,8 +193,22 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
 
                     {/* LEFT COL: Table */}
                     <div className="xl:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col overflow-hidden">
-                        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
-                            <h2 className="text-lg font-bold text-slate-800 dark:text-white">Profit Breakdown</h2>
+                        <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 dark:bg-slate-800/30 gap-4">
+                            <h2 className="text-lg font-bold text-slate-800 dark:text-white shrink-0">Item Breakdown</h2>
+                            <div className="relative w-full sm:w-64">
+                                <input
+                                    type="text"
+                                    placeholder="Search breakdown items..."
+                                    value={localSearchQuery}
+                                    onChange={(e) => setLocalSearchQuery(e.target.value)}
+                                    className="w-full pl-8 pr-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300"
+                                />
+                                <div className="absolute left-2.5 top-2.5 text-slate-400">
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
                         </div>
                         {productFilter.length > 0 && (
                             <div className="px-5 py-2 bg-indigo-50 dark:bg-indigo-900/10 border-b border-indigo-100 dark:border-indigo-900/30 flex items-center justify-between text-xs">
@@ -195,81 +220,29 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 sticky top-0 backdrop-blur-sm z-10">
                                     <tr>
-                                        <th className="px-6 py-3 font-bold w-8"></th>
                                         <th className="px-6 py-3 font-bold">Product Name</th>
-                                        <th className="px-6 py-3 text-right font-bold">Revenue</th>
-                                        <th className="px-6 py-3 text-right font-bold">Profit</th>
-                                        <th className="px-6 py-3 text-right font-bold">Margin</th>
-                                        <th className="px-6 py-3 text-right font-bold">Purchases</th>
-                                        <th className="px-6 py-3 text-right font-bold">Stock Value</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {items.map((item, idx) => {
-                                        const margin = item.revenue > 0 ? (item.profit / item.revenue) * 100 : 0;
-                                        const isExpanded = expandedItem === item.product_id;
-                                        const customers = item.customers || [];
+                                    {filteredItems.map((item, idx) => {
                                         return (
-                                            <React.Fragment key={item.product_id || idx}>
-                                                <tr
-                                                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
-                                                    onClick={() => setExpandedItem(isExpanded ? null : item.product_id)}
-                                                >
-                                                    <td className="px-6 py-3 text-slate-400">
-                                                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                                    </td>
-                                                    <td className="px-6 py-3 font-medium text-slate-700 dark:text-slate-200">{item.name}</td>
-                                                    <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.revenue, store)}</td>
-                                                    <td className={`px-6 py-3 text-right font-bold font-mono ${item.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
-                                                        {formatCurrency(item.profit, store)}
-                                                    </td>
-                                                    <td className="px-6 py-3 text-right">
-                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${margin > 20 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                                                            {margin.toFixed(1)}%
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.purchase_cost || 0, store)}</td>
-                                                    <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.stock_value || 0, store)}</td>
-                                                </tr>
-                                                {isExpanded && (
-                                                    <tr>
-                                                        <td colSpan={7} className="px-6 py-4 bg-slate-50/70 dark:bg-slate-800/20">
-                                                            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-500 uppercase">
-                                                                <Users size={14} /> Customer Purchase Detail
-                                                                <span className="text-slate-400 font-normal normal-case">— who bought this, how often, and how much</span>
-                                                            </div>
-                                                            {customers.length === 0 ? (
-                                                                <p className="text-xs text-slate-400 italic">No customer-attributed purchases in this period (e.g. walk-in sales without a linked party).</p>
-                                                            ) : (
-                                                                <div className="overflow-x-auto">
-                                                                    <table className="w-full text-xs">
-                                                                        <thead className="text-slate-400 uppercase">
-                                                                            <tr>
-                                                                                <th className="text-left py-1 pr-4 font-bold">Customer</th>
-                                                                                <th className="text-right py-1 pr-4 font-bold">Times Purchased</th>
-                                                                                <th className="text-right py-1 pr-4 font-bold">Qty Bought</th>
-                                                                                <th className="text-right py-1 font-bold">Total Spent</th>
-                                                                            </tr>
-                                                                        </thead>
-                                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                                                            {customers.map((c, ci) => (
-                                                                                <tr key={ci}>
-                                                                                    <td className="py-1.5 pr-4 font-medium text-slate-600 dark:text-slate-300">{c.party_name}</td>
-                                                                                    <td className="py-1.5 pr-4 text-right text-slate-500">{c.purchase_count}</td>
-                                                                                    <td className="py-1.5 pr-4 text-right text-slate-500">{c.total_qty}</td>
-                                                                                    <td className="py-1.5 text-right font-mono text-slate-600 dark:text-slate-300">{formatCurrency(c.total_spent, store)}</td>
-                                                                                </tr>
-                                                                            ))}
-                                                                        </tbody>
-                                                                    </table>
-                                                                </div>
-                                                            )}
-                                                        </td>
-                                                    </tr>
-                                                )}
-                                            </React.Fragment>
+                                            <tr
+                                                key={item.product_id || idx}
+                                                className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                                                onClick={() => setSelectedProduct(item)}
+                                            >
+                                                <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-200 flex justify-between items-center">
+                                                    <span>{item.name}</span>
+                                                    <span className="text-xs text-indigo-500 font-bold transition-colors">View Details &rarr;</span>
+                                                </td>
+                                            </tr>
                                         );
                                     })}
+                                    {filteredItems.length === 0 && (
+                                        <tr>
+                                            <td className="px-6 py-8 text-center text-slate-400 italic">No products found matching the search.</td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
@@ -367,6 +340,133 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                         </div>
                     </div>
                 )}
+
+                {/* Product Detail Modal */}
+                {selectedProduct && (() => {
+                    const margin = selectedProduct.revenue > 0 ? (selectedProduct.profit / selectedProduct.revenue) * 100 : 0;
+                    const customers = selectedProduct.customers || [];
+                    return (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+                            <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+                                {/* Modal Header */}
+                                <div className="bg-indigo-600 p-5 text-white relative overflow-hidden shrink-0">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                                    <div className="relative z-10 flex justify-between items-start">
+                                        <div>
+                                            <h2 className="text-xl font-black tracking-tight">{selectedProduct.name}</h2>
+                                            <p className="text-indigo-200 text-xs font-semibold mt-1">
+                                                SKU: <span className="text-white font-bold">{selectedProduct.sku || 'N/A'}</span>
+                                            </p>
+                                        </div>
+                                        <button onClick={() => setSelectedProduct(null)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-xl">
+                                            <X size={18} />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Modal Body */}
+                                <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                                    {/* Financial KPIs */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Revenue</p>
+                                            <p className="text-lg font-black text-slate-800 dark:text-white mt-0.5">{formatCurrency(selectedProduct.revenue, store)}</p>
+                                        </div>
+                                        <div className="bg-slate-50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Profit</p>
+                                            <p className={`text-lg font-black mt-0.5 ${selectedProduct.profit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                                {formatCurrency(selectedProduct.profit, store)}
+                                            </p>
+                                        </div>
+                                        <div className="bg-slate-50 dark:bg-slate-800/30 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Profit Margin</p>
+                                            <p className="text-lg font-black text-indigo-500 dark:text-indigo-400 mt-0.5">{margin.toFixed(1)}%</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                        {/* Per-Item P&L Statement */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-500 uppercase">
+                                                <DollarSign size={14} /> Profit &amp; Loss Statement
+                                            </div>
+                                            <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                                <table className="w-full text-xs">
+                                                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                        <tr>
+                                                            <td className="py-2.5 px-4 text-slate-500">Revenue (net of returns)</td>
+                                                            <td className="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-200 font-bold">{formatCurrency(selectedProduct.revenue, store)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="py-2.5 px-4 text-slate-500">Less: Cost of Goods Sold</td>
+                                                            <td className="py-2.5 px-4 text-right font-mono text-rose-500">({formatCurrency((selectedProduct.revenue || 0) - (selectedProduct.profit || 0), store)})</td>
+                                                        </tr>
+                                                        <tr className="bg-slate-100 dark:bg-slate-800/80">
+                                                            <td className="py-2.5 px-4 font-bold text-slate-700 dark:text-slate-200">Gross Profit</td>
+                                                            <td className={`py-2.5 px-4 text-right font-mono font-bold ${selectedProduct.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>{formatCurrency(selectedProduct.profit, store)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="py-2.5 px-4 text-slate-500">Gross Margin</td>
+                                                            <td className="py-2.5 px-4 text-right font-mono text-slate-700 dark:text-slate-200 font-bold">{margin.toFixed(1)}%</td>
+                                                        </tr>
+                                                        <tr className="border-t border-slate-200 dark:border-slate-700">
+                                                            <td className="py-2.5 px-4 text-slate-400 italic">Purchases in period</td>
+                                                            <td className="py-2.5 px-4 text-right font-mono text-slate-500">{formatCurrency(selectedProduct.purchase_cost || 0, store)}</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="py-2.5 px-4 text-slate-400 italic">Current stock value</td>
+                                                            <td className="py-2.5 px-4 text-right font-mono text-slate-500">{formatCurrency(selectedProduct.stock_value || 0, store)}</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+
+                                        {/* Customer Purchase Detail */}
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-500 uppercase">
+                                                <Users size={14} /> Customer Purchase Detail
+                                            </div>
+                                            {customers.length === 0 ? (
+                                                <div className="p-8 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+                                                    <p className="text-xs text-slate-400 italic">No customer-attributed purchases in this period.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="overflow-x-auto border border-slate-200 dark:border-slate-700 rounded-xl">
+                                                    <table className="w-full text-xs">
+                                                        <thead className="text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50">
+                                                            <tr>
+                                                                <th className="text-left py-2 px-3 font-bold">Customer</th>
+                                                                <th className="text-right py-2 px-3 font-bold">Times</th>
+                                                                <th className="text-right py-2 px-3 font-bold">Qty</th>
+                                                                <th className="text-right py-2 px-3 font-bold">Spent</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                            {customers.map((c, ci) => (
+                                                                <tr key={ci} className="hover:bg-slate-50 dark:hover:bg-slate-800/30">
+                                                                    <td className="py-2 px-3 font-medium text-slate-600 dark:text-slate-300 truncate max-w-[120px]">{c.party_name}</td>
+                                                                    <td className="py-2 px-3 text-right text-slate-500">{c.purchase_count}</td>
+                                                                    <td className="py-2 px-3 text-right text-slate-500">{c.total_qty}</td>
+                                                                    <td className="py-2 px-3 text-right font-mono text-slate-600 dark:text-slate-300 font-bold">{formatCurrency(c.total_spent, store)}</td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Modal Footer */}
+                                <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end shrink-0">
+                                    <button onClick={() => setSelectedProduct(null)} className="px-4 py-2 bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs font-bold rounded-lg transition-colors">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
             </div>
         </ReportsLayout>
     );

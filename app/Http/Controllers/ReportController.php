@@ -1554,55 +1554,27 @@ class ReportController extends Controller
              $purchase = $purchases->get($cid, ['qty_purchased' => 0.0, 'purchase_cost' => 0.0]);
              $stock = $stockValues->get($cid, ['stock_qty' => 0.0, 'stock_value' => 0.0]);
              $customers = $customerDetail->get($cid, collect())->values();
-             $topCustomer = $customers->first();
 
              return array_merge($row, [
                  'qty_purchased'   => $purchase['qty_purchased'],
                  'purchase_cost'   => $purchase['purchase_cost'],
                  'stock_qty'       => $stock['stock_qty'],
                  'stock_value'     => $stock['stock_value'],
-                 // Display-formatted margin (raw numeric 'margin' field from
-                 // getGrossProfitByCategory() left untouched for any other caller
-                 // doing math/sorting on it) — the 'margin_display' column below
-                 // is what MasterReport actually renders.
-                 'margin_display'  => number_format($row['margin'], 2) . '%',
-                 // Full drilldown data for a future detail view, flattened into a
-                 // plain string since MasterReport's col.render expects an actual
-                 // JS function, not a raw array/object.
+                 // Full customer drilldown, rendered as a proper table in the
+                 // dedicated page's expand-row (see CategoryProfitability.jsx) —
+                 // not flattened to a string, since this page isn't constrained
+                 // by MasterReport's col.render-must-be-a-function limitation.
                  'customers'       => $customers,
-                 'top_customer'    => $topCustomer
-                     ? "{$topCustomer['party_name']} ({$topCustomer['purchase_count']}x, " . number_format($topCustomer['total_spent'], 2) . ')'
-                     : '—',
              ]);
          });
 
-         return Inertia::render('Reports/GenericReport', [
-             'title' => 'Category Profitability',
-             'columns' => [
-                 ['key' => 'name', 'label' => 'Category', 'sortable' => true],
-                 ['key' => 'revenue', 'label' => 'Revenue', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                 ['key' => 'cost', 'label' => 'Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                 ['key' => 'profit', 'label' => 'Profit', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                 // NOTE: 'render' here was previously a PHP string ("return row.margin...")
-                 // — MasterReport.jsx calls col.render as an actual JS function
-                 // (col.render(row)), so a PHP string can never work; it either printed
-                 // literally or threw. Pre-existing bug, unrelated to this report's
-                 // fixes, corrected here since it's a one-line adjacent fix: points at
-                 // the pre-formatted 'margin_display' string field instead.
-                 ['key' => 'margin_display', 'label' => 'Margin %', 'align' => 'right'],
-                 ['key' => 'purchase_cost', 'label' => 'Purchases', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                 ['key' => 'stock_value', 'label' => 'Stock Value', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                 ['key' => 'top_customer', 'label' => 'Top Customer', 'align' => 'left'],
-             ],
+         // Dedicated page (not GenericReport/MasterReport) — this report needs a
+         // per-category P&L statement and a customer-detail drilldown when a row
+         // is expanded, which MasterReport's flat table doesn't support. Mirrors
+         // ItemWiseProfit.jsx's expand-row pattern one level higher (category
+         // instead of product).
+         return Inertia::render('Reports/CategoryProfitability', [
              'data' => $data,
-             'stats' => [
-                 ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('revenue'))],
-                 ['label' => 'Total Profit', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('profit')), 'type' => 'up'],
-                 ['label' => 'Total Purchases', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('purchase_cost'))],
-                 ['label' => 'Total Stock Value', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('stock_value'))],
-             ],
-             'chartData' => $data->map(fn($r) => ['name' => $r['name'], 'value' => $r['profit']]),
-             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#0ea5e9'],
              'filters' => [
                  'start_date' => $startDate,
                  'end_date'   => $endDate,
@@ -2108,8 +2080,13 @@ class ReportController extends Controller
     }
 
     /**
-     * Point-In-Time Inventory Report (UI Review request #3) — quantity and value
-     * of the entire inventory as of any past date, not just today.
+     * Point-In-Time Inventory Report — quantity and value of the entire
+     * inventory as of any past date AND time, not just today or end-of-day.
+     *
+     * Accepts separate as_of_date (Y-m-d) and as_of_time (H:i) inputs — matching
+     * a date picker + time picker in the UI — and combines them into one
+     * datetime before delegating to the reconstruction logic. Time is optional:
+     * omitted, it defaults to end-of-day (the original date-only behavior).
      *
      * See FinancialReportingService::getPointInTimeInventory() for the exact
      * reconstruction method (replays stock_movements to get exact historical
@@ -2118,31 +2095,41 @@ class ReportController extends Controller
     public function pointInTimeInventory(Request $request)
     {
         ReportTierGate::enforce('reports.point-in-time-inventory');
-        $asOf = $request->input('as_of', Carbon::today()->toDateString());
+        $asOfDate = $request->input('as_of_date', Carbon::today()->toDateString());
+        $asOfTime = $request->input('as_of_time'); // e.g. "15:45", optional
+
+        $asOf = $asOfTime ? "{$asOfDate} {$asOfTime}" : $asOfDate;
 
         $data = (new FinancialReportingService())->getPointInTimeInventory($asOf);
+        // The exact resolved instant, for display. $data->first() is null when the
+        // tenant has zero products/movements at all — guard before indexing so an
+        // empty-catalog tenant doesn't trigger a PHP warning on null['as_of'].
+        $firstRow = $data->first();
+        $resolvedAsOf = $firstRow ? $firstRow['as_of'] : $asOf;
 
         // Dedicated page (not GenericReport/MasterReport) — this report needs a
-        // single "as of" date picker, not the start/end range presets MasterReport
-        // provides, so a purpose-built filter UI is the correct fit here.
+        // date picker PLUS a time picker, not the start/end range presets
+        // MasterReport provides, so a purpose-built filter UI is the correct fit.
         return Inertia::render('Reports/PointInTimeInventory', [
             'data' => $data,
             'stats' => [
-                ['label' => 'As Of Date', 'value' => $asOf],
+                ['label' => 'As Of', 'value' => $resolvedAsOf],
                 ['label' => 'Total Products', 'value' => $data->count()],
                 ['label' => 'Total Quantity', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('quantity'))],
                 ['label' => 'Total Stock Value', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('stock_value'))],
             ],
             'meta' => [
-                'as_of' => $asOf,
-                'note' => 'Quantity is reconstructed exactly from the full stock movement ledger. Unit cost uses the nearest inventory batch cost on or before this date — a close approximation of historical cost, not a stored literal weighted-average snapshot.',
+                'as_of_date' => $asOfDate,
+                'as_of_time' => $asOfTime,
+                'resolved_as_of' => $resolvedAsOf,
+                'note' => 'Quantity is reconstructed exactly from the full stock movement ledger down to the minute you select. Unit cost uses the nearest inventory batch cost on or before this moment — a close approximation of historical cost, not a stored literal weighted-average snapshot.',
             ],
         ]);
     }
 
     /**
-     * Customer Insights Report (UI Review request #4) — favorite category and
-     * most-bought item per customer, plus overall purchase behavior.
+     * Customer Insights Report — favorite AND least-favorite category, most-bought
+     * item per customer, plus overall purchase behavior.
      */
     public function customerInsights(Request $request)
     {
@@ -2159,6 +2146,7 @@ class ReportController extends Controller
                 ['key' => 'total_spend', 'label' => 'Total Spend', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
                 ['key' => 'avg_invoice_value', 'label' => 'Avg. Invoice', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
                 ['key' => 'favorite_category', 'label' => 'Favorite Category', 'sortable' => true],
+                ['key' => 'least_favorite_category', 'label' => 'Least Favorite Category', 'sortable' => true],
                 ['key' => 'most_bought_item', 'label' => 'Most Bought Item', 'sortable' => true],
                 ['key' => 'last_purchase_at', 'label' => 'Last Purchase', 'type' => 'date', 'sortable' => true],
             ],
