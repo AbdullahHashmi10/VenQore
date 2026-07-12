@@ -51,7 +51,10 @@ class ReportController extends Controller
                 $endDate = Carbon::now()->subWeek()->endOfWeek()->toDateString();
                 break;
             case 'this_month':
-                $startDate = \App\Helpers\SettingsHelper::getFiscalYearStart();
+                // Calendar month (1st of current month) — NOT fiscal year start.
+                // See CLAUDE.md "Date & Time Period Naming Conventions": "Month" must
+                // always mean the current calendar month, 1st to end of that month.
+                $startDate = Carbon::now()->startOfMonth()->toDateString();
                 $endDate = Carbon::now()->endOfMonth()->toDateString();
                 break;
             case 'last_month':
@@ -1048,21 +1051,51 @@ class ReportController extends Controller
         ReportTierGate::enforce('reports.item-wise-profit');
         [$startDate, $endDate, $range] = $this->resolveDateRange($request);
 
+        // Optional multi-select filter: ?product_ids[]=uuid1&product_ids[]=uuid2
+        // Omitted/empty = all products with sales activity in the period (unchanged
+        // default behavior).
+        $productIdFilter = array_filter((array) $request->input('product_ids', []));
+
         // Phase 2.2 — Delegates to FinancialReportingService.
         // Revenue = sale_items.net_amount (Phase 2.1 waterfall column, ex-tax ex-discount)
         // COGS    = sale_item_batches.total_cogs (FIFO locked-in cost)
         // Margin  = (gross_profit / net_revenue) × 100 — calculated dynamically, never stored
-        $rawItems = (new FinancialReportingService())
-            ->getGrossProfitByProduct($startDate, $endDate);
+        $frs = new FinancialReportingService();
+        $rawItems = $frs->getGrossProfitByProduct($startDate, $endDate);
 
-        $items = $rawItems->map(function ($item) {
+        if (!empty($productIdFilter)) {
+            $rawItems = $rawItems->whereIn('product_id', $productIdFilter)->values();
+        }
+
+        $allProductIds = $rawItems->pluck('product_id')->all();
+
+        // Item-Wise Detailed Report additions (per the UI Review request):
+        // Purchases, Stock Value, and customer purchase detail (who / how many
+        // times / how much) — merged in per-product, keyed by product_id.
+        $purchases = $frs->getPurchasesByProduct($startDate, $endDate);
+        $stockValues = $frs->getCurrentStockValueByProduct($allProductIds);
+        $customerDetail = !empty($allProductIds)
+            ? $frs->getCustomerDetailByProduct($allProductIds, $startDate, $endDate)
+            : collect();
+
+        $items = $rawItems->map(function ($item) use ($purchases, $stockValues, $customerDetail) {
+            $pid = $item['product_id'];
+            $purchase = $purchases->get($pid, ['qty_purchased' => 0.0, 'purchase_cost' => 0.0]);
+            $stock = $stockValues->get($pid, ['stock_qty' => 0.0, 'stock_value' => 0.0]);
+
             return [
+                'product_id' => $pid,
                 'name' => $item['name'],
                 'sku' => $item['sku'],
                 'quantity' => $item['quantity'],
                 'revenue' => $item['net_revenue'],
                 'profit' => $item['gross_profit'],
                 'margin_pct' => $item['margin_pct'],
+                'qty_purchased' => $purchase['qty_purchased'],
+                'purchase_cost' => $purchase['purchase_cost'],
+                'stock_qty' => $stock['stock_qty'],
+                'stock_value' => $stock['stock_value'],
+                'customers' => $customerDetail->get($pid, collect())->values(),
             ];
         });
 
@@ -1072,7 +1105,9 @@ class ReportController extends Controller
                 'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
+                'product_ids'=> $productIdFilter,
             ],
+            'allProducts' => \App\Models\Product::orderBy('name')->get(['id', 'name', 'sku']),
         ]);
     }
 
@@ -1502,9 +1537,45 @@ class ReportController extends Controller
         ReportTierGate::enforce('reports.item-category-wise-profit-loss');
          $startDate = $request->input('start_date', \App\Helpers\SettingsHelper::getFiscalYearStart());
          $endDate   = $request->input('end_date',   Carbon::now()->endOfMonth()->toDateString());
- 
-         $data = (new FinancialReportingService())->getGrossProfitByCategory($startDate, $endDate);
- 
+
+         $frs = new FinancialReportingService();
+         $rawData = $frs->getGrossProfitByCategory($startDate, $endDate);
+
+         // Category-Wise Detailed Report additions (per the UI Review request):
+         // Purchases and Stock Value merged in per-category. Customer detail is
+         // exposed as a per-row 'customers' array (top spenders in that category)
+         // rather than a table column — same drilldown pattern as Item-Wise.
+         $purchases = $frs->getPurchasesByCategory($startDate, $endDate);
+         $stockValues = $frs->getCurrentStockValueByCategory();
+         $customerDetail = $frs->getCustomerDetailByCategory($startDate, $endDate);
+
+         $data = $rawData->map(function ($row) use ($purchases, $stockValues, $customerDetail) {
+             $cid = $row['category_id'];
+             $purchase = $purchases->get($cid, ['qty_purchased' => 0.0, 'purchase_cost' => 0.0]);
+             $stock = $stockValues->get($cid, ['stock_qty' => 0.0, 'stock_value' => 0.0]);
+             $customers = $customerDetail->get($cid, collect())->values();
+             $topCustomer = $customers->first();
+
+             return array_merge($row, [
+                 'qty_purchased'   => $purchase['qty_purchased'],
+                 'purchase_cost'   => $purchase['purchase_cost'],
+                 'stock_qty'       => $stock['stock_qty'],
+                 'stock_value'     => $stock['stock_value'],
+                 // Display-formatted margin (raw numeric 'margin' field from
+                 // getGrossProfitByCategory() left untouched for any other caller
+                 // doing math/sorting on it) — the 'margin_display' column below
+                 // is what MasterReport actually renders.
+                 'margin_display'  => number_format($row['margin'], 2) . '%',
+                 // Full drilldown data for a future detail view, flattened into a
+                 // plain string since MasterReport's col.render expects an actual
+                 // JS function, not a raw array/object.
+                 'customers'       => $customers,
+                 'top_customer'    => $topCustomer
+                     ? "{$topCustomer['party_name']} ({$topCustomer['purchase_count']}x, " . number_format($topCustomer['total_spent'], 2) . ')'
+                     : '—',
+             ]);
+         });
+
          return Inertia::render('Reports/GenericReport', [
              'title' => 'Category Profitability',
              'columns' => [
@@ -1512,15 +1583,30 @@ class ReportController extends Controller
                  ['key' => 'revenue', 'label' => 'Revenue', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
                  ['key' => 'cost', 'label' => 'Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
                  ['key' => 'profit', 'label' => 'Profit', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                 ['key' => 'margin', 'label' => 'Margin %', 'align' => 'right', 'render' => "return row.margin + '%'"]
+                 // NOTE: 'render' here was previously a PHP string ("return row.margin...")
+                 // — MasterReport.jsx calls col.render as an actual JS function
+                 // (col.render(row)), so a PHP string can never work; it either printed
+                 // literally or threw. Pre-existing bug, unrelated to this report's
+                 // fixes, corrected here since it's a one-line adjacent fix: points at
+                 // the pre-formatted 'margin_display' string field instead.
+                 ['key' => 'margin_display', 'label' => 'Margin %', 'align' => 'right'],
+                 ['key' => 'purchase_cost', 'label' => 'Purchases', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                 ['key' => 'stock_value', 'label' => 'Stock Value', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                 ['key' => 'top_customer', 'label' => 'Top Customer', 'align' => 'left'],
              ],
              'data' => $data,
              'stats' => [
                  ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('revenue'))],
                  ['label' => 'Total Profit', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('profit')), 'type' => 'up'],
+                 ['label' => 'Total Purchases', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('purchase_cost'))],
+                 ['label' => 'Total Stock Value', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('stock_value'))],
              ],
              'chartData' => $data->map(fn($r) => ['name' => $r['name'], 'value' => $r['profit']]),
-             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#0ea5e9']
+             'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#0ea5e9'],
+             'filters' => [
+                 'start_date' => $startDate,
+                 'end_date'   => $endDate,
+             ],
          ]);
     }
 
@@ -1874,6 +1960,21 @@ class ReportController extends Controller
             $sales = $query->orderBy('posted_at')->get();
 
             // 1. Sales Trend with Gap Filling
+            //
+            // Ledger-derived revenue (Single Source of Truth per CLAUDE.md).
+            // OLD: $group->sum('total') — tax-inclusive gross invoice total from the
+            //      operational sales table. Disagreed with Dashboard/Sell Command
+            //      Center, which both read FinancialReportingService, and never
+            //      correctly netted partial returns.
+            // NEW: FinancialReportingService::getProfitByPeriod() — same engine as
+            //      the Dashboard chart, keyed by the same granularity. 'count' stays
+            //      a transaction-volume count from the operational table, which is
+            //      legitimately operational, not a financial total.
+            $frsGranularity = match ($groupBy) {
+                'hour'  => 'hourly',
+                'month' => 'monthly',
+                default => 'daily',
+            };
             $salesGrouped = $sales->groupBy(function ($sale) use ($groupBy) {
                 if ($groupBy === 'hour')
                     return $sale->posted_at->format('H');
@@ -1883,18 +1984,20 @@ class ReportController extends Controller
             });
 
             if ($range === 'today') {
+                $periodMap = app(FinancialReportingService::class)->getProfitByPeriod(Carbon::today()->startOfDay(), Carbon::today()->endOfDay(), $frsGranularity);
                 for ($i = 0; $i < 24; $i++) {
                     $hour = str_pad($i, 2, '0', STR_PAD_LEFT);
                     $group = $salesGrouped->get($hour);
                     $trendData[] = [
                         'name' => Carbon::createFromTime($i, 0)->format('h A'),
-                        'sales' => $group ? $group->sum('total') : 0,
+                        'sales' => (float) ($periodMap[$hour]['revenue'] ?? 0),
                         'count' => $group ? $group->count() : 0
                     ];
                 }
             } elseif ($range === 'year') {
                 $start = Carbon::now()->startOfYear();
                 $end = Carbon::now()->endOfYear();
+                $periodMap = app(FinancialReportingService::class)->getProfitByPeriod($start, $end, $frsGranularity);
 
                 $current = $start->copy();
                 while ($current <= $end) {
@@ -1902,7 +2005,7 @@ class ReportController extends Controller
                     $group = $salesGrouped->get($key);
                     $trendData[] = [
                         'name' => $current->format('M'),
-                        'sales' => $group ? $group->sum('total') : 0,
+                        'sales' => (float) ($periodMap[$key]['revenue'] ?? 0),
                         'count' => $group ? $group->count() : 0
                     ];
                     $current->addMonth();
@@ -1918,6 +2021,7 @@ class ReportController extends Controller
                     $start = Carbon::now()->subDays(29)->startOfDay();
                     $end = Carbon::now()->endOfDay();
                 }
+                $periodMap = app(FinancialReportingService::class)->getProfitByPeriod($start, $end, $frsGranularity);
 
                 $current = $start->copy();
                 $days = 0;
@@ -1926,7 +2030,7 @@ class ReportController extends Controller
                     $group = $salesGrouped->get($key);
                     $trendData[] = [
                         'name' => $current->format('d M'),
-                        'sales' => $group ? $group->sum('total') : 0,
+                        'sales' => (float) ($periodMap[$key]['revenue'] ?? 0),
                         'count' => $group ? $group->count() : 0
                     ];
                     $current->addDay();
@@ -1934,7 +2038,11 @@ class ReportController extends Controller
                 }
             }
 
-            // 2. Paid vs Unpaid (Recovery)
+            // 2. Paid vs Unpaid (Recovery) — operational invoice payment-collection
+            // status, not a headline revenue KPI. Needs per-invoice paid_amount vs.
+            // total, which the ledger engine doesn't expose at this granularity
+            // (that's what getAgedReceivables() is for). Left on the sales table
+            // deliberately — see Verification Checklist item in the implementation plan.
             $totalRevenue = $sales->sum('total');
             $totalPaid = $sales->sum('paid_amount');
 
@@ -1997,5 +2105,120 @@ class ReportController extends Controller
             }
         }
         return $this->bankStatement($request);
+    }
+
+    /**
+     * Point-In-Time Inventory Report (UI Review request #3) — quantity and value
+     * of the entire inventory as of any past date, not just today.
+     *
+     * See FinancialReportingService::getPointInTimeInventory() for the exact
+     * reconstruction method (replays stock_movements to get exact historical
+     * quantity, pairs with the nearest inventory_batches.unit_cost for value).
+     */
+    public function pointInTimeInventory(Request $request)
+    {
+        ReportTierGate::enforce('reports.point-in-time-inventory');
+        $asOf = $request->input('as_of', Carbon::today()->toDateString());
+
+        $data = (new FinancialReportingService())->getPointInTimeInventory($asOf);
+
+        // Dedicated page (not GenericReport/MasterReport) — this report needs a
+        // single "as of" date picker, not the start/end range presets MasterReport
+        // provides, so a purpose-built filter UI is the correct fit here.
+        return Inertia::render('Reports/PointInTimeInventory', [
+            'data' => $data,
+            'stats' => [
+                ['label' => 'As Of Date', 'value' => $asOf],
+                ['label' => 'Total Products', 'value' => $data->count()],
+                ['label' => 'Total Quantity', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('quantity'))],
+                ['label' => 'Total Stock Value', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('stock_value'))],
+            ],
+            'meta' => [
+                'as_of' => $asOf,
+                'note' => 'Quantity is reconstructed exactly from the full stock movement ledger. Unit cost uses the nearest inventory batch cost on or before this date — a close approximation of historical cost, not a stored literal weighted-average snapshot.',
+            ],
+        ]);
+    }
+
+    /**
+     * Customer Insights Report (UI Review request #4) — favorite category and
+     * most-bought item per customer, plus overall purchase behavior.
+     */
+    public function customerInsights(Request $request)
+    {
+        ReportTierGate::enforce('reports.customer-insights');
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
+
+        $data = (new FinancialReportingService())->getCustomerInsights($startDate, $endDate);
+
+        return Inertia::render('Reports/GenericReport', [
+            'title' => 'Customer Insights',
+            'columns' => [
+                ['key' => 'party_name', 'label' => 'Customer', 'sortable' => true],
+                ['key' => 'invoice_count', 'label' => 'Invoices', 'type' => 'number', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'total_spend', 'label' => 'Total Spend', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'avg_invoice_value', 'label' => 'Avg. Invoice', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'favorite_category', 'label' => 'Favorite Category', 'sortable' => true],
+                ['key' => 'most_bought_item', 'label' => 'Most Bought Item', 'sortable' => true],
+                ['key' => 'last_purchase_at', 'label' => 'Last Purchase', 'type' => 'date', 'sortable' => true],
+            ],
+            'data' => $data,
+            'stats' => [
+                ['label' => 'Total Customers', 'value' => $data->count()],
+                ['label' => 'Total Revenue', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->sum('total_spend')), 'type' => 'up'],
+                ['label' => 'Avg. Spend / Customer', 'value' => \App\Helpers\SettingsHelper::formatNumber($data->count() > 0 ? $data->sum('total_spend') / $data->count() : 0)],
+            ],
+            'chartData' => $data->sortByDesc('total_spend')->take(10)->map(fn($r) => ['name' => $r['party_name'], 'value' => $r['total_spend']])->values(),
+            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#7c3aed'],
+            'filters' => [
+                'range'      => $range,
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+            ],
+        ]);
+    }
+
+    /**
+     * Supplier Insights & Price History Report (UI Review request #5) — which
+     * suppliers source which products, and how purchase cost has moved over
+     * time per product per supplier (e.g. "eggs bought at 50 previously, now at 60").
+     */
+    public function supplierInsights(Request $request)
+    {
+        ReportTierGate::enforce('reports.supplier-insights');
+        [$startDate, $endDate, $range] = $this->resolveDateRange($request);
+
+        $result = (new FinancialReportingService())->getSupplierInsights($startDate, $endDate);
+        $sourcing = $result['sourcing'];
+
+        return Inertia::render('Reports/GenericReport', [
+            'title' => 'Supplier Insights & Price History',
+            'columns' => [
+                ['key' => 'supplier_name', 'label' => 'Supplier', 'sortable' => true],
+                ['key' => 'product_name', 'label' => 'Product', 'sortable' => true],
+                ['key' => 'purchase_count', 'label' => 'Purchases', 'type' => 'number', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'total_qty_purchased', 'label' => 'Qty Purchased', 'type' => 'number', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'avg_unit_cost', 'label' => 'Avg. Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'min_unit_cost', 'label' => 'Lowest Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'max_unit_cost', 'label' => 'Highest Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
+                ['key' => 'cost_variance_pct', 'label' => 'Variance %', 'align' => 'right'],
+            ],
+            'data' => $sourcing,
+            'stats' => [
+                ['label' => 'Supplier-Product Pairs', 'value' => $sourcing->count()],
+                ['label' => 'Total Purchase Volume', 'value' => \App\Helpers\SettingsHelper::formatNumber($sourcing->sum('total_qty_purchased'))],
+                ['label' => 'Products with Rising Cost', 'value' => $sourcing->filter(fn($r) => $r['max_unit_cost'] > $r['min_unit_cost'])->count()],
+            ],
+            'chartData' => $sourcing->sortByDesc('cost_variance_pct')->take(10)->map(fn($r) => ['name' => $r['product_name'] . ' (' . $r['supplier_name'] . ')', 'value' => $r['cost_variance_pct']])->values(),
+            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#dc2626'],
+            // Full chronological cost-per-purchase series, grouped by product_id,
+            // for a future price-over-time line chart per product+supplier.
+            'priceHistory' => $result['price_history'],
+            'filters' => [
+                'range'      => $range,
+                'start_date' => $startDate,
+                'end_date'   => $endDate,
+            ],
+        ]);
     }
 }

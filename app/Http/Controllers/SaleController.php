@@ -899,7 +899,13 @@ class SaleController extends Controller
                             ? (float) $originalItem->net_amount / $originalQty
                             : (float) $originalItem->unit_price;
 
-                        $lineRevenue  = round($netAmountPerUnit * $qty, 4);
+                        // Round to 2dp here (not 4) — this value is written directly into
+                        // journal_items.debit/credit below with no further round-off line,
+                        // unlike the main sale-posting path which settles residual cents via
+                        // an explicit "Round off" journal item (see createSale ~L1541-1546).
+                        // Sub-cent precision persisted to the ledger is exactly the kind of
+                        // drift that produced the Rs 0.01–0.04 Sales-vs-Net-Profit mismatch.
+                        $lineRevenue  = round($netAmountPerUnit * $qty, 2);
                         $returnTotal += $lineRevenue;
 
                         // Restore FIFO stock for this specific item proportionally (LIFO order of deduction for returns)

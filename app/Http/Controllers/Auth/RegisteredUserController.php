@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\InviteRedirect;
+use App\Support\GiftRedirect;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class RegisteredUserController extends Controller
     public function create(Request $request): Response
     {
         InviteRedirect::captureFromIntended();
+        GiftRedirect::captureFromIntended();
 
         return Inertia::render('Auth/Register');
     }
@@ -60,6 +62,11 @@ class RegisteredUserController extends Controller
 
         // Invited users go straight to accepting their invite — no plan, no store.
         if ($redirect = InviteRedirect::pending()) {
+            return $redirect;
+        }
+
+        // Users who registered via a gift link go straight back to accept it.
+        if ($redirect = GiftRedirect::pending()) {
             return $redirect;
         }
 

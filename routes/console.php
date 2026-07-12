@@ -25,6 +25,15 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// â”€â”€ Gift Access Links / Subscription Expiry Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Sends day-7 and day-2 reminder emails before subscription_ends_at lapses
+// (real subscriptions AND gift-granted access alike). Mail-only â€” never
+// locks anything; the actual lock is on-demand in TenantMiddleware.
+\Illuminate\Support\Facades\Schedule::command('tenants:send-subscription-expiry-reminders')
+    ->dailyAt('09:15')
+    ->withoutOverlapping()
+    ->onOneServer();
+
 // Suspends trials that ended in the past hour and sends expiry emails
 \Illuminate\Support\Facades\Schedule::command('tenants:process-expired-trials')
     ->hourly()

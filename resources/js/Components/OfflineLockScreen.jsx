@@ -16,8 +16,18 @@ export default function OfflineLockScreen() {
         const handleOnline = () => checkAccess();
         window.addEventListener('online', handleOnline);
 
+        // Gift Access Links / subscription expiry: this is a pure local-clock
+        // comparison against an already-synced date (no network call), so a
+        // tight interval costs nothing. Without this, a device left open and
+        // idle across the exact moment its access expires would only notice
+        // on the next mount, reconnect, or manual retry — this makes "stop
+        // working immediately" true even for a session that's been open the
+        // whole time, not just on next load.
+        const expiryPoll = setInterval(checkAccess, 60 * 1000);
+
         return () => {
             window.removeEventListener('online', handleOnline);
+            clearInterval(expiryPoll);
         };
     }, []);
 

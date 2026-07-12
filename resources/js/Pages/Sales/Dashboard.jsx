@@ -78,7 +78,7 @@ export default function SalesDashboard({ stats, recentSales, salesByMethod, topS
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <StatCard
-                                title="Sales Today"
+                                title="Revenue Today"
                                 value={formatCurrency(Number(stats.sales_today || 0), store)}
                                 icon={DollarSign}
                                 color="bg-emerald-500"

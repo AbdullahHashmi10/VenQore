@@ -143,6 +143,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/invite/accept',         [\App\Http\Controllers\StaffInvitationController::class, 'accept'])->name('invite.submit');
     Route::post('/invite/decline',        [\App\Http\Controllers\StaffInvitationController::class, 'declineByToken'])->name('invite.decline');
 
+    // ── Gift Access Links: Accept (requires auth — see /gift/{token} below
+    // for the public preview page any visitor can see before logging in) ──
+    Route::post('/gift/{token}', [\App\Http\Controllers\GiftRedemptionController::class, 'accept'])->name('gift.accept');
+
     // ── V1 Staff Invite: Code Validation (Path B — Hub) ───────────
     Route::post('/invite/validate-code',  [\App\Http\Controllers\StaffInvitationController::class, 'validateCode'])->name('invite.validate-code');
 
@@ -468,6 +472,15 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
             Route::put('/{coupon}', [\App\Http\Controllers\SuperAdmin\CouponController::class, 'update'])->name('update');
         });
 
+        // ── Monetization — Gift Access Links ──────────────────────────────
+        Route::prefix('access-grants')->name('access-grants.')->group(function () {
+            Route::get('/',                  [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'index'])->name('index');
+            Route::post('/',                 [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'store'])->name('store');
+            Route::post('/{grant}/revoke',   [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'revoke'])->name('revoke');
+            Route::post('/{grant}/unrevoke', [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'unrevoke'])->name('unrevoke');
+            Route::delete('/{grant}',        [\App\Http\Controllers\SuperAdmin\AccessGrantController::class, 'destroy'])->name('destroy');
+        });
+
         // ── Monetization — Tenant Overrides ───────────────────────────────
         Route::prefix('tenant-overrides')->name('tenants.')->group(function () {
             Route::get('/',              [\App\Http\Controllers\SuperAdmin\TenantOverrideController::class, 'index'])->name('overrides');
@@ -555,6 +568,12 @@ Route::get('/welcome-splash', function () {
 })->middleware('auth')->name('welcome-splash');
 
 
+
+// ── Gift Access Links: public preview page ────────────────────────────────────
+// Anyone with the link can see what they're being offered before deciding to
+// log in / register. The actual grant (POST /gift/{token}) requires auth —
+// see the 'gift.accept' route in the authenticated group above.
+Route::get('/gift/{token}', [\App\Http\Controllers\GiftRedemptionController::class, 'show'])->name('gift.show');
 
 // ── Phase 7: AppSumo LTD Code Redemption ──────────────────────────────────────
 // Public routes — no auth required (buyers arrive from AppSumo email)
@@ -868,6 +887,12 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
         Route::get('/reports/stock-aging', [\App\Http\Controllers\ReportController::class, 'stockAging'])->name('reports.stock-aging');
         Route::get('/reports/sale-purchase-by-party-group', [\App\Http\Controllers\ReportController::class, 'salePurchaseByPartyGroup'])->name('reports.sale-purchase-by-party-group');
         Route::get('/reports/analytics', [\App\Http\Controllers\ReportController::class, 'analytics'])->name('reports.analytics');
+
+        // New reports (UI Review request): Point-In-Time Inventory, Customer Insights,
+        // Supplier Insights & Price History.
+        Route::get('/reports/point-in-time-inventory', [\App\Http\Controllers\ReportController::class, 'pointInTimeInventory'])->name('reports.point-in-time-inventory');
+        Route::get('/reports/customer-insights', [\App\Http\Controllers\ReportController::class, 'customerInsights'])->name('reports.customer-insights');
+        Route::get('/reports/supplier-insights', [\App\Http\Controllers\ReportController::class, 'supplierInsights'])->name('reports.supplier-insights');
 
         // Owner's Daily Pulse (Secure Vault Dashboard)
         Route::get('/reports/owner-daily-pulse', [\App\Http\Controllers\OwnerDailyPulseController::class, 'index'])->name('reports.owner-daily-pulse');

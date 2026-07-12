@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\TenantUser;
 use App\Support\InviteRedirect;
+use App\Support\GiftRedirect;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +38,9 @@ class AuthenticatedSessionController extends Controller
 
         // Preserve an invite token if the user was sent here from an invite link.
         InviteRedirect::captureFromIntended();
+
+        // Preserve a gift-link token if the user was sent here from /gift/{token}.
+        GiftRedirect::captureFromIntended();
 
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
@@ -74,6 +78,11 @@ class AuthenticatedSessionController extends Controller
         // (An invited user has 0 stores of their own and must NOT be pushed into
         // the create-store / plan-selection flow.)
         if ($redirect = InviteRedirect::pending()) {
+            return $redirect;
+        }
+
+        // ── Pending gift link: finish viewing/accepting it before store routing ──
+        if ($redirect = GiftRedirect::pending()) {
             return $redirect;
         }
 

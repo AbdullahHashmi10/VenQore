@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Support\InviteRedirect;
+use App\Support\GiftRedirect;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Socialite\Facades\Socialite;
@@ -63,6 +64,11 @@ class GoogleAuthController extends Controller
 
             // 3b. Invited user: finish accepting the invite before store routing.
             if ($redirect = InviteRedirect::pending()) {
+                return $redirect;
+            }
+
+            // 3c. Pending gift link: finish viewing/accepting it before store routing.
+            if ($redirect = GiftRedirect::pending()) {
                 return $redirect;
             }
 

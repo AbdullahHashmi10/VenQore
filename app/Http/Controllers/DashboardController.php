@@ -740,11 +740,17 @@ class DashboardController extends Controller
             $today[] = ['name' => "$h:00", 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
         }
 
-        // Month (daily, last 30 days)
-        $monthMap = $frs->getProfitByPeriod(Carbon::now()->subDays(29)->startOfDay(), Carbon::now()->endOfDay(), 'daily');
+        // Month (daily, current calendar month: 1st through today).
+        // CLAUDE.md "Date & Time Period Naming Conventions": "Month" must be the
+        // current calendar month, not a rolling window — must match getSalesStats()
+        // in this same controller, which already uses startOfMonth()/endOfMonth().
+        $monthStart = Carbon::now()->startOfMonth();
+        $monthToday = Carbon::now();
+        $monthMap = $frs->getProfitByPeriod($monthStart->copy()->startOfDay(), $monthToday->copy()->endOfDay(), 'daily');
         $month = [];
-        for ($i = 29; $i >= 0; $i--) {
-            $date = Carbon::now()->subDays($i);
+        $daysElapsed = $monthStart->diffInDays($monthToday); // 0-indexed offset of today within the month
+        for ($i = $daysElapsed; $i >= 0; $i--) {
+            $date = $monthToday->copy()->subDays($i);
             $row = $monthMap[$date->format('Y-m-d')] ?? null;
             $month[] = ['name' => $date->format('d M'), 'sales' => (float) ($row['revenue'] ?? 0), 'profit' => (float) ($row['profit'] ?? 0)];
         }

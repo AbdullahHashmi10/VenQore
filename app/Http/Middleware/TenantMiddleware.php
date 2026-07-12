@@ -68,32 +68,57 @@ class TenantMiddleware
 
         $tenant = $membership->tenant;
 
-        // ── Plan Limits Exceed Check ───────────────────────────────────────
+        // ── View-Only Lock: two independent reasons, one shared column ───────
+        // view_only_since is a single column but two unrelated conditions can
+        // each independently demand the tenant be locked:
+        //   1. Over their usage limit, past the 3-day grace period.
+        //   2. Past subscription_ends_at — set by real subscriptions (Lemon
+        //      Squeezy) AND by Gift Access Links (GiftRedemptionController /
+        //      StoreController), checked here on every request instead of a
+        //      scheduled sweep: the lock takes effect the instant the tenant
+        //      is actually used again, at zero added server cost.
+        // Evaluating and clearing these independently (two separate if/else
+        // blocks each unconditionally clearing view_only_since on their own
+        // "healthy" branch) is a real bug: whichever check's healthy branch
+        // runs would rip away a lock the OTHER check still wants active.
+        // Instead: compute both reasons first, then make exactly one decision
+        // — lock if either is true, unlock only if NEITHER is true.
         $limitStatus = $tenant->checkLimitsStatus();
+
+        $overUsageLimit = false;
         if ($limitStatus['is_over_limit']) {
             if ($tenant->limit_grace_ends_at === null) {
-                // Set grace period to exactly 3 days from now
-                $tenant->update([
-                    'limit_grace_ends_at' => now()->addDays(3)
-                ]);
+                // Start the 3-day grace period. Not yet a lock reason.
+                $tenant->limit_grace_ends_at = now()->addDays(3);
                 $limitStatus['grace_ends_at'] = $tenant->limit_grace_ends_at->toIso8601String();
             } elseif ($tenant->limit_grace_ends_at->isPast()) {
-                // Grace expired: automatically lock store to View-Only mode if not already locked
-                if ($tenant->view_only_since === null) {
-                    $tenant->update([
-                        'view_only_since' => now()
-                    ]);
-                }
+                $overUsageLimit = true; // grace expired — this IS a lock reason
             }
-        } else {
-            // Self-Healing: if they deleted the extra resources and are back below limit, clear grace & lock
-            if ($tenant->limit_grace_ends_at !== null || $tenant->view_only_since !== null) {
-                $tenant->update([
-                    'limit_grace_ends_at' => null,
-                    'view_only_since' => null
-                ]);
-                $limitStatus['grace_ends_at'] = null;
-            }
+        } elseif ($tenant->limit_grace_ends_at !== null) {
+            // Back under limit — grace period no longer needed.
+            $tenant->limit_grace_ends_at = null;
+            $limitStatus['grace_ends_at'] = null;
+        }
+
+        // subscription_ends_at is set both by real subscriptions (Lemon
+        // Squeezy) and by Gift Access Links. Only trial/active tenants are
+        // considered — never overrides a status this middleware has already
+        // redirected away for (trial-expired / suspended, handled below).
+        $subscriptionExpired = in_array($tenant->status, ['trial', 'active'], true)
+            && $tenant->subscription_ends_at !== null
+            && $tenant->subscription_ends_at->isPast();
+
+        $shouldBeLocked = $overUsageLimit || $subscriptionExpired;
+        $isLocked       = $tenant->view_only_since !== null;
+
+        if ($shouldBeLocked && !$isLocked) {
+            $tenant->view_only_since = now();
+        } elseif (!$shouldBeLocked && $isLocked) {
+            $tenant->view_only_since = null;
+        }
+
+        if ($tenant->isDirty()) {
+            $tenant->save();
         }
 
         // ── Pending plan downgrade check (Local simulated proration/downgrade) ──
@@ -191,6 +216,7 @@ class TenantMiddleware
                 'timezone'        => $tenant->timezone,
                 'trial_ends_at'   => $tenant->trial_ends_at,
                 'subscription_ends_at' => $tenant->subscription_ends_at,
+                'view_only_since' => $tenant->view_only_since,
                 'setup_completed' => $tenant->setup_completed,
                 'onboarding_step' => $tenant->onboarding_step,
                 'logo_url'        => $tenant->logo_url,

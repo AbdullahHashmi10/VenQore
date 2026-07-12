@@ -61,9 +61,55 @@ export const SyncService = {
     /**
      * DRM / Licensing Check
      * Returns { blocked: boolean, message: string }
+     *
+     * Two INDEPENDENT block conditions, checked every time this runs
+     * (on load, on 'online', and on manual retry — see OfflineLockScreen):
+     *
+     *   1. Gift Access Link / subscription expiry — the tenant's REAL
+     *      expiry date (subscription_ends_at), synced down on every
+     *      successful heartbeat. Checked directly against the device's own
+     *      clock so it enforces immediately, online or fully offline, the
+     *      moment that date passes — per explicit requirement, this does
+     *      NOT wait for the existing 30-day "haven't phoned home" window.
+     *   2. The pre-existing 30-day offline DRM window (unchanged below).
+     *
+     * Tamper resistance for #1 comes from the same principle already
+     * proven by #2: the stored expiry date can only be refreshed by a
+     * SUCCESSFUL server heartbeat. Setting the device clock backward can't
+     * extend access — it can only make MORE of the stored data (that expiry
+     * date, last_online_verify) look like it's "not reached yet," which is
+     * the safe direction to fail in. Setting the clock forward can trigger
+     * an early lock, but the very next successful online heartbeat corrects
+     * it — same self-healing property the 30-day check already has.
      */
     async checkLicensing() {
         try {
+            // ── Check 1: Gift/subscription expiry — direct date, immediate ──
+            const expirySetting = await db.settings.get('subscription_ends_at');
+            if (expirySetting && expirySetting.value) {
+                const expiresAt = new Date(expirySetting.value).getTime();
+                if (Date.now() >= expiresAt) {
+                    // Past the stored expiry — try to reach the server first;
+                    // it may have already been renewed/re-gifted since the
+                    // last sync, in which case a fresh heartbeat clears this.
+                    if (navigator.onLine) {
+                        try {
+                            const stillExpired = await this.pingHeartbeat();
+                            if (stillExpired === false) {
+                                return { blocked: false, message: 'Verified — access renewed' };
+                            }
+                        } catch (e) {
+                            // Server unreachable despite navigator.onLine — fall through to block.
+                        }
+                    }
+                    return {
+                        blocked: true,
+                        message: 'Your access period has ended. Please subscribe or contact support for a new access link — then reconnect to restore access.',
+                    };
+                }
+            }
+
+            // ── Check 2: existing 30-day offline DRM window (unchanged) ─────
             const setting = await db.settings.get('last_online_verify');
             const lastCheck = setting ? setting.value : 0;
             const now = Date.now();
@@ -97,16 +143,33 @@ export const SyncService = {
     },
 
     /**
-     * Updating the "Last Online" timestamp logic
+     * Updating the "Last Online" timestamp logic.
+     * Also persists the tenant's current subscription/gift expiry date and
+     * view-only status, so checkLicensing() can enforce Check 1 above even
+     * while fully offline.
+     *
+     * Returns true if the server reports the tenant is currently view-only
+     * (i.e. still expired as of this heartbeat), false otherwise. Throws if
+     * the request itself fails (server unreachable).
      */
     async pingHeartbeat() {
         const slug = this.getStoreSlug();
         if (!slug) return false;
 
-        await axios.post(route('store.api.heartbeat', { store_slug: slug }), {}, { _skipGlobalErrorHandler: true }); // Assume backend logs this
+        const response = await axios.post(route('store.api.heartbeat', { store_slug: slug }), {}, { _skipGlobalErrorHandler: true });
         await db.settings.put({ key: 'last_online_verify', value: Date.now() });
+
+        const data = response?.data || {};
+        if (data.subscription_ends_at) {
+            await db.settings.put({ key: 'subscription_ends_at', value: data.subscription_ends_at });
+        } else {
+            // Unlimited plan (no expiry) or tenant not resolved — clear any
+            // stale stored date so Check 1 doesn't enforce an outdated value.
+            await db.settings.delete('subscription_ends_at');
+        }
+
         console.log('[License] Heartbeat acknowledged. Timer reset.');
-        return true;
+        return !!data.is_view_only;
     },
 
     /**

@@ -4,14 +4,15 @@ import ReportsLayout from '@/Layouts/ReportsLayout';
 import {
     TrendingUp, TrendingDown, DollarSign, ArrowLeft,
     Info, HelpCircle, AlertCircle, PieChart as PieIcon, Activity,
-    Zap, Target, Lightbulb, ArrowUpRight, ShieldCheck, X, Loader2, Package
+    Zap, Target, Lightbulb, ArrowUpRight, ShieldCheck, X, Loader2, Package,
+    ChevronDown, ChevronRight, Users, ShoppingBag
 } from 'lucide-react';
 import { // Recharts
     PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { formatCurrency } from '@/Utils/format';
 
-export default function ItemWiseProfit({ items = [], filters = {} }) {
+export default function ItemWiseProfit({ items = [], filters = {}, allProducts = [] }) {
     const {
         store
     } = usePage().props;
@@ -20,6 +21,8 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
     const [startDate, setStartDate] = useState(filters.start_date || '');
     const [endDate, setEndDate] = useState(filters.end_date || '');
     const [range, setRange] = useState(filters.range || 'this_month');
+    const [expandedItem, setExpandedItem] = useState(null); // product_id of the row showing customer detail
+    const [productFilter, setProductFilter] = useState(filters.product_ids || []);
 
     // Analysis State
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -61,6 +64,23 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
             start_date: startDate,
             end_date: endDate
         }, { preserveState: true, preserveScroll: true });
+    };
+
+    const toggleProductFilter = (productId) => {
+        const next = productFilter.includes(productId)
+            ? productFilter.filter(id => id !== productId)
+            : [...productFilter, productId];
+        setProductFilter(next);
+        router.get(route("store.reports.item-wise-profit", {
+            store_slug: store.slug
+        }), { range, start_date: startDate, end_date: endDate, product_ids: next }, { preserveState: true, preserveScroll: true });
+    };
+
+    const clearProductFilter = () => {
+        setProductFilter([]);
+        router.get(route("store.reports.item-wise-profit", {
+            store_slug: store.slug
+        }), { range, start_date: startDate, end_date: endDate, product_ids: [] }, { preserveState: true, preserveScroll: true });
     };
 
     const runAnalysis = () => {
@@ -122,6 +142,11 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
                     </div>
 
                     <div className="flex flex-col md:flex-row items-center gap-2">
+                        <ProductMultiSelect
+                            allProducts={allProducts}
+                            selected={productFilter}
+                            onToggle={toggleProductFilter}
+                        />
                         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                             {[{ id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
                                 <button
@@ -160,32 +185,89 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
                         <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/30">
                             <h2 className="text-lg font-bold text-slate-800 dark:text-white">Profit Breakdown</h2>
                         </div>
+                        {productFilter.length > 0 && (
+                            <div className="px-5 py-2 bg-indigo-50 dark:bg-indigo-900/10 border-b border-indigo-100 dark:border-indigo-900/30 flex items-center justify-between text-xs">
+                                <span className="text-indigo-600 dark:text-indigo-400 font-bold">{productFilter.length} product(s) selected</span>
+                                <button onClick={clearProductFilter} className="text-indigo-500 hover:text-indigo-700 font-bold underline">Clear filter</button>
+                            </div>
+                        )}
                         <div className="flex-1 overflow-y-auto">
                             <table className="w-full text-sm text-left">
                                 <thead className="text-xs text-slate-400 uppercase bg-slate-50 dark:bg-slate-800/50 sticky top-0 backdrop-blur-sm z-10">
                                     <tr>
+                                        <th className="px-6 py-3 font-bold w-8"></th>
                                         <th className="px-6 py-3 font-bold">Product Name</th>
                                         <th className="px-6 py-3 text-right font-bold">Revenue</th>
                                         <th className="px-6 py-3 text-right font-bold">Profit</th>
                                         <th className="px-6 py-3 text-right font-bold">Margin</th>
+                                        <th className="px-6 py-3 text-right font-bold">Purchases</th>
+                                        <th className="px-6 py-3 text-right font-bold">Stock Value</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {items.map((item, idx) => {
                                         const margin = item.revenue > 0 ? (item.profit / item.revenue) * 100 : 0;
+                                        const isExpanded = expandedItem === item.product_id;
+                                        const customers = item.customers || [];
                                         return (
-                                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                                <td className="px-6 py-3 font-medium text-slate-700 dark:text-slate-200">{item.name}</td>
-                                                <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.revenue, store)}</td>
-                                                <td className={`px-6 py-3 text-right font-bold font-mono ${item.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
-                                                    {formatCurrency(item.profit, store)}
-                                                </td>
-                                                <td className="px-6 py-3 text-right">
-                                                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${margin > 20 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
-                                                        {margin.toFixed(1)}%
-                                                    </span>
-                                                </td>
-                                            </tr>
+                                            <React.Fragment key={item.product_id || idx}>
+                                                <tr
+                                                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                                                    onClick={() => setExpandedItem(isExpanded ? null : item.product_id)}
+                                                >
+                                                    <td className="px-6 py-3 text-slate-400">
+                                                        {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                                    </td>
+                                                    <td className="px-6 py-3 font-medium text-slate-700 dark:text-slate-200">{item.name}</td>
+                                                    <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.revenue, store)}</td>
+                                                    <td className={`px-6 py-3 text-right font-bold font-mono ${item.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>
+                                                        {formatCurrency(item.profit, store)}
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right">
+                                                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${margin > 20 ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'}`}>
+                                                            {margin.toFixed(1)}%
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.purchase_cost || 0, store)}</td>
+                                                    <td className="px-6 py-3 text-right text-slate-500 font-mono">{formatCurrency(item.stock_value || 0, store)}</td>
+                                                </tr>
+                                                {isExpanded && (
+                                                    <tr>
+                                                        <td colSpan={7} className="px-6 py-4 bg-slate-50/70 dark:bg-slate-800/20">
+                                                            <div className="flex items-center gap-2 mb-2 text-xs font-bold text-slate-500 uppercase">
+                                                                <Users size={14} /> Customer Purchase Detail
+                                                                <span className="text-slate-400 font-normal normal-case">— who bought this, how often, and how much</span>
+                                                            </div>
+                                                            {customers.length === 0 ? (
+                                                                <p className="text-xs text-slate-400 italic">No customer-attributed purchases in this period (e.g. walk-in sales without a linked party).</p>
+                                                            ) : (
+                                                                <div className="overflow-x-auto">
+                                                                    <table className="w-full text-xs">
+                                                                        <thead className="text-slate-400 uppercase">
+                                                                            <tr>
+                                                                                <th className="text-left py-1 pr-4 font-bold">Customer</th>
+                                                                                <th className="text-right py-1 pr-4 font-bold">Times Purchased</th>
+                                                                                <th className="text-right py-1 pr-4 font-bold">Qty Bought</th>
+                                                                                <th className="text-right py-1 font-bold">Total Spent</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                                                            {customers.map((c, ci) => (
+                                                                                <tr key={ci}>
+                                                                                    <td className="py-1.5 pr-4 font-medium text-slate-600 dark:text-slate-300">{c.party_name}</td>
+                                                                                    <td className="py-1.5 pr-4 text-right text-slate-500">{c.purchase_count}</td>
+                                                                                    <td className="py-1.5 pr-4 text-right text-slate-500">{c.total_qty}</td>
+                                                                                    <td className="py-1.5 text-right font-mono text-slate-600 dark:text-slate-300">{formatCurrency(c.total_spent, store)}</td>
+                                                                                </tr>
+                                                                            ))}
+                                                                        </tbody>
+                                                                    </table>
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
                                         );
                                     })}
                                 </tbody>
@@ -287,6 +369,60 @@ export default function ItemWiseProfit({ items = [], filters = {} }) {
                 )}
             </div>
         </ReportsLayout>
+    );
+}
+
+function ProductMultiSelect({ allProducts, selected, onToggle }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [query, setQuery] = useState('');
+
+    const filtered = query === ''
+        ? allProducts.slice(0, 50)
+        : allProducts.filter(p => p.name.toLowerCase().includes(query.toLowerCase()) || (p.sku || '').toLowerCase().includes(query.toLowerCase())).slice(0, 50);
+
+    return (
+        <div className="relative">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+            >
+                <ShoppingBag size={14} />
+                {selected.length > 0 ? `${selected.length} Product(s)` : 'All Products'}
+                <ChevronDown size={12} />
+            </button>
+            {isOpen && (
+                <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-100 dark:border-slate-700 z-30 overflow-hidden">
+                    <div className="p-2 border-b border-slate-100 dark:border-slate-800">
+                        <input
+                            type="text"
+                            autoFocus
+                            placeholder="Search products..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            className="w-full px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500"
+                        />
+                    </div>
+                    <div className="max-h-64 overflow-y-auto p-1">
+                        {filtered.length === 0 ? (
+                            <p className="text-xs text-slate-400 text-center py-4">No products found</p>
+                        ) : filtered.map(p => (
+                            <label key={p.id} className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer text-xs">
+                                <input
+                                    type="checkbox"
+                                    checked={selected.includes(p.id)}
+                                    onChange={() => onToggle(p.id)}
+                                    className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <span className="text-slate-700 dark:text-slate-300 truncate">{p.name}</span>
+                            </label>
+                        ))}
+                    </div>
+                    <div className="p-2 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                        <button onClick={() => setIsOpen(false)} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">Done</button>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 }
 

@@ -36,6 +36,7 @@ const REPORT_GROUPS = [
             { title: 'Stock Summary', route: 'store.reports.stock-summary-by-category', icon: Package },
             { title: 'Item Details', route: 'store.reports.item-detail', icon: Layers },
             { title: 'Expiry Report', route: 'store.reports.expiry', icon: AlertTriangle },
+            { title: 'Point-In-Time Inventory', route: 'store.reports.point-in-time-inventory', icon: History },
         ]
     },
     {
@@ -74,6 +75,8 @@ const REPORT_GROUPS = [
             { title: 'Customer Buying', route: 'store.reports.item-report-by-party', icon: ShoppingBag },
             { title: 'Product Fans', route: 'store.reports.party-report-by-item', icon: Users },
             { title: 'Loan Statement', route: 'store.reports.loan-statement', icon: DollarSign },
+            { title: 'Customer Insights', route: 'store.reports.customer-insights', icon: Users },
+            { title: 'Supplier Insights', route: 'store.reports.supplier-insights', icon: ShoppingBag },
         ]
     }
 ];

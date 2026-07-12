@@ -300,6 +300,18 @@ class StoreController extends Controller
                     'industry'        => 'retail',
                 ];
 
+                // ── Gift Access Links ───────────────────────────────────────
+                // A license issued by GiftRedemptionController (source =
+                // 'gift') carries a real expiry the owner chose (1 month to
+                // 5 years) in valid_until. It is not a trial — the recipient
+                // gets full active access for that window, not a 14-day
+                // trial that would silently shorten what was promised.
+                if ($license && $license->source === 'gift' && $license->valid_until) {
+                    $attributes['status']               = 'active';
+                    $attributes['trial_ends_at']         = null;
+                    $attributes['subscription_ends_at']  = $license->valid_until;
+                }
+
                 // ── Billing intent ────────────────────────────────────────────
                 // Only relevant for self-serve trials (no pre-paid license). This
                 // records what the platform should charge once the trial ends.

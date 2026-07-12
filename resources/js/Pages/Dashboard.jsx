@@ -148,7 +148,7 @@ export default function Dashboard({
                 <div id="tour-performance" className="col-span-12 md:col-span-6 lg:col-span-3 lg:row-span-1">
                     <DualStatCard
                         title="Performance"
-                        leftLabel="Sales" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
+                        leftLabel="Total Revenue" leftValue={formatCurrency(parseFloat(performance[performancePeriod]?.sales || 0), store)}
                         rightLabel="Gross Profit" rightValue={formatCurrency(parseFloat(performance[performancePeriod]?.gross_profit || 0), store)}
                         icon={TrendingUp}
                         colorClass="bg-indigo-500"

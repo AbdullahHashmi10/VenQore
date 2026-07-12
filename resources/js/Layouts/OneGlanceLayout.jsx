@@ -69,6 +69,7 @@ import UpgradeModal from '@/Components/UpgradeModal';
 import GlobalOnboardingWidget from '@/Components/GlobalOnboardingWidget';
 import ImpersonationBanner from '@/Components/ImpersonationBanner';
 import PlanUsageBanner from '@/Components/PlanUsageBanner';
+import SubscriptionExpiryBanner from '@/Components/SubscriptionExpiryBanner';
 import PlanNotificationBell from '@/Components/PlanNotificationBell';
 import { useTheme } from '@/Contexts/ThemeContext';
 import LimitGraceBanner from '@/Components/LimitGraceBanner';
@@ -1233,6 +1234,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
                     {/* Plan Usage Warning Banner — AppSumo LTD (80% / 95% / 100% threshold) */}
                     <PlanUsageBanner />
+
+                    {/* Subscription / Gift Access Link expiry — 7-day / 2-day warnings + locked state */}
+                    <SubscriptionExpiryBanner />
 
                     {/* Header */}
                     {!hideHeader && !fullScreen && (

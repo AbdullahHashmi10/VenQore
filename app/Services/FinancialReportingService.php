@@ -135,13 +135,21 @@ class FinancialReportingService
         $totalExpenses = $totalCogs + $totalOpex;
         $netProfit     = $grossProfit - $totalOpex;
 
+        // Round once, here, at the single read-engine every dashboard card and
+        // report ultimately calls. This is a defensive final settlement point:
+        // SUM(debit)/SUM(credit) over many journal_items rows can carry float
+        // noise past the 2dp mark even when each row was written at 2dp. Rounding
+        // every consumer-facing total at this one choke point — rather than in
+        // each caller — guarantees Sales, Net Profit "In", Monthly Revenue, and
+        // every report built on this method can never disagree by a fraction of
+        // a cent again.
         return [
-            'revenue'            => (float) $totalRevenue,
-            'cogs'               => (float) $totalCogs,
-            'gross_profit'       => (float) $grossProfit,
-            'operating_expenses' => (float) $totalOpex,
-            'total_expenses'     => (float) $totalExpenses,
-            'net_profit'         => (float) $netProfit,
+            'revenue'            => round((float) $totalRevenue, 2),
+            'cogs'               => round((float) $totalCogs, 2),
+            'gross_profit'       => round((float) $grossProfit, 2),
+            'operating_expenses' => round((float) $totalOpex, 2),
+            'total_expenses'     => round((float) $totalExpenses, 2),
+            'net_profit'         => round((float) $netProfit, 2),
             'income_accounts'    => $incomeDetails,
             'expense_accounts'   => $expenseDetails,
             'period_start'       => $start,
@@ -192,9 +200,10 @@ class FinancialReportingService
 
         $out = [];
         foreach ($rows as $r) {
-            $rev = (float) $r->revenue;
-            $cogs = (float) $r->cogs;
-            $out[(string) $r->period] = ['revenue' => $rev, 'cogs' => $cogs, 'profit' => $rev - $cogs];
+            // Round at this choke point too — see getProfitAndLoss() above for why.
+            $rev  = round((float) $r->revenue, 2);
+            $cogs = round((float) $r->cogs, 2);
+            $out[(string) $r->period] = ['revenue' => $rev, 'cogs' => $cogs, 'profit' => round($rev - $cogs, 2)];
         }
         return $out;
     }
@@ -444,6 +453,11 @@ class FinancialReportingService
             $margin  = $revenue > 0 ? round(($profit / $revenue) * 100, 2) : 0.0;
 
             return [
+                // category_id added (additive — existing consumers unaffected) so
+                // callers can join Purchases/Stock Value/customer-detail maps back
+                // to this row. NULL for the "Uncategorized" bucket, matching the
+                // 'uncategorized' key used by getPurchasesByCategory() etc.
+                'category_id' => $row->category_id ?? 'uncategorized',
                 'name'    => $row->category_name ?? 'Uncategorized',
                 'revenue' => $revenue,
                 'cost'    => $cogs,
@@ -556,6 +570,481 @@ class FinancialReportingService
                     'potential_profit' => $retailValue - $costValue,
                 ];
             });
+    }
+
+    /**
+     * Total cost of goods purchased per product within a date range, from
+     * purchase_items (the real per-purchase unit_cost — not the current/live
+     * product cost_price). Used to power the "Purchases" column on the
+     * Item-Wise and Category-Wise Detailed reports.
+     *
+     * Keyed by product_id => ['qty_purchased' => float, 'purchase_cost' => float].
+     */
+    public function getPurchasesByProduct(string $start, string $end): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('purchase_items')
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->where('purchases.tenant_id', $tenantId)
+            ->whereBetween('purchases.purchase_date', [$start, $end])
+            ->select(
+                'purchase_items.product_id',
+                DB::raw('SUM(purchase_items.qty) as qty_purchased'),
+                DB::raw('SUM(purchase_items.line_total) as purchase_cost')
+            )
+            ->groupBy('purchase_items.product_id')
+            ->get();
+
+        return $rows->mapWithKeys(fn ($r) => [
+            $r->product_id => [
+                'qty_purchased' => round((float) $r->qty_purchased, 4),
+                'purchase_cost' => round((float) $r->purchase_cost, 2),
+            ],
+        ]);
+    }
+
+    /**
+     * Current stock quantity + value for a set of products (or all products if
+     * $productIds is null), from live inventory_batches.remaining_qty — the
+     * exact same formula as getInventoryValuationReport(), sliced per product.
+     * "Current" because stock value is a live, point-in-time-of-now concept;
+     * for a value as of a PAST date, see getPointInTimeInventory() below.
+     *
+     * Keyed by product_id => ['stock_qty' => float, 'stock_value' => float].
+     */
+    public function getCurrentStockValueByProduct(?array $productIds = null): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('inventory_batches')
+            ->where('inventory_batches.tenant_id', $tenantId)
+            ->whereNull('inventory_batches.deleted_at')
+            ->where('inventory_batches.remaining_qty', '>', 0)
+            ->when($productIds, fn ($q) => $q->whereIn('inventory_batches.product_id', $productIds))
+            ->select(
+                'inventory_batches.product_id',
+                DB::raw('SUM(inventory_batches.remaining_qty) as stock_qty'),
+                DB::raw('SUM(inventory_batches.remaining_qty * inventory_batches.unit_cost) as stock_value')
+            )
+            ->groupBy('inventory_batches.product_id')
+            ->get();
+
+        return $rows->mapWithKeys(fn ($r) => [
+            $r->product_id => [
+                'stock_qty'   => round((float) $r->stock_qty, 4),
+                'stock_value' => round((float) $r->stock_value, 2),
+            ],
+        ]);
+    }
+
+    /**
+     * Customer purchase detail for a set of products within a date range:
+     * who bought it, how many times (distinct invoices), and total spend.
+     * Powers the customer drilldown on the Item-Wise Detailed report.
+     *
+     * Keyed by product_id => Collection of
+     *   ['party_id','party_name','purchase_count','total_qty','total_spent'].
+     */
+    public function getCustomerDetailByProduct(array $productIds, string $start, string $end): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('parties', 'parties.id', '=', 'sales.party_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereIn('sale_items.product_id', $productIds)
+            ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'sale_items.product_id',
+                'parties.id as party_id',
+                'parties.name as party_name',
+                DB::raw('COUNT(DISTINCT sales.id) as purchase_count'),
+                DB::raw('SUM(sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) as total_qty'),
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as total_spent')
+            )
+            ->groupBy('sale_items.product_id', 'parties.id', 'parties.name')
+            ->orderByDesc('total_spent')
+            ->get();
+
+        return $rows->map(fn ($r) => [
+            'product_id'      => $r->product_id,
+            'party_id'        => $r->party_id,
+            'party_name'      => $r->party_name,
+            'purchase_count'  => (int) $r->purchase_count,
+            'total_qty'       => round((float) $r->total_qty, 4),
+            'total_spent'     => round((float) $r->total_spent, 2),
+        ])->groupBy('product_id');
+    }
+
+    /**
+     * Total cost of goods purchased per CATEGORY within a date range.
+     * Same source as getPurchasesByProduct(), rolled up one level via products.category_id.
+     * Keyed by category_id (0 for uncategorized) => ['qty_purchased','purchase_cost'].
+     */
+    public function getPurchasesByCategory(string $start, string $end): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('purchase_items')
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->where('purchases.tenant_id', $tenantId)
+            ->whereBetween('purchases.purchase_date', [$start, $end])
+            ->select(
+                'products.category_id', // NULL for uncategorized — MySQL GROUP BY collapses all NULLs into one group
+                DB::raw('SUM(purchase_items.qty) as qty_purchased'),
+                DB::raw('SUM(purchase_items.line_total) as purchase_cost')
+            )
+            ->groupBy('products.category_id')
+            ->get();
+
+        // Key by category_id, using the string 'uncategorized' for the NULL group
+        // (a UUID column, so 0 would not be a valid/consistent sentinel).
+        return $rows->mapWithKeys(fn ($r) => [
+            ($r->category_id ?? 'uncategorized') => [
+                'qty_purchased' => round((float) $r->qty_purchased, 4),
+                'purchase_cost' => round((float) $r->purchase_cost, 2),
+            ],
+        ]);
+    }
+
+    /**
+     * Current stock value rolled up by CATEGORY — same live inventory_batches
+     * source as getCurrentStockValueByProduct(), grouped one level higher.
+     * Keyed by category_id (0 for uncategorized) => ['stock_qty','stock_value'].
+     */
+    public function getCurrentStockValueByCategory(): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('inventory_batches')
+            ->join('products', 'products.id', '=', 'inventory_batches.product_id')
+            ->where('inventory_batches.tenant_id', $tenantId)
+            ->whereNull('inventory_batches.deleted_at')
+            ->where('inventory_batches.remaining_qty', '>', 0)
+            ->select(
+                'products.category_id', // NULL for uncategorized — collapses to one GROUP BY group
+                DB::raw('SUM(inventory_batches.remaining_qty) as stock_qty'),
+                DB::raw('SUM(inventory_batches.remaining_qty * inventory_batches.unit_cost) as stock_value')
+            )
+            ->groupBy('products.category_id')
+            ->get();
+
+        return $rows->mapWithKeys(fn ($r) => [
+            ($r->category_id ?? 'uncategorized') => [
+                'stock_qty'   => round((float) $r->stock_qty, 4),
+                'stock_value' => round((float) $r->stock_value, 2),
+            ],
+        ]);
+    }
+
+    /**
+     * Customer purchase detail rolled up by CATEGORY within a date range.
+     * Same shape as getCustomerDetailByProduct() but one level higher — powers
+     * the customer drilldown on the Category-Wise Detailed report.
+     * Keyed by category_id => Collection of
+     *   ['party_id','party_name','purchase_count','total_qty','total_spent'].
+     */
+    public function getCustomerDetailByCategory(string $start, string $end): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $rows = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('parties', 'parties.id', '=', 'sales.party_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'products.category_id', // NULL for uncategorized — collapses to one GROUP BY group
+                'parties.id as party_id',
+                'parties.name as party_name',
+                DB::raw('COUNT(DISTINCT sales.id) as purchase_count'),
+                DB::raw('SUM(sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) as total_qty'),
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as total_spent')
+            )
+            ->groupBy('products.category_id', 'parties.id', 'parties.name')
+            ->orderByDesc('total_spent')
+            ->get();
+
+        return $rows->map(fn ($r) => [
+            'category_id'     => $r->category_id ?? 'uncategorized',
+            'party_id'        => $r->party_id,
+            'party_name'      => $r->party_name,
+            'purchase_count'  => (int) $r->purchase_count,
+            'total_qty'       => round((float) $r->total_qty, 4),
+            'total_spent'     => round((float) $r->total_spent, 2),
+        ])->groupBy('category_id');
+    }
+
+    /**
+     * Point-In-Time Inventory — reconstructs stock quantity AND value as of any
+     * past date, not just today.
+     *
+     * Two different data sources are combined deliberately:
+     *   - QUANTITY as of $asOf: replayed from stock_movements (a full, timestamped
+     *     ledger of every quantity delta — purchase/sale/adjustment/transfer/return).
+     *     current_qty (from inventory_batches.remaining_qty, live) MINUS every
+     *     movement that happened AFTER $asOf gives the qty that existed AT $asOf.
+     *     This works regardless of movement type because stock_movements already
+     *     signs each row (+ for additions, - for deductions).
+     *   - VALUE as of $asOf: inventory_batches don't retain a full cost history
+     *     independent of remaining_qty, so value is approximated using each
+     *     product's most recent unit_cost from inventory_batches that existed
+     *     on/before $asOf (i.e. the batch(es) that would have been the active
+     *     FIFO cost layer at that time). This mirrors current-day valuation
+     *     logic (getInventoryValuationReport) applied at a historical qty.
+     *
+     * NOTE ON PRECISION: this is a reconstruction, not a stored historical
+     * snapshot — it is exact for quantity (stock_movements is a complete,
+     * append-only ledger) and a close approximation for per-unit cost (uses the
+     * batch cost nearest to $asOf rather than a literal historical weighted-
+     * average). Flagged here rather than silently presented as exact.
+     *
+     * @param  string  $asOf  Y-m-d date to reconstruct inventory as of (end of that day)
+     * @return \Illuminate\Support\Collection  keyed by product_id
+     */
+    public function getPointInTimeInventory(string $asOf): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+        $asOfEnd = Carbon::parse($asOf)->endOfDay();
+
+        // Current live quantity per product (today).
+        $currentQty = DB::table('inventory_batches')
+            ->where('tenant_id', $tenantId)
+            ->whereNull('deleted_at')
+            ->select('product_id', DB::raw('SUM(remaining_qty) as qty'))
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        // Sum of every stock_movements delta that happened AFTER $asOf, per product.
+        // Movements are already signed (+/-), so subtracting this from "now" undoes
+        // everything that happened since $asOf, leaving the quantity AT $asOf.
+        $movementsSinceAsOf = DB::table('stock_movements')
+            ->where('created_at', '>', $asOfEnd)
+            ->select('product_id', DB::raw('SUM(quantity) as delta'))
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
+        // Products with any batch that existed on/before $asOf — used to source
+        // the historical per-unit cost (nearest batch AT or BEFORE $asOf).
+        $historicalCost = DB::table('inventory_batches')
+            ->where('tenant_id', $tenantId)
+            ->where('created_at', '<=', $asOfEnd)
+            ->select('product_id', 'unit_cost', 'created_at')
+            ->orderByDesc('created_at')
+            ->get()
+            ->groupBy('product_id')
+            ->map(fn ($batches) => (float) $batches->first()->unit_cost);
+
+        $productIds = $currentQty->keys()
+            ->merge($movementsSinceAsOf->keys())
+            ->merge($historicalCost->keys())
+            ->unique();
+
+        $products = DB::table('products')
+            ->whereIn('id', $productIds)
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->select('products.id', 'products.name', 'products.sku', 'categories.name as category_name')
+            ->get()
+            ->keyBy('id');
+
+        return $productIds->map(function ($productId) use ($currentQty, $movementsSinceAsOf, $historicalCost, $products, $asOf) {
+            $product = $products->get($productId);
+            if (!$product) return null;
+
+            $nowQty      = (float) ($currentQty->get($productId)->qty ?? 0);
+            $sinceDelta  = (float) ($movementsSinceAsOf->get($productId)->delta ?? 0);
+            $qtyAtAsOf   = round($nowQty - $sinceDelta, 4);
+            $unitCost    = (float) ($historicalCost->get($productId) ?? 0);
+            $valueAtAsOf = round(max(0, $qtyAtAsOf) * $unitCost, 2);
+
+            return [
+                'product_id'   => $productId,
+                'name'         => $product->name,
+                'sku'          => $product->sku,
+                'category'     => $product->category_name ?? 'Uncategorized',
+                'as_of_date'   => $asOf,
+                'quantity'     => max(0, $qtyAtAsOf), // clamp: a negative here means incomplete pre-tracking movement history, not real negative stock
+                'unit_cost'    => round($unitCost, 2),
+                'stock_value'  => $valueAtAsOf,
+            ];
+        })->filter()->values();
+    }
+
+    /**
+     * Customer Insights — favorite category and most-bought item per customer,
+     * plus overall purchase behavior, within a date range.
+     *
+     * @return \Illuminate\Support\Collection  one row per customer (party)
+     */
+    public function getCustomerInsights(string $start, string $end): \Illuminate\Support\Collection
+    {
+        $tenantId = app('current.tenant')->id;
+
+        // Per customer x category: qty/spend, to find each customer's favorite category.
+        $byCategory = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('parties', 'parties.id', '=', 'sales.party_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'parties.id as party_id',
+                'parties.name as party_name',
+                DB::raw('COALESCE(categories.name, "Uncategorized") as category_name'),
+                DB::raw('SUM(sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) as qty'),
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as spend')
+            )
+            ->groupBy('parties.id', 'parties.name', DB::raw('COALESCE(categories.name, "Uncategorized")'))
+            ->get()
+            ->groupBy('party_id');
+
+        // Per customer x product: qty/spend, to find each customer's most-bought item.
+        $byProduct = DB::table('sale_items')
+            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+            ->join('parties', 'parties.id', '=', 'sales.party_id')
+            ->join('products', 'products.id', '=', 'sale_items.product_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'parties.id as party_id',
+                'products.name as product_name',
+                DB::raw('SUM(sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) as qty'),
+                DB::raw('SUM(COALESCE(NULLIF(sale_items.net_amount, 0), sale_items.subtotal) * ((sale_items.quantity - COALESCE(sale_items.returned_quantity, 0)) / NULLIF(sale_items.quantity, 0))) as spend')
+            )
+            ->groupBy('parties.id', 'products.name')
+            ->get()
+            ->groupBy('party_id');
+
+        // Overall per-customer totals (invoice count, total spend, last purchase).
+        $overall = DB::table('sales')
+            ->join('parties', 'parties.id', '=', 'sales.party_id')
+            ->where('sales.tenant_id', $tenantId)
+            ->whereIn('sales.status', ['posted', 'partially_returned', 'returned'])
+            ->whereBetween('sales.posted_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'parties.id as party_id',
+                'parties.name as party_name',
+                'parties.phone as party_phone',
+                DB::raw('COUNT(DISTINCT sales.id) as invoice_count'),
+                DB::raw('SUM(sales.net_sales) as total_spend'),
+                DB::raw('MAX(sales.posted_at) as last_purchase_at')
+            )
+            ->groupBy('parties.id', 'parties.name', 'parties.phone')
+            ->orderByDesc('total_spend')
+            ->get();
+
+        return $overall->map(function ($row) use ($byCategory, $byProduct) {
+            $cats = $byCategory->get($row->party_id, collect());
+            $favCategory = $cats->sortByDesc('spend')->first();
+
+            $prods = $byProduct->get($row->party_id, collect());
+            $favProduct = $prods->sortByDesc('qty')->first();
+
+            return [
+                'party_id'          => $row->party_id,
+                'party_name'        => $row->party_name,
+                'party_phone'       => $row->party_phone,
+                'invoice_count'     => (int) $row->invoice_count,
+                'total_spend'       => round((float) $row->total_spend, 2),
+                'avg_invoice_value' => $row->invoice_count > 0 ? round((float) $row->total_spend / (int) $row->invoice_count, 2) : 0.0,
+                'last_purchase_at'  => $row->last_purchase_at,
+                'favorite_category' => $favCategory->category_name ?? '—',
+                'favorite_category_spend' => round((float) ($favCategory->spend ?? 0), 2),
+                'most_bought_item'  => $favProduct->product_name ?? '—',
+                'most_bought_item_qty' => round((float) ($favProduct->qty ?? 0), 2),
+            ];
+        });
+    }
+
+    /**
+     * Supplier Insights & Price History — which suppliers source which products,
+     * and how the purchase unit_cost has moved over time per product per supplier.
+     *
+     * @return array{
+     *   sourcing: \Illuminate\Support\Collection,   supplier -> product sourcing map
+     *   price_history: \Illuminate\Support\Collection   chronological unit_cost points per product+supplier
+     * }
+     */
+    public function getSupplierInsights(string $start, string $end): array
+    {
+        $tenantId = app('current.tenant')->id;
+
+        // Sourcing map: which supplier(s) has each product been bought from, and at
+        // what average cost, within the period.
+        $sourcing = DB::table('purchase_items')
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->join('parties', 'parties.id', '=', 'purchases.party_id')
+            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->where('purchases.tenant_id', $tenantId)
+            ->where('parties.type', 'supplier')
+            ->whereBetween('purchases.purchase_date', [$start, $end])
+            ->select(
+                'parties.id as supplier_id',
+                'parties.name as supplier_name',
+                'products.id as product_id',
+                'products.name as product_name',
+                DB::raw('SUM(purchase_items.qty) as total_qty_purchased'),
+                DB::raw('AVG(purchase_items.unit_cost) as avg_unit_cost'),
+                DB::raw('MIN(purchase_items.unit_cost) as min_unit_cost'),
+                DB::raw('MAX(purchase_items.unit_cost) as max_unit_cost'),
+                DB::raw('COUNT(DISTINCT purchases.id) as purchase_count')
+            )
+            ->groupBy('parties.id', 'parties.name', 'products.id', 'products.name')
+            ->orderBy('parties.name')
+            ->orderBy('products.name')
+            ->get()
+            ->map(fn ($r) => [
+                'supplier_id'          => $r->supplier_id,
+                'supplier_name'        => $r->supplier_name,
+                'product_id'           => $r->product_id,
+                'product_name'         => $r->product_name,
+                'total_qty_purchased'  => round((float) $r->total_qty_purchased, 4),
+                'avg_unit_cost'        => round((float) $r->avg_unit_cost, 2),
+                'min_unit_cost'        => round((float) $r->min_unit_cost, 2),
+                'max_unit_cost'        => round((float) $r->max_unit_cost, 2),
+                'cost_variance_pct'    => $r->min_unit_cost > 0 ? round((($r->max_unit_cost - $r->min_unit_cost) / $r->min_unit_cost) * 100, 1) : 0.0,
+                'purchase_count'       => (int) $r->purchase_count,
+            ]);
+
+        // Price history: every individual purchase-item cost point in chronological
+        // order, per product + supplier — the raw series for a price-over-time chart
+        // (e.g. "eggs bought at 50 previously, now at 60").
+        $priceHistory = DB::table('purchase_items')
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->join('parties', 'parties.id', '=', 'purchases.party_id')
+            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->where('purchases.tenant_id', $tenantId)
+            ->where('parties.type', 'supplier')
+            ->whereBetween('purchases.purchase_date', [$start, $end])
+            ->select(
+                'products.id as product_id',
+                'products.name as product_name',
+                'parties.id as supplier_id',
+                'parties.name as supplier_name',
+                'purchases.purchase_date',
+                'purchase_items.unit_cost',
+                'purchase_items.qty'
+            )
+            ->orderBy('products.name')
+            ->orderBy('purchases.purchase_date')
+            ->get()
+            ->map(fn ($r) => [
+                'product_id'     => $r->product_id,
+                'product_name'   => $r->product_name,
+                'supplier_id'    => $r->supplier_id,
+                'supplier_name'  => $r->supplier_name,
+                'date'           => $r->purchase_date,
+                'unit_cost'      => round((float) $r->unit_cost, 2),
+                'qty'            => round((float) $r->qty, 4),
+            ])
+            ->groupBy('product_id');
+
+        return ['sourcing' => $sourcing, 'price_history' => $priceHistory];
     }
 
     /**

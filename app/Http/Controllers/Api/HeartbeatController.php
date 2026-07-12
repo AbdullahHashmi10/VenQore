@@ -134,12 +134,26 @@ class HeartbeatController extends Controller
         // For now, we check if any critical table was updated in the last 2 minutes.
         $hasUpdates = $this->checkForUpdates($terminal->last_heartbeat_at, $terminal->tenant_id);
 
+        // ── Gift Access Links / subscription expiry — offline enforcement ──
+        // The device needs the tenant's REAL expiry date (not just "resync
+        // within 30 days") so it can enforce that exact date locally even
+        // while fully offline. Only meaningful once $tenant is resolved
+        // (requires store_slug — always sent by an already-paired terminal).
+        $subscriptionEndsAt = null;
+        $isViewOnly         = false;
+        if ($tenant) {
+            $subscriptionEndsAt = $tenant->subscription_ends_at?->toIso8601String();
+            $isViewOnly         = $tenant->view_only_since !== null;
+        }
+
         return response()->json([
             'status' => 'alive',
             'terminal_id' => $terminal->id,
             'server_time' => now()->toIso8601String(),
             'has_pending_updates' => $hasUpdates,
-            'ack_status' => $terminal->status
+            'ack_status' => $terminal->status,
+            'subscription_ends_at' => $subscriptionEndsAt,
+            'is_view_only'         => $isViewOnly,
         ]);
     }
 
