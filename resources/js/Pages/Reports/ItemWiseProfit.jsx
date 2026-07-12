@@ -343,8 +343,9 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
 
                 {/* Product Detail Modal */}
                 {selectedProduct && (() => {
-                    const margin = selectedProduct.revenue > 0 ? (selectedProduct.profit / selectedProduct.revenue) * 100 : 0;
-                    const customers = selectedProduct.customers || [];
+                    const activeProduct = items.find(i => i.product_id === selectedProduct.product_id) || selectedProduct;
+                    const margin = activeProduct.revenue > 0 ? (activeProduct.profit / activeProduct.revenue) * 100 : 0;
+                    const customers = activeProduct.customers || [];
                     return (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
                             <div className="bg-white dark:bg-slate-900 w-full max-w-6xl w-[92vw] rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
@@ -356,9 +357,9 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                             <span className="bg-indigo-500/50 text-white border border-indigo-400/30 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
                                                 Period: {range ? range.replace('_', ' ') : 'this year'} ({filters.start_date || startDate || 'N/A'} to {filters.end_date || endDate || 'N/A'})
                                             </span>
-                                            <h2 className="text-2xl font-black tracking-tight mt-1">{selectedProduct.name}</h2>
+                                            <h2 className="text-2xl font-black tracking-tight mt-1">{activeProduct.name}</h2>
                                             <p className="text-indigo-100 text-xs font-semibold">
-                                                SKU: <span className="text-white font-bold">{selectedProduct.sku || 'N/A'}</span>
+                                                SKU: <span className="text-white font-bold">{activeProduct.sku || 'N/A'}</span>
                                             </p>
                                         </div>
                                         <button onClick={() => setSelectedProduct(null)} className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2.5 rounded-xl">
@@ -369,16 +370,42 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
 
                                 {/* Modal Body */}
                                 <div className="p-6 space-y-6 overflow-y-auto flex-1">
+                                    {/* Modal Date Filters */}
+                                    <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50 shrink-0">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold text-slate-400 uppercase">Change Period:</span>
+                                            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                                                {[{ id: 'today', label: 'Today' }, { id: 'this_month', label: 'This Month' }, { id: 'last_month', label: 'Last Month' }, { id: 'this_year', label: 'This Year' }, { id: 'custom', label: 'Custom' }].map((opt) => (
+                                                    <button
+                                                        key={opt.id}
+                                                        onClick={() => handleRangeChange(opt.id)}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${range === opt.id ? 'bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-400' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+                                                    >
+                                                        {opt.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        {range === 'custom' && (
+                                            <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4 duration-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-xl">
+                                                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300" />
+                                                <span className="text-slate-400 text-xs font-bold">TO</span>
+                                                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-xs focus:ring-1 focus:ring-indigo-500 text-slate-600 dark:text-slate-300" />
+                                                <button onClick={applyCustomRange} className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold uppercase transition-colors shadow-sm">Apply</button>
+                                            </div>
+                                        )}
+                                    </div>
+
                                     {/* Financial KPIs */}
                                     <div className="grid grid-cols-3 gap-6">
                                         <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                                             <p className="text-xs font-bold text-slate-400 uppercase">Revenue in Period</p>
-                                            <p className="text-3xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(selectedProduct.revenue, store)}</p>
+                                            <p className="text-3xl font-black text-slate-800 dark:text-white mt-1">{formatCurrency(activeProduct.revenue, store)}</p>
                                         </div>
                                         <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
                                             <p className="text-xs font-bold text-slate-400 uppercase">Profit in Period</p>
-                                            <p className={`text-3xl font-black mt-1 ${selectedProduct.profit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
-                                                {formatCurrency(selectedProduct.profit, store)}
+                                            <p className={`text-3xl font-black mt-1 ${activeProduct.profit < 0 ? 'text-rose-500' : 'text-emerald-500'}`}>
+                                                {formatCurrency(activeProduct.profit, store)}
                                             </p>
                                         </div>
                                         <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
@@ -398,15 +425,15 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                                     <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                                                         <tr>
                                                             <td className="py-3 px-4 text-slate-500">Revenue (net of returns)</td>
-                                                            <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-200 font-bold">{formatCurrency(selectedProduct.revenue, store)}</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-700 dark:text-slate-200 font-bold">{formatCurrency(activeProduct.revenue, store)}</td>
                                                         </tr>
                                                         <tr>
                                                             <td className="py-3 px-4 text-slate-500">Less: Cost of Goods Sold</td>
-                                                            <td className="py-3 px-4 text-right font-mono text-rose-500 font-medium">({formatCurrency((selectedProduct.revenue || 0) - (selectedProduct.profit || 0), store)})</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-rose-500 font-medium">({formatCurrency((activeProduct.revenue || 0) - (activeProduct.profit || 0), store)})</td>
                                                         </tr>
                                                         <tr className="bg-slate-100 dark:bg-slate-800/80">
                                                             <td className="py-3 px-4 font-bold text-slate-700 dark:text-slate-200">Gross Profit</td>
-                                                            <td className={`py-3 px-4 text-right font-mono font-bold ${selectedProduct.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>{formatCurrency(selectedProduct.profit, store)}</td>
+                                                            <td className={`py-3 px-4 text-right font-mono font-bold ${activeProduct.profit < 0 ? 'text-rose-500' : 'text-emerald-600'}`}>{formatCurrency(activeProduct.profit, store)}</td>
                                                         </tr>
                                                         <tr>
                                                             <td className="py-3 px-4 text-slate-500">Gross Margin</td>
@@ -414,11 +441,11 @@ export default function ItemWiseProfit({ items = [], filters = {}, allProducts =
                                                         </tr>
                                                         <tr className="border-t border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20">
                                                             <td className="py-3 px-4 text-slate-400 italic">Purchases in period</td>
-                                                            <td className="py-3 px-4 text-right font-mono text-slate-500">{formatCurrency(selectedProduct.purchase_cost || 0, store)}</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-500">{formatCurrency(activeProduct.purchase_cost || 0, store)}</td>
                                                         </tr>
                                                         <tr className="bg-slate-50/50 dark:bg-slate-800/20">
                                                             <td className="py-3 px-4 text-slate-400 italic">Current stock value</td>
-                                                            <td className="py-3 px-4 text-right font-mono text-slate-500">{formatCurrency(selectedProduct.stock_value || 0, store)}</td>
+                                                            <td className="py-3 px-4 text-right font-mono text-slate-500">{formatCurrency(activeProduct.stock_value || 0, store)}</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
