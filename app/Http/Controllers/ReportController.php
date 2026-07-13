@@ -2333,7 +2333,7 @@ class ReportController extends Controller
         $tenantId = app('current.tenant')->id;
 
         // 1. Fetch real purchase invoices from purchases table for this supplier and product
-        $purchases = DB::table('purchase_items')
+        $purchasesA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
             ->where('purchases.tenant_id', $tenantId)
             ->where('purchases.party_id', $supplierId)
@@ -2342,44 +2342,70 @@ class ReportController extends Controller
             ->select(
                 'purchases.id', 
                 'purchases.invoice_number', 
-                'purchases.purchase_date', 
-                'purchase_items.qty', 
+                'purchases.purchase_date as date', 
+                'purchase_items.qty as quantity', 
                 'purchase_items.unit_cost', 
-                'purchase_items.line_total'
+                'purchase_items.line_total as total'
             )
-            ->orderByDesc('purchases.purchase_date')
-            ->get()
-            ->map(function ($row) {
-                return [
-                    'id' => $row->id,
-                    'invoice_no' => $row->invoice_number ?? 'N/A',
-                    'date' => $row->purchase_date,
-                    'quantity' => (float)$row->qty,
-                    'unit_cost' => (float)$row->unit_cost,
-                    'total' => (float)$row->line_total
-                ];
-            });
+            ->get();
 
-        // 2. Fetch other products sourced from this supplier
-        $otherProducts = DB::table('purchase_items')
+        // Fetch from invoice_items table
+        $purchasesB = DB::table('invoice_items')
+            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
+            ->where('invoices.tenant_id', $tenantId)
+            ->where('invoices.party_id', $supplierId)
+            ->where('invoice_items.product_id', $productId)
+            ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->select(
+                'invoices.id', 
+                'invoices.reference_number as invoice_number', 
+                DB::raw('DATE(invoices.created_at) as date'), 
+                'invoice_items.received_qty as quantity', 
+                'invoice_items.effective_unit_cost as unit_cost', 
+                'invoice_items.total'
+            )
+            ->get();
+
+        $purchases = $purchasesA->concat($purchasesB)->sortByDesc('date')->values()->map(function ($row) {
+            return [
+                'id' => $row->id,
+                'invoice_no' => $row->invoice_number ?? 'N/A',
+                'date' => $row->date,
+                'quantity' => (float)$row->quantity,
+                'unit_cost' => (float)$row->unit_cost,
+                'total' => (float)$row->total
+            ];
+        });
+
+        // 2. Fetch other products sourced from this supplier from both tables
+        $othersA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
             ->join('products', 'products.id', '=', 'purchase_items.product_id')
             ->where('purchases.tenant_id', $tenantId)
             ->where('purchases.party_id', $supplierId)
             ->whereBetween('purchases.purchase_date', [$startDate, $endDate])
-            ->select('products.name', 'products.sku', DB::raw('SUM(purchase_items.qty) as qty'), DB::raw('AVG(purchase_items.unit_cost) as avg_cost'))
-            ->groupBy('products.id', 'products.name', 'products.sku')
-            ->orderByDesc('qty')
-            ->limit(10)
-            ->get()
-            ->map(function ($row) {
-                return [
-                    'name' => $row->name,
-                    'sku' => $row->sku,
-                    'quantity' => (float)$row->qty,
-                    'avg_cost' => (float)$row->avg_cost
-                ];
-            });
+            ->select('products.name', 'products.sku', 'purchase_items.qty as qty', 'purchase_items.unit_cost as unit_cost')
+            ->get();
+
+        $othersB = DB::table('invoice_items')
+            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
+            ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->where('invoices.tenant_id', $tenantId)
+            ->where('invoices.party_id', $supplierId)
+            ->where('invoices.type', 'purchase')
+            ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->select('products.name', 'products.sku', 'invoice_items.received_qty as qty', 'invoice_items.effective_unit_cost as unit_cost')
+            ->get();
+
+        $otherProducts = $othersA->concat($othersB)->groupBy('sku')->map(function ($group) {
+            $first = $group->first();
+            return [
+                'name' => $first->name,
+                'sku' => $first->sku,
+                'quantity' => (float)$group->sum('qty'),
+                'avg_cost' => (float)$group->pluck('unit_cost')->avg()
+            ];
+        })->sortByDesc('quantity')->values()->take(10);
 
         return response()->json([
             'purchases' => $purchases,

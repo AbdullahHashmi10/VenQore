@@ -1003,9 +1003,8 @@ class FinancialReportingService
     {
         $tenantId = app('current.tenant')->id;
 
-        // Sourcing map: which supplier(s) has each product been bought from, and at
-        // what average cost, within the period.
-        $sourcing = DB::table('purchase_items')
+        // Part A: From purchases & purchase_items
+        $sourcingA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
             ->join('parties', 'parties.id', '=', 'purchases.party_id')
             ->join('products', 'products.id', '=', 'purchase_items.product_id')
@@ -1017,33 +1016,62 @@ class FinancialReportingService
                 'parties.name as supplier_name',
                 'products.id as product_id',
                 'products.name as product_name',
-                DB::raw('SUM(purchase_items.qty) as total_qty_purchased'),
-                DB::raw('AVG(purchase_items.unit_cost) as avg_unit_cost'),
-                DB::raw('MIN(purchase_items.unit_cost) as min_unit_cost'),
-                DB::raw('MAX(purchase_items.unit_cost) as max_unit_cost'),
-                DB::raw('COUNT(DISTINCT purchases.id) as purchase_count')
-            )
-            ->groupBy('parties.id', 'parties.name', 'products.id', 'products.name')
-            ->orderBy('parties.name')
-            ->orderBy('products.name')
-            ->get()
-            ->map(fn ($r) => [
-                'supplier_id'          => $r->supplier_id,
-                'supplier_name'        => $r->supplier_name,
-                'product_id'           => $r->product_id,
-                'product_name'         => $r->product_name,
-                'total_qty_purchased'  => round((float) $r->total_qty_purchased, 4),
-                'avg_unit_cost'        => round((float) $r->avg_unit_cost, 2),
-                'min_unit_cost'        => round((float) $r->min_unit_cost, 2),
-                'max_unit_cost'        => round((float) $r->max_unit_cost, 2),
-                'cost_variance_pct'    => $r->min_unit_cost > 0 ? round((($r->max_unit_cost - $r->min_unit_cost) / $r->min_unit_cost) * 100, 1) : 0.0,
-                'purchase_count'       => (int) $r->purchase_count,
-            ]);
+                'purchase_items.qty as qty',
+                'purchase_items.unit_cost as unit_cost',
+                'purchases.id as purchase_id'
+            )->get();
 
-        // Price history: every individual purchase-item cost point in chronological
-        // order, per product + supplier — the raw series for a price-over-time chart
-        // (e.g. "eggs bought at 50 previously, now at 60").
-        $priceHistory = DB::table('purchase_items')
+        // Part B: From invoices & invoice_items (where invoices.type = 'purchase')
+        $sourcingB = DB::table('invoice_items')
+            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
+            ->join('parties', 'parties.id', '=', 'invoices.party_id')
+            ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->where('invoices.tenant_id', $tenantId)
+            ->where('invoices.type', 'purchase')
+            ->where('parties.type', 'supplier')
+            ->whereBetween('invoices.created_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'parties.id as supplier_id',
+                'parties.name as supplier_name',
+                'products.id as product_id',
+                'products.name as product_name',
+                'invoice_items.received_qty as qty',
+                'invoice_items.effective_unit_cost as unit_cost',
+                'invoices.id as purchase_id'
+            )->get();
+
+        // Merge raw points
+        $mergedPoints = $sourcingA->concat($sourcingB);
+
+        // Group by supplier-product pairs to calculate summaries
+        $sourcing = $mergedPoints->groupBy(function($item) {
+            return $item->supplier_id . '_' . $item->product_id;
+        })->map(function($group) {
+            $first = $group->first();
+            $costs = $group->pluck('unit_cost')->map(fn($c) => (float)$c);
+            $minCost = $costs->min();
+            $maxCost = $costs->max();
+            $avgCost = $costs->avg();
+            $totalQty = $group->sum('qty');
+            $purchaseCount = $group->pluck('purchase_id')->unique()->count();
+
+            return [
+                'supplier_id'          => $first->supplier_id,
+                'supplier_name'        => $first->supplier_name,
+                'product_id'           => $first->product_id,
+                'product_name'         => $first->product_name,
+                'total_qty_purchased'  => round((float) $totalQty, 4),
+                'avg_unit_cost'        => round((float) $avgCost, 2),
+                'min_unit_cost'        => round((float) $minCost, 2),
+                'max_unit_cost'        => round((float) $maxCost, 2),
+                'cost_variance_pct'    => $minCost > 0 ? round((($maxCost - $minCost) / $minCost) * 100, 1) : 0.0,
+                'purchase_count'       => (int) $purchaseCount,
+            ];
+        })->values();
+
+        // Build unified chronological price history series
+        // Part A price history points
+        $historyA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
             ->join('parties', 'parties.id', '=', 'purchases.party_id')
             ->join('products', 'products.id', '=', 'purchase_items.product_id')
@@ -1055,19 +1083,38 @@ class FinancialReportingService
                 'products.name as product_name',
                 'parties.id as supplier_id',
                 'parties.name as supplier_name',
-                'purchases.purchase_date',
-                'purchase_items.unit_cost',
-                'purchase_items.qty'
-            )
-            ->orderBy('products.name')
-            ->orderBy('purchases.purchase_date')
-            ->get()
+                'purchases.purchase_date as date',
+                'purchase_items.unit_cost as unit_cost',
+                'purchase_items.qty as qty'
+            )->get();
+
+        // Part B price history points
+        $historyB = DB::table('invoice_items')
+            ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
+            ->join('parties', 'parties.id', '=', 'invoices.party_id')
+            ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->where('invoices.tenant_id', $tenantId)
+            ->where('invoices.type', 'purchase')
+            ->where('parties.type', 'supplier')
+            ->whereBetween('invoices.created_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->select(
+                'products.id as product_id',
+                'products.name as product_name',
+                'parties.id as supplier_id',
+                'parties.name as supplier_name',
+                DB::raw('DATE(invoices.created_at) as date'),
+                'invoice_items.effective_unit_cost as unit_cost',
+                'invoice_items.received_qty as qty'
+            )->get();
+
+        $priceHistory = $historyA->concat($historyB)
+            ->sortBy('date')
             ->map(fn ($r) => [
                 'product_id'     => $r->product_id,
                 'product_name'   => $r->product_name,
                 'supplier_id'    => $r->supplier_id,
                 'supplier_name'  => $r->supplier_name,
-                'date'           => $r->purchase_date,
+                'date'           => $r->date,
                 'unit_cost'      => round((float) $r->unit_cost, 2),
                 'qty'            => round((float) $r->qty, 4),
             ])
