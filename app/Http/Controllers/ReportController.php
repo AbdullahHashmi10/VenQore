@@ -2308,34 +2308,82 @@ class ReportController extends Controller
         $result = (new FinancialReportingService())->getSupplierInsights($startDate, $endDate);
         $sourcing = $result['sourcing'];
 
-        return Inertia::render('Reports/GenericReport', [
-            'title' => 'Supplier Insights & Price History',
-            'columns' => [
-                ['key' => 'supplier_name', 'label' => 'Supplier', 'sortable' => true],
-                ['key' => 'product_name', 'label' => 'Product', 'sortable' => true],
-                ['key' => 'purchase_count', 'label' => 'Purchases', 'type' => 'number', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'total_qty_purchased', 'label' => 'Qty Purchased', 'type' => 'number', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'avg_unit_cost', 'label' => 'Avg. Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'min_unit_cost', 'label' => 'Lowest Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'max_unit_cost', 'label' => 'Highest Cost', 'type' => 'currency', 'sortable' => true, 'align' => 'right'],
-                ['key' => 'cost_variance_pct', 'label' => 'Variance %', 'align' => 'right'],
-            ],
+        return Inertia::render('Reports/SupplierInsights', [
             'data' => $sourcing,
             'stats' => [
                 ['label' => 'Supplier-Product Pairs', 'value' => $sourcing->count()],
                 ['label' => 'Total Purchase Volume', 'value' => \App\Helpers\SettingsHelper::formatNumber($sourcing->sum('total_qty_purchased'))],
                 ['label' => 'Products with Rising Cost', 'value' => $sourcing->filter(fn($r) => $r['max_unit_cost'] > $r['min_unit_cost'])->count()],
             ],
-            'chartData' => $sourcing->sortByDesc('cost_variance_pct')->take(10)->map(fn($r) => ['name' => $r['product_name'] . ' (' . $r['supplier_name'] . ')', 'value' => $r['cost_variance_pct']])->values(),
-            'chartConfig' => ['type' => 'bar', 'dataKey' => 'value', 'xAxisKey' => 'name', 'color' => '#dc2626'],
-            // Full chronological cost-per-purchase series, grouped by product_id,
-            // for a future price-over-time line chart per product+supplier.
-            'priceHistory' => $result['price_history'],
             'filters' => [
                 'range'      => $range,
                 'start_date' => $startDate,
                 'end_date'   => $endDate,
             ],
+        ]);
+    }
+
+    public function supplierInsightsDetails(Request $request)
+    {
+        ReportTierGate::enforce('reports.supplier-insights');
+        $supplierId = $request->input('supplier_id');
+        $productId = $request->input('product_id');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
+        $tenantId = app('current.tenant')->id;
+
+        // 1. Fetch real purchase invoices from purchases table for this supplier and product
+        $purchases = DB::table('purchase_items')
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->where('purchases.tenant_id', $tenantId)
+            ->where('purchases.party_id', $supplierId)
+            ->where('purchase_items.product_id', $productId)
+            ->whereBetween('purchases.purchase_date', [$startDate, $endDate])
+            ->select(
+                'purchases.id', 
+                'purchases.invoice_number', 
+                'purchases.purchase_date', 
+                'purchase_items.qty', 
+                'purchase_items.unit_cost', 
+                'purchase_items.line_total'
+            )
+            ->orderByDesc('purchases.purchase_date')
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id' => $row->id,
+                    'invoice_no' => $row->invoice_number ?? 'N/A',
+                    'date' => $row->purchase_date,
+                    'quantity' => (float)$row->qty,
+                    'unit_cost' => (float)$row->unit_cost,
+                    'total' => (float)$row->line_total
+                ];
+            });
+
+        // 2. Fetch other products sourced from this supplier
+        $otherProducts = DB::table('purchase_items')
+            ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
+            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->where('purchases.tenant_id', $tenantId)
+            ->where('purchases.party_id', $supplierId)
+            ->whereBetween('purchases.purchase_date', [$startDate, $endDate])
+            ->select('products.name', 'products.sku', DB::raw('SUM(purchase_items.qty) as qty'), DB::raw('AVG(purchase_items.unit_cost) as avg_cost'))
+            ->groupBy('products.id', 'products.name', 'products.sku')
+            ->orderByDesc('qty')
+            ->limit(10)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'name' => $row->name,
+                    'sku' => $row->sku,
+                    'quantity' => (float)$row->qty,
+                    'avg_cost' => (float)$row->avg_cost
+                ];
+            });
+
+        return response()->json([
+            'purchases' => $purchases,
+            'other_products' => $otherProducts
         ]);
     }
 }
