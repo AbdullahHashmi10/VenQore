@@ -2380,21 +2380,31 @@ class ReportController extends Controller
         // 2. Fetch other products sourced from this supplier from both tables
         $othersA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
-            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->leftJoin('products', 'products.id', '=', 'purchase_items.product_id')
             ->where('purchases.tenant_id', $tenantId)
             ->where('purchases.party_id', $supplierId)
             ->whereBetween('purchases.purchase_date', [$startDate, $endDate])
-            ->select('products.name', 'products.sku', 'purchase_items.qty as qty', 'purchase_items.unit_cost as unit_cost')
+            ->select(
+                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as name"),
+                DB::raw("COALESCE(products.sku, purchase_items.product_id) as sku"),
+                'purchase_items.qty as qty',
+                'purchase_items.unit_cost as unit_cost'
+            )
             ->get();
 
         $othersB = DB::table('invoice_items')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
-            ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->leftJoin('products', 'products.id', '=', 'invoice_items.product_id')
             ->where('invoices.tenant_id', $tenantId)
             ->where('invoices.party_id', $supplierId)
             ->where('invoices.type', 'purchase')
             ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
-            ->select('products.name', 'products.sku', 'invoice_items.received_qty as qty', 'invoice_items.effective_unit_cost as unit_cost')
+            ->select(
+                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as name"),
+                DB::raw("COALESCE(products.sku, invoice_items.product_id) as sku"),
+                'invoice_items.received_qty as qty',
+                'invoice_items.effective_unit_cost as unit_cost'
+            )
             ->get();
 
         $otherProducts = $othersA->concat($othersB)->groupBy('sku')->map(function ($group) {

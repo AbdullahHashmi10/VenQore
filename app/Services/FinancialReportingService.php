@@ -1007,15 +1007,15 @@ class FinancialReportingService
         $sourcingA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
             ->join('parties', 'parties.id', '=', 'purchases.party_id')
-            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->leftJoin('products', 'products.id', '=', 'purchase_items.product_id')
             ->where('purchases.tenant_id', $tenantId)
             ->where('parties.type', 'supplier')
             ->whereBetween('purchases.purchase_date', [$start, $end])
             ->select(
                 'parties.id as supplier_id',
                 'parties.name as supplier_name',
-                'products.id as product_id',
-                'products.name as product_name',
+                'purchase_items.product_id as product_id',
+                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as product_name"),
                 'purchase_items.qty as qty',
                 'purchase_items.unit_cost as unit_cost',
                 'purchases.id as purchase_id'
@@ -1025,16 +1025,16 @@ class FinancialReportingService
         $sourcingB = DB::table('invoice_items')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->join('parties', 'parties.id', '=', 'invoices.party_id')
-            ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->leftJoin('products', 'products.id', '=', 'invoice_items.product_id')
             ->where('invoices.tenant_id', $tenantId)
             ->where('invoices.type', 'purchase')
             ->where('parties.type', 'supplier')
-            ->whereBetween('invoices.created_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
+            ->whereBetween('invoices.date', [$start, $end])
             ->select(
                 'parties.id as supplier_id',
                 'parties.name as supplier_name',
-                'products.id as product_id',
-                'products.name as product_name',
+                'invoice_items.product_id as product_id',
+                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as product_name"),
                 'invoice_items.received_qty as qty',
                 'invoice_items.effective_unit_cost as unit_cost',
                 'invoices.id as purchase_id'
@@ -1074,13 +1074,13 @@ class FinancialReportingService
         $historyA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
             ->join('parties', 'parties.id', '=', 'purchases.party_id')
-            ->join('products', 'products.id', '=', 'purchase_items.product_id')
+            ->leftJoin('products', 'products.id', '=', 'purchase_items.product_id')
             ->where('purchases.tenant_id', $tenantId)
             ->where('parties.type', 'supplier')
             ->whereBetween('purchases.purchase_date', [$start, $end])
             ->select(
-                'products.id as product_id',
-                'products.name as product_name',
+                'purchase_items.product_id as product_id',
+                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as product_name"),
                 'parties.id as supplier_id',
                 'parties.name as supplier_name',
                 'purchases.purchase_date as date',
@@ -1092,14 +1092,14 @@ class FinancialReportingService
         $historyB = DB::table('invoice_items')
             ->join('invoices', 'invoices.id', '=', 'invoice_items.invoice_id')
             ->join('parties', 'parties.id', '=', 'invoices.party_id')
-            ->join('products', 'products.id', '=', 'invoice_items.product_id')
+            ->leftJoin('products', 'products.id', '=', 'invoice_items.product_id')
             ->where('invoices.tenant_id', $tenantId)
             ->where('invoices.type', 'purchase')
             ->where('parties.type', 'supplier')
             ->whereBetween('invoices.created_at', [$start . ' 00:00:00', $end . ' 23:59:59'])
             ->select(
-                'products.id as product_id',
-                'products.name as product_name',
+                'invoice_items.product_id as product_id',
+                DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as product_name"),
                 'parties.id as supplier_id',
                 'parties.name as supplier_name',
                 DB::raw('DATE(invoices.created_at) as date'),
