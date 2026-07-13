@@ -2332,6 +2332,13 @@ class ReportController extends Controller
         $endDate = $request->input('end_date');
         $tenantId = app('current.tenant')->id;
 
+        // Resolve dates safely if missing
+        if (!$startDate || !$endDate) {
+            [$resolvedStart, $resolvedEnd] = $this->resolveDateRange($request);
+            $startDate = $startDate ?: $resolvedStart;
+            $endDate = $endDate ?: $resolvedEnd;
+        }
+
         // 1. Fetch real purchase invoices from purchases table for this supplier and product
         $purchasesA = DB::table('purchase_items')
             ->join('purchases', 'purchases.id', '=', 'purchase_items.purchase_id')
@@ -2355,11 +2362,11 @@ class ReportController extends Controller
             ->where('invoices.tenant_id', $tenantId)
             ->where('invoices.party_id', $supplierId)
             ->where('invoice_items.product_id', $productId)
-            ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->whereBetween('invoices.date', [$startDate, $endDate])
             ->select(
                 'invoices.id', 
                 'invoices.reference_number as invoice_number', 
-                DB::raw('DATE(invoices.created_at) as date'), 
+                'invoices.date as date', 
                 'invoice_items.received_qty as quantity', 
                 'invoice_items.effective_unit_cost as unit_cost', 
                 'invoice_items.total'
@@ -2398,7 +2405,7 @@ class ReportController extends Controller
             ->where('invoices.tenant_id', $tenantId)
             ->where('invoices.party_id', $supplierId)
             ->where('invoices.type', 'purchase')
-            ->whereBetween('invoices.created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
+            ->whereBetween('invoices.date', [$startDate, $endDate])
             ->select(
                 DB::raw("COALESCE(products.name, 'Unknown Sourced Item') as name"),
                 DB::raw("COALESCE(products.sku, invoice_items.product_id) as sku"),
