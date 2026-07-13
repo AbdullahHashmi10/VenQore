@@ -37,13 +37,16 @@ class GoldenMasterResolutionTest extends VenQoreTestCase
 {
     public function test_golden_master_query_resolves_to_master_not_a_visitor_clone(): void
     {
-        $goldenMaster = Tenant::factory()->create([
-            'slug'             => 'demo-golden-master',
-            'is_demo'          => true,
-            'is_golden_master' => true,
-            'demo_expires_at'  => null, // Golden Master never expires
-            'setup_completed'  => true,
-        ]);
+        $goldenMaster = Tenant::where('is_golden_master', true)->first();
+        if (!$goldenMaster) {
+            $goldenMaster = Tenant::factory()->create([
+                'slug'             => 'demo-golden-master',
+                'is_demo'          => true,
+                'is_golden_master' => true,
+                'demo_expires_at'  => null, // Golden Master never expires
+                'setup_completed'  => true,
+            ]);
+        }
 
         // Simulate several concurrent visitor sessions — each is a real
         // ephemeral clone with is_demo=true, is_golden_master=false, exactly
@@ -85,13 +88,16 @@ class GoldenMasterResolutionTest extends VenQoreTestCase
 
     public function test_reset_demo_store_command_resolves_golden_master_not_a_clone(): void
     {
-        $goldenMaster = Tenant::factory()->create([
-            'slug'             => 'demo-golden-master-cmd',
-            'is_demo'          => true,
-            'is_golden_master' => true,
-            'demo_expires_at'  => null,
-            'setup_completed'  => true,
-        ]);
+        $goldenMaster = Tenant::where('is_golden_master', true)->first();
+        if (!$goldenMaster) {
+            $goldenMaster = Tenant::factory()->create([
+                'slug'             => 'demo-golden-master-cmd',
+                'is_demo'          => true,
+                'is_golden_master' => true,
+                'demo_expires_at'  => null,
+                'setup_completed'  => true,
+            ]);
+        }
 
         Tenant::factory()->create([
             'slug'             => 'demo-visitor-clone-cmd-' . Str::random(4),
@@ -113,11 +119,14 @@ class GoldenMasterResolutionTest extends VenQoreTestCase
 
     public function test_saving_a_second_golden_master_is_rejected(): void
     {
-        Tenant::factory()->create([
-            'slug'             => 'first-golden-master',
-            'is_golden_master' => true,
-            'setup_completed'  => true,
-        ]);
+        $first = Tenant::where('is_golden_master', true)->first();
+        if (!$first) {
+            Tenant::factory()->create([
+                'slug'             => 'first-golden-master',
+                'is_golden_master' => true,
+                'setup_completed'  => true,
+            ]);
+        }
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessageMatches('/only one golden master/i');
@@ -131,11 +140,14 @@ class GoldenMasterResolutionTest extends VenQoreTestCase
 
     public function test_updating_the_existing_golden_master_itself_is_still_allowed(): void
     {
-        $goldenMaster = Tenant::factory()->create([
-            'slug'             => 'existing-golden-master',
-            'is_golden_master' => true,
-            'setup_completed'  => true,
-        ]);
+        $goldenMaster = Tenant::where('is_golden_master', true)->first();
+        if (!$goldenMaster) {
+            $goldenMaster = Tenant::factory()->create([
+                'slug'             => 'existing-golden-master',
+                'is_golden_master' => true,
+                'setup_completed'  => true,
+            ]);
+        }
 
         // Re-saving the SAME tenant with is_golden_master still true must
         // not trip the guard (the exclusion is by ID, not just the flag).

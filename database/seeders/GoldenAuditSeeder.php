@@ -65,7 +65,7 @@ class GoldenAuditSeeder extends Seeder
                 'currency_symbol' => 'Rs.',
                 'timezone' => 'Asia/Karachi',
                 'setup_completed' => true,
-                'is_golden_master' => true,
+                'is_golden_master' => false,
                 'onboarding_completed' => true,
             ]);
 

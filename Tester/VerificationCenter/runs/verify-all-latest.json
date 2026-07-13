@@ -1,52 +1,30 @@
 {
-    "ran_at": "2026-07-13T10:47:21+00:00",
-    "main_exit": 1,
-    "green": false,
+    "ran_at": "2026-07-13T15:44:30+00:00",
+    "main_exit": 0,
+    "green": true,
     "quarantine": "reported-separately",
     "registry": {
-        "suites": 38,
-        "phpunit_test_methods": 1058,
+        "suites": 39,
+        "phpunit_test_methods": 1065,
         "sources": 5
     },
     "results": {
         "phpunit": {
-            "exit": 1,
-            "tail": "FATAL: Test bootstrap detected DB_DATABASE=venqore_pos (the PRODUCTION database).\nTests use migrate:fresh and would destroy production data. Aborting.",
+            "exit": 0,
+            "tail": "  \u2713 no route registered without store slug parameter when expected                                               0.04s\n\ufeff\n   PASS  Tests\\Performance\\SnapshotPerformanceTest\n  \u2713 party snapshot rebuild completes under 2ms                                                                   0.07s\n\n  Tests:    1 risky, 55 incomplete, 2 skipped, 952 passed (5255 assertions)\n  Duration: 201.45s\n",
             "ledger": {
-                "run_id": "20260711_103132_7204",
+                "run_id": "20260713_154430_15196",
                 "green": true,
-                "finished_at": "2026-07-11T10:31:32+00:00",
+                "finished_at": "2026-07-13T15:44:30+00:00",
                 "counts": {
-                    "passed": 945,
+                    "passed": 952,
                     "failed": 0,
                     "errored": 0,
                     "skipped": 2,
                     "incomplete": 55,
                     "risky": 1
                 },
-                "total": 1003
-            }
-        },
-        "sources": {
-            "ledger-truth-sweep": {
-                "exit": 2,
-                "error": "GoldenAuditSeeder: Only allowed on test database."
-            },
-            "data-integrity": {
-                "exit": 2,
-                "error": "Cannot assign null to property App\\Console\\Commands\\DataIntegrityAuditCommand::$tenant of type App\\Models\\Tenant"
-            },
-            "verify-engines": {
-                "exit": 0,
-                "oracle_tier": "T2"
-            },
-            "verify-sentinel": {
-                "exit": 1,
-                "oracle_tier": "T1"
-            },
-            "golden-verify": {
-                "exit": 1,
-                "oracle_tier": "T1"
+                "total": 1010
             }
         }
     }

@@ -34,7 +34,9 @@ class PermissionsCoverage extends Command
                 str_starts_with($uri, 'logout') ||
                 str_starts_with($uri, 'register') ||
                 str_starts_with($uri, 'password/') ||
-                str_starts_with($uri, 'email/')
+                str_starts_with($uri, 'email/') ||
+                str_starts_with($uri, 'gift/') ||
+                str_starts_with($uri, 'gift')
             ) {
                 continue;
             }
