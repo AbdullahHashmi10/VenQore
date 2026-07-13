@@ -45,7 +45,7 @@ VenQore has passed all 5 categories of accounting audit to ensure complete trust
 *   **Category 4 (Heart Capstone Gate):** Runs 13 comprehensive end-to-end scenarios covering sales, purchases, split-payments, and returns. Verified by `OneCoreReconciliationGateTest`.
 *   **Category 5 (Dashboard & Statement Integration):** Ensures that dashboard summaries and invoice statements align perfectly with the general ledger. Updates LIFO return proration to fix item-wise vs. P&L gross profit mismatches.
 *   **Powerhouse Specifications:**
-    *   **1,005+ Horsepower Test Suite:** 1,005 passed unit and feature tests validating system boundaries.
+    *   **1,065+ Horsepower Test Suite:** 1,065 passed unit and feature tests validating system boundaries.
     *   **154 Route Sweep Tests:** 154 comprehensive route sweep tests verifying system endpoint security and responsiveness.
     *   **4,000+ Octane Assertions:** 3,970+ live assertions confirming ledger integrity under pressure.
     *   **13-Gate Compression Chamber:** 13 capstone reconciliation tests checking multi-split payments and returns.

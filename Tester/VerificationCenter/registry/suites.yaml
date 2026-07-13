@@ -8,11 +8,11 @@
 #               T2 = consistency (cross-surface / service-backed comparison)
 #               T3 = health/structural (existence, wiring, architecture, docs)
 #
-# phpunit_test_methods_total: 1058
+# phpunit_test_methods_total: 1065
 meta:
   schema_version: 1
   generated_phase: B
-  phpunit_test_methods_total: 1058
+  phpunit_test_methods_total: 1065
   note: total = SUM of member test_methods (testX(), @test, #[Test], pest it/test).
 
 suites:
@@ -204,9 +204,12 @@ suites:
         oracle_tier: T3
   - id: Feature.DemoStore
     path: tests/Feature/DemoStore
-    test_methods: 35
-    files: 1
+    test_methods: 39
+    files: 2
     members:
+      - file: tests/Feature/DemoStore/GoldenMasterResolutionTest.php
+        test_methods: 4
+        oracle_tier: T2
       - file: tests/Feature/DemoStore/PageHealthTest.php
         test_methods: 35
         oracle_tier: T2
@@ -592,6 +595,14 @@ suites:
       - file: tests/Feature/Production/WooWebhookJournalPinningTest.php
         test_methods: 1
         oracle_tier: T1
+  - id: Feature.Reports
+    path: tests/Feature/Reports
+    test_methods: 3
+    files: 1
+    members:
+      - file: tests/Feature/Reports/CrossTenantReportLeakTest.php
+        test_methods: 3
+        oracle_tier: T2
   - id: Feature.Smoke
     path: tests/Feature/Smoke
     test_methods: 66
