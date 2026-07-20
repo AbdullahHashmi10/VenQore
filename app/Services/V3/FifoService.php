@@ -122,16 +122,33 @@ class FifoService
                         'total_cost' => round($remaining * $unitCost, 2),
                     ];
                 } else {
-                    DB::table('inventory_batches')
-                        ->where('tenant_id', $this->getTenantId())
-                        ->where('id', $lastBatch->id)
-                        ->decrement('remaining_qty', $remaining);
-                    
+                    // A prior batch exists — use its unit_cost for the negative_stock batch.
+                    // We must NOT decrement the existing batch below zero (the DB CHECK constraint
+                    // and SQLite trigger block any non-'negative_stock' batch from going negative).
+                    // Instead, create a dedicated negative_stock batch for the shortfall, exactly
+                    // as the !$lastBatch branch above already does.
+                    $unitCost = (float) $lastBatch->unit_cost;
+
+                    $batchId = Str::uuid()->toString();
+                    DB::table('inventory_batches')->insert([
+                        'tenant_id'     => $this->getTenantId(),
+                        'id'            => $batchId,
+                        'product_id'    => $productId,
+                        'warehouse_id'  => $warehouseId,
+                        'batch_type'    => 'negative_stock',
+                        'unit_cost'     => $unitCost,
+                        'original_qty'  => 0,
+                        'initial_qty'   => 0,
+                        'remaining_qty' => -$remaining,
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
+                    ]);
+
                     $deductions[] = [
-                        'batch_id' => $lastBatch->id,
-                        'qty_taken' => $remaining,
-                        'unit_cost' => (float) $lastBatch->unit_cost,
-                        'total_cost' => round($remaining * $lastBatch->unit_cost, 2),
+                        'batch_id'   => $batchId,
+                        'qty_taken'  => $remaining,
+                        'unit_cost'  => $unitCost,
+                        'total_cost' => round($remaining * $unitCost, 2),
                     ];
                 }
             }

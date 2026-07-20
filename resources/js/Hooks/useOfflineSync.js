@@ -8,6 +8,8 @@ export const useOfflineSync = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [pendingCount, setPendingCount] = useState(0);
     const [lastSyncTime, setLastSyncTime] = useState(null);
+    // Map of { [sale.id]: string } — error messages from the last failed sync attempt per sale
+    const [syncErrors, setSyncErrors] = useState({});
 
     // Check pending queue size
     const checkPending = async () => {
@@ -20,10 +22,15 @@ export const useOfflineSync = () => {
         if (!isOnline() || isSyncing) return;
 
         const pendingSales = await db.sales_queue.where('status').equals('pending').toArray();
-        if (pendingSales.length === 0) return;
+        if (pendingSales.length === 0) {
+            // No pending sales in DB — refresh the badge in case it's stale, then bail.
+            await checkPending();
+            return;
+        }
 
         setIsSyncing(true);
         let syncedCount = 0;
+        const newErrors = {};
 
         for (const sale of pendingSales) {
             try {
@@ -32,16 +39,34 @@ export const useOfflineSync = () => {
                     store_slug: store.slug
                 }), sale.data);
 
-                // If successful, remove from queue or mark synced
+                // Successful — remove error and mark synced
                 await db.sales_queue.update(sale.id, { status: 'synced', synced_at: new Date() });
                 // Optionally delete: await db.sales_queue.delete(sale.id);
                 syncedCount++;
             } catch (error) {
                 console.error("Sync failed for sale:", sale.id, error);
-                // Keep in queue, maybe add retry count
+
+                // Extract a human-readable error from the server response, if available
+                const serverMessage =
+                    error?.response?.data?.message ||
+                    error?.response?.data?.error ||
+                    (error?.response?.status ? `Server error ${error.response.status}` : null) ||
+                    error?.message ||
+                    'Unknown error';
+
+                newErrors[sale.id] = serverMessage;
+
+                // Increment attempt count so users can see how many retries have occurred
+                const currentAttempts = sale.attempt_count || 0;
+                await db.sales_queue.update(sale.id, {
+                    attempt_count: currentAttempts + 1,
+                    last_error: serverMessage,
+                    last_attempt_at: new Date(),
+                });
             }
         }
 
+        setSyncErrors(prev => ({ ...prev, ...newErrors }));
         setIsSyncing(false);
         setLastSyncTime(new Date());
         checkPending();
@@ -99,6 +124,8 @@ export const useOfflineSync = () => {
         isSyncing,
         pendingCount,
         lastSyncTime,
+        syncErrors,
+        checkPending,
         saveOfflineSale,
         syncPendingSales,
         getPendingSales,

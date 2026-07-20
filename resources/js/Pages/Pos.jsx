@@ -386,6 +386,8 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
         isSyncing,
         pendingCount,
         lastSyncTime,
+        syncErrors,
+        checkPending,
         saveOfflineSale,
         syncPendingSales,
         getPendingSales,
@@ -436,6 +438,9 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
     const loadOfflineSales = async () => {
         const sales = await getPendingSales();
         setOfflineSales(sales);
+        // Always re-sync the badge count from DB so it matches the list shown in the modal.
+        // Without this, the badge can show a stale number (e.g. "1") while the list is empty.
+        await checkPending();
     };
 
     const searchInputRef = useRef(null);
@@ -668,7 +673,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 const allowNegative = !shouldStopNegativeStock(settings);
 
                 if (!allowNegative) {
-                    alert('Not enough stock! Action blocked.');
+                    showAlert(
+                        'Not Enough Stock',
+                        `Cannot add more "${name}" — available stock is ${stock} unit(s). ` +
+                        `Negative stocking is currently disabled. To allow selling beyond available stock, ` +
+                        `enable "Allow Negative Stock" in Settings.`,
+                        'warning'
+                    );
                     return;
                 } else {
                     // Allowed but warn
@@ -690,7 +701,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 const allowNegative = !shouldStopNegativeStock(settings);
 
                 if (!allowNegative) {
-                    alert('Out of stock! Action blocked.');
+                    showAlert(
+                        'Out of Stock',
+                        `"${name}" has no remaining stock. ` +
+                        `Negative stocking is currently disabled. To allow selling beyond available stock, ` +
+                        `enable "Allow Negative Stock" in Settings.`,
+                        'warning'
+                    );
                     return;
                 } else {
                     // Allowed but warn
@@ -842,7 +859,13 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                     const allowNegative = !shouldStopNegativeStock(settings);
 
                     if (!allowNegative) {
-                        alert('Not enough stock! Action blocked.');
+                        showAlert(
+                            'Not Enough Stock',
+                            `Cannot increase "${item.name}" quantity — only ${item.stock} unit(s) in stock. ` +
+                            `Negative stocking is currently disabled. To allow selling beyond available stock, ` +
+                            `enable "Allow Negative Stock" in Settings.`,
+                            'warning'
+                        );
                         return item; // Do not update
                     } else {
                         // Only warn if increasing quantity
@@ -850,7 +873,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                             addToast(`Warning: Selling ${item.name} beyond stock!`, 'warning');
                         }
                     }
-                    addToast(`🏭 ${item.name} will be auto-manufactured`, 'info');
+                    // Note: stray auto-manufacture toast removed — this block is for !canAutoManufacture
                 }
 
                 // Recalculate Price based on Quantity (Wholesale Logic)
@@ -3509,7 +3532,16 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                     <span className="flex items-center gap-1.5"><ShoppingCart size={14} className="text-indigo-400" /> {sale.data.cart?.length || 0} Items</span>
                                                     <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400"><CreditCard size={14} /> {formatCurrency(sale.data.total_amount || 0, store || settings)}</span>
                                                     <span className="flex items-center gap-1.5 text-slate-400"><Clock size={14} /> {new Date(sale.created_at).toLocaleTimeString()}</span>
+                                                    {sale.attempt_count > 0 && (
+                                                        <span className="flex items-center gap-1 text-amber-500">&#9888; {sale.attempt_count} attempt{sale.attempt_count !== 1 ? 's' : ''}</span>
+                                                    )}
                                                 </div>
+                                                {/* Show sync error message if available */}
+                                                {syncErrors[sale.id] && (
+                                                    <div className="mt-2 px-3 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40">
+                                                        <p className="text-xs font-bold text-red-600 dark:text-red-400">&#9888; Sync Error: {syncErrors[sale.id]}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button 
