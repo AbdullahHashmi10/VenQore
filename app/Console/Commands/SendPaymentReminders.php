@@ -45,6 +45,12 @@ class SendPaymentReminders extends Command
             // Find posted sales that are older than the reminder window AND have a balance due
             // Balance due = invoice_total - sum(payments.amount) > 0
             // We fetch them grouped by party so we send one email per customer
+            // NOTE: `sales` has no `invoice_no` or `invoice_number` column — the
+            // sales table's human-readable invoice identifier is `reference_number`
+            // (see database/migrations/2026_01_02_000002_create_sales_table.php:12).
+            // Selecting/grouping by the nonexistent columns caused a hard SQL error
+            // ("Unknown column 'invoice_no'") that crashed this command whenever a
+            // tenant had a qualifying overdue sale — fixed below.
             $salesWithBalance = DB::table('sales as s')
                 ->leftJoin('payments as p', 'p.sale_id', '=', 's.id')
                 ->join('parties as pa', 'pa.id', '=', 's.party_id')
@@ -56,12 +62,11 @@ class SendPaymentReminders extends Command
                 ->whereNotNull('pa.email')
                 ->where('pa.email', '!=', '')
                 ->where(DB::raw('DATE(s.posted_at)'), '<=', $cutoffDate)
-                ->groupBy('s.id', 's.invoice_no', 's.invoice_number', 's.posted_at', 's.invoice_total', 's.total',
+                ->groupBy('s.id', 's.reference_number', 's.posted_at', 's.invoice_total', 's.total',
                           'pa.id', 'pa.name', 'pa.email')
                 ->selectRaw("
                     s.id,
-                    s.invoice_no,
-                    s.invoice_number,
+                    s.reference_number,
                     s.posted_at,
                     COALESCE(s.invoice_total, s.total, 0) as invoice_total,
                     COALESCE(SUM(p.amount), 0) as paid_amount,
@@ -87,7 +92,7 @@ class SendPaymentReminders extends Command
 
                 $salesData = $partySales->map(function ($s) {
                     return [
-                        'invoice_no' => $s->invoice_no ?? $s->invoice_number ?? ('INV-' . $s->id),
+                        'invoice_no' => $s->reference_number ?? ('INV-' . $s->id),
                         'date'       => Carbon::parse($s->posted_at)->toDateString(),
                         'total'      => (float) $s->invoice_total,
                         'paid'       => (float) $s->paid_amount,

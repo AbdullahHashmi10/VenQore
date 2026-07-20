@@ -35,7 +35,10 @@ class DemoController extends Controller
             $role = 'cashier';
         }
 
-        $demoTenant = Tenant::where('is_demo', true)->firstOrFail();
+        // Must resolve to the Golden Master specifically, not any other
+        // visitor's ephemeral demo clone (see DemoSessionService) — this is
+        // the shared demo instance login, not a per-visitor sandbox.
+        $demoTenant = Tenant::where('is_golden_master', true)->firstOrFail();
 
         // Ensure user exists for this role
         $email = "demo-{$role}@venqore-demo.internal";

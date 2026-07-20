@@ -1203,12 +1203,30 @@ class SaleController extends Controller
             }
 
             // 1. Restore Stock for OLD items
+            //    (a) Restore FIFO batch remaining_qty from audit rows so the batches are
+            //        back to their pre-sale state before we re-deduct for the edited items.
+            //    (b) Restore the aggregate Stock / ProductVariant mirrors.
+            //    (c) Delete the old sale_item_batches audit rows.
             foreach ($sale->items as $item) {
+                // (a) FIFO restore — credit back each batch that was consumed by this item.
+                $oldBatchRows = DB::table('sale_item_batches')
+                    ->where('sale_item_id', $item->id)
+                    ->get();
+                foreach ($oldBatchRows as $batchRow) {
+                    DB::table('inventory_batches')
+                        ->where('id', $batchRow->inventory_batch_id)
+                        ->increment('remaining_qty', $batchRow->qty_deducted);
+                }
+                // (c) Delete audit rows for this item.
+                DB::table('sale_item_batches')->where('sale_item_id', $item->id)->delete();
+
+                // (b) Aggregate mirror restore.
                 if ($item->product_variant_id) {
                     \App\Models\ProductVariant::find($item->product_variant_id)?->increment('stock', $item->quantity);
                 } elseif ($item->product_id) {
                     \App\Models\Stock::where('product_id', $item->product_id)->first()?->increment('quantity', $item->quantity);
                 }
+                // Note: Product.stock_quantity aggregate is restored by the re-deduct step below.
             }
 
             $sale->items()->delete();
@@ -1281,39 +1299,92 @@ class SaleController extends Controller
             ]);
 
             // 4. Re-create Items & COGS Sum
-            $totalCogs = 0;
+            //    Uses FifoService::deductStock() (same as store()) so COGS is batch-derived
+            //    and sale_item_batches audit rows are created for every stock-tracked item.
+            $totalCogs       = 0;
+            $isStockEnabled  = \App\Helpers\SettingsHelper::isStockMaintenanceEnabled();
+            $stopNegative    = \App\Helpers\SettingsHelper::stopSaleOnNegativeStock();
+            $warehouseId     = $sale->warehouse_id ?? 1;
+
             foreach ($lineValues as $line) {
                 $product   = Product::find($line['product_id']);
                 $costPrice = $product->cost_price ?? 0;
-                $totalCogs += $costPrice * $line['quantity'];
+                $itemCogs  = 0;
 
-                SaleItem::create(array_merge($line, [
+                $saleItem = SaleItem::create(array_merge($line, [
                     'sale_id'    => $sale->id,
                     'cost_price' => $costPrice,
                     'subtotal'   => $line['unit_price'] * $line['quantity'],
                 ]));
 
-                // 4.3 Deduct Stock
-                if (\App\Helpers\SettingsHelper::isStockMaintenanceEnabled()) {
+                // 4.3 Deduct Stock via FIFO (mirrors store() flow exactly)
+                if ($isStockEnabled) {
+                    $qty = $line['quantity'];
+
+                    // Check availability if negative stock is blocked (mirrors store() path)
+                    if ($stopNegative) {
+                        $stockRecord = \App\Models\Stock::where('product_id', $line['product_id'])
+                            ->where('warehouse_id', $warehouseId)
+                            ->first();
+                        $avail = $stockRecord ? $stockRecord->quantity : 0;
+                        if ($avail < $qty) {
+                            throw new \App\Exceptions\InsufficientStockException(
+                                $line['product_id'], $warehouseId, $qty, $avail
+                            );
+                        }
+                    }
+
+                    $deductions = app(\App\Services\V3\FifoService::class)->deductStock($line['product_id'], $warehouseId, $qty);
+                    foreach ($deductions as $d) {
+                        $itemCogs += $d['total_cost'];
+                        DB::table('sale_item_batches')->insert([
+                            'id'                 => \Illuminate\Support\Str::uuid()->toString(),
+                            'tenant_id'          => $sale->tenant_id,
+                            'sale_item_id'       => $saleItem->id,
+                            'inventory_batch_id' => $d['batch_id'],
+                            'qty_deducted'       => $d['qty_taken'],
+                            'unit_cost'          => $d['unit_cost'],
+                            'total_cogs'         => $d['total_cost'],
+                            'created_at'         => now(),
+                            'updated_at'         => now(),
+                        ]);
+                    }
+                    $saleItem->update(['cost_price' => $qty > 0 ? $itemCogs / $qty : 0]);
+
+                    // Aggregate mirror
                     if (!empty($line['product_variant_id'])) {
                         $variant = ProductVariant::find($line['product_variant_id']);
-                        if ($variant) $variant->decrement('stock', $line['quantity']);
+                        if ($variant) $variant->decrement('stock', $qty);
                     } else {
-                        $stock = \App\Models\Stock::where('product_id', $line['product_id'])->where('warehouse_id', 1)->first();
-                        if ($stock) $stock->decrement('quantity', $line['quantity']);
+                        $stock = \App\Models\Stock::where('product_id', $line['product_id'])->where('warehouse_id', $warehouseId)->first();
+                        if ($stock) {
+                            $stock->decrement('quantity', $qty);
+                        } else {
+                            \App\Models\Stock::create([
+                                'product_id'  => $line['product_id'],
+                                'warehouse_id' => $warehouseId,
+                                'quantity'    => -$qty,
+                            ]);
+                        }
                     }
+                    Product::where('id', $line['product_id'])->decrement('stock_quantity', $qty);
 
                     \App\Models\StockMovement::create([
                         'product_id'         => $line['product_id'],
                         'product_variant_id' => $line['product_variant_id'] ?? null,
-                        'warehouse_id'       => $sale->warehouse_id ?? 1,
+                        'warehouse_id'       => $warehouseId,
                         'type'               => 'sale',
-                        'quantity'           => -$line['quantity'],
+                        'quantity'           => -$qty,
                         'reference_id'       => $sale->id,
                         'description'        => 'Sale Update: ' . $sale->reference_number,
                         'user_id'            => auth()->id(),
                     ]);
+                } else {
+                    // Stock tracking disabled — use flat cost_price (service / non-inventory items)
+                    $itemCogs = $costPrice * $line['quantity'];
                 }
+
+                $totalCogs += $itemCogs;
             }
 
             // 5. Re-post Journal & Payments

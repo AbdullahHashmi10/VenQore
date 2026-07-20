@@ -77,12 +77,19 @@ class PurchaseController extends Controller
                 $extras = \App\Models\Expense::where('purchase_id', $purchase->id)
                     ->where('is_landed_cost', true)
                     ->sum('amount');
-                
+
                 $subtotal = $purchase->items->sum(fn($item) => $item->quantity * $item->unit_price);
                 $discount = (float)($purchase->discount ?? 0);
                 $netSubtotal = $subtotal - $discount;
                 $grandTotal = $netSubtotal + $extras;
-                $paid = $purchase->paid_amount ?? 0;
+
+                // V3 source-of-truth: read paid amount from payment_allocations
+                // (never from the stale Invoice->payments accessor which joins on reference)
+                $paid = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
+                    ->where('purchase_id', $purchase->id)
+                    ->where('status', 'active')
+                    ->sum('allocated_amount');
+
                 $balance = max(0.0, $grandTotal - $paid);
                 
                 // Calculate proper payment status with tolerance to match frontend's balance > 1 check
@@ -450,16 +457,23 @@ class PurchaseController extends Controller
             ]);
         }
 
-        return redirect()->route('purchases.index')->with('success', 'Purchase recorded successfully');
+        return redirect()->route('store.purchases.index', ['store_slug' => request()->route('store_slug')])->with('success', 'Purchase recorded successfully');
     }
 
     public function show($id)
     {
         $purchase = Invoice::with(['party', 'items.product', 'payments'])->findOrFail($id);
 
+        // V3 source-of-truth: paid amount comes from payment_allocations, not the old payments relationship
+        $paidAmount = (float) \Illuminate\Support\Facades\DB::table('payment_allocations')
+            ->where('purchase_id', $purchase->id)
+            ->where('status', 'active')
+            ->sum('allocated_amount');
+        $purchase->setAttribute('paid_amount', $paidAmount);
+
         if ($purchase->party_id && $purchase->tenant_id) {
             $net = \App\Services\LedgerService::partyNetBalance($purchase->party_id, $purchase->tenant_id);
-            $balanceDue = max(0, (float)$purchase->total - (float)$purchase->payments->sum('amount'));
+            $balanceDue = max(0, (float)$purchase->total_amount - $paidAmount);
             $purchase->customer_net_balance  = $net;
             $purchase->customer_prev_balance = $net - $balanceDue;
             $purchase->append(['customer_net_balance', 'customer_prev_balance']);
@@ -888,6 +902,6 @@ class PurchaseController extends Controller
             $purchase->delete();
         });
 
-        return redirect()->route('purchases.index')->with('success', 'Purchase deleted successfully');
+        return redirect()->route('store.purchases.index', ['store_slug' => request()->route('store_slug')])->with('success', 'Purchase deleted successfully');
     }
 }

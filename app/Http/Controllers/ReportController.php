@@ -1200,6 +1200,7 @@ class ReportController extends Controller
         // Phase 4 — AR aging uses the Ledger, not sale.paid_amount
         // For each party with an AR balance, we calculate how many days the oldest
         // unpaid sale has been outstanding.
+        $tenantId = app('current.tenant')->id;
         $arAccount = Account::where('code', '1200')->first();
 
         if (!$arAccount) {
@@ -1211,18 +1212,28 @@ class ReportController extends Controller
             ->where('payment_status', '!=', 'paid')
             ->with('party')
             ->get()
-            ->map(function ($sale) use ($arAccount) {
+            ->map(function ($sale) use ($arAccount, $tenantId) {
                 // Per-sale outstanding: AR debits minus AR credits for this sale (by reference)
                 $saleRef = $sale->reference_number;
 
+                // Defense-in-depth: journal_items.account_id and
+                // journal_entries.party_id are themselves tenant-owned
+                // foreign keys, so this wasn't a live cross-tenant leak —
+                // but every other raw-query report in this file scopes by
+                // tenant_id explicitly, and this was the one exception.
+                // Scoping explicitly here matches the file's own convention
+                // and removes the landmine for the next person who copies
+                // this method as a template.
                 $arDr = (float) DB::table('journal_items')
                     ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->where('journal_entries.tenant_id', $tenantId)
                     ->where('journal_items.account_id', $arAccount->id)
                     ->where('journal_entries.reference', $saleRef)
                     ->sum('journal_items.debit');
 
                 $arCr = (float) DB::table('journal_items')
                     ->join('journal_entries', 'journal_items.journal_entry_id', '=', 'journal_entries.id')
+                    ->where('journal_entries.tenant_id', $tenantId)
                     ->where('journal_items.account_id', $arAccount->id)
                     ->where('journal_entries.party_id', $sale->party_id)
                     ->whereDate('journal_entries.date', '>=', $sale->posted_at ? Carbon::parse($sale->posted_at)->toDateString() : $sale->created_at->toDateString())
@@ -2031,8 +2042,8 @@ class ReportController extends Controller
             // status, not a headline revenue KPI. Needs per-invoice paid_amount vs.
             // total, which the ledger engine doesn't expose at this granularity
             // (that's what getAgedReceivables() is for). Left on the sales table
-            // deliberately — see Verification Checklist item in the implementation plan.
-            $totalRevenue = $sales->sum('total');
+            // deliberately — this is a genuinely different metric from revenue,
+            // not a substitute for it.
             $totalPaid = $sales->sum('paid_amount');
 
             $unpaid = $sales->sum(function ($sale) {
@@ -2045,6 +2056,28 @@ class ReportController extends Controller
             ];
 
             // 3. Key Stats
+            // total_revenue: ledger-derived (Single Source of Truth per CLAUDE.md),
+            // same engine as the trend chart above, via
+            // FinancialReportingService::getProfitAndLoss() — matches the pattern
+            // already used in SalesAnalyticsController::index(). Previously this
+            // read $sales->sum('total') (raw, tax-inclusive gross Sale.total),
+            // which could legitimately disagree with the chart on this same page
+            // for the same period. avg_ticket is derived from the same ledger
+            // figure so it stays consistent with total_revenue.
+            //
+            // Recompute the KPI window explicitly rather than reusing $start/$end
+            // from the trend-chart block above — that block's $start/$end are only
+            // assigned on some branches (e.g. the 'today' range never sets them),
+            // so relying on them here would be undefined on those paths.
+            [$statsStart, $statsEnd] = match (true) {
+                $range === 'today' => [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()],
+                $range === 'year' => [Carbon::now()->startOfYear(), Carbon::now()->endOfYear()],
+                $range === 'custom' && $startDate && $endDate => [Carbon::parse($startDate)->startOfDay(), Carbon::parse($endDate)->endOfDay()],
+                $range === '7_days' => [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()->endOfDay()],
+                default => [Carbon::now()->subDays(29)->startOfDay(), Carbon::now()->endOfDay()],
+            };
+            $totalRevenue = (float) app(FinancialReportingService::class)
+                ->getProfitAndLoss($statsStart->toDateString(), $statsEnd->toDateString())['revenue'];
             $stats = [
                 'total_revenue' => $totalRevenue,
                 'total_transactions' => $sales->count(),
@@ -2161,7 +2194,12 @@ class ReportController extends Controller
         $tenantId = app('current.tenant')->id;
 
         // 1. Fetch real stock movements for this product up to $asOfEnd
+        // SECURITY: tenant_id filter is required here — without it, a
+        // caller could pass another tenant's product_id and read that
+        // tenant's stock-movement ledger. Matches the pattern already used
+        // by the inventory_batches query a few lines below.
         $ledger = DB::table('stock_movements')
+            ->where('tenant_id', $tenantId)
             ->where('product_id', $productId)
             ->where('created_at', '<=', $asOfEnd)
             ->orderByDesc('created_at')
@@ -2364,11 +2402,11 @@ class ReportController extends Controller
             ->where('invoice_items.product_id', $productId)
             ->whereBetween('invoices.date', [$startDate, $endDate])
             ->select(
-                'invoices.id', 
-                'invoices.reference_number as invoice_number', 
-                'invoices.date as date', 
-                'invoice_items.received_qty as quantity', 
-                'invoice_items.effective_unit_cost as unit_cost', 
+                'invoices.id',
+                'invoices.invoice_number',
+                'invoices.date as date',
+                'invoice_items.received_qty as quantity',
+                'invoice_items.effective_unit_cost as unit_cost',
                 'invoice_items.total'
             )
             ->get();

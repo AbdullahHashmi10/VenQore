@@ -1,16 +1,16 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-07-11 15:31:06 PKT  
+> **Generated:** 2026-07-13 22:28:19 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
-> **Audit Date:** 2026-07-11  
-> **Audit Period Seeded:** 2025-01-01 → 2026-07-11  
+> **Audit Date:** 2026-07-13  
+> **Audit Period Seeded:** 2025-01-01 → 2026-07-13  
 
 ## Summary
 
 | Status | Count |
 |--------|-------|
-| 🔢 Total Routes Scanned | **233** |
-| ✅ Passed | 184 |
+| 🔢 Total Routes Scanned | **239** |
+| ✅ Passed | 190 |
 | ⚠️ All Zeros (Suspicious) | 49 |
 | ❌ Mismatched vs Ledger | 0 |
 | 🔴 HTTP Errors / Exceptions | 0 |
@@ -369,7 +369,7 @@
   settings.tax_rate: 0
 ```
 
-## Full Scan Results (233 routes)
+## Full Scan Results (239 routes)
 
 | Route | Status | Code | Financial Props |
 |-------|--------|------|----------------|
@@ -444,7 +444,7 @@
 | `store.reports.balance-sheet` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `assets.accounts.sum_balance`=17,995,566.99, `assets.accounts.total_balance`=17,995,566.99 (+10 more) |
 | `store.reports.all-parties` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_balance`=19,021,539.34, `data.total_balance`=19,021,539.34 (+2 more) |
 | `store.reports.trial-balance` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `accounts.sum_debit`=28,996,904.34, `accounts.total_debit`=28,996,904.34 (+6 more) |
-| `store.reports.item-wise-profit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `items.sum_revenue`=449,876.14, `items.total_revenue`=449,876.14 (+2 more) |
+| `store.reports.item-wise-profit` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `items.sum_revenue`=449,876.14, `items.total_revenue`=449,876.14 (+14 more) |
 | `store.reports.party-wise-profit-loss` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_invoice_count`=16.00, `data.total_invoice_count`=16.00 (+8 more) |
 | `store.reports.discount` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `invoices.sum_subtotal`=526,355.12, `invoices.total_subtotal`=526,355.12 (+31 more) |
 | `store.reports.cash-flow` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `operating`=4,071,124.77, `investing`=0.00 (+3 more) |
@@ -461,12 +461,18 @@
 | `store.reports.item-report-by-party` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_total`=449,876.14, `data.total_total`=449,876.14 (+2 more) |
 | `store.reports.party-report-by-item` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_total`=449,876.14, `data.total_total`=449,876.14 (+2 more) |
 | `store.reports.sale-purchase-by-item-category` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_sales`=449,876.14, `data.total_sales`=449,876.14 (+2 more) |
-| `store.reports.item-category-wise-profit-loss` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_revenue`=449,876.14, `data.total_revenue`=449,876.14 (+6 more) |
+| `store.reports.item-category-wise-profit-loss` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_revenue`=449,876.14, `data.total_revenue`=449,876.14 (+52 more) |
 | `store.reports.item-wise-discount` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_total_sales`=449,876.14, `data.total_total_sales`=449,876.14 (+2 more) |
 | `store.reports.sale-order-items` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `items.sum_subtotal`=4,250.00, `items.total_subtotal`=4,250.00 |
 | `store.reports.stock-aging` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_cost_value`=10,572,686.90, `data.total_cost_value`=10,572,686.90 (+4 more) |
 | `store.reports.sale-purchase-by-party-group` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_sales`=526,355.12, `data.total_sales`=526,355.12 (+6 more) |
-| `store.reports.analytics` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `trendData.sum_sales`=0.00, `trendData.total_sales`=0.00 (+4 more) |
+| `store.reports.analytics` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `trendData.sum_sales`=449,876.14, `trendData.total_sales`=449,876.14 (+4 more) |
+| `store.reports.point-in-time-inventory` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_unit_cost`=88,695.59, `data.total_unit_cost`=88,695.59 (+4 more) |
+| `store.reports.point-in-time-inventory.details` | ✅ PASS | 200 | – |
+| `store.reports.customer-insights` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_invoice_count`=16.00, `data.total_invoice_count`=16.00 (+6 more) |
+| `store.reports.customer-insights.details` | ✅ PASS | 200 | – |
+| `store.reports.supplier-insights` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `data.sum_total_qty_purchased`=94.00, `data.total_total_qty_purchased`=94.00 (+10 more) |
+| `store.reports.supplier-insights.details` | ✅ PASS | 200 | – |
 | `store.reports.owner-daily-pulse` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `snapshots.sum_sales_value`=449,876.14, `snapshots.total_sales_value`=449,876.14 (+12 more) |
 | `store.cookbook.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `recipes.sum_product.cost_price`=620.13, `recipes.total_product.cost_price`=620.13 (+10 more) |
 | `store.cookbook.create` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `products.sum_cost_price`=91,953.28, `products.total_cost_price`=91,953.28 |
@@ -507,7 +513,7 @@
 | `store.customers.create` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00 |
 | `store.suppliers.search` | ✅ PASS | 200 | – |
 | `store.parties.search` | ✅ PASS | 200 | – |
-| `store.sales.dashboard` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.sales_today`=0.00, `stats.sales_today_growth`=-100.00 (+13 more) |
+| `store.sales.dashboard` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `stats.sales_today`=0.00, `stats.sales_today_growth`=0.00 (+13 more) |
 | `store.sales.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `sales.data.sum_subtotal`=10,806,765.73, `sales.data.total_subtotal`=10,806,765.73 (+78 more) |
 | `store.attendance.status` | ✅ PASS | 200 | – |
 | `store.sales.show` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `sale.subtotal`=99,740.46, `sale.subtotal_gross`=0.00 (+16 more) |

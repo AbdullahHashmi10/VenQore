@@ -36,6 +36,39 @@ class Tenant extends Model
     public $incrementing = true;
     protected $keyType = 'int';
 
+    /**
+     * Enforce "at most one Golden Master demo tenant" at the application
+     * layer. is_golden_master has no DB-level unique constraint (MySQL
+     * doesn't support a filtered/partial unique index on a plain boolean
+     * the way Postgres does), and several commands/controllers resolve
+     * "the" demo tenant via Tenant::where('is_golden_master', true)->first()
+     * — if that ever matched more than one row, which record comes back is
+     * implementation-defined, and demo:restore-style commands would risk
+     * wiping/reseeding the wrong tenant. This guard fails loudly at save
+     * time instead of letting a second Golden Master silently exist.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (Tenant $tenant) {
+            if (!$tenant->is_golden_master) {
+                return;
+            }
+
+            $existing = static::withoutGlobalScopes()
+                ->where('is_golden_master', true)
+                ->where('id', '!=', $tenant->id ?? 0)
+                ->exists();
+
+            if ($existing) {
+                throw new \RuntimeException(
+                    'Refusing to save Tenant #' . ($tenant->id ?? '(new)') . ' with is_golden_master=true: '
+                    . 'another tenant already has is_golden_master=true. Only one Golden Master demo tenant '
+                    . 'may exist at a time. Unset the flag on the existing Golden Master first if you intend to replace it.'
+                );
+            }
+        });
+    }
+
     protected $fillable = [
         'name',
         'slug',
@@ -127,7 +160,24 @@ class Tenant extends Model
         if (!array_key_exists('google_refresh_token', $this->attributes)) {
             return false;
         }
-        return !empty($this->google_refresh_token);
+
+        // google_refresh_token is an `encrypted` cast, so reading it here
+        // forces a decrypt using the CURRENT APP_KEY. Because this accessor
+        // is auto-appended ($appends above) and shared on every tenant-scoped
+        // request (see TenantMiddleware::handle()), an undecryptable value —
+        // e.g. left over from a stale/rotated APP_KEY — used to throw an
+        // uncaught DecryptException("The MAC is invalid.") straight out of
+        // middleware, taking down every page for the tenant. Guard it: a
+        // token that can't be decrypted is functionally "not connected".
+        try {
+            return !empty($this->google_refresh_token);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException $e) {
+            \Illuminate\Support\Facades\Log::warning(
+                "Tenant {$this->id}: google_refresh_token failed to decrypt (stale/rotated APP_KEY?). Treating as disconnected.",
+                ['tenant_id' => $this->id]
+            );
+            return false;
+        }
     }
 
     // ──────────────────────────────────────────────────────────────────

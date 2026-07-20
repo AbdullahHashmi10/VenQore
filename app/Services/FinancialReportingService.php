@@ -835,7 +835,12 @@ class FinancialReportingService
         // Sum of every stock_movements delta that happened AFTER $asOf, per product.
         // Movements are already signed (+/-), so subtracting this from "now" undoes
         // everything that happened since $asOf, leaving the quantity AT $asOf.
+        // SECURITY: tenant_id filter is required — without it this pulls
+        // movement deltas across ALL tenants, and their product_ids leak
+        // into the $productIds set built below (feeding the also-unscoped
+        // products query, compounding the leak).
         $movementsSinceAsOf = DB::table('stock_movements')
+            ->where('tenant_id', $tenantId)
             ->where('created_at', '>', $asOfEnd)
             ->select('product_id', DB::raw('SUM(quantity) as delta'))
             ->groupBy('product_id')
@@ -858,7 +863,11 @@ class FinancialReportingService
             ->merge($historicalCost->keys())
             ->unique();
 
+        // SECURITY: tenant_id filter is required — without it, another
+        // tenant's product name/SKU/category could be displayed in this
+        // tenant's Point-In-Time Inventory report.
         $products = DB::table('products')
+            ->where('products.tenant_id', $tenantId)
             ->whereIn('products.id', $productIds)
             ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
             ->select('products.id', 'products.name', 'products.sku', 'categories.name as category_name')

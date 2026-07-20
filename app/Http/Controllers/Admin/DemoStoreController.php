@@ -33,7 +33,9 @@ class DemoStoreController extends Controller
      */
     public function status()
     {
-        $demo = Tenant::where('is_demo', true)->first();
+        // Must resolve to the Golden Master specifically, not any live
+        // visitor's ephemeral demo clone (see DemoSessionService).
+        $demo = Tenant::where('is_golden_master', true)->first();
 
         if (!$demo) {
             return response()->json(['exists' => false]);
@@ -87,7 +89,9 @@ class DemoStoreController extends Controller
      */
     public function reset()
     {
-        $demo = Tenant::where('is_demo', true)->firstOrFail();
+        // Must resolve to the Golden Master specifically, not any live
+        // visitor's ephemeral demo clone (see DemoSessionService).
+        $demo = Tenant::where('is_golden_master', true)->firstOrFail();
 
         Artisan::call('demo:reset');
 

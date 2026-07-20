@@ -19,11 +19,37 @@ class UpdaterController extends Controller
     private const MAX_ZIP_SIZE_BYTES = 300 * 1024 * 1024;
 
     /**
+     * Shared lock-staleness threshold (minutes), used by BOTH this
+     * controller (to decide whether a new upload may start) and
+     * PreventAccessDuringUpdate middleware (to decide whether to stop
+     * blocking ordinary traffic). These two used to be different values
+     * (30 here, 15 in the middleware) — the middleware would silently let
+     * traffic back through while a genuinely-still-running extract of a
+     * large package (14,000+ files) was mid-overwrite, because it thought
+     * the lock was stale before this controller did. They must always
+     * match; if you need to change the timeout, change it only here and
+     * have the middleware read the same value.
+     */
+    public const LOCK_MAX_AGE_MINUTES = 30;
+
+    /**
      * Lock file path — prevents concurrent updates
      */
     private function lockPath(): string
     {
         return storage_path('update.lock');
+    }
+
+    /**
+     * Update the lock file's mtime without changing its contents, so a
+     * genuinely-still-running long extract never crosses the staleness
+     * threshold and gets treated as abandoned mid-operation.
+     */
+    private function touchLock(): void
+    {
+        if (File::exists($this->lockPath())) {
+            @touch($this->lockPath());
+        }
     }
 
     /**
@@ -173,7 +199,7 @@ class UpdaterController extends Controller
             if (File::exists($this->lockPath())) {
                 $lockTime = File::lastModified($this->lockPath());
                 $ageMinutes = round((time() - $lockTime) / 60);
-                if ($ageMinutes < 30) {
+                if ($ageMinutes < self::LOCK_MAX_AGE_MINUTES) {
                     throw new Exception("An update is already in progress (started {$ageMinutes} minute(s) ago). Please wait.");
                 }
                 File::delete($this->lockPath());
@@ -185,6 +211,13 @@ class UpdaterController extends Controller
                 File::deleteDirectory($chunkDir);
             }
             File::makeDirectory($chunkDir, 0755, true);
+
+            // Record the expected chunk count for this upload attempt, so a
+            // retry that reuses the same upload_id with a DIFFERENT
+            // total_chunks (e.g. browser retried with a re-split file) can
+            // be detected and rejected below, instead of silently mixing
+            // chunks from two different attempts.
+            File::put($chunkDir . '/.expected_total_chunks', (string) $totalChunks);
 
             // Generate a secure one-time update token.
             // This token is stored in the lock file and returned to the
@@ -201,6 +234,22 @@ class UpdaterController extends Controller
                 'total_chunks' => $totalChunks,
                 'update_token' => $updateToken,
             ]));
+        }
+
+        // ── Reject total_chunks mismatch against this attempt's record ──
+        // Guards against a stale/mismatched chunk set if a client retries
+        // with the same upload_id but a different total_chunks value after
+        // an earlier attempt already wrote chunks beyond index 0.
+        $expectedTotalChunksFile = $chunkDir . '/.expected_total_chunks';
+        if (File::exists($expectedTotalChunksFile)) {
+            $expectedTotalChunks = (int) trim(File::get($expectedTotalChunksFile));
+            if ($expectedTotalChunks > 0 && $expectedTotalChunks !== $totalChunks) {
+                throw new Exception(
+                    "Chunk count mismatch for upload {$uploadId}: this attempt expected {$expectedTotalChunks} chunks " .
+                    "but received a request for {$totalChunks}. This usually means a previous upload attempt with the " .
+                    "same upload_id is still present. Please retry the upload from the start."
+                );
+            }
         }
 
         // ── Receive this chunk ────────────────────────────────────
@@ -430,6 +479,16 @@ class UpdaterController extends Controller
         }
 
         for ($i = 0; $i < $fileCount; $i++) {
+            // Keep the update lock "fresh" while extraction is genuinely
+            // still in progress — a large package (14,000+ files) can take
+            // longer than LOCK_MAX_AGE_MINUTES to extract, and without this
+            // the lock would look abandoned partway through, letting
+            // PreventAccessDuringUpdate start allowing ordinary traffic
+            // through mid-overwrite (see LOCK_MAX_AGE_MINUTES doc comment).
+            if ($i % 500 === 0) {
+                $this->touchLock();
+            }
+
             $entryName = $useZipArchive ? $zip->getNameIndex($i) : $zipList[$i]['filename'];
 
             // Skip directory entries
@@ -584,6 +643,25 @@ class UpdaterController extends Controller
             opcache_reset();
         }
 
+        // ── Validate the frontend build manifest survived extraction ──
+        // Update packages are expected to ship a pre-built public/build
+        // (Vite manifest + compiled assets) — this Updater does not run a
+        // frontend build itself. If a package is assembled without that
+        // directory, or extraction somehow drops it, Inertia can silently
+        // fail to resolve JS/CSS assets and every page white-screens. Fail
+        // loudly here (before cache-clear/version-bump) instead of letting
+        // that surface later as an unexplained blank app.
+        $manifestPath = base_path('public/build/manifest.json');
+        $viteManifestPath = base_path('public/build/.vite/manifest.json'); // Vite 5+ location
+        if (!File::exists($manifestPath) && !File::exists($viteManifestPath)) {
+            Log::critical('Updater: public/build manifest is missing after extraction — frontend assets will not resolve.');
+            throw new Exception(
+                'The update package did not include a built frontend (public/build/manifest.json is missing after extraction). ' .
+                'The application would white-screen if brought back online in this state. ' .
+                'Rebuild/repackage the update with `npm run build` output included and try again.'
+            );
+        }
+
         return response()->json([
             'message' => $message,
             'updated' => $updated,
@@ -607,7 +685,15 @@ class UpdaterController extends Controller
             Log::warning("Updater: config:clear failed during migration step: " . $e->getMessage());
         }
 
-        // ── Count pending migrations first ────────────────────────
+        // ── Count pending migrations (for logging/reporting only) ──
+        // NOTE: this count is informational. It used to gate whether
+        // `migrate` ran at all — if a migration was ever logged as "ran"
+        // in the `migrations` table without its schema change actually
+        // landing (partial/failed prior attempt, renamed migration file
+        // between packages, etc.), that heuristic under-counted and the
+        // real migration was skipped forever, silently. `artisan migrate`
+        // is already a safe no-op when nothing is pending, so it is now
+        // called unconditionally below — never skip it.
         $pendingCount = 0;
         try {
             $ran   = DB::table('migrations')->pluck('migration')->toArray();
@@ -621,15 +707,7 @@ class UpdaterController extends Controller
             Log::warning("Updater: Could not count pending migrations: " . $e->getMessage());
         }
 
-        // If no pending, skip entirely — safest option
-        if ($pendingCount === 0) {
-            return response()->json([
-                'message' => 'Database migrations applied successfully.',
-                'output'  => 'Nothing to migrate — database is already up to date.',
-            ]);
-        }
-
-        // ── Run ONLY pending migrations (never fresh/reset!) ──────
+        // ── Run migrations (never fresh/reset!) — always, unconditionally ──
         $exitCode = Artisan::call('migrate', ['--force' => true]);
         $output   = Artisan::output();
 
@@ -655,11 +733,21 @@ class UpdaterController extends Controller
             );
         }
 
+        // ── Post-migrate schema validation gate ────────────────────
+        // Belt-and-suspenders check: even though `migrate` just reported
+        // success, assert that a small allowlist of load-bearing columns
+        // genuinely exist before we let the update proceed to cache-clear
+        // and version-bump. If the app went live querying a column that
+        // isn't there, every page touching that query breaks — this turns
+        // that into a loud, held-lock failure instead of a silent "success"
+        // response that leaves the app broken behind a green checkmark.
+        $this->assertCriticalSchema();
+
         // Auto-restore demo tenant if missing or empty (T4.1)
         try {
-            $demoTenantExists = \App\Models\Tenant::where('is_demo', true)->exists();
+            $demoTenantExists = \App\Models\Tenant::where('is_golden_master', true)->exists();
             if (!$demoTenantExists) {
-                Log::info("Updater: Demo store missing, running demo:restore...");
+                Log::info("Updater: Golden Master demo tenant missing, running demo:restore...");
                 Artisan::call('demo:restore', ['--force' => true]);
             }
         } catch (Exception $e) {
@@ -711,6 +799,22 @@ class UpdaterController extends Controller
                 $results[$cmd] = 'skipped: ' . $e->getMessage();
                 Log::warning("Cache clear command [{$cmd}] failed: " . $e->getMessage());
             }
+        }
+
+        // ── 3.5 Regenerate Ziggy's frontend route cache ────────────
+        // Per this project's own convention (see CLAUDE.md), any route
+        // change requires `ziggy:generate` to regenerate
+        // resources/js/ziggy.js before the frontend can resolve named
+        // routes correctly. An update package can add/rename routes, so
+        // this must run on every update, not just be a manual dev step —
+        // skipping it previously left the shipped ziggy.js stale after any
+        // route-changing update.
+        try {
+            Artisan::call('ziggy:generate');
+            $results['ziggy:generate'] = 'ok';
+        } catch (Exception $e) {
+            $results['ziggy:generate'] = 'skipped: ' . $e->getMessage();
+            Log::warning('Updater: ziggy:generate failed: ' . $e->getMessage());
         }
 
         // ── 4. Re-cache config for production performance ─────────
@@ -779,8 +883,15 @@ class UpdaterController extends Controller
         File::put(storage_path('app_version.txt'), $newVersion);
 
         // ── BRING APP BACK ONLINE ─────────────────────────────
-        // We put the app in maintenance mode during extract.
-        // Now all steps are done, so bring it back up.
+        // NOTE: this codebase does NOT use Laravel's native `artisan down`
+        // maintenance mode during the update — protection during extract
+        // comes entirely from the custom storage/update.lock file plus
+        // PreventAccessDuringUpdate middleware (which allow-lists the
+        // Updater/Installer routes so the update flow itself keeps working).
+        // This call to safeDisableMaintenanceMode() is a defensive no-op
+        // for the common case (kept in case native maintenance mode was
+        // ever engaged by another process/deploy step) — it is not "the"
+        // mechanism that protected traffic during this update.
         $this->safeDisableMaintenanceMode();
 
         // ── Release the update lock ────────────────────────────
@@ -856,6 +967,54 @@ class UpdaterController extends Controller
         }
 
         return $target;
+    }
+
+    /**
+     * Columns considered load-bearing enough that the app cannot function
+     * correctly without them. Checked after every `migrate` run as a
+     * post-condition, not just a precondition — add to this list whenever
+     * a migration introduces a column that reports/scheduled commands
+     * depend on directly via raw queries (which don't fail loudly at
+     * migration time the way Eloquent-model mismatches sometimes do).
+     */
+    private const CRITICAL_SCHEMA_COLUMNS = [
+        'sales'    => ['reference_number', 'tenant_id', 'status'],
+        'invoices' => ['invoice_number', 'tenant_id'],
+        'tenants'  => ['is_demo', 'is_golden_master'],
+    ];
+
+    /**
+     * Assert that every column in CRITICAL_SCHEMA_COLUMNS actually exists.
+     * Throws (holding the update lock, surfacing a hard failure) rather
+     * than letting the update silently report success while the app is
+     * left querying columns that were never created.
+     */
+    private function assertCriticalSchema(): void
+    {
+        $missing = [];
+        foreach (self::CRITICAL_SCHEMA_COLUMNS as $table => $columns) {
+            foreach ($columns as $column) {
+                try {
+                    if (!\Illuminate\Support\Facades\Schema::hasColumn($table, $column)) {
+                        $missing[] = "{$table}.{$column}";
+                    }
+                } catch (Exception $e) {
+                    // Table itself missing/unreadable — treat as missing too
+                    $missing[] = "{$table}.{$column} (table check failed: {$e->getMessage()})";
+                }
+            }
+        }
+
+        if (!empty($missing)) {
+            $list = implode(', ', $missing);
+            Log::critical("Updater: POST-MIGRATE SCHEMA CHECK FAILED. Missing/unreadable: {$list}");
+            throw new Exception(
+                "Post-migration schema check failed — the following expected columns are missing: {$list}. " .
+                "Migrations reported success but the schema does not match what the application expects. " .
+                "The update has been HALTED before cache-clear/version-bump. Do not retry blindly — " .
+                "inspect the migration that should have added these columns before proceeding."
+            );
+        }
     }
 
     /**

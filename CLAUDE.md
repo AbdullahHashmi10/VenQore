@@ -2,6 +2,11 @@
 
 This is the authoritative context file for AI agents working in this codebase. Read this before doing anything.
 
+## Deliverable Format Preference
+
+- **Default to Markdown (`.md`) for written deliverables** (reports, plans, findings, summaries, audits, etc.). Do **not** produce `.docx` files by default.
+- Only use a different format (`.docx`, `.pdf`, `.xlsx`, etc.) when the user explicitly asks for that format in the request.
+
 ## Project Overview
 
 **VenQore POS** is a multi-tenant SaaS Point-of-Sale and ERP system built for small-to-medium retail and food businesses. It is a Laravel 12 + React 18 (Inertia.js) monolith with offline-capable POS, full accounting, inventory management, WooCommerce integration, and a platform/superadmin layer.

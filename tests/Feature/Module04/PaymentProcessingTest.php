@@ -243,6 +243,7 @@ test('negative stock blocking enforcement based on system settings', function ()
         'tenant_id' => $this->tenant->id,
         'price' => 150.00,
         'stock_quantity' => 0.00,
+        'cost_price' => 10.00, // Explicit cost basis so FifoService has a reference
     ]);
 
     // Ensure Stock record is 0 too
@@ -250,6 +251,25 @@ test('negative stock blocking enforcement based on system settings', function ()
         ['product_id' => $product->id, 'warehouse_id' => $this->warehouseId],
         ['quantity' => 0]
     );
+
+    // Seed an inventory batch with 0 remaining_qty so FifoService has a real unit_cost
+    // to inherit when it creates the negative_stock batch.
+    // Without this, the negative batch would be created with unit_cost = 0, making
+    // COGS fabricated and violating the chk_opening_batch_cost spirit for negative batches.
+    DB::table('inventory_batches')->insert([
+        'id'                  => \Illuminate\Support\Str::uuid()->toString(),
+        'tenant_id'           => $this->tenant->id,
+        'product_id'          => $product->id,
+        'warehouse_id'        => $this->warehouseId,
+        'batch_type'          => 'purchase',
+        'purchase_invoice_id' => null,
+        'initial_qty'         => 0,
+        'remaining_qty'       => 0,
+        'unit_cost'           => 10.00, // Real cost basis for negative batch inheritance
+        'notes'               => 'Test seed — exhausted batch for negative stock test',
+        'created_at'          => now(),
+        'updated_at'          => now(),
+    ]);
 
     $data = [
         'customer_id' => Party::factory()->create(['tenant_id' => $this->tenant->id, 'type' => 'customer'])->id,
@@ -295,6 +315,16 @@ test('negative stock blocking enforcement based on system settings', function ()
     // Assert: stock_quantity becomes -1
     $product->refresh();
     $this->assertEquals(-1.00, $product->stock_quantity);
+
+    // Assert: a negative_stock inventory batch was created with a real unit_cost
+    // (not fabricated as 0), proving FifoService inherited cost from the exhausted batch.
+    $negativeBatch = DB::table('inventory_batches')
+        ->where('product_id', $product->id)
+        ->where('batch_type', 'negative_stock')
+        ->first();
+    $this->assertNotNull($negativeBatch, 'A negative_stock batch should have been created');
+    $this->assertGreaterThan(0, $negativeBatch->unit_cost, 'Negative stock batch must have unit_cost > 0 (real cost basis, not fabricated)');
+    $this->assertEquals(-1, $negativeBatch->remaining_qty, 'Negative stock batch remaining_qty should be -1');
 });
 
 /**

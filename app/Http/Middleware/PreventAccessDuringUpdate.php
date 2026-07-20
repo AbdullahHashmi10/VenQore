@@ -27,10 +27,23 @@ class PreventAccessDuringUpdate
             $lockTime = File::lastModified($lockPath);
             $ageMinutes = round((time() - $lockTime) / 60);
 
-            // AUTO-HEALING: If the update lock is older than 15 minutes,
-            // assume the update crashed or timed out and silently ignore it.
-            // This guarantees the app ALWAYS comes back online without manual intervention.
-            if ($ageMinutes < 15) {
+            // AUTO-HEALING: If the update lock is older than the shared
+            // staleness threshold, assume the update crashed or timed out
+            // and silently ignore it. This guarantees the app ALWAYS comes
+            // back online without manual intervention.
+            //
+            // IMPORTANT: this threshold MUST match
+            // UpdaterController::LOCK_MAX_AGE_MINUTES exactly. They used to
+            // be different values (15 here vs. 30 there) — this middleware
+            // would start letting ordinary traffic through while
+            // UpdaterController::handleExtract() was still genuinely
+            // mid-overwrite on a large package, because it considered the
+            // lock stale before the updater itself did. handleExtract()
+            // now also periodically touches the lock file's mtime while
+            // extraction is actively running, so a real in-progress update
+            // should never hit this threshold at all — it only fires for
+            // genuinely abandoned/crashed updates.
+            if ($ageMinutes < \App\Http\Controllers\UpdaterController::LOCK_MAX_AGE_MINUTES) {
                 // Allow the Updater, Installer, and Health Checks to operate flawlessly
                 if ($request->is('updater', 'updater/*', 'api/updater/*', 'installer', 'installer/*', 'api/installer/*', 'attendance/*', 'up')) {
                     return $next($request);

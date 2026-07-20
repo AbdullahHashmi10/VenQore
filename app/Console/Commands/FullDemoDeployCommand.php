@@ -22,7 +22,9 @@ class FullDemoDeployCommand extends Command
         $this->info('🚀 Starting Demo Deploy...');
 
         // ── 1. Find / create demo tenant ─────────────────────────────────
-        $demo = Tenant::where('is_demo', true)->first();
+        // Must resolve to the Golden Master specifically, not any live
+        // visitor's ephemeral demo clone (see DemoSessionService).
+        $demo = Tenant::where('is_golden_master', true)->first();
 
         if (!$demo) {
             $this->warn('No demo tenant found — creating one...');

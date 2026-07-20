@@ -14,8 +14,10 @@ class ResetDemoStore extends Command
     public function handle()
     {
         $this->info("Starting Demo Store reset...");
-        
-        $demoTenant = Tenant::where('is_demo', true)->first();
+
+        // Must resolve to the Golden Master specifically, not any live
+        // visitor's ephemeral demo clone (see DemoSessionService).
+        $demoTenant = Tenant::where('is_golden_master', true)->first();
         
         if (!$demoTenant) {
             $this->error("No demo tenant found!");

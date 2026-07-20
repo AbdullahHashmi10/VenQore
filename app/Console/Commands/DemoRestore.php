@@ -55,8 +55,10 @@ class DemoRestore extends Command
 
         $tenantData = $snapshot['tenant'];
 
-        // Find or recreate demo tenant
-        $demoTenant = Tenant::where('is_demo', true)->first();
+        // Find or recreate demo tenant — must resolve to the Golden Master
+        // specifically, not any live visitor's ephemeral demo clone (every
+        // visitor session also gets is_demo=true; see DemoSessionService).
+        $demoTenant = Tenant::where('is_golden_master', true)->first();
         if (!$demoTenant) {
             $demoTenant = Tenant::create($tenantData);
         } else {

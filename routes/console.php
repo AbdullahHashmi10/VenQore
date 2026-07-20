@@ -65,6 +65,19 @@ Artisan::command('inspire', function () {
     ->withoutOverlapping()
     ->onOneServer();
 
+// â”€â”€ Phase 6.4: Expired Demo Session Cleanup â€” Hourly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Sweeps ephemeral per-visitor demo tenant clones (is_demo=true,
+// is_golden_master=false) whose demo_expires_at has passed. Without this,
+// expired clones accumulated indefinitely — CleanExpiredDemoSessions existed
+// as a command but was never scheduled, which also increased the odds of
+// Tenant::where('is_demo', true)->first() (elsewhere in the codebase, now
+// fixed to use is_golden_master) resolving to a stale expired clone instead
+// of the real Golden Master.
+\Illuminate\Support\Facades\Schedule::command('demo:cleanup')
+    ->hourly()
+    ->withoutOverlapping()
+    ->onOneServer();
+
 
 // â”€â”€ WooCommerce Sync â€” Scheduler (Safety Net) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Runs every 15 minutes to catch anything webhooks missed.
