@@ -96,6 +96,7 @@ export default function Pricing({ plans = [] }) {
     const isPK = geo.currency === 'PKR';
 
     const [billingType, setBillingType] = useState('subscription_annual');
+    const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');
     const [selectedPlan, setSelectedPlan] = useState('growth');
     const [selectedAI, setSelectedAI] = useState('none');
     const [currentStep, setCurrentStep] = useState(1); // 1=pricing page, 2=sync, 3=onboarding, 4=checkout, 5=confirmation
@@ -161,18 +162,17 @@ export default function Pricing({ plans = [] }) {
 
     const fmt = (usdAmount, pkrAmount = null, suffix = '', showEstimate = true) => {
         const usdVal = parseFloat(usdAmount) || 0;
-        if (usdVal === 0) return `$0.00${suffix}`;
-        
-        let str = `$${usdVal.toLocaleString()}${suffix}`;
-        if (isPK && showEstimate) {
-            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
-            str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
+        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+
+        if (isPK && currencyDisplay === 'PKR') {
+            return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix}`;
         }
-        return str;
+
+        return `$${usdVal.toLocaleString()}${suffix}`;
     };
     const planPrice = (key) => PRICES_USD[key]?.[billingType] ?? 0;
     const planPricePKR = (key) => PRICES_PKR[key]?.[billingType] ?? 0;
-    const planPriceStr = (key) => fmt(planPrice(key), null, isLTD ? '' : '/mo', false);
+    const planPriceStr = (key) => fmt(planPrice(key), planPricePKR(key), isLTD ? '' : '/mo', false);
 
     // AI options per plan
     const AI_OPTIONS = {
@@ -481,9 +481,63 @@ export default function Pricing({ plans = [] }) {
                         </p>
                     </RevealOnScroll>
 
-                    {/* Billing toggle only — currency auto-detected from location */}
+                    {/* Regional Gift Banner */}
+                    {isPK && (
+                        <RevealOnScroll delay={0.18}>
+                            <div className="max-w-3xl mx-auto mt-8 mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-slate-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
+                                <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                                
+                                <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-2xl shadow-inner">
+                                            🇵🇰
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                                    SPECIAL GIFT UNLOCKED 🎁
+                                                </span>
+                                                <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
+                                            </div>
+                                            <h3 className="text-base font-black text-white tracking-tight">
+                                                Special Pakistan Subsidized Rates Unlocked!
+                                            </h3>
+                                            <p className="text-xs text-slate-400 mt-0.5">
+                                                As a special gift for businesses operating in Pakistan, you get access to heavily subsidized local PKR pricing.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 shrink-0">
+                                        <button
+                                            onClick={() => setCurrencyDisplay('PKR')}
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                                currencyDisplay === 'PKR'
+                                                    ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🇵🇰 Subsidized PKR Rate
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrencyDisplay('USD')}
+                                            className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                                currencyDisplay === 'USD'
+                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            🌐 Global USD Rate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </RevealOnScroll>
+                    )}
+
+                    {/* Billing toggle */}
                     <RevealOnScroll delay={0.2}>
-                        <div className="flex items-center justify-center mt-8">
+                        <div className="flex justify-center mb-16 mt-4 relative z-10">
                             <BillingToggle value={billingType} onChange={setBillingType} />
                         </div>
                     </RevealOnScroll>
@@ -497,7 +551,6 @@ export default function Pricing({ plans = [] }) {
                         {Object.entries(PLAN_DATA).map(([key, plan], idx) => {
                             const PlanIcon = plan.icon;
                             const isSelected = selectedPlan === key;
-                            const price = planPrice(key);
 
                             return (
                                 <RevealOnScroll key={key} delay={idx * 0.06}>
@@ -539,14 +592,9 @@ export default function Pricing({ plans = [] }) {
                                             </div>
 
                                             {/* Price */}
-                                            <div className="mb-5">
-                                                <div className="flex items-baseline gap-1">
-                                                    <span className="text-4xl font-black text-white tracking-tight font-display">
-                                                        {fmt(price, null, '', false)}
-                                                    </span>
-                                                    {!isLTD && <span className="text-slate-500 text-sm font-semibold">/mo</span>}
-                                                </div>
-                                                <span className="text-[10px] text-slate-500 font-semibold mt-0.5 block">
+                                            <div className="mb-6 flex flex-col">
+                                                <span className="text-[32px] font-black text-white font-display">{planPriceStr(key)}</span>
+                                                <span className="text-xs text-slate-500 font-medium mt-1">
                                                     {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
                                                 </span>
                                                 {isPK && (
@@ -761,7 +809,7 @@ export default function Pricing({ plans = [] }) {
                                         <Key size={12} className="text-amber-400 flex-shrink-0 mt-0.5" />
                                         <p className="text-[11px] text-slate-400 leading-relaxed">
                                             <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{' '}
-                                            Select BYOK and pay a one-time {isPK ? '$5 (approx. Rs 1,400, billed in USD)' : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever. Your API provider bills you directly based on your usage only.
+                                            Select BYOK and pay a one-time {isPK ? (currencyDisplay === 'PKR' ? 'Rs 1,400 (approx. $5, billed in USD)' : '$5 (approx. Rs 1,400, billed in USD)') : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever. Your API provider bills you directly based on your usage only.
                                         </p>
                                     </div>
 
@@ -871,11 +919,6 @@ export default function Pricing({ plans = [] }) {
                                                 <Zap size={14} className="text-blue-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Starter</span>
                                                 <span className="text-[10px] text-blue-400 font-bold">{planPriceStr('starter')}</span>
-                                                {isPK && (
-                                                    <span className="text-[9px] text-emerald-400 font-semibold tracking-tight">
-                                                        ≈ Rs {Math.round(planPricePKR('starter')).toLocaleString()}{isLTD ? '' : '/mo'}
-                                                    </span>
-                                                )}
                                             </div>
                                         </th>
                                         <th className="py-5 px-4 text-center bg-indigo-950/20">
@@ -883,11 +926,6 @@ export default function Pricing({ plans = [] }) {
                                                 <TrendingUp size={14} className="text-indigo-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Growth</span>
                                                 <span className="text-[10px] text-indigo-400 font-bold">{planPriceStr('growth')}</span>
-                                                {isPK && (
-                                                    <span className="text-[9px] text-emerald-400 font-semibold tracking-tight">
-                                                        ≈ Rs {Math.round(planPricePKR('growth')).toLocaleString()}{isLTD ? '' : '/mo'}
-                                                    </span>
-                                                )}
                                             </div>
                                         </th>
                                         <th className="py-5 pr-6 pl-4 text-center">
@@ -895,11 +933,6 @@ export default function Pricing({ plans = [] }) {
                                                 <Crown size={14} className="text-purple-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Enterprise</span>
                                                 <span className="text-[10px] text-purple-400 font-bold">{planPriceStr('enterprise')}</span>
-                                                {isPK && (
-                                                    <span className="text-[9px] text-emerald-400 font-semibold tracking-tight">
-                                                        ≈ Rs {Math.round(planPricePKR('enterprise')).toLocaleString()}{isLTD ? '' : '/mo'}
-                                                    </span>
-                                                )}
                                             </div>
                                         </th>
                                     </tr>
@@ -1112,9 +1145,14 @@ export default function Pricing({ plans = [] }) {
     const renderOnboardingStep = () => {
         const fmtCost = (usdAmount, pkrAmount = null) => {
             const usdVal = parseFloat(usdAmount) || 0;
+            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+
+            if (isPK && currencyDisplay === 'PKR') {
+                return `Rs ${Math.round(pkrVal).toLocaleString()} (billed as $${usdVal.toFixed(2)})`;
+            }
+
             let str = `$${usdVal.toFixed(2)}`;
             if (isPK) {
-                const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
                 str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}, billed in USD)`;
             }
             return str;

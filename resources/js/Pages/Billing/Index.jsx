@@ -109,14 +109,19 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
 }
 
 // --- Plan Card ----------------------------------------------------------------
-function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, plans, billingCycle = 'monthly' }) {
+function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, plans, billingCycle = 'monthly', currencyDisplay = 'USD' }) {
     const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
     const isPK = geo.currency === 'PKR';
     const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
         const usdVal = parseFloat(usdAmount) || 0;
+        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+        
+        if (isPK && currencyDisplay === 'PKR') {
+            return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix} (billed as $${usdVal.toLocaleString()})`;
+        }
+        
         let str = `$${usdVal.toLocaleString()}${suffix}`;
         if (isPK) {
-            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
             str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
         }
         return str;
@@ -138,36 +143,35 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
     const usdAnnual = dbPlan ? parseFloat(dbPlan.price_annual_usd || dbPlan.price_annual || 0) : 0;
 
     if (isAnnual) {
-        if (usdAnnual > 0) {
-            const perMonth = Math.round(usdAnnual / 12);
-            const saved = usdMonthly ? Math.round(usdMonthly * 12 - usdAnnual) : null;
-            displayMonthly = `$${perMonth}/mo`;
-            displayAnnualNote = `billed $${usdAnnual}/yr`;
-            savingsNote = saved && saved > 0 ? `Save $${saved}/yr` : null;
-
-            if (isPK) {
-                const pkrAnnualTotal = dbPlan?.price_annual ?? Math.round(usdAnnual * 280);
-                const pkrPerMonth = Math.round(pkrAnnualTotal / 12);
-                pkrEstimate = `≈ Rs ${pkrPerMonth.toLocaleString()}/mo (billed in USD)`;
+        if (isPK && currencyDisplay === 'PKR') {
+            const pkrAnnualTotal = dbPlan?.price_annual ? parseFloat(dbPlan.price_annual) : Math.round(usdAnnual * 280);
+            const pkrPerMonth = Math.round(pkrAnnualTotal / 12);
+            displayMonthly = `Rs ${pkrPerMonth.toLocaleString()}/mo`;
+            displayAnnualNote = `billed Rs ${Math.round(pkrAnnualTotal).toLocaleString()}/yr`;
+            savingsNote = `SAVE ~17%`;
+            pkrEstimate = null;
+        } else {
+            if (usdAnnual > 0) {
+                const perMonth = Math.round(usdAnnual / 12);
+                const saved = usdMonthly ? Math.round(usdMonthly * 12 - usdAnnual) : null;
+                displayMonthly = `$${perMonth}/mo`;
+                displayAnnualNote = `billed $${usdAnnual}/yr`;
+                savingsNote = saved && saved > 0 ? `Save $${saved}/yr` : null;
+                pkrEstimate = null;
             }
+        }
+    } else {
+        if (isPK && currencyDisplay === 'PKR') {
+            const pkrMonthly = dbPlan?.price_monthly ? parseFloat(dbPlan.price_monthly) : Math.round(usdMonthly * 280);
+            displayMonthly = `Rs ${Math.round(pkrMonthly).toLocaleString()}/mo`;
+            displayAnnualNote = null;
+            savingsNote = null;
+            pkrEstimate = null;
         } else {
             displayMonthly = dbPlan ? (usdMonthly ? `$${usdMonthly}/mo` : 'Free') : meta.price;
             displayAnnualNote = null;
             savingsNote = null;
-
-            if (isPK && usdMonthly > 0) {
-                const pkrMonthly = dbPlan?.price_monthly ?? Math.round(usdMonthly * 280);
-                pkrEstimate = `≈ Rs ${pkrMonthly.toLocaleString()}/mo (billed in USD)`;
-            }
-        }
-    } else {
-        displayMonthly = dbPlan ? (usdMonthly ? `$${usdMonthly}/mo` : 'Free') : meta.price;
-        displayAnnualNote = null;
-        savingsNote = null;
-
-        if (isPK && usdMonthly > 0) {
-            const pkrMonthly = dbPlan?.price_monthly ?? Math.round(usdMonthly * 280);
-            pkrEstimate = `≈ Rs ${pkrMonthly.toLocaleString()}/mo (billed in USD)`;
+            pkrEstimate = null;
         }
     }
 
@@ -176,7 +180,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
     const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
     const thisIdx    = planOrder.indexOf(planKey);
 
-    const upgradeUrl = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey }) + (isAnnual ? '?cycle=annual' : '');
+    const upgradeUrl = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey }) + `?cycle=${isAnnual ? 'annual' : 'monthly'}&currency=${currencyDisplay}`;
 
     return (
         <div 
@@ -280,16 +284,29 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const isPK = country === 'PK' && pk_verification?.status === 'approved';
     const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
         const usdVal = parseFloat(usdAmount) || 0;
-        let str = `$${usdVal.toLocaleString()}${suffix}`;
-        if (isPK) {
-            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
-            str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
+        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+        
+        if (isPK && currencyDisplay === 'PKR') {
+            return `Rs ${Math.round(pkrVal).toLocaleString()}${suffix}`;
         }
-        return str;
+        
+        return `$${usdVal.toLocaleString()}${suffix}`;
+    };
+
+    const fmtCost = (usdAmount, pkrAmount = null) => {
+        const usdVal = parseFloat(usdAmount) || 0;
+        const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+
+        if (isPK && currencyDisplay === 'PKR') {
+            return `Rs ${Math.round(pkrVal).toLocaleString()}`;
+        }
+
+        return `$${usdVal.toFixed(2)}`;
     };
 
     const [activeTab, setActiveTab] = useState('subscription');
     const [billingCycle, setBillingCycle] = useState('monthly');
+    const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');
 
     // Onboarding Setup Service States
     const [calcProducts, setCalcProducts] = useState('');
@@ -784,9 +801,61 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 {isLtd ? 'Your Early Supporter Perks' : '🚀 Scale your system as you grow'}
                             </div>
 
+                            {/* Pakistan Regional Pricing Unlocked Banner */}
+                            {isPK && (
+                                <div className="mb-8 p-6 rounded-3xl bg-gradient-to-r from-emerald-950/60 via-teal-950/40 to-slate-950 border border-emerald-500/30 shadow-[0_0_40px_rgba(16,185,129,0.1)] relative overflow-hidden text-left">
+                                    <div className="absolute top-0 right-0 transform translate-x-4 -translate-y-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+                                    
+                                    <div className="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0 text-2xl shadow-inner">
+                                                🇵🇰
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-black">
+                                                        SPECIAL GIFT UNLOCKED 🎁
+                                                    </span>
+                                                    <span className="text-xs font-bold text-emerald-400">Exclusive Regional Pricing</span>
+                                                </div>
+                                                <h3 className="text-base font-black text-white tracking-tight">
+                                                    Special Pakistan Business Subsidized Rates Active!
+                                                </h3>
+                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                    Because you operate in Pakistan, we have unlocked special subsidized local PKR rates for your business.
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-black/40 border border-white/10 shrink-0">
+                                            <button
+                                                onClick={() => setCurrencyDisplay('PKR')}
+                                                className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                                    currencyDisplay === 'PKR'
+                                                        ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20 scale-[1.02]'
+                                                        : 'text-slate-400 hover:text-white'
+                                                }`}
+                                            >
+                                                🇵🇰 Subsidized PKR Price
+                                            </button>
+                                            <button
+                                                onClick={() => setCurrencyDisplay('USD')}
+                                                className={`px-4 py-2.5 rounded-xl text-xs font-black tracking-wider transition-all flex items-center gap-1.5 ${
+                                                    currencyDisplay === 'USD'
+                                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 scale-[1.02]'
+                                                        : 'text-slate-400 hover:text-white'
+                                                }`}
+                                            >
+                                                🌐 Global USD Price
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Billing Cycle Toggle */}
-                            {!isLtd && (
-                                <div className="flex items-center justify-center mb-8">
+                            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative z-10 mb-8">
+                                {!isLtd && (
                                     <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.07]">
                                         <button
                                             onClick={() => setBillingCycle('monthly')}
@@ -812,8 +881,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             }`}>SAVE ~17%</span>
                                         </button>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 {isTrial || isViewOnly ? (
@@ -828,6 +897,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             onSelectPlan={handleSelectPlan}
                                             plans={plans}
                                             billingCycle={billingCycle}
+                                            currencyDisplay={currencyDisplay}
                                         />
                                      ))
                                 ) : (
@@ -842,6 +912,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             onSelectPlan={handleSelectPlan}
                                             plans={plans}
                                             billingCycle={billingCycle}
+                                            currencyDisplay={currencyDisplay}
                                         />
                                     ))
                                 )}

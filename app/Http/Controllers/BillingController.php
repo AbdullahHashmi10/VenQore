@@ -286,11 +286,10 @@ class BillingController extends Controller
 
         $planModel = Plan::where('slug', $targetPlan)->first();
 
-        $isVerified = \App\Models\PkVerification::where('tenant_id', $tenant->id)
-            ->where('status', 'approved')
-            ->exists();
+        $requestedCurrency = strtoupper($request->get('currency', ''));
+        $usePKR = $requestedCurrency === 'PKR' || ($requestedCurrency !== 'USD' && $country === 'PK' && $isVerified);
 
-        if ($country === 'PK' && $isVerified) {
+        if ($usePKR) {
             if ($isAnnual) {
                 // Annual PKR: try annual_pkr_url → annual_url → fallback to monthly PKR
                 $url = ($planModel && $planModel->checkout_url_annual_pkr)
