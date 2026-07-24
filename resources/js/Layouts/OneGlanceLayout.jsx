@@ -1154,7 +1154,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                         {props.auth?.user?.name || props.auth?.user?.email}
                                     </p>
                                     <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
-                                        {props.auth?.user?.role === 'platform_admin' ? 'Platform Owner' : (props.auth?.user?.role || 'User')}
+                                        {props.auth?.user?.role === 'platform_admin' ? 'Hashmi Dashboard' : (props.auth?.user?.role || 'User')}
                                     </p>
                                 </div>
                             </button>

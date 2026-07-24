@@ -17,8 +17,8 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         return [
             new \Illuminate\Routing\Controllers\Middleware(function ($request, $next) {
                 if ($request->route()->getActionMethod() !== 'index') {
-                    if (!auth()->user()->isPlatformOwner()) {
-                        abort(403, 'Unauthorized. Platform Owner role required.');
+                    if (!auth()->user()->isPlatformSuperAdmin()) {
+                        abort(403, 'Unauthorized. Platform Super Admin role required.');
                     }
                 }
                 return $next($request);
@@ -86,7 +86,7 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         PlanRepository::invalidatePlanCache($plan->slug);
         \App\Services\Platform\PlanPricingService::flush();
 
-        return back()->with('success', "Plan \"{$plan->name}\" created. It is live immediately.");
+        return redirect()->route('platform.plans.index')->with('success', "Plan \"{$plan->name}\" created. It is live immediately.");
     }
 
     public function bulkUpdate(Request $request)
@@ -115,11 +115,26 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             }
         });
 
-        return back()->with('success', 'Bulk feature matrix limits updated successfully.');
+        return redirect()->route('platform.plans.index')->with('success', 'Bulk feature matrix limits updated successfully.');
     }
 
     public function update(Request $request, Plan $plan)
     {
+        \Illuminate\Support\Facades\Log::info('PlanController::update called', [
+            'plan_id'   => $plan->id,
+            'plan_slug' => $plan->slug,
+            'input'     => $request->except(['limits']),
+        ]);
+
+        // Normalize: convert empty checkout URL strings to null before validation
+        // (Laravel 11 doesn't include ConvertEmptyStringsToNull middleware by default)
+        $urlFields = ['checkout_url_usd', 'checkout_url_pkr', 'checkout_url_annual', 'checkout_url_annual_pkr'];
+        foreach ($urlFields as $field) {
+            if ($request->has($field) && $request->input($field) === '') {
+                $request->merge([$field => null]);
+            }
+        }
+
         $validated = $request->validate([
             'name'           => 'string|max:100',
             'display_name'   => 'nullable|string|max:150',
@@ -130,8 +145,8 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             'price_monthly_pkr'  => 'nullable|numeric|min:0',
             'price_annual_pkr'   => 'nullable|numeric|min:0',
             'price_lifetime_pkr' => 'nullable|numeric|min:0',
-            'checkout_url_usd'   => 'nullable|string|url',
-            'checkout_url_pkr'   => 'nullable|string|url',
+            'checkout_url_usd'   => 'nullable|url',
+            'checkout_url_pkr'   => 'nullable|url',
             'is_featured'    => 'boolean',
             'is_active'      => 'boolean',
             'is_visible'     => 'boolean',
@@ -145,7 +160,17 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             'limits.*.reset_period' => 'in:never,monthly,annually',
         ]);
 
-        $plan->update($validated);
+        // Strip limits from mass-assignment — they are synced separately below
+        $planData = collect($validated)->except(['limits'])->map(function ($v, $k) {
+            // Convert empty string checkout URLs to null to avoid overwriting with ''
+            if (in_array($k, ['checkout_url_usd', 'checkout_url_pkr', 'checkout_url_annual', 'checkout_url_annual_pkr'])
+                && $v === '') {
+                return null;
+            }
+            return $v;
+        })->toArray();
+
+        $plan->update($planData);
 
         // Sync limits using upsert
         foreach ($validated['limits'] ?? [] as $limit) {
@@ -158,7 +183,7 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         PlanRepository::invalidatePlanCache($plan->slug);
         \App\Services\Platform\PlanPricingService::flush();
 
-        return back()->with('success', "Plan updated. All tenants on \"{$plan->slug}\" see the new limits immediately.");
+        return redirect()->route('platform.plans.index')->with('success', "Plan updated. All tenants on \"{$plan->slug}\" see the new limits immediately.");
     }
 
     public function duplicate(Plan $plan)
@@ -177,7 +202,7 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
             $newPlan->features()->create($feature->only(['feature', 'is_included', 'tooltip', 'sort_order']));
         }
 
-        return back()->with('success', "Plan duplicated as \"{$newPlan->name}\". It is inactive — edit and activate when ready.");
+        return redirect()->route('platform.plans.index')->with('success', "Plan duplicated as \"{$newPlan->name}\". It is inactive — edit and activate when ready.");
     }
 
     public function destroy(Plan $plan)
@@ -194,7 +219,7 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         PlanRepository::invalidatePlanCache($plan->slug);
         \App\Services\Platform\PlanPricingService::flush();
 
-        return back()->with('success', "Plan deleted.");
+        return redirect()->route('platform.plans.index')->with('success', "Plan deleted.");
     }
 
     public function archive(Plan $plan)
@@ -203,7 +228,7 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         PlanRepository::invalidatePlanCache($plan->slug);
         \App\Services\Platform\PlanPricingService::flush();
 
-        return back()->with('success', "Plan \"{$plan->name}\" archived.");
+        return redirect()->route('platform.plans.index')->with('success', "Plan \"{$plan->name}\" archived.");
     }
 
     public function unarchive(Plan $plan)
@@ -212,6 +237,6 @@ class PlanController extends Controller implements \Illuminate\Routing\Controlle
         PlanRepository::invalidatePlanCache($plan->slug);
         \App\Services\Platform\PlanPricingService::flush();
 
-        return back()->with('success', "Plan \"{$plan->name}\" unarchived.");
+        return redirect()->route('platform.plans.index')->with('success', "Plan \"{$plan->name}\" unarchived.");
     }
 }

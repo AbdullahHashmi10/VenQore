@@ -109,7 +109,7 @@ export default function PlatformLayout({ children, title = 'Command Center' }) {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 8, marginLeft: 2, borderLeft: `1px solid ${t.border}` }}>
                             <div style={{ textAlign: 'right', lineHeight: 1.2 }} className="vq-hide-sm">
                                 <div style={{ fontSize: 13, fontWeight: 800, color: t.ink }}>{auth?.user?.name || 'Owner'}</div>
-                                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: BRAND.indigo2 }}>Platform Owner</div>
+                                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: '0.06em', textTransform: 'uppercase', color: BRAND.indigo2 }}>Hashmi Dashboard</div>
                             </div>
                             <div style={{ width: 38, height: 38, borderRadius: 11, background: GRADIENTS.brand, color: '#fff', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 15, boxShadow: '0 6px 16px -6px rgba(99,102,241,.6)' }}>
                                 {(auth?.user?.name?.[0] || 'A').toUpperCase()}

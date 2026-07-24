@@ -664,6 +664,7 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         platform_id:    plan?.platform_id   ?? (platforms[0]?.id ?? ''),
         name:           plan?.name          ?? '',
+        display_name:   plan?.display_name  ?? '',
         slug:           plan?.slug          ?? '',
         type:           plan?.type          ?? 'subscription',
         price_monthly:  plan?.price_monthly  ?? '',
@@ -738,9 +739,12 @@ function PlanDrawer({ open, onClose, plan, platforms }) {
                                 </select>
                             </Field>
                         </div>
-                        <div style={grid2}>
+                        <div style={grid3}>
                             <Field label="Plan Title" error={errors.name}>
                                 <input style={input} value={data.name} onChange={e => setData('name', e.target.value)} placeholder="e.g. Starter" />
+                            </Field>
+                            <Field label="Display Name" error={errors.display_name}>
+                                <input style={input} value={data.display_name} onChange={e => setData('display_name', e.target.value)} placeholder="e.g. Starter Engine" />
                             </Field>
                             <Field label="Identifier Slug" error={errors.slug}>
                                 <input style={input} value={data.slug} onChange={e => setData('slug', e.target.value)} placeholder="e.g. starter" disabled={isEdit} />
@@ -1099,10 +1103,19 @@ export default function PlansIndex({ plans, platforms }) {
                                                     </span>
                                                 </td>
                                                 <td style={{ padding: '18px 20px', color: '#cbd5e1', fontSize: 13, fontWeight: 600 }}>
-                                                    {plan.price_monthly  ? `$${parseFloat(plan.price_monthly).toFixed(0)}/mo` : ''}
-                                                    {plan.price_annual   ? ` · $${parseFloat(plan.price_annual).toFixed(0)}/yr` : ''}
-                                                    {plan.price_lifetime ? `$${parseFloat(plan.price_lifetime).toFixed(0)} once` : ''}
-                                                    {!plan.price_monthly && !plan.price_annual && !plan.price_lifetime ? <span style={{ color: '#475569' }}>—</span> : ''}
+                                                    <div>
+                                                        {plan.price_monthly  ? `$${parseFloat(plan.price_monthly).toFixed(0)}/mo` : ''}
+                                                        {plan.price_annual   ? ` · $${parseFloat(plan.price_annual).toFixed(0)}/yr` : ''}
+                                                        {plan.price_lifetime ? `$${parseFloat(plan.price_lifetime).toFixed(0)} once` : ''}
+                                                        {!plan.price_monthly && !plan.price_annual && !plan.price_lifetime ? <span style={{ color: '#475569' }}>—</span> : ''}
+                                                    </div>
+                                                    {(plan.price_monthly_pkr || plan.price_annual_pkr || plan.price_lifetime_pkr) && (
+                                                        <div style={{ fontSize: 11, color: '#10b981', marginTop: 4, fontWeight: 700 }}>
+                                                            {plan.price_monthly_pkr  ? `Rs ${parseFloat(plan.price_monthly_pkr).toFixed(0)}/mo` : ''}
+                                                            {plan.price_annual_pkr   ? ` · Rs ${parseFloat(plan.price_annual_pkr).toFixed(0)}/yr` : ''}
+                                                            {plan.price_lifetime_pkr ? ` · Rs ${parseFloat(plan.price_lifetime_pkr).toFixed(0)} once` : ''}
+                                                        </div>
+                                                    )}
                                                 </td>
                                                 <td style={{ padding: '18px 20px' }}>
                                                     <span style={{ fontWeight: 900, color: plan.active_tenant_count > 0 ? '#10b981' : '#475569', fontSize: 16, fontFamily: 'monospace' }}>
@@ -1192,7 +1205,7 @@ export default function PlansIndex({ plans, platforms }) {
                 </div>
             </div>
 
-            <PlanDrawer open={drawerOpen} onClose={closeDrawer} plan={drawerPlan} platforms={platforms} />
+            {drawerOpen && <PlanDrawer open={drawerOpen} onClose={closeDrawer} plan={drawerPlan} platforms={platforms} />}
         </OneGlanceLayout>
     );
 }

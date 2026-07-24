@@ -8,6 +8,7 @@ use App\Models\Tenant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class PkVerificationController extends Controller
 {
@@ -35,7 +36,9 @@ class PkVerificationController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->with('error', 'This CNIC is already registered to another store.');
+            throw ValidationException::withMessages([
+                'cnic' => ['This CNIC has already been registered to another store.']
+            ]);
         }
 
         $tenant = Tenant::findOrFail($request->tenant_id);
@@ -65,25 +68,29 @@ class PkVerificationController extends Controller
     /**
      * Approve verification request.
      */
-    public function approve(PkVerification $verification)
+    public function approve($id)
     {
+        $verification = PkVerification::withoutTenantScope()->findOrFail($id);
+
         $verification->update([
             'status'      => 'approved',
             'reviewed_by' => Auth::id(),
             'reviewed_at' => now(),
         ]);
 
-        return back()->with('success', 'CNIC verification request approved.');
+        return redirect()->route('platform.dashboard')->with('success', 'CNIC verification request approved.');
     }
 
     /**
      * Reject verification request.
      */
-    public function reject(Request $request, PkVerification $verification)
+    public function reject(Request $request, $id)
     {
         $request->validate([
             'reason' => 'required|string|max:500',
         ]);
+
+        $verification = PkVerification::withoutTenantScope()->findOrFail($id);
 
         $verification->update([
             'status'           => 'rejected',
@@ -92,18 +99,20 @@ class PkVerificationController extends Controller
             'reviewed_at'      => now(),
         ]);
 
-        return back()->with('success', 'CNIC verification request rejected.');
+        return redirect()->route('platform.dashboard')->with('success', 'CNIC verification request rejected.');
     }
 
     /**
-     * Download secure private image.
+     * Download/Preview secure private image.
      */
-    public function downloadImage(PkVerification $verification, $side)
+    public function downloadImage($id, $side)
     {
         // Enforce is_platform_admin
         if (! Auth::user()->is_platform_admin) {
             abort(403, 'Unauthorized');
         }
+
+        $verification = PkVerification::withoutTenantScope()->findOrFail($id);
 
         $path = $side === 'front' ? $verification->image_front_path : $verification->image_back_path;
 
@@ -111,6 +120,9 @@ class PkVerificationController extends Controller
             abort(404, 'File not found');
         }
 
-        return Storage::download($path);
+        $file = Storage::get($path);
+        $mime = Storage::mimeType($path);
+
+        return response($file, 200)->header('Content-Type', $mime);
     }
 }

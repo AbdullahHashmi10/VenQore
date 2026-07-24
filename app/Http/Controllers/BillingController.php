@@ -77,11 +77,13 @@ class BillingController extends Controller
                     'slug'           => $plan->slug,
                     'name'           => $plan->display_name ?? $plan->name,
                     'type'           => $plan->type,
-                    'price_monthly'  => $priceMonthly,
-                    'price_annual'   => $priceAnnual,
-                    'is_featured'    => $plan->is_featured,
-                    'platform'       => $plan->platform?->name,
-                    'limits'         => $limitsMap,
+                    'price_monthly'      => $priceMonthly,
+                    'price_annual'       => $priceAnnual,
+                    'price_monthly_usd'  => $plan->price_monthly,
+                    'price_annual_usd'   => $plan->price_annual,
+                    'is_featured'        => $plan->is_featured,
+                    'platform'           => $plan->platform?->name,
+                    'limits'             => $limitsMap,
                     'features'       => $plan->features->map(fn($f) => [
                         'feature'     => $f->feature,
                         'is_included' => $f->is_included,
@@ -212,6 +214,7 @@ class BillingController extends Controller
         ];
 
         $pkVerification = \App\Models\PkVerification::where('tenant_id', $tenant->id)->first();
+        $geoInfo = $geoService->getCurrencyInfo($country);
 
         return Inertia::render('Billing/Index', [
             'tenant' => [
@@ -240,6 +243,7 @@ class BillingController extends Controller
             ],
             'feature_status' => $featureStatus,
             'country'         => $country,
+            'geo'             => $geoInfo,
             'pk_verification' => $pkVerification ? [
                 'id'               => $pkVerification->id,
                 'status'           => $pkVerification->status,
@@ -251,7 +255,7 @@ class BillingController extends Controller
 
     /**
      * Redirect tenant to Lemon Squeezy checkout for an upgrade.
-     * The checkout URL is configured per plan variant in .env.
+     * Supports ?cycle=annual to redirect to annual billing variants.
      */
     public function upgrade(Request $request): \Symfony\Component\HttpFoundation\Response
     {
@@ -272,6 +276,10 @@ class BillingController extends Controller
             $targetPlan = 'business';
         }
 
+        // Read the billing cycle: 'monthly' (default) or 'annual'
+        $cycle = $request->get('cycle', 'monthly') === 'annual' ? 'annual' : 'monthly';
+        $isAnnual = $cycle === 'annual';
+
         // Run server-side geolocation resolution
         $geoService = new \App\Services\GeoPricingService();
         $country = $geoService->resolveCountry($request);
@@ -283,23 +291,47 @@ class BillingController extends Controller
             ->exists();
 
         if ($country === 'PK' && $isVerified) {
-            $url = ($planModel && $planModel->checkout_url_pkr)
-                ? $planModel->checkout_url_pkr
-                : match ($targetPlan) {
-                    'starter'  => env('LEMON_SQUEEZY_STARTER_PKR_URL') ?: env('LEMON_SQUEEZY_STARTER_CHECKOUT_URL'),
-                    'growth'   => env('LEMON_SQUEEZY_GROWTH_PKR_URL') ?: env('LEMON_SQUEEZY_GROWTH_CHECKOUT_URL'),
-                    'business' => env('LEMON_SQUEEZY_BUSINESS_PKR_URL') ?: env('LEMON_SQUEEZY_BUSINESS_CHECKOUT_URL'),
-                    default    => env('LEMON_SQUEEZY_GROWTH_PKR_URL') ?: env('LEMON_SQUEEZY_GROWTH_CHECKOUT_URL'),
-                };
+            if ($isAnnual) {
+                // Annual PKR: try annual_pkr_url → annual_url → fallback to monthly PKR
+                $url = ($planModel && $planModel->checkout_url_annual_pkr)
+                    ? $planModel->checkout_url_annual_pkr
+                    : match ($targetPlan) {
+                        'starter'  => config('services.lemon_squeezy.starter_annual_pkr_url') ?: config('services.lemon_squeezy.starter_pkr_url') ?: config('services.lemon_squeezy.starter_checkout_url'),
+                        'growth'   => config('services.lemon_squeezy.growth_annual_pkr_url') ?: config('services.lemon_squeezy.growth_pkr_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
+                        'business' => config('services.lemon_squeezy.business_annual_pkr_url') ?: config('services.lemon_squeezy.business_pkr_url') ?: config('services.lemon_squeezy.business_checkout_url'),
+                        default    => config('services.lemon_squeezy.growth_annual_pkr_url') ?: config('services.lemon_squeezy.growth_pkr_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
+                    };
+            } else {
+                $url = ($planModel && $planModel->checkout_url_pkr)
+                    ? $planModel->checkout_url_pkr
+                    : match ($targetPlan) {
+                        'starter'  => config('services.lemon_squeezy.starter_pkr_url') ?: config('services.lemon_squeezy.starter_checkout_url'),
+                        'growth'   => config('services.lemon_squeezy.growth_pkr_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
+                        'business' => config('services.lemon_squeezy.business_pkr_url') ?: config('services.lemon_squeezy.business_checkout_url'),
+                        default    => config('services.lemon_squeezy.growth_pkr_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
+                    };
+            }
         } else {
-            $url = ($planModel && $planModel->checkout_url_usd)
-                ? $planModel->checkout_url_usd
-                : match ($targetPlan) {
-                    'starter'  => env('LEMON_SQUEEZY_STARTER_CHECKOUT_URL'),
-                    'growth'   => env('LEMON_SQUEEZY_GROWTH_CHECKOUT_URL'),
-                    'business' => env('LEMON_SQUEEZY_BUSINESS_CHECKOUT_URL'),
-                    default    => env('LEMON_SQUEEZY_GROWTH_CHECKOUT_URL'),
-                };
+            if ($isAnnual) {
+                // Annual USD: try annual_checkout_url → fallback to monthly
+                $url = ($planModel && $planModel->checkout_url_annual)
+                    ? $planModel->checkout_url_annual
+                    : match ($targetPlan) {
+                        'starter'  => config('services.lemon_squeezy.starter_annual_checkout_url') ?: config('services.lemon_squeezy.starter_checkout_url'),
+                        'growth'   => config('services.lemon_squeezy.growth_annual_checkout_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
+                        'business' => config('services.lemon_squeezy.business_annual_checkout_url') ?: config('services.lemon_squeezy.business_checkout_url'),
+                        default    => config('services.lemon_squeezy.growth_annual_checkout_url') ?: config('services.lemon_squeezy.growth_checkout_url'),
+                    };
+            } else {
+                $url = ($planModel && $planModel->checkout_url_usd)
+                    ? $planModel->checkout_url_usd
+                    : match ($targetPlan) {
+                        'starter'  => config('services.lemon_squeezy.starter_checkout_url'),
+                        'growth'   => config('services.lemon_squeezy.growth_checkout_url'),
+                        'business' => config('services.lemon_squeezy.business_checkout_url'),
+                        default    => config('services.lemon_squeezy.growth_checkout_url'),
+                    };
+            }
         }
 
         if (!$url) {
@@ -314,6 +346,7 @@ class BillingController extends Controller
 
         return Inertia::location($url);
     }
+
 
     /**
      * Redirect tenant to their Lemon Squeezy customer portal (manage/cancel subscription).

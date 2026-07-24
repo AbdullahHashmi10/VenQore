@@ -1714,7 +1714,10 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                 } else {
                     response = await axios.get(route('store.pos.featured', { store_slug: store?.slug }));
                 }
-                setCategoryProducts(response.data.data || response.data || []);
+                const productsArray = Array.isArray(response.data)
+                    ? response.data
+                    : (response.data && Array.isArray(response.data.data) ? response.data.data : []);
+                setCategoryProducts(productsArray);
             } else {
                 throw new Error("Offline");
             }
@@ -2156,7 +2159,7 @@ const POSInterface = ({ settings, recalledSale, bankAccounts = [], warehouses = 
                                                 <p className="text-slate-500 font-bold">No products in this category</p>
                                             </div>
                                         ) : (
-                                            categoryProducts.map(product => (
+                                            Array.isArray(categoryProducts) && categoryProducts.map(product => (
                                                 <button
                                                     key={product.id}
                                                     onClick={() => {

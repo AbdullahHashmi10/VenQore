@@ -15,7 +15,7 @@ import axios from 'axios';
    ═══════════════════════════════════════════════════════════════════════ */
 
 const PLATFORM_ROLES = {
-    platform_owner:         { label: 'Platform Owner',   icon: Crown, color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20' },
+    platform_owner:         { label: 'Hashmi Dashboard', icon: Crown, color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20' },
     platform_manager:       { label: 'Platform Manager', icon: Crown, color: 'text-amber-400',  bg: 'bg-amber-400/10',  border: 'border-amber-400/20' },
     support_director:       { label: 'Support Director', icon: Zap,   color: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'border-indigo-400/20' },
     support_dept_manager:   { label: 'Support Manager',  icon: Zap,   color: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'border-indigo-400/20' },

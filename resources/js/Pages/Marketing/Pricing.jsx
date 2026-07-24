@@ -119,18 +119,20 @@ export default function Pricing({ plans = [] }) {
         router.post(route('marketing.pricing.override'), { country }, { preserveScroll: true });
     };
 
-    // Price helpers — default fallback
-    const defaultPrices = isPK ? {
-        starter: { subscription_monthly: 1100, subscription_annual: 916, ltd: 22120 },
-        growth: { subscription_monthly: 1800, subscription_annual: 1500, ltd: 55720 },
-        enterprise: { subscription_monthly: 5300, subscription_annual: 4416, ltd: 111720 },
-    } : {
+    // Price helpers — default fallbacks
+    const defaultPricesUSD = {
         starter: { subscription_monthly: 36, subscription_annual: 30, ltd: 79 },
         growth: { subscription_monthly: 63, subscription_annual: 53, ltd: 199 },
         enterprise: { subscription_monthly: 129, subscription_annual: 108, ltd: 399 },
     };
+    const defaultPricesPKR = {
+        starter: { subscription_monthly: 1100, subscription_annual: 916, ltd: 22120 },
+        growth: { subscription_monthly: 1800, subscription_annual: 1500, ltd: 55720 },
+        enterprise: { subscription_monthly: 5300, subscription_annual: 4416, ltd: 111720 },
+    };
 
-    const PRICES = { ...defaultPrices };
+    const PRICES_USD = { ...defaultPricesUSD };
+    const PRICES_PKR = { ...defaultPricesPKR };
 
     // Override dynamically from database plans if populated
     if (plans && plans.length > 0) {
@@ -139,30 +141,38 @@ export default function Pricing({ plans = [] }) {
             
             if (baseSlug === 'starter' || baseSlug === 'growth' || baseSlug === 'enterprise') {
                 if (plan.type === 'subscription') {
-                    if (isPK) {
-                        const monthlyPKR = plan.price_monthly_pkr ? parseFloat(plan.price_monthly_pkr) : (plan.price_monthly ? Math.round(plan.price_monthly * 280) : defaultPrices[baseSlug].subscription_monthly);
-                        const annualPKR = plan.price_annual_pkr ? parseFloat(plan.price_annual_pkr) : (plan.price_annual ? Math.round(plan.price_annual * 280) : (defaultPrices[baseSlug].subscription_annual * 12));
-                        PRICES[baseSlug].subscription_monthly = monthlyPKR;
-                        PRICES[baseSlug].subscription_annual = Math.round(annualPKR / 12);
-                    } else {
-                        PRICES[baseSlug].subscription_monthly = parseFloat(plan.price_monthly) || defaultPrices[baseSlug].subscription_monthly;
-                        PRICES[baseSlug].subscription_annual = plan.price_annual ? Math.round(parseFloat(plan.price_annual) / 12) : defaultPrices[baseSlug].subscription_annual;
-                    }
+                    // USD values
+                    PRICES_USD[baseSlug].subscription_monthly = parseFloat(plan.price_monthly_usd || plan.price_monthly || defaultPricesUSD[baseSlug].subscription_monthly);
+                    PRICES_USD[baseSlug].subscription_annual = plan.price_annual_usd ? Math.round(parseFloat(plan.price_annual_usd) / 12) : (plan.price_annual ? Math.round(parseFloat(plan.price_annual) / 12) : defaultPricesUSD[baseSlug].subscription_annual);
+                    
+                    // PKR values
+                    const monthlyPKR = plan.price_monthly_pkr ? parseFloat(plan.price_monthly_pkr) : (plan.price_monthly ? Math.round(plan.price_monthly * 280) : defaultPricesPKR[baseSlug].subscription_monthly);
+                    const annualPKR = plan.price_annual_pkr ? parseFloat(plan.price_annual_pkr) : (plan.price_annual ? Math.round(plan.price_annual * 280) : (defaultPricesPKR[baseSlug].subscription_annual * 12));
+                    PRICES_PKR[baseSlug].subscription_monthly = monthlyPKR;
+                    PRICES_PKR[baseSlug].subscription_annual = Math.round(annualPKR / 12);
                 }
             } else if (plan.slug === 'ltd_1' || plan.slug === 'ltd_2' || plan.slug === 'ltd_3') {
                 const targetSlug = plan.slug === 'ltd_1' ? 'starter' : plan.slug === 'ltd_2' ? 'growth' : 'enterprise';
-                if (isPK) {
-                    PRICES[targetSlug].ltd = plan.price_lifetime_pkr ? parseFloat(plan.price_lifetime_pkr) : (plan.price_lifetime ? Math.round(plan.price_lifetime * 280) : defaultPrices[targetSlug].ltd);
-                } else {
-                    PRICES[targetSlug].ltd = parseFloat(plan.price_lifetime) || defaultPrices[targetSlug].ltd;
-                }
+                PRICES_USD[targetSlug].ltd = parseFloat(plan.price_lifetime_usd || plan.price_lifetime || defaultPricesUSD[targetSlug].ltd);
+                PRICES_PKR[targetSlug].ltd = plan.price_lifetime_pkr ? parseFloat(plan.price_lifetime_pkr) : (plan.price_lifetime ? Math.round(plan.price_lifetime * 280) : defaultPricesPKR[targetSlug].ltd);
             }
         });
     }
 
-    const fmt = (n, suffix = '') => isPK ? `Rs ${n.toLocaleString()}${suffix}` : `$${n}${suffix}`;
-    const planPrice = (key) => PRICES[key]?.[billingType] ?? 0;
-    const planPriceStr = (key) => fmt(planPrice(key), isLTD ? '' : '/mo');
+    const fmt = (usdAmount, pkrAmount = null, suffix = '', showEstimate = true) => {
+        const usdVal = parseFloat(usdAmount) || 0;
+        if (usdVal === 0) return `$0.00${suffix}`;
+        
+        let str = `$${usdVal.toLocaleString()}${suffix}`;
+        if (isPK && showEstimate) {
+            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+            str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
+        }
+        return str;
+    };
+    const planPrice = (key) => PRICES_USD[key]?.[billingType] ?? 0;
+    const planPricePKR = (key) => PRICES_PKR[key]?.[billingType] ?? 0;
+    const planPriceStr = (key) => fmt(planPrice(key), null, isLTD ? '' : '/mo', false);
 
     // AI options per plan
     const AI_OPTIONS = {
@@ -183,11 +193,23 @@ export default function Pricing({ plans = [] }) {
     const aiOptions = selectedPlan ? AI_OPTIONS[selectedPlan] : [];
     const selectedAIData = aiOptions.find(o => `opt_${o.key}` === selectedAI) ?? null;
 
-    const aiCostNum = selectedAI === 'byok' ? (isPK ? 1400 : 5)
-        : selectedAIData ? (isPK ? selectedAIData.pricePKR : selectedAIData.priceUSD) : 0;
+    // USD costs
+    const aiCostUSD = selectedAI === 'byok' ? 5
+        : selectedAIData ? selectedAIData.priceUSD : 0;
+    // PKR costs
+    const aiCostPKR = selectedAI === 'byok' ? 1400
+        : selectedAIData ? selectedAIData.pricePKR : 0;
+
     const aiIsMonthly = selectedAI !== 'none' && selectedAI !== 'byok';
 
-    const syncCostNum = selectedSyncs.length * (isPK ? 2800 : 10);
+    // USD sync cost
+    const syncCostUSD = selectedSyncs.length * 10;
+    // PKR sync cost
+    const syncCostPKR = selectedSyncs.length * 2800;
+
+    // For backward compatibility / global total calculations
+    const aiCostNum = aiCostUSD;
+    const syncCostNum = syncCostUSD;
 
     // ── Per-product service tiers ──
     const SERVICE_TIERS = {
@@ -201,21 +223,39 @@ export default function Pricing({ plans = [] }) {
     const calcVariantsNum  = Math.max(1, parseInt(calcVariants)  || 1);
     const selectedTier     = selectedService ? SERVICE_TIERS[selectedService] : null;
     const extraBlocks      = calcVariantsNum > 5 ? Math.ceil((calcVariantsNum - 5) / 5) : 0;
-    const pricePerProduct  = selectedTier
-        ? (isPK ? selectedTier.pricePKR : selectedTier.priceUSD) + extraBlocks * (isPK ? selectedTier.variantExtraPKR : selectedTier.variantExtraUSD)
+    
+    // USD per product
+    const usdPricePerProduct = selectedTier
+        ? selectedTier.priceUSD + extraBlocks * selectedTier.variantExtraUSD
         : 0;
-    const serviceCostNum   = calcProductsNum * pricePerProduct;
+    // PKR per product estimate
+    const pkrPricePerProduct = selectedTier
+        ? selectedTier.pricePKR + extraBlocks * selectedTier.variantExtraPKR
+        : 0;
+
+    const usdServiceCostNum = calcProductsNum * usdPricePerProduct;
+    const pkrServiceCostNum = calcProductsNum * pkrPricePerProduct;
 
     // Alias for downstream compatibility
+    const serviceCostNum = usdServiceCostNum;
+
     const selectedServiceData = selectedTier ? {
         name:     selectedTier.name,
         subtitle: `${calcProductsNum} product${calcProductsNum !== 1 ? 's' : ''}`,
         sla:      selectedTier.sla,
-        cost:     serviceCostNum,
+        cost:     usdServiceCostNum,
+        pkrCost:  pkrServiceCostNum,
     } : null;
 
-    const totalMonthlyCost = selectedPlan ? planPrice(selectedPlan) + (aiIsMonthly ? aiCostNum : 0) + syncCostNum : 0;
-    const totalDueToday = selectedAI === 'byok' ? (isPK ? 1400 : 5) : 0;
+    const usdTotalMonthlyCost = selectedPlan ? planPrice(selectedPlan) + (aiIsMonthly ? aiCostUSD : 0) + syncCostUSD : 0;
+    const pkrTotalMonthlyCost = selectedPlan ? planPricePKR(selectedPlan) + (aiIsMonthly ? aiCostPKR : 0) + syncCostPKR : 0;
+
+    const totalMonthlyCost = usdTotalMonthlyCost;
+
+    const usdTotalDueToday = selectedAI === 'byok' ? 5 : 0;
+    const pkrTotalDueToday = selectedAI === 'byok' ? 1400 : 0;
+
+    const totalDueToday = usdTotalDueToday;
     const isCardRequired = selectedAI !== 'none' || selectedSyncs.length > 0 || !!selectedService || trialMode === 'deferred';
 
     const getActivePlanSlug = (key) => {
@@ -502,13 +542,18 @@ export default function Pricing({ plans = [] }) {
                                             <div className="mb-5">
                                                 <div className="flex items-baseline gap-1">
                                                     <span className="text-4xl font-black text-white tracking-tight font-display">
-                                                        {fmt(price)}
+                                                        {fmt(price, null, '', false)}
                                                     </span>
                                                     {!isLTD && <span className="text-slate-500 text-sm font-semibold">/mo</span>}
                                                 </div>
                                                 <span className="text-[10px] text-slate-500 font-semibold mt-0.5 block">
                                                     {isLTD ? '2-year hosting included, one payment' : billingType === 'subscription_annual' ? 'billed annually' : 'billed monthly'}
                                                 </span>
+                                                {isPK && (
+                                                    <span className="text-[10px] text-emerald-400 font-bold mt-1.5 block">
+                                                        ≈ Rs {Math.round(planPricePKR(key)).toLocaleString()}{isLTD ? '' : '/mo'} (billed in USD)
+                                                    </span>
+                                                )}
                                             </div>
 
                                             <p className="text-xs text-slate-500 leading-relaxed mb-5">{plan.tagline}</p>
@@ -609,7 +654,6 @@ export default function Pricing({ plans = [] }) {
                                         {aiOptions.map((opt, idx) => {
                                             const optKey = `opt_${opt.key}`;
                                             const isChosen = selectedAI === optKey;
-                                            const price = isPK ? opt.pricePKR : opt.priceUSD;
                                             return (
                                                 <button
                                                     key={opt.key}
@@ -650,7 +694,7 @@ export default function Pricing({ plans = [] }) {
                                                         </div>
                                                         <div className="text-right">
                                                             <span className="text-white font-black text-xl">
-                                                                +{fmt(price)}
+                                                                +{fmt(opt.priceUSD, opt.pricePKR)}
                                                             </span>
                                                             <span className="text-slate-500 text-xs">/mo</span>
                                                         </div>
@@ -683,7 +727,7 @@ export default function Pricing({ plans = [] }) {
                                             </div>
                                             <div className="flex flex-col items-end gap-1 flex-shrink-0">
                                                 <span className="text-amber-300 font-black text-sm whitespace-nowrap">
-                                                    {isPK ? 'Rs 1,400' : '$5'} once
+                                                    {fmt(5, 1400, ' once')}
                                                 </span>
                                                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">one-time unlock</span>
                                             </div>
@@ -717,7 +761,7 @@ export default function Pricing({ plans = [] }) {
                                         <Key size={12} className="text-amber-400 flex-shrink-0 mt-0.5" />
                                         <p className="text-[11px] text-slate-400 leading-relaxed">
                                             <span className="text-amber-300 font-semibold">Have your own OpenAI or Gemini API key?</span>{' '}
-                                            Select BYOK and pay a one-time {isPK ? 'Rs 1,400' : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever. Your API provider bills you directly based on your usage only.
+                                            Select BYOK and pay a one-time {isPK ? '$5 (approx. Rs 1,400, billed in USD)' : '$5'} platform unlock fee. After that, you use AI on VenQore for free — forever. Your API provider bills you directly based on your usage only.
                                         </p>
                                     </div>
 
@@ -827,6 +871,11 @@ export default function Pricing({ plans = [] }) {
                                                 <Zap size={14} className="text-blue-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Starter</span>
                                                 <span className="text-[10px] text-blue-400 font-bold">{planPriceStr('starter')}</span>
+                                                {isPK && (
+                                                    <span className="text-[9px] text-emerald-400 font-semibold tracking-tight">
+                                                        ≈ Rs {Math.round(planPricePKR('starter')).toLocaleString()}{isLTD ? '' : '/mo'}
+                                                    </span>
+                                                )}
                                             </div>
                                         </th>
                                         <th className="py-5 px-4 text-center bg-indigo-950/20">
@@ -834,6 +883,11 @@ export default function Pricing({ plans = [] }) {
                                                 <TrendingUp size={14} className="text-indigo-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Growth</span>
                                                 <span className="text-[10px] text-indigo-400 font-bold">{planPriceStr('growth')}</span>
+                                                {isPK && (
+                                                    <span className="text-[9px] text-emerald-400 font-semibold tracking-tight">
+                                                        ≈ Rs {Math.round(planPricePKR('growth')).toLocaleString()}{isLTD ? '' : '/mo'}
+                                                    </span>
+                                                )}
                                             </div>
                                         </th>
                                         <th className="py-5 pr-6 pl-4 text-center">
@@ -841,6 +895,11 @@ export default function Pricing({ plans = [] }) {
                                                 <Crown size={14} className="text-purple-400" />
                                                 <span className="text-[10px] font-black text-slate-300 uppercase tracking-wide">Enterprise</span>
                                                 <span className="text-[10px] text-purple-400 font-bold">{planPriceStr('enterprise')}</span>
+                                                {isPK && (
+                                                    <span className="text-[9px] text-emerald-400 font-semibold tracking-tight">
+                                                        ≈ Rs {Math.round(planPricePKR('enterprise')).toLocaleString()}{isLTD ? '' : '/mo'}
+                                                    </span>
+                                                )}
                                             </div>
                                         </th>
                                     </tr>
@@ -1010,7 +1069,7 @@ export default function Pricing({ plans = [] }) {
                                                 {isAdded && <Check size={9} className="text-white" strokeWidth={3} />}
                                             </div>
                                             <span className="text-xs text-white font-bold whitespace-nowrap">
-                                                +{fmt(isPK ? ch.pricePKR : ch.priceUSD)}/mo
+                                                +{fmt(ch.priceUSD, ch.pricePKR)}/mo
                                             </span>
                                         </div>
                                     </div>
@@ -1051,7 +1110,15 @@ export default function Pricing({ plans = [] }) {
 
     // ── Step 3: Onboarding Services — per-product calculator ─────────────────
     const renderOnboardingStep = () => {
-        const fmtCost = (n) => isPK ? `Rs ${Math.round(n).toLocaleString()}` : `$${n.toFixed(2)}`;
+        const fmtCost = (usdAmount, pkrAmount = null) => {
+            const usdVal = parseFloat(usdAmount) || 0;
+            let str = `$${usdVal.toFixed(2)}`;
+            if (isPK) {
+                const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+                str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}, billed in USD)`;
+            }
+            return str;
+        };
         const hasEstimate = selectedTier && calcProductsNum > 0;
 
         return (
@@ -1075,7 +1142,6 @@ export default function Pricing({ plans = [] }) {
                 <div className="space-y-3">
                     {Object.values(SERVICE_TIERS).map((tier, idx) => {
                         const isChosen = selectedService === tier.key;
-                        const tierPrice = isPK ? tier.pricePKR : tier.priceUSD;
                         return (
                             <button
                                 key={tier.key}
@@ -1103,9 +1169,9 @@ export default function Pricing({ plans = [] }) {
                                         </div>
                                     </div>
                                     <div className="text-right flex-shrink-0">
-                                        <div className="text-white font-black text-lg">{isPK ? `Rs ${tierPrice}` : `$${tierPrice.toFixed(2)}`}</div>
+                                        <div className="text-white font-black text-lg">{fmtCost(tier.priceUSD, tier.pricePKR)}</div>
                                         <div className="text-[9px] text-slate-500 font-black uppercase tracking-widest">per product</div>
-                                        <div className="text-[9px] text-indigo-400 font-semibold mt-0.5">+{isPK ? 'Rs 50' : '$0.50'} / extra 5 variants</div>
+                                        <div className="text-[9px] text-indigo-400 font-semibold mt-0.5">+{fmtCost(0.50, 50)} / extra 5 variants</div>
                                     </div>
                                 </div>
                             </button>
@@ -1120,8 +1186,8 @@ export default function Pricing({ plans = [] }) {
                     </div>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
                         <span className="text-white font-semibold">Variant pricing:</span> The first 5 variants per product are included in the base price.
-                        Every additional 5 variants cost {isPK ? 'Rs 50' : '+$0.50'} more.
-                        Example: a product with 20 variants = base price + 3 extra blocks ({isPK ? 'Rs 150' : '$1.50'} more).
+                        Every additional 5 variants cost {fmtCost(0.50, 50)} more.
+                        Example: a product with 20 variants = base price + 3 extra blocks ({fmtCost(1.50, 150)} more).
                     </p>
                 </div>
 
@@ -1168,25 +1234,25 @@ export default function Pricing({ plans = [] }) {
                             {hasEstimate && (
                                 <div className="space-y-2 pt-4 border-t border-white/[0.05]">
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="text-slate-400">{calcProductsNum} products × {isPK ? `Rs ${selectedTier.pricePKR}` : `$${selectedTier.priceUSD.toFixed(2)}`} base</span>
-                                        <span className="text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * (isPK ? selectedTier.pricePKR : selectedTier.priceUSD))}</span>
+                                        <span className="text-slate-400">{calcProductsNum} products × {fmtCost(selectedTier.priceUSD, selectedTier.pricePKR)} base</span>
+                                        <span className="text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * selectedTier.priceUSD, calcProductsNum * selectedTier.pricePKR)}</span>
                                     </div>
                                     {extraBlocks > 0 && (
                                         <div className="flex items-center justify-between text-xs">
                                             <span className="text-slate-400">
-                                                {calcProductsNum} products × {extraBlocks} extra variant block{extraBlocks > 1 ? 's' : ''} × {isPK ? 'Rs 50' : '$0.50'}
+                                                {calcProductsNum} products × {extraBlocks} extra variant block{extraBlocks > 1 ? 's' : ''} × {fmtCost(0.50, 50)}
                                             </span>
-                                            <span className="text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * extraBlocks * (isPK ? 50 : 0.5))}</span>
+                                            <span className="text-slate-300 font-semibold font-mono">{fmtCost(calcProductsNum * extraBlocks * 0.50, calcProductsNum * extraBlocks * 50)}</span>
                                         </div>
                                     )}
                                     {calcVariantsNum > 1 && (
                                         <div className="flex items-center justify-between text-[10px] text-slate-500">
-                                            <span>Per product: {fmtCost(pricePerProduct)} ({calcVariantsNum} variants — first 5 free{extraBlocks > 0 ? `, +${extraBlocks} block${extraBlocks > 1 ? 's' : ''}` : ''})</span>
+                                            <span>Per product: {fmtCost(usdPricePerProduct, pkrPricePerProduct)} ({calcVariantsNum} variants — first 5 free{extraBlocks > 0 ? `, +${extraBlocks} block${extraBlocks > 1 ? 's' : ''}` : ''})</span>
                                         </div>
                                     )}
                                     <div className="flex items-center justify-between pt-3 border-t border-white/[0.06] mt-1">
                                         <span className="text-white font-black text-sm">Your estimated total</span>
-                                        <span className="text-2xl font-black text-indigo-300 font-display">{fmtCost(serviceCostNum)}</span>
+                                        <span className="text-2xl font-black text-indigo-300 font-display">{fmtCost(usdServiceCostNum, pkrServiceCostNum)}</span>
                                     </div>
                                     <p className="text-[10px] text-slate-500 leading-relaxed">
                                         This is an estimate. Final invoice is generated when you initiate the service from your admin panel — after reviewing and confirming.
@@ -1273,7 +1339,7 @@ export default function Pricing({ plans = [] }) {
                     >
                         {selectedService
                             ? hasEstimate
-                                ? `Continue — ${isPK ? `Rs ${Math.round(serviceCostNum).toLocaleString()}` : `$${serviceCostNum.toFixed(2)}`} estimated`
+                                ? `Continue — ${fmt(usdServiceCostNum, pkrServiceCostNum)} estimated`
                                 : `Continue with ${selectedTier.name}`
                             : 'Skip — go to checkout'} <ArrowRight size={13} />
                     </MagneticButton>
@@ -1311,7 +1377,7 @@ export default function Pricing({ plans = [] }) {
                                         <div className="text-slate-500 text-xs mt-0.5">14-day free trial → then auto-renews</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-slate-300 font-black text-lg">{selectedPlan && planPriceStr(selectedPlan)}</div>
+                                        <div className="text-slate-300 font-black text-lg">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</div>
                                         <div className="text-emerald-400 text-[10px] font-bold">$0.00 today</div>
                                     </div>
                                 </div>
@@ -1322,7 +1388,7 @@ export default function Pricing({ plans = [] }) {
                                             <div className="text-slate-500 text-xs mt-0.5">Managed AI — included in trial</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-slate-300 font-bold">+{fmt(isPK ? selectedAIData.pricePKR : selectedAIData.priceUSD)}/mo</div>
+                                            <div className="text-slate-300 font-bold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</div>
                                             <div className="text-emerald-400 text-[10px] font-bold">$0.00 today</div>
                                         </div>
                                     </div>
@@ -1334,7 +1400,7 @@ export default function Pricing({ plans = [] }) {
                                             <div className="text-slate-500 text-xs mt-0.5">One-time unlock — free AI forever after</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-amber-400 font-black">{isPK ? 'Rs 1,400' : '$5.00'}</div>
+                                            <div className="text-amber-400 font-black">{fmt(5, 1400)}</div>
                                             <div className="text-amber-400 text-[10px] font-bold">charged today</div>
                                         </div>
                                     </div>
@@ -1346,7 +1412,7 @@ export default function Pricing({ plans = [] }) {
                                             <div className="text-slate-500 text-xs mt-0.5">{selectedSyncs.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ')}</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-slate-300 font-bold">+{fmt(syncCostNum)}/mo</div>
+                                            <div className="text-slate-300 font-bold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</div>
                                             <div className="text-emerald-400 text-[10px] font-bold">$0.00 today</div>
                                         </div>
                                     </div>
@@ -1363,7 +1429,7 @@ export default function Pricing({ plans = [] }) {
                                             <div className="text-slate-500 text-xs mt-0.5">{calcProductsNum} products · charged when initiated from dashboard</div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-amber-400 font-black">{isPK ? `Rs ${Math.round(serviceCostNum).toLocaleString()}` : `$${serviceCostNum.toFixed(2)}`} est.</div>
+                                            <div className="text-amber-400 font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</div>
                                             <div className="text-amber-400 text-[10px] font-bold">deferred — from dashboard</div>
                                         </div>
                                     </div>
@@ -1378,7 +1444,7 @@ export default function Pricing({ plans = [] }) {
                                         <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-emerald-400" />
                                         <div className="flex items-center justify-between mb-0.5">
                                             <span className="text-white text-xs font-bold">Today</span>
-                                            <span className="text-emerald-400 text-xs font-black">{fmt(totalDueToday, totalDueToday > 0 ? '' : '.00')}</span>
+                                            <span className="text-emerald-400 text-xs font-black">{fmt(totalDueToday, pkrTotalDueToday)}</span>
                                         </div>
                                         <p className="text-slate-500 text-[10px]">
                                             {totalDueToday > 0
@@ -1390,7 +1456,7 @@ export default function Pricing({ plans = [] }) {
                                         <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-indigo-500" />
                                         <div className="flex items-center justify-between mb-0.5">
                                             <span className="text-white text-xs font-bold">{trialEndStr}</span>
-                                            <span className="text-indigo-400 text-xs font-black">{fmt(totalMonthlyCost)}/mo</span>
+                                            <span className="text-indigo-400 text-xs font-black">{fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')}</span>
                                         </div>
                                         <p className="text-slate-500 text-[10px]">
                                             First subscription charge — only if you choose to continue. Cancel anytime before this date.
@@ -1401,7 +1467,7 @@ export default function Pricing({ plans = [] }) {
                                             <div className="absolute -left-[19px] top-1 w-2 h-2 rounded-full bg-amber-400" />
                                             <div className="flex items-center justify-between mb-0.5">
                                                 <span className="text-white text-xs font-bold">When you initiate catalog loading</span>
-                                                <span className="text-amber-400 text-xs font-black">{isPK ? `Rs ${Math.round(serviceCostNum).toLocaleString()}` : `$${serviceCostNum.toFixed(2)}`} est.</span>
+                                                <span className="text-amber-400 text-xs font-black">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
                                             </div>
                                             <p className="text-slate-500 text-[10px]">
                                                 Charged per product from your admin panel. Turnaround: {selectedTier?.sla}.
@@ -1418,7 +1484,7 @@ export default function Pricing({ plans = [] }) {
                                     <div className="text-slate-400 text-[10px]">{totalDueToday > 0 ? 'BYOK activation' : 'Nothing. Trial is free.'}</div>
                                 </div>
                                 <div className="text-3xl font-black text-emerald-400">
-                                    {fmt(totalDueToday, totalDueToday > 0 ? '' : '.00')}
+                                    {fmt(totalDueToday, pkrTotalDueToday)}
                                 </div>
                             </div>
                         </div>
@@ -1567,24 +1633,24 @@ export default function Pricing({ plans = [] }) {
                                 <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">What you purchased</div>
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-slate-300">{selectedPlan && PLAN_DATA[selectedPlan]?.name}</span>
-                                    <span className="text-slate-400 font-semibold">{selectedPlan && planPriceStr(selectedPlan)}</span>
+                                    <span className="text-slate-400 font-semibold">{selectedPlan && fmt(planPrice(selectedPlan), planPricePKR(selectedPlan), isLTD ? '' : '/mo')}</span>
                                 </div>
                                 {selectedAIData && (
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-slate-300">{selectedAIData.emoji} {selectedAIData.name}</span>
-                                        <span className="text-slate-400 font-semibold">+{fmt(isPK ? selectedAIData.pricePKR : selectedAIData.priceUSD)}/mo</span>
+                                        <span className="text-slate-400 font-semibold">+{fmt(selectedAIData.priceUSD, selectedAIData.pricePKR, '/mo')}</span>
                                     </div>
                                 )}
                                 {selectedSyncs.length > 0 && (
                                     <div className="flex items-center justify-between text-sm">
                                         <span className="text-slate-300">{selectedSyncs.length} Platform Sync{selectedSyncs.length > 1 ? 's' : ''}</span>
-                                        <span className="text-slate-400 font-semibold">+{fmt(syncCostNum)}/mo</span>
+                                        <span className="text-slate-400 font-semibold">+{fmt(syncCostUSD, syncCostPKR, '/mo')}</span>
                                     </div>
                                 )}
                                 {selectedServiceData && (
                                     <div className="flex items-center justify-between text-sm pt-2 border-t border-white/[0.05]">
                                         <span className="text-slate-300">Catalog Loading — {selectedTier?.name}</span>
-                                        <span className="text-amber-400 font-semibold">{isPK ? `Rs ${Math.round(serviceCostNum).toLocaleString()}` : `$${serviceCostNum.toFixed(2)}`} est.</span>
+                                        <span className="text-amber-400 font-semibold">{fmt(usdServiceCostNum, pkrServiceCostNum)} est.</span>
                                     </div>
                                 )}
                             </div>
@@ -1594,9 +1660,9 @@ export default function Pricing({ plans = [] }) {
                                 <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">What happens next</div>
 
                                 {[
-                                    { dot: 'bg-emerald-400', title: 'Right now', desc: `Your 14-day trial has started. Log in and explore everything.${totalDueToday > 0 ? ` BYOK activation fee of ${fmt(totalDueToday)} has been processed.` : ' No charge today.'}` },
+                                    { dot: 'bg-emerald-400', title: 'Right now', desc: `Your 14-day trial has started. Log in and explore everything.${totalDueToday > 0 ? ` BYOK activation fee of ${fmt(totalDueToday, pkrTotalDueToday)} has been processed.` : ' No charge today.'}` },
                                     ...(selectedServiceData ? [{ dot: 'bg-indigo-400', title: 'Within 2 business hours', desc: `Our team will contact you on ${checkoutDetails.phone || 'the number you provided'} to confirm your catalog details and begin loading ${calcProductsNum} products. Turnaround: ${selectedTier?.sla}.` }] : []),
-                                    { dot: 'bg-purple-400', title: trialEndStr, desc: `Trial ends. Subscription begins at ${fmt(totalMonthlyCost)}/mo — only if you choose to stay. Cancel from your dashboard anytime before this date.` },
+                                    { dot: 'bg-purple-400', title: trialEndStr, desc: `Trial ends. Subscription begins at ${fmt(totalMonthlyCost, pkrTotalMonthlyCost, '/mo')} — only if you choose to stay. Cancel from your dashboard anytime before this date.` },
                                 ].map((step, i) => (
                                     <div key={i} className="flex gap-3">
                                         <div className="flex flex-col items-center gap-1">

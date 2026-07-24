@@ -863,7 +863,7 @@ export function ImpersonationView() {
                 preview={
                     <DataTable
                         columns={[
-                            { header: 'Actor', cell: () => <span style={{ fontWeight: 700, color: t.ink }}>Platform Owner</span> },
+                            { header: 'Actor', cell: () => <span style={{ fontWeight: 700, color: t.ink }}>Hashmi Dashboard</span> },
                             { header: 'Target store', cell: () => '—' },
                             { header: 'Started', cell: () => '—' },
                             { header: 'Duration', cell: () => '—' },

@@ -14,6 +14,14 @@ class GeoPricingService
      */
     public function resolveCountry(Request $request): string
     {
+        // 0. Respect tenant's database-configured country code if active
+        if (app()->bound('current.tenant')) {
+            $tenant = app('current.tenant');
+            if (!empty($tenant->country_code)) {
+                return strtoupper($tenant->country_code);
+            }
+        }
+
         // 1. Check for manual session override (e.g. user toggled region manually)
         if ($request->hasSession() && session()->has('geo_country_override')) {
             return strtoupper(session('geo_country_override'));

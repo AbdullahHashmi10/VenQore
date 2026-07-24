@@ -293,7 +293,7 @@ class SuperAdminController extends Controller
                 'id'         => $u->id,
                 'name'       => $u->name,
                 'email'      => $u->email,
-                'role'       => 'Platform Owner',
+                'role'       => 'Hashmi Dashboard',
                 'last_login' => $u->updated_at->diffForHumans(),
                 'status'     => 'active',
             ])->toArray();
@@ -862,7 +862,7 @@ class SuperAdminController extends Controller
     private function gateOwner()
     {
         if (!auth()->user()->isPlatformOwner()) {
-            abort(403, 'Unauthorized. Platform Owner role required.');
+            abort(403, 'Unauthorized. Hashmi Dashboard role required.');
         }
     }
 

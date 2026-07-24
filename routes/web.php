@@ -314,6 +314,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
     });
 
 
+// ── PK Verifications Submit (accessible by authenticated store owners) ─────
+Route::middleware(['auth'])
+    ->prefix('VenQore')
+    ->name('platform.')
+    ->group(function () {
+        Route::post('/pk-verifications/submit', [\App\Http\Controllers\Admin\PkVerificationController::class, 'submit'])->name('pk-verifications.submit');
+    });
+
 // ── Platform Owner ───────────────────────────────────────────────────────────
 Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
     ->prefix('VenQore')
@@ -491,7 +499,6 @@ Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
         });
 
         // ── PK Verifications (T3.7) ────────────────────────────────────────
-        Route::post('/pk-verifications/submit',                         [\App\Http\Controllers\Admin\PkVerificationController::class, 'submit'])->name('pk-verifications.submit');
         Route::post('/pk-verifications/{verification}/approve',        [\App\Http\Controllers\Admin\PkVerificationController::class, 'approve'])->name('pk-verifications.approve');
         Route::post('/pk-verifications/{verification}/reject',         [\App\Http\Controllers\Admin\PkVerificationController::class, 'reject'])->name('pk-verifications.reject');
         Route::get('/pk-verifications/{verification}/download/{side}',  [\App\Http\Controllers\Admin\PkVerificationController::class, 'downloadImage'])->name('pk-verifications.download');
@@ -1620,6 +1627,82 @@ Route::get('/error/{code}', function ($code) {
 
 // [SECURITY] /debug-error removed — exposed full laravel.log to anyone with the
 // hardcoded key committed to source. Use SSH or `tail storage/logs/laravel.log`.
+
+// Temporary route to create local PK test account
+Route::get('/create-pk-test', function () {
+    $user = \App\Models\User::firstOrCreate(
+        ['email' => 'testpk@venqore.com'],
+        [
+            'name' => 'Pakistani Test User',
+            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+        ]
+    );
+
+    $tenant = \App\Models\Tenant::firstOrCreate(
+        ['slug' => 'test-pk-store'],
+        [
+            'name' => 'Pakistani Test Store',
+            'status' => 'trial',
+            'plan' => 'business',
+            'trial_ends_at' => now()->addDays(14),
+            'currency_symbol' => 'Rs',
+            'country_code' => 'PK',
+            'language_code' => 'en',
+        ]
+    );
+
+    \App\Models\TenantUser::firstOrCreate(
+        [
+            'user_id' => $user->id,
+            'tenant_id' => $tenant->id,
+        ],
+        [
+            'role' => 'owner',
+            'status' => 'active',
+        ]
+    );
+
+    $user->update(['last_store_id' => $tenant->id]);
+
+    return response('Test user testpk@venqore.com and store test-pk-store (PK) created successfully! You can now log in with "password".');
+});
+
+// Temporary route to clear Laravel cache on local
+Route::get('/clear-local-cache', function () {
+    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+    
+    if (auth()->check()) {
+        auth()->user()->update([
+            'is_platform_admin' => true,
+            'platform_role' => 'platform_owner',
+        ]);
+        return response('Local Laravel cache cleared, and your user (' . auth()->user()->email . ') was granted Platform Owner role successfully!');
+    }
+
+    return response('Local Laravel cache cleared successfully! (Note: No user was logged in, so role was not updated).');
+});
+
+// Temporary route to inspect plan pricing in local DB
+Route::get('/check-plans', function () {
+    return response()->json(\App\Models\Plan::select('slug', 'price_monthly', 'price_monthly_pkr')->get());
+});
+
+// Temporary route to set local PKR prices directly
+Route::get('/set-local-prices', function () {
+    \App\Models\Plan::where('slug', 'starter')->update([
+        'price_monthly_pkr' => 1100,
+        'price_annual_pkr' => 11000,
+    ]);
+    \App\Models\Plan::where('slug', 'growth')->update([
+        'price_monthly_pkr' => 1800,
+        'price_annual_pkr' => 18000,
+    ]);
+    \App\Models\Plan::where('slug', 'business')->update([
+        'price_monthly_pkr' => 5300,
+        'price_annual_pkr' => 53000,
+    ]);
+    return response('Local PKR prices set successfully! You can verify at /check-plans.');
+});
 
 // ── FALLBACK: 404 for any URL not matched above ────────────────────────────
 // This is the last line of defense. Every URL that doesn't match a route

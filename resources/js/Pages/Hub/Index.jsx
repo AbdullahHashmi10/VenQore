@@ -60,7 +60,7 @@ function RoleChip({ role, customRoleName }) {
 
 function StoreCard({ membership, isLast }) {
     const [navigating, setNavigating] = useState(false);
-    const daysLeft = membership.trial_ends_at
+    const daysLeft = membership.status === 'trial' && membership.trial_ends_at
         ? Math.max(0, Math.ceil((new Date(membership.trial_ends_at) - Date.now()) / 86400000))
         : null;
 

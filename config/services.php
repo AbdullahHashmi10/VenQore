@@ -70,6 +70,24 @@ return [
 
         // Onboarding Upload Service
         'upload_service_variant_id'   => env('LEMON_SQUEEZY_UPLOAD_SERVICE_VARIANT_ID'),
+
+        // Checkout URLs
+        'starter_checkout_url'        => env('LEMON_SQUEEZY_STARTER_CHECKOUT_URL'),
+        'growth_checkout_url'         => env('LEMON_SQUEEZY_GROWTH_CHECKOUT_URL'),
+        'business_checkout_url'       => env('LEMON_SQUEEZY_BUSINESS_CHECKOUT_URL'),
+
+        'starter_annual_checkout_url' => env('LEMON_SQUEEZY_STARTER_ANNUAL_CHECKOUT_URL'),
+        'growth_annual_checkout_url'  => env('LEMON_SQUEEZY_GROWTH_ANNUAL_CHECKOUT_URL'),
+        'business_annual_checkout_url'=> env('LEMON_SQUEEZY_BUSINESS_ANNUAL_CHECKOUT_URL'),
+
+        // PKR Checkout URLs
+        'starter_pkr_url'             => env('LEMON_SQUEEZY_STARTER_PKR_URL'),
+        'growth_pkr_url'              => env('LEMON_SQUEEZY_GROWTH_PKR_URL'),
+        'business_pkr_url'            => env('LEMON_SQUEEZY_BUSINESS_PKR_URL'),
+
+        'starter_annual_pkr_url'      => env('LEMON_SQUEEZY_STARTER_ANNUAL_PKR_URL'),
+        'growth_annual_pkr_url'       => env('LEMON_SQUEEZY_GROWTH_ANNUAL_PKR_URL'),
+        'business_annual_pkr_url'     => env('LEMON_SQUEEZY_BUSINESS_ANNUAL_PKR_URL'),
     ],
 
     'google' => [

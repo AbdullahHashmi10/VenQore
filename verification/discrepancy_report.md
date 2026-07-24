@@ -1,9 +1,9 @@
 # VenQore Ledger Truth Audit Report
 
-> **Generated:** 2026-07-13 22:28:19 PKT  
+> **Generated:** 2026-07-21 05:55:39 PKT  
 > **Tenant:** Golden Audit Store (`golden-audit`)  
-> **Audit Date:** 2026-07-13  
-> **Audit Period Seeded:** 2025-01-01 → 2026-07-13  
+> **Audit Date:** 2026-07-21  
+> **Audit Period Seeded:** 2025-01-01 → 2026-07-21  
 
 ## Summary
 
@@ -483,7 +483,7 @@
 | `store.global.search` | 📄 NON_JSON | 200 | – |
 | `store.ai.recommendations` | ✅ PASS | 200 | – |
 | `store.ai.smart-reorder` | ✅ PASS | 200 | – |
-| `store.ai.cash-flow-forecast` | ✅ PASS | 200 | `current_balance`=8,358,352.71, `avg_daily_net`=21,621.07, `forecast.sum_projected_net_change`=10,053,797.55 (+3 more) |
+| `store.ai.cash-flow-forecast` | ✅ PASS | 200 | `current_balance`=8,358,352.71, `avg_daily_net`=7,650.85, `forecast.sum_projected_net_change`=3,557,645.25 (+3 more) |
 | `store.attributes.index` | ⚠️ ALL_ZEROS | 200 | `settings.tax_rate`=0.00 |
 | `store.categories.index` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `categories.total`=4.00, `stats.total_categories`=4.00 (+1 more) |
 | `store.inventory.stock-levels` | ✅ PASS | 200 | `settings.tax_rate`=0.00, `products.sum_cost_price`=91,953.28, `products.total_cost_price`=91,953.28 (+4 more) |

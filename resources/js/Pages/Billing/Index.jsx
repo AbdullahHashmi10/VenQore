@@ -109,10 +109,18 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
 }
 
 // --- Plan Card ----------------------------------------------------------------
-function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, plans }) {
+function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, plans, billingCycle = 'monthly' }) {
     const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
     const isPK = geo.currency === 'PKR';
-    const fmt = (n) => isPK ? `Rs ${n.toLocaleString()}` : `$${n}`;
+    const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
+        const usdVal = parseFloat(usdAmount) || 0;
+        let str = `$${usdVal.toLocaleString()}${suffix}`;
+        if (isPK) {
+            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+            str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
+        }
+        return str;
+    };
 
     const meta = PLAN_META[planKey] ?? { label: planKey, price: '—', color: '#6366f1', Icon: Shield };
     const { Icon } = meta;
@@ -120,17 +128,55 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 
     const dbPlan = plans?.find(p => p.slug === planKey);
     const planName = dbPlan?.name ? `${dbPlan.name} Engine` : meta.label;
-    const planPrice = dbPlan 
-        ? (dbPlan.price_monthly ? `${fmt(dbPlan.price_monthly)}/mo` : 'Free')
-        : meta.price;
-    const planAnnualPrice = dbPlan?.price_annual 
-        ? `or ${fmt(Math.round(dbPlan.price_annual / 12))}/mo billed annually`
-        : null;
+
+    // --- Cycle-aware pricing ---
+    const isAnnual = billingCycle === 'annual';
+
+    // Pick the right prices based on cycle and region (Option A: USD primary, PKR estimate)
+    let displayMonthly, displayAnnualNote, savingsNote, pkrEstimate;
+    const usdMonthly = dbPlan ? parseFloat(dbPlan.price_monthly_usd || dbPlan.price_monthly || 0) : 0;
+    const usdAnnual = dbPlan ? parseFloat(dbPlan.price_annual_usd || dbPlan.price_annual || 0) : 0;
+
+    if (isAnnual) {
+        if (usdAnnual > 0) {
+            const perMonth = Math.round(usdAnnual / 12);
+            const saved = usdMonthly ? Math.round(usdMonthly * 12 - usdAnnual) : null;
+            displayMonthly = `$${perMonth}/mo`;
+            displayAnnualNote = `billed $${usdAnnual}/yr`;
+            savingsNote = saved && saved > 0 ? `Save $${saved}/yr` : null;
+
+            if (isPK) {
+                const pkrAnnualTotal = dbPlan?.price_annual ?? Math.round(usdAnnual * 280);
+                const pkrPerMonth = Math.round(pkrAnnualTotal / 12);
+                pkrEstimate = `≈ Rs ${pkrPerMonth.toLocaleString()}/mo (billed in USD)`;
+            }
+        } else {
+            displayMonthly = dbPlan ? (usdMonthly ? `$${usdMonthly}/mo` : 'Free') : meta.price;
+            displayAnnualNote = null;
+            savingsNote = null;
+
+            if (isPK && usdMonthly > 0) {
+                const pkrMonthly = dbPlan?.price_monthly ?? Math.round(usdMonthly * 280);
+                pkrEstimate = `≈ Rs ${pkrMonthly.toLocaleString()}/mo (billed in USD)`;
+            }
+        }
+    } else {
+        displayMonthly = dbPlan ? (usdMonthly ? `$${usdMonthly}/mo` : 'Free') : meta.price;
+        displayAnnualNote = null;
+        savingsNote = null;
+
+        if (isPK && usdMonthly > 0) {
+            const pkrMonthly = dbPlan?.price_monthly ?? Math.round(usdMonthly * 280);
+            pkrEstimate = `≈ Rs ${pkrMonthly.toLocaleString()}/mo (billed in USD)`;
+        }
+    }
 
     if (isLtd && !isCurrent) return null;
     const planOrder = ['starter', 'growth', 'business'];
     const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
     const thisIdx    = planOrder.indexOf(planKey);
+
+    const upgradeUrl = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey }) + (isAnnual ? '?cycle=annual' : '');
 
     return (
         <div 
@@ -147,6 +193,11 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                     CURRENT PLAN
                 </div>
             )}
+            {savingsNote && (
+                <div className="absolute -top-3 right-6 px-3 py-1 rounded-full text-[10px] font-black tracking-widest text-white bg-emerald-600">
+                    {savingsNote}
+                </div>
+            )}
             
             <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ background: meta.color + '15' }}>
@@ -155,10 +206,15 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
                 <div>
                     <div className="font-bold text-base text-white leading-tight">{planName}</div>
                     <div className="text-sm font-bold mt-1" style={{ color: meta.color }}>
-                        {planPrice}
-                        {planAnnualPrice && (
+                        {displayMonthly}
+                        {displayAnnualNote && (
                             <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">
-                                {planAnnualPrice}
+                                {displayAnnualNote}
+                            </span>
+                        )}
+                        {pkrEstimate && (
+                            <span className="text-[10px] text-emerald-400 font-semibold block mt-0.5">
+                                {pkrEstimate}
                             </span>
                         )}
                     </div>
@@ -185,9 +241,9 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
             </div>
 
             {isCurrent ? (
-                tenant?.status === 'trial' ? (
+                (tenant?.status === 'trial' || tenant?.status === 'suspended') ? (
                     <button
-                        onClick={() => window.location.href = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey })}
+                        onClick={() => window.location.href = upgradeUrl}
                         className="w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/10"
                     >
                         Activate Subscription <ArrowRight size={16} />
@@ -222,9 +278,18 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const { store } = usePage().props;
     const storeSlug = store?.slug;
     const isPK = country === 'PK' && pk_verification?.status === 'approved';
-    const fmt = (n) => isPK ? `Rs ${n.toLocaleString()}` : `$${n}`;
+    const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
+        const usdVal = parseFloat(usdAmount) || 0;
+        let str = `$${usdVal.toLocaleString()}${suffix}`;
+        if (isPK) {
+            const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
+            str += ` (approx. Rs ${Math.round(pkrVal).toLocaleString()}${suffix}, billed in USD)`;
+        }
+        return str;
+    };
 
     const [activeTab, setActiveTab] = useState('subscription');
+    const [billingCycle, setBillingCycle] = useState('monthly');
 
     // Onboarding Setup Service States
     const [calcProducts, setCalcProducts] = useState('');
@@ -295,10 +360,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const calcVariantsNum = Math.max(1, parseInt(calcVariants) || 1);
     const serviceTier = SERVICE_TIERS[selectedService];
     const extraBlocks = calcVariantsNum > 5 ? Math.ceil((calcVariantsNum - 5) / 5) : 0;
-    const pricePerProduct = serviceTier
-        ? (isPK ? serviceTier.pricePKR : serviceTier.priceUSD) + extraBlocks * (isPK ? serviceTier.extraPKR : serviceTier.extraUSD)
+    const usdPricePerProduct = serviceTier
+        ? serviceTier.priceUSD + extraBlocks * serviceTier.extraUSD
         : 0;
-    const totalSetupCost = calcProductsNum * pricePerProduct;
+    const pkrPricePerProduct = serviceTier
+        ? serviceTier.pricePKR + extraBlocks * serviceTier.extraPKR
+        : 0;
+    const usdTotalSetupCost = calcProductsNum * usdPricePerProduct;
+    const pkrTotalSetupCost = calcProductsNum * pkrPricePerProduct;
 
     // Handle cancel trial
     const handleCancelTrial = () => {
@@ -393,11 +462,17 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
     const currentPlanModel = plans?.find(p => p.slug === currentPlanKey);
 
-    const targetPrice = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : (selectedPlan === 'starter' ? 19 : selectedPlan === 'growth' ? 49 : selectedPlan === 'business' ? 99 : 0);
-    const currentPrice = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : (currentPlanKey === 'starter' ? 19 : currentPlanKey === 'growth' ? 49 : currentPlanKey === 'business' ? 99 : 0);
-    const diff = targetPrice - currentPrice;
+    const targetPriceUSD = targetPlanModel ? parseFloat(targetPlanModel.price_monthly_usd || targetPlanModel.price_monthly) : (selectedPlan === 'starter' ? 19 : selectedPlan === 'growth' ? 49 : selectedPlan === 'business' ? 99 : 0);
+    const targetPricePKR = targetPlanModel ? parseFloat(targetPlanModel.price_monthly) : Math.round(targetPriceUSD * 280);
+
+    const currentPriceUSD = currentPlanModel ? parseFloat(currentPlanModel.price_monthly_usd || currentPlanModel.price_monthly) : (currentPlanKey === 'starter' ? 19 : currentPlanKey === 'growth' ? 49 : currentPlanKey === 'business' ? 99 : 0);
+    const currentPricePKR = currentPlanModel ? parseFloat(currentPlanModel.price_monthly) : Math.round(currentPriceUSD * 280);
+
+    const diffUSD = targetPriceUSD - currentPriceUSD;
+    const diffPKR = targetPricePKR - currentPricePKR;
     
-    let proratedEst = "0.00";
+    let proratedEstUSD = 0;
+    let proratedEstPKR = 0;
     let remainingDays = 0;
     let nextBillingDateStr = "";
 
@@ -420,13 +495,15 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         const ratio = Math.max(0, Math.min(1, remainingMs / totalMs));
         
         if (isUpgrade) {
-            proratedEst = (diff * ratio).toFixed(2);
+            proratedEstUSD = diffUSD * ratio;
+            proratedEstPKR = diffPKR * ratio;
         }
     } else {
         const nextBilling = new Date();
         nextBilling.setDate(nextBilling.getDate() + 30);
         nextBillingDateStr = nextBilling.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        proratedEst = targetPrice.toFixed(2);
+        proratedEstUSD = targetPriceUSD;
+        proratedEstPKR = targetPricePKR;
     }
 
     // Modal features comparison listing
@@ -596,7 +673,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Active Plan</div>
                             <div className="text-2xl font-black text-white">{currentMeta.label}</div>
                             <div className="text-xs font-bold text-slate-400 mt-1">
-                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)` : isTrial ? `${trialDaysLeft} days remaining on trial` : isLtd ? 'Lifetime License' : subEndsAt ? `Renews on ${subEndsAt}` : 'Active Subscription'}
+                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)` : tenant?.status === 'suspended' ? 'Trial Expired / Suspended' : isTrial ? `${trialDaysLeft} days remaining on trial` : isLtd ? 'Lifetime License' : subEndsAt ? `Renews on ${subEndsAt}` : 'Active Subscription'}
                             </div>
                         </div>
                     </div>
@@ -706,6 +783,38 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">
                                 {isLtd ? 'Your Early Supporter Perks' : '🚀 Scale your system as you grow'}
                             </div>
+
+                            {/* Billing Cycle Toggle */}
+                            {!isLtd && (
+                                <div className="flex items-center justify-center mb-8">
+                                    <div className="inline-flex items-center gap-1 p-1 rounded-2xl bg-white/[0.04] border border-white/[0.07]">
+                                        <button
+                                            onClick={() => setBillingCycle('monthly')}
+                                            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                                                billingCycle === 'monthly'
+                                                    ? 'bg-white text-[#020010] shadow-md'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            Monthly
+                                        </button>
+                                        <button
+                                            onClick={() => setBillingCycle('annual')}
+                                            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all flex items-center gap-2 ${
+                                                billingCycle === 'annual'
+                                                    ? 'bg-emerald-600 text-white shadow-md'
+                                                    : 'text-slate-400 hover:text-white'
+                                            }`}
+                                        >
+                                            Annual
+                                            <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-black ${
+                                                billingCycle === 'annual' ? 'bg-white/20 text-white' : 'bg-emerald-500/20 text-emerald-400'
+                                            }`}>SAVE ~17%</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 {isTrial || isViewOnly ? (
                                      ['starter', 'growth', 'business'].map(key => (
@@ -718,6 +827,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             tenant={tenant}
                                             onSelectPlan={handleSelectPlan}
                                             plans={plans}
+                                            billingCycle={billingCycle}
                                         />
                                      ))
                                 ) : (
@@ -731,6 +841,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             tenant={tenant}
                                             onSelectPlan={handleSelectPlan}
                                             plans={plans}
+                                            billingCycle={billingCycle}
                                         />
                                     ))
                                 )}
@@ -1062,7 +1173,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         </div>
                                         <div className="flex justify-between items-baseline mt-4 pt-3 border-t border-white/[0.04] w-full">
                                             <span className="text-[10px] text-purple-400 font-semibold">{tier.sla}</span>
-                                            <span className="text-white font-black text-sm">{fmt(isPK ? tier.pricePKR : tier.priceUSD)}<span className="text-[10px] text-slate-500 font-medium">/ea</span></span>
+                                            <span className="text-white font-black text-sm">{fmt(tier.priceUSD, tier.pricePKR)}<span className="text-[10px] text-slate-500 font-medium">/ea</span></span>
                                         </div>
                                     </button>
                                 ))}
@@ -1090,7 +1201,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             onChange={(e) => setCalcVariants(e.target.value)}
                                             className="w-full px-4 py-3 rounded-xl border border-white/[0.08] bg-white/[0.02] text-white text-sm outline-none focus:border-purple-500 transition-colors"
                                         />
-                                        <span className="text-[9px] text-slate-500 mt-1 block">First 5 variants included. {fmt(isPK ? serviceTier.extraPKR : serviceTier.extraUSD)} per block of 5 extra variants.</span>
+                                        <span className="text-[9px] text-slate-500 mt-1 block">First 5 variants included. {fmt(serviceTier.extraUSD, serviceTier.extraPKR)} per block of 5 extra variants.</span>
                                     </div>
                                 </div>
 
@@ -1100,22 +1211,22 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                         <div className="space-y-2 mt-4">
                                             <div className="flex justify-between text-xs text-slate-400">
                                                 <span>Tier Base Rate:</span>
-                                                <span className="text-white font-bold">{fmt(isPK ? serviceTier.pricePKR : serviceTier.priceUSD)}</span>
+                                                <span className="text-white font-bold">{fmt(serviceTier.priceUSD, serviceTier.pricePKR)}</span>
                                             </div>
                                             <div className="flex justify-between text-xs text-slate-400">
                                                 <span>Extra Variant Surcharge:</span>
-                                                <span className="text-white font-bold">+{fmt(extraBlocks * (isPK ? serviceTier.extraPKR : serviceTier.extraUSD))}</span>
+                                                <span className="text-white font-bold">+{fmt(extraBlocks * serviceTier.extraUSD, extraBlocks * serviceTier.extraPKR)}</span>
                                             </div>
                                             <div className="flex justify-between text-xs text-slate-400">
                                                 <span>Final Price Per Product:</span>
-                                                <span className="text-white font-bold">{fmt(pricePerProduct)}</span>
+                                                <span className="text-white font-bold">{fmt(usdPricePerProduct, pkrPricePerProduct)}</span>
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="pt-4 border-t border-white/[0.05] flex justify-between items-center mt-4">
                                         <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Estimated Total</span>
-                                        <span className="text-2xl font-black text-purple-400">{fmt(totalSetupCost)}</span>
+                                        <span className="text-2xl font-black text-purple-400">{fmt(usdTotalSetupCost, pkrTotalSetupCost)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -1133,7 +1244,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             Redirecting...
                                         </>
                                     ) : (
-                                        `Order Setup Service (${fmt(totalSetupCost)})`
+                                        `Order Setup Service (${fmt(usdTotalSetupCost, pkrTotalSetupCost)})`
                                     )}
                                 </button>
                             </div>
@@ -1236,13 +1347,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="text-center flex-1">
                                 <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Current Plan</div>
                                 <div className="text-sm font-black mt-1 capitalize text-slate-300">{currentPlanKey}</div>
-                                <div className="text-xs text-slate-500 mt-0.5">{fmt(currentPrice)}/mo</div>
+                                <div className="text-xs text-slate-500 mt-0.5">{fmt(currentPriceUSD, currentPricePKR)}/mo</div>
                             </div>
                             <ArrowRight className="text-slate-600 shrink-0" size={16} />
                             <div className="text-center flex-1">
                                 <div className="text-[10px] text-purple-400 font-bold uppercase tracking-wider">New Plan</div>
                                 <div className="text-sm font-black mt-1 capitalize text-purple-300">{selectedPlan}</div>
-                                <div className="text-xs text-purple-400 mt-0.5">{fmt(targetPrice)}/mo</div>
+                                <div className="text-xs text-purple-400 mt-0.5">{fmt(targetPriceUSD, targetPricePKR)}/mo</div>
                             </div>
                         </div>
 
@@ -1273,11 +1384,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 </p>
                             ) : isUpgrade ? (
                                 <p>
-                                    Your upgrade takes effect **instantly**. Today you will only be charged a prorated surplus difference of <span className="text-emerald-400 font-black text-sm">{fmt(parseFloat(proratedEst))}</span> for the remaining <span className="text-white font-semibold">{remainingDays} days</span> of your current billing month. Starting <span className="text-white font-semibold">{nextBillingDateStr}</span>, you will be charged the full price of <span className="text-white font-semibold">{fmt(targetPrice)}/month</span>.
+                                    Your upgrade takes effect **instantly**. Today you will only be charged a prorated surplus difference of <span className="text-emerald-400 font-black text-sm">{fmt(proratedEstUSD, proratedEstPKR)}</span> for the remaining <span className="text-white font-semibold">{remainingDays} days</span> of your current billing month. Starting <span className="text-white font-semibold">{nextBillingDateStr}</span>, you will be charged the full price of <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
                                 </p>
                             ) : (
                                 <p>
-                                    Your downgrade is **scheduled** and will take effect on <span className="text-amber-400 font-black">{nextBillingDateStr}</span> at the end of your paid billing month. You will keep your current features and limits until then. Starting on that date, your plan will become <span className="text-white font-bold capitalize">{selectedPlan}</span>, and your monthly billing will drop to <span className="text-white font-semibold">{fmt(targetPrice)}/month</span>.
+                                    Your downgrade is **scheduled** and will take effect on <span className="text-amber-400 font-black">{nextBillingDateStr}</span> at the end of your paid billing month. You will keep your current features and limits until then. Starting on that date, your plan will become <span className="text-white font-bold capitalize">{selectedPlan}</span>, and your monthly billing will drop to <span className="text-white font-semibold">{fmt(targetPriceUSD, targetPricePKR)}/month</span>.
                                 </p>
                             )}
                         </div>

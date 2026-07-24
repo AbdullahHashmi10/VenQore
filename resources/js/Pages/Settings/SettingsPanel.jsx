@@ -429,7 +429,7 @@ export default function SettingsPanel({ settings }) {
                                         <Lock className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                                     </div>
                                     <p className="mt-3 text-xs text-slate-500">
-                                        This "Master Passcode" logs you in as Platform Owner.
+                                        This "Master Passcode" logs you in as Hashmi Dashboard.
                                         <span className="block mt-1 text-indigo-600 dark:text-indigo-400 font-medium">Tip: Individual users can set personal passcodes in their Profile.</span>
                                     </p>
                                 </div>

@@ -423,7 +423,7 @@ export default function Index({ stats }) {
                                                     }`}>
                                                         <div className="flex items-center gap-1.5 mb-1 text-[10px]">
                                                             {reply.is_platform_owner ? (
-                                                                <span className="font-black text-indigo-400 uppercase tracking-widest">Platform Owner</span>
+                                                                <span className="font-black text-indigo-400 uppercase tracking-widest">Hashmi Dashboard</span>
                                                             ) : (
                                                                 <span className="font-bold text-slate-400">Partner Operator</span>
                                                             )}
