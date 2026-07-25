@@ -474,7 +474,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         ? new Date(tenant.subscription_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : null;
 
-    const isTrial = tenant?.status === 'trial' || (tenant?.trial_ends_at && new Date(tenant.trial_ends_at) > new Date());
+    const isTrial = tenant?.status === 'trial';
     const trialDaysLeft = tenant?.trial_ends_at
         ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / 86400000))
         : null;
