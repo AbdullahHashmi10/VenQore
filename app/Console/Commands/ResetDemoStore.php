@@ -4,31 +4,36 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Artisan;
-use App\Models\Tenant;
+use App\Services\DemoStoreService;
 
 class ResetDemoStore extends Command
 {
     protected $signature = 'demo:reset {--force : Legacy compatibility flag}';
-    protected $description = 'Reset the demo store to its original state';
+    protected $description = 'Reset the demo store to its original state (fast snapshot restore; falls back to full reseed if no snapshot exists)';
 
     public function handle()
     {
-        $this->info("Starting Demo Store reset...");
+        $this->info('Starting Demo Store reset...');
 
-        // Must resolve to the Golden Master specifically, not any live
-        // visitor's ephemeral demo clone (see DemoSessionService).
-        $demoTenant = Tenant::where('is_golden_master', true)->first();
-        
-        if (!$demoTenant) {
-            $this->error("No demo tenant found!");
-            return 1;
+        // Self-heals the tenant row instead of bailing when none exists —
+        // previously this used first() and returned an error, which meant
+        // the very first reset on a fresh server could never succeed.
+        DemoStoreService::goldenMaster();
+
+        // Fast path: restore from the golden master snapshot (this is what
+        // the nightly schedule now calls — see routes/console.php). Falls
+        // back to demo:full-deploy automatically inside demo:restore if no
+        // snapshot file exists yet.
+        $this->info('Restoring from Golden Master snapshot...');
+        $exitCode = Artisan::call('demo:restore', ['--force' => true]);
+        $this->line(Artisan::output());
+
+        if ($exitCode === 0) {
+            $this->info('Demo store reset successful!');
+        } else {
+            $this->error('Demo store reset finished with errors — see output above.');
         }
 
-        // Run the full nuclear deploy command to seed rich 5-year data across all modules
-        $this->info("Running full nuclear demo store deploy...");
-        Artisan::call('demo:full-deploy');
-        
-        $this->info("Demo store reset successful!");
-        return 0;
+        return $exitCode;
     }
 }

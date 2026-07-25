@@ -435,6 +435,18 @@ export default function DemoStoreTab() {
                 },
             });
             const data = await res.json();
+
+            // Server returns 501 when vendor/bin/pest isn't installed
+            // (e.g. a --no-dev production deploy) instead of spawning a
+            // process that can't run — surface that instead of silently
+            // polling a job that was never created.
+            if (!res.ok || !data.job_id) {
+                stopAll();
+                setRunnerStatus(STATUS.FAILED);
+                setRunnerLines([{ type: 'error', text: data.error || 'Failed to start page health test runner.' }]);
+                return;
+            }
+
             runnerJobRef.current = data.job_id;
             runnerPollRef.current = setInterval(() => poll(data.job_id), POLL_INTERVAL_MS);
         } catch (e) {
@@ -686,19 +698,20 @@ export default function DemoStoreTab() {
                     </button>
                     <button
                         onClick={runPageTests}
-                        disabled={runnerStatus === STATUS.RUNNING || deploying || resetting}
+                        disabled={runnerStatus === STATUS.RUNNING || deploying || resetting || data?.pest_available === false}
+                        title={data?.pest_available === false ? 'Unavailable: vendor/bin/pest not installed on this server (expected on production --no-dev deploys).' : undefined}
                         style={{
                             display: 'inline-flex', alignItems: 'center', gap: 6,
                             padding: '8px 16px', borderRadius: 9, border: 'none',
-                            background: runnerStatus === STATUS.RUNNING ? '#f59e0b' : '#10b981',
+                            background: data?.pest_available === false ? '#475569' : (runnerStatus === STATUS.RUNNING ? '#f59e0b' : '#10b981'),
                             color: '#fff', fontSize: 13, fontWeight: 600,
-                            cursor: (runnerStatus === STATUS.RUNNING || deploying || resetting) ? 'not-allowed' : 'pointer',
-                            opacity: (runnerStatus === STATUS.RUNNING || deploying || resetting) ? 0.6 : 1,
+                            cursor: (runnerStatus === STATUS.RUNNING || deploying || resetting || data?.pest_available === false) ? 'not-allowed' : 'pointer',
+                            opacity: (runnerStatus === STATUS.RUNNING || deploying || resetting || data?.pest_available === false) ? 0.6 : 1,
                             boxShadow: '0 2px 8px rgba(16, 185, 129, 0.4)',
                         }}
                     >
                         <Play size={13} className={runnerStatus === STATUS.RUNNING ? 'animate-spin' : ''} />
-                        {runnerStatus === STATUS.RUNNING ? 'Testing...' : '🧪 Run Page Tests'}
+                        {data?.pest_available === false ? '🧪 Tests Unavailable' : (runnerStatus === STATUS.RUNNING ? 'Testing...' : '🧪 Run Page Tests')}
                     </button>
                 </div>
             </div>

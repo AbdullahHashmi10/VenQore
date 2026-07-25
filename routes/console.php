@@ -52,18 +52,49 @@ Artisan::command('inspire', function () {
 // â”€â”€ Phase 6.2: Demo Tenant Nightly Reset â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Resets demo.venqore.com to a clean state every night at 04:00.
 // Demo credentials: demo@venqore.com / demo1234
-\Illuminate\Support\Facades\Schedule::command('demo:reset', ['--force' => true])
+//
+// Changed from `demo:reset` (which called demo:full-deploy, a generative
+// 5-year reseed) to `demo:restore` (fast snapshot replay). Nightly full
+// reseeds were slow, and — because the old wipe list in
+// FullDemoDeployCommand didn't cover every tenant-scoped table — each run
+// left orphan rows behind, so the demo drifted further from a clean state
+// over time instead of actually resetting. demo:restore wipes using the
+// complete, schema-verified table list (DemoStoreService::TENANT_DATA_TABLES)
+// and replays a known-good snapshot, so every night starts from the exact
+// same baseline.
+\Illuminate\Support\Facades\Schedule::command('demo:restore')
     ->dailyAt('04:00')
     ->withoutOverlapping()
     ->onOneServer();
 
 // â”€â”€ Phase 6.3: Demo Full Deploy â€” Weekly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-// Every Sunday at 03:00 AM â€” full nuclear re-seed with 5-year data.
-// Ensures the demo store stays rich and realistic over time.
+// Every Sunday at 03:00 AM â€” full nuclear re-seed with 5-year data,
+// immediately followed by demo:snapshot so the freshly generated data
+// (with today's date as the new "most recent" anchor) becomes the new
+// Golden Master baseline that the nightly demo:restore above replays all
+// week. This is the ONLY place the heavy generative seed still runs
+// automatically; every other reset/restore is a fast snapshot replay.
 \Illuminate\Support\Facades\Schedule::command('demo:full-deploy')
     ->weeklyOn(0, '03:00')
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+\Illuminate\Support\Facades\Schedule::command('demo:snapshot')
+    ->weeklyOn(0, '03:20') // 20 min after full-deploy kicks off — should be done by then
+    ->withoutOverlapping()
+    ->onOneServer()
+    ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));
+
+// â”€â”€ Queue Worker Heartbeat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Dispatches a trivial queued job every minute so DemoStoreController can
+// tell whether a queue worker (php artisan queue:work / Horizon) is
+// actually running on this server. If no worker is configured, the
+// heartbeat cache key goes stale and demo deploy/reset falls back to
+// running inline instead of hanging forever waiting on a queue nobody is
+// draining. See app/Jobs/QueueHeartbeatJob.php.
+\Illuminate\Support\Facades\Schedule::job(new \App\Jobs\QueueHeartbeatJob())
+    ->everyMinute();
 
 // â”€â”€ Phase 6.4: Expired Demo Session Cleanup â€” Hourly â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Sweeps ephemeral per-visitor demo tenant clones (is_demo=true,

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Tenant;
 use App\Models\TenantUser;
 use App\Models\DemoVisitorLog;
+use App\Services\DemoStoreService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -38,7 +39,26 @@ class DemoController extends Controller
         // Must resolve to the Golden Master specifically, not any other
         // visitor's ephemeral demo clone (see DemoSessionService) — this is
         // the shared demo instance login, not a per-visitor sandbox.
-        $demoTenant = Tenant::where('is_golden_master', true)->firstOrFail();
+        //
+        // Previously this was firstOrFail(), which 404'd (surfaced to the
+        // browser as a 409+redirect-to-/error/404 via the Inertia error
+        // handler) whenever no Golden Master existed yet. Seeding 5 years
+        // of data synchronously inside a login request would itself time
+        // out, so instead: self-heal the tenant ROW via the shared
+        // resolver (cheap, instant), and if it has no seeded data yet,
+        // send the visitor to a friendly "demo is being prepared" page
+        // rather than crashing.
+        $demoTenant = DemoStoreService::goldenMaster();
+
+        $hasData = \Illuminate\Support\Facades\Schema::hasTable('sales')
+            && \Illuminate\Support\Facades\DB::table('sales')->where('tenant_id', $demoTenant->id)->exists();
+
+        if (!$hasData) {
+            return redirect()->route('demo.landing')->with(
+                'error',
+                'The demo store is being prepared. Please try again in a few minutes.'
+            );
+        }
 
         // Ensure user exists for this role
         $email = "demo-{$role}@venqore-demo.internal";

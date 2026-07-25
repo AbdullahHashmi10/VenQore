@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Cache;
 use App\Models\Tenant;
+use App\Services\DemoStoreService;
 
 class FullDemoDeployCommand extends Command
 {
@@ -22,43 +23,16 @@ class FullDemoDeployCommand extends Command
         $this->info('🚀 Starting Demo Deploy...');
 
         // ── 1. Find / create demo tenant ─────────────────────────────────
-        // Must resolve to the Golden Master specifically, not any live
-        // visitor's ephemeral demo clone (see DemoSessionService).
-        $demo = Tenant::where('is_golden_master', true)->first();
-
-        if (!$demo) {
-            $existing = Tenant::where('slug', 'demo')->first();
-            if ($existing) {
-                $this->info('Found existing demo tenant by slug, updating flags...');
-                $existing->update([
-                    'is_demo' => true,
-                    'is_golden_master' => true,
-                ]);
-                $demo = $existing;
-            } else {
-                $this->warn('No demo tenant found — creating one...');
-                $demo = Tenant::create([
-                    'name'             => 'VenQore Demo Store',
-                    'slug'             => 'demo',
-                    'plan'             => 'business',
-                    'status'           => 'active',
-                    'currency_symbol'  => '$',
-                    'currency_code'    => 'USD',
-                    'setup_completed'  => true,
-                    'is_demo'          => true,
-                    'is_golden_master' => true,
-                ]);
-            }
+        // Delegates to the shared resolver so this command, the dashboard
+        // controller, and demo:restore can never diverge or create
+        // duplicate Golden Master tenants again.
+        $demo = DemoStoreService::goldenMaster();
+        if ($demo->wasRecentlyCreated ?? false) {
+            $this->warn('No demo tenant found — created a new Golden Master.');
         }
 
         app()->instance('current.tenant', $demo);
         $tenantId = $demo->id;
-
-        // Ensure default Chart of Accounts and settings exist
-        if (!DB::table('accounts')->where('tenant_id', $tenantId)->exists()) {
-            $this->info('🌱 Seeding tenant default Chart of Accounts and settings...');
-            \Database\Seeders\TenantDefaultSeeder::seedFor($demo);
-        }
 
         // ── 1.5 Parse Seeder modules ─────────────────────────────────────
         $seeders = [
@@ -116,18 +90,23 @@ class FullDemoDeployCommand extends Command
             }
         }
 
+        // NOTE: table names here must match what the corresponding Demo*Seeder
+        // actually writes to (verified against each seeder's DB::table()
+        // calls) — this previously referenced sale_payments/purchase_payments/
+        // bank_transactions/recipe_products, none of which exist in the
+        // schema, so those wipes silently no-op'd every run.
         $tableMapping = [
             'warehouse'     => ['warehouses'],
-            'bank_accounts' => ['bank_accounts', 'bank_transactions'],
+            'bank_accounts' => ['bank_accounts'],
             'categories'    => ['categories'],
             'products'      => ['products', 'product_barcodes', 'product_uom_conversions', 'stocks', 'inventory_batches'],
             'customers'     => ['parties'],
             'suppliers'     => ['parties'],
             'expenses'      => ['expenses', 'expense_categories'],
-            'sales'         => ['sales', 'sale_items', 'sale_payments'],
-            'purchases'     => ['purchases', 'purchase_items', 'purchase_payments'],
+            'sales'         => ['sale_item_batches', 'sale_items', 'sales', 'journal_items', 'journal_entries'],
+            'purchases'     => ['purchase_items', 'purchases'],
             'proposals'     => ['proposals', 'proposal_items'],
-            'cookbook'      => ['recipes', 'recipe_products'],
+            'cookbook'      => ['recipe_ingredients', 'recipes'],
             'staff'         => ['staff_attendances'],
         ];
 
@@ -142,26 +121,18 @@ class FullDemoDeployCommand extends Command
         $isFullWipe = (count($chosenModules) === count($seeders));
 
         if ($isFullWipe) {
-            $allTables = [
-                'sales', 'sale_items', 'sale_payments',
-                'purchases', 'purchase_items', 'purchase_payments',
-                'expenses', 'expense_categories',
-                'proposals', 'proposal_items',
-                'bank_accounts', 'bank_transactions',
-                'products', 'product_barcodes', 'product_uom_conversions',
-                'categories', 'stocks', 'inventory_batches',
-                'parties',
-                'warehouses',
-                'journal_entries', 'journal_items',
-                'payments',
-                'recipe_products', 'recipes',
-                'staff_attendances',
-            ];
-            foreach ($allTables as $table) {
+            // Full wipe uses the single shared table list (see
+            // DemoStoreService::TENANT_DATA_TABLES) instead of a separately
+            // hand-maintained list here. The old list was missing
+            // transactions, transaction_allocations, payment_allocations,
+            // stock_movements, sale_item_batches and several others, and
+            // referenced tables that don't exist (sale_payments,
+            // purchase_payments, bank_transactions, recipe_products) — so
+            // every "full" wipe was actually partial, leaving orphan rows
+            // behind on every reseed.
+            foreach (DemoStoreService::existingTenantDataTables() as $table) {
                 try {
-                    if (Schema::hasColumn($table, 'tenant_id')) {
-                        DB::table($table)->where('tenant_id', $tenantId)->delete();
-                    }
+                    DB::table($table)->where('tenant_id', $tenantId)->delete();
                 } catch (\Exception $e) {
                     $this->warn("  Skipped wiping $table: " . $e->getMessage());
                 }
@@ -201,6 +172,12 @@ class FullDemoDeployCommand extends Command
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
         $this->info('  ✅ Wipe completed.');
+
+        // Ensure default Chart of Accounts and settings exist
+        if (!DB::table('accounts')->where('tenant_id', $tenantId)->exists()) {
+            $this->info('🌱 Seeding tenant default Chart of Accounts and settings...');
+            \Database\Seeders\TenantDefaultSeeder::seedFor($demo);
+        }
 
         // ── 3. Run selected seeders in order ──────────────────────────────
         $totalModules = count($chosenModules);
@@ -266,9 +243,28 @@ class FullDemoDeployCommand extends Command
         ]);
         Cache::put('demo_visit_live', 0);
 
+        // ── 7. Verify the result is actually healthy ──────────────────────
+        // Previously nothing checked whether the deploy actually produced a
+        // usable store — a partially-failed seeder run (caught silently
+        // above as a warning) could leave an empty or unbalanced ledger and
+        // still report success. Surface that loudly here instead.
         $this->info('');
-        $this->info('✅ Full Demo Deploy complete! All modules seeded with 5-year data.');
+        $this->info('🔎 Running post-deploy health check...');
+        $health = DemoStoreService::healthCheck($tenantId);
+        if ($health['ok']) {
+            $this->info('  ✅ Health check passed.');
+        } else {
+            foreach ($health['issues'] as $issue) {
+                $this->error("  ⚠️ {$issue}");
+            }
+        }
+        $this->line('  Row counts: ' . json_encode($health['counts']));
 
-        return 0;
+        $this->info('');
+        $this->info($health['ok']
+            ? '✅ Full Demo Deploy complete! All modules seeded with 5-year data.'
+            : '⚠️ Full Demo Deploy finished, but health check found issues — see above.');
+
+        return $health['ok'] ? 0 : 1;
     }
 }

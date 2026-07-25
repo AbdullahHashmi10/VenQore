@@ -448,6 +448,14 @@ class UpdaterController extends Controller
             'storage/installed',             // Install lock flag
             'storage/app_version.txt',       // Updated by Step 5, not from ZIP
             'storage/update.lock',           // Our own lock file
+            'storage/demo-snapshots/',       // Golden Master demo snapshot — regenerated
+                                              // weekly by demo:snapshot (see routes/console.php),
+                                              // NOT shipped inside update packages. Previously
+                                              // unprotected: an update ZIP built without this
+                                              // directory would leave whatever was on disk alone
+                                              // (fine), but one built WITH a stale/placeholder
+                                              // copy would silently clobber the live server's
+                                              // real Golden Master snapshot on every update.
 
             // ── Framework structure (sessions, cache scaffolding) ───
             'storage/framework/sessions/',   // Active user sessions — destroying = logout all users
@@ -744,21 +752,53 @@ class UpdaterController extends Controller
         $this->assertCriticalSchema();
 
         // Auto-restore demo tenant if missing or empty (T4.1)
+        //
+        // Previously this called demo:restore inline and swallowed any
+        // failure in a try/catch that only logged a warning — so the
+        // updater could report "success" while leaving the demo store
+        // completely broken. Two fixes:
+        //   1. demo:restore itself now force-flags the tenant as
+        //      is_golden_master (see DemoRestore::handle()), so it can
+        //      never again silently create an unflagged duplicate "demo"
+        //      tenant the way the old snapshot-payload-trusting version did.
+        //   2. We now verify the restore actually produced a healthy,
+        //      non-empty store afterward and surface a loud warning in the
+        //      update report (not just the log file) if it didn't, instead
+        //      of reporting a clean success either way.
+        $demoWarning = null;
         try {
-            $demoTenantExists = \App\Models\Tenant::where('is_golden_master', true)->exists();
-            if (!$demoTenantExists) {
-                Log::info("Updater: Golden Master demo tenant missing, running demo:restore...");
-                Artisan::call('demo:restore', ['--force' => true]);
+            $demoTenant = \App\Services\DemoStoreService::goldenMaster(createIfMissing: false);
+            $needsRestore = !$demoTenant
+                || !\Illuminate\Support\Facades\Schema::hasTable('sales')
+                || !DB::table('sales')->where('tenant_id', $demoTenant->id)->exists();
+
+            if ($needsRestore) {
+                Log::info('Updater: Golden Master demo tenant missing or empty, running demo:restore...');
+                $exitCode = Artisan::call('demo:restore', ['--force' => true]);
+                Log::info('Updater: demo:restore output: ' . Artisan::output());
+
+                $demoTenant = \App\Services\DemoStoreService::goldenMaster(createIfMissing: false);
+                $health = $demoTenant
+                    ? \App\Services\DemoStoreService::healthCheck($demoTenant->id)
+                    : ['ok' => false, 'issues' => ['No Golden Master tenant resolved after restore.']];
+
+                if ($exitCode !== 0 || !$health['ok']) {
+                    $demoWarning = 'Demo store restore ran but did not produce a healthy store: '
+                        . implode('; ', $health['issues'] ?: ['demo:restore exited with code ' . $exitCode . '.']);
+                    Log::warning('Updater: ' . $demoWarning);
+                }
             }
         } catch (Exception $e) {
-            Log::warning('Updater: failed to restore demo store: ' . $e->getMessage());
+            $demoWarning = 'Failed to restore demo store: ' . $e->getMessage();
+            Log::warning('Updater: ' . $demoWarning);
         }
 
         Log::info("Updater: Migrations completed. {$pendingCount} migration(s) applied.");
 
         return response()->json([
-            'message' => "Database migrations applied successfully. ({$pendingCount} migration(s) applied)",
-            'output'  => trim($output) ?: 'All migrations ran without errors.',
+            'message'      => "Database migrations applied successfully. ({$pendingCount} migration(s) applied)",
+            'output'       => trim($output) ?: 'All migrations ran without errors.',
+            'demo_warning' => $demoWarning, // null when the demo store is healthy or didn't need restoring
         ]);
     }
 

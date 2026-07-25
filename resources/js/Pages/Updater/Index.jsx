@@ -249,6 +249,11 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                 setStepStatus(stepId, 'done');
                 log(`  ✓ ${res.data.message || 'Done.'}`, 'success');
                 if (res.data.output) log(`  ${res.data.output}`, 'dim');
+                // Migrations step can report a healthy "success" while the
+                // demo store restore quietly failed underneath — surface
+                // that here instead of letting it disappear into the log
+                // file only (see UpdaterController::handleMigrations()).
+                if (res.data.demo_warning) log(`  ⚠️ Demo store: ${res.data.demo_warning}`, 'warning');
                 setProgress(prev => Math.min(prev + progressPerStep, 100));
                 return true;
             } catch (e) {
@@ -765,9 +770,10 @@ export default function Updater({ currentVersion, versionHistory = [] }) {
                                     >
                                         {logs.map((l, i) => (
                                             <div key={i} className={`log-line flex gap-2 ${l.type === 'error' ? 'text-rose-400' :
-                                                l.type === 'success' ? 'text-emerald-400' :
-                                                    l.type === 'dim' ? 'text-slate-600' :
-                                                        'text-slate-400'
+                                                l.type === 'warning' ? 'text-amber-400' :
+                                                    l.type === 'success' ? 'text-emerald-400' :
+                                                        l.type === 'dim' ? 'text-slate-600' :
+                                                            'text-slate-400'
                                                 }`}>
                                                 <span className="text-slate-700 shrink-0">{l.time}</span>
                                                 <span>{l.text}</span>
