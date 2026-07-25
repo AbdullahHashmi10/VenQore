@@ -70,7 +70,7 @@ abstract class VenQoreTestCase extends TestCase
      * @param  string       $plan   Plan slug: trial|starter|ltd_1|ltd_2|ltd_3|active
      * @param  string       $status Store status: trial|active|suspended
      */
-    protected function createTenant(
+    public function createTenant(
         ?string $slug = null,
         string $plan = 'trial',
         string $status = 'trial'
@@ -93,7 +93,7 @@ abstract class VenQoreTestCase extends TestCase
      * @param  Tenant  $tenant  The tenant/store to bind the user to
      * @param  string  $role    owner|admin|manager|cashier|viewer|accountant|...
      */
-    protected function createTenantUser(Tenant $tenant, string $role = 'owner'): User
+    public function createTenantUser(Tenant $tenant, string $role = 'owner'): User
     {
         $user = User::factory()->create([
             'last_store_id' => $tenant->id,
