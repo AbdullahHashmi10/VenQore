@@ -79,6 +79,9 @@ class LemonSqueezyCheckoutService
      *     @type string $receipt_button_text
      *     @type string $thank_you_note
      *     @type string $discount_code
+     *     @type bool   $lock_discount_field  Hide the discount-code box. Used when
+     *         we have prefilled a code ourselves (e.g. a trial credit) and must
+     *         not let it be cleared or swapped for a different one.
      *     @type string $expires_at      ISO-8601 expiry for the checkout link.
      * }
      * @return string|null  Checkout URL, or null when the API call failed.
@@ -91,13 +94,18 @@ class LemonSqueezyCheckoutService
 
         $branding = $this->brandingOptions();
 
+        // When we prefill a code of our own, the field is hidden: leaving it
+        // editable would let the customer delete a trial credit (confusing) or
+        // paste a stacking coupon over it (costly).
+        $showDiscountField = empty($options['lock_discount_field']) && $branding['discount'];
+
         $checkoutOptions = [
             'embed'        => true,
             'dark'         => $branding['dark'],
             'logo'         => $branding['logo'],
             'media'        => $branding['media'],
             'desc'         => $branding['desc'],
-            'discount'     => $branding['discount'],
+            'discount'     => $showDiscountField,
             'button_color' => $branding['button_color'],
         ];
 
@@ -208,8 +216,13 @@ class LemonSqueezyCheckoutService
      * Used when a currency-specific variant ID is not configured (e.g. the PKR
      * price points, which live as standalone store URLs) — the customer still
      * gets the identical in-app experience.
+     *
+     * @param  array  $options {
+     *     @type string $discount_code        Code to prefill.
+     *     @type bool   $lock_discount_field  Hide the discount box once prefilled.
+     * }
      */
-    public function decorateStaticUrl(string $url, Tenant $tenant, array $custom = []): string
+    public function decorateStaticUrl(string $url, Tenant $tenant, array $custom = [], array $options = []): string
     {
         // Never touch a signed URL — mutating the query breaks its signature.
         if ($this->isSigned($url)) {
@@ -228,18 +241,25 @@ class LemonSqueezyCheckoutService
             $params['checkout[name]'] = $name;
         }
 
+        if (!empty($options['discount_code'])) {
+            $params['checkout[discount_code]'] = $options['discount_code'];
+        }
+
         foreach ($this->buildCustomData($tenant, $custom) as $key => $value) {
             $params["checkout[custom][{$key}]"] = $value;
         }
 
-        return $this->withDisplayOptions($this->mergeQuery($url, $params));
+        return $this->withDisplayOptions(
+            $this->mergeQuery($url, $params),
+            !empty($options['lock_discount_field'])
+        );
     }
 
     /**
      * Append the display/branding options as query parameters. Lemon Squeezy
      * honours these on any checkout URL, including API-generated ones.
      */
-    public function withDisplayOptions(string $url): string
+    public function withDisplayOptions(string $url, bool $lockDiscountField = false): string
     {
         // Signed (API-generated) URLs already carry their options in the body
         // and cannot have their query string modified.
@@ -248,6 +268,10 @@ class LemonSqueezyCheckoutService
         }
 
         $branding = $this->brandingOptions();
+
+        if ($lockDiscountField) {
+            $branding['discount'] = false;
+        }
 
         $params = [];
         foreach (self::DISPLAY_KEYS as $key) {

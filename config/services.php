@@ -39,6 +39,12 @@ return [
         'api_key'                     => env('LEMON_SQUEEZY_API_KEY'),
         'store_id'                    => env('LEMON_SQUEEZY_STORE_ID'),
         'signing_secret'              => env('LEMON_SQUEEZY_SIGNING_SECRET'),
+
+        // Set true when the API key above is a Lemon Squeezy *test* key. Objects
+        // we create through the API (currently the trial-credit discounts) must
+        // carry the matching test_mode flag or they will not apply to test-mode
+        // checkouts. Has no effect on live keys.
+        'test_mode'                   => env('LEMON_SQUEEZY_TEST_MODE', false),
         
         // Monthly
         'starter_variant_id'          => env('LEMON_SQUEEZY_STARTER_VARIANT_ID'),

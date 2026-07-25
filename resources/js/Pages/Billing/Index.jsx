@@ -284,7 +284,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 }
 
 // --- Main Page Component ---
-export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification }) {
+export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification, trial_credit = null }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug;
     const isPK = PKR_ENABLED && country === 'PK' && pk_verification?.status === 'approved';
@@ -479,6 +479,26 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / 86400000))
         : null;
 
+    /**
+     * Trial credit for a given billing cycle, or null when there is nothing to
+     * credit. The percentages are computed server-side by TrialCreditService —
+     * the same code that mints the real Lemon Squeezy discount — so anything we
+     * quote here is exactly what the customer will be charged. Never recompute
+     * the percentage on the client: rounding drift would make the confirmation
+     * a lie.
+     */
+    const trialCreditFor = (cycle = billingCycle) => {
+        if (!trial_credit) return null;
+
+        const percent = cycle === 'annual'
+            ? trial_credit.percent_annual
+            : trial_credit.percent_monthly;
+
+        if (!percent || percent <= 0) return null;
+
+        return { percent, daysRemaining: trial_credit.days_remaining };
+    };
+
     const isViewOnly = tenant?.view_only_since !== null;
     const viewOnlyDaysLeft = tenant?.view_only_since
         ? Math.max(0, 30 - Math.ceil((new Date() - new Date(tenant.view_only_since)) / 86400000))
@@ -536,8 +556,26 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     // checkout URL (?format=json) and opens it as an overlay over the app.
     const [checkoutBusy, setCheckoutBusy] = useState(null);
 
+    // Trial-credit confirmation. A trialling store that pays early keeps the
+    // value of its unused free days as a one-off discount on the first payment,
+    // so before opening the checkout we show exactly what will be charged
+    // today and what the renewal will be. Gated here rather than on the button
+    // so every entry point into checkout (header, plan cards) gets it.
+    const [pendingCheckout, setPendingCheckout] = useState(null);
+
     const handlePlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
         if (checkoutBusy) return;
+
+        if (trialCreditFor(cycle)) {
+            setPendingCheckout({ planKey, cycle, currency });
+            return;
+        }
+
+        startPlanCheckout(planKey, cycle, currency);
+    };
+
+    const startPlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
+        setPendingCheckout(null);
         setCheckoutBusy(planKey);
 
         launchCheckout(
@@ -617,6 +655,51 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
             'noopener,noreferrer'
         );
     };
+
+    /**
+     * Figures for the trial-credit confirmation. Every amount is derived from
+     * the server-supplied percentage, so "you pay X today" cannot disagree with
+     * what Lemon Squeezy charges.
+     */
+    const pendingCreditSummary = (() => {
+        if (!pendingCheckout) return null;
+
+        const credit = trialCreditFor(pendingCheckout.cycle);
+        if (!credit) return null;
+
+        const plan = plans?.find(p => p.slug === pendingCheckout.planKey);
+        const isAnnualPending = pendingCheckout.cycle === 'annual';
+
+        const fullUsd = parseFloat(
+            (isAnnualPending ? plan?.price_annual_usd : plan?.price_monthly_usd) || 0
+        );
+        const fullPkr = parseFloat(
+            (isAnnualPending ? plan?.price_annual : plan?.price_monthly) || 0
+        );
+
+        const ratio = credit.percent / 100;
+
+        // Renewal falls one full calendar cycle after payment, at full price —
+        // the discount's duration is "once".
+        const renewal = new Date();
+        if (isAnnualPending) {
+            renewal.setFullYear(renewal.getFullYear() + 1);
+        } else {
+            renewal.setMonth(renewal.getMonth() + 1);
+        }
+
+        return {
+            planKey: pendingCheckout.planKey,
+            planLabel: PLAN_META[pendingCheckout.planKey]?.label ?? plan?.name ?? pendingCheckout.planKey,
+            cycleLabel: isAnnualPending ? 'year' : 'month',
+            percent: credit.percent,
+            daysRemaining: credit.daysRemaining,
+            fullPrice: fmtCost(fullUsd, fullPkr),
+            creditAmount: fmtCost(fullUsd * ratio, fullPkr * ratio),
+            dueToday: fmtCost(fullUsd * (1 - ratio), fullPkr * (1 - ratio)),
+            renewalDate: renewal.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        };
+    })();
 
     // Calculate dynamic proration details for confirmation modal
     const targetPlanModel = plans?.find(p => p.slug === selectedPlan);
@@ -801,6 +884,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="text-xs font-bold text-slate-400 mt-1">
                                 {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)` : tenant?.status === 'suspended' ? 'Trial Expired / Suspended' : isTrial ? `You have ${trialDaysLeft} days remaining in your free trial.` : isLtd ? 'Lifetime License' : subEndsAt ? `Renews on ${subEndsAt}` : 'Active Subscription'}
                             </div>
+                            {/* Reassurance that paying early costs them nothing —
+                                shown before they click, not buried in the modal. */}
+                            {isTrial && !isViewOnly && trialCreditFor(billingCycle) && (
+                                <div className="text-[11px] font-bold text-emerald-400 mt-1.5 flex items-center gap-1.5">
+                                    <Zap size={11} className="fill-emerald-400" />
+                                    Pay early and your unused days become a {trialCreditFor(billingCycle).percent}% credit — you lose nothing.
+                                </div>
+                            )}
                         </div>
                     </div>
                     
@@ -1629,6 +1720,75 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         </button>
                     </div>
                 </div>
+            </Modal>
+
+            {/* Trial Credit Confirmation Modal
+                Shown when a trialling store chooses to pay before its free days
+                are up. Their unused days are converted into a one-off discount
+                on the first payment, so the honest pitch is "pay now, lose
+                nothing" — and every number below comes from the same
+                server-side percentage that mints the real discount. */}
+            <Modal show={!!pendingCreditSummary} onClose={() => setPendingCheckout(null)} maxWidth="md">
+                {pendingCreditSummary && (
+                    <div className="relative overflow-hidden bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-6 text-white animate-fadeIn">
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+                        <h3 className="text-lg font-black tracking-tight flex items-center gap-2 mb-2">
+                            <Zap className="text-emerald-400 fill-emerald-400" size={20} />
+                            You keep your {pendingCreditSummary.daysRemaining} free {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'}
+                        </h3>
+                        <p className="text-xs text-slate-400 leading-relaxed mb-5">
+                            You still have {pendingCreditSummary.daysRemaining} unused {pendingCreditSummary.daysRemaining === 1 ? 'day' : 'days'} of
+                            free trial. Rather than lose {pendingCreditSummary.daysRemaining === 1 ? 'it' : 'them'}, we take{' '}
+                            {pendingCreditSummary.percent}% off your first payment — the exact value of the time you have not used.
+                        </p>
+
+                        <div className="rounded-xl bg-white/[0.02] border border-white/[0.05] divide-y divide-white/[0.05] mb-5">
+                            <div className="flex items-center justify-between px-4 py-3">
+                                <span className="text-xs font-bold text-slate-400">
+                                    {pendingCreditSummary.planLabel} — per {pendingCreditSummary.cycleLabel}
+                                </span>
+                                <span className="text-xs font-bold text-slate-300">{pendingCreditSummary.fullPrice}</span>
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-3">
+                                <span className="text-xs font-bold text-emerald-400">
+                                    Unused trial credit ({pendingCreditSummary.percent}%)
+                                </span>
+                                <span className="text-xs font-black text-emerald-400">− {pendingCreditSummary.creditAmount}</span>
+                            </div>
+                            <div className="flex items-center justify-between px-4 py-3.5 bg-white/[0.02]">
+                                <span className="text-xs font-black uppercase tracking-wider text-white">Due today</span>
+                                <span className="text-lg font-black text-white">{pendingCreditSummary.dueToday}</span>
+                            </div>
+                        </div>
+
+                        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-xs leading-relaxed text-slate-300 mb-6">
+                            Your plan activates immediately and nothing about your access changes. Your next
+                            payment is the full <span className="text-white font-semibold">{pendingCreditSummary.fullPrice}</span> on{' '}
+                            <span className="text-white font-semibold">{pendingCreditSummary.renewalDate}</span>, and every payment after
+                            that renews normally. The credit applies once.
+                        </div>
+
+                        <div className="flex gap-3 justify-end">
+                            <button
+                                onClick={() => setPendingCheckout(null)}
+                                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white font-semibold text-xs transition-colors"
+                            >
+                                Not yet
+                            </button>
+                            <button
+                                onClick={() => startPlanCheckout(
+                                    pendingCheckout.planKey,
+                                    pendingCheckout.cycle,
+                                    pendingCheckout.currency
+                                )}
+                                className="px-5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-black font-black text-xs uppercase tracking-wider transition-all hover:shadow-lg"
+                            >
+                                Pay {pendingCreditSummary.dueToday} now
+                            </button>
+                        </div>
+                    </div>
+                )}
             </Modal>
         </OneGlanceLayout>
     );

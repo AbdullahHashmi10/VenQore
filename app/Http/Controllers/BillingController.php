@@ -243,6 +243,11 @@ class BillingController extends Controller
                 'transactions'   => $tenant->getLimit('transactions_per_month'),
             ],
             'feature_status' => $featureStatus,
+            // Non-null only while a trial still has unused days. Drives the
+            // "you keep your free days" confirmation before checkout — the
+            // percentages come from the service that mints the real discount,
+            // so the price we quote is the price Lemon Squeezy will charge.
+            'trial_credit'    => app(\App\Services\TrialCreditService::class)->summaryFor($tenant),
             'country'         => $country,
             'geo'             => $geoInfo,
             'pk_verification' => $pkVerification ? [
@@ -345,6 +350,16 @@ class BillingController extends Controller
         // so we can never charge a PKR customer against a USD variant.
         $variantId = $this->resolvePlanVariantId($targetPlan, $isAnnual, $usePKR);
 
+        // ─── Trial credit ────────────────────────────────────────────────────
+        // A trialling store that pays early must not forfeit the free days it
+        // was promised. TrialCreditService mints a single-use discount worth
+        // the unused fraction of the cycle; prefilling it means the customer
+        // pays less today and still keeps every day. Returns null when the
+        // tenant is not trialling, has no days left, or credentials are absent
+        // — in which case everything below behaves exactly as it always has.
+        $trialCredit = app(\App\Services\TrialCreditService::class)
+            ->codeFor($tenant, $variantId, $isAnnual);
+
         if ($variantId && $checkoutService->isConfigured()) {
             $planLabel = $planModel?->display_name ?? $planModel?->name ?? ucfirst($targetPlan);
             $billingUrl = route('store.billing', ['store_slug' => $tenant->slug]);
@@ -353,10 +368,16 @@ class BillingController extends Controller
                 'name'           => 'VenQore ' . $planLabel . ' — ' . ($isAnnual ? 'Annual' : 'Monthly'),
                 'redirect_url'   => $billingUrl,
                 'thank_you_note' => 'Your VenQore store is being upgraded now. Head back to the app — your new limits are already live.',
+                'discount_code'  => $trialCredit['code'] ?? null,
+                'lock_discount_field' => !empty($trialCredit['code']),
                 'custom'         => [
                     'plan'     => $targetPlan,
                     'cycle'    => $cycle,
                     'currency' => $usePKR ? 'PKR' : 'USD',
+                    // Echoed back on the webhook so a support question about a
+                    // reduced first invoice can be answered from the order alone.
+                    'trial_credit_percent' => isset($trialCredit['percent']) ? (string) $trialCredit['percent'] : null,
+                    'trial_days_credited'  => isset($trialCredit['days_remaining']) ? (string) $trialCredit['days_remaining'] : null,
                 ],
             ]);
 
@@ -416,12 +437,24 @@ class BillingController extends Controller
         }
 
         // Pre-fill the checkout with tenant context and apply the VenQore
-        // theme + embed flag so it opens as an in-app overlay.
-        return $checkoutService->decorateStaticUrl($url, $tenant, [
-            'plan'     => $targetPlan,
-            'cycle'    => $cycle,
-            'currency' => $usePKR ? 'PKR' : 'USD',
-        ]);
+        // theme + embed flag so it opens as an in-app overlay. Any trial credit
+        // rides along here too, so an early-paying trial store is charged the
+        // same reduced first payment on this path as on the API path.
+        return $checkoutService->decorateStaticUrl(
+            $url,
+            $tenant,
+            [
+                'plan'     => $targetPlan,
+                'cycle'    => $cycle,
+                'currency' => $usePKR ? 'PKR' : 'USD',
+                'trial_credit_percent' => isset($trialCredit['percent']) ? (string) $trialCredit['percent'] : null,
+                'trial_days_credited'  => isset($trialCredit['days_remaining']) ? (string) $trialCredit['days_remaining'] : null,
+            ],
+            [
+                'discount_code'       => $trialCredit['code'] ?? null,
+                'lock_discount_field' => !empty($trialCredit['code']),
+            ]
+        );
     }
 
     /**
