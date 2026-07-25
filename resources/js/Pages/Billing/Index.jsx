@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Head, router, usePage } from '@inertiajs/react';
 import OneGlanceLayout from '@/Layouts/OneGlanceLayout';
 import Modal from '@/Components/Modal';
+import { openLemonCheckout, closeLemonCheckout, preloadLemonCheckout } from '@/lib/lemonCheckout';
 import {
     Zap, Crown, Shield, CheckCircle2, XCircle, AlertTriangle,
     ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
     Cpu, GitBranch, ExternalLink, Sparkles, Lock, Infinity,
     Receipt, Download, Info, HelpCircle, MessageSquare, Monitor,
-    BadgeCheck, ScanFace
+    BadgeCheck, ScanFace, RefreshCw
 } from 'lucide-react';
 
 // ── PKR MASTER SWITCH (see Pricing.jsx) — OFF for USD-only launch ──────
@@ -112,7 +113,7 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
 }
 
 // --- Plan Card ----------------------------------------------------------------
-function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, plans, billingCycle = 'monthly', currencyDisplay = 'USD' }) {
+function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, onCheckout, checkoutBusy = null, plans, billingCycle = 'monthly', currencyDisplay = 'USD' }) {
     const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
     const isPK = PKR_ENABLED && geo.currency === 'PKR';
     const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
@@ -183,12 +184,8 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
     const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
     const thisIdx    = planOrder.indexOf(planKey);
 
-    const upgradeUrl = route('store.billing.upgrade', { 
-        store_slug: storeSlug, 
-        plan: planKey, 
-        cycle: isAnnual ? 'annual' : 'monthly', 
-        currency: currencyDisplay 
-    });
+    const checkoutCycle = isAnnual ? 'annual' : 'monthly';
+    const isCheckingOut = checkoutBusy === planKey;
 
     return (
         <div 
@@ -255,10 +252,11 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
             {isCurrent ? (
                 (tenant?.status === 'trial' || tenant?.status === 'suspended') ? (
                     <button
-                        onClick={() => window.location.href = upgradeUrl}
-                        className="w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/10"
+                        onClick={() => onCheckout?.(planKey, checkoutCycle, currencyDisplay)}
+                        disabled={isCheckingOut}
+                        className="w-full py-3 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-transform active:scale-95 bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white shadow-lg shadow-purple-500/10"
                     >
-                        Activate Subscription <ArrowRight size={16} />
+                        {isCheckingOut ? 'Opening secure checkout…' : <>Activate Subscription <ArrowRight size={16} /></>}
                     </button>
                 ) : (
                     <div className="text-center py-3 text-xs font-black text-purple-400 uppercase tracking-widest bg-purple-500/5 border border-purple-500/10 rounded-2xl flex items-center justify-center gap-2">
@@ -322,37 +320,146 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     const [selectedService, setSelectedService] = useState('basic');
     const [isOrderingService, setIsOrderingService] = useState(false);
 
-    const handleOrderSetupService = () => {
-        setIsOrderingService(true);
-        fetch(route('store.billing.checkout-upload-service', { store_slug: storeSlug }), {
+    // ── In-app checkout plumbing ────────────────────────────────────────────
+    // Lemon Squeezy is our Merchant of Record, so the card form has to be
+    // theirs. Everything below keeps that form INSIDE VenQore: the server
+    // hands back a branded, prefilled checkout URL and we render it as an
+    // overlay on top of the current page rather than navigating away.
+
+    const toast = (message, type = 'info') => {
+        window.dispatchEvent(new CustomEvent('amd:toast', { detail: { message, type } }));
+    };
+
+    // Warm lemon.js up as soon as the billing screen mounts so the overlay
+    // appears instantly on click instead of after a script download.
+    useEffect(() => {
+        preloadLemonCheckout();
+    }, []);
+
+    /**
+     * Pull subscription state straight from the Lemon Squeezy API.
+     *
+     * Provisioning normally rides in on a webhook, but a webhook can be
+     * undeliverable (local dev), delayed, or dropped — which leaves someone who
+     * genuinely paid still sitting on a trial. Rather than trust the push, we
+     * pull. Runs automatically right after a successful payment, and is also
+     * available as a manual "Already paid?" button.
+     */
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const runSubscriptionSync = async ({ silent = false } = {}) => {
+        setIsSyncing(true);
+        try {
+            const res = await fetch(route('store.billing.sync-subscription', { store_slug: storeSlug }), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+            });
+
+            const data = await res.json().catch(() => ({}));
+
+            if (data?.synced) {
+                if (!silent) {
+                    toast(data.message || 'Subscription synced.', 'success');
+                    router.reload({ preserveScroll: true });
+                }
+                return true;
+            }
+
+            if (!silent) {
+                toast(data?.message || data?.error || 'No subscription found to sync yet.', 'info');
+            }
+            return false;
+        } catch (err) {
+            console.error('[billing] subscription sync failed', err);
+            if (!silent) {
+                toast('Could not reach the server to sync your subscription.', 'error');
+            }
+            return false;
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    /**
+     * Shared handler: fetch a checkout URL from our own backend, then open it
+     * as an overlay. `onDone` runs when the overlay closes or fails so the
+     * caller can clear its loading state.
+     */
+    const launchCheckout = async (fetchUrl, { context = 'purchase', successMessage, onDone } = {}) => {
+        try {
+            const url = await fetchUrl();
+
+            if (!url) {
+                onDone?.();
+                return;
+            }
+
+            await openLemonCheckout(url, {
+                onSuccess: () => {
+                    toast(successMessage || 'Payment received — updating your account…', 'success');
+                    // Let the user read Lemon Squeezy's confirmation, then
+                    // reconcile against their API rather than waiting on a
+                    // webhook that may be slow or may never arrive at all.
+                    setTimeout(async () => {
+                        await runSubscriptionSync({ silent: true });
+                        closeLemonCheckout();
+                        router.reload({ preserveScroll: true });
+                        onDone?.();
+                    }, 2200);
+                },
+                onClose: () => {
+                    onDone?.();
+                },
+                onError: () => {
+                    // openLemonCheckout already falls back to a hard redirect,
+                    // so this is only for state cleanup.
+                    onDone?.();
+                },
+            });
+        } catch (err) {
+            console.error(`[billing] ${context} checkout failed`, err);
+            toast('Could not open the checkout. Please check your connection and try again.', 'error');
+            onDone?.();
+        }
+    };
+
+    const postForCheckoutUrl = async (routeName, payload) => {
+        const res = await fetch(route(routeName, { store_slug: storeSlug }), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             },
-            body: JSON.stringify({
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json().catch(() => ({}));
+
+        if (data?.url) return data.url;
+
+        toast(data?.error || 'An unexpected error occurred. Please try again.', 'error');
+        return null;
+    };
+
+    const handleOrderSetupService = () => {
+        setIsOrderingService(true);
+        launchCheckout(
+            () => postForCheckoutUrl('store.billing.checkout-upload-service', {
                 tier: selectedService,
                 products: calcProductsNum,
                 variants: calcVariantsNum
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.url) {
-                window.location.href = data.url;
-            } else if (data.error) {
-                alert(data.error);
-                setIsOrderingService(false);
-            } else {
-                alert('An unexpected error occurred. Please try again.');
-                setIsOrderingService(false);
+            }),
+            {
+                context: 'setup-service',
+                successMessage: 'Order received — our catalog team will be in touch shortly.',
+                onDone: () => setIsOrderingService(false)
             }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Failed to generate checkout link. Please check your network connection.');
-            setIsOrderingService(false);
-        });
+        );
     };
 
     // Plan Change Confirmation States
@@ -412,31 +519,52 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
     const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
 
-    // Handle checkout redirect for AI or Sync add-ons
+    // Handle checkout for AI or Sync add-ons — opens in-app, no redirect.
     const handlePurchaseAddon = (addonType) => {
         setIsPurchasingAddon(addonType);
-        fetch(route('store.billing.checkout-addon', { store_slug: storeSlug }), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            body: JSON.stringify({ addon_type: addonType })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.url) {
-                window.location.href = data.url;
-            } else if (data.error) {
-                alert(data.error);
-                setIsPurchasingAddon(null);
+        launchCheckout(
+            () => postForCheckoutUrl('store.billing.checkout-addon', { addon_type: addonType }),
+            {
+                context: 'addon',
+                successMessage: 'Payment received — activating your add-on…',
+                onDone: () => setIsPurchasingAddon(null)
             }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Failed to generate checkout link.');
-            setIsPurchasingAddon(null);
-        });
+        );
+    };
+
+    // Subscription / plan checkout. Asks our backend for a branded, prefilled
+    // checkout URL (?format=json) and opens it as an overlay over the app.
+    const [checkoutBusy, setCheckoutBusy] = useState(null);
+
+    const handlePlanCheckout = (planKey, cycle = billingCycle, currency = currencyDisplay) => {
+        if (checkoutBusy) return;
+        setCheckoutBusy(planKey);
+
+        launchCheckout(
+            async () => {
+                const res = await fetch(route('store.billing.upgrade', {
+                    store_slug: storeSlug,
+                    plan: planKey,
+                    cycle: cycle === 'annual' ? 'annual' : 'monthly',
+                    currency,
+                    format: 'json',
+                }), {
+                    headers: { 'Accept': 'application/json' },
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (data?.url) return data.url;
+
+                toast(data?.error || 'Checkout is unavailable right now. Please try again shortly.', 'error');
+                return null;
+            },
+            {
+                context: 'plan',
+                successMessage: 'Payment received — applying your new plan…',
+                onDone: () => setCheckoutBusy(null)
+            }
+        );
     };
 
     // Open change plan confirmation modal
@@ -480,7 +608,14 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
             return;
         }
 
-        window.location.href = route('store.billing.portal', { store_slug: storeSlug });
+        // The Lemon Squeezy customer portal is a full account area and cannot be
+        // embedded, so open it in a new tab. The user keeps VenQore open behind
+        // it instead of losing their place in the app.
+        window.open(
+            route('store.billing.portal', { store_slug: storeSlug }),
+            '_blank',
+            'noopener,noreferrer'
+        );
     };
 
     // Calculate dynamic proration details for confirmation modal
@@ -678,16 +813,13 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 >
                                     Cancel Trial
                                 </button>
-                                <button 
-                                    onClick={() => window.location.href = route('store.billing.upgrade', { 
-                                        store_slug: storeSlug, 
-                                        plan: currentPlanKey,
-                                        cycle: billingCycle,
-                                        currency: currencyDisplay
-                                    })}
-                                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                                <button
+                                    disabled={checkoutBusy === currentPlanKey}
+                                    onClick={() => handlePlanCheckout(currentPlanKey, billingCycle, currencyDisplay)}
+                                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-60 disabled:cursor-wait text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
                                 >
-                                    <Zap size={14} className="fill-white" /> Pay Now
+                                    <Zap size={14} className="fill-white" />
+                                    {checkoutBusy === currentPlanKey ? 'Opening…' : 'Pay Now'}
                                 </button>
                             </>
                         )}
@@ -697,6 +829,20 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-300 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
                             >
                                 <ExternalLink size={14} /> Billing Portal
+                            </button>
+                        )}
+                        {/* Escape hatch: if a payment succeeded but the webhook
+                            never landed, this pulls the subscription from
+                            Lemon Squeezy and applies it immediately. */}
+                        {!isLtd && tenant?.status !== 'active' && (
+                            <button
+                                onClick={() => runSubscriptionSync()}
+                                disabled={isSyncing}
+                                title="Already paid but your plan hasn't updated? Click to re-check with Lemon Squeezy."
+                                className="px-4 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-slate-400 hover:text-white font-bold text-xs transition-all flex items-center gap-2 whitespace-nowrap"
+                            >
+                                <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
+                                {isSyncing ? 'Checking…' : 'Already Paid?'}
                             </button>
                         )}
                         <div className="px-5 py-2 rounded-full font-black text-xs tracking-widest uppercase border border-purple-500/20 bg-purple-500/10 text-purple-300">
@@ -890,6 +1036,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             storeSlug={storeSlug}
                                             tenant={tenant}
                                             onSelectPlan={handleSelectPlan}
+                                            onCheckout={handlePlanCheckout}
+                                            checkoutBusy={checkoutBusy}
                                             plans={plans}
                                             billingCycle={billingCycle}
                                             currencyDisplay={currencyDisplay}
@@ -905,6 +1053,8 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                             storeSlug={storeSlug}
                                             tenant={tenant}
                                             onSelectPlan={handleSelectPlan}
+                                            onCheckout={handlePlanCheckout}
+                                            checkoutBusy={checkoutBusy}
                                             plans={plans}
                                             billingCycle={billingCycle}
                                             currencyDisplay={currencyDisplay}

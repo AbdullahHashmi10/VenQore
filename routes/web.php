@@ -202,6 +202,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/billing/change-plan',  [\App\Http\Controllers\BillingController::class, 'changePlan'])->name('billing.change-plan');
         Route::post('/billing/deactivate-feature', [\App\Http\Controllers\BillingController::class, 'deactivateFeature'])->name('billing.deactivate-feature');
         Route::post('/billing/checkout-upload-service', [\App\Http\Controllers\BillingController::class, 'checkoutUploadService'])->name('billing.checkout-upload-service');
+        // Webhook safety net — pulls subscription state from the Lemon Squeezy API
+        // when the webhook never arrived (local dev, delay, or dropped delivery).
+        Route::post('/billing/sync-subscription', [\App\Http\Controllers\BillingController::class, 'syncSubscription'])->name('billing.sync-subscription');
 
         // Google Drive Backups
         Route::get('/google/redirect',      [\App\Http\Controllers\GoogleDriveAuthController::class, 'redirectToGoogle'])->name('google.redirect');

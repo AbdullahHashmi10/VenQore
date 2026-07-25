@@ -6,6 +6,7 @@ import {
     Trash2, FilePlus2, Layers, KeyRound, TestTube2
 } from 'lucide-react';
 import axios from 'axios';
+import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
 
 /**
  * SmartCapturePanel — the "AI Scan" intake panel.
@@ -65,17 +66,36 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
     const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
 
-    // Handle checkout redirect for AI or Sync add-ons
+    // Handle checkout for AI or Sync add-ons.
+    // Lemon Squeezy must host the card form (they are our Merchant of Record),
+    // but it opens as an overlay on top of this panel — the user never leaves
+    // VenQore and never loses the scan they were in the middle of.
     const handlePurchaseAddon = (addonType) => {
         setIsPurchasingAddon(addonType);
         axios.post(`/store/${store?.slug}/billing/checkout-addon`, { addon_type: addonType })
             .then(res => {
-                if (res.data.url) {
-                    window.location.href = res.data.url;
-                } else {
+                if (!res.data.url) {
                     alert(res.data.error || 'Failed to create checkout.');
                     setIsPurchasingAddon(null);
+                    return;
                 }
+
+                openLemonCheckout(res.data.url, {
+                    onSuccess: () => {
+                        setTimeout(async () => {
+                            // Don't wait on the webhook — pull the entitlement
+                            // from Lemon Squeezy so the add-on unlocks now.
+                            await axios
+                                .post(`/store/${store?.slug}/billing/sync-subscription`)
+                                .catch(() => { /* reload below still reflects webhook if it lands */ });
+                            closeLemonCheckout();
+                            router.reload({ preserveScroll: true });
+                            setIsPurchasingAddon(null);
+                        }, 2200);
+                    },
+                    onClose: () => setIsPurchasingAddon(null),
+                    onError: () => setIsPurchasingAddon(null),
+                });
             })
             .catch(err => {
                 console.error(err);

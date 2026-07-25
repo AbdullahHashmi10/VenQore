@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Plan;
+use App\Services\LemonSqueezyCheckoutService;
 use App\Services\PlanGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -254,8 +255,16 @@ class BillingController extends Controller
     }
 
     /**
-     * Redirect tenant to Lemon Squeezy checkout for an upgrade.
-     * Supports ?cycle=annual to redirect to annual billing variants.
+     * Start a plan upgrade.
+     *
+     * Two response modes, one code path:
+     *   • JSON  (fetch/XHR, or ?format=json) → returns { url } so the frontend
+     *     can open the checkout as an overlay ON TOP of the app. This is the
+     *     path the Billing UI uses, and it is what makes payment feel native.
+     *   • Redirect (plain browser GET) → unchanged legacy behaviour, kept as a
+     *     no-JS / fallback route so checkout can never become unreachable.
+     *
+     * Supports ?cycle=annual and ?currency=PKR|USD.
      */
     public function upgrade(Request $request): \Symfony\Component\HttpFoundation\Response
     {
@@ -264,6 +273,44 @@ class BillingController extends Controller
         }
 
         $tenant = app('current.tenant');
+        $wantsJson = $request->wantsJson() || $request->boolean('format_json') || $request->get('format') === 'json';
+
+        $url = $this->resolvePlanCheckoutUrl($request, $tenant);
+
+        if (!$url) {
+            $message = 'Lemon Squeezy checkout is not configured on this server. Please contact support.';
+
+            if ($wantsJson) {
+                return response()->json(['error' => $message], 422);
+            }
+
+            return redirect()->route('store.billing', ['store_slug' => $tenant->slug])
+                ->with('error', 'Lemon Squeezy checkout is not configured on this local server. Redirected to billing dashboard plans panel.');
+        }
+
+        if ($wantsJson) {
+            return response()->json(['url' => $url]);
+        }
+
+        return Inertia::location($url);
+    }
+
+    /**
+     * Resolve the checkout URL for a plan upgrade.
+     *
+     * Preference order:
+     *   1. API-generated checkout — only when a variant ID matching the exact
+     *      currency + billing cycle is configured. This gives us prefilled
+     *      customer details, tenant metadata, branding and a return URL.
+     *   2. Static store checkout URL (the long-standing behaviour, and the only
+     *      option for PKR price points until PKR variant IDs are configured),
+     *      decorated with the same prefill + branding query parameters.
+     *
+     * Both routes come back overlay-ready (embed=1).
+     */
+    protected function resolvePlanCheckoutUrl(Request $request, $tenant): ?string
+    {
+        $checkoutService = app(LemonSqueezyCheckoutService::class);
 
         // Determine the target plan (default: next tier up)
         $targetPlan = strtolower($request->get('plan', match($tenant->plan) {
@@ -293,6 +340,33 @@ class BillingController extends Controller
         $requestedCurrency = strtoupper($request->get('currency', ''));
         $usePKR = $requestedCurrency === 'PKR' || ($requestedCurrency !== 'USD' && $country === 'PK' && $isVerified);
 
+        // ─── Preferred path: API-generated checkout ──────────────────────────
+        // Only used when a variant ID exists for this exact currency + cycle,
+        // so we can never charge a PKR customer against a USD variant.
+        $variantId = $this->resolvePlanVariantId($targetPlan, $isAnnual, $usePKR);
+
+        if ($variantId && $checkoutService->isConfigured()) {
+            $planLabel = $planModel?->display_name ?? $planModel?->name ?? ucfirst($targetPlan);
+            $billingUrl = route('store.billing', ['store_slug' => $tenant->slug]);
+
+            $apiUrl = $checkoutService->createCheckout($tenant, $variantId, [
+                'name'           => 'VenQore ' . $planLabel . ' — ' . ($isAnnual ? 'Annual' : 'Monthly'),
+                'redirect_url'   => $billingUrl,
+                'thank_you_note' => 'Your VenQore store is being upgraded now. Head back to the app — your new limits are already live.',
+                'custom'         => [
+                    'plan'     => $targetPlan,
+                    'cycle'    => $cycle,
+                    'currency' => $usePKR ? 'PKR' : 'USD',
+                ],
+            ]);
+
+            if ($apiUrl) {
+                return $apiUrl;
+            }
+            // API failed — fall through to the static URL rather than dead-end.
+        }
+
+        // ─── Fallback path: static store checkout URL ────────────────────────
         if ($usePKR) {
             if ($isAnnual) {
                 // Annual PKR: try annual_pkr_url → annual_url → fallback to monthly PKR
@@ -338,18 +412,66 @@ class BillingController extends Controller
         }
 
         if (!$url) {
-            return redirect()->route('store.billing', ['store_slug' => $tenant->slug])
-                ->with('error', 'Lemon Squeezy checkout is not configured on this local server. Redirected to billing dashboard plans panel.');
+            return null;
         }
 
-        // Pre-fill Lemon Squeezy checkout with tenant context
-        $url = $url
-            . '?checkout[email]=' . urlencode($tenant->ownerEmail() ?? '')
-            . '&checkout[custom][tenant_id]=' . $tenant->id;
-
-        return Inertia::location($url);
+        // Pre-fill the checkout with tenant context and apply the VenQore
+        // theme + embed flag so it opens as an in-app overlay.
+        return $checkoutService->decorateStaticUrl($url, $tenant, [
+            'plan'     => $targetPlan,
+            'cycle'    => $cycle,
+            'currency' => $usePKR ? 'PKR' : 'USD',
+        ]);
     }
 
+    /**
+     * Map plan slug + cycle + currency to a configured Lemon Squeezy variant ID.
+     * Returns null when no variant is configured for that combination, which
+     * signals the caller to use the static checkout URL instead.
+     */
+    protected function resolvePlanVariantId(string $plan, bool $isAnnual, bool $usePKR): ?string
+    {
+        if (!in_array($plan, ['starter', 'growth', 'business'], true)) {
+            return null;
+        }
+
+        $key = match (true) {
+            $usePKR && $isAnnual  => "{$plan}_annual_pkr_variant_id",
+            $usePKR               => "{$plan}_pkr_variant_id",
+            $isAnnual             => "{$plan}_annual_variant_id",
+            default               => "{$plan}_variant_id",
+        };
+
+        $variantId = config("services.lemon_squeezy.{$key}");
+
+        return $variantId ? (string) $variantId : null;
+    }
+
+
+    /**
+     * Reconcile this tenant's subscription straight from the Lemon Squeezy API.
+     *
+     * Provisioning normally arrives via webhook, but a webhook can be
+     * undeliverable (local dev on 127.0.0.1), delayed, or dropped — leaving a
+     * customer who has genuinely paid still sitting on a trial. The checkout
+     * overlay calls this the moment payment succeeds, and the billing page
+     * exposes it as a manual "I've already paid" button.
+     *
+     * Safe to call repeatedly: ProvisionTenantJob is idempotent per
+     * subscription ID, and one-time orders are deliberately not replayed.
+     */
+    public function syncSubscription(Request $request): \Illuminate\Http\JsonResponse
+    {
+        if (!app()->bound('current.tenant')) {
+            return response()->json(['error' => 'No tenant context.'], 403);
+        }
+
+        $tenant = app('current.tenant');
+
+        $result = app(\App\Services\LemonSqueezySyncService::class)->syncTenant($tenant);
+
+        return response()->json($result, $result['synced'] ? 200 : 202);
+    }
 
     /**
      * Redirect tenant to their Lemon Squeezy customer portal (manage/cancel subscription).
@@ -436,53 +558,24 @@ class BillingController extends Controller
             return response()->json(['error' => 'Add-on variant ID not configured.'], 500);
         }
 
-        $storeId = env('LEMON_SQUEEZY_STORE_ID');
-        $apiKey = env('LEMON_SQUEEZY_API_KEY');
+        $checkoutService = app(LemonSqueezyCheckoutService::class);
 
-        if (!$storeId || !$apiKey) {
+        if (!$checkoutService->isConfigured()) {
             return response()->json(['error' => 'Lemon Squeezy credentials not configured on the server.'], 500);
         }
 
-        // Call Lemon Squeezy API to generate checkout
-        $response = \Illuminate\Support\Facades\Http::withToken($apiKey)
-            ->withHeaders(['Accept' => 'application/vnd.api+json', 'Content-Type' => 'application/vnd.api+json'])
-            ->post('https://api.lemonsqueezy.com/v1/checkouts', [
-                'data' => [
-                    'type' => 'checkouts',
-                    'attributes' => [
-                        'product_options' => [
-                            'redirect_url' => route('store.billing', ['store_slug' => $tenant->slug]),
-                        ],
-                        'checkout_data' => [
-                            'email' => $tenant->ownerEmail() ?? '',
-                            'custom' => [
-                                'tenant_id' => $tenant->id,
-                            ]
-                        ]
-                    ],
-                    'relationships' => [
-                        'store' => [
-                            'data' => [
-                                'type' => 'stores',
-                                'id' => (string)$storeId
-                            ]
-                        ],
-                        'variant' => [
-                            'data' => [
-                                'type' => 'variants',
-                                'id' => (string)$variantId
-                            ]
-                        ]
-                    ]
-                ]
-            ]);
+        // Branded, prefilled, overlay-ready checkout — opens on top of the app.
+        $checkoutUrl = $checkoutService->createCheckout($tenant, $variantId, [
+            'redirect_url'   => route('store.billing', ['store_slug' => $tenant->slug]),
+            'thank_you_note' => 'Your add-on is being activated. Return to VenQore to start using it.',
+            'custom'         => [
+                'addon_type' => $addonType,
+            ],
+        ]);
 
-        if ($response->failed()) {
-            \Illuminate\Support\Facades\Log::error("Lemon Squeezy Add-on checkout generation failed: " . $response->body());
+        if (!$checkoutUrl) {
             return response()->json(['error' => 'Failed to create checkout. Lemon Squeezy API returned an error.'], 500);
         }
-
-        $checkoutUrl = $response->json('data.attributes.url');
 
         return response()->json(['url' => $checkoutUrl]);
     }
@@ -834,65 +927,35 @@ class BillingController extends Controller
         $amountInCents = max(100, $amountInCents);
 
         // Fetch credentials from config
-        $apiKey = config('services.lemon_squeezy.api_key');
-        $storeId = config('services.lemon_squeezy.store_id');
+        $checkoutService = app(LemonSqueezyCheckoutService::class);
         $variantId = config('services.lemon_squeezy.upload_service_variant_id') ?: config('services.lemon_squeezy.starter_variant_id');
 
-        if (!$apiKey || !$storeId || !$variantId) {
+        if (!$checkoutService->isConfigured() || !$variantId) {
             return response()->json(['error' => 'Lemon Squeezy credentials or variant configuration is missing.'], 500);
         }
 
-        // Call Lemon Squeezy API to generate custom price checkout
-        $response = \Illuminate\Support\Facades\Http::withHeaders([
-            'Authorization' => 'Bearer ' . $apiKey,
-            'Accept'        => 'application/vnd.api+json',
-            'Content-Type'  => 'application/vnd.api+json',
-        ])->post('https://api.lemonsqueezy.com/v1/checkouts', [
-            'data' => [
-                'type' => 'checkouts',
-                'attributes' => [
-                    'custom_price' => $amountInCents,
-                    'product_options' => [
-                        'name' => "Professional Product Upload Service - " . ($tier === 'basic' ? 'Basic Upload' : ($tier === 'descriptions' ? 'Rich Descriptions' : 'AI Images')) . " (" . $products . " products, " . $variants . " variants)",
-                        'description' => "Professional catalog preparation and bulk data entry.",
-                        'redirect_url' => route('store.billing', ['store_slug' => $tenant->slug]),
-                    ],
-                    'checkout_data' => [
-                        'email' => $tenant->ownerEmail() ?? '',
-                        'custom' => [
-                            'tenant_id'             => (string) $tenant->id,
-                            'is_onboarding_service' => '1',
-                            'tier'                  => $tier,
-                            'products_count'        => (string) $products,
-                            'variants_count'        => (string) $variants,
-                            'total_price'           => (string) $totalCost,
-                            'currency'              => $currency
-                        ]
-                    ]
-                ],
-                'relationships' => [
-                    'store' => [
-                        'data' => [
-                            'type' => 'stores',
-                            'id' => (string) $storeId
-                        ]
-                    ],
-                    'variant' => [
-                        'data' => [
-                            'type' => 'variants',
-                            'id' => (string) $variantId
-                        ]
-                    ]
-                ]
-            ]
+        $tierLabel = $tier === 'basic' ? 'Basic Upload' : ($tier === 'descriptions' ? 'Rich Descriptions' : 'AI Images');
+
+        // Custom-priced, branded, overlay-ready checkout.
+        $checkoutUrl = $checkoutService->createCheckout($tenant, $variantId, [
+            'custom_price'   => $amountInCents,
+            'name'           => "Professional Product Upload Service - {$tierLabel} ({$products} products, {$variants} variants)",
+            'description'    => 'Professional catalog preparation and bulk data entry.',
+            'redirect_url'   => route('store.billing', ['store_slug' => $tenant->slug]),
+            'thank_you_note' => 'Thanks! Our catalog team will be in touch shortly to collect your product data.',
+            'custom'         => [
+                'is_onboarding_service' => '1',
+                'tier'                  => $tier,
+                'products_count'        => (string) $products,
+                'variants_count'        => (string) $variants,
+                'total_price'           => (string) $totalCost,
+                'currency'              => $currency,
+            ],
         ]);
 
-        if ($response->failed()) {
-            \Illuminate\Support\Facades\Log::error("Lemon Squeezy checkout generation failed: " . $response->body());
+        if (!$checkoutUrl) {
             return response()->json(['error' => 'Failed to create checkout. Lemon Squeezy API returned an error.'], 500);
         }
-
-        $checkoutUrl = $response->json('data.attributes.url');
 
         return response()->json(['url' => $checkoutUrl]);
     }

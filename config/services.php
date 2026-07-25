@@ -88,6 +88,41 @@ return [
         'starter_annual_pkr_url'      => env('LEMON_SQUEEZY_STARTER_ANNUAL_PKR_URL'),
         'growth_annual_pkr_url'       => env('LEMON_SQUEEZY_GROWTH_ANNUAL_PKR_URL'),
         'business_annual_pkr_url'     => env('LEMON_SQUEEZY_BUSINESS_ANNUAL_PKR_URL'),
+
+        // PKR Variant IDs — optional. When set, the PKR checkout is generated
+        // through the API (prefilled + branded) instead of using the static
+        // store URL above. Leave blank to keep the static-URL behaviour.
+        'starter_pkr_variant_id'          => env('LEMON_SQUEEZY_STARTER_PKR_VARIANT_ID'),
+        'growth_pkr_variant_id'           => env('LEMON_SQUEEZY_GROWTH_PKR_VARIANT_ID'),
+        'business_pkr_variant_id'         => env('LEMON_SQUEEZY_BUSINESS_PKR_VARIANT_ID'),
+        'starter_annual_pkr_variant_id'   => env('LEMON_SQUEEZY_STARTER_ANNUAL_PKR_VARIANT_ID'),
+        'growth_annual_pkr_variant_id'    => env('LEMON_SQUEEZY_GROWTH_ANNUAL_PKR_VARIANT_ID'),
+        'business_annual_pkr_variant_id'  => env('LEMON_SQUEEZY_BUSINESS_ANNUAL_PKR_VARIANT_ID'),
+
+        /*
+        |----------------------------------------------------------------------
+        | Checkout appearance
+        |----------------------------------------------------------------------
+        | Applied by App\Services\LemonSqueezyCheckoutService to every checkout
+        | so the overlay matches the VenQore billing UI. `embed` is always on
+        | and is deliberately not configurable — it is what keeps the customer
+        | inside the app instead of redirecting them to lemonsqueezy.com.
+        */
+        'checkout' => [
+            // Dark theme to match the VenQore billing screens.
+            'dark'         => env('LEMON_SQUEEZY_CHECKOUT_DARK', true),
+            // Show the store logo (trust signal). Set false for a barer panel.
+            'logo'         => env('LEMON_SQUEEZY_CHECKOUT_LOGO', true),
+            // Hide the product image + long description: the plan details are
+            // already shown in our own summary panel, so repeating them makes
+            // the overlay feel like a separate storefront.
+            'media'        => env('LEMON_SQUEEZY_CHECKOUT_MEDIA', false),
+            'desc'         => env('LEMON_SQUEEZY_CHECKOUT_DESC', false),
+            // Keep the discount-code field available for coupons.
+            'discount'     => env('LEMON_SQUEEZY_CHECKOUT_DISCOUNT', true),
+            // VenQore purple — matches the primary button in the billing UI.
+            'button_color' => env('LEMON_SQUEEZY_CHECKOUT_BUTTON_COLOR', '#7C3AED'),
+        ],
     ],
 
     'google' => [
