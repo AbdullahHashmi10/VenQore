@@ -67,8 +67,17 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, mode = 'global
         ]
     };
 
-    const content = mode === 'pos' ? posShortcuts : globalShortcuts;
+    // Never let an unexpected `mode` produce undefined here. Object.entries()
+    // throws on undefined ("Cannot convert undefined or null to object"), and
+    // because this modal is mounted by GlobalProviderLayout on every page, that
+    // throw took down whatever page was rendering — including public ones like
+    // /gift/{token}, which showed a blank screen instead of the gift.
+    const content = (mode === 'pos' ? posShortcuts : globalShortcuts) || {};
     const title = mode === 'pos' ? 'POS Terminal Shortcuts' : 'Global Application Shortcuts';
+
+    // Nothing to render until it is actually opened. Cheaper, and it keeps the
+    // modal's internals off the critical path of every first paint.
+    if (!isOpen) return null;
 
     return (
         <Modal show={isOpen} onClose={onClose} maxWidth="2xl">
@@ -89,8 +98,10 @@ export default function KeyboardShortcutsModal({ isOpen, onClose, mode = 'global
                             <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-3 uppercase tracking-wider">
                                 {category}
                             </h3>
+                            {/* items is defensive too — a malformed group must not
+                                take the page down. */}
                             <ul className="space-y-2">
-                                {items.map((item, idx) => (
+                                {(Array.isArray(items) ? items : []).map((item, idx) => (
                                     <li key={idx} className="flex justify-between items-center text-sm group hover:bg-gray-50 dark:hover:bg-gray-800 rounded px-1 transition-colors">
                                         <span className="text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100">
                                             {item.desc}

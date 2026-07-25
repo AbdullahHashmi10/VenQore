@@ -33,10 +33,23 @@ function InnerGlobalLayout({ children, settings }) {
     const [showUpdateOverlay, setShowUpdateOverlay] = useState(false);
     // const [settings, setSettings] = useState({ admin_passcode: '123456' }); // Removed hardcoded
     const isInstaller = window.location.pathname.startsWith('/installer');
+
+    // Public pages: no session, no tenant, no offline database. Anything that
+    // assumes an authenticated store must stay switched off here.
+    //
+    // /gift/{token} was missing from this list, so a recipient opening a gift
+    // link — by definition a logged-out stranger — booted SyncService, the
+    // offline lock screen and the tenant-scoped widgets against a page with no
+    // store context at all. Prefix matches are used for the dynamic routes
+    // because an exact-match list can never cover a token in the URL.
+    const isPublicPrefix = ['/gift/', '/blog/', '/invitation/', '/join/']
+        .some(prefix => window.location.pathname.startsWith(prefix));
+
     const isMarketing = [
         '/', '/features', '/pricing', '/about', '/contact', '/blog',
         '/terms', '/privacy', '/demo', '/demo-expired', '/login', '/register', '/forgot-password', '/reset-password'
-    ].some(path => window.location.pathname === path || window.location.pathname === path + '/') || window.location.pathname.startsWith('/blog/');
+    ].some(path => window.location.pathname === path || window.location.pathname === path + '/')
+        || isPublicPrefix;
 
     // Enable Global Shortcuts
     useGlobalShortcuts();
@@ -167,7 +180,10 @@ function InnerGlobalLayout({ children, settings }) {
         <WorkspaceProvider settings={settings}>
             <AttendanceProvider>
                 <AlertProvider>
-                    {!isInstaller && <OfflineLockScreen />}
+                    {/* Offline lock guards the tenant app. On public pages there is
+                        no store to lock, and it read tenant props that do not
+                        exist there. */}
+                    {!isInstaller && !isMarketing && <OfflineLockScreen />}
                     <PasscodeModal
                         isOpen={showExitModal}
                         onClose={() => setShowExitModal(false)}

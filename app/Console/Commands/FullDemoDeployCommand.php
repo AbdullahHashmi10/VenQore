@@ -27,17 +27,28 @@ class FullDemoDeployCommand extends Command
         $demo = Tenant::where('is_golden_master', true)->first();
 
         if (!$demo) {
-            $this->warn('No demo tenant found — creating one...');
-            $demo = Tenant::create([
-                'name'             => 'VenQore Demo Store',
-                'slug'             => 'demo',
-                'plan'             => 'business',
-                'status'           => 'active',
-                'currency_symbol'  => '$',
-                'currency_code'    => 'USD',
-                'setup_completed'  => true,
-                'is_demo'          => true,
-            ]);
+            $existing = Tenant::where('slug', 'demo')->first();
+            if ($existing) {
+                $this->info('Found existing demo tenant by slug, updating flags...');
+                $existing->update([
+                    'is_demo' => true,
+                    'is_golden_master' => true,
+                ]);
+                $demo = $existing;
+            } else {
+                $this->warn('No demo tenant found — creating one...');
+                $demo = Tenant::create([
+                    'name'             => 'VenQore Demo Store',
+                    'slug'             => 'demo',
+                    'plan'             => 'business',
+                    'status'           => 'active',
+                    'currency_symbol'  => '$',
+                    'currency_code'    => 'USD',
+                    'setup_completed'  => true,
+                    'is_demo'          => true,
+                    'is_golden_master' => true,
+                ]);
+            }
         }
 
         app()->instance('current.tenant', $demo);

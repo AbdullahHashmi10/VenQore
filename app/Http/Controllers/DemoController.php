@@ -73,7 +73,7 @@ class DemoController extends Controller
 
         $demoUser->update(['last_store_id' => $demoTenant->id]);
 
-        return redirect()->route('store.dashboard', ['store_slug' => 'demo']);
+        return redirect()->route('store.dashboard', ['store_slug' => $demoTenant->slug]);
     }
 
     /**

@@ -32,8 +32,8 @@ class LemonSqueezySyncService
 {
     protected const API_BASE = 'https://api.lemonsqueezy.com/v1';
 
-    /** Subscription states that should grant access. */
-    protected const LIVE_STATUSES = ['active', 'on_trial', 'past_due', 'cancelled'];
+    /** Subscription states that should grant access. @see LemonSqueezyStatus */
+    protected const LIVE_STATUSES = LemonSqueezyStatus::LIVE;
 
     /**
      * Pull this tenant's subscriptions from Lemon Squeezy and apply them.
@@ -240,8 +240,34 @@ class LemonSqueezySyncService
             $updates['view_only_since'] = null;
         }
 
-        if ($tenant->status !== 'active') {
-            $updates['status'] = 'active';
+        // Honour what Lemon Squeezy actually says instead of assuming that
+        // finding a subscription means the store is paying.
+        //
+        // A variant with a free-trial period opens as `on_trial` and bills $0,
+        // so forcing 'active' here marked unpaid stores as paying — which then
+        // hid the very Pay Now button they needed, while the Payment History tab
+        // (which reads Lemon Squeezy directly) still correctly said "On Trial".
+        //
+        // `active` wins over `trial` when several subscriptions exist, so buying
+        // a real plan while another subscription still trials upgrades the store.
+        $mapped = null;
+
+        foreach ($subscriptions as $sub) {
+            $candidate = LemonSqueezyStatus::toTenantStatus(
+                data_get($sub, 'attributes.status'),
+                $tenant->status
+            );
+
+            if ($candidate === 'active') {
+                $mapped = 'active';
+                break;
+            }
+
+            $mapped ??= $candidate;
+        }
+
+        if ($mapped !== null && $tenant->status !== $mapped) {
+            $updates['status'] = $mapped;
         }
 
         if (!empty($updates)) {

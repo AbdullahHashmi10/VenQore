@@ -7,6 +7,7 @@ import {
     Upload, FileCheck2, ScanFace, Phone, MessageSquare, Bot, Database, Activity,
 } from 'lucide-react';
 import SmokeTestRunner from '@/Components/SuperAdmin/SmokeTestRunner';
+import DemoStoreTab from '@/Components/SuperAdmin/DemoStoreTab';
 import {
     useT, Panel, KpiCard, Button, Badge, ComingSoon, EmptyState, DataTable,
     StatusBadge, Field, Input, Select, Spinner, Drawer,
@@ -512,35 +513,7 @@ export function TestingView() {
 
 /* ════════════════ DEMO & SANDBOX ════════════════ */
 export function DemoView() {
-    const t = useT();
-    return (
-        <div>
-            <Header icon={FlaskConical} accent={BRAND.violet} title="Demo & Sandbox" subtitle="The golden-master demo store — status, one-click reset, and deploy-proof snapshots." />
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,220px),1fr))', gap: 14, marginBottom: 18 }}>
-                <KpiCard label="Demo Status" value="Active" icon={CircleDot} accent={BRAND.emerald} footnote="Golden master protected" />
-                <KpiCard label="Last Reset" value="—" icon={RotateCcw} accent={BRAND.indigo} footnote="Reset to golden master" />
-                <KpiCard label="Snapshots" value="0" icon={Camera} accent={BRAND.sky} footnote="Stored versions" />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%,260px),1fr))', gap: 14 }}>
-                <Panel hover>
-                    <div style={{ fontSize: 14, fontWeight: 800, color: t.ink }}>Reset Demo</div>
-                    <p style={{ fontSize: 12.5, color: t.muted, margin: '6px 0 14px' }}>Wipe the demo store and restore it to the pristine golden master.</p>
-                    <Button variant="secondary" icon={RotateCcw} onClick={() => router.post(window.route('platform.demo-store.reset'))}>Reset to golden master</Button>
-                </Panel>
-                <Panel hover>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span style={{ fontSize: 14, fontWeight: 800, color: t.ink }}>Snapshot & Restore</span>
-                        <Badge color={BRAND.amber}>Backend Pending</Badge>
-                    </div>
-                    <p style={{ fontSize: 12.5, color: t.muted, margin: '6px 0 14px' }}>Capture a versioned snapshot so deploys never wipe the demo. Auto-restores after updates.</p>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                        <Button variant="secondary" icon={Camera} disabled>Take snapshot</Button>
-                        <Button variant="ghost" icon={Upload} disabled>Restore</Button>
-                    </div>
-                </Panel>
-            </div>
-        </div>
-    );
+    return <DemoStoreTab />;
 }
 
 /* ════════════════ SUPPORT INBOX ════════════════ */

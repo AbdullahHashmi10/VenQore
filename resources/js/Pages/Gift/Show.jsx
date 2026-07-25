@@ -18,14 +18,43 @@ export default function GiftShow({
 }) {
     const { post, processing } = useForm({});
 
+    // This page is public, so it renders for visitors with no Ziggy route data
+    // and no session. Building URLs with route() at render time threw and took
+    // the whole page down with a blank "Cannot convert undefined or null to
+    // object" — a gift link that crashes is worse than no gift link, so every
+    // URL here is a plain string with route() only as an enhancement.
+    const url = (name, fallback) => {
+        try {
+            return typeof route === 'function' ? route(name) : fallback;
+        } catch {
+            return fallback;
+        }
+    };
+
+    const acceptUrl   = `/gift/${encodeURIComponent(token ?? '')}`;
+    const registerUrl = url('register', '/register');
+    const loginUrl    = url('login', '/login');
+
     const accept = (e) => {
         e.preventDefault();
-        post(route('gift.accept', { token }));
+        post(acceptUrl);
     };
+
+    // A grant whose plan row was deleted would otherwise render "undefined".
+    const planLabel     = plan_name || 'VenQore Access';
+    const durationText  = duration_label || 'a limited time';
 
     return (
         <div className="min-h-screen bg-[#020010] text-white font-sans flex items-center justify-center p-8">
-            <Head><title>You've Been Gifted VenQore — {plan_name}</title></Head>
+            {/* The title MUST be a single string child.
+                Inertia's <Head> serialises children itself, and its walker calls
+                Object.keys(child.props) on each one. Mixing literal text with an
+                expression — <title>Gifted — {planLabel}</title> — compiles to TWO
+                children, so the walker recurses into a raw string, whose .props
+                is undefined, and Object.keys(undefined) throws. That killed the
+                whole page render, which is the blank gift page.
+                Interpolating into one template literal keeps it a single child. */}
+            <Head title={`You've Been Gifted VenQore — ${planLabel}`} />
 
             {/* Background */}
             <div className="fixed inset-0 pointer-events-none">
@@ -44,10 +73,10 @@ export default function GiftShow({
                 </span>
 
                 <h1 className="text-4xl font-black mt-4 mb-3 tracking-tight">
-                    {plan_name}
+                    {planLabel}
                     <br />
                     <span className="bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">
-                        for {duration_label}
+                        for {durationText}
                     </span>
                 </h1>
 
@@ -78,13 +107,13 @@ export default function GiftShow({
                         ) : (
                             <div className="space-y-3">
                                 <a
-                                    href={route('register')}
+                                    href={registerUrl}
                                     className="flex items-center justify-center gap-3 w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-bold text-base transition-all hover:scale-[1.02]"
                                 >
                                     <Sparkles size={18} /> Create Account &amp; Accept Gift
                                 </a>
                                 <a
-                                    href={route('login')}
+                                    href={loginUrl}
                                     className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 font-bold text-sm transition-all"
                                 >
                                     <LogIn size={15} /> Already have an account? Log in

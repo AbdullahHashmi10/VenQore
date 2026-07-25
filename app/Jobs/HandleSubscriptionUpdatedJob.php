@@ -40,16 +40,9 @@ class HandleSubscriptionUpdatedJob implements ShouldQueue
             return;
         }
 
-        // Map Lemon Squeezy status → VenQore status
-        $status = match ($lsStatus) {
-            'active'         => 'active',
-            'on_trial'       => 'trial',
-            'paused'         => 'suspended',
-            'past_due'       => 'active',     // still accessible during grace period
-            'cancelled'      => 'active',     // still active until period ends
-            'expired'        => 'suspended',
-            default          => $tenant->status,
-        };
+        // Map Lemon Squeezy status → VenQore status. Shared with the checkout
+        // and "Already Paid?" paths so they can never disagree again.
+        $status = \App\Services\LemonSqueezyStatus::toTenantStatus($lsStatus, $tenant->status);
 
         // Resolve new plan
         $plan = $tenant->plan;

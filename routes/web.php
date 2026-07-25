@@ -195,9 +195,17 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::get('/billing',         [\App\Http\Controllers\BillingController::class, 'index'])->name('billing');
         Route::get('/billing/upgrade', [\App\Http\Controllers\BillingController::class, 'upgrade'])->name('billing.upgrade');
         Route::get('/billing/portal',  [\App\Http\Controllers\BillingController::class, 'portal'])->name('billing.portal');
+        // Live payment history from Lemon Squeezy. Lazy-loaded by the Payment
+        // History tab so the billing page never blocks on an external API.
+        Route::get('/billing/payment-history', [\App\Http\Controllers\BillingController::class, 'paymentHistory'])->name('billing.payment-history');
         Route::get('/backup/export',  [\App\Http\Controllers\VqBackupController::class, 'export'])->middleware('permission:data.export')->name('backup.export');
         Route::post('/backup/import',  [\App\Http\Controllers\VqBackupController::class, 'import'])->name('backup.import');
         Route::post('/billing/cancel-trial', [\App\Http\Controllers\BillingController::class, 'cancelTrial'])->name('billing.cancel-trial');
+        // In-app subscription cancel / resume. Without these the only route to
+        // cancelling was the Lemon Squeezy portal, which requires a separate
+        // login and is a dead end for guest checkouts.
+        Route::post('/billing/cancel-subscription', [\App\Http\Controllers\BillingController::class, 'cancelSubscription'])->name('billing.cancel-subscription');
+        Route::post('/billing/resume-subscription', [\App\Http\Controllers\BillingController::class, 'resumeSubscription'])->name('billing.resume-subscription');
         Route::post('/billing/checkout-addon', [\App\Http\Controllers\BillingController::class, 'checkoutAddon'])->name('billing.checkout-addon');
         Route::post('/billing/change-plan',  [\App\Http\Controllers\BillingController::class, 'changePlan'])->name('billing.change-plan');
         Route::post('/billing/deactivate-feature', [\App\Http\Controllers\BillingController::class, 'deactivateFeature'])->name('billing.deactivate-feature');

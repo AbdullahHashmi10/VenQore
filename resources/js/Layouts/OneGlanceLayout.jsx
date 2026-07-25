@@ -160,8 +160,16 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         };
     }
 
-    const isTrial = store?.status === 'trial' || (store?.trial_ends_at && new Date(store.trial_ends_at) > new Date());
-    const trialDaysLeft = store?.trial_ends_at
+    // Trial state is decided by status ALONE — never by the date.
+    //
+    // trial_ends_at is deliberately not cleared when a store converts to a paid
+    // plan (it is useful history, and TrialCreditService reads it to credit
+    // unused days). So "the trial end date is still in the future" says nothing
+    // about whether the store is trialling. Reading the date here is what made
+    // a fully paid store keep flashing a "10 Days Left" trial countdown in the
+    // header. The status column is the single source of truth.
+    const isTrial = store?.status === 'trial';
+    const trialDaysLeft = isTrial && store?.trial_ends_at
         ? Math.max(0, Math.ceil((new Date(store.trial_ends_at) - new Date()) / 86400000))
         : null;
 

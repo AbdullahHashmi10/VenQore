@@ -53,6 +53,13 @@ class ProvisionTenantJob implements ShouldQueue
         $customerId     = data_get($this->payload, 'data.attributes.customer_id') ?? data_get($this->payload, 'customer_id') ?? data_get($this->payload, 'attributes.customer_id');
         $subscriptionId = data_get($this->payload, 'data.attributes.subscription_id') ?? data_get($this->payload, 'subscription_id') ?? data_get($this->payload, 'attributes.subscription_id') ?? data_get($this->payload, 'data.id');
 
+        // Lemon Squeezy's own view of the subscription. This must be honoured
+        // rather than assumed: if the purchased variant has a free-trial period,
+        // Lemon Squeezy opens the subscription as `on_trial` and charges $0, so
+        // writing 'active' here would mark an unpaid store as paying and hide
+        // its Pay Now button. See LemonSqueezyStatus for the full story.
+        $lsStatus       = data_get($this->payload, 'data.attributes.status') ?? data_get($this->payload, 'status') ?? data_get($this->payload, 'attributes.status');
+
         $tenantId       = data_get($this->payload, 'meta.custom_data.tenant_id') ?? data_get($this->payload, 'custom_data.tenant_id');
 
         if ($tenantId) {
@@ -249,7 +256,7 @@ class ProvisionTenantJob implements ShouldQueue
             return;
         }
 
-        DB::transaction(function () use ($email, $name, $plan, $orderId, $customerId, $subscriptionId, $tenantId) {
+        DB::transaction(function () use ($email, $name, $plan, $orderId, $customerId, $subscriptionId, $tenantId, $lsStatus) {
             $user = null;
             $isNewUser = false;
             $password = null;
@@ -260,10 +267,12 @@ class ProvisionTenantJob implements ShouldQueue
             }
 
             if ($tenant) {
-                // Update existing tenant
+                // Update existing tenant. Status comes from Lemon Squeezy, not
+                // from the assumption that a completed checkout means money
+                // changed hands — a trialling variant completes checkout at $0.
                 $tenant->update([
                     'plan'                          => $plan,
-                    'status'                        => 'active',
+                    'status'                        => \App\Services\LemonSqueezyStatus::toTenantStatus($lsStatus, 'active'),
                     'lemon_squeezy_customer_id'     => $customerId,
                     'lemon_squeezy_subscription_id' => $subscriptionId,
                 ]);
@@ -289,7 +298,7 @@ class ProvisionTenantJob implements ShouldQueue
                     'name'                          => $name . "'s Store",
                     'slug'                          => \App\Services\SubdomainGenerator::generate($name),
                     'plan'                          => $plan,
-                    'status'                        => 'active',
+                    'status'                        => \App\Services\LemonSqueezyStatus::toTenantStatus($lsStatus, 'active'),
                     'trial_ends_at'                 => now()->addDays(14),
                     'join_code'                     => $this->generateJoinCode(),
                     'currency_code'                 => 'USD',

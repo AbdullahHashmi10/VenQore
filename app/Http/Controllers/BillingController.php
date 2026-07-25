@@ -503,7 +503,48 @@ class BillingController extends Controller
 
         $result = app(\App\Services\LemonSqueezySyncService::class)->syncTenant($tenant);
 
+        // A successful sync means the subscription state just changed, so the
+        // 2-minute payment-history cache is now stale. Without this the tab kept
+        // serving the pre-payment snapshot — which is why the Payment History
+        // section claimed nothing had been paid for a while after checkout.
+        if ($result['synced']) {
+            \Illuminate\Support\Facades\Cache::forget("billing_history:{$tenant->id}");
+        }
+
         return response()->json($result, $result['synced'] ? 200 : 202);
+    }
+
+    /**
+     * Payment history, read live from Lemon Squeezy.
+     *
+     * Deliberately a separate endpoint rather than an Inertia prop on index():
+     * this makes two API calls, and no one should wait on Lemon Squeezy just to
+     * look at their usage bars. The Payment History tab fetches it on first
+     * open, and `?fresh=1` bypasses the short cache for the "refresh" button.
+     */
+    public function paymentHistory(Request $request): \Illuminate\Http\JsonResponse
+    {
+        if (!app()->bound('current.tenant')) {
+            return response()->json(['error' => 'No tenant context.'], 403);
+        }
+
+        $tenant = app('current.tenant');
+
+        $history = app(\App\Services\BillingHistoryService::class)
+            ->forTenant($tenant, $request->boolean('fresh'));
+
+        // The locally cached renewal date is included so the UI can flag a
+        // mismatch against Lemon Squeezy instead of quietly showing two
+        // different dates on the same screen.
+        $history['local'] = [
+            'status'               => $tenant->status,
+            'plan'                 => $tenant->plan,
+            'trial_ends_at'        => $tenant->trial_ends_at?->toIso8601String(),
+            'subscription_ends_at' => $tenant->subscription_ends_at?->toIso8601String(),
+            'has_subscription_id'  => !empty($tenant->lemon_squeezy_subscription_id),
+        ];
+
+        return response()->json($history);
     }
 
     /**
@@ -532,6 +573,199 @@ class BillingController extends Controller
         return Inertia::location(
             'https://app.lemonsqueezy.com/my-orders?customer_id=' . $tenant->lemon_squeezy_customer_id
         );
+    }
+
+    /**
+     * Cancel a paid Lemon Squeezy subscription from inside the app.
+     *
+     * Previously the only route to cancelling was the "Billing Portal" button,
+     * which hands the customer off to app.lemonsqueezy.com and asks them to log
+     * in again with their purchase email. That is a dead end for anyone who
+     * checked out as a guest or does not remember which email they used, so in
+     * practice there was no way to cancel. Subscription management belongs in
+     * the product.
+     *
+     * Cancelling in Lemon Squeezy does NOT revoke access immediately: the
+     * subscription moves to `cancelled` and keeps running to the end of the
+     * period the customer already paid for. We deliberately do not downgrade
+     * the tenant here — `LemonSqueezyStatus` maps `cancelled` to 'active' for
+     * exactly this reason, and the subscription_updated webhook will carry the
+     * real `ends_at`. Taking access away on cancel would be stealing time they
+     * paid for.
+     *
+     * @see https://docs.lemonsqueezy.com/api/subscriptions/cancel-subscription
+     */
+    public function cancelSubscription(Request $request): RedirectResponse
+    {
+        if (!app()->bound('current.tenant')) {
+            abort(403, 'No tenant context.');
+        }
+
+        $tenant = app('current.tenant');
+
+        // Owner-only: cancelling ends the whole store's plan, so staff and
+        // managers must not be able to do it.
+        $membership = $tenant->ownerMembership()->first();
+
+        if (!$membership || (int) $membership->user_id !== (int) $request->user()->id) {
+            return back()->with('error', 'Only the store owner can cancel the subscription.');
+        }
+
+        $subscriptionId = $tenant->lemon_squeezy_subscription_id;
+
+        if (!$subscriptionId) {
+            return back()->with('error', 'No Lemon Squeezy subscription is linked to this store, so there is nothing to cancel.');
+        }
+
+        $apiKey = config('services.lemon_squeezy.api_key');
+
+        if (!$apiKey) {
+            return back()->with('error', 'Subscription cancellation is unavailable because Lemon Squeezy is not configured.');
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Accept'        => 'application/vnd.api+json',
+                'Content-Type'  => 'application/vnd.api+json',
+            ])->timeout(20)->delete(
+                'https://api.lemonsqueezy.com/v1/subscriptions/' . $subscriptionId
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error(
+                "BillingController: cancel threw for tenant {$tenant->id}: " . $e->getMessage()
+            );
+
+            return back()->with('error', 'Could not reach Lemon Squeezy to cancel. Please try again in a moment.');
+        }
+
+        if ($response->failed()) {
+            \Illuminate\Support\Facades\Log::error(
+                "BillingController: cancel failed for tenant {$tenant->id}: " . $response->body()
+            );
+
+            return back()->with('error', 'Lemon Squeezy refused the cancellation. Please contact support and we will sort it out.');
+        }
+
+        // Trust the response over a computed guess so the date we show is the
+        // one Lemon Squeezy will actually honour.
+        $attributes = $response->json('data.attributes') ?? [];
+        $endsAt     = $attributes['ends_at'] ?? $attributes['renews_at'] ?? null;
+
+        $updates = [];
+
+        if ($endsAt) {
+            try {
+                $updates['subscription_ends_at'] = \Illuminate\Support\Carbon::parse($endsAt);
+            } catch (\Throwable) {
+                // Unparseable — leave the existing date; the webhook will fix it.
+            }
+        }
+
+        if (!empty($updates)) {
+            $tenant->update($updates);
+        }
+
+        // The Payment History tab caches for 2 minutes; drop it so the customer
+        // sees "Cancelled" the instant they land back on the page rather than
+        // wondering whether the cancellation registered.
+        \Illuminate\Support\Facades\Cache::forget("billing_history:{$tenant->id}");
+
+        \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+
+        \Illuminate\Support\Facades\Log::info(
+            "Tenant {$tenant->id} ('{$tenant->slug}') cancelled subscription {$subscriptionId}."
+        );
+
+        $until = $tenant->fresh()->subscription_ends_at;
+
+        return back()->with('success', $until
+            ? 'Your subscription has been cancelled. You keep full access until ' . $until->format('F j, Y') . ' — the period you already paid for.'
+            : 'Your subscription has been cancelled. You keep access until the end of your current paid period.');
+    }
+
+    /**
+     * Resume a subscription that is cancelled but has not yet lapsed.
+     *
+     * The counterpart to cancelSubscription: while Lemon Squeezy still reports
+     * `cancelled` and the paid period has not ended, the customer can change
+     * their mind without re-entering card details.
+     *
+     * @see https://docs.lemonsqueezy.com/api/subscriptions/update-subscription
+     */
+    public function resumeSubscription(Request $request): RedirectResponse
+    {
+        if (!app()->bound('current.tenant')) {
+            abort(403, 'No tenant context.');
+        }
+
+        $tenant = app('current.tenant');
+
+        $membership = $tenant->ownerMembership()->first();
+
+        if (!$membership || (int) $membership->user_id !== (int) $request->user()->id) {
+            return back()->with('error', 'Only the store owner can change the subscription.');
+        }
+
+        $subscriptionId = $tenant->lemon_squeezy_subscription_id;
+        $apiKey         = config('services.lemon_squeezy.api_key');
+
+        if (!$subscriptionId || !$apiKey) {
+            return back()->with('error', 'No Lemon Squeezy subscription is linked to this store.');
+        }
+
+        try {
+            $response = \Illuminate\Support\Facades\Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Accept'        => 'application/vnd.api+json',
+                'Content-Type'  => 'application/vnd.api+json',
+            ])->timeout(20)->patch(
+                'https://api.lemonsqueezy.com/v1/subscriptions/' . $subscriptionId,
+                [
+                    'data' => [
+                        'type' => 'subscriptions',
+                        'id'   => (string) $subscriptionId,
+                        'attributes' => ['cancelled' => false],
+                    ],
+                ]
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error(
+                "BillingController: resume threw for tenant {$tenant->id}: " . $e->getMessage()
+            );
+
+            return back()->with('error', 'Could not reach Lemon Squeezy. Please try again in a moment.');
+        }
+
+        if ($response->failed()) {
+            \Illuminate\Support\Facades\Log::error(
+                "BillingController: resume failed for tenant {$tenant->id}: " . $response->body()
+            );
+
+            return back()->with('error', 'Lemon Squeezy could not resume this subscription. It may have already lapsed — please subscribe again.');
+        }
+
+        $renewsAt = $response->json('data.attributes.renews_at');
+
+        if ($renewsAt) {
+            try {
+                $tenant->update([
+                    'status'               => 'active',
+                    'subscription_ends_at' => \Illuminate\Support\Carbon::parse($renewsAt),
+                ]);
+            } catch (\Throwable) {
+                $tenant->update(['status' => 'active']);
+            }
+        }
+
+        \Illuminate\Support\Facades\Cache::forget("billing_history:{$tenant->id}");
+        \App\Services\PlanRepository::invalidateTenantCache($tenant->id);
+
+        \Illuminate\Support\Facades\Log::info(
+            "Tenant {$tenant->id} ('{$tenant->slug}') resumed subscription {$subscriptionId}."
+        );
+
+        return back()->with('success', 'Your subscription has been resumed — billing will continue as normal.');
     }
 
     /**

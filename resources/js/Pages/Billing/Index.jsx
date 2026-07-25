@@ -8,7 +8,7 @@ import {
     ArrowRight, Calendar, Users, Package, BarChart2, Globe2,
     Cpu, GitBranch, ExternalLink, Sparkles, Lock, Infinity,
     Receipt, Download, Info, HelpCircle, MessageSquare, Monitor,
-    BadgeCheck, ScanFace, RefreshCw
+    BadgeCheck, ScanFace, RefreshCw, History, CreditCard, FileText, Clock
 } from 'lucide-react';
 
 // ── PKR MASTER SWITCH (see Pricing.jsx) — OFF for USD-only launch ──────
@@ -311,6 +311,55 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
     };
 
     const [activeTab, setActiveTab] = useState('subscription');
+
+    // ── Payment history ──────────────────────────────────────────────────────
+    // Read live from Lemon Squeezy, fetched the first time the tab is opened so
+    // the rest of this page never waits on an external API.
+    const [history, setHistory] = useState(null);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyError, setHistoryError] = useState(null);
+
+    const loadHistory = async (fresh = false) => {
+        setHistoryLoading(true);
+        setHistoryError(null);
+        try {
+            const res = await fetch(
+                route('store.billing.payment-history', { store_slug: storeSlug, ...(fresh ? { fresh: 1 } : {}) }),
+                { headers: { Accept: 'application/json' } }
+            );
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            setHistory(await res.json());
+        } catch (err) {
+            console.error('[billing] payment history failed', err);
+            setHistoryError('Could not load your payment history. Please try again.');
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'payments' && !history && !historyLoading) {
+            loadHistory();
+        }
+    }, [activeTab]);
+
+    const fmtDay = (iso) => iso
+        ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '—';
+
+    /**
+     * True when our own subscription_ends_at disagrees with the renewal date
+     * Lemon Squeezy reports. Worth surfacing rather than hiding: it means a
+     * webhook was missed or the plan was applied locally without a real
+     * payment, and the local column is the one that's wrong.
+     */
+    const historyDateMismatch = (() => {
+        const remote = history?.subscription?.expires_at;
+        const local = history?.local?.subscription_ends_at;
+        if (!remote || !local) return false;
+        // Same calendar day is a match; we only care about real drift.
+        return new Date(remote).toDateString() !== new Date(local).toDateString();
+    })();
     const [billingCycle, setBillingCycle] = useState('monthly');
     const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');
 
@@ -400,16 +449,42 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
 
             await openLemonCheckout(url, {
                 onSuccess: () => {
-                    toast(successMessage || 'Payment received — updating your account…', 'success');
-                    // Let the user read Lemon Squeezy's confirmation, then
-                    // reconcile against their API rather than waiting on a
-                    // webhook that may be slow or may never arrive at all.
-                    setTimeout(async () => {
-                        await runSubscriptionSync({ silent: true });
+                    toast(successMessage || 'Payment received — activating your plan…', 'success');
+
+                    // Reconcile against the Lemon Squeezy API rather than waiting
+                    // on a webhook that may be slow or may never arrive.
+                    //
+                    // This used to fire exactly once, 2.2s after payment. Lemon
+                    // Squeezy frequently has not finished creating the
+                    // subscription by then, so the single attempt found nothing,
+                    // gave up silently, and left the customer staring at a stale
+                    // page — the delay reported after checkout. Now it retries on
+                    // a backoff until the subscription actually appears.
+                    (async () => {
+                        const delays = [1200, 2000, 3000, 4000, 5000, 6000];
+
+                        for (const wait of delays) {
+                            await new Promise(r => setTimeout(r, wait));
+
+                            if (await runSubscriptionSync({ silent: true })) {
+                                closeLemonCheckout();
+                                toast('Your plan is active.', 'success');
+                                router.reload({ preserveScroll: true });
+                                onDone?.();
+                                return;
+                            }
+                        }
+
+                        // ~21s and still nothing. Stop guessing and hand the user
+                        // an explicit control rather than failing silently.
                         closeLemonCheckout();
+                        toast(
+                            'Payment received. Your plan is taking longer than usual to activate — tap "Already Paid?" to retry.',
+                            'info'
+                        );
                         router.reload({ preserveScroll: true });
                         onDone?.();
-                    }, 2200);
+                    })();
                 },
                 onClose: () => {
                     onDone?.();
@@ -474,9 +549,48 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         ? new Date(tenant.subscription_ends_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
         : null;
 
-    const isTrial = tenant?.status === 'trial';
-    const trialDaysLeft = tenant?.trial_ends_at
-        ? Math.max(0, Math.ceil((new Date(tenant.trial_ends_at) - new Date()) / 86400000))
+    // Days until the paid period ends. A bare date ("Renews on August 8") makes
+    // the reader do the arithmetic; the countdown is what actually tells them
+    // whether they need to act.
+    const subDaysLeft = tenant?.subscription_ends_at
+        ? Math.max(0, Math.ceil((new Date(tenant.subscription_ends_at) - new Date()) / 86400000))
+        : null;
+
+    // ── Trial / paying state ────────────────────────────────────────────────
+    //
+    // Lemon Squeezy is the authority on whether money has actually been taken.
+    // Our `tenants.status` column is a cache of webhook outcomes and can drift,
+    // so once the Payment History tab has loaded we prefer what Lemon Squeezy
+    // says. Before that we fall back to the local column.
+    //
+    // A store whose Lemon Squeezy subscription is `on_trial` has a card on file
+    // but has NOT been charged (that is what happens when the purchased variant
+    // carries a free-trial period). It must keep every trial affordance —
+    // above all the Pay Now button.
+    const lsStatus       = history?.subscription?.status ?? null;
+    const lsIsTrialling  = lsStatus === 'on_trial';
+    const lsIsPaying     = lsStatus ? ['active', 'past_due', 'cancelled'].includes(lsStatus) : null;
+
+    // Union of both sources. A false positive here merely offers a payment
+    // button to someone who doesn't need one; a false negative locks a customer
+    // out of paying us — which is exactly the bug this replaces.
+    const isTrial = tenant?.status === 'trial' || lsIsTrialling;
+
+    // Only ever true when we have positive evidence of a real charge.
+    const confirmedPaying = lsIsPaying ?? (tenant?.status === 'active');
+
+    // The local column and Lemon Squeezy disagree about whether this store pays.
+    const statusMismatch = lsStatus !== null
+        && ((tenant?.status === 'active') !== !!lsIsPaying);
+
+    // Trial countdown. Prefer Lemon Squeezy's own trial end date, since a
+    // Lemon-Squeezy-side trial has nothing to do with our local trial_ends_at.
+    const trialEndsAt = (lsIsTrialling
+        && (history?.subscription?.trial_ends_at || history?.subscription?.expires_at))
+        || (tenant?.status === 'trial' ? tenant?.trial_ends_at : null);
+
+    const trialDaysLeft = isTrial && trialEndsAt
+        ? Math.max(0, Math.ceil((new Date(trialEndsAt) - new Date()) / 86400000))
         : null;
 
     /**
@@ -526,6 +640,47 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         if (confirm("Are you sure you want to cancel your free trial? Your store will immediately transition to View-Only mode for 30 days, locking all modifications and sales. You can restore access anytime by subscribing.")) {
             router.post(route('store.billing.cancel-trial', { store_slug: storeSlug }));
         }
+    };
+
+    // ── Subscription cancel / resume ────────────────────────────────────────
+    //
+    // Cancelling does not end access immediately: Lemon Squeezy keeps the
+    // subscription running to the end of the period already paid for. The modal
+    // says so explicitly, because "Cancel" on a paid plan otherwise reads as
+    // "lose everything now" and stops people who simply want to stop renewing.
+    const [cancelOpen, setCancelOpen]   = useState(false);
+    const [cancelBusy, setCancelBusy]   = useState(false);
+    const [resumeBusy, setResumeBusy]   = useState(false);
+
+    const paidUntilLabel = history?.subscription?.expires_at
+        ? fmtDay(history.subscription.expires_at)
+        : (subEndsAt || null);
+
+    const submitCancelSubscription = () => {
+        setCancelBusy(true);
+        router.post(route('store.billing.cancel-subscription', { store_slug: storeSlug }), {}, {
+            preserveScroll: true,
+            onFinish: () => {
+                setCancelBusy(false);
+                setCancelOpen(false);
+                // The tab caches for 2 minutes; force a re-read so the status
+                // card reflects the cancellation immediately.
+                setHistory(null);
+                if (activeTab === 'payments') loadHistory(true);
+            },
+        });
+    };
+
+    const submitResumeSubscription = () => {
+        setResumeBusy(true);
+        router.post(route('store.billing.resume-subscription', { store_slug: storeSlug }), {}, {
+            preserveScroll: true,
+            onFinish: () => {
+                setResumeBusy(false);
+                setHistory(null);
+                if (activeTab === 'payments') loadHistory(true);
+            },
+        });
     };
 
     // Handle activation of addon free trial (e.g. WooCommerce sync or AI assistant during main store trial)
@@ -882,8 +1037,60 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Active Plan</div>
                             <div className="text-2xl font-black text-white">{currentMeta.label}</div>
                             <div className="text-xs font-bold text-slate-400 mt-1">
-                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)` : tenant?.status === 'suspended' ? 'Trial Expired / Suspended' : isTrial ? `You have ${trialDaysLeft} days remaining in your free trial.` : isLtd ? 'Lifetime License' : subEndsAt ? `Renews on ${subEndsAt}` : 'Active Subscription'}
+                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)`
+                                    : tenant?.status === 'suspended' ? 'Trial Expired / Suspended'
+                                    : isTrial ? (trialDaysLeft !== null
+                                        ? `Free trial — ${trialDaysLeft} ${trialDaysLeft === 1 ? 'day' : 'days'} left. No payment taken yet.`
+                                        : 'Free trial — no payment taken yet.')
+                                    : isLtd ? 'Lifetime License'
+                                    : subEndsAt ? `Renews on ${subEndsAt}`
+                                    : 'Active Subscription'}
                             </div>
+
+                            {/* Trial badge. Driven by the union of both sources, so
+                                it can no longer vanish just because the local status
+                                column drifted to 'active' while Lemon Squeezy still
+                                had the subscription on trial. */}
+                            {isTrial && !isViewOnly && trialDaysLeft !== null && (
+                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                        trialDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
+                                        : trialDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
+                                        : 'bg-purple-500/10 text-purple-300'
+                                    }`}>
+                                        Trial · {trialDaysLeft} {trialDaysLeft === 1 ? 'day' : 'days'} left
+                                    </span>
+                                    <button
+                                        onClick={() => setActiveTab('payments')}
+                                        className="text-[11px] font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
+                                    >
+                                        View payment history
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Renewal countdown + a way straight to the receipts.
+                                The date alone doesn't tell anyone how long they
+                                have left, and there was previously no route from
+                                here to proof of payment. */}
+                            {!isTrial && !isLtd && !isViewOnly && subDaysLeft !== null && (
+                                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                                    <span className={`text-[11px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                        subDaysLeft <= 3 ? 'bg-red-500/10 text-red-400'
+                                        : subDaysLeft <= 7 ? 'bg-amber-500/10 text-amber-400'
+                                        : 'bg-emerald-500/10 text-emerald-400'
+                                    }`}>
+                                        {subDaysLeft} {subDaysLeft === 1 ? 'day' : 'days'} left
+                                    </span>
+                                    <button
+                                        onClick={() => setActiveTab('payments')}
+                                        className="text-[11px] font-bold text-slate-500 hover:text-purple-300 underline decoration-dotted underline-offset-2 transition-colors"
+                                    >
+                                        View payment history
+                                    </button>
+                                </div>
+                            )}
+
                             {/* Reassurance that paying early costs them nothing —
                                 shown before they click, not buried in the modal. */}
                             {isTrial && !isViewOnly && trialCreditFor(billingCycle) && (
@@ -896,14 +1103,24 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                     </div>
                     
                     <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10">
-                        {isTrial && !isViewOnly && (
+                        {/* PAY NOW.
+                            Shown whenever we cannot positively confirm a real
+                            charge — NOT merely when the local status column reads
+                            'trial'. Gating this on the local flag alone is what
+                            left a store marked 'active' but unpaid with no way to
+                            give us money: the column had drifted, so every payment
+                            control disappeared at once. There must always be a
+                            route to paying. */}
+                        {!confirmedPaying && !isLtd && !isViewOnly && (
                             <>
-                                <button 
-                                    onClick={handleCancelTrial}
-                                    className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-slate-400 hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
-                                >
-                                    Cancel Trial
-                                </button>
+                                {isTrial && (
+                                    <button
+                                        onClick={handleCancelTrial}
+                                        className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-slate-400 hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+                                    >
+                                        Cancel Trial
+                                    </button>
+                                )}
                                 <button
                                     disabled={checkoutBusy === currentPlanKey}
                                     onClick={() => handlePlanCheckout(currentPlanKey, billingCycle, currencyDisplay)}
@@ -914,18 +1131,68 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                                 </button>
                             </>
                         )}
-                        {!isTrial && !isLtd && !isViewOnly && (
-                            <button
-                                onClick={handlePortalClick}
+
+                        {/* BILLING PORTAL.
+                            Offered to anyone who has a Lemon Squeezy subscription
+                            at all, trialling or paying — a trialling customer still
+                            needs to update a card or cancel. */}
+                        {/* UPDATE CARD.
+                            Replaces the old generic "Billing Portal" button. That
+                            one sent people to app.lemonsqueezy.com/my-orders and
+                            asked them to log in again with their purchase email —
+                            unusable for guest checkouts, and it buried cancelling
+                            behind a third-party UI. This link is Lemon Squeezy's
+                            signed, single-purpose card form for this subscription
+                            only: no login, nothing else exposed.
+
+                            Cancelling now lives in-app (next to this), so the only
+                            thing left that genuinely needs Lemon Squeezy's own UI
+                            is entering new card details — which must be hosted by
+                            them so card data never touches our servers (PCI). */}
+                        {history?.subscription?.update_card_url && !isViewOnly && (
+                            <a
+                                href={history.subscription.update_card_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-300 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
                             >
-                                <ExternalLink size={14} /> Billing Portal
+                                <CreditCard size={14} /> Update Card
+                            </a>
+                        )}
+
+                        {/* CANCEL SUBSCRIPTION.
+                            In-app, so cancelling no longer requires a second login
+                            at app.lemonsqueezy.com — a dead end for guest checkouts.
+                            Hidden once already cancelled; Resume takes its place. */}
+                        {confirmedPaying && !isLtd && !isViewOnly && !history?.subscription?.is_cancelled && (
+                            <button
+                                onClick={() => setCancelOpen(true)}
+                                className="px-4 py-3 bg-transparent hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+                            >
+                                Cancel Subscription
                             </button>
                         )}
+
+                        {/* RESUME. Only reachable while cancelled but not yet lapsed. */}
+                        {history?.subscription?.is_cancelled && !isLtd && !isViewOnly && (
+                            <button
+                                onClick={submitResumeSubscription}
+                                disabled={resumeBusy}
+                                className="px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-wait text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                            >
+                                <RefreshCw size={14} className={resumeBusy ? 'animate-spin' : ''} />
+                                {resumeBusy ? 'Resuming…' : 'Resume Subscription'}
+                            </button>
+                        )}
+
                         {/* Escape hatch: if a payment succeeded but the webhook
                             never landed, this pulls the subscription from
-                            Lemon Squeezy and applies it immediately. */}
-                        {!isLtd && tenant?.status !== 'active' && (
+                            Lemon Squeezy and applies it immediately.
+                            Also offered on a status mismatch — the case where the
+                            local column says 'active' but Lemon Squeezy disagrees,
+                            which previously hid this button precisely when it was
+                            the one thing that would have fixed the row. */}
+                        {!isLtd && (tenant?.status !== 'active' || statusMismatch) && (
                             <button
                                 onClick={() => runSubscriptionSync()}
                                 disabled={isSyncing}
@@ -967,6 +1234,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 <div className="flex border-b border-white/[0.06] mb-8 overflow-x-auto gap-2">
                     {[
                         { id: 'subscription', label: 'Subscription & Usage', icon: Receipt },
+                        { id: 'payments', label: 'Payment History', icon: History },
                         { id: 'extra_features', label: 'Extra Features', icon: Lock },
                         { id: 'addons', label: 'AI & Sync Add-ons', icon: Sparkles },
                         { id: 'services', label: 'Onboarding Services', icon: Calendar },
@@ -1158,6 +1426,267 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 )}
 
                 {/* TAB CONTENT 2: EXTRA FEATURES */}
+                {/* TAB CONTENT: PAYMENT HISTORY
+                    Read live from Lemon Squeezy. Shows what was paid, and
+                    critically WHAT PERIOD each payment covered — which is how
+                    you verify a 30-day plan really billed for 30 days. */}
+                {activeTab === 'payments' && (
+                    <div className="space-y-6 animate-fadeIn">
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                            <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                                <History size={14} /> Billing Period & Payments
+                            </h3>
+                            <button
+                                onClick={() => loadHistory(true)}
+                                disabled={historyLoading}
+                                className="px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 disabled:cursor-wait text-slate-400 hover:text-white font-bold text-xs transition-all flex items-center gap-2"
+                            >
+                                <RefreshCw size={13} className={historyLoading ? 'animate-spin' : ''} />
+                                {historyLoading ? 'Loading…' : 'Refresh'}
+                            </button>
+                        </div>
+
+                        {historyLoading && !history && (
+                            <div className="space-y-3">
+                                {[0, 1, 2].map(i => (
+                                    <div key={i} className="h-16 rounded-2xl bg-white/[0.02] border border-white/[0.05] animate-pulse" />
+                                ))}
+                            </div>
+                        )}
+
+                        {historyError && (
+                            <div className="p-4 rounded-2xl bg-red-500/5 border border-red-500/20 text-xs font-bold text-red-400 flex items-center gap-2">
+                                <AlertTriangle size={14} /> {historyError}
+                            </div>
+                        )}
+
+                        {history && (
+                            <>
+                                {/* Current period — the "when does this expire" answer */}
+                                {history.subscription && (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <BadgeCheck size={12} /> Status
+                                            </div>
+                                            <div className="text-lg font-black text-white capitalize">
+                                                {history.subscription.status_formatted || history.subscription.status || '—'}
+                                            </div>
+                                            {history.subscription.is_cancelled && (
+                                                <div className="text-[11px] font-bold text-amber-400 mt-1">
+                                                    Cancelled — access runs to the date below
+                                                </div>
+                                            )}
+                                            {history.subscription.test_mode && (
+                                                <div className="text-[11px] font-bold text-amber-400 mt-1">Test mode</div>
+                                            )}
+                                        </div>
+
+                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <Clock size={12} /> {history.subscription.is_cancelled ? 'Access Ends' : 'Next Charge'}
+                                            </div>
+                                            <div className="text-lg font-black text-white">
+                                                {fmtDay(history.subscription.expires_at)}
+                                            </div>
+                                            {history.subscription.days_until_expiry !== null && (
+                                                <div className={`text-[11px] font-bold mt-1 ${
+                                                    history.subscription.days_until_expiry <= 3 ? 'text-red-400'
+                                                    : history.subscription.days_until_expiry <= 7 ? 'text-amber-400'
+                                                    : 'text-emerald-400'
+                                                }`}>
+                                                    {history.subscription.days_until_expiry} days remaining
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <CreditCard size={12} /> Payment Method
+                                            </div>
+                                            <div className="text-lg font-black text-white">
+                                                {history.subscription.card || 'Not on file'}
+                                            </div>
+                                        </div>
+
+                                        <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.05]">
+                                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                                <Receipt size={12} /> Total Paid
+                                            </div>
+                                            <div className="text-lg font-black text-white">
+                                                {history.lifetime_usd || '$0.00'}
+                                            </div>
+                                            <div className="text-[11px] font-bold text-slate-500 mt-1">
+                                                {history.invoice_count} {history.invoice_count === 1 ? 'invoice' : 'invoices'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Lemon Squeezy says trialling, we recorded paying (or
+                                    vice versa). This is the drift that used to hide every
+                                    payment control, so it gets stated plainly with the fix
+                                    attached. */}
+                                {statusMismatch && (
+                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
+                                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                                        <span>
+                                            Lemon Squeezy reports this subscription as{' '}
+                                            <span className="font-bold">{history.subscription?.status_formatted || lsStatus}</span>,
+                                            but this store is saved locally as{' '}
+                                            <span className="font-bold">{tenant?.status}</span>.
+                                            {lsIsTrialling
+                                                ? ' No payment has been taken yet — Pay Now is available above.'
+                                                : ' Lemon Squeezy is correct.'}{' '}
+                                            Click <span className="font-bold">Already Paid?</span> to re-sync the record.
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* A $0 first invoice means the purchased variant carries its
+                                    own free trial in Lemon Squeezy. Worth calling out: it
+                                    delays all revenue and cancels out any trial credit,
+                                    because there is nothing on the invoice to discount. */}
+                                {lsIsTrialling && history.invoices?.length > 0 && (
+                                    <div className="p-4 rounded-2xl bg-purple-500/5 border border-purple-500/20 text-xs leading-relaxed text-purple-200 flex items-start gap-2">
+                                        <Info size={14} className="shrink-0 mt-0.5" />
+                                        <span>
+                                            This subscription is in a Lemon&nbsp;Squeezy free-trial period, so the
+                                            first invoice is <span className="font-bold">$0.00</span>. The first real
+                                            charge happens on{' '}
+                                            <span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>.
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Our stored date disagrees with Lemon Squeezy — say so loudly. */}
+                                {historyDateMismatch && (
+                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
+                                        <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                                        <span>
+                                            This store's saved renewal date (<span className="font-bold">{fmtDay(history.local?.subscription_ends_at)}</span>)
+                                            doesn't match what Lemon Squeezy reports (<span className="font-bold">{fmtDay(history.subscription?.expires_at)}</span>).
+                                            Lemon Squeezy is correct. Use <span className="font-bold">Already Paid?</span> to re-sync.
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* No real subscription linked — explains a fabricated local date. */}
+                                {history.local && !history.local.has_subscription_id && history.local.status === 'active' && (
+                                    <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-xs leading-relaxed text-amber-300 flex items-start gap-2">
+                                        <Info size={14} className="shrink-0 mt-0.5" />
+                                        <span>
+                                            This store is marked active but has no Lemon Squeezy subscription ID, so no real payment is
+                                            recorded against it. Its renewal date was set locally, not by a purchase.
+                                        </span>
+                                    </div>
+                                )}
+
+                                {history.message && (
+                                    <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/[0.05] text-center">
+                                        <Receipt size={28} className="mx-auto text-slate-600 mb-3" />
+                                        <p className="text-xs font-bold text-slate-400">{history.message}</p>
+                                    </div>
+                                )}
+
+                                {/* The ledger */}
+                                {history.invoices?.length > 0 && (
+                                    <div className="rounded-2xl bg-white/[0.02] border border-white/[0.05] overflow-hidden">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="border-b border-white/[0.06]">
+                                                        {['Paid On', 'Period Covered', 'Days', 'Amount', 'Credit Applied', 'Status', ''].map(h => (
+                                                            <th key={h} className="px-5 py-3.5 text-[10px] font-black text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                                                                {h}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/[0.04]">
+                                                    {history.invoices.map(inv => (
+                                                        <tr key={inv.id} className="hover:bg-white/[0.02] transition-colors">
+                                                            <td className="px-5 py-4 whitespace-nowrap">
+                                                                <div className="text-xs font-black text-white">{fmtDay(inv.paid_at)}</div>
+                                                                <div className="text-[10px] font-bold text-slate-500 capitalize mt-0.5">
+                                                                    {inv.billing_reason === 'initial' ? 'First payment'
+                                                                        : inv.billing_reason === 'renewal' ? 'Renewal'
+                                                                        : inv.billing_reason === 'updated' ? 'Plan change'
+                                                                        : inv.billing_reason}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap text-xs font-bold text-slate-300">
+                                                                {inv.period_end
+                                                                    ? `${fmtDay(inv.period_start)} → ${fmtDay(inv.period_end)}`
+                                                                    : fmtDay(inv.period_start)}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap">
+                                                                {inv.period_days !== null ? (
+                                                                    <span className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-black">
+                                                                        {inv.period_days} days
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[11px] font-bold text-slate-600">—</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap">
+                                                                <div className="text-xs font-black text-white">{inv.total}</div>
+                                                                {inv.has_discount && (
+                                                                    <div className="text-[10px] font-bold text-slate-500 mt-0.5 line-through">
+                                                                        {inv.subtotal}
+                                                                    </div>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap">
+                                                                {inv.has_discount ? (
+                                                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-black flex items-center gap-1 w-fit">
+                                                                        <Zap size={10} className="fill-emerald-400" /> −{inv.discount_total}
+                                                                    </span>
+                                                                ) : (
+                                                                    <span className="text-[11px] font-bold text-slate-600">—</span>
+                                                                )}
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap">
+                                                                <span className={`px-2.5 py-1 rounded-lg text-[11px] font-black border ${
+                                                                    inv.refunded || inv.status === 'refunded'
+                                                                        ? 'bg-slate-500/10 border-slate-500/20 text-slate-400'
+                                                                        : inv.status === 'paid'
+                                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                                                        : inv.status === 'pending'
+                                                                        ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
+                                                                        : 'bg-red-500/10 border-red-500/20 text-red-400'
+                                                                }`}>
+                                                                    {inv.status_formatted || inv.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="px-5 py-4 whitespace-nowrap text-right">
+                                                                {inv.invoice_url && (
+                                                                    <a
+                                                                        href={inv.invoice_url}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-400 hover:text-white text-[11px] font-bold transition-all"
+                                                                    >
+                                                                        <FileText size={11} /> Invoice
+                                                                    </a>
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <p className="text-[10px] font-bold text-slate-600 text-center">
+                                    Read live from Lemon Squeezy · updated {history.fetched_at ? new Date(history.fetched_at).toLocaleTimeString() : '—'}
+                                </p>
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {activeTab === 'extra_features' && (
                     <div className="space-y-6 animate-fadeIn">
                         <div className="p-6 md:p-8 rounded-3xl bg-white/[0.02] border border-white/[0.06]">
@@ -1789,6 +2318,73 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* CANCEL SUBSCRIPTION CONFIRMATION.
+                The wording matters as much as the button. Cancelling in Lemon
+                Squeezy stops future renewals but does NOT revoke the period
+                already paid for, so leading with the date they keep access
+                until prevents the panic that makes people avoid cancelling —
+                and prevents the support ticket asking for a refund of time
+                they never actually lost. */}
+            <Modal show={cancelOpen} onClose={() => setCancelOpen(false)} maxWidth="md">
+                <div className="p-8 bg-[#0b081e] text-white">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="w-11 h-11 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+                            <AlertTriangle size={20} className="text-red-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black">Cancel your subscription?</h3>
+                            <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                                {currentMeta.label}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 mb-4">
+                        <p className="text-xs font-bold text-emerald-300 leading-relaxed flex items-start gap-2">
+                            <CheckCircle2 size={14} className="shrink-0 mt-0.5" />
+                            <span>
+                                You keep full access
+                                {paidUntilLabel ? <> until <span className="font-black">{paidUntilLabel}</span></> : ' until the end of your current paid period'}.
+                                Nothing is lost today and no refund is needed — you already paid for this time.
+                            </span>
+                        </p>
+                    </div>
+
+                    <ul className="space-y-2 mb-6 text-xs font-bold text-slate-400">
+                        <li className="flex items-start gap-2">
+                            <XCircle size={13} className="shrink-0 mt-0.5 text-slate-600" />
+                            No further payments will be taken.
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <XCircle size={13} className="shrink-0 mt-0.5 text-slate-600" />
+                            After that date your store moves to View-Only — your data stays intact,
+                            but sales and edits are locked until you subscribe again.
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <RefreshCw size={13} className="shrink-0 mt-0.5 text-slate-600" />
+                            You can resume any time before that date, with no new card details.
+                        </li>
+                    </ul>
+
+                    <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-3">
+                        <button
+                            onClick={() => setCancelOpen(false)}
+                            disabled={cancelBusy}
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] disabled:opacity-50 text-slate-300 font-black text-xs uppercase tracking-wider transition-all"
+                        >
+                            Keep my subscription
+                        </button>
+                        <button
+                            onClick={submitCancelSubscription}
+                            disabled={cancelBusy}
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 disabled:opacity-60 disabled:cursor-wait text-white font-black text-xs uppercase tracking-wider transition-all"
+                        >
+                            {cancelBusy ? 'Cancelling…' : 'Yes, cancel it'}
+                        </button>
+                    </div>
+                </div>
             </Modal>
         </OneGlanceLayout>
     );
