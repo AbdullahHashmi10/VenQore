@@ -10,6 +10,9 @@ import {
     BadgeCheck, ScanFace
 } from 'lucide-react';
 
+// ── PKR MASTER SWITCH (see Pricing.jsx) — OFF for USD-only launch ──────
+const PKR_ENABLED = false;
+
 // --- Plan metadata (display-only) -------------------------------------------
 const PLAN_META = {
     starter:  { label: 'Starter Engine',  price: '$36/mo',  color: '#6366f1', Icon: Shield },
@@ -111,7 +114,7 @@ function UsageMeter({ icon: Icon, label, used, limit, color }) {
 // --- Plan Card ----------------------------------------------------------------
 function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectPlan, plans, billingCycle = 'monthly', currencyDisplay = 'USD' }) {
     const { geo = { country: 'US', currency: 'USD', symbol: '$' } } = usePage().props;
-    const isPK = geo.currency === 'PKR';
+    const isPK = PKR_ENABLED && geo.currency === 'PKR';
     const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
         const usdVal = parseFloat(usdAmount) || 0;
         const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
@@ -180,7 +183,12 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
     const currentIdx = planOrder.indexOf(tenant?.plan ?? 'starter');
     const thisIdx    = planOrder.indexOf(planKey);
 
-    const upgradeUrl = route('store.billing.upgrade', { store_slug: storeSlug, plan: planKey }) + `?cycle=${isAnnual ? 'annual' : 'monthly'}&currency=${currencyDisplay}`;
+    const upgradeUrl = route('store.billing.upgrade', { 
+        store_slug: storeSlug, 
+        plan: planKey, 
+        cycle: isAnnual ? 'annual' : 'monthly', 
+        currency: currencyDisplay 
+    });
 
     return (
         <div 
@@ -281,7 +289,7 @@ function PlanCard({ planKey, planConfig, isCurrent, storeSlug, tenant, onSelectP
 export default function BillingIndex({ tenant, plans, usage, feature_status, country, pk_verification }) {
     const { store } = usePage().props;
     const storeSlug = store?.slug;
-    const isPK = country === 'PK' && pk_verification?.status === 'approved';
+    const isPK = PKR_ENABLED && country === 'PK' && pk_verification?.status === 'approved';
     const fmt = (usdAmount, pkrAmount = null, suffix = '') => {
         const usdVal = parseFloat(usdAmount) || 0;
         const pkrVal = pkrAmount !== null ? parseFloat(pkrAmount) : Math.round(usdVal * 280);
@@ -646,40 +654,6 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                     </div>
                 )}
 
-                {/* Active Trial Alert Banner */}
-                {isTrial && !isViewOnly && (
-                    <div className="mb-8 p-6 rounded-[2rem] bg-gradient-to-r from-amber-500/80 to-orange-600/90 shadow-xl shadow-amber-500/10 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-white">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20">
-                                    <Zap size={22} className="fill-white" />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-black tracking-tight mb-0.5">Evaluation Period Active</h2>
-                                    <p className="text-white/80 font-bold text-xs uppercase">
-                                        You have <span className="underline decoration-2 underline-offset-2">{trialDaysLeft} days remaining</span> in your free trial.
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={() => window.location.href = route('store.billing.upgrade', { store_slug: storeSlug, plan: currentPlanKey })}
-                                    className="px-6 py-3 bg-white text-orange-600 rounded-xl font-black text-xs uppercase tracking-wider hover:bg-orange-50 transition-all shadow-md active:scale-95 whitespace-nowrap"
-                                >
-                                    Subscribe Now
-                                </button>
-                                <button 
-                                    onClick={handleCancelTrial}
-                                    className="px-4 py-3 bg-transparent hover:bg-white/10 text-white/80 hover:text-white rounded-xl font-bold text-xs transition-colors"
-                                >
-                                    Cancel Trial
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
                 {/* Header Profile Summary */}
                 <div className={`mb-8 p-6 md:p-8 rounded-[2.5rem] border flex flex-col md:flex-row justify-between items-center gap-6 shadow-2xl relative overflow-hidden bg-gradient-to-b from-white/[0.03] to-[#040113] border-white/[0.06]`}>
                     <div className="flex items-center gap-5 relative z-10">
@@ -690,13 +664,34 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                             <div className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Active Plan</div>
                             <div className="text-2xl font-black text-white">{currentMeta.label}</div>
                             <div className="text-xs font-bold text-slate-400 mt-1">
-                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)` : tenant?.status === 'suspended' ? 'Trial Expired / Suspended' : isTrial ? `${trialDaysLeft} days remaining on trial` : isLtd ? 'Lifetime License' : subEndsAt ? `Renews on ${subEndsAt}` : 'Active Subscription'}
+                                {isViewOnly ? `Locked in View-Only (${viewOnlyDaysLeft} days until deletion)` : tenant?.status === 'suspended' ? 'Trial Expired / Suspended' : isTrial ? `You have ${trialDaysLeft} days remaining in your free trial.` : isLtd ? 'Lifetime License' : subEndsAt ? `Renews on ${subEndsAt}` : 'Active Subscription'}
                             </div>
                         </div>
                     </div>
                     
                     <div className="flex flex-col sm:flex-row items-center gap-3 relative z-10">
-                        {!isLtd && !isViewOnly && (
+                        {isTrial && !isViewOnly && (
+                            <>
+                                <button 
+                                    onClick={handleCancelTrial}
+                                    className="px-4 py-3 bg-transparent hover:bg-white/[0.04] text-slate-400 hover:text-white rounded-xl font-bold text-xs transition-colors whitespace-nowrap"
+                                >
+                                    Cancel Trial
+                                </button>
+                                <button 
+                                    onClick={() => window.location.href = route('store.billing.upgrade', { 
+                                        store_slug: storeSlug, 
+                                        plan: currentPlanKey,
+                                        cycle: billingCycle,
+                                        currency: currencyDisplay
+                                    })}
+                                    className="px-5 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg active:scale-95 whitespace-nowrap"
+                                >
+                                    <Zap size={14} className="fill-white" /> Pay Now
+                                </button>
+                            </>
+                        )}
+                        {!isTrial && !isLtd && !isViewOnly && (
                             <button
                                 onClick={handlePortalClick}
                                 className="px-5 py-3 rounded-xl bg-white/[0.03] border border-white/[0.08] hover:bg-white/[0.06] text-slate-300 font-black text-xs uppercase tracking-wider flex items-center gap-2 transition-all"
@@ -763,7 +758,7 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                 {/* TAB CONTENT 1: SUBSCRIPTION & USAGE */}
                 {activeTab === 'subscription' && (
                     <div className="space-y-8 animate-fadeIn">
-                        {country === 'PK' && (
+                        {PKR_ENABLED && country === 'PK' && (
                             <PkVerificationPanel
                                 tenant={tenant}
                                 pk_verification={pk_verification}

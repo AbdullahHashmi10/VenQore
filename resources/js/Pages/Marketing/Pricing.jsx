@@ -93,7 +93,11 @@ const BillingToggle = ({ value, onChange }) => (
 // ── Main Component ─────────────────────────────────────────────────────
 export default function Pricing({ plans = [] }) {
     const { geo = { country: 'US', currency: 'USD', symbol: '$' }, auth } = usePage().props;
-    const isPK = geo.currency === 'PKR';
+    // ── PKR MASTER SWITCH ──────────────────────────────────────────────
+    // Set to true to re-enable all Pakistani PKR pricing UI (banner, toggle,
+    // Rs estimates). Kept OFF for the USD-only launch. Flip to true to restore.
+    const PKR_ENABLED = false;
+    const isPK = PKR_ENABLED && geo.currency === 'PKR';
 
     const [billingType, setBillingType] = useState('subscription_annual');
     const [currencyDisplay, setCurrencyDisplay] = useState(isPK ? 'PKR' : 'USD');

@@ -263,6 +263,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/data-management', [\App\Http\Controllers\DataManagementController::class, 'index'])->name('data');
             Route::post('/data/export',    [\App\Http\Controllers\DataManagementController::class, 'export'])->middleware('permission:data.export')->name('data.export');
             Route::post('/data/import',    [\App\Http\Controllers\DataManagementController::class, 'import'])->name('data.import');
+            Route::post('/data/upload-mapping', [\App\Http\Controllers\ImportMappingController::class, 'uploadForMapping'])->name('data.upload-mapping');
+            Route::post('/data/process-import', [\App\Http\Controllers\ImportMappingController::class, 'processImport'])->name('data.process-import');
+            Route::post('/data/validate-import', [\App\Http\Controllers\ImportMappingController::class, 'validateImport'])->name('data.validate-import');
+            Route::get('/data/template', [\App\Http\Controllers\DataManagementController::class, 'template'])->name('data.template');
             
             // OVERRIDE: Removed. Raw SQL Backup/Restore strictly locked to Platform Admin.
             // Route::get('/backups',             [\App\Http\Controllers\BackupController::class, 'index'])->name('backups');

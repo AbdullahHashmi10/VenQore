@@ -286,6 +286,10 @@ class BillingController extends Controller
 
         $planModel = Plan::where('slug', $targetPlan)->first();
 
+        $isVerified = \App\Models\PkVerification::where('tenant_id', $tenant->id)
+            ->where('status', 'approved')
+            ->exists();
+
         $requestedCurrency = strtoupper($request->get('currency', ''));
         $usePKR = $requestedCurrency === 'PKR' || ($requestedCurrency !== 'USD' && $country === 'PK' && $isVerified);
 
