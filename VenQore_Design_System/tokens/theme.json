@@ -1,0 +1,33 @@
+{
+  "$schema": "https://venqore.com/schemas/theme.v1.json",
+  "name": "VenQore Master Theme",
+  "version": "1.0.0",
+  "author": "VenQore HIG Architecture Team",
+  "tokens": {
+    "color": {
+      "brand": {
+        "primary": { "value": "#D8A24A", "type": "color" },
+        "hover": { "value": "#E5B35C", "type": "color" },
+        "background_tint": { "value": "#2C2213", "type": "color" }
+      },
+      "dark": {
+        "background": { "value": "#090A0C", "type": "color" },
+        "surface_1": { "value": "#101216", "type": "color" },
+        "surface_2": { "value": "#171A21", "type": "color" },
+        "surface_3": { "value": "#20242E", "type": "color" },
+        "text_primary": { "value": "#F3F4F6", "type": "color" },
+        "border_hairline": { "value": "#1F242D", "type": "color" }
+      },
+      "semantic": {
+        "success": { "value": "#10B981", "type": "color" },
+        "error": { "value": "#EF4444", "type": "color" },
+        "warning": { "value": "#F59E0B", "type": "color" },
+        "info": { "value": "#06B6D4", "type": "color" },
+        "offline": { "value": "#38BDF8", "type": "color" }
+      }
+    },
+    "grid": {
+      "base_unit": { "value": "4px", "type": "dimension" }
+    }
+  }
+}

@@ -17,6 +17,11 @@ class SubscriptionLifecycleMiddleware
         if (app()->bound('current.tenant')) {
             $tenant = app('current.tenant');
 
+            // Demo stores are always fully active — never locked into view-only mode.
+            if ($tenant->is_demo) {
+                return $next($request);
+            }
+
             // 2. Check if the store is locked in View-Only mode
             if ($tenant->view_only_since !== null) {
                 

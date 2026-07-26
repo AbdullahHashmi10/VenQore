@@ -92,7 +92,7 @@ Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhoo
 
 // ── Demo Sandbox Routes ───────────────────────────────────────────────
 Route::get('/demo', [\App\Http\Controllers\DemoController::class, 'landing'])->name('demo.landing');
-Route::post('/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
+Route::match(['get', 'post'], '/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
 Route::post('/demo/logout', [\App\Http\Controllers\DemoController::class, 'logout'])->name('demo.logout');
 
 
@@ -784,6 +784,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
 
         Route::name('store.')->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/onboarding/step', function ($store_slug) {
+        return redirect()->route('store.dashboard', ['store_slug' => $store_slug]);
+    });
     Route::post('/onboarding/step', [\App\Http\Controllers\OnboardingController::class, 'updateStep'])->name('onboarding.step');
     Route::get('/home', [\App\Http\Controllers\DashboardController::class, 'home'])->name('home');
     Route::get('/dashboard-v1', [\App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard-v1');

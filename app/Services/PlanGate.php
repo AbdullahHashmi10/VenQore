@@ -29,7 +29,11 @@ class PlanGate
      */
     public static function check(string $feature, ?int $currentCount = null): bool
     {
-        $tenant = app('current.tenant');
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        if ($tenant?->is_demo) {
+            return true;
+        }
+
         $limit  = $tenant->getLimit($feature);
 
         // null = unlimited — always allowed

@@ -68,6 +68,24 @@ class TenantMiddleware
 
         $tenant = $membership->tenant;
 
+        // ── Demo stores skip all plan/subscription/usage enforcement ─────────
+        // The demo is always fully active — we never lock it into view-only mode,
+        // expire it as trial, or compute usage counters against a plan.
+        if ($tenant->is_demo) {
+            $limitStatus = [
+                'is_over_limit'    => false,
+                'exceeded_feature' => null,
+                'current_count'    => 0,
+                'limit'            => null,
+                'grace_ends_at'    => null,
+            ];
+            app()->instance('current.tenant',     $tenant);
+            app()->instance('current.membership', $membership);
+            $request->route()->forgetParameter('store_slug');
+            // Skip straight to sharing store data (no limit/subscription checks).
+            goto share_store_data;
+        }
+
         // ── View-Only Lock: two independent reasons, one shared column ───────
         // view_only_since is a single column but two unrelated conditions can
         // each independently demand the tenant be locked:
@@ -177,6 +195,8 @@ class TenantMiddleware
             return redirect()->route('store.setup', ['store_slug' => $storeSlug]);
         }
 
+        share_store_data:
+
         // ── Update last_store_id (deferred — zero latency) ─────────────────
         if ($user->last_store_id !== $tenant->id) {
             // Regenerate session ID to prevent cross-tenant session fixation
@@ -260,8 +280,9 @@ class TenantMiddleware
 
             // ── Plan Usage Banner (GAP 7 — AppSumo LTD) ──────────────────
             // Lazy closure: only runs when Inertia serializes the response.
-            // Returns null for unlimited plans (null limit) — no query runs.
+            // Returns null for demo or unlimited plans — no query runs.
             'plan_usage' => function () use ($tenant) {
+                if ($tenant->is_demo) return null; // demo is always unlimited
                 $limit = $tenant->getLimit('transactions_per_month');
                 if ($limit === null) return null; // unlimited plan — no banner shown
 

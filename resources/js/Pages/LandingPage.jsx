@@ -1004,7 +1004,7 @@ export default function LandingPage() {
     const { props } = usePage();
     const settings = props.settings || {};
     const appName = settings.app_name || 'VenQore';
-    const logo = settings.logo_url || '/images/logo.png';
+    const logo = settings.logo_url || '/images/logo-32x32.png';
 
     const [scrolled, setScrolled] = useState(false);
     const [heroLoaded, setHeroLoaded] = useState(false);
@@ -1133,16 +1133,15 @@ export default function LandingPage() {
 
                             <h1 className="mb-8 leading-[0.86]" style={{ fontFamily: "'Space Grotesk',sans-serif" }}>
                                 <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter text-white hero-rise">
-                                    The Books Are
+                                    You Run the Store.
                                 </span>
                                 <span className="block text-[2.75rem] xs:text-[3.25rem] sm:text-7xl lg:text-[8.5rem] font-black tracking-tighter -mt-1 md:-mt-4 hero-rise-d">
-                                    <span className="vq-headline-grad vq-text-glow">Always Right.</span>
+                                    <span className="vq-headline-grad vq-text-glow">We'll Handle the Numbers.</span>
                                 </span>
                             </h1>
 
                             <p className="text-lg md:text-2xl text-slate-400 max-w-3xl mx-auto leading-relaxed mb-10 font-medium hero-fade">
-                                The all-in-one POS &amp; ERP where every sale, purchase and transfer writes a correct, balanced journal entry —{' '}
-                                <span className="text-white font-semibold">without an accountant in the room.</span>
+                                Ring up sales, track stock, and see exact profits in real time, all without touching a spreadsheet or opening a ledger.
                             </p>
 
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-5 hero-fade-2">

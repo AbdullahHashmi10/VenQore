@@ -769,11 +769,12 @@ class UpdaterController extends Controller
         try {
             $demoTenant = \App\Services\DemoStoreService::goldenMaster(createIfMissing: false);
             $needsRestore = !$demoTenant
+                || $pendingCount > 0
                 || !\Illuminate\Support\Facades\Schema::hasTable('sales')
                 || !DB::table('sales')->where('tenant_id', $demoTenant->id)->exists();
 
             if ($needsRestore) {
-                Log::info('Updater: Golden Master demo tenant missing or empty, running demo:restore...');
+                Log::info('Updater: Golden Master demo tenant missing, empty, or schema updated. Running demo:restore...');
                 $exitCode = Artisan::call('demo:restore', ['--force' => true]);
                 Log::info('Updater: demo:restore output: ' . Artisan::output());
 
@@ -783,7 +784,24 @@ class UpdaterController extends Controller
                     : ['ok' => false, 'issues' => ['No Golden Master tenant resolved after restore.']];
 
                 if ($exitCode !== 0 || !$health['ok']) {
-                    $demoWarning = 'Demo store restore ran but did not produce a healthy store: '
+                    Log::warning('Updater: demo:restore failed or unhealthy. Falling back to demo:full-deploy...');
+                    $exitCode = Artisan::call('demo:full-deploy');
+                    Log::info('Updater: demo:full-deploy output: ' . Artisan::output());
+
+                    // Re-take snapshot so server has updated golden master snapshot matching new schema
+                    try {
+                        Artisan::call('demo:snapshot');
+                    } catch (\Exception $e) {
+                        Log::warning('Updater: demo:snapshot failed: ' . $e->getMessage());
+                    }
+
+                    $health = $demoTenant
+                        ? \App\Services\DemoStoreService::healthCheck($demoTenant->id)
+                        : ['ok' => false, 'issues' => ['No Golden Master tenant resolved after full deploy.']];
+                }
+
+                if (!$health['ok']) {
+                    $demoWarning = 'Demo store restore/deploy ran but did not produce a healthy store: '
                         . implode('; ', $health['issues'] ?: ['demo:restore exited with code ' . $exitCode . '.']);
                     Log::warning('Updater: ' . $demoWarning);
                 }

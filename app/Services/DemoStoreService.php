@@ -55,6 +55,8 @@ class DemoStoreService
             $candidate->update([
                 'is_demo' => true,
                 'is_golden_master' => true,
+                'onboarding_completed' => true,
+                'onboarding_step' => 'completed',
             ]);
             return $candidate->fresh();
         }
@@ -71,15 +73,17 @@ class DemoStoreService
         // Run `php artisan demo:cleanup-duplicates` first — it operates
         // withTrashed() and will resolve this.
         return Tenant::create([
-            'name'             => 'VenQore Demo Store',
-            'slug'             => self::DEFAULT_SLUG,
-            'plan'             => 'business',
-            'status'           => 'active',
-            'currency_symbol'  => '$',
-            'currency_code'    => 'USD',
-            'setup_completed'  => true,
-            'is_demo'          => true,
-            'is_golden_master' => true,
+            'name'                 => 'VenQore Demo Store',
+            'slug'                 => self::DEFAULT_SLUG,
+            'plan'                 => 'business',
+            'status'               => 'active',
+            'currency_symbol'      => '$',
+            'currency_code'        => 'USD',
+            'setup_completed'      => true,
+            'onboarding_completed' => true,
+            'onboarding_step'      => 'completed',
+            'is_demo'              => true,
+            'is_golden_master'     => true,
         ]);
     }
 

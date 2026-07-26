@@ -83,7 +83,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
 
     const { activeInvoices, currentInvoiceId, setCurrentInvoiceId, posSessions, currentPosId, setCurrentPosId, activePurchases, currentPurchaseId, setCurrentPurchaseId } = useWorkspace();
     const { url, props } = usePage();
-    const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled } = props;
+    const { settings, flash, my_role, userRole: userRoleProp, vensynq_enabled, woocommerce_enabled, is_demo } = props;
 
     // Global Toast State
     const [toasts, setToasts] = useState([]);
@@ -643,9 +643,10 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
           route: store ? 'store.admin.recycle-bin.index' : null,
           routeParams: store ? { store_slug: store.slug } : {} },
         
-        { name: 'Subscription',        icon: CreditCard,      subs: [], 
-          route: store ? 'store.billing' : null,         
-          routeParams: store ? { store_slug: store.slug } : {} },
+        // Subscription page is hidden in demo stores — they have no billing
+        ...(!is_demo ? [{ name: 'Subscription', icon: CreditCard, subs: [],
+          route: store ? 'store.billing' : null,
+          routeParams: store ? { store_slug: store.slug } : {} }] : []),
 
         { name: 'Agent Inbox',         icon: MessageSquare,   subs: [], 
           route: store ? 'store.admin.chatbot.inbox' : null,
@@ -1176,9 +1177,9 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                     {/* Limit Grace Countdown Banner */}
                     <LimitGraceBanner />
 
-                    {/* Subscription/Trial Banner */}
+                    {/* Subscription/Trial Banner — hidden for demo stores */}
                     {(() => {
-                        if (!store) return null;
+                        if (!store || is_demo) return null;
                         
                         let daysLeft = null;
                         let isTrial = store.status === 'trial';
@@ -1278,7 +1279,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
  
                             {/* CENTER SECTION */}
                             <div className="flex-none">
-                                {isTrial && (
+                                {isTrial && !is_demo && (
                                     <Link
                                         href={route('store.billing', { store_slug: store?.slug })}
                                         className="hidden sm:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 hover:border-amber-500/40 transition-all group shadow-sm shadow-amber-500/5"

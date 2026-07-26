@@ -5,6 +5,7 @@ import { AlertTriangle, ArrowRight, Clock } from 'lucide-react';
 export default function LimitGraceBanner() {
     const { props } = usePage();
     const limitGraceStatus = props.limit_grace_status;
+    const is_demo = props.is_demo;
 
     const [timeLeftStr, setTimeLeftStr] = useState('');
 
@@ -37,7 +38,7 @@ export default function LimitGraceBanner() {
         return () => clearInterval(interval);
     }, [limitGraceStatus?.grace_ends_at]);
 
-    if (!limitGraceStatus?.is_over_limit || !limitGraceStatus?.grace_ends_at) return null;
+    if (is_demo || !limitGraceStatus?.is_over_limit || !limitGraceStatus?.grace_ends_at) return null;
 
     const exceededFeature = limitGraceStatus.exceeded_feature;
     const current = limitGraceStatus.current_count;

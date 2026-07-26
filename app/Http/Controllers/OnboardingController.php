@@ -42,8 +42,9 @@ class OnboardingController extends Controller
                 }
             }
 
-            if ($request->step === 'completed') {
+            if ($request->step === 'completed' || $request->step === 'skipped' || $tenant->is_demo) {
                 $tenant->onboarding_completed = true;
+                $tenant->onboarding_step = 'completed';
             }
             $tenant->save();
 

@@ -101,6 +101,11 @@ return Application::configure(basePath: dirname(__DIR__))
             } catch (\Throwable) {
                 // Never let the logger crash the app
             }
+
+            // CRITICAL FIX: In Laravel 11, a custom report closure MUST return false
+            // if you want the exception to STILL be logged to the default logger (laravel.log).
+            // Without this, Laravel assumes this closure completely handled the reporting.
+            return false;
         });
 
         // ── L020 / L040: Error monitoring / APM (Sentry) ─────────────────────

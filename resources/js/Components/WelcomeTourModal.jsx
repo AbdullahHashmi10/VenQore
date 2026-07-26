@@ -8,8 +8,26 @@ export default function WelcomeTourModal({ store }) {
         return store?.onboarding_step || 'welcome';
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(false);
     const [coords, setCoords] = useState(null);
     const [isMobile, setIsMobile] = useState(false);
+
+    const handleSkipAll = () => {
+        setIsDismissed(true);
+        try {
+            router.post(
+                route('store.onboarding.step', { store_slug: store?.slug }),
+                { step: 'skipped' },
+                {
+                    preserveScroll: true,
+                    onError: () => {},
+                    onFinish: () => setIsSubmitting(false),
+                }
+            );
+        } catch (e) {
+            // Safe fallback if route or request fails
+        }
+    };
 
     const renderPortal = (content) => {
         if (typeof document === 'undefined') return null;
@@ -259,7 +277,7 @@ export default function WelcomeTourModal({ store }) {
         'purchase_tour_sidebar'
     ];
 
-    if (!activeSteps.includes(currentStep) || store?.onboarding_completed) {
+    if (!activeSteps.includes(currentStep) || store?.onboarding_completed || store?.is_demo || isDismissed) {
         return null;
     }
 
@@ -276,7 +294,7 @@ export default function WelcomeTourModal({ store }) {
                         <div className="absolute -bottom-12 -right-12 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
                         <button
-                            onClick={() => handleUpdateStep('skipped')}
+                            onClick={handleSkipAll}
                             disabled={isSubmitting}
                             className="absolute top-5 right-5 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 p-2 rounded-full transition-all duration-200 z-10"
                             title="Skip Tour"
@@ -312,7 +330,7 @@ export default function WelcomeTourModal({ store }) {
                                 </button>
 
                                 <button
-                                    onClick={() => handleUpdateStep('skipped')}
+                                    onClick={handleSkipAll}
                                     disabled={isSubmitting}
                                     className="py-3 px-5 bg-slate-800/80 hover:bg-slate-800 text-slate-300 hover:text-white font-bold rounded-xl border border-slate-700/60 transition-all duration-200"
                                 >

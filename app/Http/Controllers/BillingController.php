@@ -37,6 +37,12 @@ class BillingController extends Controller
 
         $tenant = app('current.tenant');
 
+        // Demo stores have no billing — redirect to dashboard with explanation
+        if ($tenant->is_demo) {
+            return redirect()->route('store.dashboard', ['store_slug' => $tenant->slug])
+                ->with('info', 'Billing is not available in the demo store. Start your free trial to manage your subscription.');
+        }
+
         // Live usage counts — compared against plan limits in the UI
         $staffCount    = \App\Models\TenantUser::where('tenant_id', $tenant->id)
             ->where('status', 'active')

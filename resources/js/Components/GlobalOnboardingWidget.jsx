@@ -205,8 +205,8 @@ export default function GlobalOnboardingWidget({ store }) {
         return false;
     };
 
-    // If onboarding is marked as completed in DB, don't show the widget
-    if (store?.onboarding_completed || step === 'completed') {
+    // If onboarding is marked as completed in DB or is demo store, don't show the widget
+    if (store?.onboarding_completed || store?.is_demo || step === 'completed') {
         return null;
     }
 

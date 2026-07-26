@@ -8,6 +8,13 @@ import { searchRegistry, getCategoryLabel, getCategoryColor, CATEGORIES } from '
 import SmartCapturePanel from './SmartCapturePanel';
 
 /**
+ * ─── AI Feature Flag ──────────────────────────────────────────────────────────
+ * Set to true to re-enable Ask AI, Quick AI Prompts, and SmartCapture (Camera/Mic).
+ * Requires a rebuild after toggling.
+ */
+const AI_FEATURES_ENABLED = false;
+
+/**
  * OmniSearch - Universal Command Palette
  * 
  * Features:
@@ -125,7 +132,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
     // Keyboard navigation
     const handleKeyDown = (e) => {
-        const totalItems = results.length + dbResults.length + (query.length > 2 ? 1 : 0); // +1 for AI button
+        const totalItems = results.length + dbResults.length + (AI_FEATURES_ENABLED && query.length > 2 ? 1 : 0); // +1 for AI button
 
         if (e.key === 'ArrowDown') {
             e.preventDefault();
@@ -140,16 +147,15 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
     };
 
     const handleSelect = (index) => {
-        // AI button is always first if query > 2
-        const aiButtonIndex = query.length > 2 ? 0 : -1;
+        // AI button is always first if query > 2 and AI is enabled
+        const aiButtonIndex = AI_FEATURES_ENABLED && query.length > 2 ? 0 : -1;
 
         if (index === aiButtonIndex && query.length > 2) {
-            // Trigger AI
             handleAskAi();
             return;
         }
 
-        const adjustedIndex = query.length > 2 ? index - 1 : index;
+        const adjustedIndex = AI_FEATURES_ENABLED && query.length > 2 ? index - 1 : index;
 
         // Check app results first
         if (adjustedIndex < results.length) {
@@ -230,7 +236,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                     autoComplete="off"
                 />
 
-                {canUseSmartCapture && (
+                {AI_FEATURES_ENABLED && canUseSmartCapture && (
                     <div className="flex items-center gap-1 shrink-0">
                         <button
                             type="button"
@@ -278,8 +284,8 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
                     {/* Results Container */}
                     <div className="overflow-y-auto custom-scrollbar">
-                        {/* AI Button - Always at top when query > 2 */}
-                        {query.length > 2 && (
+                        {/* AI Button - Always at top when query > 2 and AI enabled */}
+                        {AI_FEATURES_ENABLED && query.length > 2 && (
                             <div className="p-2 border-b border-slate-100 dark:border-slate-800/50">
                                 <button
                                     onClick={handleAskAi}
@@ -313,7 +319,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                     Navigation
                                 </div>
                                 {results.map((item, idx) => {
-                                    const actualIndex = (query.length > 2 ? 1 : 0) + idx;
+                                    const actualIndex = (AI_FEATURES_ENABLED && query.length > 2 ? 1 : 0) + idx;
                                     return (
                                         <button
                                             key={item.id}
@@ -351,7 +357,7 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                     {isSearchingDb && <Loader2 size={10} className="animate-spin" />}
                                 </div>
                                 {dbResults.map((item, idx) => {
-                                    const actualIndex = (query.length > 2 ? 1 : 0) + results.length + idx;
+                                    const actualIndex = (AI_FEATURES_ENABLED && query.length > 2 ? 1 : 0) + results.length + idx;
                                     return (
                                         <Link
                                             key={idx}
@@ -419,26 +425,28 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
                                         </button>
                                     ))}
                                 </div>
-                                <div className="mt-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-500/10">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Sparkles size={12} className="text-indigo-500 dark:text-indigo-400" />
-                                        <span className="text-xs font-bold text-indigo-600 dark:text-indigo-300">Quick AI Prompts</span>
+                                {AI_FEATURES_ENABLED && (
+                                    <div className="mt-3 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl border border-indigo-100 dark:border-indigo-500/10">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <Sparkles size={12} className="text-indigo-500 dark:text-indigo-400" />
+                                            <span className="text-xs font-bold text-indigo-600 dark:text-indigo-300">Quick AI Prompts</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                            {[
+                                                "How much profit did we make this week?",
+                                                "What's our best selling product?",
+                                            ].map((suggestion, idx) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => { setQuery(suggestion); inputRef.current?.focus(); }}
+                                                    className="block w-full text-left text-xs text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-300 transition-colors py-1 truncate"
+                                                >
+                                                    "{suggestion}"
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                    <div className="space-y-1">
-                                        {[
-                                            "How much profit did we make this week?",
-                                            "What's our best selling product?",
-                                        ].map((suggestion, idx) => (
-                                            <button
-                                                key={idx}
-                                                onClick={() => { setQuery(suggestion); inputRef.current?.focus(); }}
-                                                className="block w-full text-left text-xs text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-300 transition-colors py-1 truncate"
-                                            >
-                                                "{suggestion}"
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
+                                )}
                             </div>
                         )}
                     </div>

@@ -108,6 +108,7 @@ class DemoRestore extends Command
                 if (empty($snapshot['data'][$table]) || !Schema::hasTable($table)) {
                     continue;
                 }
+                $validColumns = array_flip(Schema::getColumnListing($table));
                 foreach (array_chunk($snapshot['data'][$table], 500) as $chunk) {
                     $rows = [];
                     foreach ($chunk as $row) {
@@ -121,7 +122,9 @@ class DemoRestore extends Command
                                 }
                             }
                         }
-                        $rows[] = $row;
+                        // Filter out columns that do not exist in current database schema
+                        $filteredRow = array_intersect_key($row, $validColumns);
+                        $rows[] = $filteredRow;
                     }
                     try {
                         DB::table($table)->insert($rows);

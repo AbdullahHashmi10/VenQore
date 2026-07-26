@@ -85,6 +85,7 @@ class DemoController extends Controller
         $request->session()->regenerate();
 
         // Track the visit — persistent log + live counter
+        $demoTenant->update(['onboarding_completed' => true, 'onboarding_step' => 'completed']);
         $demoTenant->increment('demo_visit_count');
         $demoTenant->increment('demo_visit_today');
         Cache::increment('demo_visit_live');

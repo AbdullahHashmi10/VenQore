@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VenQore Design Language · Edition 1.3</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .hig-page {
+      max-width: 1040px;
+      margin: 60px auto 100px auto;
+      padding: 0 32px;
+    }
+    .edition-tag {
+      font-family: var(--vq-font-mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--vq-quarry-400);
+      margin-bottom: 24px;
+    }
+    .hig-title {
+      font-family: var(--vq-font-serif);
+      font-size: 64px;
+      line-height: 1.06;
+      font-weight: 300;
+      color: var(--vq-quarry-900);
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .hig-subtitle {
+      font-family: var(--vq-font-serif);
+      font-size: 24px;
+      line-height: 1.35;
+      font-weight: 400;
+      color: var(--vq-quarry-700);
+      max-width: 620px;
+      margin-bottom: 48px;
+    }
+
+    /* 4-Column Spec Card Grid */
+    .hig-spec-card {
+      background: #FFFFFF;
+      border: 1px solid var(--vq-quarry-100);
+      border-radius: var(--vq-radius-l);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      margin-bottom: 40px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .spec-col {
+      padding: 24px;
+      border-right: 1px solid var(--vq-quarry-100);
+    }
+    .spec-col:last-child {
+      border-right: none;
+    }
+    .spec-lbl {
+      font-family: var(--vq-font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: var(--vq-quarry-400);
+      margin-bottom: 12px;
+    }
+    .spec-val {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--vq-quarry-900);
+      font-weight: 500;
+    }
+    .spec-val a {
+      color: var(--vq-cypress-700);
+      text-decoration: underline;
+    }
+
+    .hig-normative-text {
+      font-size: 14px;
+      line-height: 1.65;
+      color: var(--vq-quarry-700);
+      max-width: 840px;
+      margin-bottom: 60px;
+    }
+    .hig-normative-text strong {
+      color: var(--vq-quarry-900);
+    }
+
+    .hig-divider {
+      height: 1px;
+      background: var(--vq-quarry-100);
+      margin: 60px 0;
+    }
+
+    .hig-sec-h2 {
+      font-family: var(--vq-font-serif);
+      font-size: 32px;
+      font-weight: 400;
+      color: var(--vq-quarry-900);
+      margin-bottom: 16px;
+    }
+    .hig-sec-p {
+      font-size: 15px;
+      color: var(--vq-quarry-700);
+      max-width: 760px;
+      margin-bottom: 32px;
+      line-height: 1.6;
+    }
+
+    /* Color Table */
+    .color-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #FFFFFF;
+      border: 1px solid var(--vq-quarry-100);
+      border-radius: var(--vq-radius-l);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .color-table th {
+      background: var(--vq-quarry-50);
+      padding: 10px 16px;
+      font-family: var(--vq-font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--vq-quarry-400);
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      text-align: left;
+    }
+    .color-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      font-size: 13px;
+    }
+
+    /* Principles Table */
+    .principles-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #FFFFFF;
+      border: 1px solid var(--vq-quarry-100);
+      border-radius: var(--vq-radius-l);
+      overflow: hidden;
+      margin-bottom: 40px;
+    }
+    .principles-table th {
+      background: var(--vq-quarry-50);
+      padding: 12px 18px;
+      font-family: var(--vq-font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--vq-quarry-400);
+      text-transform: uppercase;
+      letter-spacing: 0.10em;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      text-align: left;
+    }
+    .principles-table td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HIG Navigation Switcher -->
+  <div class="vq-demo-nav-bar">
+    <div class="vq-demo-brand">VENQORE · EDITION 1.3</div>
+    <div class="vq-demo-links">
+      <a href="index.html" class="active">01. HIG SPEC</a>
+      <a href="dashboard.html">02. DASHBOARD</a>
+      <a href="list.html">03. RECORD GRID</a>
+      <a href="portfolio.html">04. WITTIG PORTFOLIO</a>
+    </div>
+  </div>
+
+  <main class="hig-page">
+    <div class="edition-tag">HUMAN INTERFACE GUIDELINES · EDITION 1.3</div>
+    
+    <h1 class="hig-title">VenQore Design Language</h1>
+    
+    <p class="hig-subtitle">
+      A quiet operating system for the business of running a business.
+    </p>
+
+    <!-- 4-Column Spec Matrix -->
+    <div class="hig-spec-card">
+      <div class="spec-col">
+        <div class="spec-lbl">CATEGORY</div>
+        <div class="spec-val">
+          Offline-first retail operating system — POS, inventory, manufacturing, accounting, BI.
+        </div>
+      </div>
+      <div class="spec-col">
+        <div class="spec-lbl">PRIMARY USER</div>
+        <div class="spec-val">
+          A 54-year-old shop owner at 9:40pm reconciling the till. Not a power user. Not patient.
+        </div>
+      </div>
+      <div class="spec-col">
+        <div class="spec-lbl">DESIGN MANDATE</div>
+        <div class="spec-val">
+          Survive fifteen years without a redesign. Reduce cognitive load before adding beauty.
+        </div>
+      </div>
+      <div class="spec-col">
+        <div class="spec-lbl">STATUS</div>
+        <div class="spec-val">
+          v1.3 — three internal critique passes applied. See <a href="#critique">Critique & Iterations</a>.
+        </div>
+      </div>
+    </div>
+
+    <!-- Normative Rule Paragraph -->
+    <p class="hig-normative-text">
+      This document is normative. Where it uses <strong>must</strong>, deviation is a bug. Where it uses <em>prefer</em>, deviation requires a written reason in the pull request. Tokens are the only legal way to reference a color, a radius, a duration, or a shadow — literal values in product code are rejected in review.
+    </p>
+
+    <div class="hig-divider"></div>
+
+    <!-- Section 01: Brand Philosophy -->
+    <section>
+      <h2 class="hig-sec-h2">Section 01 · Brand Philosophy</h2>
+      <p class="hig-sec-p">
+        VenQore's brand is not a logo or a color. It is the feeling of a shopkeeper closing the till at 9pm and knowing the numbers are right. Every visual decision serves that single emotional outcome: <strong>your business is under control</strong> — communicated without ever saying it.
+      </p>
+
+      <table class="principles-table">
+        <thead>
+          <tr>
+            <th>PRINCIPLE</th>
+            <th>MEANING IN PRACTICE</th>
+            <th>ACCEPTANCE TEST</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="font-weight: 600;">Numbers first</td>
+            <td>Figures get the strongest typographic treatment on any screen. Decoration never outranks data.</td>
+            <td style="font-family: var(--vq-font-mono); font-size: 11px;">Squint: do you see the number?</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600;">Legible at arm's length</td>
+            <td>Counter staff read a 24" monitor from a metre away, standing, in fluorescent light.</td>
+            <td style="font-family: var(--vq-font-mono); font-size: 11px;">Readable at 70% zoom out?</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600;">Truthful state</td>
+            <td>Offline, syncing, stale, draft, posted, locked — always visible, never inferred.</td>
+            <td style="font-family: var(--vq-font-mono); font-size: 11px;">Can the user be surprised?</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600;">Reversible by default</td>
+            <td>Undo beats confirmation dialogs. Confirmation is reserved for money leaving the business.</td>
+            <td style="font-family: var(--vq-font-mono); font-size: 11px;">Count the modals: fewer?</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600;">Keyboard is the fast path</td>
+            <td>Every repeated operation has a shortcut; the mouse is the fallback, not the design target.</td>
+            <td style="font-family: var(--vq-font-mono); font-size: 11px;">Full sale, no mouse?</td>
+          </tr>
+          <tr>
+            <td style="font-weight: 600;">Age gracefully</td>
+            <td>No effect that dates the product: no gradient meshes, glass stacks, neon glows, or 2020s illustration.</td>
+            <td style="font-family: var(--vq-font-mono); font-size: 11px;">Plausible in 2010 and 2040?</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="hig-divider"></div>
+
+    <!-- Section 02: Signature Color System -->
+    <section>
+      <h2 class="hig-sec-h2">Section 02 · Signature Color System</h2>
+      <p class="hig-sec-p">
+        Three families, no more. <strong>Quarry</strong> — mineral neutrals that carry 92% of every screen. <strong>Cypress (#114A42)</strong> — one deep green for primary action and brand. <strong>Brass (#8A6A1E)</strong> — one metallic secondary for intelligence, value and attention.
+      </p>
+
+      <table class="color-table">
+        <thead>
+          <tr>
+            <th>FAMILY</th>
+            <th>HEX</th>
+            <th>CSS VAR</th>
+            <th>USAGE RULE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color: var(--vq-cypress-700);">Cypress 700</strong></td>
+            <td style="font-family: var(--vq-font-mono);">#114A42</td>
+            <td style="font-family: var(--vq-font-mono);">--vq-cypress-700</td>
+            <td>The only fill permitted on a primary button in light theme.</td>
+          </tr>
+          <tr>
+            <td><strong style="color: var(--vq-brass-500);">Brass 500</strong></td>
+            <td style="font-family: var(--vq-font-mono);">#8A6A1E</td>
+            <td style="font-family: var(--vq-font-mono);">--vq-brass-500</td>
+            <td>AI suggestions & insights. Used at most twice per screen.</td>
+          </tr>
+          <tr>
+            <td><strong>Quarry 0 (Paper)</strong></td>
+            <td style="font-family: var(--vq-font-mono);">#FAF9F6</td>
+            <td style="font-family: var(--vq-font-mono);">--vq-quarry-0</td>
+            <td>Light theme paper ground. Stone warmth that reads as paper, not beige.</td>
+          </tr>
+          <tr>
+            <td><strong>Quarry 950 (Dark Ground)</strong></td>
+            <td style="font-family: var(--vq-font-mono);">#121210</td>
+            <td style="font-family: var(--vq-font-mono);">--vq-quarry-950</td>
+            <td>Dark theme ground, never pure black to prevent eye halation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="hig-divider"></div>
+
+    <!-- Section 03: Numbers Discipline -->
+    <section>
+      <h2 class="hig-sec-h2">Section 03 · Numbers Discipline</h2>
+      <p class="hig-sec-p">
+        Numbers are the most important typography decision in the product. Figures MUST be set with tabular figures, right aligned, decimal aligned, with two fixed decimals.
+      </p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px;">
+        <div style="background: #FFFFFF; border: 1px solid #059669; border-radius: 8px; padding: 20px;">
+          <div style="font-family: var(--vq-font-mono); font-size: 11px; font-weight: 600; color: #059669; margin-bottom: 12px;">✓ CORRECT (Tabular Monospaced Alignment)</div>
+          <div style="font-family: var(--vq-font-sans); font-size: 16px; line-height: 1.8;" class="tnum">
+            1,240.00<br>
+            18,905.50<br>
+            -2,110.75<br>
+            <div style="border-top: 1px solid var(--vq-quarry-100); font-weight: 600; padding-top: 4px;">18,034.75</div>
+          </div>
+        </div>
+
+        <div style="background: #FFFFFF; border: 1px solid #DC2626; border-radius: 8px; padding: 20px;">
+          <div style="font-family: var(--vq-font-mono); font-size: 11px; font-weight: 600; color: #DC2626; margin-bottom: 12px;">✕ FORBIDDEN (Proportional Figures & Decimal Jitter)</div>
+          <div style="font-family: var(--vq-font-sans); font-size: 16px; line-height: 1.8; text-align: left;">
+            1240<br>
+            18,905.5<br>
+            (2110.75)<br>
+            <div style="border-top: 1px solid var(--vq-quarry-100); font-weight: 600; padding-top: 4px;">18034.75</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="hig-divider"></div>
+
+    <!-- Section 04: Interactive Application Blueprints -->
+    <section id="critique">
+      <h2 class="hig-sec-h2">Section 04 · Interactive Application Surfaces</h2>
+      <p class="hig-sec-p">
+        VenQore operates across three core surfaces built to Edition 1.3 specifications. Click below to launch the live interactive console environments:
+      </p>
+
+      <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+        <a href="dashboard.html" class="vq-btn vq-btn-primary">Launch Operational Dashboard →</a>
+        <a href="list.html" class="vq-btn" style="border: 1px solid var(--vq-quarry-200);">Inspect 12,480 Record Table →</a>
+        <a href="portfolio.html" class="vq-btn vq-btn-brass">View Wittig Portfolio Paradigm →</a>
+      </div>
+    </section>
+  </main>
+
+</body>
+</html>

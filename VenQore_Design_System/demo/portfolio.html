@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sebastian Wittig Paradigm — Editorial Design Architecture</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-page: #0D0F11;
+      --surface-card: #15181C;
+      --text-main: #EAECEE;
+      --text-muted: #848D96;
+      --border-hairline: #23272E;
+      --accent-glow: #C59B27;
+    }
+
+    body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      letter-spacing: -0.011em;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .font-mono-data {
+      font-family: 'JetBrains Mono', monospace;
+      font-feature-settings: "tnum" on, "zero" on;
+    }
+
+    /* Custom Hairline Dividers */
+    .border-hairline {
+      border-color: var(--border-hairline);
+    }
+  </style>
+</head>
+<body class="min-h-screen selection:bg-amber-500/20 selection:text-amber-300">
+
+  <!-- HIG Demo Navigation Bar -->
+  <div class="bg-[#121210] border-b border-[#2C2B27] px-8 py-2.5 flex items-center justify-between font-mono-data text-xs sticky top-0 z-50 text-[#F4F3EF]">
+    <div class="flex items-center gap-2 font-semibold tracking-wider text-[#74A79D]">
+      VENQORE HIG ARCHITECTURE
+    </div>
+    <div class="flex gap-5 text-[#9C9B93]">
+      <a href="index.html" class="hover:text-white">01. HIG SPEC</a>
+      <a href="dashboard.html" class="hover:text-white">02. DASHBOARD</a>
+      <a href="list.html" class="hover:text-white">03. RECORD GRID</a>
+      <a href="portfolio.html" class="text-[#74A79D] font-semibold border-b border-[#74A79D] pb-0.5">04. WITTIG PORTFOLIO</a>
+      <a href="main_app_landing_preview.html" class="hover:text-white">05. MAIN APP LANDING</a>
+    </div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-6 py-16">
+    
+    <!-- HEADER & NAVIGATION -->
+    <header class="flex justify-between items-center pb-8 border-b border-[#23272E]">
+      <div class="flex items-center gap-3">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="font-mono-data text-xs text-[#848D96] uppercase tracking-wider">AVAILABLE FOR SELECT ENTERPRISE PROJECTS</span>
+      </div>
+      <nav class="flex gap-6 font-mono-data text-xs text-[#848D96]">
+        <a href="#work" class="hover:text-[#EAECEE] transition-colors">01. WORK</a>
+        <a href="#philosophy" class="hover:text-[#EAECEE] transition-colors">02. SYSTEMS</a>
+        <a href="#history" class="hover:text-[#EAECEE] transition-colors">03. HISTORY</a>
+        <a href="#endorsements" class="hover:text-[#EAECEE] transition-colors">04. PROOF</a>
+      </nav>
+    </header>
+
+    <!-- HERO SECTION -->
+    <section class="py-20 border-b border-[#23272E]">
+      <div class="font-mono-data text-xs text-amber-400/90 mb-3 tracking-widest uppercase">
+        // SENIOR UX/UI & PRODUCT ARCHITECT
+      </div>
+      <h1 class="text-4xl md:text-5xl font-medium tracking-tight text-[#EAECEE] max-w-3xl leading-[1.15]">
+        I build enterprise information architectures, tokenized design systems, and rapid AI-driven prototypes.
+      </h1>
+      <p class="mt-5 text-lg md:text-xl text-[#848D96] max-w-2xl font-normal leading-relaxed">
+        Moving from first hypothesis to production-ready code with mathematical precision and zero visual noise.
+      </p>
+      
+      <div class="mt-12 pt-8 border-t border-[#23272E]/60 grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <span class="font-mono-data text-xs text-[#848D96] block mb-2">[01. FOCUS]</span>
+          <p class="text-sm text-[#EAECEE] leading-relaxed">B2B SaaS, Offline-First ERP & Enterprise POS Operating Systems built for 15-year endurance.</p>
+        </div>
+        <div>
+          <span class="font-mono-data text-xs text-[#848D96] block mb-2">[02. METHOD]</span>
+          <p class="text-sm text-[#EAECEE] leading-relaxed">Tokenized design systems built for WCAG AAA compliance, high density, and monospaced data figures.</p>
+        </div>
+        <div>
+          <span class="font-mono-data text-xs text-[#848D96] block mb-2">[03. AGENTIC AI]</span>
+          <p class="text-sm text-[#EAECEE] leading-relaxed">AI-assisted rapid code prototyping to validate interface hypotheses in hours instead of weeks.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CORE PHILOSOPHY & EXPERTISE -->
+    <section id="philosophy" class="py-16 border-b border-[#23272E]">
+      <div class="flex justify-between items-baseline mb-10">
+        <h2 class="font-mono-data text-xs uppercase tracking-widest text-[#848D96]">CORE ARCHITECTURAL PILLARS</h2>
+        <span class="font-mono-data text-xs text-[#848D96]">RESTRAINED EDITORIAL DISCIPLINE</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 divide-y md:divide-y-0 md:divide-x divide-[#23272E]">
+        <div class="md:pr-6 pt-4 md:pt-0">
+          <span class="font-mono-data text-xs text-amber-400 mb-2 block">PILLAR 01</span>
+          <h3 class="text-base font-semibold text-[#EAECEE] mb-2">Design Systems Architecture</h3>
+          <p class="text-sm text-[#848D96] leading-relaxed">
+            Multi-brand token pipelines, WCAG AAA accessibility, and rigid component libraries that scale seamlessly across web and native mobile interfaces.
+          </p>
+        </div>
+        <div class="md:px-6 pt-4 md:pt-0">
+          <span class="font-mono-data text-xs text-amber-400 mb-2 block">PILLAR 02</span>
+          <h3 class="text-base font-semibold text-[#EAECEE] mb-2">Financial & Ledger Architecture</h3>
+          <p class="text-sm text-[#848D96] leading-relaxed">
+            Complex ERP double-entry ledgers, multi-tenant POS systems, and real-time trial balance dashboards designed for zero cashier fatigue.
+          </p>
+        </div>
+        <div class="md:pl-6 pt-4 md:pt-0">
+          <span class="font-mono-data text-xs text-amber-400 mb-2 block">PILLAR 03</span>
+          <h3 class="text-base font-semibold text-[#EAECEE] mb-2">Agentic Prototyping</h3>
+          <p class="text-sm text-[#848D96] leading-relaxed">
+            Leveraging LLM development suites, local code models, and custom React/Tailwind sandboxes to build production-grade UI components.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SELECTED WORK / LEDGER GRID -->
+    <section id="work" class="py-16 border-b border-[#23272E]">
+      <div class="flex justify-between items-baseline mb-10">
+        <h2 class="font-mono-data text-xs uppercase tracking-widest text-[#848D96]">SELECTED SYSTEMS & PRODUCTS</h2>
+        <span class="font-mono-data text-xs text-[#848D96]">2021 – 2026</span>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Project Item 1: VenQore OS -->
+        <div class="p-6 rounded-md bg-[#15181C] border border-[#23272E] hover:border-amber-500/40 transition-all group">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="font-mono-data text-xs text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">VenQore OS</span>
+                <span class="font-mono-data text-xs text-[#848D96]">Enterprise ERP / POS</span>
+                <span class="font-mono-data text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded">OFFLINE-FIRST</span>
+              </div>
+              <h3 class="text-xl font-semibold text-[#EAECEE] group-hover:text-amber-400 transition-colors">
+                Offline-First Retail Operating System
+              </h3>
+              <p class="mt-2 text-sm text-[#848D96] max-w-3xl leading-relaxed">
+                Engineered a unified design system and multi-tenant desktop/mobile interface handling inventory, manufacturing, and cash checkout latency under 10ms.
+              </p>
+            </div>
+            <div class="font-mono-data text-xs text-[#848D96] shrink-0 self-start md:self-center">
+              <span>[ REACT + TAILWIND + SQLITE ]</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project Item 2: Protocol VII -->
+        <div class="p-6 rounded-md bg-[#15181C] border border-[#23272E] hover:border-emerald-500/40 transition-all group">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div class="flex items-center gap-3 mb-2">
+                <span class="font-mono-data text-xs text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">Protocol VII</span>
+                <span class="font-mono-data text-xs text-[#848D96]">SaaS Architecture</span>
+              </div>
+              <h3 class="text-xl font-semibold text-[#EAECEE] group-hover:text-emerald-400 transition-colors">
+                High-Density Task Management & Telemetry
+              </h3>
+              <p class="mt-2 text-sm text-[#848D96] max-w-3xl leading-relaxed">
+                Designed high-density dashboard layouts, progress telemetry, and dark-mode neutral scales engineered specifically for deep work productivity.
+              </p>
+            </div>
+            <div class="font-mono-data text-xs text-[#848D96] shrink-0 self-start md:self-center">
+              <span>[ NODE + REACT + TOKENS ]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAREER HISTORY / TECHNICAL LEDGER GRID -->
+    <section id="history" class="py-16 border-b border-[#23272E]">
+      <div class="flex justify-between items-baseline mb-8">
+        <h2 class="font-mono-data text-xs uppercase tracking-widest text-[#848D96]">CAREER HISTORY & TECHNICAL TIMELINE</h2>
+        <span class="font-mono-data text-xs text-[#848D96]">SYSTEMS LEDGER</span>
+      </div>
+
+      <div class="border border-[#23272E] rounded-md overflow-hidden bg-[#15181C]">
+        <table class="w-full text-left font-mono-data text-xs">
+          <thead class="bg-[#0D0F11] border-b border-[#23272E] text-[#848D96] uppercase">
+            <tr>
+              <th class="p-4">YEAR</th>
+              <th class="p-4">ROLE</th>
+              <th class="p-4">ORGANIZATION</th>
+              <th class="p-4">CORE DELIVERABLES</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#23272E] text-[#EAECEE]">
+            <tr class="hover:bg-[#1C2026] transition-colors">
+              <td class="p-4 text-amber-400 font-semibold">2024–PRES</td>
+              <td class="p-4 font-semibold">Lead Product Architect</td>
+              <td class="p-4 text-[#848D96]">VenQore Systems</td>
+              <td class="p-4 text-[#848D96]">Offline-First ERP, HIG Design System, SQLite Sync Kernel</td>
+            </tr>
+            <tr class="hover:bg-[#1C2026] transition-colors">
+              <td class="p-4 text-[#848D96]">2022–2024</td>
+              <td class="p-4 font-semibold">Senior Design Systems Lead</td>
+              <td class="p-4 text-[#848D96]">Fintech & Commerce</td>
+              <td class="p-4 text-[#848D96]">Token Pipeline, Global Component Library, WCAG AAA Specs</td>
+            </tr>
+            <tr class="hover:bg-[#1C2026] transition-colors">
+              <td class="p-4 text-[#848D96]">2020–2022</td>
+              <td class="p-4 font-semibold">Enterprise UX Engineer</td>
+              <td class="p-4 text-[#848D96]">Retail Infrastructure</td>
+              <td class="p-4 text-[#848D96]">High-Density POS Terminal Interface, Keyboard-First Grids</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ENDORSEMENTS & PROOF -->
+    <section id="endorsements" class="py-16 border-b border-[#23272E]">
+      <div class="font-mono-data text-xs uppercase tracking-widest text-[#848D96] mb-8">
+        ENDORSEMENTS & INSTITUTIONAL PROOF
+      </div>
+      <div class="p-8 rounded-md bg-[#15181C] border border-[#23272E] relative overflow-hidden">
+        <blockquote class="text-xl text-[#EAECEE] leading-relaxed font-normal">
+          "His work strips away visual noise and replaces it with pure operational clarity. He doesn't just deliver mockups; he ships mathematical design systems that developers love to build and cashiers can operate for 12 hours without fatigue."
+        </blockquote>
+        <div class="mt-6 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-[#23272E] flex items-center justify-center font-mono-data text-xs text-amber-400 font-bold border border-amber-500/30">
+            AH
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-[#EAECEE]">Principal Design Director</p>
+            <p class="font-mono-data text-xs text-[#848D96]">Institutional Software & Systems Review</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="pt-12 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-mono-data text-[#848D96]">
+      <div>© 2026 VENQORE ARCHITECTURE · ALL RIGHTS RESERVED</div>
+      <div class="flex gap-6">
+        <a href="index.html" class="hover:text-[#EAECEE]">01. HIG SPEC</a>
+        <a href="dashboard.html" class="hover:text-[#EAECEE]">02. DASHBOARD</a>
+        <a href="list.html" class="hover:text-[#EAECEE]">03. RECORD GRID</a>
+        <a href="main_app_landing_preview.html" class="hover:text-[#EAECEE]">05. MAIN APP LANDING</a>
+      </div>
+    </footer>
+
+  </main>
+
+</body>
+</html>

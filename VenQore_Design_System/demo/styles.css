@@ -1,0 +1,176 @@
+/* VenQore Design Language · Edition 1.3 Styles */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&display=swap');
+
+@import '../tokens/variables.css';
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--vq-quarry-0);
+  color: var(--vq-quarry-900);
+  font-family: var(--vq-font-sans);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: 0;
+}
+
+/* Tabular Figures Discipline */
+.tnum {
+  font-family: var(--vq-font-sans);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  text-align: right;
+  font-weight: 500;
+}
+
+.mono-tnum {
+  font-family: var(--vq-font-mono);
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  text-align: right;
+}
+
+/* HIG Navigation Switcher */
+.vq-demo-nav-bar {
+  background: var(--vq-quarry-950);
+  color: var(--vq-dark-text-primary);
+  padding: 0 32px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--vq-font-mono);
+  font-size: 11px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid var(--vq-dark-overlay);
+}
+
+.vq-demo-brand {
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  color: var(--vq-cypress-300);
+}
+
+.vq-demo-links {
+  display: flex;
+  gap: 16px;
+}
+
+.vq-demo-links a {
+  color: var(--vq-dark-text-tertiary);
+  text-decoration: none;
+  transition: color var(--vq-motion-fast) ease;
+}
+
+.vq-demo-links a:hover, .vq-demo-links a.active {
+  color: var(--vq-dark-text-primary);
+}
+
+.vq-demo-links a.active {
+  font-weight: 600;
+  border-bottom: 2px solid var(--vq-cypress-300);
+  padding-bottom: 2px;
+}
+
+/* Buttons */
+.vq-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--vq-control-height);
+  padding: 0 16px;
+  font-family: var(--vq-font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--vq-radius-m);
+  border: 1px solid var(--vq-quarry-200);
+  background: var(--vq-paper-surface);
+  color: var(--vq-quarry-900);
+  cursor: pointer;
+  transition: background var(--vq-motion-fast) linear, border-color var(--vq-motion-fast) linear;
+  text-decoration: none;
+  white-space: nowrap;
+  min-width: 88px;
+}
+
+.vq-btn-primary {
+  background: var(--vq-cypress-700);
+  color: #FFFFFF;
+  border-color: var(--vq-cypress-700);
+  font-weight: 600;
+}
+
+.vq-btn-primary:hover {
+  background: #0D3A34;
+  border-color: #0D3A34;
+}
+
+.vq-btn-brass {
+  background: var(--vq-brass-100);
+  color: var(--vq-brass-500);
+  border: 1px solid var(--vq-brass-500);
+  font-weight: 600;
+}
+
+.vq-btn-destructive {
+  background: transparent;
+  color: var(--vq-oxide-crimson);
+  border: 1px solid var(--vq-oxide-crimson);
+}
+
+/* Inputs */
+.vq-input {
+  height: var(--vq-control-height);
+  background: var(--vq-quarry-0);
+  border: 1px solid var(--vq-quarry-200);
+  border-radius: var(--vq-radius-m);
+  padding: 0 12px;
+  color: var(--vq-quarry-900);
+  font-family: var(--vq-font-sans);
+  font-size: 14px;
+  outline: none;
+  transition: border-color var(--vq-motion-fast) linear;
+}
+
+.vq-input:focus {
+  border-color: var(--vq-cypress-500);
+  box-shadow: 0 0 0 2px var(--vq-cypress-500), 0 0 0 4px var(--vq-quarry-0);
+}
+
+/* Badges */
+.vq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  font-family: var(--vq-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--vq-radius-m);
+}
+
+.vq-badge-posted {
+  background: var(--vq-cypress-100);
+  color: var(--vq-cypress-700);
+  border: 1px solid var(--vq-cypress-500);
+}
+
+.vq-badge-offline {
+  background: rgba(53, 100, 125, 0.12);
+  color: var(--vq-cyan-offline);
+  border: 1px solid rgba(53, 100, 125, 0.3);
+}
+
+.vq-badge-brass {
+  background: var(--vq-brass-100);
+  color: var(--vq-brass-500);
+  border: 1px solid var(--vq-brass-500);
+}

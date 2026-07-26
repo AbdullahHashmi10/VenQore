@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VenQore — Operational Dashboard (Edition 1.3)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .dash-layout {
+      display: grid;
+      grid-template-columns: 264px 1fr;
+      min-height: calc(100vh - 40px);
+      transition: grid-template-columns 0.2s ease;
+    }
+    .dash-layout.focus-mode {
+      grid-template-columns: 0px 1fr;
+    }
+    .dash-layout.focus-mode .dash-sidebar {
+      display: none;
+    }
+
+    /* Sidebar 264px Quarry 50 */
+    .dash-sidebar {
+      background: var(--vq-quarry-50);
+      border-right: 1px solid var(--vq-quarry-100);
+      padding: 24px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar-brand {
+      font-family: var(--vq-font-serif);
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--vq-quarry-900);
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      margin-bottom: 20px;
+    }
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sidebar-menu a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      height: 38px;
+      padding: 0 12px;
+      color: var(--vq-quarry-700);
+      text-decoration: none;
+      font-family: var(--vq-font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      border-radius: var(--vq-radius-m);
+      transition: all 0.15s ease;
+    }
+    .sidebar-menu a:hover {
+      background: var(--vq-quarry-100);
+      color: var(--vq-quarry-900);
+    }
+    .sidebar-menu li.active a {
+      color: var(--vq-cypress-700);
+      background: #FFFFFF;
+      border-left: 2px solid var(--vq-cypress-700);
+      font-weight: 600;
+    }
+
+    /* Header 56px */
+    .dash-header {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Content Area */
+    .dash-content {
+      padding: 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* KPI Row: 4 Max */
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid var(--vq-quarry-100);
+      border-radius: var(--vq-radius-l);
+      padding: 24px;
+    }
+    .kpi-lbl {
+      font-family: var(--vq-font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--vq-quarry-700);
+      margin-bottom: 8px;
+    }
+    .kpi-val {
+      font-family: var(--vq-font-sans);
+      font-size: 36px;
+      line-height: 40px;
+      font-weight: 500;
+      color: var(--vq-quarry-900);
+      letter-spacing: -0.02em;
+    }
+    .kpi-basis {
+      font-size: 12px;
+      color: var(--vq-quarry-400);
+      margin-top: 8px;
+    }
+
+    /* Dashboard Split: Attention List & Chart */
+    .dash-mid-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    /* Attention List */
+    .attention-card {
+      background: #FFFFFF;
+      border: 1px solid var(--vq-quarry-100);
+      border-radius: var(--vq-radius-l);
+      padding: 24px;
+    }
+    .attention-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--vq-quarry-100);
+      font-size: 14px;
+    }
+    .attention-row:last-child {
+      border-bottom: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HIG Navigation Switcher -->
+  <div class="vq-demo-nav-bar">
+    <div class="vq-demo-brand">VENQORE · EDITION 1.3</div>
+    <div class="vq-demo-links">
+      <a href="index.html">01. HIG SPEC</a>
+      <a href="dashboard.html" class="active">02. DASHBOARD</a>
+      <a href="list.html">03. RECORD GRID</a>
+      <a href="portfolio.html">04. WITTIG PORTFOLIO</a>
+    </div>
+  </div>
+
+  <div class="dash-layout" id="dashLayout">
+    <!-- Sidebar 264px -->
+    <aside class="dash-sidebar">
+      <div>
+        <div class="sidebar-brand">VenQore</div>
+        <ul class="sidebar-menu">
+          <li class="active"><a href="#">Sales & POS</a></li>
+          <li><a href="list.html">Inventory SKUs</a></li>
+          <li><a href="#">Warehouse</a></li>
+          <li><a href="#">Manufacturing</a></li>
+          <li><a href="#">Accounting</a></li>
+          <li><a href="#">Finance</a></li>
+          <li><a href="#">Returns</a></li>
+          <li><a href="#">Purchasing</a></li>
+        </ul>
+      </div>
+      <!-- Pinned Store Switcher -->
+      <div style="border-top: 1px solid var(--vq-quarry-100); padding-top: 16px;">
+        <div style="font-family: var(--vq-font-mono); font-size: 11px; font-weight: 600; color: var(--vq-quarry-900);">
+          STORE: Supermarket #01
+        </div>
+        <div style="font-size: 12px; color: var(--vq-quarry-700); margin-top: 2px;">
+          Tenant: Kumar Enterprises
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main style="background: var(--vq-quarry-0); overflow-y: auto;">
+      <!-- Header 56px -->
+      <header class="dash-header">
+        <div style="display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--vq-quarry-700);">
+          <span>Home</span> / <strong style="color: var(--vq-quarry-900);">Till Position & Today's Net</strong>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <!-- Sync State: Text + Dot -->
+          <div style="display: flex; align-items: center; gap: 6px; font-family: var(--vq-font-mono); font-size: 12px; color: var(--vq-quarry-700);">
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #059669;"></span>
+            Synced 2m ago
+          </div>
+
+          <input type="text" class="vq-input" placeholder="Search (⌘K)..." style="width: 220px;">
+          
+          <button class="vq-btn vq-btn-primary" onclick="toggleFocus()">Focus Mode (F)</button>
+        </div>
+      </header>
+
+      <div class="dash-content">
+        <!-- 4 KPI Cards Row -->
+        <div class="kpi-row">
+          <div class="kpi-card">
+            <div class="kpi-lbl">TODAY'S NET POSITION</div>
+            <div class="kpi-val tnum">₹ 4,82,910.00</div>
+            <div class="kpi-basis">vs same day last week (+4.2%)</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-lbl">LIQUID TILL CASH</div>
+            <div class="kpi-val tnum">₹ 1,12,450.00</div>
+            <div class="kpi-basis">Verified till balance</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-lbl">STOCK-OUT THRESHOLD</div>
+            <div class="kpi-val tnum" style="color: #D97706;">2 SKUs</div>
+            <div class="kpi-basis">Reorder required now</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-lbl">TRIAL BALANCE DELTA</div>
+            <div class="kpi-val tnum" style="color: #059669;">0.00 ∆</div>
+            <div class="kpi-basis">100% double-entry balanced</div>
+          </div>
+        </div>
+
+        <!-- Dashboard Mid Section: Attention List & Assistant -->
+        <div class="dash-mid-grid">
+          <!-- Attention List (Dashboard Centre) -->
+          <div class="attention-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h3 style="font-family: var(--vq-font-sans); font-size: 18px; font-weight: 600; color: var(--vq-quarry-900);">ATTENTION LIST (MONEY AT RISK)</h3>
+              <span style="font-family: var(--vq-font-mono); font-size: 11px; color: var(--vq-quarry-400);">4 ITEMS REQUIRE ACTION</span>
+            </div>
+
+            <div class="attention-row">
+              <div>
+                <strong style="color: var(--vq-quarry-900);">Overdue Invoice #INV-9941</strong> — Kumar Provisions
+                <div style="font-size: 12px; color: var(--vq-quarry-400);">Due 14 days ago</div>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <span class="tnum" style="font-size: 14px; font-weight: 600; color: #DC2626;">₹ 80,000.00</span>
+                <button class="vq-btn vq-btn-primary" style="height: 32px; font-size: 12px;">Send Reminder</button>
+              </div>
+            </div>
+
+            <div class="attention-row">
+              <div>
+                <strong style="color: var(--vq-quarry-900);">Stock-Out Risk: Jasmine Rice 5kg</strong> (SKU-1204-RICE)
+                <div style="font-size: 12px; color: var(--vq-quarry-400);">Only 12 units remaining</div>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <span class="tnum" style="font-size: 14px; font-weight: 600; color: #D97706;">12 pcs</span>
+                <button class="vq-btn vq-btn-primary" style="height: 32px; font-size: 12px;">Reorder 40 units</button>
+              </div>
+            </div>
+
+            <div class="attention-row">
+              <div>
+                <strong style="color: var(--vq-quarry-900);">Expiring Batch: Organic Milk 1L</strong> (Batch #B-884)
+                <div style="font-size: 12px; color: var(--vq-quarry-400);">Expires in 3 days</div>
+              </div>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <span class="tnum" style="font-size: 14px; font-weight: 600;">140 units</span>
+                <button class="vq-btn" style="height: 32px; font-size: 12px; border: 1px solid var(--vq-quarry-200);">Apply 15% Discount</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Docked Brass Assistant -->
+          <div class="attention-card" style="border: 1px solid var(--vq-brass-500); background: var(--vq-brass-100); display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; items-center; justify-content: space-between; margin-bottom: 14px;">
+                <span style="font-family: var(--vq-font-mono); font-size: 11px; font-weight: 600; color: var(--vq-brass-500); uppercase;">VENQORE ASSISTANT</span>
+                <span style="font-size: 11px; color: var(--vq-quarry-400);">Query Source Validated</span>
+              </div>
+              
+              <div style="font-size: 14px; color: var(--vq-quarry-900); line-height: 1.6; margin-bottom: 16px;">
+                "Cash velocity is <strong>+14.2% higher</strong> than last Tuesday. All double-entry accounts remain perfectly balanced."
+              </div>
+
+              <div style="background: #FFFFFF; border: 1px solid var(--vq-quarry-200); padding: 12px; border-radius: 6px; font-family: var(--vq-font-mono); font-size: 12px;">
+                Suggested Action:<br>
+                <strong style="color: var(--vq-cypress-700);">Reorder 40 units Jasmine Rice (₹ 24,000.00)</strong>
+              </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+              <button class="vq-btn vq-btn-brass" style="width: 100%;">Reorder 40 units (Proposed)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function toggleFocus() {
+      document.getElementById('dashLayout').classList.toggle('focus-mode');
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.key === 'f' || e.key === 'F') {
+        toggleFocus();
+      }
+    });
+  </script>
+
+</body>
+</html>

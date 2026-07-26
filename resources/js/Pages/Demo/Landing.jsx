@@ -15,7 +15,7 @@ export default function DemoLanding() {
     ];
 
     const loginAs = (roleId) => {
-        post(route('demo.login', { role: roleId }));
+        window.location.href = route('demo.login', { role: roleId });
     };
 
     return (

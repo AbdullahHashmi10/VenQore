@@ -223,9 +223,10 @@ export default function ProductTourGuide({ isModalOpen, store, categories = [] }
     };
 
     if (
-        store?.onboarding_step !== 'inventory_tour' &&
+        store?.is_demo ||
+        (store?.onboarding_step !== 'inventory_tour' &&
         store?.onboarding_step !== 'congratulations' &&
-        store?.onboarding_step !== 'inventory_tour_more'
+        store?.onboarding_step !== 'inventory_tour_more')
     ) return null;
 
     if (store?.onboarding_step === 'inventory_tour_more') {

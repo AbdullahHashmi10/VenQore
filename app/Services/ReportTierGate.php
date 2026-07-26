@@ -44,12 +44,17 @@ class ReportTierGate
             return true;
         }
 
+        // Demo stores always have full access to all reports
+        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+        if ($tenant?->is_demo) {
+            return true;
+        }
+
         $requiredTier = self::getRequiredTier($reportKey);
         if (!$requiredTier) {
             return true; // If key is not in config, allow access
         }
 
-        $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
         $tenantPlan = $tenant ? $tenant->plan : 'starter';
         $tenantTier = self::tier($tenantPlan);
 
@@ -88,6 +93,17 @@ class ReportTierGate
     public static function allowedKeys(): array
     {
         $tenant = app()->bound('current.tenant') ? app('current.tenant') : null;
+
+        // Platform admin or demo store — return every report key
+        $user = auth()->user();
+        if (($user && $user->is_platform_admin) || $tenant?->is_demo) {
+            $allKeys = [];
+            foreach (self::allTiers() as $tierKeys) {
+                $allKeys = array_merge($allKeys, $tierKeys);
+            }
+            return array_unique($allKeys);
+        }
+
         $tenantPlan = $tenant ? $tenant->plan : 'starter';
         $tenantTier = self::tier($tenantPlan);
 
@@ -101,16 +117,6 @@ class ReportTierGate
             if ($tier === $tenantTier) {
                 break;
             }
-        }
-
-        // If platform admin, they should have all report keys allowed
-        $user = auth()->user();
-        if ($user && $user->is_platform_admin) {
-            $allKeys = [];
-            foreach ($tiers as $tierKeys) {
-                $allKeys = array_merge($allKeys, $tierKeys);
-            }
-            return array_unique($allKeys);
         }
 
         return $allowed;

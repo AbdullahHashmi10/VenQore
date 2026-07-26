@@ -18,9 +18,9 @@ import { AlertTriangle, Lock, Zap } from 'lucide-react';
  * Mount alongside PlanUsageBanner in OneGlanceLayout — same slot, same pattern.
  */
 export default function SubscriptionExpiryBanner() {
-    const { store } = usePage().props;
+    const { store, is_demo } = usePage().props;
 
-    if (!store) return null;
+    if (!store || is_demo) return null;
 
     const goToBilling = () => {
         if (store.slug) router.visit(route('store.billing', { store_slug: store.slug }));

@@ -405,16 +405,18 @@ export default function Dashboard({
 
             </div>
 
-            {(store?.onboarding_step === 'welcome' || 
-              store?.onboarding_step === 'purchase_tour_start' || 
-              store?.onboarding_step === 'purchase_tour_sidebar' ||
-              store?.onboarding_step === 'invoice_tour_start' ||
-              store?.onboarding_step === 'pos_tour_start' ||
-              store?.onboarding_step === 'expense_tour_start') && (
+            {!store?.is_demo && !store?.onboarding_completed && (
+                store?.onboarding_step === 'welcome' || 
+                store?.onboarding_step === 'purchase_tour_start' || 
+                store?.onboarding_step === 'purchase_tour_sidebar' ||
+                store?.onboarding_step === 'invoice_tour_start' ||
+                store?.onboarding_step === 'pos_tour_start' ||
+                store?.onboarding_step === 'expense_tour_start'
+            ) && (
                 <WelcomeTourModal store={store} />
             )}
             
-            {store?.onboarding_step === 'dashboard_tour' && (
+            {!store?.is_demo && !store?.onboarding_completed && store?.onboarding_step === 'dashboard_tour' && (
                 <DashboardTourGuide store={store} />
             )}
         </OneGlanceLayout>
