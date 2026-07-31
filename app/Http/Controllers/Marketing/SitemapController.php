@@ -45,10 +45,57 @@ class SitemapController extends Controller
             ];
         }
 
+        // Free Tools program — every entry in App\Support\ToolSeo::pages()
+        // is added automatically so a new tool can never be forgotten here
+        // (plan §4.9). Hub gets 0.8; individual tools 0.7; programmatic
+        // children (e.g. barcode format pages, keyed "route.name:{param}")
+        // get 0.6. Parameterised keys are resolved via their underlying
+        // route + parameter, since "route.name:{param}" is a ToolSeo lookup
+        // key, not a real Laravel route name — see MarketingSeo::current().
+        foreach (array_keys(\App\Support\ToolSeo::pages()) as $seoKey) {
+            [$routeName, $param] = array_pad(explode(':', $seoKey, 2), 2, null);
+
+            if (!\Illuminate\Support\Facades\Route::has($routeName)) {
+                continue;
+            }
+
+            try {
+                $loc = $param !== null
+                    ? route($routeName, [self::firstRouteParamName($routeName) => $param])
+                    : route($routeName);
+            } catch (\Throwable $e) {
+                continue; // skip anything that doesn't resolve rather than break the whole sitemap
+            }
+
+            $priority = match (true) {
+                $seoKey === 'tools.index' => '0.8',
+                $param !== null => '0.6',
+                default => '0.7',
+            };
+
+            $pages[] = [
+                'loc' => $loc,
+                'lastmod' => $now,
+                'changefreq' => 'monthly',
+                'priority' => $priority,
+            ];
+        }
+
         $xml = view('marketing.sitemap', compact('pages'))->render();
 
         return response($xml, 200, [
             'Content-Type' => 'application/xml',
         ]);
+    }
+
+    /**
+     * The single wildcard parameter name for a tools.* programmatic route,
+     * e.g. 'format' for tools.barcode.format (GET /barcode-generator/{format}).
+     */
+    private static function firstRouteParamName(string $routeName): string
+    {
+        $route = \Illuminate\Support\Facades\Route::getRoutes()->getByName($routeName);
+
+        return $route ? ($route->parameterNames()[0] ?? 'format') : 'format';
     }
 }

@@ -98,15 +98,7 @@
 </head>
 
 <body class="font-sans antialiased">
-    @if($seo && !empty($seo['static_html']))
-        {{-- Crawler-visible fallback content inside the Inertia root. React's
-             createRoot() replaces it on mount, so users see the full app while
-             non-JS crawlers (GPTBot, ClaudeBot, PerplexityBot…) read real HTML.
-             This is the same content users see pre-hydration — not cloaking. --}}
-        <div id="app" data-page="{{ json_encode($page) }}">{!! $seo['static_html'] !!}</div>
-    @else
-        @inertia
-    @endif
+    @inertia
 </body>
 
 </html>

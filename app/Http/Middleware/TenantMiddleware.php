@@ -258,7 +258,10 @@ class TenantMiddleware
             'is_demo'         => (bool)$tenant->is_demo,
             'demo_reset_at'   => $tenant->is_demo ? $this->getNextResetTime() : null,
             'demo_live_users' => $tenant->is_demo ? \Illuminate\Support\Facades\Cache::get('demo_visit_live', 0) : null,
+            'woocommerce_enabled' => \App\Services\PlanGate::check('woocommerce'),
+            'cookbook_enabled'    => \App\Services\PlanGate::check('bill_of_materials'),
             'limit_grace_status' => [
+
                 'active'  => $tenant->limit_grace_ends_at && now()->lt($tenant->limit_grace_ends_at),
                 'ends_at' => $tenant->limit_grace_ends_at ? $tenant->limit_grace_ends_at->toIso8601String() : null,
             ],

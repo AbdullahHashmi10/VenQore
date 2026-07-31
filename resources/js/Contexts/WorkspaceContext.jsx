@@ -12,11 +12,13 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
     };
     // Invoice counter for sequential numbering
     const [invoiceCounter, setInvoiceCounter] = useState(() => {
+        if (typeof window === 'undefined') return 1;
         const saved = localStorage.getItem('amd_invoice_counter');
         return saved ? parseInt(saved, 10) : 1;
     });
 
     const [activeInvoices, setActiveInvoices] = useState(() => {
+        if (typeof window === 'undefined') return [];
         const saved = sessionStorage.getItem('amd_active_invoices_v2');
         if (saved) {
             try {
@@ -30,7 +32,7 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
             }
         }
 
-        const counter = parseInt(localStorage.getItem('amd_invoice_counter') || '1', 10);
+        const counter = parseInt((typeof window !== 'undefined' ? localStorage.getItem('amd_invoice_counter') : '1') || '1', 10);
         return [{
             id: Date.now(),
             type: 'invoice',
@@ -56,12 +58,13 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
 
     // --- PRE-SALE INVOICE STATE (Isolated from regular invoices) ---
     const [activePreSaleInvoices, setActivePreSaleInvoices] = useState(() => {
+        if (typeof window === 'undefined') return [];
         const saved = sessionStorage.getItem('amd_active_presales_v2');
         if (saved) {
             const parsed = JSON.parse(saved);
             if (Array.isArray(parsed) && parsed.length > 0) return parsed;
         }
-        const counter = parseInt(localStorage.getItem('amd_invoice_counter') || '1', 10);
+        const counter = parseInt((typeof window !== 'undefined' ? localStorage.getItem('amd_invoice_counter') : '1') || '1', 10);
         return [{
             id: Date.now() + 1, // offset to avoid collision with invoice id
             type: 'presale',
@@ -86,12 +89,14 @@ export const WorkspaceProvider = ({ children, settings = {} }) => {
     });
 
     const [posSessions, setPosSessions] = useState(() => {
+        if (typeof window === 'undefined') return [];
         const saved = sessionStorage.getItem('venqore_sessions_v2');
         return saved ? JSON.parse(saved) : [];
     });
 
     // --- PURCHASE STATE ---
     const [activePurchases, setActivePurchases] = useState(() => {
+        if (typeof window === 'undefined') return [];
         const saved = sessionStorage.getItem('amd_active_purchases_v2');
         if (saved) return JSON.parse(saved);
         // Default empty, user must explicitly create one or page logic handles it

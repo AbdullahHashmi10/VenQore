@@ -28,8 +28,23 @@ class MarketingSeo
             return null;
         }
 
-        $pages = self::pages();
-        $def   = $pages[$route->getName()] ?? null;
+        $pages = array_merge(self::pages(), \App\Support\ToolSeo::pages());
+
+        // Most routes are keyed directly by route name. A handful of
+        // programmatic tool routes (e.g. tools.barcode.format) share ONE
+        // route name across many URL variants distinguished by a wildcard
+        // parameter — those are keyed as "route.name:{param}" in
+        // ToolSeo::pages(). Try the parameterised key first, then fall
+        // back to the plain route name.
+        $lookupKey = $route->getName();
+        if (!empty($route->parameters())) {
+            $firstParam = array_values($route->parameters())[0] ?? null;
+            if ($firstParam !== null && isset($pages["{$lookupKey}:{$firstParam}"])) {
+                $lookupKey = "{$lookupKey}:{$firstParam}";
+            }
+        }
+
+        $def = $pages[$lookupKey] ?? null;
         if (!$def) {
             return null;
         }
@@ -73,7 +88,7 @@ class MarketingSeo
 
     private static function navLinks(): string
     {
-        return '<nav><a href="/">Home</a> · <a href="/features">Features</a> · <a href="/pricing">Pricing</a> · <a href="/demo">Live Demo</a> · <a href="/vensynq">VenSynQ</a> · <a href="/smartcapture">SmartCapture</a> · <a href="/blog">Blog</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/subscribe">Newsletter</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></nav>';
+        return '<nav><a href="/">Home</a> · <a href="/features">Features</a> · <a href="/pricing">Pricing</a> · <a href="/demo">Live Demo</a> · <a href="/tools">Free Tools</a> · <a href="/vensynq">VenSynQ</a> · <a href="/smartcapture">SmartCapture</a> · <a href="/blog">Blog</a> · <a href="/about">About</a> · <a href="/contact">Contact</a> · <a href="/subscribe">Newsletter</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> · <a href="/refund-policy">Refunds</a></nav>';
     }
 
     private static function pages(): array

@@ -385,6 +385,20 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
         preloadLemonCheckout();
     }, []);
 
+    const [congratsModalOpen, setCongratsModalOpen] = useState(false);
+    const [congratsPlanSlug, setCongratsPlanSlug] = useState('');
+
+    useEffect(() => {
+        const justUpgraded = sessionStorage.getItem('vq_just_upgraded');
+        const upgradedToPlan = sessionStorage.getItem('vq_upgraded_to_plan');
+        if (justUpgraded === 'true' && upgradedToPlan) {
+            sessionStorage.removeItem('vq_just_upgraded');
+            sessionStorage.removeItem('vq_upgraded_to_plan');
+            setCongratsPlanSlug(upgradedToPlan);
+            setCongratsModalOpen(true);
+        }
+    }, [tenant.plan, tenant.status]);
+
     /**
      * Pull subscription state straight from the Lemon Squeezy API.
      *
@@ -411,6 +425,11 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
             const data = await res.json().catch(() => ({}));
 
             if (data?.synced) {
+                // If plan changed, or status changed, flag for congrats!
+                if (data.plan !== tenant.plan || tenant.status !== 'active') {
+                    sessionStorage.setItem('vq_just_upgraded', 'true');
+                    sessionStorage.setItem('vq_upgraded_to_plan', data.plan || tenant.plan);
+                }
                 if (!silent) {
                     toast(data.message || 'Subscription synced.', 'success');
                     router.reload({ preserveScroll: true });
@@ -2383,6 +2402,147 @@ export default function BillingIndex({ tenant, plans, usage, feature_status, cou
                         >
                             {cancelBusy ? 'Cancelling…' : 'Yes, cancel it'}
                         </button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* CONGRATULATIONS / SUCCESS MODAL */}
+            <Modal show={congratsModalOpen} onClose={() => setCongratsModalOpen(false)} maxWidth="md">
+                <div className="relative overflow-hidden bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-8 text-white animate-fadeIn">
+                    {/* Ambient Glow Orbs */}
+                    <div className="absolute top-0 right-0 w-48 h-48 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-indigo-600/25 rounded-full blur-3xl pointer-events-none" />
+                    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-purple-500 to-transparent opacity-50" />
+
+                    <div className="relative z-10">
+                        {/* Celebrate Header */}
+                        <div className="flex flex-col items-center text-center mb-6">
+                            <div className="w-16 h-16 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center mb-4 animate-bounce">
+                                <Crown className="text-purple-400" size={32} />
+                            </div>
+                            <h3 className="text-2xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-purple-300 to-indigo-200">
+                                Congratulations!
+                            </h3>
+                            <p className="text-xs text-slate-400 mt-1">
+                                Your store is successfully upgraded and active
+                            </p>
+                        </div>
+
+                        {/* Plan Info */}
+                        {(() => {
+                            const congratsPlan = plans?.find(p => p.slug === congratsPlanSlug) || {
+                                name: congratsPlanSlug ? (PLAN_META[congratsPlanSlug]?.label || congratsPlanSlug) : 'Starter Engine',
+                                limits: {}
+                            };
+                            return (
+                                <>
+                                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.05] mb-5">
+                                        <div className="flex items-center justify-between mb-3 border-b border-white/[0.05] pb-3">
+                                            <span className="text-xs text-slate-400 font-bold">ACTIVE PLAN</span>
+                                            <span className="text-xs font-black text-purple-400 uppercase tracking-widest">{congratsPlan.name || congratsPlanSlug}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-slate-400 font-bold">RENEWAL DATE</span>
+                                            <span className="text-xs font-bold text-emerald-400">
+                                                {tenant.subscription_ends_at ? fmtDay(tenant.subscription_ends_at) : '—'}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Limits Grid */}
+                                    <div className="mb-6">
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-3">
+                                            What's Included in Your Plan:
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Staff Limit</span>
+                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.staff_limit)}</span>
+                                            </div>
+                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Product (SKU) Limit</span>
+                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.sku_limit)}</span>
+                                            </div>
+                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Locations Limit</span>
+                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.locations)}</span>
+                                            </div>
+                                            <div className="p-3 rounded-lg bg-white/[0.01] border border-white/[0.03] flex flex-col">
+                                                <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Transactions/mo</span>
+                                                <span className="text-sm font-black text-white mt-0.5">{formatLimit(congratsPlan.limits?.transactions_per_month)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Gated features unlocked list */}
+                                    <div className="mb-6">
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2">
+                                            Premium Upgrades Activated:
+                                        </div>
+                                        <div className="space-y-2">
+                                            {congratsPlanSlug === 'business' && (
+                                                <>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Unlimited Branches / Warehouses</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Full Public REST API Access</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Bill of Materials & Manufacturing</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            {congratsPlanSlug === 'growth' && (
+                                                <>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Multi-Branch Support (up to 3)</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>AI Growth Engine Access</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Recurring Invoicing Gating Lifted</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            {congratsPlanSlug === 'starter' && (
+                                                <>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Access to Core POS & Retail Features</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                        <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                        <span>Sales History Tracking</span>
+                                                    </div>
+                                                </>
+                                            )}
+                                            <div className="flex items-center gap-2 text-xs text-slate-300">
+                                                <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                                                <span>Instant Real-Time Webhook Synchronization</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </>
+                            );
+                        })()}
+
+                        <div className="flex justify-center mt-6">
+                            <button
+                                onClick={() => setCongratsModalOpen(false)}
+                                className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-widest transition-all hover:shadow-lg hover:shadow-purple-500/20 active:scale-95"
+                            >
+                                Let's Go!
+                            </button>
+                        </div>
                     </div>
                 </div>
             </Modal>

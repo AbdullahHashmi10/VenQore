@@ -24,7 +24,21 @@ class EnsureVenSynQAccess
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!config('vensynq.enabled', false)) {
+        $dbValue = null;
+        try {
+            $dbValue = \Illuminate\Support\Facades\Cache::remember('vensynq_enabled_flag', 60, function () {
+                return \App\Models\Setting::withoutGlobalScopes()
+                    ->whereNull('tenant_id')
+                    ->where('key', 'vensynq_enabled')
+                    ->value('value');
+            });
+        } catch (\Throwable $e) {
+            // Database not ready or migration running
+        }
+
+        $enabled = $dbValue !== null ? (bool) $dbValue : (bool) config('vensynq.enabled', false);
+
+        if (!$enabled) {
             abort(404);
         }
 

@@ -21,11 +21,15 @@ use Inertia\Inertia;
 // ── Public Marketing Pages ──────────────────────────────────────────────
 Route::get('/features', fn() => Inertia::render('Marketing/Features'))->name('marketing.features');
 Route::get('/pricing', function () {
-    $plans = \App\Models\Plan::with(['limits', 'features'])
-        ->where('is_active', true)
-        ->where('is_visible', true)
-        ->orderBy('sort_order')
-        ->get();
+    try {
+        $plans = \App\Models\Plan::with(['limits', 'features'])
+            ->where('is_active', true)
+            ->where('is_visible', true)
+            ->orderBy('sort_order')
+            ->get();
+    } catch (\Throwable $e) {
+        $plans = collect();
+    }
 
     return Inertia::render('Marketing/Pricing', [
         'plans' => $plans,
@@ -65,8 +69,150 @@ Route::get('/api/partner-support/chat/{ticket_id}', [\App\Http\Controllers\Marke
 Route::post('/api/partner-support/chat/{ticket_id}/reply', [\App\Http\Controllers\Marketing\PartnerSupportController::class, 'reply'])->name('partner-support.reply');
 
 
-// Barcode Generator (Module 03)
+// Barcode Generator (Module 03) — internal Code128B SVG endpoint, used inside the
+// app (e.g. product labels). NOT the public /tools/barcode-generator tool below.
 Route::get('/barcode/generate', [\App\Http\Controllers\BarcodeController::class, 'generate'])->name('barcode.generate');
+
+// ── Public Free Tools (TOFU / GEO) ──────────────────────────────────────
+// Public, unauthenticated, NOT tenant-scoped. See SEO/SEO Tools/VENQORE_FREE_TOOLS_IMPLEMENTATION_PLAN.md §3.3.
+Route::prefix('tools')->name('tools.')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Marketing\Tools\ToolsHubController::class, 'index'])->name('index');
+
+    // T1 — Barcode Generator
+    Route::get('/barcode-generator', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'index'])->name('barcode');
+    Route::get('/barcode-generator/{format}', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'format'])
+        ->where('format', 'code128|code39|code93|ean-13|ean-8|upc-a|upc-e|itf-14|codabar')
+        ->name('barcode.format');
+    Route::post('/barcode-generator/render', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('barcode.render');
+    Route::post('/barcode-generator/validate', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'validateExisting'])
+        ->middleware('throttle:tools')->name('barcode.validate');
+    Route::post('/barcode-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('barcode.sheet');
+
+    // Barcode Label Sheet Generator — batch of different products, each with its own barcode
+    Route::get('/barcode-label-generator', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'index'])->name('barcode-label');
+    Route::post('/barcode-label-generator/parse', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('barcode-label.parse');
+    Route::post('/barcode-label-generator/sheet', [\App\Http\Controllers\Marketing\Tools\BarcodeLabelToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('barcode-label.sheet');
+
+    // T2 — Invoice Generator
+    Route::get('/invoice-generator', [\App\Http\Controllers\Marketing\Tools\InvoiceToolController::class, 'index'])->name('invoice');
+    Route::post('/invoice-generator/render', [\App\Http\Controllers\Marketing\Tools\InvoiceToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('invoice.render');
+
+
+    // Credit Note Generator
+    Route::get('/credit-note-generator', [\App\Http\Controllers\Marketing\Tools\CreditNoteToolController::class, 'index'])->name('credit-note');
+    Route::post('/credit-note-generator/render', [\App\Http\Controllers\Marketing\Tools\CreditNoteToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('credit-note.render');
+
+    // T3 — Receipt Generator
+    Route::get('/receipt-generator', [\App\Http\Controllers\Marketing\Tools\ReceiptToolController::class, 'index'])->name('receipt');
+    Route::post('/receipt-generator/render', [\App\Http\Controllers\Marketing\Tools\ReceiptToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('receipt.render');
+
+    // Packing Slip Generator — Documents group (no prices/totals by design)
+    Route::get('/packing-slip-generator', [\App\Http\Controllers\Marketing\Tools\PackingSlipToolController::class, 'index'])->name('packing-slip');
+    Route::post('/packing-slip-generator/render', [\App\Http\Controllers\Marketing\Tools\PackingSlipToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('packing-slip.render');
+
+    // Price Tag Generator — Barcodes & Labels group
+    Route::get('/price-tag-generator', [\App\Http\Controllers\Marketing\Tools\PriceTagToolController::class, 'index'])->name('price-tag');
+    Route::post('/price-tag-generator/sheet', [\App\Http\Controllers\Marketing\Tools\PriceTagToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('price-tag.sheet');
+    Route::post('/price-tag-generator/parse', [\App\Http\Controllers\Marketing\Tools\PriceTagToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('price-tag.parse');
+
+    // Label Sheet Generator — Barcodes & Labels group (general-purpose text labels)
+    Route::get('/label-sheet-generator', [\App\Http\Controllers\Marketing\Tools\LabelSheetToolController::class, 'index'])->name('label-sheet');
+    Route::post('/label-sheet-generator/sheet', [\App\Http\Controllers\Marketing\Tools\LabelSheetToolController::class, 'sheet'])
+        ->middleware('throttle:tools')->name('label-sheet.sheet');
+    Route::post('/label-sheet-generator/parse', [\App\Http\Controllers\Marketing\Tools\LabelSheetToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('label-sheet.parse');
+
+    // QR Code Generator — Barcodes & Labels group
+    Route::get('/qr-code-generator', [\App\Http\Controllers\Marketing\Tools\QrCodeToolController::class, 'index'])->name('qr');
+    Route::post('/qr-code-generator/render', [\App\Http\Controllers\Marketing\Tools\QrCodeToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('qr.render');
+
+    // QR Menu Generator — Barcodes & Labels group
+    Route::get('/qr-menu-generator', [\App\Http\Controllers\Marketing\Tools\QrMenuToolController::class, 'index'])->name('qr-menu');
+    Route::post('/qr-menu-generator/render', [\App\Http\Controllers\Marketing\Tools\QrMenuToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('qr-menu.render');
+
+    // Product CSV Cleaner — Inventory & Data group
+    Route::get('/product-csv-cleaner', [\App\Http\Controllers\Marketing\Tools\ProductCsvCleanerToolController::class, 'index'])->name('csv-cleaner');
+    Route::post('/product-csv-cleaner/parse', [\App\Http\Controllers\Marketing\Tools\ProductCsvCleanerToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('csv-cleaner.parse');
+    Route::post('/product-csv-cleaner/download', [\App\Http\Controllers\Marketing\Tools\ProductCsvCleanerToolController::class, 'download'])
+        ->middleware('throttle:tools')->name('csv-cleaner.download');
+
+    // Purchase Order Generator — Documents group
+    Route::get('/purchase-order-generator', [\App\Http\Controllers\Marketing\Tools\PurchaseOrderToolController::class, 'index'])->name('purchase-order');
+    Route::post('/purchase-order-generator/render', [\App\Http\Controllers\Marketing\Tools\PurchaseOrderToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('purchase-order.render');
+
+    // Quotation Generator — Documents group
+    Route::get('/quote-generator', [\App\Http\Controllers\Marketing\Tools\QuotationToolController::class, 'index'])->name('quote');
+    Route::post('/quote-generator/render', [\App\Http\Controllers\Marketing\Tools\QuotationToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('quote.render');
+
+    // Stock Count Sheet — Inventory & Data group
+    Route::get('/stock-count-sheet', [\App\Http\Controllers\Marketing\Tools\StockCountSheetToolController::class, 'index'])->name('stock-count');
+    Route::post('/stock-count-sheet/render', [\App\Http\Controllers\Marketing\Tools\StockCountSheetToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('stock-count.render');
+    Route::post('/stock-count-sheet/parse', [\App\Http\Controllers\Marketing\Tools\StockCountSheetToolController::class, 'parse'])
+        ->middleware('throttle:tools')->name('stock-count.parse');
+
+    // Cash Drawer Count Sheet — Inventory & Data group
+    Route::get('/cash-drawer-count-sheet', [\App\Http\Controllers\Marketing\Tools\CashDrawerToolController::class, 'index'])->name('cash-drawer');
+    Route::post('/cash-drawer-count-sheet/render', [\App\Http\Controllers\Marketing\Tools\CashDrawerToolController::class, 'render'])
+        ->middleware('throttle:tools')->name('cash-drawer.render');
+
+    // Profit Margin & Markup Calculator — Calculators group. Pure client-side
+    // math tool, no POST endpoint needed at all.
+    Route::get('/margin-calculator', [\App\Http\Controllers\Marketing\Tools\MarginCalculatorToolController::class, 'index'])->name('margin-calculator');
+
+    // Inventory Health Toolkit — Inventory & Data group. Pure client-side
+    // math tool (reorder point, safety stock, EOQ, GMROI, turnover), no
+    // POST endpoint needed at all.
+    Route::get('/inventory-health', [\App\Http\Controllers\Marketing\Tools\InventoryHealthToolController::class, 'index'])->name('inventory-health');
+
+    // POS ROI Calculator — Calculators group. Pure client-side math tool,
+    // no POST endpoint needed at all.
+    Route::get('/pos-roi-calculator', [\App\Http\Controllers\Marketing\Tools\PosRoiToolController::class, 'index'])->name('pos-roi');
+
+    // Recipe Costing Calculator — Calculators group. Pure client-side math
+    // tool (ingredient unit conversion, cost per portion, target food-cost
+    // % pricing), no POST endpoint needed at all.
+    Route::get('/food-cost-calculator', [\App\Http\Controllers\Marketing\Tools\FoodCostToolController::class, 'index'])->name('food-cost');
+
+    // Payment Processing Fee Calculator — Calculators group. Pure
+    // client-side math tool, no POST endpoint needed at all.
+    Route::get('/payment-fee-calculator', [\App\Http\Controllers\Marketing\Tools\PaymentFeeCalculatorToolController::class, 'index'])->name('payment-fee');
+
+    // Bulk SKU Generator — Inventory & Data group. Pure client-side scheme
+    // builder + bulk generation, no POST endpoint needed at all.
+    Route::get('/sku-generator', [\App\Http\Controllers\Marketing\Tools\SkuGeneratorToolController::class, 'index'])->name('sku-generator');
+
+    // T10 — Barcode Validator
+    Route::get('/barcode-validator', [\App\Http\Controllers\Marketing\Tools\BarcodeValidatorToolController::class, 'index'])->name('barcode-validator');
+    Route::post('/barcode-validator/check', [\App\Http\Controllers\Marketing\Tools\BarcodeValidatorToolController::class, 'validateGtin'])
+        ->middleware('throttle:tools')->name('barcode-validator.check');
+
+    // Shared lead capture (plan §4.4, §6.3)
+    Route::post('/lead', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'store'])
+        ->middleware('throttle:tool-leads')->name('lead.store');
+    Route::get('/lead/confirm/{token}', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'confirm'])->name('lead.confirm');
+    Route::get('/lead/unsubscribe/{token}', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'unsubscribe'])->name('lead.unsubscribe');
+    Route::post('/lead/unsubscribe/{token}', [\App\Http\Controllers\Marketing\Tools\ToolLeadController::class, 'unsubscribeConfirm'])->name('lead.unsubscribe.confirm');
+
+    // Signed, expiring download of a generated artifact (plan §4.6)
+    Route::get('/download/{uuid}', [\App\Http\Controllers\Marketing\Tools\ToolsHubController::class, 'download'])
+        ->middleware('signed')->name('download');
+});
 
 // Public static WordPress plugin download route (compiles on-the-fly)
 Route::get('/downloads/venqore-sync.zip', [\App\Http\Controllers\WooSync\WooConnectionController::class, 'downloadStaticPlugin']);
@@ -121,7 +267,7 @@ Route::get('/google/callback', [\App\Http\Controllers\GoogleDriveAuthController:
     ->name('google.callback');
 
 // ── Auth (no store context) ──────────────────────────────────────────────
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', \App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
     // Store hub (shown to users with 2+ stores)
     Route::get('/hub', [\App\Http\Controllers\HubController::class, 'index'])->name('hub');
     Route::get('/api/my-stores', [\App\Http\Controllers\HubController::class, 'apiList'])->name('my-stores.api');
@@ -160,7 +306,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 // ── Store Context Routes ─────────────────────────────────────────────────
 // All routes under /s/{store_slug}/ require auth + valid store membership
-Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class])
+Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
     ->prefix('s/{store_slug}')
     ->name('store.')
     ->group(function () {
@@ -602,17 +748,19 @@ Route::get('/gift/{token}', [\App\Http\Controllers\GiftRedemptionController::cla
 // Launch toggle (2026-07-03): set APPSUMO_PUBLIC=true in .env to open /redeem publicly — config change, not a deploy.
 // (This routes file uses closures and is never route:cached, so env() is safe here.)
 $hideAppSumoPublic = !env('APPSUMO_PUBLIC', false) && !app()->runningUnitTests();
-if ($hideAppSumoPublic) {
-    Route::get('/redeem',  fn() => abort(404))->name('redeem');
-    Route::post('/redeem', fn() => abort(404))->name('redeem.submit');
-    Route::get('/what-is-included', fn() => abort(404))->name('what-is-included');
-} else {
-    Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
-    Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('redeem.submit');
-    Route::get('/what-is-included', function () {
-        return Inertia::render('WhatIsIncluded');
-    })->name('what-is-included');
-}
+Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () use ($hideAppSumoPublic) {
+    if ($hideAppSumoPublic) {
+        Route::get('/redeem',  fn() => abort(404))->name('redeem');
+        Route::post('/redeem', fn() => abort(404))->name('redeem.submit');
+        Route::get('/what-is-included', fn() => abort(404))->name('what-is-included');
+    } else {
+        Route::get('/redeem',  [\App\Http\Controllers\AppSumoController::class, 'index'])->name('redeem');
+        Route::post('/redeem', [\App\Http\Controllers\AppSumoController::class, 'redeem'])->name('redeem.submit');
+        Route::get('/what-is-included', function () {
+            return Inertia::render('WhatIsIncluded');
+        })->name('what-is-included');
+    }
+});
 
 // Refund policy is a public trust page regardless of AppSumo launch state (2026-07-03)
 Route::get('/refund-policy', function () {

@@ -40,6 +40,12 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // Scope Inertia SSR: enable SSR ONLY for public marketing routes, keep tenant app 100% client-side SPA
+        $isMarketingRoute = $request->routeIs('welcome', 'marketing.*', 'blog.*', 'demo.*', 'terms', 'privacy', 'refund-policy', 'register')
+            || $request->is('/', 'features', 'pricing', 'about', 'contact', 'blog', 'blog/*', 'demo', 'terms', 'privacy', 'refund-policy', 'register', 'subscribe', 'vensynq', 'smartcapture', 'digital-products');
+
+        config(['inertia.ssr.enabled' => $isMarketingRoute]);
+
         // Skip heavy DB queries for installer/updater API routes
         if ($request->is('api/installer/*') || $request->is('api/updater/*')) {
             return [
@@ -58,6 +64,10 @@ class HandleInertiaRequests extends Middleware
 
         $shared = [
             ...parent::share($request),
+            'ziggy' => fn () => [
+                ...(new \Tighten\Ziggy\Ziggy)->toArray(),
+                'location' => $request->url(),
+            ],
             'auth' => [
                 'user' => $user ? array_merge(
                     $user->only(['id', 'name', 'email', 'email_verified_at', 'is_platform_admin', 'last_store_id']),

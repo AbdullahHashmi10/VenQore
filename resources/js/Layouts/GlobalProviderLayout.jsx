@@ -27,12 +27,13 @@ export default function GlobalProviderLayout({ children }) {
 }
 
 function InnerGlobalLayout({ children, settings }) {
-    const { props } = usePage();
+    const { props, url } = usePage();
     const [showExitModal, setShowExitModal] = useState(false);
     const [showShortcuts, setShowShortcuts] = useState(false);
     const [showUpdateOverlay, setShowUpdateOverlay] = useState(false);
-    // const [settings, setSettings] = useState({ admin_passcode: '123456' }); // Removed hardcoded
-    const isInstaller = window.location.pathname.startsWith('/installer');
+
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : (url || '/');
+    const isInstaller = currentPath.startsWith('/installer');
 
     // Public pages: no session, no tenant, no offline database. Anything that
     // assumes an authenticated store must stay switched off here.
@@ -42,13 +43,18 @@ function InnerGlobalLayout({ children, settings }) {
     // offline lock screen and the tenant-scoped widgets against a page with no
     // store context at all. Prefix matches are used for the dynamic routes
     // because an exact-match list can never cover a token in the URL.
-    const isPublicPrefix = ['/gift/', '/blog/', '/invitation/', '/join/']
-        .some(prefix => window.location.pathname.startsWith(prefix));
+    // /tools/ added here (2026-08-01, Free Tools program): these are public,
+    // unauthenticated, tenant-less pages just like /blog/ or /gift/. Without
+    // this prefix, SyncService/offline-lock/tenant widgets below were firing
+    // against pages with no store context at all — same bug class as the
+    // /gift/{token} fix noted above.
+    const isPublicPrefix = ['/gift/', '/blog/', '/invitation/', '/join/', '/tools/', '/tools']
+        .some(prefix => currentPath.startsWith(prefix));
 
     const isMarketing = [
         '/', '/features', '/pricing', '/about', '/contact', '/blog',
         '/terms', '/privacy', '/demo', '/demo-expired', '/login', '/register', '/forgot-password', '/reset-password'
-    ].some(path => window.location.pathname === path || window.location.pathname === path + '/')
+    ].some(path => currentPath === path || currentPath === path + '/')
         || isPublicPrefix;
 
     // Enable Global Shortcuts
@@ -142,7 +148,7 @@ function InnerGlobalLayout({ children, settings }) {
     };
 
     // Determine Logic Check Mode
-    const isPosCtx = window.location.pathname.includes('/pos');
+    const isPosCtx = currentPath.includes('/pos');
 
     // ── Vena Visibility ────────────────────────────────────────────────────────
     // Vena appears on all pages where support questions may arise, except
@@ -152,7 +158,7 @@ function InnerGlobalLayout({ children, settings }) {
         if (isInstaller || isMarketing) return false;
         if (!props.store?.features?.live_chat_widget) return false;
 
-        const path = window.location.pathname;
+        const path = currentPath;
 
          // Explicitly blocked patterns — active creation/transaction/setup flows
          const blockedPatterns = [
@@ -237,7 +243,7 @@ function InnerGlobalLayout({ children, settings }) {
                     )}
 
                     {/* Fixed Shortcuts Trigger - Hidden for Platform HQ, Marketing, and Unauthenticated Users */}
-                    {!isInstaller && !isMarketing && props.auth?.user && !window.location.pathname.startsWith('/VenQore') && window.location.pathname !== '/hub' && (
+                    {!isInstaller && !isMarketing && props.auth?.user && !currentPath.startsWith('/VenQore') && currentPath !== '/hub' && (
                         <div
                             onClick={() => setShowShortcuts(true)}
                             className="hidden lg:block fixed bottom-1 left-1 z-[9999] opacity-40 hover:opacity-100 transition-opacity cursor-pointer group"

@@ -14,6 +14,9 @@ Artisan::command('inspire', function () {
 \Illuminate\Support\Facades\Schedule::command('parked-sales:cleanup')->hourly();
 \Illuminate\Support\Facades\Schedule::command('staff:generate-daily-summaries')->dailyAt('00:05');
 \Illuminate\Support\Facades\Schedule::command('growth:analyze')->dailyAt('09:00');
+
+// Free Tools program — prunes generated artifacts older than 24h (plan §4.6)
+\Illuminate\Support\Facades\Schedule::command('tools:prune-artifacts')->daily();
 \Illuminate\Support\Facades\Schedule::command('finance:audit')
     ->hourly()
     ->emailOutputOnFailure(config('mail.from.address', 'admin@venqore.com'));

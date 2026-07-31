@@ -4,7 +4,7 @@ import './bootstrap';
 import { createInertiaApp, router } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import React from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, hydrateRoot } from 'react-dom/client';
 import GlobalProviderLayout from '@/Layouts/GlobalProviderLayout';
 
 
@@ -72,12 +72,17 @@ createInertiaApp({
             decimal_places:  parseInt(settings.decimal_places !== undefined ? settings.decimal_places : 2)
         };
 
-        const root = createRoot(el);
-        root.render(
+        const appElement = (
             <GlobalErrorBoundary>
                 <App {...props} />
             </GlobalErrorBoundary>
         );
+
+        if (el.hasChildNodes()) {
+            hydrateRoot(el, appElement);
+        } else {
+            createRoot(el).render(appElement);
+        }
     },
     progress: {
         color: '#4B5563',

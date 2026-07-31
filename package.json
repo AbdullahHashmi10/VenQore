@@ -3,8 +3,9 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "node scratch/audit_ziggy_routes.cjs && vite build",
+        "build": "node scratch/audit_ziggy_routes.cjs && vite build && vite build --ssr",
         "dev": "vite",
+        "ssr": "php artisan inertia:start-ssr",
         "audit:routes": "node scratch/audit_route_params.cjs",
         "test": "vitest run resources/js/tests",
         "test:watch": "vitest resources/js/tests",

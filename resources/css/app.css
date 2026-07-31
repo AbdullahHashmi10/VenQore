@@ -4,6 +4,19 @@
 @tailwind utilities;
 
 /* ============================================================================================
+   EDITABLE-PREVIEW DISCOVERABILITY (free tools: Invoice, Receipt, PO, Quote, etc.)
+   ============================================================================================
+   A short pulse on every EditableText field right after page load, so a document that's
+   already pre-filled with realistic sample data doesn't read as "finished, nothing to click."
+   Fades out on its own, or immediately once the user edits any one field on the page (see
+   Shared/EditableText.jsx's 'venqore-tool-edited' event).
+   ============================================================================================ */
+@keyframes editablePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+    50% { box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.35); }
+}
+
+/* ============================================================================================
    GLOBAL SCROLLBAR STYLING - Midnight Nebula Theme
    ============================================================================================
    Works with:

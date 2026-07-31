@@ -27,6 +27,15 @@ class AppServiceProvider extends ServiceProvider
     {
         Vite::prefetch(concurrency: 3);
 
+        if ($this->app->runningInConsole()) {
+            try {
+                $this->app->make('inertia.testing.view-finder')->addExtension('jsx');
+                $this->app->make('inertia.testing.view-finder')->addExtension('tsx');
+            } catch (\Throwable $e) {
+                // Ignore if testing view-finder is not bound
+            }
+        }
+
         // 1. Fix for "Key too long" error on older MySQL/MariaDB
         \Illuminate\Support\Facades\Schema::defaultStringLength(191);
 
@@ -60,6 +69,19 @@ class AppServiceProvider extends ServiceProvider
 
         RateLimiter::for('auth', function (Request $request) {
             return Limit::perMinute(10)->by($request->ip());
+        });
+
+        // 4b. Free Tools program (SEO/SEO Tools/VENQORE_FREE_TOOLS_IMPLEMENTATION_PLAN.md §4.2)
+        // Public, unauthenticated, IP-keyed — these are NOT tenant-scoped routes.
+        RateLimiter::for('tools', function (Request $request) {
+            return Limit::perMinute(60)->by($request->ip());
+        });
+
+        RateLimiter::for('tool-leads', function (Request $request) {
+            return [
+                Limit::perHour(5)->by($request->ip()),
+                Limit::perDay(3)->by('tool-lead-email:' . strtolower((string) $request->input('email'))),
+            ];
         });
 
         // 5. Phase 19: Unbound Broadcaster Async Context Failures Fix
