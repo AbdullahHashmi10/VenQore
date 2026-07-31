@@ -491,6 +491,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
         { name: 'Dashboard', icon: LayoutDashboard, subs: [], 
           route: store ? 'store.dashboard' : null, 
           routeParams: store ? { store_slug: store.slug } : {} },
+        store ? {
+            name: 'AI Scan',
+            icon: Sparkles,
+            subs: [],
+            onClick: () => {
+                window.dispatchEvent(new CustomEvent('amd:open-smart-capture', { detail: { tab: 'image' } }));
+            }
+        } : null,
         {
             name: 'Sell',
             icon: ShoppingCart,
@@ -570,7 +578,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
             route: store ? 'store.reports.index' : 'reports.index',
             routeParams: store ? { store_slug: store.slug } : {}
         },
-    ];
+    ].filter(Boolean);
 
     const userRole = my_role || userRoleProp || props.auth?.user?.role;
     const isPlatformAdmin = !!props.auth?.user?.is_platform_admin;
@@ -660,6 +668,7 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
     // RBAC Permission Map
     const MENU_PERMISSIONS = {
         'Home': [],
+        'AI Scan': ['pos', 'sales', 'purchases'],
         // Sell: only roles that can actually create sales or open POS sessions
         'Sell': ['sales.create', 'sales.view'],
         // Purchase: only roles that can create purchase orders
@@ -954,9 +963,14 @@ export default function OneGlanceLayout({ children, title, activeMenu, defaultCo
                                     isMenuExpanded={expandedMenu === item.name}
                                     isActive={activeMenu === item.name}
                                     onToggle={() => {
+                                        if (item.onClick) {
+                                            item.onClick();
+                                            return;
+                                        }
                                         toggleMenu(item.name);
                                         if (!showExpandedSidebar) setIsSidebarOpen(true);
                                     }}
+                                    onClick={item.onClick}
                                 />
                             ))}
 

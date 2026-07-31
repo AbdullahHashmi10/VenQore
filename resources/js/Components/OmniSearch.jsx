@@ -12,7 +12,7 @@ import SmartCapturePanel from './SmartCapturePanel';
  * Set to true to re-enable Ask AI, Quick AI Prompts, and SmartCapture (Camera/Mic).
  * Requires a rebuild after toggling.
  */
-const AI_FEATURES_ENABLED = false;
+const AI_FEATURES_ENABLED = true;
 
 /**
  * OmniSearch - Universal Command Palette
@@ -43,6 +43,17 @@ export default function OmniSearch({ onAskAi, isAiLoading = false }) {
 
     const vensynq_enabled = usePage().props.vensynq_enabled;
     const isFullAccess = userRole === 'owner' || userRole === 'admin' || userRole === 'manager' || userRole === 'platform_admin';
+
+    // Global listener to trigger Smart Capture/AI Scan from sidebar or elsewhere
+    useEffect(() => {
+        const handleOpenScan = (e) => {
+            const tab = e.detail?.tab || 'image';
+            setSmartCaptureTab(tab);
+            setIsSmartCaptureOpen(true);
+        };
+        window.addEventListener('amd:open-smart-capture', handleOpenScan);
+        return () => window.removeEventListener('amd:open-smart-capture', handleOpenScan);
+    }, []);
     const canUseSmartCapture = vensynq_enabled && (isFullAccess || userPerms.some(p => p.startsWith('pos') || p.startsWith('sales') || p.startsWith('purchases')));
 
     const checkPerm = (required) => {

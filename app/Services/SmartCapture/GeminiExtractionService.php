@@ -6,6 +6,17 @@ use App\Helpers\SettingsHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
+/**
+ * @deprecated DEAD CODE — DO NOT WIRE THIS UP. SAFE TO DELETE.
+ *
+ * Superseded by AiExtractionService. Nothing references this class.
+ *
+ * It is kept only so the file's history is obvious: it contains the
+ * loop-over-every-model-on-any-failure pattern that turned one scan into up to
+ * four Gemini calls and exhausted the free-tier quota. AiExtractionService
+ * deliberately does the opposite — one scan, one request — so re-introducing
+ * this class would reintroduce the bug.
+ */
 class GeminiExtractionService
 {
     /**

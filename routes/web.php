@@ -237,9 +237,13 @@ Route::post('/webhooks/lemon-squeezy', [\App\Http\Controllers\LemonSqueezyWebhoo
     ->name('webhooks.lemon-squeezy');
 
 // ── Demo Sandbox Routes ───────────────────────────────────────────────
+// /demo landing stays indexable (marketing page, covered by MarketingSeo).
+// Login/logout are transactional entry points into the sandbox — noindex them.
 Route::get('/demo', [\App\Http\Controllers\DemoController::class, 'landing'])->name('demo.landing');
-Route::match(['get', 'post'], '/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
-Route::post('/demo/logout', [\App\Http\Controllers\DemoController::class, 'logout'])->name('demo.logout');
+Route::middleware([\App\Http\Middleware\NoIndexMiddleware::class])->group(function () {
+    Route::match(['get', 'post'], '/demo/login', [\App\Http\Controllers\DemoController::class, 'login'])->name('demo.login');
+    Route::post('/demo/logout', [\App\Http\Controllers\DemoController::class, 'logout'])->name('demo.logout');
+});
 
 
 // ── VenSynQ Universal OAuth Callbacks ────────────────────────────────────────
@@ -374,6 +378,9 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
         Route::post('/settings',                   [\App\Http\Controllers\SettingsController::class, 'update'])->name('settings.update');
 
         // SmartCapture (AI Scan) API
+        // NOTE: /extract costs exactly one upstream AI request per call. The
+        // throttle here is a blunt safety net; the real protection is the
+        // per-store single-flight lock inside the controller.
         Route::prefix('smart-capture')->group(function () {
             Route::get('/context',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'context'])->name('smart-capture.context');
             Route::post('/extract',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'extract'])->middleware('throttle:20,1')->name('smart-capture.extract');
@@ -381,6 +388,10 @@ Route::middleware(['auth', 'verified', 'tenant', 'lifecycle', 'drm', \App\Http\M
             Route::get('/settings',  [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'settings'])->name('smart-capture.settings');
             Route::post('/settings', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'saveSettings'])->name('smart-capture.settings.save');
             Route::post('/settings/test', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'testSettings'])->middleware('throttle:10,1')->name('smart-capture.settings.test');
+            Route::post('/settings/models', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'models'])->middleware('throttle:10,1')->name('smart-capture.settings.models');
+            // Learning memory (per-store, shared by all staff)
+            Route::get('/aliases',   [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'aliases'])->name('smart-capture.aliases');
+            Route::post('/aliases/forget', [\App\Http\Controllers\SmartCapture\SmartCaptureController::class, 'forgetAlias'])->middleware('throttle:60,1')->name('smart-capture.aliases.forget');
         });
 
         // Trial expired landing (within store context)
@@ -484,7 +495,7 @@ Route::middleware(['auth'])
     });
 
 // ── Platform Owner ───────────────────────────────────────────────────────────
-Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class])
+Route::middleware([\App\Http\Middleware\SuperAdminMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
     ->prefix('VenQore')
     ->name('platform.')
     ->group(function () {
@@ -918,7 +929,7 @@ Route::middleware([])->group(function () {
          ->where('any', '^(?!(dashboard|analytics|p-and-l|balance-sheet|stock-valuation|low-stock|movement-history|expiry|sales|purchases|day-book|profit-loss|party-statement|transactions|expenses|account-ledger|tax|bank-statement|balance-sheet|all-parties|trial-balance|item-wise-profit|party-wise-profit-loss|discount|cash-flow|sale-aging|sale-orders|bill-wise-profit|expense-by-category|expense-by-item|stock-summary-by-category|item-detail|loan-statement|tax-rate|sale-purchase-by-party|item-report-by-party|party-report-by-item|sale-purchase-by-party-group)).*');
 });
 
-Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\DemoMiddleware::class])
+Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\DemoMiddleware::class, \App\Http\Middleware\NoIndexMiddleware::class])
     ->prefix('s/{store_slug}')
     ->group(function () {
         // Compatibility Aliases for POS & AJAX (Resolves Ziggy 'route not found' while keeping URL isolation)

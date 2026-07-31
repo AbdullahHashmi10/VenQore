@@ -29,6 +29,14 @@ use Illuminate\Support\Str;
 
 class TransactionBuilderService
 {
+    /**
+     * Line items after new-product materialisation, i.e. every line carrying a
+     * real product_id. Read by the caller to feed the learning memory.
+     *
+     * @var array<int, array<string, mixed>>
+     */
+    public array $lastResolvedItems = [];
+
     public function __construct(
         private AccountingService $accounting,
         private FifoService       $fifo,
@@ -149,6 +157,8 @@ class TransactionBuilderService
      */
     private function materializeNewProducts(array $items, int|string $tenantId, string $action): array
     {
+        $this->lastResolvedItems = [];
+
         foreach ($items as $idx => $item) {
             if (!empty($item['create_new']) && is_array($item['create_new'])) {
                 $new = $item['create_new'];
@@ -186,6 +196,11 @@ class TransactionBuilderService
                 }
             }
         }
+
+        // Expose the fully resolved lines so the caller can teach the learning
+        // memory which product each raw reading ended up as — including lines
+        // that were just created as brand-new products.
+        $this->lastResolvedItems = $items;
 
         return $items;
     }

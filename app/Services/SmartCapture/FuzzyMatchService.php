@@ -5,26 +5,47 @@ namespace App\Services\SmartCapture;
 use App\Models\Party;
 use App\Models\Product;
 
+/**
+ * Matches what the AI read against THIS store's catalog.
+ *
+ * Resolution order, strongest first:
+ *   1. Learned alias  — the store previously confirmed this exact wording.
+ *                       Pinned at 100% and marked `learned`, so nobody has to
+ *                       correct the same reading twice.
+ *   2. Verified SKU   — the model returned a SKU that really exists in this
+ *                       tenant's catalog (the claim is checked, never trusted).
+ *   3. Blended fuzzy  — Levenshtein + similar_text + token overlap + size/unit
+ *                       agreement.
+ *
+ * Every query is explicitly scoped to the current tenant.
+ */
 class FuzzyMatchService
 {
+    public function __construct(private LearningService $learning) {}
 
     /**
      * Match an extracted product name against the live catalog.
-     * Returns top 5 candidate products with confidence scores (0–100).
-     *
-     * Scoring blends Levenshtein similarity, PHP similar_text and token overlap,
-     * which handles word-order differences ("500ml Water Bottle" vs "Water Bottle 500ml")
-     * and partial names much better than raw Levenshtein alone.
+     * Returns up to 5 candidates with confidence scores (0–100), best first.
      *
      * @param string      $itemName   Raw item name from AI extraction
      * @param string|null $matchedSku SKU the AI claims to have matched (verified, not trusted)
+     * @return array<int, array{product:Product, confidence:int, learned:bool, reason:string}>
      */
     public function matchProduct(string $itemName, ?string $matchedSku = null): array
     {
         $tenantId = app('current.tenant')->id;
 
-        // 0. If the AI supplied a catalog SKU, verify it against THIS tenant's catalog.
-        //    A verified SKU match is the strongest possible signal.
+        // ── 1. Learned alias — this store already told us what this means ────
+        $learnedProduct = null;
+        $learnedHit = $this->learning->resolveProduct($itemName);
+
+        if ($learnedHit) {
+            $learnedProduct = Product::where('tenant_id', $tenantId)
+                ->whereKey($learnedHit['target_id'])
+                ->first(['id', 'name', 'sku', 'price', 'cost_price']);
+        }
+
+        // ── 2. Verify any SKU the model claimed, against THIS tenant only ────
         $skuProduct = null;
         if (!empty($matchedSku)) {
             $skuProduct = Product::where('tenant_id', $tenantId)
@@ -32,8 +53,8 @@ class FuzzyMatchService
                 ->first(['id', 'name', 'sku', 'price', 'cost_price']);
         }
 
-        // 1. Tokenize query words to filter DB rows (protects memory/perf)
-        $words = array_filter(explode(' ', preg_replace('/[^\w\s]/u', '', $itemName)));
+        // ── 3. Candidate pool ────────────────────────────────────────────────
+        $words = $this->tokens($itemName);
 
         $query = Product::where('tenant_id', $tenantId);
 
@@ -57,22 +78,38 @@ class FuzzyMatchService
                 ->get(['id', 'name', 'sku', 'price', 'cost_price']);
         }
 
-        if ($skuProduct && !$products->contains('id', $skuProduct->id)) {
-            $products->push($skuProduct);
+        foreach ([$skuProduct, $learnedProduct] as $forced) {
+            if ($forced && !$products->contains('id', $forced->id)) {
+                $products->push($forced);
+            }
         }
 
-        // 2. Blended similarity re-ranking
-        $ranked = $products->map(function ($product) use ($itemName, $skuProduct) {
+        // ── 4. Rank ──────────────────────────────────────────────────────────
+        $ranked = $products->map(function ($product) use ($itemName, $skuProduct, $learnedProduct, $learnedHit) {
             $confidence = $this->similarity($itemName, $product->name);
+            $learned    = false;
+            $reason     = 'similar name';
 
-            // Verified AI SKU match dominates
-            if ($skuProduct && $product->id === $skuProduct->id) {
-                $confidence = max($confidence, 97);
+            if ($skuProduct && $product->id === $skuProduct->id && $confidence < 97) {
+                $confidence = 97;
+                $reason = 'AI matched catalog SKU';
+            }
+
+            // A confirmed lesson from this store beats everything else.
+            if ($learnedProduct && $product->id === $learnedProduct->id) {
+                $confidence = 100;
+                $learned = true;
+                $hits = $learnedHit['hits'] ?? 1;
+                $reason = $hits > 1
+                    ? "you chose this for \"{$learnedHit['source_text']}\" {$hits} times"
+                    : "you chose this for \"{$learnedHit['source_text']}\" before";
             }
 
             return [
                 'product'    => $product,
                 'confidence' => $confidence,
+                'learned'    => $learned,
+                'reason'     => $reason,
             ];
         })
         ->sortByDesc('confidence')
@@ -85,15 +122,18 @@ class FuzzyMatchService
 
     /**
      * Match an extracted party name against tenant customers/suppliers.
-     * Returns top 5 candidates: [ ['id','name','type','confidence'], ... ]
      *
      * @param string $type 'customer' | 'supplier'
+     * @return array<int, array{id:string, name:string, type:string, confidence:int, learned:bool}>
      */
     public function matchParty(string $partyName, string $type): array
     {
         $tenantId = app('current.tenant')->id;
 
-        $words = array_filter(explode(' ', preg_replace('/[^\w\s]/u', '', $partyName)));
+        $learnedHit = $this->learning->resolveParty($partyName, $type);
+        $learnedId  = $learnedHit['target_id'] ?? null;
+
+        $words = $this->tokens($partyName);
 
         $query = Party::where('tenant_id', $tenantId)->where('type', $type);
 
@@ -116,12 +156,28 @@ class FuzzyMatchService
                 ->get(['id', 'name', 'type']);
         }
 
-        return $parties->map(fn ($party) => [
-                'id'         => $party->id,
-                'name'       => $party->name,
-                'type'       => $party->type,
-                'confidence' => $this->similarity($partyName, $party->name),
-            ])
+        if ($learnedId && !$parties->contains('id', $learnedId)) {
+            $learnedParty = Party::where('tenant_id', $tenantId)
+                ->where('type', $type)
+                ->whereKey($learnedId)
+                ->first(['id', 'name', 'type']);
+
+            if ($learnedParty) {
+                $parties->push($learnedParty);
+            }
+        }
+
+        return $parties->map(function ($party) use ($partyName, $learnedId) {
+                $isLearned = $learnedId && (string) $party->id === (string) $learnedId;
+
+                return [
+                    'id'         => $party->id,
+                    'name'       => $party->name,
+                    'type'       => $party->type,
+                    'confidence' => $isLearned ? 100 : $this->similarity($partyName, $party->name),
+                    'learned'    => (bool) $isLearned,
+                ];
+            })
             ->sortByDesc('confidence')
             ->take(5)
             ->values()
@@ -129,7 +185,20 @@ class FuzzyMatchService
     }
 
     /**
+     * @return array<int, string>
+     */
+    private function tokens(string $text): array
+    {
+        return array_values(array_filter(explode(' ', preg_replace('/[^\w\s]/u', ' ', $text))));
+    }
+
+    /**
      * Blended string similarity score 0–100.
+     *
+     * Includes a size/unit guard: "Coke 1.5L" and "Coke 500ml" share almost
+     * every letter, so pure string distance rates them as near-identical. On a
+     * POS catalogue that is the single most expensive kind of mismatch, so a
+     * disagreeing measurement is penalised hard.
      */
     private function similarity(string $a, string $b): int
     {
@@ -144,16 +213,18 @@ class FuzzyMatchService
             return 100;
         }
 
-        // Levenshtein similarity
-        $maxLen = max(strlen($a), strlen($b));
-        $lev = $maxLen > 0 ? (1 - (levenshtein($a, $b) / $maxLen)) * 100 : 0;
+        // Levenshtein similarity (guard: levenshtein() is limited to 255 bytes)
+        $la = mb_substr($a, 0, 255);
+        $lb = mb_substr($b, 0, 255);
+        $maxLen = max(strlen($la), strlen($lb));
+        $lev = $maxLen > 0 ? (1 - (levenshtein($la, $lb) / $maxLen)) * 100 : 0;
 
         // similar_text percentage
         similar_text($a, $b, $pct);
 
         // Token overlap (order-insensitive)
-        $tokensA = array_filter(explode(' ', preg_replace('/[^\w\s]/u', '', $a)));
-        $tokensB = array_filter(explode(' ', preg_replace('/[^\w\s]/u', '', $b)));
+        $tokensA = $this->tokens($a);
+        $tokensB = $this->tokens($b);
         $overlap = 0;
         if (!empty($tokensA) && !empty($tokensB)) {
             $common = 0;
@@ -171,6 +242,68 @@ class FuzzyMatchService
         // Substring containment bonus (e.g. "coke" inside "Coca Cola Coke 1.5L")
         $containment = (str_contains($b, $a) || str_contains($a, $b)) ? 85 : 0;
 
-        return (int) round(min(100, max($lev * 0.35 + $pct * 0.25 + $overlap * 0.40, $containment)));
+        $score = min(100, max($lev * 0.35 + $pct * 0.25 + $overlap * 0.40, $containment));
+
+        // Size / unit agreement guard
+        $score *= $this->measurementFactor($a, $b);
+
+        return (int) round($score);
+    }
+
+    /**
+     * Multiplier reflecting whether two names describe the same pack size.
+     *
+     * 1.00 — same measurement, or neither name states one
+     * 0.95 — only one name states a measurement (mild penalty, could be shorthand)
+     * 0.55 — both state a measurement and they disagree
+     */
+    private function measurementFactor(string $a, string $b): float
+    {
+        $ma = $this->measurements($a);
+        $mb = $this->measurements($b);
+
+        if (empty($ma) && empty($mb)) {
+            return 1.0;
+        }
+
+        if (empty($ma) || empty($mb)) {
+            return 0.95;
+        }
+
+        return array_intersect($ma, $mb) ? 1.0 : 0.55;
+    }
+
+    /**
+     * Pull normalised measurements ("1.5l", "500ml", "5kg") out of a name and
+     * express them in a common base unit so 1.5L and 1500ml compare equal.
+     *
+     * @return array<int, string>
+     */
+    private function measurements(string $text): array
+    {
+        if (!preg_match_all('/(\d+(?:\.\d+)?)\s*(kg|g|gm|gram|grams|mg|l|ltr|litre|liter|ml|cl|pcs|pc|pack)\b/u', $text, $matches, PREG_SET_ORDER)) {
+            return [];
+        }
+
+        $out = [];
+
+        foreach ($matches as $match) {
+            $value = (float) $match[1];
+            $unit  = $match[2];
+
+            [$base, $factor] = match ($unit) {
+                'kg'                                  => ['g', 1000],
+                'g', 'gm', 'gram', 'grams'            => ['g', 1],
+                'mg'                                  => ['g', 0.001],
+                'l', 'ltr', 'litre', 'liter'          => ['ml', 1000],
+                'cl'                                  => ['ml', 10],
+                'ml'                                  => ['ml', 1],
+                default                               => ['unit', 1],
+            };
+
+            $out[] = $base . ':' . rtrim(rtrim(number_format($value * $factor, 3, '.', ''), '0'), '.');
+        }
+
+        return array_unique($out);
     }
 }

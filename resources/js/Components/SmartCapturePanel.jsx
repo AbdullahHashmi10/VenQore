@@ -3,7 +3,8 @@ import { usePage, router, Link } from '@inertiajs/react';
 import {
     X, Camera, Mic, Upload, Loader2, Sparkles, FileText, CheckCircle2,
     AlertTriangle, Plus, ChevronRight, User, Type, Lock, Settings2,
-    Trash2, FilePlus2, Layers, KeyRound, TestTube2
+    Trash2, FilePlus2, Layers, KeyRound, TestTube2, Brain, Clock,
+    RefreshCw, Eye, Zap
 } from 'lucide-react';
 import axios from 'axios';
 import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
@@ -63,6 +64,19 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     const [settingsForm, setSettingsForm] = useState({ provider: 'gemini', api_key: '', model: '' });
     const [settingsBusy, setSettingsBusy] = useState(false);
     const [settingsMsg, setSettingsMsg] = useState(null);
+    const [availableModels, setAvailableModels] = useState(null); // null = not fetched yet
+    const [modelsBusy, setModelsBusy] = useState(false);
+
+    // Rate limiting: when the provider says "too fast", we show a countdown
+    // instead of retrying. Retrying automatically is what drained the quota.
+    const [rateLimit, setRateLimit] = useState(null); // { seconds, message, daily }
+
+    // Guards a scan against double submission. One document = one API request.
+    const extractInFlight = useRef(false);
+
+    // Makes a re-submitted confirmation idempotent server-side, so a flaky
+    // network or an impatient second click cannot post the document twice.
+    const idempotencyKeyRef = useRef(null);
 
     const [isPurchasingAddon, setIsPurchasingAddon] = useState(null);
 
@@ -110,7 +124,10 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         try {
             return route('store.smart-capture.extract', { store_slug: store?.slug }).replace(/\/extract$/, '');
         } catch (e) {
-            return `/store/${store?.slug}/smart-capture`;
+            // Must match the route group prefix in routes/web.php: s/{store_slug}.
+            // This was '/store/...' previously, which 404s whenever the Ziggy
+            // cache is stale — exactly when the fallback is needed.
+            return `/s/${store?.slug}/smart-capture`;
         }
     }, [store?.slug]);
 
@@ -126,6 +143,19 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             .catch(() => setCtx(null))
             .finally(() => setCtxLoading(false));
     }, [isOpen, baseUrl]);
+
+    // Rate-limit countdown. Purely a display timer — nothing is auto-retried.
+    useEffect(() => {
+        if (!rateLimit || rateLimit.seconds <= 0) return;
+        const id = setInterval(() => {
+            setRateLimit(prev => {
+                if (!prev) return null;
+                if (prev.seconds <= 1) return null;
+                return { ...prev, seconds: prev.seconds - 1 };
+            });
+        }, 1000);
+        return () => clearInterval(id);
+    }, [rateLimit]);
 
     // Recording timer
     useEffect(() => {
@@ -270,7 +300,14 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     });
 
     // ── Extraction ───────────────────────────────────────────────────────────
+    // One scan costs exactly one AI request. The ref guard (rather than the
+    // `loading` state) closes the gap where two rapid clicks both read the old
+    // state value before React re-renders.
     const handleExtract = async () => {
+        if (extractInFlight.current || loading) return;
+        if (rateLimit) return;
+
+        extractInFlight.current = true;
         setLoading(true);
         setError(null);
         setExtractedData(null);
@@ -318,16 +355,35 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 setSelectedPartyId(response.data.suggested_party_id || '');
                 setSelectedCategoryId(response.data.suggested_category_id || '');
                 setPaymentMethod(response.data.action === 'purchase' ? 'credit' : 'cash');
+                // A fresh key for this document, so confirming it twice is safe.
+                idempotencyKeyRef.current = (crypto?.randomUUID?.() || `sc-${Date.now()}-${Math.random().toString(36).slice(2)}`);
             } else {
                 setError(response.data.message || 'Failed to extract transaction details.');
             }
         } catch (err) {
-            if (err.response?.status === 402) {
+            const status = err.response?.status;
+            const data = err.response?.data;
+
+            if (status === 402) {
                 // Entitlement changed — refresh lock state
                 axios.get(`${baseUrl}/context`).then(res => setCtx(res.data)).catch(() => {});
+                setError(data?.message || 'AI Scan is locked for this store.');
+            } else if (status === 429) {
+                // Provider (or our pacer) says slow down. We deliberately do NOT
+                // retry — a retry storm is what exhausted the free-tier quota.
+                setRateLimit({
+                    seconds: Math.max(1, parseInt(data?.retry_after ?? 30, 10)),
+                    message: data?.message || 'The AI provider is rate limiting this key.',
+                    daily: !!data?.daily,
+                });
+                setError(null);
+            } else if (status === 409) {
+                setError(data?.message || 'A scan is already running for this store. Give it a moment.');
+            } else {
+                setError(data?.message || 'AI extraction failed. Please check your AI settings and try again.');
             }
-            setError(err.response?.data?.message || 'AI extraction failed. Please check your AI settings and try again.');
         } finally {
+            extractInFlight.current = false;
             setLoading(false);
         }
     };
@@ -402,6 +458,9 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             qty: parseFloat(item.qty || 1),
             unit_price: parseFloat(item.unit_price || 0),
             name: item.raw_name,
+            // The exact wording the AI read. The server pairs it with whatever
+            // product the user settled on, and remembers it for this store.
+            raw_name: item.raw_name,
         }));
 
         const payload = {
@@ -409,17 +468,27 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
             party_id: isExpense ? null : selectedPartyId,
             party: extractedData.party,
             payment_method: isExpense && paymentMethod === 'credit' ? 'cash' : paymentMethod,
+            expense_category: isExpense ? (extractedData.expense_category || null) : null,
             expense_category_id: isExpense ? selectedCategoryId : null,
             date: extractedData.date || null,
             reference: extractedData.reference || null,
             append_to: appendMode && appendDocId ? { type: appendDocType, id: appendDocId } : null,
+            // Same key on a retry => the server returns the original result
+            // instead of posting a second transaction.
+            idempotency_key: idempotencyKeyRef.current,
             items: postItems,
         };
 
         try {
             const response = await axios.post(`${baseUrl}/confirm`, payload);
             if (response.data.success) {
-                setSuccessData({ ...response.data.data, message: response.data.message });
+                setSuccessData({
+                    ...response.data.data,
+                    message: response.data.message,
+                    duplicate: response.data.duplicate,
+                });
+                // Refresh the learned-item counter shown in the header.
+                axios.get(`${baseUrl}/context`).then(r => setCtx(r.data)).catch(() => {});
             } else {
                 setError(response.data.message || 'Failed to post transaction.');
             }
@@ -448,6 +517,8 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         setSelectedCategoryId('');
         setAppendDocId('');
         setError(null);
+        setRateLimit(null);
+        idempotencyKeyRef.current = null;
     };
 
     const navigateToSuccessDoc = () => {
@@ -484,6 +555,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     const openSettings = () => {
         setShowSettings(true);
         setSettingsMsg(null);
+        setAvailableModels(null);
         axios.get(`${baseUrl}/settings`)
             .then(res => {
                 setSettings(res.data);
@@ -494,6 +566,27 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 });
             })
             .catch(err => setSettingsMsg({ ok: false, text: err.response?.data?.message || 'Could not load settings.' }));
+    };
+
+    // Ask the provider which models this key may actually use. Beats a
+    // hardcoded list, which goes stale every time Google ships a new Flash.
+    const discoverModels = async () => {
+        setModelsBusy(true);
+        setSettingsMsg(null);
+        try {
+            const res = await axios.post(`${baseUrl}/settings/models`, {
+                provider: settingsForm.provider,
+                api_key: settingsForm.api_key,
+            });
+            setAvailableModels(res.data.models || []);
+            if (!res.data.models?.length) {
+                setSettingsMsg({ ok: false, text: 'No models were returned for this key.' });
+            }
+        } catch (err) {
+            setSettingsMsg({ ok: false, text: err.response?.data?.message || 'Could not load the model list.' });
+        } finally {
+            setModelsBusy(false);
+        }
     };
 
     const saveSettings = async () => {
@@ -676,15 +769,44 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Model (optional)</label>
-                        <input
-                            type="text"
-                            value={settingsForm.model}
-                            onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
-                            placeholder={settings?.default_models?.[settingsForm.provider] || 'Default model'}
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono outline-none text-slate-800 dark:text-white"
-                        />
-                        <p className="text-[10px] text-slate-400 mt-1.5 ml-1">Leave empty to use the recommended default.</p>
+                        <div className="flex items-center justify-between mb-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-wider text-slate-400">Model (optional)</label>
+                            <button
+                                type="button"
+                                onClick={discoverModels}
+                                disabled={modelsBusy}
+                                className="text-[10px] font-black uppercase tracking-wider text-indigo-500 hover:text-indigo-400 flex items-center gap-1 disabled:opacity-40"
+                            >
+                                {modelsBusy ? <Loader2 size={11} className="animate-spin" /> : <RefreshCw size={11} />}
+                                Load available models
+                            </button>
+                        </div>
+
+                        {availableModels?.length ? (
+                            <select
+                                value={settingsForm.model}
+                                onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono outline-none text-slate-800 dark:text-white"
+                            >
+                                <option value="">Recommended default ({settings?.default_models?.[settingsForm.provider]})</option>
+                                {availableModels.map(m => (
+                                    <option key={m.id} value={m.id}>{m.label} — {m.id}</option>
+                                ))}
+                            </select>
+                        ) : (
+                            <input
+                                type="text"
+                                value={settingsForm.model}
+                                onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
+                                placeholder={settings?.default_models?.[settingsForm.provider] || 'Default model'}
+                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono outline-none text-slate-800 dark:text-white"
+                            />
+                        )}
+
+                        <p className="text-[10px] text-slate-400 mt-1.5 ml-1 leading-relaxed">
+                            Leave empty for the recommended default. Newer Flash models read handwriting better and
+                            usually cost less — press "Load available models" to see what your key can use.
+                        </p>
                     </div>
 
                     {settingsMsg && (
@@ -822,10 +944,18 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
                         <div>
                             <h2 className="text-lg font-black tracking-tight">AI Scan</h2>
-                            <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider mt-0.5">
-                                AI-Powered Transaction Entry
-                                {ctx?.entitlement?.mode === 'managed' && ctx?.entitlement?.scans_limit > 0 && (
-                                    <span className="ml-2 text-slate-400 normal-case">({ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans used)</span>
+                            <p className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider mt-0.5 flex flex-wrap items-center gap-x-2">
+                                <span>AI-Powered Transaction Entry</span>
+                                {(ctx?.entitlement?.mode === 'managed' || ctx?.entitlement?.mode === 'free') && ctx?.entitlement?.scans_limit > 0 && (
+                                    <span className="text-slate-400 normal-case">({ctx.entitlement.scans_used}/{ctx.entitlement.scans_limit} scans used)</span>
+                                )}
+                                {ctx?.learning?.total > 0 && (
+                                    <span
+                                        className="text-violet-300 normal-case flex items-center gap-1"
+                                        title="Corrections your team has made. AI Scan reuses them automatically."
+                                    >
+                                        <Brain size={11} /> {ctx.learning.total} learned
+                                    </span>
                                 )}
                             </p>
                         </div>
@@ -855,6 +985,44 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
                     ) : locked && !extractedData && !successData ? (
                         renderLocked()
+                    ) : rateLimit && !extractedData && !successData ? (
+                        /* RATE LIMITED — we wait, we never auto-retry */
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in duration-200">
+                            <div className="w-16 h-16 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center text-amber-500 mb-5">
+                                <Clock size={30} />
+                            </div>
+                            <h3 className="text-lg font-black text-slate-800 dark:text-white tracking-tight">
+                                {rateLimit.daily ? 'Daily AI quota reached' : 'Sending a little too fast'}
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-2 max-w-sm leading-relaxed">{rateLimit.message}</p>
+
+                            {!rateLimit.daily && (
+                                <div className="mt-6 flex flex-col items-center gap-2">
+                                    <div className="text-4xl font-black text-slate-800 dark:text-white tabular-nums">{rateLimit.seconds}s</div>
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Ready again shortly</p>
+                                </div>
+                            )}
+
+                            <p className="text-[10px] text-slate-400 mt-6 max-w-sm leading-relaxed">
+                                Your document is still here — nothing was lost, and no request was wasted.
+                                We never retry automatically, because that is what burns through a free-tier key.
+                            </p>
+
+                            <div className="mt-6 flex gap-3">
+                                <button
+                                    onClick={() => setRateLimit(null)}
+                                    className="px-6 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all active:scale-95"
+                                >
+                                    Back to my document
+                                </button>
+                                <button
+                                    onClick={openSettings}
+                                    className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-all active:scale-95 flex items-center gap-1.5"
+                                >
+                                    <KeyRound size={13} /> Use a different key
+                                </button>
+                            </div>
+                        </div>
                     ) : successData ? (
                         /* SUCCESS STATE */
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in zoom-in-95 duration-350">
@@ -1018,12 +1186,37 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 </div>
                             )}
 
+                            {/* Learning banner — shows the memory paying off */}
+                            {extractedData.meta?.learned_lines > 0 && (
+                                <div className="px-8 py-2.5 bg-violet-500/10 border-b border-violet-500/20 flex items-center gap-2 text-xs font-bold text-violet-500">
+                                    <Brain size={13} />
+                                    {extractedData.meta.learned_lines} line{extractedData.meta.learned_lines > 1 ? 's were' : ' was'} matched
+                                    from what your store taught AI Scan previously — already filled in below.
+                                </div>
+                            )}
+
+                            {/* Low-legibility warning */}
+                            {typeof extractedData.document_confidence === 'number' && extractedData.document_confidence < 70 && (
+                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500">
+                                    <Eye size={13} />
+                                    This document was hard to read ({extractedData.document_confidence}% legible).
+                                    Check the amber and red lines carefully before posting.
+                                </div>
+                            )}
+
                             {/* Extracted meta */}
-                            {(extractedData.date || extractedData.reference || extractedData.notes) && (
-                                <div className="px-8 py-2 border-b border-slate-100 dark:border-slate-800 flex flex-wrap gap-4 text-[10px] font-semibold text-slate-400">
+                            {(extractedData.date || extractedData.reference || extractedData.notes || extractedData.meta) && (
+                                <div className="px-8 py-2 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center gap-4 text-[10px] font-semibold text-slate-400">
                                     {extractedData.date && <span>Date read: <span className="text-slate-600 dark:text-slate-300">{extractedData.date}</span></span>}
                                     {extractedData.reference && <span>Ref: <span className="text-slate-600 dark:text-slate-300 font-mono">{extractedData.reference}</span></span>}
                                     {extractedData.notes && <span className="truncate max-w-md">Notes: <span className="text-slate-600 dark:text-slate-300">{extractedData.notes}</span></span>}
+                                    {extractedData.meta?.api_requests ? (
+                                        <span className="ml-auto flex items-center gap-1 text-emerald-500" title="One scan costs exactly one AI request">
+                                            <Zap size={11} />
+                                            {extractedData.meta.api_requests} API request{extractedData.meta.api_requests > 1 ? 's' : ''}
+                                            {extractedData.meta.model ? ` · ${extractedData.meta.model}` : ''}
+                                        </span>
+                                    ) : null}
                                 </div>
                             )}
 
@@ -1039,20 +1232,37 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div className="space-y-3">
                                     {extractedData.items.map((item, idx) => {
                                         const isNew = !!item.create_new;
+                                        const isLearned = !!item.learned && !isNew;
                                         const isHigh = item.confidence >= 90;
                                         const isMedium = item.confidence >= 60 && item.confidence < 90;
+                                        // The model told us it struggled to READ this line — a different
+                                        // problem from being unsure which product it maps to.
+                                        const unclearReading = item.needs_review || (item.read_confidence !== null && item.read_confidence < 70);
 
                                         return (
                                             <div
                                                 key={idx}
-                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${isNew ? 'bg-indigo-500/5 border-indigo-500/20' :
-                                                    isHigh ? 'bg-emerald-500/5 border-emerald-500/10' :
-                                                        isMedium ? 'bg-amber-500/5 border-amber-500/10' :
-                                                            'bg-rose-500/5 border-rose-500/10'}`}
+                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-3 ${isLearned ? 'bg-violet-500/5 border-violet-500/25' :
+                                                    isNew ? 'bg-indigo-500/5 border-indigo-500/20' :
+                                                        isHigh ? 'bg-emerald-500/5 border-emerald-500/10' :
+                                                            isMedium ? 'bg-amber-500/5 border-amber-500/10' :
+                                                                'bg-rose-500/5 border-rose-500/10'}`}
                                             >
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1">
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">AI read: "{item.raw_name}"</span>
+                                                        <div className="flex flex-wrap items-center gap-2">
+                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">AI read: "{item.raw_name}"</span>
+                                                            {unclearReading && (
+                                                                <span className="px-1.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider bg-amber-500/15 text-amber-600 dark:text-amber-500 border border-amber-500/25 flex items-center gap-1">
+                                                                    <Eye size={9} /> Check this reading
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {isLearned && item.match_reason && (
+                                                            <span className="text-[10px] font-bold text-violet-500 flex items-center gap-1 mt-0.5">
+                                                                <Brain size={10} /> Remembered — {item.match_reason}
+                                                            </span>
+                                                        )}
 
                                                         {!isExpense ? (
                                                             <div className="mt-1.5 space-y-2">
@@ -1064,7 +1274,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                                     <option value="" disabled>-- Match a store product --</option>
                                                                     {(item.candidates || []).map(c => (
                                                                         <option key={c.id} value={c.id}>
-                                                                            {c.name} (SKU: {c.sku} | Match: {c.confidence}%)
+                                                                            {c.learned ? '★ ' : ''}{c.name} (SKU: {c.sku} | Match: {c.confidence}%{c.learned ? ' — learned' : ''})
                                                                         </option>
                                                                     ))}
                                                                     <option value="__create_new__">＋ Create as NEW product…</option>
@@ -1136,11 +1346,12 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                             />
                                                         </div>
                                                         <div className="pt-4 flex items-center gap-2">
-                                                            <span className={`px-2 py-1 text-[8px] font-black uppercase rounded-full ${isNew ? 'bg-indigo-150 text-indigo-700' :
-                                                                isHigh ? 'bg-emerald-150 text-emerald-700' :
-                                                                    isMedium ? 'bg-amber-150 text-amber-700' :
-                                                                        'bg-rose-150 text-rose-700'}`}>
-                                                                {isNew ? 'New Product' : `${item.confidence}% Match`}
+                                                            <span className={`px-2 py-1 text-[8px] font-black uppercase rounded-full ${isLearned ? 'bg-violet-500/15 text-violet-600' :
+                                                                isNew ? 'bg-indigo-150 text-indigo-700' :
+                                                                    isHigh ? 'bg-emerald-150 text-emerald-700' :
+                                                                        isMedium ? 'bg-amber-150 text-amber-700' :
+                                                                            'bg-rose-150 text-rose-700'}`}>
+                                                                {isLearned ? 'Learned' : isNew ? 'New Product' : `${item.confidence}% Match`}
                                                             </span>
                                                             <button
                                                                 onClick={() => removeItem(idx)}
@@ -1163,9 +1374,13 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div className="text-sm">
                                     <span className="text-slate-400 font-medium">Estimated Gross:</span>{' '}
                                     <span className="font-black text-slate-800 dark:text-white text-base">Rs. {calculateGrossTotal()}</span>
-                                    {!partyReady && (
+                                    {!partyReady ? (
                                         <span className="block text-[10px] text-rose-500 font-bold mt-0.5">
                                             {isExpense ? 'Select an expense category to continue.' : `Select the ${partyType} to continue.`}
+                                        </span>
+                                    ) : (
+                                        <span className="block text-[10px] text-violet-500 font-bold mt-0.5 flex items-center gap-1">
+                                            <Brain size={10} /> Your choices here are remembered for this store — next scan will fill them in for you.
                                         </span>
                                     )}
                                 </div>
@@ -1315,10 +1530,10 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                         <div className="pt-6 shrink-0 text-right">
                                             <button
                                                 onClick={handleExtract}
-                                                disabled={selectedFiles.length === 0}
+                                                disabled={selectedFiles.length === 0 || loading || !!rateLimit}
                                                 className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black rounded-xl text-xs shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-30 disabled:hover:scale-100"
                                             >
-                                                Proceed to Extract
+                                                {loading ? 'Scanning…' : `Scan ${selectedFiles.length || ''} ${selectedFiles.length === 1 ? 'page' : 'pages'} — 1 AI request`}
                                             </button>
                                         </div>
                                     </div>
@@ -1408,7 +1623,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                         <div className="pt-6 shrink-0 text-right">
                                             <button
                                                 onClick={handleExtract}
-                                                disabled={!audioBlob}
+                                                disabled={!audioBlob || loading || !!rateLimit}
                                                 className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black rounded-xl text-xs shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-30 disabled:hover:scale-100"
                                             >
                                                 Proceed to Extract
@@ -1437,7 +1652,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                         <div className="pt-6 shrink-0 text-right">
                                             <button
                                                 onClick={handleExtract}
-                                                disabled={!textInput.trim()}
+                                                disabled={!textInput.trim() || loading || !!rateLimit}
                                                 className="px-8 py-3.5 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white font-black rounded-xl text-xs shadow-lg shadow-indigo-500/20 transition-all disabled:opacity-30 disabled:hover:scale-100"
                                             >
                                                 Proceed to Extract
