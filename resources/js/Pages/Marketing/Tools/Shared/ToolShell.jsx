@@ -56,6 +56,31 @@ function EditHintBanner() {
     );
 }
 
+function FAQItem({ q, a }) {
+    const [isExpanded, setIsExpanded] = useState(false);
+    return (
+        <div className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10 transition-all duration-200">
+            <button
+                type="button"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="w-full flex items-center justify-between text-left font-bold text-slate-900 dark:text-white group focus:outline-none"
+            >
+                <span className="pr-4">{q}</span>
+                <span className={`transform transition-transform duration-200 text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 shrink-0`}>
+                    <svg className={`w-4 h-4 ${isExpanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </span>
+            </button>
+            <div className={`grid transition-all duration-200 ease-in-out ${isExpanded ? 'grid-rows-[1fr] opacity-100 mt-3' : 'grid-rows-[0fr] opacity-0 overflow-hidden'}`}>
+                <div className="overflow-hidden">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{a}</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 /**
  * ToolShell — shared page anatomy for every /tools/* page.
  *
@@ -119,13 +144,7 @@ export default function ToolShell({
                                 </h2>
                                 <div className="space-y-4">
                                     {faqs.map((qa) => (
-                                        <div
-                                            key={qa.q}
-                                            className="p-5 rounded-2xl bg-slate-900/[0.02] dark:bg-white/[0.03] border border-slate-900/[0.06] dark:border-white/10"
-                                        >
-                                            <p className="font-bold text-slate-900 dark:text-white mb-2">{qa.q}</p>
-                                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{qa.a}</p>
-                                        </div>
+                                        <FAQItem key={qa.q} q={qa.q} a={qa.a} />
                                     ))}
                                 </div>
                             </section>
@@ -138,7 +157,7 @@ export default function ToolShell({
                                 <div className="flex items-center justify-center gap-3 flex-wrap">
                                     <Link
                                         href="/pricing"
-                                        className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-[#05030f] rounded-full text-sm font-black uppercase tracking-wide hover:scale-105 transition-transform"
+                                        className="px-6 py-3 bg-slate-900 dark:bg-white text-white dark:text-void-900 rounded-full text-sm font-black uppercase tracking-wide hover:scale-105 transition-transform"
                                     >
                                         Start your 14-day free trial
                                     </Link>
