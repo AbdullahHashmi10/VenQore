@@ -4,7 +4,7 @@ import {
     X, Camera, Mic, Upload, Loader2, Sparkles, FileText, CheckCircle2,
     AlertTriangle, Plus, ChevronRight, User, Type, Lock, Settings2,
     Trash2, FilePlus2, Layers, KeyRound, TestTube2, Brain, Clock,
-    RefreshCw, Eye, Zap
+    RefreshCw, Eye, Zap, ChevronDown, Check, Search
 } from 'lucide-react';
 import axios from 'axios';
 import { openLemonCheckout, closeLemonCheckout } from '@/lib/lemonCheckout';
@@ -701,7 +701,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     const openDocs = ctx?.open_documents?.[appendDocType] || [];
 
     const renderAdvancedControls = () => (
-        <div className="mb-6 space-y-4 text-left bg-slate-50/50 dark:bg-slate-850/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 relative z-20">
+        <div className="mb-6 space-y-4 text-left bg-slate-900/40 backdrop-blur-md p-5 rounded-3xl border border-white/5 relative z-20 font-sans shadow-xl">
             {/* Create new vs append */}
             <div className="flex gap-2">
                 <button
@@ -730,31 +730,31 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">Document Type</label>
-                        <select
+                        <CustomSelect
                             value={appendDocType}
                             onChange={e => { setAppendDocType(e.target.value); setAppendDocId(''); }}
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white cursor-pointer"
-                        >
-                            <option value="pre_invoice">Sales Order (Pre-Invoice)</option>
-                            <option value="pre_purchase">Purchase Order (Pre-Purchase)</option>
-                            <option value="proposal">Proposal / Quote</option>
-                            <option value="recurring_invoice">Recurring Invoice</option>
-                        </select>
+                            options={[
+                                { value: 'pre_invoice', label: 'Sales Order (Pre-Invoice)' },
+                                { value: 'pre_purchase', label: 'Purchase Order (Pre-Purchase)' },
+                                { value: 'proposal', label: 'Proposal / Quote' },
+                                { value: 'recurring_invoice', label: 'Recurring Invoice' }
+                            ]}
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">Target Document</label>
-                        <select
+                        <CustomSelect
                             value={appendDocId}
                             onChange={e => setAppendDocId(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white cursor-pointer"
-                        >
-                            <option value="">-- Select an open document --</option>
-                            {openDocs.map(doc => (
-                                <option key={doc.id} value={doc.id}>
-                                    {doc.reference || doc.id?.slice(0, 8)} — {doc.party || 'No party'}{doc.total !== undefined && doc.total !== null ? ` — ${parseFloat(doc.total).toFixed(2)}` : ''} ({doc.status})
-                                </option>
-                            ))}
-                        </select>
+                            placeholder="-- Select an open document --"
+                            options={[
+                                { value: '', label: '-- Select an open document --' },
+                                ...openDocs.map(doc => ({
+                                    value: doc.id,
+                                    label: `${doc.reference || doc.id?.slice(0, 8)} — ${doc.party || 'No party'}${doc.total !== undefined && doc.total !== null ? ` — ${parseFloat(doc.total).toFixed(2)}` : ''} (${doc.status})`
+                                }))
+                            ]}
+                        />
                         {openDocs.length === 0 && (
                             <p className="text-[10px] text-amber-500 font-semibold ml-1">No open documents of this type found.</p>
                         )}
@@ -771,52 +771,60 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             Who is this document for? <span className="normal-case font-bold text-slate-400">(optional — helps the AI a lot)</span>
                         </label>
                         <div className="flex gap-2">
-                            <select
+                            <CustomSelect
                                 value={capturePartySide}
                                 onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
-                                className="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none text-slate-800 dark:text-white cursor-pointer"
-                            >
-                                <option value="customer">Customer</option>
-                                <option value="supplier">Supplier</option>
-                            </select>
-                            <select
+                                className="min-w-[120px]"
+                                options={[
+                                    { value: 'customer', label: 'Customer' },
+                                    { value: 'supplier', label: 'Supplier' }
+                                ]}
+                            />
+                            <CustomSelect
                                 value={capturePartyId}
                                 onChange={e => setCapturePartyId(e.target.value)}
-                                className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white cursor-pointer"
-                            >
-                                <option value="">Let the AI read it from the document</option>
-                                {(capturePartySide === 'supplier'
-                                    ? (ctx?.parties?.suppliers || [])
-                                    : (ctx?.parties?.customers || [])
-                                ).map(p => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                            </select>
+                                placeholder="Let the AI read it from the document"
+                                className="flex-1"
+                                options={[
+                                    { value: '', label: 'Let the AI read it from the document' },
+                                    ...((capturePartySide === 'supplier'
+                                        ? (ctx?.parties?.suppliers || [])
+                                        : (ctx?.parties?.customers || [])
+                                    ).map(p => ({ value: p.id, label: p.name })))
+                                ]}
+                            />
                         </div>
                     </div>
 
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">What would you like to create?</label>
-                        <select
+                        <CustomSelect
                             value={targetType}
                             onChange={e => setTargetType(e.target.value)}
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white cursor-pointer"
-                        >
-                            <option value="">No Preference (Auto-Detect)</option>
-                            <optgroup label="Editable afterwards — safest">
-                                <option value="pre_invoice">Pre-Sale (Sales Order)</option>
-                                <option value="pre_purchase">Purchase Order</option>
-                                <option value="proposal">Proposal / Quote</option>
-                                <option value="recurring_invoice">Recurring Invoice</option>
-                            </optgroup>
-                            <optgroup label="Final — cannot be edited once posted">
-                                <option value="sale">Sales Invoice</option>
-                                <option value="purchase">Purchase Bill</option>
-                                <option value="expense">Operating Expense</option>
-                                <option value="return">Sales Return</option>
-                                <option value="purchase_return">Purchase Return (Debit Note)</option>
-                            </optgroup>
-                        </select>
+                            placeholder="No Preference (Auto-Detect)"
+                            options={[
+                                { value: '', label: 'No Preference (Auto-Detect)' },
+                                {
+                                    groupLabel: 'Editable afterwards — safest',
+                                    options: [
+                                        { value: 'pre_invoice', label: 'Pre-Sale (Sales Order)' },
+                                        { value: 'pre_purchase', label: 'Purchase Order' },
+                                        { value: 'proposal', label: 'Proposal / Quote' },
+                                        { value: 'recurring_invoice', label: 'Recurring Invoice' }
+                                    ]
+                                },
+                                {
+                                    groupLabel: 'Final — cannot be edited once posted',
+                                    options: [
+                                        { value: 'sale', label: 'Sales Invoice' },
+                                        { value: 'purchase', label: 'Purchase Bill' },
+                                        { value: 'expense', label: 'Operating Expense' },
+                                        { value: 'return', label: 'Sales Return' },
+                                        { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
+                                    ]
+                                }
+                            ]}
+                        />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">Text Commands / Instructions (Optional)</label>
@@ -854,15 +862,14 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="space-y-4">
                     <div>
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1.5">Provider</label>
-                        <select
+                        <CustomSelect
                             value={settingsForm.provider}
                             onChange={e => setSettingsForm(f => ({ ...f, provider: e.target.value, model: '' }))}
-                            className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white"
-                        >
-                            {Object.keys(providerLabels).map(p => (
-                                <option key={p} value={p}>{providerLabels[p]}</option>
-                            ))}
-                        </select>
+                            options={Object.keys(providerLabels || {}).map(p => ({
+                                value: p,
+                                label: providerLabels[p]
+                            }))}
+                        />
                         {providerCaps[settingsForm.provider] && (
                             <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
                                 Supports: {['image', 'audio', 'text'].filter(t => providerCaps[settingsForm.provider][t]).map(t => t === 'image' ? 'Photos' : t === 'audio' ? 'Voice' : 'Text').join(', ')}
@@ -897,16 +904,17 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                         </div>
 
                         {availableModels?.length ? (
-                            <select
+                            <CustomSelect
                                 value={settingsForm.model}
                                 onChange={e => setSettingsForm(f => ({ ...f, model: e.target.value }))}
-                                className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono outline-none text-slate-800 dark:text-white"
-                            >
-                                <option value="">Recommended default ({settings?.default_models?.[settingsForm.provider]})</option>
-                                {availableModels.map(m => (
-                                    <option key={m.id} value={m.id}>{m.label} — {m.id}</option>
-                                ))}
-                            </select>
+                                options={[
+                                    { value: '', label: `Recommended default (${settings?.default_models?.[settingsForm.provider]})` },
+                                    ...availableModels.map(m => ({
+                                        value: m.id,
+                                        label: `${m.label} — ${m.id}`
+                                    }))
+                                ]}
+                            />
                         ) : (
                             <input
                                 type="text"
@@ -1319,7 +1327,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     {/* Action Intent */}
                                     <div>
                                         <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">Transaction Intent</label>
-                                        <select
+                                        <CustomSelect
                                             value={extractedData.action}
                                             onChange={(e) => {
                                                 const action = e.target.value;
@@ -1327,18 +1335,19 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                                 setSelectedPartyId('');
                                             }}
                                             disabled={appendMode && !!appendDocId}
-                                            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold rounded-lg px-2 py-1.5 outline-none text-slate-800 dark:text-white disabled:opacity-50"
-                                        >
-                                            <option value="sale">Sales Invoice</option>
-                                            <option value="purchase">Purchase</option>
-                                            <option value="expense">Operating Expense</option>
-                                            <option value="return">Sales Return</option>
-                                            <option value="proposal">Proposal</option>
-                                            <option value="pre_invoice">Pre-Invoice (Sales Order)</option>
-                                            <option value="pre_purchase">Pre-Purchase (Purchase Order)</option>
-                                            <option value="recurring_invoice">Recurring Invoice</option>
-                                            <option value="purchase_return">Purchase Return (Debit Note)</option>
-                                        </select>
+                                            className="min-w-[160px]"
+                                            options={[
+                                                { value: 'sale', label: 'Sales Invoice' },
+                                                { value: 'purchase', label: 'Purchase' },
+                                                { value: 'expense', label: 'Operating Expense' },
+                                                { value: 'return', label: 'Sales Return' },
+                                                { value: 'proposal', label: 'Proposal' },
+                                                { value: 'pre_invoice', label: 'Pre-Invoice (Sales Order)' },
+                                                { value: 'pre_purchase', label: 'Pre-Purchase (Purchase Order)' },
+                                                { value: 'recurring_invoice', label: 'Recurring Invoice' },
+                                                { value: 'purchase_return', label: 'Purchase Return (Debit Note)' }
+                                            ]}
+                                        />
                                     </div>
 
                                     {/* Party or Expense Category — explicit, user-confirmed */}
@@ -1347,16 +1356,20 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">
                                                 Expense Category <span className="text-rose-500">*</span>
                                             </label>
-                                            <select
+                                            <CustomSelect
                                                 value={selectedCategoryId}
                                                 onChange={(e) => setSelectedCategoryId(e.target.value)}
-                                                className={`bg-white dark:bg-slate-800 border text-xs font-bold rounded-lg px-2 py-1.5 outline-none text-slate-800 dark:text-white min-w-[180px] ${!selectedCategoryId ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'}`}
-                                            >
-                                                <option value="">-- Select category --</option>
-                                                {(ctx?.expense_categories || []).map(cat => (
-                                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
-                                                ))}
-                                            </select>
+                                                placeholder="-- Select category --"
+                                                isError={!selectedCategoryId}
+                                                className="min-w-[180px]"
+                                                options={[
+                                                    { value: '', label: '-- Select category --' },
+                                                    ...(ctx?.expense_categories || []).map(cat => ({
+                                                        value: cat.id,
+                                                        label: cat.name
+                                                    }))
+                                                ]}
+                                            />
                                             {extractedData.expense_category && (
                                                 <p className="text-[9px] text-indigo-400 font-bold mt-0.5">AI suggested: {extractedData.expense_category}</p>
                                             )}
@@ -1366,27 +1379,33 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                             <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">
                                                 {partyType === 'supplier' ? 'Supplier' : 'Customer'} <span className="text-rose-500">*</span>
                                             </label>
-                                            <div className="flex items-center gap-1.5">
+                                            <div className="flex items-center gap-1.5 font-sans">
                                                 <User size={12} className="text-slate-400" />
-                                                <select
+                                                <CustomSelect
                                                     value={selectedPartyId}
                                                     onChange={(e) => setSelectedPartyId(e.target.value)}
-                                                    className={`bg-white dark:bg-slate-800 border text-xs font-bold rounded-lg px-2 py-1.5 outline-none text-slate-800 dark:text-white min-w-[200px] ${!selectedPartyId ? 'border-rose-400' : 'border-slate-200 dark:border-slate-700'}`}
-                                                >
-                                                    <option value="">-- Select {partyType} --</option>
-                                                    {(extractedData.party_candidates || []).length > 0 && (
-                                                        <optgroup label={`AI matches for "${extractedData.party}"`}>
-                                                            {extractedData.party_candidates.map(c => (
-                                                                <option key={`cand-${c.id}`} value={c.id}>{c.name} ({c.confidence}% match)</option>
-                                                            ))}
-                                                        </optgroup>
-                                                    )}
-                                                    <optgroup label={`All ${partyType}s`}>
-                                                        {partyList.filter(p => !candidateIds.has(String(p.id))).map(p => (
-                                                            <option key={p.id} value={p.id}>{p.name}</option>
-                                                        ))}
-                                                    </optgroup>
-                                                </select>
+                                                    placeholder={`-- Select ${partyType} --`}
+                                                    isError={!selectedPartyId}
+                                                    className="min-w-[200px]"
+                                                    options={[
+                                                        { value: '', label: `-- Select ${partyType} --` },
+                                                        ...((extractedData.party_candidates || []).length > 0 ? [{
+                                                            groupLabel: `AI matches for "${extractedData.party}"`,
+                                                            options: extractedData.party_candidates.map(c => ({
+                                                                value: c.id,
+                                                                label: c.name,
+                                                                confidence: c.confidence
+                                                            }))
+                                                        }] : []),
+                                                        {
+                                                            groupLabel: `All ${partyType}s`,
+                                                            options: partyList.filter(p => !candidateIds.has(String(p.id))).map(p => ({
+                                                                value: p.id,
+                                                                label: p.name
+                                                            }))
+                                                        }
+                                                    ]}
+                                                />
                                             </div>
                                             {extractedData.party && (
                                                 <p className="text-[9px] text-indigo-400 font-bold mt-0.5">AI read: "{extractedData.party}"</p>
@@ -1522,19 +1541,22 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
                                                         {!isExpense ? (
                                                             <div className="mt-1.5 space-y-2">
-                                                                <select
+                                                                <CustomSelect
                                                                     value={isNew ? '__create_new__' : (item.product_id || '')}
                                                                     onChange={(e) => handleProductPick(idx, e.target.value)}
-                                                                    className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold rounded-lg px-2.5 py-1.5 text-slate-800 dark:text-white outline-none"
-                                                                >
-                                                                    <option value="" disabled>-- Match a store product --</option>
-                                                                    {(item.candidates || []).map(c => (
-                                                                        <option key={c.id} value={c.id}>
-                                                                            {c.learned ? '★ ' : ''}{c.name} (SKU: {c.sku} | Match: {c.confidence}%{c.learned ? ' — learned' : ''})
-                                                                        </option>
-                                                                    ))}
-                                                                    <option value="__create_new__">＋ Create as NEW product…</option>
-                                                                </select>
+                                                                    placeholder="-- Match a store product --"
+                                                                    options={[
+                                                                        { value: '', label: '-- Match a store product --', disabled: true },
+                                                                        ...(item.candidates || []).map(c => ({
+                                                                            value: c.id,
+                                                                            label: c.name,
+                                                                            learned: c.learned,
+                                                                            confidence: c.confidence,
+                                                                            sku: c.sku
+                                                                        })),
+                                                                        { value: '__create_new__', label: '＋ Create as NEW product…' }
+                                                                    ]}
+                                                                />
 
                                                                 {isNew && (
                                                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 p-3 bg-white/60 dark:bg-slate-800/60 rounded-xl border border-indigo-500/20">
@@ -1929,6 +1951,242 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                     )}
                 </div>
             </div>
+        </div>
+    );
+}
+
+function CustomSelect({
+    value,
+    onChange,
+    options,
+    placeholder = 'Select an option',
+    disabled = false,
+    className = '',
+    searchThreshold = 5,
+    disabledOptions = [],
+    isError = false,
+}) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [search, setSearch] = useState('');
+    const containerRef = useRef(null);
+
+    // Flatten options for easy searching and indexing
+    const flatOptions = useMemo(() => {
+        const list = [];
+        if (!options) return list;
+        options.forEach(opt => {
+            if (opt.groupLabel) {
+                (opt.options || []).forEach(subOpt => {
+                    list.push({ ...subOpt, groupLabel: opt.groupLabel });
+                });
+            } else {
+                list.push(opt);
+            }
+        });
+        return list;
+    }, [options]);
+
+    // Close when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (containerRef.current && !containerRef.current.contains(event.target)) {
+                setIsOpen(false);
+            }
+        }
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
+
+    // Filter options based on search query
+    const filteredOptions = useMemo(() => {
+        if (!options) return [];
+        if (!search.trim()) return options;
+        
+        const query = search.toLowerCase();
+        
+        return options.map(opt => {
+            if (opt.groupLabel) {
+                const subFiltered = (opt.options || []).filter(subOpt => 
+                    String(subOpt.label || '').toLowerCase().includes(query) ||
+                    String(subOpt.value || '').toLowerCase().includes(query) ||
+                    String(subOpt.sku || '').toLowerCase().includes(query)
+                );
+                return subFiltered.length > 0 ? { ...opt, options: subFiltered } : null;
+            } else {
+                const matches = String(opt.label || '').toLowerCase().includes(query) ||
+                                String(opt.value || '').toLowerCase().includes(query) ||
+                                String(opt.sku || '').toLowerCase().includes(query);
+                return matches ? opt : null;
+            }
+        }).filter(Boolean);
+    }, [options, search]);
+
+    const totalOptionsCount = flatOptions.length;
+    const selectedOption = flatOptions.find(o => String(o.value) === String(value));
+
+    // Handle keypresses when trigger is focused
+    const handleKeyDown = (e) => {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            setIsOpen(true);
+        }
+    };
+
+    return (
+        <div ref={containerRef} className={`relative select-none ${className}`}>
+            <button
+                type="button"
+                disabled={disabled}
+                onClick={() => !disabled && setIsOpen(!isOpen)}
+                onKeyDown={handleKeyDown}
+                className={`w-full flex items-center justify-between gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border rounded-xl text-xs font-semibold text-slate-800 dark:text-white transition-all text-left outline-none focus:ring-2 focus:ring-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    isError
+                        ? 'border-rose-500 dark:border-rose-500/50'
+                        : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-650'
+                }`}
+            >
+                <div className="flex-1 truncate">
+                    {selectedOption ? (
+                        <div className="flex items-center gap-1.5 truncate">
+                            {selectedOption.learned && <Brain size={12} className="text-violet-400 shrink-0" />}
+                            <span className="truncate">{selectedOption.label}</span>
+                            {selectedOption.confidence !== undefined && (
+                                <span className="text-[9px] bg-emerald-500/10 text-emerald-500 px-1 py-0.5 rounded font-black shrink-0">
+                                    {selectedOption.confidence}%
+                                </span>
+                            )}
+                            {selectedOption.sku && (
+                                <span className="text-[9px] text-slate-400 font-mono shrink-0">
+                                    (SKU: {selectedOption.sku})
+                                </span>
+                            )}
+                        </div>
+                    ) : (
+                        <span className="text-slate-400 font-normal">{placeholder}</span>
+                    )}
+                </div>
+                <ChevronDown size={14} className={`text-slate-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isOpen && (
+                <div className="absolute right-0 left-0 mt-1.5 min-w-[220px] max-h-72 bg-slate-900/95 dark:bg-slate-950/95 border border-slate-200 dark:border-slate-800/80 rounded-2xl shadow-xl backdrop-blur-lg overflow-hidden flex flex-col z-50 animate-in fade-in slide-in-from-top-1 duration-100">
+                    {totalOptionsCount > searchThreshold && (
+                        <div className="p-2 border-b border-slate-100 dark:border-slate-800/50 flex items-center gap-2 bg-slate-900/50 dark:bg-black/20">
+                            <Search size={12} className="text-slate-400 shrink-0" />
+                            <input
+                                type="text"
+                                placeholder="Search..."
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                className="w-full bg-transparent border-0 p-0 text-xs text-white placeholder-slate-500 focus:ring-0 outline-none"
+                                autoFocus
+                            />
+                            {search && (
+                                <button type="button" onClick={() => setSearch('')} className="text-slate-400 hover:text-white">
+                                    <X size={10} />
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <div className="overflow-y-auto flex-1 py-1 max-h-56 scrollbar-thin scrollbar-thumb-slate-700">
+                        {filteredOptions.length === 0 ? (
+                            <div className="px-3 py-4 text-center text-xs text-slate-400">No results found</div>
+                        ) : (
+                            filteredOptions.map((opt, groupIdx) => {
+                                if (opt.groupLabel) {
+                                    return (
+                                        <div key={groupIdx} className="mb-2 last:mb-0">
+                                            <div className="px-3 py-1 text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-800/25 dark:bg-slate-950/25">
+                                                {opt.groupLabel}
+                                            </div>
+                                            <div className="mt-1 space-y-0.5">
+                                                {(opt.options || []).map((subOpt) => {
+                                                    const isSelected = String(subOpt.value) === String(value);
+                                                    const isOptDisabled = disabledOptions.includes(subOpt.value) || subOpt.disabled;
+                                                    return (
+                                                        <button
+                                                            key={subOpt.value}
+                                                            type="button"
+                                                            disabled={isOptDisabled}
+                                                            onClick={() => {
+                                                                if (!isOptDisabled) {
+                                                                    onChange({ target: { value: subOpt.value } });
+                                                                    setIsOpen(false);
+                                                                    setSearch('');
+                                                                }
+                                                            }}
+                                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition-all ${
+                                                                isSelected
+                                                                    ? 'bg-indigo-600 text-white font-bold'
+                                                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                                            } ${isOptDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                                        >
+                                                            <div className="flex flex-col gap-0.5 truncate">
+                                                                <div className="flex items-center gap-1.5 truncate">
+                                                                    {subOpt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-violet-400'} />}
+                                                                    <span className="truncate">{subOpt.label}</span>
+                                                                    {subOpt.confidence !== undefined && (
+                                                                        <span className={`text-[9px] px-1 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                                            {subOpt.confidence}%
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {subOpt.subtext && <span className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>{subOpt.subtext}</span>}
+                                                            </div>
+                                                            {isSelected && <Check size={12} className="shrink-0 ml-2" />}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    );
+                                } else {
+                                    const isSelected = String(opt.value) === String(value);
+                                    const isOptDisabled = disabledOptions.includes(opt.value) || opt.disabled;
+                                    return (
+                                        <button
+                                            key={opt.value}
+                                            type="button"
+                                            disabled={isOptDisabled}
+                                            onClick={() => {
+                                                if (!isOptDisabled) {
+                                                    onChange({ target: { value: opt.value } });
+                                                    setIsOpen(false);
+                                                    setSearch('');
+                                                }
+                                            }}
+                                            className={`w-full flex items-center justify-between px-3.5 py-2 text-xs text-left transition-all ${
+                                                isSelected
+                                                    ? 'bg-indigo-600 text-white font-bold'
+                                                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                                            } ${isOptDisabled ? 'opacity-40 cursor-not-allowed' : ''}`}
+                                        >
+                                            <div className="flex flex-col gap-0.5 truncate">
+                                                <div className="flex items-center gap-1.5 truncate">
+                                                    {opt.learned && <Brain size={11} className={isSelected ? 'text-white' : 'text-violet-400'} />}
+                                                    <span className="truncate">{opt.label}</span>
+                                                    {opt.confidence !== undefined && (
+                                                        <span className={`text-[9px] px-1 py-0.5 rounded font-black shrink-0 ${isSelected ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                                                            {opt.confidence}%
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {opt.subtext && <span className={`text-[10px] ${isSelected ? 'text-indigo-200' : 'text-slate-400'}`}>{opt.subtext}</span>}
+                                            </div>
+                                            {isSelected && <Check size={12} className="shrink-0 ml-2" />}
+                                        </button>
+                                    );
+                                }
+                            })
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
