@@ -1,0 +1,479 @@
+import { jsxs, jsx } from "react/jsx-runtime";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import axios from "axios";
+import { Head } from "@inertiajs/react";
+import { f as formatCurrency } from "./format-B_ph0Qec.js";
+import { O as OneGlanceLayout } from "./OneGlanceLayout-KMWHwZqK.js";
+import { M as MoneyModuleTabs } from "./MoneyModuleTabs-Bn5c0gSZ.js";
+import { ChevronDown, FileText, TrendingUp, ArrowDownCircle, ArrowUpCircle, Search, Filter, Download, Printer, MoreVertical, Eye, Trash2, ChevronUp, CornerUpRight, TrendingDown } from "lucide-react";
+import "../ssr.js";
+import "@inertiajs/react/server";
+import "react-dom/server";
+import "dexie";
+import "react-dom";
+import "@headlessui/react";
+import "laravel-echo";
+import "pusher-js";
+import "driver.js";
+function TransactionsIndex({ transactions = { data: [], current_page: 1, last_page: 1, total: 0, next_page_url: null }, stats = {}, store }) {
+  const [allTransactions, setAllTransactions] = useState(transactions.data || []);
+  const [nextPageUrl, setNextPageUrl] = useState(transactions.next_page_url);
+  const isLoading = useRef(false);
+  const observerTarget = useRef(null);
+  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+  useEffect(() => {
+    if (transactions.data && transactions.current_page === 1) {
+      setAllTransactions(transactions.data);
+      setNextPageUrl(transactions.next_page_url);
+    }
+  }, [transactions]);
+  const fetchNextPage = useCallback(async () => {
+    if (!nextPageUrl || isLoading.current) return;
+    isLoading.current = true;
+    try {
+      const response = await axios.get(nextPageUrl, { headers: { "Accept": "application/json" } });
+      const newItems = response.data.data;
+      setAllTransactions((prev) => {
+        const existingIds = new Set(prev.map((t) => `${t.id}-${t.type}`));
+        const uniqueNew = newItems.filter((t) => !existingIds.has(`${t.id}-${t.type}`));
+        return [...prev, ...uniqueNew];
+      });
+      setNextPageUrl(response.data.next_page_url);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      isLoading.current = false;
+    }
+  }, [nextPageUrl]);
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && nextPageUrl && !isLoading.current) fetchNextPage();
+    }, { threshold: 0.1, rootMargin: "800px" });
+    if (observerTarget.current) observer.observe(observerTarget.current);
+    return () => {
+      if (observerTarget.current) observer.unobserve(observerTarget.current);
+    };
+  }, [nextPageUrl, fetchNextPage]);
+  const [tableColumns, setTableColumns] = useState([
+    { key: "date", label: "Date", width: "12%" },
+    { key: "reference", label: "Invoice No", width: "12%" },
+    { key: "party_name", label: "Party Name", width: "18%" },
+    { key: "type", label: "Type", width: "10%" },
+    { key: "amount", label: "Amount", width: "12%", align: "right" },
+    { key: "balance_due", label: "Balance", width: "12%", align: "right" },
+    { key: "payment_status", label: "Status", width: "10%" }
+  ]);
+  const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" });
+  const [searchTerm, setSearchTerm] = useState("");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [activeActionMenu, setActiveActionMenu] = useState(null);
+  const [activeSharePopup, setActiveSharePopup] = useState(null);
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc"
+    }));
+  };
+  const processData = useMemo(() => {
+    let result = [...allTransactions];
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(
+        (item) => item.reference && item.reference.toLowerCase().includes(term) || item.party?.name && item.party.name.toLowerCase().includes(term) || String(item.amount).includes(term)
+      );
+    }
+    if (typeFilter !== "all") {
+      result = result.filter((item) => item.type === typeFilter);
+    }
+    result.sort((a, b) => {
+      let valA = a[sortConfig.key];
+      let valB = b[sortConfig.key];
+      if (sortConfig.key === "party_name") {
+        valA = a.party?.name || "";
+        valB = b.party?.name || "";
+      }
+      if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
+      if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+    return result;
+  }, [allTransactions, searchTerm, sortConfig, typeFilter]);
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveActionMenu(null);
+      setActiveSharePopup(null);
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, []);
+  const formatDate = (dateStr) => new Date(dateStr).toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" });
+  const SortIcon = ({ columnKey }) => {
+    if (sortConfig.key !== columnKey) return null;
+    return sortConfig.direction === "asc" ? /* @__PURE__ */ jsx(ChevronUp, { size: 14, className: "text-indigo-500" }) : /* @__PURE__ */ jsx(ChevronDown, { size: 14, className: "text-indigo-500" });
+  };
+  const getTypeConfig = (type) => {
+    const configs = {
+      sale: { label: "Sale", color: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400", icon: TrendingUp },
+      purchase: { label: "Purchase", color: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400", icon: TrendingDown },
+      expense: { label: "Expense", color: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400", icon: ArrowUpCircle },
+      payment_in: { label: "Received", color: "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400", icon: ArrowDownCircle },
+      payment_out: { label: "Paid", color: "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400", icon: ArrowUpCircle },
+      return: { label: "Return", color: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400", icon: CornerUpRight }
+    };
+    return configs[type] || { label: type, color: "bg-slate-100 text-slate-700", icon: FileText };
+  };
+  return /* @__PURE__ */ jsxs(OneGlanceLayout, { title: "Transactions", activeMenu: "Money", children: [
+    /* @__PURE__ */ jsx(Head, { title: "Transactions" }),
+    /* @__PURE__ */ jsxs("div", { className: "flex flex-col h-full bg-slate-50 dark:bg-slate-950 p-2 gap-1 overflow-hidden", children: [
+      /* @__PURE__ */ jsx(MoneyModuleTabs, { activeTab: "all" }),
+      /* @__PURE__ */ jsxs("div", { className: "sm:hidden flex items-center justify-between bg-white dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0", children: [
+        /* @__PURE__ */ jsxs(
+          "button",
+          {
+            onClick: () => setIsStatsExpanded(!isStatsExpanded),
+            className: "flex items-center gap-1 text-[10px] font-bold text-slate-500 uppercase shrink-0 mr-2",
+            children: [
+              /* @__PURE__ */ jsx("span", { children: "Stats Summary" }),
+              /* @__PURE__ */ jsx(ChevronDown, { size: 14, className: `transition-transform duration-200 ${isStatsExpanded ? "rotate-180" : ""}` })
+            ]
+          }
+        ),
+        !isStatsExpanded && /* @__PURE__ */ jsxs("div", { className: "text-[10px] font-bold text-slate-500 truncate", children: [
+          /* @__PURE__ */ jsxs("span", { className: "text-emerald-600", children: [
+            "Sales: ",
+            formatCurrency(stats.total_debit || 0, store)
+          ] }),
+          /* @__PURE__ */ jsx("span", { className: "mx-1", children: "|" }),
+          /* @__PURE__ */ jsxs("span", { className: "text-red-605 dark:text-red-400", children: [
+            "Due: ",
+            formatCurrency(stats.total_balance_due || 0, store)
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: `grid grid-cols-2 sm:grid-cols-4 gap-2 shrink-0 ${isStatsExpanded ? "grid" : "hidden sm:grid"}`, children: [
+        /* @__PURE__ */ jsxs("div", { className: "bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 shrink-0", children: [
+            /* @__PURE__ */ jsx("div", { className: "p-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg shrink-0", children: /* @__PURE__ */ jsx(FileText, { size: 14 }) }),
+            /* @__PURE__ */ jsx("p", { className: "text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate", children: "Count" })
+          ] }),
+          /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base md:text-lg font-black text-slate-900 dark:text-white leading-none mt-1 sm:mt-0", children: stats.count || 0 })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 shrink-0", children: [
+            /* @__PURE__ */ jsx("div", { className: "p-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg shrink-0", children: /* @__PURE__ */ jsx(TrendingUp, { size: 14 }) }),
+            /* @__PURE__ */ jsx("p", { className: "text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate", children: "Total Sales" })
+          ] }),
+          /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base md:text-lg font-black text-emerald-600 leading-none mt-1 sm:mt-0", children: formatCurrency(stats.total_debit || 0, store) })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 shrink-0", children: [
+            /* @__PURE__ */ jsx("div", { className: "p-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg shrink-0", children: /* @__PURE__ */ jsx(ArrowDownCircle, { size: 14 }) }),
+            /* @__PURE__ */ jsx("p", { className: "text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate", children: "Received" })
+          ] }),
+          /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base md:text-lg font-black text-blue-600 leading-none mt-1 sm:mt-0", children: formatCurrency(stats.total_credit || 0, store) })
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "bg-white dark:bg-slate-900 px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between items-start gap-1", children: [
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5 shrink-0", children: [
+            /* @__PURE__ */ jsx("div", { className: "p-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg shrink-0", children: /* @__PURE__ */ jsx(ArrowUpCircle, { size: 14 }) }),
+            /* @__PURE__ */ jsx("p", { className: "text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-tight truncate", children: "Unpaid / Due" })
+          ] }),
+          /* @__PURE__ */ jsx("p", { className: "text-sm sm:text-base md:text-lg font-black text-red-600 leading-none mt-1 sm:mt-0", children: formatCurrency(stats.total_balance_due || 0, store) })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "sm:hidden flex flex-col bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between px-3 py-2", children: [
+          /* @__PURE__ */ jsxs("h1", { className: "text-xs font-black text-slate-800 dark:text-white uppercase tracking-tight", children: [
+            "Transactions ",
+            /* @__PURE__ */ jsx("span", { className: "text-indigo-600", children: "History" })
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => {
+                  setShowMobileSearch(!showMobileSearch);
+                  if (showMobileFilters) setShowMobileFilters(false);
+                },
+                className: `p-1.5 rounded-lg transition-colors ${showMobileSearch ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200"}`,
+                title: "Search",
+                children: /* @__PURE__ */ jsx(Search, { size: 14 })
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => {
+                  setShowMobileFilters(!showMobileFilters);
+                  if (showMobileSearch) setShowMobileSearch(false);
+                },
+                className: `p-1.5 rounded-lg transition-colors ${showMobileFilters ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200"}`,
+                title: "Filter Type",
+                children: /* @__PURE__ */ jsx(Filter, { size: 14 })
+              }
+            ),
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center border-l border-slate-200 dark:border-slate-800 pl-1.5 ml-0.5 gap-0.5", children: [
+              /* @__PURE__ */ jsx("button", { className: "p-1 text-emerald-600", title: "Export", children: /* @__PURE__ */ jsx(Download, { size: 14 }) }),
+              /* @__PURE__ */ jsx("button", { className: "p-1 text-slate-500", title: "Print", children: /* @__PURE__ */ jsx(Printer, { size: 14 }) })
+            ] })
+          ] })
+        ] }),
+        showMobileSearch && /* @__PURE__ */ jsx("div", { className: "px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200", children: /* @__PURE__ */ jsxs("div", { className: "relative w-full", children: [
+          /* @__PURE__ */ jsx(
+            "input",
+            {
+              autoFocus: true,
+              type: "text",
+              value: searchTerm,
+              onChange: (e) => setSearchTerm(e.target.value),
+              placeholder: "Search ref or party...",
+              className: "w-full pl-8 pr-4 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+            }
+          ),
+          /* @__PURE__ */ jsx(Search, { className: "absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none", size: 12 })
+        ] }) }),
+        showMobileFilters && /* @__PURE__ */ jsx("div", { className: "px-3 pb-2 border-t border-slate-100 dark:border-slate-800/80 pt-2 animate-in slide-in-from-top duration-200", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-1.5", children: [
+          /* @__PURE__ */ jsx("span", { className: "text-[9px] font-bold text-slate-400 uppercase tracking-wider shrink-0", children: "Type:" }),
+          /* @__PURE__ */ jsxs("div", { className: "flex bg-slate-100 dark:bg-slate-850 rounded-lg p-1 gap-1 flex-1", children: [
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => {
+                  setTypeFilter("all");
+                  setShowMobileFilters(false);
+                },
+                className: `flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === "all" ? "bg-white dark:bg-slate-705 text-indigo-650 dark:text-indigo-400 shadow-sm" : "text-slate-500 dark:text-slate-400"}`,
+                children: "All"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => {
+                  setTypeFilter("sale");
+                  setShowMobileFilters(false);
+                },
+                className: `flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === "sale" ? "bg-white dark:bg-slate-705 text-emerald-600 shadow-sm" : "text-slate-500 dark:text-slate-400"}`,
+                children: "Sales"
+              }
+            ),
+            /* @__PURE__ */ jsx(
+              "button",
+              {
+                onClick: () => {
+                  setTypeFilter("purchase");
+                  setShowMobileFilters(false);
+                },
+                className: `flex-1 text-center py-1 rounded text-[9px] font-bold uppercase transition-all ${typeFilter === "purchase" ? "bg-white dark:bg-slate-705 text-blue-600 shadow-sm" : "text-slate-500 dark:text-slate-400"}`,
+                children: "Purchases"
+              }
+            )
+          ] })
+        ] }) })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "hidden sm:flex flex-row items-center justify-between gap-2 bg-white dark:bg-slate-900 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm shrink-0", children: [
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2 flex-wrap", children: [
+          /* @__PURE__ */ jsxs("h1", { className: "text-sm sm:text-lg font-black text-slate-800 dark:text-white uppercase tracking-tight shrink-0", children: [
+            "Transaction ",
+            /* @__PURE__ */ jsx("span", { className: "text-indigo-600", children: "History" })
+          ] }),
+          /* @__PURE__ */ jsx("div", { className: "hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1" }),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => setTypeFilter("all"),
+              className: `px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === "all" ? "bg-indigo-600 text-white shadow-sm" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200"}`,
+              children: "All"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => setTypeFilter("sale"),
+              className: `px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === "sale" ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200"}`,
+              children: "Sales"
+            }
+          ),
+          /* @__PURE__ */ jsx(
+            "button",
+            {
+              onClick: () => setTypeFilter("purchase"),
+              className: `px-2.5 py-1 text-[10px] font-bold uppercase rounded-full transition-all ${typeFilter === "purchase" ? "bg-blue-100 text-blue-700 ring-1 ring-blue-500/20" : "bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200"}`,
+              children: "Purchases"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+          /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+            /* @__PURE__ */ jsx(Search, { size: 14, className: "absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" }),
+            /* @__PURE__ */ jsx(
+              "input",
+              {
+                type: "text",
+                value: searchTerm,
+                onChange: (e) => setSearchTerm(e.target.value),
+                placeholder: "Search ref or party...",
+                className: "pl-8 pr-2 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 ring-indigo-500/20 focus:border-indigo-500 outline-none w-44"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-0.5 border-l border-slate-200 dark:border-slate-700 pl-1.5", children: [
+            /* @__PURE__ */ jsx("button", { className: "p-1.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg text-emerald-600", title: "Export", children: /* @__PURE__ */ jsx(Download, { size: 14 }) }),
+            /* @__PURE__ */ jsx("button", { className: "p-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-500", title: "Print", children: /* @__PURE__ */ jsx(Printer, { size: 14 }) })
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxs("div", { className: "flex-1 overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900", children: [
+        /* @__PURE__ */ jsx("div", { className: "hidden sm:block", children: /* @__PURE__ */ jsxs("table", { className: "w-full text-left border-collapse", children: [
+          /* @__PURE__ */ jsx("thead", { children: /* @__PURE__ */ jsxs("tr", { className: "bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10", children: [
+            tableColumns.map((col) => /* @__PURE__ */ jsx(
+              "th",
+              {
+                onClick: () => handleSort(col.key),
+                className: `p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 ${col.align === "right" ? "text-right" : ""}`,
+                style: { width: col.width },
+                children: /* @__PURE__ */ jsxs("div", { className: `flex items-center gap-1 ${col.align === "right" ? "justify-end" : ""}`, children: [
+                  col.label,
+                  " ",
+                  /* @__PURE__ */ jsx(SortIcon, { columnKey: col.key })
+                ] })
+              },
+              col.key
+            )),
+            /* @__PURE__ */ jsx("th", { className: "p-3 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right w-[10%]", children: "Actions" })
+          ] }) }),
+          /* @__PURE__ */ jsx("tbody", { className: "divide-y divide-slate-100 dark:divide-slate-800", children: processData.length > 0 ? processData.map((row) => {
+            const typeConfig = getTypeConfig(row.type);
+            const Icon = typeConfig.icon;
+            return /* @__PURE__ */ jsxs("tr", { className: "hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 transition-all group", children: [
+              /* @__PURE__ */ jsx("td", { className: "p-3", children: /* @__PURE__ */ jsx("span", { className: "text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap", children: formatDate(row.date) }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3", children: /* @__PURE__ */ jsx("span", { className: "font-mono text-xs font-bold text-indigo-600 dark:text-indigo-400", children: row.reference }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3", children: /* @__PURE__ */ jsxs("div", { children: [
+                /* @__PURE__ */ jsx("p", { className: "text-xs font-bold text-slate-800 dark:text-white truncate max-w-[180px]", children: row.party?.name || "Walk-in Customer" }),
+                row.party?.phone && /* @__PURE__ */ jsx("p", { className: "text-[10px] text-slate-400", children: row.party.phone })
+              ] }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3", children: /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold uppercase ${typeConfig.color}`, children: [
+                /* @__PURE__ */ jsx(Icon, { size: 10 }),
+                typeConfig.label
+              ] }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3 text-right", children: /* @__PURE__ */ jsx("span", { className: "text-xs font-mono font-bold text-slate-800 dark:text-white", children: formatCurrency(row.amount, store) }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3 text-right", children: row.balance_due > 0 ? /* @__PURE__ */ jsx("span", { className: "text-xs font-mono font-bold text-red-600 dark:text-red-400", children: formatCurrency(row.balance_due, store) }) : /* @__PURE__ */ jsx("span", { className: "inline-flex px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase", children: "Settled" }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3", children: /* @__PURE__ */ jsx("span", { className: `text-[10px] font-bold uppercase ${row.payment_status === "paid" ? "text-emerald-600" : row.payment_status === "partial" ? "text-amber-600" : row.payment_status === "unpaid" ? "text-red-600" : "text-slate-500"}`, children: row.payment_status || "-" }) }),
+              /* @__PURE__ */ jsx("td", { className: "p-3 text-right text-slate-500", children: /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity", onClick: (e) => e.stopPropagation(), children: [
+                /* @__PURE__ */ jsx("button", { className: "p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-indigo-600", title: "Print", children: /* @__PURE__ */ jsx(Printer, { size: 14 }) }),
+                /* @__PURE__ */ jsxs("div", { className: "relative", children: [
+                  /* @__PURE__ */ jsx(
+                    "button",
+                    {
+                      onClick: () => setActiveActionMenu(activeActionMenu === row.id ? null : row.id),
+                      className: "p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-700",
+                      children: /* @__PURE__ */ jsx(MoreVertical, { size: 14 })
+                    }
+                  ),
+                  activeActionMenu === row.id && /* @__PURE__ */ jsxs("div", { className: "absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-950 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-1 z-50 animate-in zoom-in-95", children: [
+                    /* @__PURE__ */ jsxs("button", { className: "w-full text-left px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-xs font-medium flex items-center gap-2 text-slate-700 dark:text-slate-300", children: [
+                      /* @__PURE__ */ jsx(Eye, { size: 12 }),
+                      " View Details"
+                    ] }),
+                    /* @__PURE__ */ jsxs("button", { className: "w-full text-left px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-xs font-medium flex items-center gap-2 text-slate-700 dark:text-slate-300", children: [
+                      /* @__PURE__ */ jsx(FileText, { size: 12 }),
+                      " PDF Invoice"
+                    ] }),
+                    /* @__PURE__ */ jsx("div", { className: "h-px bg-slate-100 dark:bg-slate-800 my-1" }),
+                    /* @__PURE__ */ jsxs("button", { className: "w-full text-left px-2 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-xs font-medium flex items-center gap-2 text-red-600", children: [
+                      /* @__PURE__ */ jsx(Trash2, { size: 12 }),
+                      " Delete"
+                    ] })
+                  ] })
+                ] })
+              ] }) })
+            ] }, row.id + "-" + row.type);
+          }) : /* @__PURE__ */ jsx("tr", { children: /* @__PURE__ */ jsx("td", { colSpan: tableColumns.length + 1, className: "p-12 text-center text-slate-400", children: /* @__PURE__ */ jsxs("div", { className: "flex flex-col items-center gap-2", children: [
+            /* @__PURE__ */ jsx(FileText, { size: 24, className: "opacity-50" }),
+            /* @__PURE__ */ jsx("p", { className: "text-sm font-medium", children: "No transactions found" })
+          ] }) }) }) })
+        ] }) }),
+        /* @__PURE__ */ jsx("div", { className: "block sm:hidden divide-y divide-slate-100 dark:divide-slate-800 animate-in fade-in duration-200", children: processData.length > 0 ? processData.map((row) => {
+          const typeConfig = getTypeConfig(row.type);
+          const Icon = typeConfig.icon;
+          return /* @__PURE__ */ jsxs("div", { className: "p-3 hover:bg-slate-50 dark:hover:bg-slate-800/10 flex flex-col gap-1.5", children: [
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between", children: [
+              /* @__PURE__ */ jsx("span", { className: "text-[10px] text-slate-500 font-medium font-mono", children: formatDate(row.date) }),
+              /* @__PURE__ */ jsxs("span", { className: `inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9px] font-bold uppercase ${typeConfig.color}`, children: [
+                /* @__PURE__ */ jsx(Icon, { size: 8 }),
+                typeConfig.label
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex flex-col", children: [
+              /* @__PURE__ */ jsxs("p", { className: "text-xs font-bold text-slate-850 dark:text-white break-all", children: [
+                "Ref: ",
+                /* @__PURE__ */ jsx("span", { className: "text-indigo-600 dark:text-indigo-400 font-mono font-black", children: row.reference })
+              ] }),
+              /* @__PURE__ */ jsx("p", { className: "text-xs font-semibold text-slate-700 dark:text-slate-300 mt-0.5", children: row.party?.name || "Walk-in Customer" })
+            ] }),
+            /* @__PURE__ */ jsxs("div", { className: "flex items-center justify-between text-[11px] pt-1.5 border-t border-dashed border-slate-150 dark:border-slate-800 mt-1", children: [
+              /* @__PURE__ */ jsxs("div", { className: "flex gap-2", children: [
+                /* @__PURE__ */ jsxs("span", { className: "text-slate-800 dark:text-white font-mono font-bold", children: [
+                  "Amt: ",
+                  formatCurrency(row.amount, store)
+                ] }),
+                row.balance_due > 0 && /* @__PURE__ */ jsxs("span", { className: "text-red-650 dark:text-red-400 font-mono font-bold", children: [
+                  "Due: ",
+                  formatCurrency(row.balance_due, store)
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxs("div", { className: "flex items-center gap-2", children: [
+                /* @__PURE__ */ jsx("span", { className: `text-[9px] font-bold uppercase ${row.payment_status === "paid" ? "text-emerald-600" : row.payment_status === "partial" ? "text-amber-600" : "text-red-600"}`, children: row.payment_status || "-" }),
+                /* @__PURE__ */ jsxs(
+                  "button",
+                  {
+                    onClick: (e) => {
+                      e.stopPropagation();
+                      setActiveActionMenu(activeActionMenu === row.id ? null : row.id);
+                    },
+                    className: "p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-500 relative",
+                    children: [
+                      /* @__PURE__ */ jsx(MoreVertical, { size: 12 }),
+                      activeActionMenu === row.id && /* @__PURE__ */ jsxs("div", { className: "absolute right-0 top-full mt-1 w-36 bg-white dark:bg-slate-950 rounded-lg shadow-xl border border-slate-200 dark:border-slate-800 p-1 z-50 animate-in zoom-in-95", children: [
+                        /* @__PURE__ */ jsxs("button", { className: "w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-[10px] font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300", children: [
+                          /* @__PURE__ */ jsx(Eye, { size: 10 }),
+                          " View Details"
+                        ] }),
+                        /* @__PURE__ */ jsxs("button", { className: "w-full text-left px-2 py-1 hover:bg-slate-50 dark:hover:bg-slate-900 rounded text-[10px] font-medium flex items-center gap-1.5 text-slate-700 dark:text-slate-300", children: [
+                          /* @__PURE__ */ jsx(FileText, { size: 10 }),
+                          " PDF Invoice"
+                        ] }),
+                        /* @__PURE__ */ jsx("div", { className: "h-px bg-slate-100 dark:bg-slate-800 my-0.5" }),
+                        /* @__PURE__ */ jsxs("button", { className: "w-full text-left px-2 py-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-[10px] font-medium flex items-center gap-1.5 text-red-600", children: [
+                          /* @__PURE__ */ jsx(Trash2, { size: 10 }),
+                          " Delete"
+                        ] })
+                      ] })
+                    ]
+                  }
+                )
+              ] })
+            ] })
+          ] }, row.id + "-" + row.type);
+        }) : /* @__PURE__ */ jsxs("div", { className: "p-12 text-center text-slate-400 text-xs", children: [
+          /* @__PURE__ */ jsx(FileText, { size: 20, className: "mx-auto mb-1.5 opacity-50" }),
+          "No transactions found"
+        ] }) }),
+        /* @__PURE__ */ jsx("div", { ref: observerTarget, className: "p-4 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-800 opacity-0", children: nextPageUrl ? "Loading..." : allTransactions.length > 0 ? "End of list" : "" })
+      ] }),
+      /* @__PURE__ */ jsx("div", { className: "flex items-center justify-between px-2 bg-white dark:bg-slate-900 py-2 rounded-xl border border-slate-200 dark:border-slate-800 shrink-0", children: /* @__PURE__ */ jsxs("div", { className: "text-xs text-slate-400 font-medium", children: [
+        "Showing ",
+        allTransactions.length,
+        " of ",
+        transactions.total,
+        " records (Filtered: ",
+        processData.length,
+        ")"
+      ] }) })
+    ] })
+  ] });
+}
+export {
+  TransactionsIndex as default
+};

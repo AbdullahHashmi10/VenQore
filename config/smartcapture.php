@@ -134,6 +134,70 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Document policy — what AI Scan is allowed to write directly
+    |--------------------------------------------------------------------------
+    | A posted Sale is financially immutable (see App\Observers\SaleObserver):
+    | its journal entry is permanent and the only correction path is a Return /
+    | Credit Note. An OCR misread must therefore never become a posted document
+    | in one click.
+    |
+    | Per action:
+    |   locking      : posting this writes a record that cannot simply be edited
+    |   handoff_route: named route of the normal creation screen. When set, AI
+    |                  Scan does NOT post — it pre-fills that screen so the user
+    |                  finalises the document in the familiar UI.
+    |   draft_action : the editable alternative offered alongside the hand-off
+    |                  ("make a Pre-Sale instead"). null when none exists.
+    |   label        : how the document is named to the user.
+    |
+    | Non-locking actions (proposal, sales order, purchase order, recurring
+    | invoice) are created directly, because they are editable afterwards.
+    */
+    'document_policy' => [
+        'sale' => [
+            'locking'       => true,
+            'handoff_route' => 'store.sales.invoice.create',
+            'draft_action'  => 'pre_invoice',
+            'label'         => 'Sales Invoice',
+        ],
+        'purchase' => [
+            'locking'       => true,
+            'handoff_route' => 'store.purchases.create',
+            'draft_action'  => 'pre_purchase',
+            'label'         => 'Purchase Bill',
+        ],
+        'return' => [
+            'locking'       => true,
+            'handoff_route' => 'store.returns.create',
+            'draft_action'  => null,
+            'label'         => 'Sales Return / Credit Note',
+        ],
+        'purchase_return' => [
+            'locking'       => true,
+            'handoff_route' => null,
+            'draft_action'  => null,
+            'label'         => 'Purchase Return / Debit Note',
+        ],
+        'expense' => [
+            'locking'       => true,
+            'handoff_route' => null,
+            'draft_action'  => null,
+            'label'         => 'Operating Expense',
+        ],
+        'pre_invoice'       => ['locking' => false, 'handoff_route' => null, 'draft_action' => null, 'label' => 'Pre-Sale (Sales Order)'],
+        'pre_purchase'      => ['locking' => false, 'handoff_route' => null, 'draft_action' => null, 'label' => 'Purchase Order'],
+        'proposal'          => ['locking' => false, 'handoff_route' => null, 'draft_action' => null, 'label' => 'Proposal / Quote'],
+        'recurring_invoice' => ['locking' => false, 'handoff_route' => null, 'draft_action' => null, 'label' => 'Recurring Invoice'],
+    ],
+
+    /*
+    | How long a pre-fill payload survives between "Continue" being pressed in
+    | AI Scan and the creation screen loading. Single use, tenant + user scoped.
+    */
+    'prefill_ttl_minutes' => (int) env('SMART_CAPTURE_PREFILL_TTL', 30),
+
+    /*
+    |--------------------------------------------------------------------------
     | Confidence Thresholds (Percentage)
     |--------------------------------------------------------------------------
     */

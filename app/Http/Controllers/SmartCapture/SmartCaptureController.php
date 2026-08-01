@@ -15,6 +15,7 @@ use App\Services\SmartCapture\AiExtractionService;
 use App\Services\SmartCapture\FuzzyMatchService;
 use App\Services\SmartCapture\IntentResolverService;
 use App\Services\SmartCapture\LearningService;
+use App\Services\SmartCapture\PrefillService;
 use App\Services\SmartCapture\TransactionBuilderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -29,8 +30,48 @@ class SmartCaptureController extends Controller
         private FuzzyMatchService         $fuzzyMatchService,
         private IntentResolverService     $intentResolverService,
         private TransactionBuilderService $transactionBuilderService,
-        private LearningService           $learning
+        private LearningService           $learning,
+        private PrefillService            $prefill
     ) {}
+
+    /**
+     * What AI Scan is allowed to do with each document type, with the hand-off
+     * URLs already resolved for this store.
+     *
+     * A "locking" document (sale, return, expense…) is never posted straight
+     * from a scan: the user is either sent to the normal creation screen with
+     * the lines pre-filled, or offered the editable draft equivalent.
+     */
+    private function documentPolicy(string $storeSlug): array
+    {
+        $policy = [];
+
+        foreach ((array) config('smartcapture.document_policy', []) as $action => $rules) {
+            $handoffUrl = null;
+
+            if (!empty($rules['handoff_route'])) {
+                try {
+                    $handoffUrl = route($rules['handoff_route'], ['store_slug' => $storeSlug]);
+                } catch (\Throwable $e) {
+                    // A missing route must not break the panel — it just means
+                    // this document type has no hand-off screen available.
+                    $handoffUrl = null;
+                }
+            }
+
+            $draft = $rules['draft_action'] ?? null;
+
+            $policy[$action] = [
+                'locking'      => (bool) ($rules['locking'] ?? false),
+                'label'        => $rules['label'] ?? ucfirst(str_replace('_', ' ', $action)),
+                'handoff_url'  => $handoffUrl,
+                'draft_action' => $draft,
+                'draft_label'  => $draft ? config("smartcapture.document_policy.{$draft}.label", $draft) : null,
+            ];
+        }
+
+        return $policy;
+    }
 
     /**
      * Context payload for the AI Scan panel: entitlement state, parties,
@@ -72,6 +113,8 @@ class SmartCaptureController extends Controller
             ],
             // Lets the panel show "AI Scan has learned 34 things from your store".
             'learning' => $this->learning->stats(),
+            // Which documents lock, where to hand off, and the editable alternative.
+            'document_policy' => $this->documentPolicy($tenant->slug),
             'parties' => [
                 'customers' => Party::where('tenant_id', $tenant->id)->where('type', 'customer')
                     ->orderBy('name')->take(500)->get(['id', 'name']),
@@ -150,6 +193,10 @@ class SmartCaptureController extends Controller
             'text'            => 'required_if:type,text|nullable|string|max:20000',
             'target_type'     => 'nullable|string|in:purchase,sale,expense,return,proposal,pre_invoice,pre_purchase,recurring_invoice,purchase_return',
             'custom_command'  => 'nullable|string|max:1000',
+            // Who the document belongs to, chosen BEFORE scanning. Optional, but
+            // when supplied it is told to the model, which improves party and
+            // price matching, and it pre-fills the review screen.
+            'party_id'        => 'nullable|string',
         ]);
 
         $type = $request->input('type');
@@ -193,6 +240,23 @@ class SmartCaptureController extends Controller
             $expenseCategories = ExpenseCategory::where('tenant_id', $tenant->id)
                 ->orderBy('name')->take(200)->pluck('name')->toArray();
 
+            // ── Party chosen up front, before the scan ───────────────────────
+            // Verified against this tenant here so a bad id fails immediately,
+            // rather than after the AI request has already been spent.
+            $chosenParty = null;
+            if ($request->filled('party_id')) {
+                $chosenParty = Party::where('tenant_id', $tenant->id)
+                    ->whereKey($request->input('party_id'))
+                    ->first(['id', 'name', 'type']);
+
+                if (!$chosenParty) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'The selected customer/supplier was not found in this store.',
+                    ], 422);
+                }
+            }
+
             // ── AI extraction — ONE upstream request ─────────────────────────
             $rawResult = $this->extractionService->extract(
                 inputType: $type,
@@ -206,6 +270,12 @@ class SmartCaptureController extends Controller
                     // This store's own confirmed vocabulary, so local shorthand
                     // resolves on the first pass instead of needing a correction.
                     'learned_aliases'    => $this->learning->promptHints(),
+                    // Telling the model who the document belongs to stops it
+                    // inventing a party from a letterhead or a slogan.
+                    'known_party'        => $chosenParty ? [
+                        'name' => $chosenParty->name,
+                        'type' => $chosenParty->type,
+                    ] : null,
                 ]
             );
 
@@ -221,7 +291,12 @@ class SmartCaptureController extends Controller
 
             $suggestedPartyId = null;
             $partyLearned = false;
-            if (!empty($partyCandidates)) {
+
+            // A party the user picked before scanning always wins — they know
+            // whose document it is better than the model does.
+            if ($chosenParty && $chosenParty->type === $partyType) {
+                $suggestedPartyId = $chosenParty->id;
+            } elseif (!empty($partyCandidates)) {
                 $top = $partyCandidates[0];
                 if (!empty($top['learned'])) {
                     $suggestedPartyId = $top['id'];
@@ -325,6 +400,16 @@ class SmartCaptureController extends Controller
                 'party_candidates'      => $partyCandidates,
                 'suggested_party_id'    => $suggestedPartyId,
                 'party_learned'         => $partyLearned,
+                // Set when the user named the party before scanning.
+                'party_preselected'     => $chosenParty ? [
+                    'id'   => $chosenParty->id,
+                    'name' => $chosenParty->name,
+                    'type' => $chosenParty->type,
+                    // True when the document turned out to be the other side of
+                    // the ledger from what they picked (e.g. they chose a
+                    // customer but the scan is a supplier bill).
+                    'type_mismatch' => $chosenParty->type !== $partyType,
+                ] : null,
                 'expense_category'      => $rawResult['expense_category'] ?? null,
                 'suggested_category_id' => $suggestedCategoryId,
                 'category_learned'      => $categoryLearned,
@@ -409,8 +494,17 @@ class SmartCaptureController extends Controller
     }
 
     /**
-     * Process confirmed line items and write (or append to) a transaction,
+     * Process confirmed line items and either
+     *   - create the document directly (only for editable document types), or
+     *   - hand the reviewed lines to the normal creation screen (mode=handoff),
      * then teach the store's learning memory what the user chose.
+     *
+     * Why the split: a posted Sale is financially immutable — SaleObserver
+     * aborts on any change to a financial column, and the only correction is a
+     * credit note. Turning an OCR reading into a locked document in one click is
+     * therefore not something the user can undo. Locking document types must go
+     * through their normal creation screen, or be created as an editable draft
+     * (Pre-Sale / Purchase Order) instead.
      *
      * Everything here is user-confirmed on the review screen.
      */
@@ -438,6 +532,13 @@ class SmartCaptureController extends Controller
             'expense_category_id' => 'nullable|string',
             'date'                => 'nullable|date',
             'reference'           => 'nullable|string|max:100',
+            'notes'               => 'nullable|string|max:2000',
+            // 'create'  — write the document now (editable types only)
+            // 'handoff' — do not write; pre-fill the normal creation screen
+            'mode'                => 'nullable|in:create,handoff',
+            // Required to post a locking document type directly, and only
+            // accepted when that type has no creation screen to hand off to.
+            'acknowledge_locked'  => 'nullable|boolean',
             // Client-generated key that makes a resubmit idempotent.
             'idempotency_key'     => 'nullable|string|max:64',
             'append_to'           => 'nullable|array',
@@ -462,6 +563,54 @@ class SmartCaptureController extends Controller
         }
 
         $isAppend = !empty($request->input('append_to.id'));
+        $action   = $request->input('action');
+        $mode     = $request->input('mode', 'create');
+
+        // ── Document policy gate ─────────────────────────────────────────────
+        // Appending only ever targets draft documents, so it is always safe.
+        if (!$isAppend) {
+            $policy  = (array) config("smartcapture.document_policy.{$action}", []);
+            $locking = (bool) ($policy['locking'] ?? false);
+
+            if ($locking && $mode !== 'handoff') {
+                $hasHandoffScreen = !empty($policy['handoff_route']);
+
+                // If there is a creation screen for this document type, the user
+                // must go through it. Posting straight from a scan is not offered.
+                if ($hasHandoffScreen) {
+                    return response()->json([
+                        'success'       => false,
+                        'code'          => 'requires_review',
+                        'label'         => $policy['label'] ?? $action,
+                        'draft_action'  => $policy['draft_action'] ?? null,
+                        'message'       => ($policy['label'] ?? ucfirst($action))
+                            . ' cannot be created directly from a scan, because once posted it cannot be edited — only reversed. '
+                            . 'Finish it on the creation screen, or create the editable draft instead.',
+                    ], 422);
+                }
+
+                // No creation screen exists (expense, purchase return). Posting is
+                // allowed, but only with an explicit acknowledgement of the lock.
+                if (!$request->boolean('acknowledge_locked')) {
+                    return response()->json([
+                        'success' => false,
+                        'code'    => 'requires_acknowledgement',
+                        'label'   => $policy['label'] ?? $action,
+                        'message' => 'Posting this ' . ($policy['label'] ?? $action)
+                            . ' writes a permanent ledger entry that cannot be edited afterwards. '
+                            . 'Please confirm you have checked every line.',
+                    ], 422);
+                }
+            }
+
+            // Hand-off is only meaningful for a type that has a screen to go to.
+            if ($mode === 'handoff' && empty($policy['handoff_route'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'There is no creation screen for this document type.',
+                ], 422);
+            }
+        }
 
         // Party must be explicitly confirmed by the user (except expenses, and
         // except append mode where the target document already has its party).
@@ -524,6 +673,45 @@ class SmartCaptureController extends Controller
         }
 
         try {
+            // ── HAND-OFF: resolve the lines, write no document ───────────────
+            //    The user finishes on the normal creation screen and presses
+            //    Save there, so nothing is committed to the ledger from a scan.
+            if ($mode === 'handoff') {
+                $resolved = $this->transactionBuilderService->prepareItems(
+                    $request->input('items', []),
+                    $action
+                );
+
+                $payload = $this->prefill->buildFromConfirmation(
+                    $request->all(),
+                    $this->mergeResolvedItems($request->input('items', []), $resolved)
+                );
+
+                // Learn now: the user has already made every product and party
+                // decision on the review screen, and confirm() will not run again.
+                $this->learning->learnFromConfirmation(
+                    array_merge($request->all(), [
+                        'items' => $this->mergeResolvedItems($request->input('items', []), $resolved),
+                    ])
+                );
+
+                $key = $this->prefill->put($payload);
+                $url = route(
+                    config("smartcapture.document_policy.{$action}.handoff_route"),
+                    ['store_slug' => $tenant->slug, 'ai_prefill' => $key]
+                );
+
+                return response()->json([
+                    'success'          => true,
+                    'mode'             => 'handoff',
+                    'redirect'         => $url,
+                    'label'            => config("smartcapture.document_policy.{$action}.label", $action),
+                    'created_products' => $this->transactionBuilderService->createdProducts,
+                    'message'          => 'Opening the ' . config("smartcapture.document_policy.{$action}.label", $action)
+                        . ' screen with everything filled in. Review it and press Save to finalise.',
+                ]);
+            }
+
             $result = $this->transactionBuilderService->confirm($request->all());
 
             // ── Teach the memory AFTER the transaction is safely committed ───
@@ -546,7 +734,8 @@ class SmartCaptureController extends Controller
                 'message' => $isAppend
                     ? 'Items successfully added to the existing document!'
                     : 'Transaction successfully posted!',
-                'data'    => $result,
+                'data'             => $result,
+                'created_products' => $this->transactionBuilderService->createdProducts,
             ]);
         } catch (\Exception $e) {
             Log::error('SmartCapture confirmation failed: ' . $e->getMessage());

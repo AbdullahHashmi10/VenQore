@@ -178,8 +178,11 @@ test('a truncated JSON response is repaired instead of triggering a re-scan', fu
 // ─────────────────────────────────────────────────────────────────────────────
 
 test('confirming a transaction teaches the store what the wording meant', function () {
+    // The hand-off path teaches the memory too — the user made every product and
+    // party decision on the review screen, and confirm() will not run again.
     $payload = [
         'action'         => 'purchase',
+        'mode'           => 'handoff',
         'party'          => 'Metro Bev',           // how the AI read it
         'party_id'       => $this->supplier->id,   // what the user picked
         'payment_method' => 'cash',
@@ -305,12 +308,15 @@ test('a store BYOK key is never used by another store', function () {
 });
 
 test('the same idempotency key posts a transaction only once', function () {
+    config(['smartcapture.document_policy.purchase.handoff_route' => null]);
+
     $payload = [
-        'action'          => 'purchase',
-        'party'           => 'Metro Beverages',
-        'party_id'        => $this->supplier->id,
-        'payment_method'  => 'cash',
-        'idempotency_key' => 'fixed-key-abc123',
+        'action'             => 'purchase',
+        'party'              => 'Metro Beverages',
+        'party_id'           => $this->supplier->id,
+        'payment_method'     => 'cash',
+        'acknowledge_locked' => true,
+        'idempotency_key'    => 'fixed-key-abc123',
         'items' => [[
             'product_id' => $this->product->id,
             'raw_name'   => 'Coca Cola 1.5L Bottle',
@@ -359,6 +365,7 @@ test('an expense category the user picked is remembered', function () {
         'expense_category'    => 'bijli bill',   // how the AI read it
         'expense_category_id' => $category->id,  // what the user picked
         'payment_method'      => 'cash',
+        'acknowledge_locked'  => true,
         'items' => [[
             'product_id' => $this->product->id,
             'raw_name'   => 'Electricity bill',

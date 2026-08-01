@@ -70,6 +70,14 @@ beforeEach(function () {
 
     // Retrieve default warehouse seeded by TenantDefaultSeeder
     $this->warehouse = Warehouse::where('tenant_id', $this->tenant->id)->orderByDesc('is_default')->first();
+
+    // Disable document policy locking for legacy tests to allow direct posting
+    config([
+        'smartcapture.document_policy.sale.locking' => false,
+        'smartcapture.document_policy.purchase.locking' => false,
+        'smartcapture.document_policy.expense.locking' => false,
+        'smartcapture.document_policy.purchase_return.locking' => false,
+    ]);
 });
 
 test('gemini model extracts details and fuzzy match finds product candidates', function () {

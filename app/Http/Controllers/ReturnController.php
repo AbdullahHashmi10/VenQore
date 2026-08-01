@@ -71,11 +71,17 @@ class ReturnController extends Controller
     /**
      * Show the form for creating a new return.
      */
-    public function create()
+    public function create(Request $request)
     {
         // We pass empty/default data if needed, or just render the view.
         // The Create.jsx page seems to handle its own state via context/props.
-        return Inertia::render('Returns/Create');
+        return Inertia::render('Returns/Create', [
+            // `?ai_prefill=<key>` opens this screen pre-filled from an AI Scan.
+            // A return posts a permanent ledger entry, so AI Scan hands the
+            // lines over rather than posting them itself.
+            'aiPrefill' => app(\App\Services\SmartCapture\PrefillService::class)
+                ->pull($request->query('ai_prefill')),
+        ]);
     }
 
     /**

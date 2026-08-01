@@ -59,6 +59,21 @@ beforeEach(function () {
     $this->warehouse = Warehouse::where('tenant_id', $this->tenant->id)->orderByDesc('is_default')->first();
 });
 
+/**
+ * AI Scan no longer posts a locking document straight from a scan — the user is
+ * sent to the normal creation screen instead (see config smartcapture.document_policy
+ * and SmartCaptureController::confirm).
+ *
+ * The accounting builders below are still worth testing directly, so these tests
+ * remove the hand-off screen for one action, which makes the direct path
+ * available behind an explicit acknowledgement. Policy is config-driven precisely
+ * so this remains possible.
+ */
+function allowDirectPost(string $action): void
+{
+    config(["smartcapture.document_policy.{$action}.handoff_route" => null]);
+}
+
 test('gemini model extracts details and fuzzy match finds product candidates', function () {
     // Fake the Gemini Flash API response
     Http::fake([
@@ -123,11 +138,14 @@ test('gemini model extracts details and fuzzy match finds product candidates', f
 });
 
 test('user can confirm a purchase transaction', function () {
+    allowDirectPost('purchase');
+
     $payload = [
         'action' => 'purchase',
         'party' => 'Coca Cola Distributors',
         'party_id' => $this->supplier->id,
         'payment_method' => 'cash',
+        'acknowledge_locked' => true,
         'items' => [
             [
                 'product_id' => $this->product->id,
@@ -193,11 +211,14 @@ test('user can confirm a sale transaction', function () {
         batchType: 'purchase'
     );
 
+    allowDirectPost('sale');
+
     $payload = [
         'action' => 'sale',
         'party' => 'John Guest',
         'party_id' => $this->customer->id,
         'payment_method' => 'cash',
+        'acknowledge_locked' => true,
         'items' => [
             [
                 'product_id' => $this->product->id,
@@ -237,6 +258,9 @@ test('user can confirm an operating expense transaction', function () {
         'action' => 'expense',
         'expense_category_id' => $category->id,
         'payment_method' => 'cash',
+        // An expense has no draft form and no creation screen, so posting it is
+        // allowed — but only with an explicit acknowledgement that it locks.
+        'acknowledge_locked' => true,
         'items' => [
             [
                 'product_id' => $this->product->id, // dummy for validation
@@ -447,6 +471,7 @@ test('user can confirm a purchase return transaction', function () {
         'party' => 'Coca Cola Distributors',
         'party_id' => $this->supplier->id,
         'payment_method' => 'credit',
+        'acknowledge_locked' => true,
         'items' => [
             [
                 'product_id' => $this->product->id,

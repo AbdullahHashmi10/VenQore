@@ -37,6 +37,14 @@ class TransactionBuilderService
      */
     public array $lastResolvedItems = [];
 
+    /**
+     * Catalogue products created during the last call, so the caller can tell
+     * the user exactly what was added rather than letting it appear silently.
+     *
+     * @var array<int, array{id:string, name:string, sku:?string, raw_name:?string}>
+     */
+    public array $createdProducts = [];
+
     public function __construct(
         private AccountingService $accounting,
         private FifoService       $fifo,
@@ -137,6 +145,16 @@ class TransactionBuilderService
                 throw new \Exception('Selected party was not found in this store.');
             }
 
+            // Side-of-the-ledger guard: a customer id passed on a purchase would
+            // otherwise be accepted and booked as a supplier, silently putting
+            // the money against the wrong account.
+            if ($party->type !== $type) {
+                throw new \Exception(
+                    "The selected party \"{$party->name}\" is a {$party->type}, but this document needs a {$type}. "
+                    . "Pick the correct {$type}."
+                );
+            }
+
             return $party;
         }
 
@@ -158,6 +176,7 @@ class TransactionBuilderService
     private function materializeNewProducts(array $items, int|string $tenantId, string $action): array
     {
         $this->lastResolvedItems = [];
+        $this->createdProducts   = [];
 
         foreach ($items as $idx => $item) {
             if (!empty($item['create_new']) && is_array($item['create_new'])) {
@@ -182,10 +201,25 @@ class TransactionBuilderService
                     'sku'        => $new['sku'] ?? ('AI-' . strtoupper(Str::random(8))),
                     'price'      => (float) ($new['price'] ?? ($isPurchaseSide ? 0 : $linePrice)),
                     'cost_price' => (float) ($new['cost_price'] ?? ($isPurchaseSide ? $linePrice : 0)),
+                    // Traceability: a misread name creates a near-duplicate that
+                    // silently splits reporting. Tagging the origin lets the
+                    // Products screen surface these for review and merging.
+                    'created_via' => 'ai_scan',
                 ]);
 
                 $items[$idx]['product_id'] = $product->id;
                 unset($items[$idx]['create_new']);
+
+                // Reported back to the user so newly created products are never
+                // a surprise discovered later in the catalogue.
+                if (!$existing) {
+                    $this->createdProducts[] = [
+                        'id'       => $product->id,
+                        'name'     => $product->name,
+                        'sku'      => $product->sku,
+                        'raw_name' => $item['raw_name'] ?? $item['name'] ?? $name,
+                    ];
+                }
             } elseif ($action !== 'expense') {
                 // Tenant-isolation guard: the product must belong to this store
                 $ok = Product::where('tenant_id', $tenantId)
@@ -203,6 +237,24 @@ class TransactionBuilderService
         $this->lastResolvedItems = $items;
 
         return $items;
+    }
+
+    /**
+     * Resolve reviewed lines to real products WITHOUT writing any transaction.
+     *
+     * Used by the hand-off path: the user has confirmed on the AI Scan review
+     * screen which catalogue product each line is (and which lines are genuinely
+     * new), but the document itself will be finalised on the normal creation
+     * screen. So we materialise the products and verify tenant ownership here,
+     * and post nothing.
+     *
+     * @return array<int, array<string, mixed>> the lines, each carrying a product_id
+     */
+    public function prepareItems(array $items, string $action): array
+    {
+        $tenantId = app('current.tenant')->id;
+
+        return DB::transaction(fn () => $this->materializeNewProducts($items, $tenantId, $action));
     }
 
     /**
@@ -255,7 +307,10 @@ class TransactionBuilderService
         }
 
         $grandTotal = round($subtotal + $taxTotal, 2);
-        $supplierId = $supplier?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'supplier')->value('id');
+        // No silent fallback to "the first supplier in the table": that booked
+        // documents against a supplier who never sold anything. The guard below
+        // now throws so the user is asked instead.
+        $supplierId = $supplier?->id;
 
         if (!$supplierId) {
             throw new \Exception("Supplier is required to record a purchase.");
@@ -367,11 +422,17 @@ class TransactionBuilderService
     private function buildSale(?Party $customer, Warehouse $warehouse, string $paymentMethod, array $items): array
     {
         $tenantId = app('current.tenant')->id;
-        $customerId = $customer?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'customer')->value('id');
 
-        if (!$customerId) {
-            throw new \Exception("Customer context is required to record a sale.");
+        // NO silent fallback. This previously read
+        //   $customer?->id ?? Party::where('type','customer')->value('id')
+        // which booked the sale against whichever customer happened to be first
+        // in the table — money attributed to a person who never bought anything,
+        // on a document that cannot afterwards be edited.
+        if (!$customer) {
+            throw new \Exception('Please select the customer this sale belongs to.');
         }
+
+        $customerId = $customer->id;
 
         $saleData = [
             'customer_id' => $customerId,
@@ -499,7 +560,10 @@ class TransactionBuilderService
     private function buildReturn(?Party $customer, array $items, string $paymentMethod): array
     {
         $tenantId = app('current.tenant')->id;
-        $customerId = $customer?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'customer')->value('id');
+        // No silent fallback to "the first customer in the table": that booked
+        // documents against a person who never traded with the store. The guard
+        // below now throws so the user is asked instead.
+        $customerId = $customer?->id;
 
         if (!$customerId) {
             throw new \Exception("Customer context is required to process a return.");
@@ -686,7 +750,10 @@ class TransactionBuilderService
     private function buildProposal(?Party $customer, Warehouse $warehouse, array $items): array
     {
         $tenantId = app('current.tenant')->id;
-        $customerId = $customer?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'customer')->value('id');
+        // No silent fallback to "the first customer in the table": that booked
+        // documents against a person who never traded with the store. The guard
+        // below now throws so the user is asked instead.
+        $customerId = $customer?->id;
 
         if (!$customerId) {
             throw new \Exception("Customer context is required to record a proposal.");
@@ -769,7 +836,10 @@ class TransactionBuilderService
     private function buildPreInvoice(?Party $customer, Warehouse $warehouse, array $items): array
     {
         $tenantId = app('current.tenant')->id;
-        $customerId = $customer?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'customer')->value('id');
+        // No silent fallback to "the first customer in the table": that booked
+        // documents against a person who never traded with the store. The guard
+        // below now throws so the user is asked instead.
+        $customerId = $customer?->id;
 
         if (!$customerId) {
             throw new \Exception("Customer context is required to record a pre-invoice.");
@@ -932,7 +1002,10 @@ class TransactionBuilderService
     private function buildRecurringInvoice(?Party $customer, Warehouse $warehouse, array $items): array
     {
         $tenantId = app('current.tenant')->id;
-        $customerId = $customer?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'customer')->value('id');
+        // No silent fallback to "the first customer in the table": that booked
+        // documents against a person who never traded with the store. The guard
+        // below now throws so the user is asked instead.
+        $customerId = $customer?->id;
 
         if (!$customerId) {
             throw new \Exception("Customer context is required to record a recurring invoice.");
@@ -988,7 +1061,10 @@ class TransactionBuilderService
     private function buildPurchaseReturn(?Party $supplier, Warehouse $warehouse, array $items): array
     {
         $tenantId = app('current.tenant')->id;
-        $supplierId = $supplier?->id ?? Party::where('tenant_id', $tenantId)->where('type', 'supplier')->value('id');
+        // No silent fallback to "the first supplier in the table": that booked
+        // documents against a supplier who never sold anything. The guard below
+        // now throws so the user is asked instead.
+        $supplierId = $supplier?->id;
 
         if (!$supplierId) {
             throw new \Exception("Supplier context is required to process a purchase return.");

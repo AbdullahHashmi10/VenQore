@@ -160,6 +160,63 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
         }
     };
 
+    // ── AI Scan hand-off ─────────────────────────────────────────────────────
+    // AI Scan does not post purchases itself. A posted purchase receives stock
+    // at the scanned cost, which becomes a FIFO layer and therefore drives every
+    // future COGS and margin figure — so a misread cost quietly distorts profit
+    // for months. The user confirms it here instead. `aiPrefill` is single-use.
+    const { aiPrefill } = usePage().props;
+    const aiPrefillApplied = useRef(false);
+    const [aiPrefillNotice, setAiPrefillNotice] = useState(null);
+
+    useEffect(() => {
+        if (!aiPrefill || isEditMode || aiPrefillApplied.current) return;
+        if (!currentPurchase?.id) return; // wait for the workspace slot
+
+        aiPrefillApplied.current = true;
+
+        const items = (aiPrefill.items || [])
+            .filter(line => line.product)
+            .map((line, idx) => ({
+                id: Date.now() + idx,
+                product: line.product,
+                name: line.name || line.product?.name,
+                quantity: parseFloat(line.quantity) || 1,
+                price: parseFloat(line.price) || 0,
+                cost: parseFloat(line.price) || 0,
+                discount: 0,
+                discountType: 'fixed',
+                aiRawName: line.ai_raw_name || null,
+            }));
+
+        items.push({ id: Date.now() + 9999, product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' });
+
+        updatePurchase(currentPurchase.id, {
+            supplier: aiPrefill.party || null,
+            items,
+            notes: aiPrefill.notes || '',
+            paymentMethod: aiPrefill.payment_method || 'credit',
+            ...(aiPrefill.date ? { date: aiPrefill.date } : {}),
+        });
+
+        // Lines whose scanned cost differs from the catalogue cost are called
+        // out by name, because that is the change with lasting consequences.
+        const costChanges = (aiPrefill.items || [])
+            .filter(line => line.cost_changed)
+            .map(line => ({
+                name: line.name,
+                from: line.catalog_cost,
+                to: parseFloat(line.price) || 0,
+            }));
+
+        setAiPrefillNotice({
+            count: items.length - 1,
+            party: aiPrefill.party?.name || null,
+            reference: aiPrefill.reference || null,
+            costChanges,
+        });
+    }, [aiPrefill, isEditMode, currentPurchase?.id, updatePurchase]);
+
     // Quick Add Modals State
     const [isProductModalOpen, setIsProductModalOpen] = useState(false);
     const [productModalMode, setProductModalMode] = useState('create');
@@ -1006,6 +1063,49 @@ const CreatePurchase = ({ purchase, expenseCategories = [], products = [] }) => 
         <OneGlanceLayout title={isEditMode ? `Edit Purchase #${editState?.invoiceNumber || ''}` : "Add Purchase"} activeMenu="Purchases" fullScreen={false} hideHeader={true} noPadding={true}>
             <Head title={isEditMode ? "Edit Purchase" : "Add Purchase"} />
             <PurchaseTourGuide store={store} />
+
+            {/* AI Scan hand-off notice — nothing has been saved yet */}
+            {aiPrefillNotice && (
+                <div className="mx-4 mt-3 px-5 py-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <span className="text-xs font-black uppercase tracking-wider text-indigo-500">From AI Scan</span>
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                            {aiPrefillNotice.count} line{aiPrefillNotice.count === 1 ? '' : 's'} filled in
+                            {aiPrefillNotice.party ? ` from ${aiPrefillNotice.party}` : ''}
+                            {aiPrefillNotice.reference ? ` · ref ${aiPrefillNotice.reference}` : ''}.
+                        </span>
+                        <span className="text-xs font-bold text-amber-600 dark:text-amber-500">
+                            Nothing is saved yet — check every line, then press Save.
+                        </span>
+                        <button
+                            onClick={() => setAiPrefillNotice(null)}
+                            className="ml-auto text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+
+                    {aiPrefillNotice.costChanges?.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-indigo-500/20">
+                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-500 mb-1.5">
+                                Cost change — this will affect future profit calculations
+                            </p>
+                            <ul className="space-y-0.5">
+                                {aiPrefillNotice.costChanges.map((c, i) => (
+                                    <li key={i} className="text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                                        {c.name}: {formatCurrency(c.from)} → <span className="text-amber-600 dark:text-amber-500">{formatCurrency(c.to)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                            <p className="text-[10px] text-slate-400 mt-1.5 leading-relaxed">
+                                Saving receives stock at the new cost, which becomes the FIFO layer used for COGS.
+                                If a figure was misread, correct it before saving.
+                            </p>
+                        </div>
+                    )}
+                </div>
+            )}
+
             <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
 
                 <style>{`

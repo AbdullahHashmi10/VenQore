@@ -248,7 +248,114 @@ php artisan smartcapture:enable "Your Test Store" --mode=managed --scans=500   #
 
 ---
 
-## 9. Rollback
+## 9. v2.1 — AI Scan can no longer create anything you cannot undo
+
+### The problem
+
+`confirm` posted immediately. `buildSale()` called `SaleService::post()` directly:
+FIFO stock deducted, journals fired, `status = posted`. `SaleObserver` then aborts
+with **HTTP 403** on any change to a financial column — the only correction is a
+Return / Credit Note. So one misread digit on a handwritten bill became a
+permanently locked financial document, in one click.
+
+There is **no draft state for a `Sale`**. It is posted or it does not exist.
+
+| AI Scan created | State | Fixable afterwards? |
+|---|---|---|
+| Sale | posted, stock out, journals | **No** — 403 lock, credit note only |
+| Return / Purchase Return | posted, journals | **No** |
+| Expense | posted, journals | **No** |
+| Purchase | posted, stock in at scanned cost | Editable, but rewrites stock + ledger |
+| Sales Order, Purchase Order, Proposal, Recurring | draft / pending | **Yes** |
+
+### The rule now
+
+Driven by `config('smartcapture.document_policy')`, so it is auditable and
+adjustable per deployment rather than buried in code.
+
+- **A locking document is never written from a scan.** Pressing the button opens
+  a dialog naming the consequence, with two ways forward:
+  - **Continue** — go to the normal creation screen (`Sales/CreateInvoice`,
+    `Purchases/Create`, `Returns/Create`) with every line, the party, the date and
+    the reference already filled in. Nothing is saved until the user presses Save
+    there.
+  - **Make a Pre-Sale / Purchase Order instead** — creates the editable draft,
+    which already has a one-click Convert.
+- **Expense and Purchase Return** have neither a draft form nor a creation
+  screen, so they may still post — but only with an explicit checkbox
+  acknowledging that the entry is permanent.
+- **Editable documents** (proposal, sales order, purchase order, recurring
+  invoice) are created directly, with no extra friction.
+- Setting a document's `handoff_route` to `null` restores direct posting behind
+  the acknowledgement, which is how the accounting tests still exercise the
+  builders.
+
+**Hand-off mechanics.** `PrefillService` stores the reviewed payload server-side
+and puts only a random key in the URL. It is tenant **and** user scoped,
+single-use (a refresh cannot duplicate an entry) and expires after 30 minutes.
+Learning is recorded at hand-off time, since the user has already made every
+product and party decision and `confirm` will not run again.
+
+### Party is asked before scanning, not after
+
+A party selector now sits on the capture screen. It is optional, but when set it
+is passed to the model as context, which stops it inventing a party from a
+letterhead, and it pre-fills the review screen. If the scan turns out to be the
+other side of the ledger — a customer was chosen but it is a supplier bill — the
+review screen says so instead of quietly using it.
+
+The document-type dropdown is now grouped into **"Editable afterwards — safest"**
+and **"Final — cannot be edited once posted"**, so the choice is informed.
+
+### Silent party fallbacks removed
+
+Eight places resolved a missing party as *"whichever one is first in the table"*:
+
+```php
+$customerId = $customer?->id ?? Party::where('type','customer')->value('id');
+```
+
+That booked money against someone who never traded with the store — on a document
+that then could not be edited. The previous changelog claimed this was fixed, but
+only `resolveParty` had been done; `buildSale`, `buildPurchase`, `buildReturn`,
+`buildProposal`, `buildPreInvoice`, `buildRecurringInvoice` and
+`buildPurchaseReturn` all still had it. All now fail loudly and ask.
+
+`resolveParty` also never checked the party **type**, so a customer id passed on a
+purchase was accepted and booked as a supplier. It now refuses with a message
+naming both sides.
+
+### New products and cost changes are surfaced
+
+- Products created by a scan are tagged `products.created_via = 'ai_scan'` (new
+  column) and **listed back to the user** on the success screen with a note that a
+  misread name creates a near-duplicate that splits reporting.
+- On the purchase screen, any line whose scanned cost differs from the catalogue
+  cost is called out by name — *"Basmati Rice 5kg: 1,500 → 1,650"* — with an
+  explanation that saving sets the FIFO layer used for COGS. A misread cost
+  otherwise distorts margin silently for months.
+
+### Known limitation
+
+Products confirmed as new are created at hand-off time, so abandoning the
+creation screen leaves them in the catalogue. They are tagged `ai_scan` and
+therefore easy to find and merge, but they are not auto-removed.
+
+### New tests
+
+`tests/Feature/Chat/SmartCaptureSafetyTest.php` — 13 tests asserting that a scan
+cannot post a sale or purchase, that the ledger is untouched after a hand-off,
+that a prefill is single-use and not readable by another user, that a customer
+cannot be booked as a supplier, and that no document is ever booked against a
+guessed party.
+
+Existing tests were updated: they encoded the old behaviour, and now use either
+`mode: 'handoff'` or an explicit `acknowledge_locked` with the hand-off route
+nulled.
+
+---
+
+## 10. Rollback
 
 `git revert` the commit, then:
 

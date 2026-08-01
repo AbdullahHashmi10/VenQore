@@ -102,6 +102,15 @@ const CreateInvoice = ({ sale }) => {
         }
     }, [sale]);
 
+    // ── AI Scan hand-off ─────────────────────────────────────────────────────
+    // AI Scan never posts a sales invoice itself: a posted sale is financially
+    // immutable (SaleObserver blocks changes; the only fix is a credit note).
+    // Instead it sends the reviewed lines here, where the user gets a final look
+    // and presses Save. `aiPrefill` is single-use and expires server-side.
+    const { aiPrefill } = usePage().props;
+    const aiPrefillApplied = useRef(false);
+    const [aiPrefillNotice, setAiPrefillNotice] = useState(null);
+
     const currentInvoice = isEditMode
         ? (editState || {
             items: [],
@@ -139,6 +148,45 @@ const CreateInvoice = ({ sale }) => {
     }, [isEditMode, currentInvoice, addInvoice, settings]);
 
     // Loading state handled in main return
+
+    // Apply an AI Scan hand-off exactly once, after an invoice slot exists.
+    useEffect(() => {
+        if (!aiPrefill || isEditMode || aiPrefillApplied.current) return;
+        if (!currentInvoice) return; // wait for the workspace to create a slot
+
+        aiPrefillApplied.current = true;
+
+        const items = (aiPrefill.items || [])
+            .filter(line => line.product)
+            .map((line, idx) => ({
+                id: Date.now() + idx,
+                product: line.product,
+                name: line.name || line.product?.name,
+                quantity: parseFloat(line.quantity) || 1,
+                price: parseFloat(line.price) || 0,
+                cost: parseFloat(line.product?.cost_price || 0),
+                discount: 0,
+                discountType: 'fixed',
+                aiRawName: line.ai_raw_name || null,
+            }));
+
+        // Always leave a blank row so the user can keep typing.
+        items.push({ id: Date.now() + 9999, product: null, quantity: 1, price: 0, discount: 0, discountType: 'fixed' });
+
+        updateInvoice(currentInvoice.id, {
+            customer: aiPrefill.party || null,
+            items,
+            notes: aiPrefill.notes || '',
+            paymentMethod: aiPrefill.payment_method === 'credit' ? 'credit' : (aiPrefill.payment_method || 'cash'),
+            ...(aiPrefill.date ? { date: aiPrefill.date } : {}),
+        });
+
+        setAiPrefillNotice({
+            count: items.length - 1,
+            party: aiPrefill.party?.name || null,
+            reference: aiPrefill.reference || null,
+        });
+    }, [aiPrefill, isEditMode, currentInvoice, updateInvoice]);
 
     // Update current invoice helper
     const patchInvoice = (data) => {
@@ -1094,6 +1142,27 @@ const CreateInvoice = ({ sale }) => {
     return (
         <OneGlanceLayout title={isEditMode ? `Edit Sale #${editState?.invoiceNumber || ''}` : "Add Sale"} activeMenu="Sales" fullScreen={false} hideHeader={true} noPadding={true}>
             <Head title={isEditMode ? "Edit Sale" : "Add Sale"} />
+
+            {/* AI Scan hand-off notice — nothing has been saved yet */}
+            {aiPrefillNotice && (
+                <div className="mx-4 mt-3 px-5 py-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/25 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className="text-xs font-black uppercase tracking-wider text-indigo-500">From AI Scan</span>
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                        {aiPrefillNotice.count} line{aiPrefillNotice.count === 1 ? '' : 's'} filled in
+                        {aiPrefillNotice.party ? ` for ${aiPrefillNotice.party}` : ''}
+                        {aiPrefillNotice.reference ? ` · ref ${aiPrefillNotice.reference}` : ''}.
+                    </span>
+                    <span className="text-xs font-bold text-amber-600 dark:text-amber-500">
+                        Nothing is saved yet — check every line, then press Save. Once saved, this invoice cannot be edited.
+                    </span>
+                    <button
+                        onClick={() => setAiPrefillNotice(null)}
+                        className="ml-auto text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            )}
 
             <div className={`h-full flex-1 flex flex-col bg-slate-50 dark:bg-[#0f121d] transition-all duration-500 ${isSeniorMode ? 'text-[20px] senior-mode' : ''}`}>
                 <style>{`

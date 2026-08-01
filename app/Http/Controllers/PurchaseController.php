@@ -193,7 +193,7 @@ class PurchaseController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $parties = Party::orderBy('name')->get();
         // Pass products for search
@@ -203,7 +203,12 @@ class PurchaseController extends Controller
         return Inertia::render('Purchases/Create', [
             'parties' => $parties,
             'products' => $products,
-            'expenseCategories' => $expenseCategories
+            'expenseCategories' => $expenseCategories,
+            // `?ai_prefill=<key>` opens this screen pre-filled from an AI Scan.
+            // A posted purchase receives stock at the scanned cost, which feeds
+            // FIFO and therefore future COGS — so the user confirms it here.
+            'aiPrefill' => app(\App\Services\SmartCapture\PrefillService::class)
+                ->pull($request->query('ai_prefill')),
         ]);
     }
 

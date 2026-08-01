@@ -1303,8 +1303,14 @@ Route::middleware(['auth', 'verified', 'tenant', 'drm', \App\Http\Middleware\Dem
     Route::get('/api/pos/categories', [\App\Http\Controllers\PosController::class, 'getCategories'])->name('api.categories');
 
     // Detailed Invoice
-    Route::get('/sales/invoice/create', function () {
-        return Inertia::render('Sales/CreateInvoice');
+    // `?ai_prefill=<key>` opens this screen pre-filled from an AI Scan. AI Scan
+    // never posts a sale itself (a posted sale is immutable — see SaleObserver),
+    // so the user always finalises it here.
+    Route::get('/sales/invoice/create', function (\Illuminate\Http\Request $request) {
+        return Inertia::render('Sales/CreateInvoice', [
+            'aiPrefill' => app(\App\Services\SmartCapture\PrefillService::class)
+                ->pull($request->query('ai_prefill')),
+        ]);
     })->name('sales.invoice.create');
 
     // Master Sales Console (Atomic Analysis)

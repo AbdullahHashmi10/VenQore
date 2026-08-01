@@ -43,6 +43,18 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     // Text state
     const [textInput, setTextInput] = useState('');
 
+    // Who the document belongs to, chosen BEFORE scanning. Optional, but it is
+    // passed to the AI as context (better party + price matching) and pre-fills
+    // the review screen, so the user is never asked this for the first time at
+    // the very end.
+    const [capturePartyId, setCapturePartyId] = useState('');
+    const [capturePartySide, setCapturePartySide] = useState('customer'); // customer | supplier
+
+    // Fork shown before anything that would write a document that cannot be
+    // edited afterwards. See config/smartcapture.php document_policy.
+    const [forkDialog, setForkDialog] = useState(null);
+    const [acknowledgeLocked, setAcknowledgeLocked] = useState(false);
+
     // Intake options
     const [targetType, setTargetType] = useState('');
     const [customCommand, setCustomCommand] = useState('');
@@ -317,6 +329,9 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 type: activeTab,
                 target_type: targetType || null,
                 custom_command: customCommand || null,
+                // Told to the model so it does not invent a party from a
+                // letterhead, and used to pre-fill the review screen.
+                party_id: capturePartyId || null,
             };
 
             if (activeTab === 'image') {
@@ -441,9 +456,35 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
     const partyReady = isAppending ? true : (isExpense ? !!selectedCategoryId : !!selectedPartyId);
     const appendReady = !appendMode || (appendDocType && appendDocId);
 
+    // ── Document policy ──────────────────────────────────────────────────────
+    // Some documents cannot be edited once written. A posted sales invoice is
+    // financially immutable: correcting it means issuing a credit note. So AI
+    // Scan never writes one directly — the user either finalises it on the
+    // normal creation screen, or makes the editable draft version instead.
+    const policyFor = (action) => ctx?.document_policy?.[action] || null;
+    const currentPolicy = extractedData ? policyFor(extractedData.action) : null;
+
     // ── Confirm ──────────────────────────────────────────────────────────────
-    const handleConfirmTransaction = async () => {
+    const handleConfirmTransaction = async (options = {}) => {
         if (!extractedData || confirming) return;
+
+        const action = options.overrideAction || extractedData.action;
+        const policy = policyFor(action);
+        const isAppending2 = appendMode && !!appendDocId;
+
+        // Ask before writing anything irreversible, unless this call is already
+        // the answer to that question.
+        if (!options.resolved && !isAppending2 && policy?.locking) {
+            setAcknowledgeLocked(false);
+            setForkDialog({
+                action,
+                label: policy.label,
+                handoffUrl: policy.handoff_url,
+                draftAction: policy.draft_action,
+                draftLabel: policy.draft_label,
+            });
+            return;
+        }
 
         setConfirming(true);
         setError(null);
@@ -464,9 +505,12 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         }));
 
         const payload = {
-            action: extractedData.action,
+            action,
+            mode: options.mode || 'create',
+            acknowledge_locked: !!options.acknowledgeLocked,
             party_id: isExpense ? null : selectedPartyId,
             party: extractedData.party,
+            notes: extractedData.notes || null,
             payment_method: isExpense && paymentMethod === 'credit' ? 'cash' : paymentMethod,
             expense_category: isExpense ? (extractedData.expense_category || null) : null,
             expense_category_id: isExpense ? selectedCategoryId : null,
@@ -481,11 +525,23 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
 
         try {
             const response = await axios.post(`${baseUrl}/confirm`, payload);
+
+            if (response.data.success && response.data.mode === 'handoff') {
+                // Nothing was written. Everything the user reviewed is waiting
+                // on the creation screen, where they press Save to finalise.
+                setForkDialog(null);
+                onClose();
+                router.visit(response.data.redirect);
+                return;
+            }
+
             if (response.data.success) {
+                setForkDialog(null);
                 setSuccessData({
                     ...response.data.data,
                     message: response.data.message,
                     duplicate: response.data.duplicate,
+                    createdProducts: response.data.created_products || [],
                 });
                 // Refresh the learned-item counter shown in the header.
                 axios.get(`${baseUrl}/context`).then(r => setCtx(r.data)).catch(() => {});
@@ -493,7 +549,24 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 setError(response.data.message || 'Failed to post transaction.');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Transaction creation failed. Check the details and try again.');
+            const data = err.response?.data;
+
+            // The server refused to write a locking document without a choice.
+            // Surface the same fork rather than a raw error.
+            if (data?.code === 'requires_review' || data?.code === 'requires_acknowledgement') {
+                const policy = policyFor(action);
+                setAcknowledgeLocked(false);
+                setForkDialog({
+                    action,
+                    label: data.label || policy?.label,
+                    handoffUrl: policy?.handoff_url,
+                    draftAction: data.draft_action ?? policy?.draft_action,
+                    draftLabel: policy?.draft_label,
+                });
+            } else {
+                setForkDialog(null);
+                setError(data?.message || 'Transaction creation failed. Check the details and try again.');
+            }
         } finally {
             setConfirming(false);
         }
@@ -518,7 +591,11 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         setAppendDocId('');
         setError(null);
         setRateLimit(null);
+        setForkDialog(null);
+        setAcknowledgeLocked(false);
         idempotencyKeyRef.current = null;
+        // capturePartyId is deliberately kept: scanning a stack of bills from
+        // one supplier should not mean re-picking them every time.
     };
 
     const navigateToSuccessDoc = () => {
@@ -685,6 +762,39 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Asked up front, not at the end. Telling the AI whose
+                        document this is stops it inventing a party from a
+                        letterhead, and the user is never surprised by the
+                        question after the scan has already run. */}
+                    <div className="space-y-1.5 md:col-span-2">
+                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">
+                            Who is this document for? <span className="normal-case font-bold text-slate-400">(optional — helps the AI a lot)</span>
+                        </label>
+                        <div className="flex gap-2">
+                            <select
+                                value={capturePartySide}
+                                onChange={e => { setCapturePartySide(e.target.value); setCapturePartyId(''); }}
+                                className="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold outline-none text-slate-800 dark:text-white cursor-pointer"
+                            >
+                                <option value="customer">Customer</option>
+                                <option value="supplier">Supplier</option>
+                            </select>
+                            <select
+                                value={capturePartyId}
+                                onChange={e => setCapturePartyId(e.target.value)}
+                                className="flex-1 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white cursor-pointer"
+                            >
+                                <option value="">Let the AI read it from the document</option>
+                                {(capturePartySide === 'supplier'
+                                    ? (ctx?.parties?.suppliers || [])
+                                    : (ctx?.parties?.customers || [])
+                                ).map(p => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
                     <div className="space-y-1.5">
                         <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block ml-1">What would you like to create?</label>
                         <select
@@ -693,15 +803,19 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                             className="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-semibold outline-none text-slate-800 dark:text-white cursor-pointer"
                         >
                             <option value="">No Preference (Auto-Detect)</option>
-                            <option value="sale">Sales Invoice (Invoice/Sale)</option>
-                            <option value="purchase">Purchase (Bill/Purchase)</option>
-                            <option value="expense">Operating Expense</option>
-                            <option value="return">Sales Return</option>
-                            <option value="proposal">Proposal</option>
-                            <option value="pre_invoice">Pre-Invoice (Sales Order)</option>
-                            <option value="pre_purchase">Pre-Purchase (Purchase Order)</option>
-                            <option value="recurring_invoice">Recurring Invoice</option>
-                            <option value="purchase_return">Purchase Return (Debit Note)</option>
+                            <optgroup label="Editable afterwards — safest">
+                                <option value="pre_invoice">Pre-Sale (Sales Order)</option>
+                                <option value="pre_purchase">Purchase Order</option>
+                                <option value="proposal">Proposal / Quote</option>
+                                <option value="recurring_invoice">Recurring Invoice</option>
+                            </optgroup>
+                            <optgroup label="Final — cannot be edited once posted">
+                                <option value="sale">Sales Invoice</option>
+                                <option value="purchase">Purchase Bill</option>
+                                <option value="expense">Operating Expense</option>
+                                <option value="return">Sales Return</option>
+                                <option value="purchase_return">Purchase Return (Debit Note)</option>
+                            </optgroup>
                         </select>
                     </div>
                     <div className="space-y-1.5">
@@ -837,6 +951,107 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
         </div>
     );
 
+    // ── Finalise-vs-draft fork ───────────────────────────────────────────────
+    // Shown before AI Scan would write anything that cannot be edited later.
+    // The user either goes to the normal creation screen to finalise it, or
+    // makes the editable draft version instead.
+    const renderForkDialog = () => {
+        if (!forkDialog) return null;
+
+        const { label, handoffUrl, draftAction, draftLabel } = forkDialog;
+        const canHandoff = !!handoffUrl;
+
+        return (
+            <div
+                className="absolute inset-0 z-[60] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-6 animate-in fade-in duration-150"
+                onClick={() => !confirming && setForkDialog(null)}
+            >
+                <div
+                    className="w-full max-w-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-7 shadow-2xl animate-in zoom-in-95 duration-200"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <div className="flex items-start gap-3 mb-4">
+                        <div className="w-11 h-11 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shrink-0">
+                            <Lock size={20} />
+                        </div>
+                        <div>
+                            <h3 className="text-base font-black text-slate-800 dark:text-white tracking-tight">
+                                A {label} cannot be edited later
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                Once posted it becomes a permanent accounting record. Fixing a mistake then means
+                                issuing a return or credit note — you cannot simply change it.
+                            </p>
+                        </div>
+                    </div>
+
+                    {canHandoff ? (
+                        <p className="text-xs text-slate-500 leading-relaxed mb-5 bg-slate-50 dark:bg-slate-850/60 border border-slate-100 dark:border-slate-800 rounded-2xl p-4">
+                            Choosing <span className="font-bold text-slate-700 dark:text-slate-200">Continue</span> takes you
+                            to the {label} screen with everything already filled in from this scan. Nothing is saved until
+                            you press Save there, so you get one last look at every line.
+                        </p>
+                    ) : (
+                        <label className="flex items-start gap-2.5 text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-5 bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={acknowledgeLocked}
+                                onChange={e => setAcknowledgeLocked(e.target.checked)}
+                                className="mt-0.5 w-4 h-4 rounded accent-indigo-600 shrink-0"
+                            />
+                            <span>
+                                There is no draft version of a {label}, so this will post straight to your ledger.
+                                I have checked every line and understand it cannot be edited afterwards.
+                            </span>
+                        </label>
+                    )}
+
+                    <div className="flex flex-col gap-2.5">
+                        {canHandoff && (
+                            <button
+                                onClick={() => handleConfirmTransaction({ resolved: true, mode: 'handoff' })}
+                                disabled={confirming}
+                                className="w-full px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
+                            >
+                                {confirming ? <Loader2 size={14} className="animate-spin" /> : <ChevronRight size={14} />}
+                                Continue — review on the {label} screen
+                            </button>
+                        )}
+
+                        {draftAction && (
+                            <button
+                                onClick={() => handleConfirmTransaction({ resolved: true, overrideAction: draftAction, mode: 'create' })}
+                                disabled={confirming}
+                                className="w-full px-5 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-black text-slate-700 dark:text-slate-200 hover:border-indigo-400 transition-all active:scale-[0.99] disabled:opacity-40 flex items-center justify-center gap-2"
+                            >
+                                <FilePlus2 size={14} />
+                                Make a {draftLabel} instead — I can still change it
+                            </button>
+                        )}
+
+                        {!canHandoff && (
+                            <button
+                                onClick={() => handleConfirmTransaction({ resolved: true, mode: 'create', acknowledgeLocked: true })}
+                                disabled={confirming || !acknowledgeLocked}
+                                className="w-full px-5 py-3 bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white rounded-xl text-xs font-black transition-all active:scale-[0.99] disabled:opacity-30"
+                            >
+                                {confirming ? 'Posting…' : `Post this ${label} now`}
+                            </button>
+                        )}
+
+                        <button
+                            onClick={() => setForkDialog(null)}
+                            disabled={confirming}
+                            className="w-full px-5 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors disabled:opacity-40"
+                        >
+                            No, take me back to the review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
     // ── Locked screen ────────────────────────────────────────────────────────
     const renderLocked = () => (
         <div className="flex-1 flex flex-col justify-center p-8 overflow-y-auto max-h-full">
@@ -935,6 +1150,7 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                 <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/5 rounded-full blur-[100px] pointer-events-none" />
 
                 {showSettings && renderSettingsDrawer()}
+                {renderForkDialog()}
 
                 {/* Header */}
                 <div className="p-6 bg-slate-900 text-white shrink-0 flex items-center justify-between border-b border-slate-800 relative z-10">
@@ -1056,6 +1272,27 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                     <span className="text-slate-800 dark:text-white font-black">Rs. {Math.abs(successData.total || 0).toFixed(2)}</span>
                                 </div>
                             </div>
+
+                            {/* New catalogue products should never appear silently */}
+                            {successData.createdProducts?.length > 0 && (
+                                <div className="mt-5 max-w-sm w-full text-left bg-indigo-500/5 border border-indigo-500/20 rounded-2xl p-4">
+                                    <p className="text-[10px] font-black uppercase tracking-wider text-indigo-500 mb-2 flex items-center gap-1.5">
+                                        <Plus size={11} />
+                                        {successData.createdProducts.length} new product{successData.createdProducts.length > 1 ? 's' : ''} added to your catalogue
+                                    </p>
+                                    <ul className="space-y-1">
+                                        {successData.createdProducts.map(p => (
+                                            <li key={p.id} className="text-[11px] text-slate-600 dark:text-slate-300 font-semibold">
+                                                {p.name} <span className="text-slate-400 font-mono">({p.sku})</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                    <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
+                                        Check the spelling — a misread name creates a near-duplicate that splits your reports.
+                                        You can find these under Products, filtered by "created by AI Scan".
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="mt-8 flex gap-4">
                                 <button
@@ -1183,6 +1420,25 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                 <div className="px-8 py-2.5 bg-indigo-500/10 border-b border-indigo-500/20 flex items-center gap-2 text-xs font-bold text-indigo-500">
                                     <Layers size={13} />
                                     Items will be ADDED to the selected existing {appendDocType.replace(/_/g, ' ')} — no new document will be created.
+                                </div>
+                            )}
+
+                            {/* Wrong side of the ledger — they picked a customer but this is a supplier bill */}
+                            {extractedData.party_preselected?.type_mismatch && (
+                                <div className="px-8 py-2.5 bg-rose-500/10 border-b border-rose-500/20 flex items-center gap-2 text-xs font-bold text-rose-500">
+                                    <AlertTriangle size={13} />
+                                    You chose the {extractedData.party_preselected.type} "{extractedData.party_preselected.name}",
+                                    but this looks like a {partyType} document. Pick the right {partyType} below.
+                                </div>
+                            )}
+
+                            {/* What pressing the button will actually do */}
+                            {!isAppending && currentPolicy?.locking && (
+                                <div className="px-8 py-2.5 bg-amber-500/10 border-b border-amber-500/20 flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-500">
+                                    <Lock size={13} />
+                                    {currentPolicy.handoff_url
+                                        ? `A ${currentPolicy.label} cannot be edited once posted — you will get a final review on the ${currentPolicy.label} screen before anything is saved.`
+                                        : `A ${currentPolicy.label} posts a permanent ledger entry that cannot be edited afterwards.`}
                                 </div>
                             )}
 
@@ -1393,17 +1649,25 @@ export default function SmartCapturePanel({ isOpen, onClose, initialTab = 'image
                                         Re-Intake
                                     </button>
                                     <button
-                                        onClick={handleConfirmTransaction}
+                                        onClick={() => handleConfirmTransaction()}
                                         disabled={confirming || !itemsReady || !partyReady || !appendReady}
                                         className="px-8 py-2.5 bg-slate-900 hover:bg-slate-800 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white rounded-xl text-xs font-black shadow-lg shadow-indigo-500/10 transition-all active:scale-95 disabled:opacity-30 disabled:hover:scale-100"
                                     >
                                         {confirming ? (
                                             <div className="flex items-center gap-1.5">
                                                 <Loader2 className="animate-spin" size={14} />
-                                                <span>Posting...</span>
+                                                <span>Working...</span>
                                             </div>
                                         ) : (
-                                            <span>{appendMode && appendDocId ? 'Add to Document' : 'Post Transaction'}</span>
+                                            <span>
+                                                {isAppending
+                                                    ? 'Add to Document'
+                                                    /* A locking document is never posted from here — the label
+                                                       says so, rather than promising something it will not do. */
+                                                    : currentPolicy?.locking
+                                                        ? (currentPolicy.handoff_url ? 'Review & Finalise…' : 'Post Transaction…')
+                                                        : `Create ${currentPolicy?.label || 'Document'}`}
+                                            </span>
                                         )}
                                     </button>
                                 </div>
